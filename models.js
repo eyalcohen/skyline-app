@@ -13,7 +13,7 @@ var crypto = require('crypto')
   , Slice86400000000
 ;
 
-function defineModels(mongoose, parser, generateId, fn) {
+function defineModels(mongoose, generateId, fn) {
   var Schema = mongoose.Schema
     , ObjectId = Schema.ObjectId
   ;

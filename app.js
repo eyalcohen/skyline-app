@@ -1,6 +1,3 @@
-// TODO: check number of samples adding to bucket... process higher level buckets.
-// add multiple cycles per vehicle... and spread them out randomly -- NOPE, not needed
-
 
 /**
  * Module dependencies.
@@ -10,6 +7,7 @@ var express = require('express')
   , mongoose = require('mongoose')
   , fs = require('fs')
   , sys = require('sys')
+  , path = require('path')
   , csv = require('csv')
   , parser = require('mongoose/support/node-mongodb-native/lib/mongodb').BinaryParser
   , oid = require('mongoose/lib/mongoose/types/objectid')
@@ -26,82 +24,18 @@ var express = require('express')
   , stub
 ;
 
-var app = module.exports = express.createServer();
 
-// Configuration
-
-app.configure(function () {
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
-});
-
-app.configure('development', function () {
-  app.set('db-uri', 'mongodb://localhost/stub-development');
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
-});
-
-app.configure('test', function () {
-  app.set('db-uri', 'mongodb://localhost/stub-test');
-});
-
-app.configure('production', function () {
-  app.set('db-uri', 'mongodb://localhost/stub-production');
-  app.use(express.errorHandler()); 
-});
-
-models.defineModels(mongoose, parser, generateId, function () {
-  app.User = User = mongoose.model('User');
-  app.Vehicle = Vehicle = mongoose.model('Vehicle');
-  app.Slice1000 = Slice1000 = mongoose.model('Slice1000');
-  app.Slice20000 = Slice20000 = mongoose.model('Slice20000');
-  app.Slice1000000 = Slice1000000 = mongoose.model('Slice1000000');
-  app.Slice60000000 = Slice60000000 = mongoose.model('Slice60000000');
-  app.Slice3600000000 = Slice3600000000 = mongoose.model('Slice3600000000');
-  app.Slice86400000000 = Slice86400000000 = mongoose.model('Slice86400000000');
-  db = mongoose.connect(app.set('db-uri'));
-});
-
-// Params
-
-app.param('vehId', function (req, res, next, id) {
-  var num = vehicles.length
-    , cnt = 0
-  ;
-  vehicles.forEach(function (v) {
-    if (v.id == id) {
-      req.veh = v;
-      next();
-      return;
-    }
-    cnt++;
-    if(cnt == num)
-      return next(new Error('Failed to find Vehicle'));
-  });
-});
-
-app.param('vid', function (req, res, next, id) {
-  Vehicle.findById(id, function (err, veh) {
-    if (err) return next(err);
-    if (!veh) return next(new Error('Failed to find Vehicle'));
-    req.vehicle = veh;
-    next();
-  });
-});
-
+// Helpers
 
 function findVehicles(next) {
-  Vehicle.find({}, function (err, vehs) {
+  Vehicle.find({}, [], { limit: 100 }).sort('_id', -1).run(function (err, vehs) {
     var num = vehs.length
       , cnt = 0
     ;
     if (num > 0)
-      vehs.forEach(function (v) {
-        User.findById(v.user_id, function (err, u) {
-          v.user = u;
+      vehs.forEach(function (veh) {
+        User.findById(veh.user_id, function (err, usr) {
+          veh.user = usr;
           cnt++;
           if (cnt == num)
             next(vehs);
@@ -112,126 +46,44 @@ function findVehicles(next) {
   });
 }
 
-function findVehicleFromBucketId(id, next) {
-  //var upper = new oid(generateBucketId, { vid: vehicle._id.vid, time: 1288730398000 });
-  //var lower = new oid(generateBucketId, { vid: vehicle._id.vid, time: 1288730715000 });
-
-  //console.log(upper.toHexString(), lower.toHexString());
-
-  //Slice20000.find({})
-}
-
-// Routes
-
-app.get('/', function (req, res) {
-  res.render('index', {
-    data: vehicles
-  });
-});
-
-app.get('/v', function (req, res) {
-  findVehicles(function (vehicless) {
-    res.render('indexx', {
-      data: vehicless
+function findVehicleBuckets(id, slice, from, to, next) {
+  if ('function' == typeof from) {
+    next = from;
+    from = 0;
+    to = (new Date()).getTime();
+  } else if ('function' == typeof to) {
+    next = to;
+    to = (new Date()).getTime();
+  }
+  from = from == 0 ? id : new oid(generateId, { vid: id.vid, time: (new Date(from)).getTime() });
+  to = new oid(generateId, { vid: id.vid, time: to });
+  db.connections[0].collections['slice' + slice + 's'].find({ _id: { $gt: from, $lt: to } }, function (err, cursor) {
+    cursor.toArray(function (err, bucks) {
+      if (err || !bucks || bucks.length == 0) {
+        console.log('vehicle has no data in Slice' + slice);
+        next([]);
+      } else {
+        next(bucks);
+      }
     });
   });
-});
-
-app.get('/cycles/:vehId', function (req, res) {
-  var num = req.veh.cycles.length
-    , cnt = 0
-  ;
-  req.veh.cycles.forEach(function (c) {
-    delete c.slice;
-    cnt++;
-    if (cnt == num - 1) {
-      res.render('vehicle', {
-        data: req.veh
-      });
-    }
-  });
-});
-
-app.get('/v/:vid', function (req, res) {
-  var cycles = []
-    , num = Math.random() * 10
-    , i = 0
-  ;
-  
-  function make() {
-    var off = Math.round(Math.random() * 1000 * 60 * 60 * 7)
-      , dur = Math.round(Math.random() * 1000 * 60 * 60 / 100) * 100
-      , end = j > 0 ? cycles[j - 1].end - off : new Date(new Date() - off).valueOf()
-      , start = end - dur
-      , cur = start
-      , t = 0
-      , dur = 100
-      , d = data.LA4
-      , slice = []
-    ;
-    while (cur <= end) {
-      if (Math.ceil(t) > d.length - 1)
-        t = 0;
-      var speed = (t % 1) * d[Math.floor(t)][1] + (1 - t % 1) * d[Math.ceil(t)][1];
-      speed = Math.round(10 * speed) / 10;
-      slice.push([ cur, speed ]);
-      cur += dur;
-      t += 0.1;
-    }
-    i++;
-    if (i == num)
-      res.render('vehicle', {
-        data: req.vehicle
-      });
-    else
-      make();
-  }
-    //cycles.push({ start: start, end: end , slice: slice });
-});
-
-
-
-
-
-
-function makeStub(fn) {
-  for (i=0; i < 5; i++) {
-    var v = data.cars[Math.floor(Math.random() * data.cars.length)]
-      , name = v[2][Math.floor(Math.random() * v[2].length)] + ' ' + v[1] + ' ' + v[0]
-      , id = makeKey(4)
-      , cycles = []
-      , numCycles = Math.random() * 10
-    ;
-    for (var j=0; j < numCycles; j++) {
-      var off = Math.round(Math.random() * 1000 * 60 * 60 * 7)
-        , dur = Math.round(Math.random() * 1000 * 60 * 60 / 100) * 100
-        , end = j > 0 ? cycles[j - 1].end - off : new Date(new Date() - off).valueOf()
-        , start = end - dur
-        , cur = start
-        , t = 0
-        , dur = 100
-        , d = data.LA4
-        , slice = []
-      ;
-      while (cur <= end) {
-        if (Math.ceil(t) > d.length - 1)
-          t = 0;
-        var speed = (t % 1) * d[Math.floor(t)][1] + (1 - t % 1) * d[Math.ceil(t)][1];
-        speed = Math.round(10 * speed) / 10;
-        slice.push([ cur, speed ]);
-        cur += dur;
-        t += 0.1;
-      }
-      cycles.push({ start: start, end: end , slice: slice });
-    }
-    vehicles.push({ id: id, name: name, cycles: cycles.reverse() });
-  }
-  fn();
 }
 
-/**
- * DatabaseStub Object.
- */
+
+// Utils
+
+function generateId(tokens) {
+  var vid = tokens && tokens.vid || parseInt(Math.random() * 0xffffffff);
+  var time = tokens && tokens.time || (new Date()).getTime();
+  var vehicle4Bytes = parser.encodeInt(vid, 32, false, true);
+  var time4Bytes = parser.encodeInt(parseInt(time / 1000), 32, true, true);
+  var time2Bytes = parser.encodeInt(parseInt(time % 1000), 16, true, true);
+  var index2Bytes = parser.encodeInt(this.get_inc16(), 16, false, true);
+  return vehicle4Bytes + time4Bytes + time2Bytes + index2Bytes;
+}
+
+
+// Database Stub
 
 var DatabaseStub = function () {
   this.data = [];
@@ -339,7 +191,7 @@ DatabaseStub.prototype.expand = function (from, to, fn) {
     console.log(error.message);
   });
 }
-  
+
 DatabaseStub.prototype.load = function (from, fn) {
   var self = this;
   csv()
@@ -476,68 +328,87 @@ DatabaseStub.prototype.average = function (v_id, from, fn) {
   });
 }
 
-// Utils
 
-function makeKey(l) {
-  var text = "";
-  var possible = "0123456789";
-  for( var i=0; i < l; i++ )
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-  return text;
-}
+// Configuration
 
-function generateId(tokens) {
-  var vid = tokens && tokens.vid || parseInt(Math.random() * 0xffffffff);
-  var time = tokens && tokens.time || (new Date()).getTime();
-  var vehicle4Bytes = parser.encodeInt(vid, 32, false, true);
-  var time4Bytes = parser.encodeInt(parseInt(time / 1000), 32, true, true);
-  var time2Bytes = parser.encodeInt(parseInt(time % 1000), 16, true, true);
-  var index2Bytes = parser.encodeInt(this.get_inc16(), 16, false, true);
-  return vehicle4Bytes + time4Bytes + time2Bytes + index2Bytes;
-}
+var app = module.exports = express.createServer();
+app.configure(function () {
+  app.set('views', __dirname + '/views');
+  app.set('view engine', 'jade');
+  app.use(express.bodyParser());
+  app.use(express.logger({ format: '\x1b[1m:method\x1b[0m \x1b[33m:url\x1b[0m :response-time ms' }))
+  app.use(express.methodOverride());
+  app.use(app.router);
+  app.use(express.static(__dirname + '/public'));
+});
 
+app.configure('development', function () {
+  app.set('db-uri', 'mongodb://localhost/stub-development');
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+});
+
+app.configure('test', function () {
+  app.set('db-uri', 'mongodb://localhost/stub-test');
+});
+
+app.configure('production', function () {
+  app.set('db-uri', 'mongodb://localhost/stub-production');
+  app.use(express.errorHandler()); 
+});
+
+models.defineModels(mongoose, generateId, function () {
+  app.User = User = mongoose.model('User');
+  app.Vehicle = Vehicle = mongoose.model('Vehicle');
+  app.Slice1000 = Slice1000 = mongoose.model('Slice1000');
+  app.Slice20000 = Slice20000 = mongoose.model('Slice20000');
+  app.Slice1000000 = Slice1000000 = mongoose.model('Slice1000000');
+  app.Slice60000000 = Slice60000000 = mongoose.model('Slice60000000');
+  app.Slice3600000000 = Slice3600000000 = mongoose.model('Slice3600000000');
+  app.Slice86400000000 = Slice86400000000 = mongoose.model('Slice86400000000');
+  db = mongoose.connect(app.set('db-uri'));
+});
+
+
+// Params
+
+app.param('vid', function (req, res, next, id) {
+  var to = new oid(generateId, { vid: id, time: (new Date()).getTime() })
+    , from = new oid(to.toHexString().substr(0,8) + '0000000000000000')
+  ;
+  db.connections[0].collections.vehicles.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
+    if (!err && veh)
+      req.vehicle = veh;
+    next();
+  });
+});
+
+
+// Routes
+
+app.get('/', function (req, res) {
+  findVehicles(function (vehs) {
+    res.render('index', {
+      data: vehs
+    });
+  });
+});
+
+app.get('/v/:vid', function (req, res) {
+  findVehicleBuckets(req.vehicle._id, 1000000, function (bucks) {
+    res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+  });
+});
 
 
 // Only listen on $ node app.js
 
 if (!module.parent) {
-  //stub = new DatabaseStub();
+  stub = new DatabaseStub();
   //stub.clear(function () {
-    //stub.create(__dirname + '/cycle.csv', 1, function () {
+    //stub.create(__dirname + '/cycle.csv', 1, 100, function () {
       app.listen(3000);
       console.log("Express server listening on port %d", app.address().port);
     //});
   //});
 }
 
-
-
-//console.log(vehicle.time, vehicle.vehicle);
-// for (i=0; i < 5; i++) {
-//   var cycles = []
-//     , numCycles = Math.random() * 10
-//   ;
-//   for (var j=0; j < numCycles; j++) {
-//     var off = Math.round(Math.random() * 1000 * 60 * 60 * 7)
-//       , dur = Math.round(Math.random() * 1000 * 60 * 60 / 100) * 100
-//       , end = j > 0 ? cycles[j - 1].end - off : new Date(new Date() - off).valueOf()
-//       , start = end - dur
-//       , cur = start
-//       , t = 0
-//       , dur = 100
-//       , d = data.LA4
-//       , slice = []
-//     ;
-//     while (cur <= end) {
-//       if (Math.ceil(t) > d.length - 1)
-//         t = 0;
-//       var speed = (t % 1) * d[Math.floor(t)][1] + (1 - t % 1) * d[Math.ceil(t)][1];
-//       speed = Math.round(10 * speed) / 10;
-//       slice.push([ cur, speed ]);
-//       cur += dur;
-//       t += 0.1;
-//     }
-//     cycles.push({ start: start, end: end , slice: slice });
-//   }
-//   vehicles.push({ id: id, name: name, cycles: cycles.reverse() });
-// }

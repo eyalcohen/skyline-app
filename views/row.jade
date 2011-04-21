@@ -1,4 +1,13 @@
+- var color = indexInCollection % 2 ? 'dark' : 'light';
 tr
-  td.vehicle-row
-    a(href='/cycles/' + row.id, id='vehicle-' + row.id, class='vehicle-row-link')
-      =row.name
+  td.expand(class=color)
+    a.expander(href="javascript:;", id="vehicle-" + row._id.vid)
+      img(src="/gfx/arrow.png")
+  td.leftest(class=color)
+    =row.year + ' ' + row.make + ' ' + row.model
+  td(class=color)
+    =row._id.vid
+  td(class=color) 4,615
+  td(class=color) 8 hours ago
+  td(class=color)
+    a.row-link(href="javascript:;", id="ev-rating-" + 8.5) 8.5

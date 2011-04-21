@@ -82,15 +82,16 @@ Stub = (function ($) {
           }
         };
         
-        // $('.vehicle-row-link').live('click', function () {
-        //   $.get('/cycles/', { id: $(this).itemID() }, function (serv) {
-        //     if (serv.status == 'success') {
-        //      
-        //     } else
-        //       console.log(serv.message);
-        //     }
-        //   });
-        // });
+        
+        // initial vehicle cycle query 
+        $('a.expander').live('click', function () {
+          $.get('/v/' + $(this).itemID(), { id: $(this).itemID() }, function (serv) {
+            if (serv.status == 'success') {
+              console.log(serv.data.bucks);
+            } else
+              console.log(serv.message);
+          });
+        });
         
         // $('.vehicle-row-link').live('click', function (e) {
         //   e.preventDefault();
