@@ -82,6 +82,38 @@ Stub = (function ($) {
           }
         };
         
+        // layer tabs
+        var tabs = $('.tab');
+        tabs.each(function (i) {
+          $(this).css({ zIndex: tabs.length - i }).data({ z: tabs.length - i });
+        });
+        
+        // click a tab
+        tabs.live('click', function () {
+          var $this = $(this);
+          $('.tab-active').each(function (i) {
+            var $this = $(this);
+            $this.removeClass('tab-active');
+            $this.css({ zIndex: $this.data('z') });
+            flipTabSides($this);
+            $('.tab-content', $this).addClass('tab-content-inactive');
+          });
+          $this.addClass('tab-active');
+          $this.css({ zIndex: 10001 + $this.css('z-index') });
+          flipTabSides($this);
+          $('.tab-content', $this).removeClass('tab-content-inactive');
+        });
+        
+        var flipTabSides = function (ctx) {
+          var sides = $('.tab-side img', ctx);
+          sides.each(function (i) {
+            var $this = $(this)
+              , old = $this.attr('src')
+              , noo = $this.attr('alt')
+            ;
+            $this.attr({ src: noo, alt: old });
+          });
+        };
         
         // initial vehicle cycle query 
         $('a.expander').live('click', function () {

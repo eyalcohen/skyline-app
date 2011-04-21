@@ -3,30 +3,30 @@
     img#logo(src="/gfx/logo.png", alt="Mission Motors")
   #main(role="main")
     div.tabs
+      div.tab.tab-active(style="left: 30px;")
+        a(href="#")
+          div.tab-side
+            img(src="/gfx/tab-left-side.png", alt="/gfx/tab-left-side-dark.png")
+          div.tab-content All Cycles
+          div.tab-side
+            img(src="/gfx/tab-right-side.png", alt="/gfx/tab-right-side-dark.png")
+      div.tab(style="left: 128px;")
+        a(href="#")
+          div.tab-side
+            img(src="/gfx/tab-left-side-dark.png", alt="/gfx/tab-left-side.png")
+          div.tab-content.tab-content-inactive My History
+          div.tab-side
+            img(src="/gfx/tab-right-side-dark.png", alt="/gfx/tab-right-side.png")
+      div.tab(style="right: 20px;")
+        a(href="#")
+          div.tab-side
+            img(src="/gfx/tab-left-side-dark.png", alt="/gfx/tab-left-side.png")
+          div.tab-content.tab-content-inactive Preferences
+          div.tab-side
+            img(src="/gfx/tab-right-side-dark.png", alt="/gfx/tab-right-side.png")
       div.tab-bar
         div.tab-bar-top
         div.tab-bar-bottom
-      div.tab(style="left: 30px; z-index: 10001;")
-        a(href="#")
-          div.tab-side
-            img(src="/gfx/tab-left-side.png")
-          div.tab-content All Cycles
-          div.tab-side
-            img(src="/gfx/tab-right-side.png")
-      div.tab(style="left: 128px; opacity: 0.8;")
-        a(href="#")
-          div.tab-side
-            img(src="/gfx/tab-left-side.png")
-          div.tab-content My History
-          div.tab-side
-            img(src="/gfx/tab-right-side.png")
-      div.tab(style="right: 20px; opacity: 0.8;")
-        a(href="#")
-          div.tab-side
-            img(src="/gfx/tab-left-side.png")
-          div.tab-content Preferences
-          div.tab-side
-            img(src="/gfx/tab-right-side.png")
     div.folder
       table
         thead
