@@ -1,13 +1,21 @@
 - var color = indexInCollection % 2 ? 'dark' : 'light';
-tr
-  td.expand(class=color)
+div.tr
+  div.td.expand(class=color)
     a.expander(href="javascript:;", id="vehicle-" + row._id.vid)
       img(src="/gfx/arrow.png")
-  td.leftest(class=color)
+  div.td.leftest(class=color)
     =row.year + ' ' + row.make + ' ' + row.model
-  td(class=color)
+  div.td(class=color)
     =row._id.vid
-  td(class=color) 4,615
-  td(class=color) 8 hours ago
-  td(class=color)
+  div.td(class=color) 4,615
+  div.td(class=color) 8 hours ago
+  div.td(class=color)
     a.row-link(href="javascript:;", id="ev-rating-" + 8.5) 8.5
+div.tr.row-details
+  div.td
+    div.details
+      div.details-bar-top
+      div.details-bar-bottom
+      div.details-loader-wrap
+        div.details-loader
+          span Loading driving data...

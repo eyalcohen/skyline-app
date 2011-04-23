@@ -17,10 +17,18 @@ Stub = (function ($) {
           };
         $.get('/search/' + val + '.json', data, fn);
       }
-  
-  
-  
-  
+
+    , flipTabSides = function (ctx) {
+        var sides = $('.tab-side img', ctx);
+        sides.each(function (i) {
+          var $this = $(this)
+            , old = $this.attr('src')
+            , noo = $this.attr('alt')
+          ;
+          $this.attr({ src: noo, alt: old });
+        });
+      }
+
   ;
   
   
@@ -85,7 +93,12 @@ Stub = (function ($) {
         // layer tabs
         var tabs = $('.tab');
         tabs.each(function (i) {
-          $(this).css({ zIndex: tabs.length - i }).data({ z: tabs.length - i });
+          $this = $(this);
+          var z = $this.hasClass('tab-active') ? 
+            10001 + tabs.length - i : 
+            tabs.length - i
+          ;
+          $this.css({ zIndex: z });
         });
         
         // click a tab
@@ -94,36 +107,43 @@ Stub = (function ($) {
           $('.tab-active').each(function (i) {
             var $this = $(this);
             $this.removeClass('tab-active');
-            $this.css({ zIndex: $this.data('z') });
+            $this.css({ zIndex: parseInt($this.css('z-index')) - 10001 });
             flipTabSides($this);
             $('.tab-content', $this).addClass('tab-content-inactive');
           });
           $this.addClass('tab-active');
-          $this.css({ zIndex: 10001 + $this.css('z-index') });
+          $this.css({ zIndex: 10001 + parseInt($this.css('z-index')) });
           flipTabSides($this);
           $('.tab-content', $this).removeClass('tab-content-inactive');
         });
         
-        var flipTabSides = function (ctx) {
-          var sides = $('.tab-side img', ctx);
-          sides.each(function (i) {
-            var $this = $(this)
-              , old = $this.attr('src')
-              , noo = $this.attr('alt')
-            ;
-            $this.attr({ src: noo, alt: old });
-          });
-        };
         
         // initial vehicle cycle query 
         $('a.expander').live('click', function () {
-          $.get('/v/' + $(this).itemID(), { id: $(this).itemID() }, function (serv) {
-            if (serv.status == 'success') {
-              console.log(serv.data.bucks);
-            } else
-              console.log(serv.message);
-          });
+          var $this = $(this)
+            , arrow = $('img', $this)
+            , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
+            , deets = $(deetsHolder.children(0).children(0))
+            //, loader = $()
+          ;
+          if (!arrow.hasClass('open')) {
+            arrow.addClass('open');
+            deetsHolder.show();
+            deets.animate({ height: 252 }, 150, 'easeOutExpo', function () {
+              $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
+                if (serv.status == 'success') {
+                  console.log(serv.data.bucks);
+                } else
+                  console.log(serv.message);
+              });
+            });
+          } else {
+            arrow.removeClass('open');
+            deetsHolder.hide();
+            deets.css({ height: 20 });
+          }
         });
+        
         
         // $('.vehicle-row-link').live('click', function (e) {
         //   e.preventDefault();

@@ -4,21 +4,21 @@
   #main(role="main")
     div.tabs
       div.tab.tab-active(style="left: 30px;")
-        a(href="#")
+        a(href="javascript:;")
           div.tab-side
             img(src="/gfx/tab-left-side.png", alt="/gfx/tab-left-side-dark.png")
           div.tab-content All Cycles
           div.tab-side
             img(src="/gfx/tab-right-side.png", alt="/gfx/tab-right-side-dark.png")
       div.tab(style="left: 128px;")
-        a(href="#")
+        a(href="javascript:;")
           div.tab-side
             img(src="/gfx/tab-left-side-dark.png", alt="/gfx/tab-left-side.png")
           div.tab-content.tab-content-inactive My History
           div.tab-side
             img(src="/gfx/tab-right-side-dark.png", alt="/gfx/tab-right-side.png")
       div.tab(style="right: 20px;")
-        a(href="#")
+        a(href="javascript:;")
           div.tab-side
             img(src="/gfx/tab-left-side-dark.png", alt="/gfx/tab-left-side.png")
           div.tab-content.tab-content-inactive Preferences
@@ -28,15 +28,13 @@
         div.tab-bar-top
         div.tab-bar-bottom
     div.folder
-      table
-        thead
-          tr
-            th.expand &nbsp;
-            th.leftest Vehicle
-            th Identifier
-            th Miles Recorded
-            th Last Seen
-            th.rightest EV Compatibility
-        tbody
-          !=partial('row', data)
+      div.table
+        div.tr
+          div.th.expand &nbsp;
+          div.th.leftest Vehicle
+          div.th Identifier
+          div.th Miles Recorded
+          div.th Last Seen
+          div.th.rightest EV Compatibility
+        !=partial('row', data)
   footer
