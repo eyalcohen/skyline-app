@@ -17,6 +17,22 @@ Stub = (function ($) {
           };
         $.get('/search/' + val + '.json', data, fn);
       }
+      
+      
+    , mouse = function (e) {
+        var px = 0;
+        var py = 0;
+        if ( ! e ) 
+          var e = window.event;
+        if ( e.pageX || e.pageY ) {
+          px = e.pageX;
+          py = e.pageY;
+        } else if ( e.clientX || e.clientY ) {
+          px = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+          py = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }
+        return { x: px, y: py };
+      }
 
     , flipTabSides = function (ctx) {
         var sides = $('.tab-side img', ctx);
@@ -30,7 +46,7 @@ Stub = (function ($) {
       }
     , TimeSeries = function (wrap) {
         var data
-          , canvas = $("<canvas width='" + wrap.width() + "' height='" + wrap.height() + "'></canvas>")
+          , canvas = $("<canvas width='100%' height='100%'></canvas>")
           , ctx
         ;
         
@@ -39,13 +55,13 @@ Stub = (function ($) {
               // save data
               data = d;
               // remove loading text wrap
-              //$('.details-loader-wrap', wrap).remove();
+              $('.details-loader-wrap', wrap).remove();
               // add canvas
-              //canvas.prependTo(wrap);
+              canvas.prependTo(wrap);
               // text select tool fix for chrome on mousemove
-              //canvas[0].onselectstart = function () { return false; };
+              canvas[0].onselectstart = function () { return false; };
               // get context
-              //ctx = canvas[0].getContext('2d');
+              ctx = canvas[0].getContext('2d');
               
             }
           , clear: function () {}
@@ -167,12 +183,56 @@ Stub = (function ($) {
           }
         });
         
+        
+        // resize graph windows
+        $('.details-bar-bottom, img.resize-x, img.resize-y').bind('mousedown', function (e) {
+          var pan = $(this).hasClass('details-bar-bottom') ?
+              $(this.parentNode) :
+              $(this.parentNode.parentNode)
+            , pan_h_orig = pan.height()
+            , mouse_orig = mouse(e)
+          ;
+          
+          // bind mouse move
+          var movehandle = function (e) {
+            // get mouse position
+            var m = mouse(e);
+            // determine new values
+            var ph = pan_h_orig + (m.y - mouse_orig.y);
+            // check max width
+            if (ph < 100) return false;
+            // set widths
+            pan.height(ph);
+          };
+          $(document).bind('mousemove', movehandle);
+          
+          // bind mouse up
+          $(document).bind('mouseup', function () {
+            // remove all
+            $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+          });
+        });
+        
+        $('img.resize-x, img.resize-y').bind('mousedown', function (e) {
+          if (e.preventDefault) e.preventDefault();
+        });
+        
+        
+        
+        
+        
+        
+        
+        // TMP
         $('#logo').bind('click', function (e) {
           $.put('/cycles', {}, function (serv) {
             console.log(JSON.stringify(serv.event));
           });
           //return false;
         });
+        
+        
+        
         
         
         // $('.vehicle-row-link').live('click', function (e) {

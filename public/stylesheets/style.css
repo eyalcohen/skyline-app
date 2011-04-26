@@ -234,13 +234,20 @@ div.tr {
   display: box;
   
   width: 100%;
-  height: 100%;
   padding: 1px 0 0 0;
+  
+  -moz-user-select: text;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 div.tr.row-details {
   display: none;
   width: 100%;
+  
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 div.th, div.td {
@@ -248,7 +255,7 @@ div.th, div.td {
   -moz-box-flex: 1;
   -webkit-box-flex: 1;
   box-flex: 1;
-  width: 18%;
+  width: 274px;
 }
 
 div.th {
@@ -340,6 +347,19 @@ div.details-bar-top {
 
 div.details-bar-bottom {
   bottom: 0;
+  cursor: ns-resize;
+}
+
+img.resize-x {
+  position: relative;
+  top: 49%;
+  right: 2px;
+}
+
+img.resize-y {
+  position: relative;
+  left: 49%;
+  bottom: 2px;
 }
 
 div.details-loader-wrap {
@@ -366,7 +386,6 @@ div.details-loader-wrap {
 div.details-loader {
   /*display: none;*/
   /*position: absolute;*/
-  
 }
 
 a.row-link {

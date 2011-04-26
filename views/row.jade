@@ -1,5 +1,5 @@
 - var color = indexInCollection % 2 ? 'dark' : 'light';
-div.tr
+div.tr.row
   div.td.expand(class=color)
     a.expander(href="javascript:;", id="vehicle-" + row._id.vid)
       img(src="/gfx/arrow.png")
@@ -16,6 +16,7 @@ div.tr.row-details
     div.details
       div.details-bar-top
       div.details-bar-bottom
+        img.resize-y(src="/gfx/resize-horizontal.png")
       div.details-loader-wrap
         div.details-loader
           span Loading driving data...

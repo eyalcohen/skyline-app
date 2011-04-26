@@ -459,7 +459,7 @@ app.put('/cycles', function (req, res) {
   var theEvent = EventStream.parse(fs.readFileSync('./proto/sample-put-payload.bin'));
   // get or make vehicle
   findVehicle(theEvent.vehicleId, function (veh) {
-    if (veh) {
+    if (!veh) {
       // make a new user and vehicle
       var u = {};
       u.name = {};
