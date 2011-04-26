@@ -39,13 +39,13 @@ Stub = (function ($) {
               // save data
               data = d;
               // remove loading text wrap
-              $('.details-loader-wrap', wrap).remove();
+              //$('.details-loader-wrap', wrap).remove();
               // add canvas
-              canvas.prependTo(wrap);
+              //canvas.prependTo(wrap);
               // text select tool fix for chrome on mousemove
-              canvas[0].onselectstart = function () { return false; };
+              //canvas[0].onselectstart = function () { return false; };
               // get context
-              ctx = canvas[0].getContext('2d');
+              //ctx = canvas[0].getContext('2d');
               
             }
           , clear: function () {}
