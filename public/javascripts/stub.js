@@ -28,7 +28,27 @@ Stub = (function ($) {
           $this.attr({ src: noo, alt: old });
         });
       }
-
+    , TimeSeries = function (wrap) {
+        var data
+          , canvas = $("<canvas width='" + wrap.width() + "' height='" + wrap.height() + "'></canvas>")
+          , ctx
+        ;
+        
+        return {
+            init: function (d) {
+              // save data
+              data = d;
+              // add canvas
+              canvas.prependTo(wrap);
+              // text select tool fix for chrome on mousemove
+              canvas[0].onselectstart = function () { return false; };
+              // get context
+              ctx = canvas[0].getContext('2d');
+              
+            }
+          , clear: function () {}
+        };
+      }
   ;
   
   
@@ -132,7 +152,8 @@ Stub = (function ($) {
             deets.animate({ height: 252 }, 150, 'easeOutExpo', function () {
               $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                 if (serv.status == 'success') {
-                  console.log(serv.data.bucks);
+                  var ts = new TimeSeries(deets);
+                  ts.init(serv.data.bucks);
                 } else
                   console.log(serv.message);
               });
@@ -142,6 +163,13 @@ Stub = (function ($) {
             deetsHolder.hide();
             deets.css({ height: 20 });
           }
+        });
+        
+        $('#logo').bind('click', function (e) {
+          $.put('/cycles', {}, function (serv) {
+            console.log(JSON.stringify(serv.event));
+          });
+          //return false;
         });
         
         

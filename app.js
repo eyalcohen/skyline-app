@@ -14,16 +14,20 @@ var express = require('express')
   , data = require('./data')
   , models = require('./models')
   , db
+  , User
+  , Vehicle
+  , EventBucket
   , Slice1000
   , Slice20000
   , Slice1000000
   , Slice60000000
   , Slice3600000000
   , Slice86400000000
-  , vehicles = []
   , stub
+  , ProtobufSchema = require('protobuf_for_node').Schema
+  , Event = new ProtobufSchema(fs.readFileSync('./proto/Events.desc'))
+  , EventStream = Event['event.EventStream']
 ;
-
 
 // Helpers
 
@@ -69,18 +73,50 @@ function findVehicleBuckets(id, slice, from, to, next) {
   });
 }
 
+function findVehicleEvents(id, from, to, next) {
+  if ('function' == typeof from) {
+    next = from;
+    from = 0;
+    to = (new Date()).getTime();
+  } else if ('function' == typeof to) {
+    next = to;
+    to = (new Date()).getTime();
+  }
+  from = from == 0 ? id : new oid(generateId, { vid: id.vid, time: (new Date(from)).getTime() });
+  to = new oid(generateId, { vid: id.vid, time: to });
+  db.connections[0].collections['eventbuckets'].find({ _id: { $gt: from, $lt: to } }, function (err, cursor) {
+    cursor.toArray(function (err, bucks) {
+      if (err || !bucks || bucks.length == 0) {
+        console.log('vehicle has no events');
+        next([]);
+      } else {
+        next(bucks);
+      }
+    });
+  });
+}
+
 
 // Utils
 
 function generateId(tokens) {
-  var vid = tokens && tokens.vid || parseInt(Math.random() * 0xffffffff);
-  var time = tokens && tokens.time || (new Date()).getTime();
-  var vehicle4Bytes = parser.encodeInt(vid, 32, false, true);
-  var time4Bytes = parser.encodeInt(parseInt(time / 1000), 32, true, true);
-  var time2Bytes = parser.encodeInt(parseInt(time % 1000), 16, true, true);
-  var index2Bytes = parser.encodeInt(this.get_inc16(), 16, false, true);
+  var vid = tokens && tokens.vid || parseInt(Math.random() * 0xffffffff)
+    , time = tokens && tokens.time || (new Date()).getTime()
+    , vehicle4Bytes = 'number' == typeof vid ? 
+      parser.encodeInt(vid, 32, false, true) :
+      parser.encode_utf8(vid)
+    , time4Bytes = parser.encodeInt(parseInt(time / 1000), 32, true, true)
+    , time2Bytes = parser.encodeInt(parseInt(time % 1000), 16, true, true)
+    , index2Bytes = parser.encodeInt(this.get_inc16(), 16, false, true)
+  ;
   return vehicle4Bytes + time4Bytes + time2Bytes + index2Bytes;
 }
+
+// Protobuf helpers
+
+EventStream.prototype.numEvents = function () {
+  return this.events.length;
+};
 
 
 // Database Stub
@@ -359,6 +395,7 @@ app.configure('production', function () {
 models.defineModels(mongoose, generateId, function () {
   app.User = User = mongoose.model('User');
   app.Vehicle = Vehicle = mongoose.model('Vehicle');
+  app.EventBucket = EventBucket = mongoose.model('EventBucket');
   app.Slice1000 = Slice1000 = mongoose.model('Slice1000');
   app.Slice20000 = Slice20000 = mongoose.model('Slice20000');
   app.Slice1000000 = Slice1000000 = mongoose.model('Slice1000000');
@@ -372,7 +409,7 @@ models.defineModels(mongoose, generateId, function () {
 // Params
 
 app.param('vid', function (req, res, next, id) {
-  var to = new oid(generateId, { vid: id, time: (new Date()).getTime() })
+  var to = new oid(generateId, { vid: parseInt(id), time: (new Date()).getTime() })
     , from = new oid(to.toHexString().substr(0,8) + '0000000000000000')
   ;
   db.connections[0].collections.vehicles.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
@@ -394,11 +431,65 @@ app.get('/', function (req, res) {
 });
 
 app.get('/v/:vid', function (req, res) {
+  // findVehicleEvents(req.vehicle._id, function (bucks) {
+  //   res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+  // });
+  
   findVehicleBuckets(req.vehicle._id, 1000000, function (bucks) {
     res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
   });
 });
 
+
+// get vehicle
+function findVehicle(id, next) {
+  var to = new oid(generateId, { vid: id, time: (new Date()).getTime() })
+    , from = new oid(to.toHexString().substr(0,8) + '0000000000000000')
+  ;
+  db.connections[0].collections.vehicles.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
+    if (!err)
+      next(veh);
+  });
+}
+
+
+
+
+app.put('/cycles', function (req, res) {
+  var theEvent = EventStream.parse(fs.readFileSync('./proto/sample-put-payload.bin'));
+  // get or make vehicle
+  findVehicle(theEvent.vehicleId, function (veh) {
+    if (!veh) {
+      // make a new user and vehicle
+      var u = {};
+      u.name = {};
+      u.name.full = data.names[Math.floor(Math.random() * data.names.length)];
+      var user = new User(u);
+      user.save(function (err) {
+        var v = data.cars[Math.floor(Math.random() * data.cars.length)];
+        var veh = new Vehicle({
+            model: v[0]
+          , make: v[1]
+          , year: v[2][Math.floor(Math.random() * v[2].length)]
+          , user_id: user._id
+        }, { vid: theEvent.vehicleId, time: theEvent.events[0].header.startTime - 1 });
+        veh.save(function (err) {
+          handleEvents(veh);
+        });
+      });
+    } else {
+      // add to existing vehicle
+      handleEvents(veh);
+    }
+  });
+  // add to db
+  function handleEvents(veh) {
+    var bucket = new EventBucket(theEvent, { vid: veh._id.vid, time: theEvent.events[0].header.startTime });
+    bucket.save(function (err) {
+      res.send({ event: veh });
+    });
+  }
+});
 
 // Only listen on $ node app.js
 

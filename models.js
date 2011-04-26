@@ -5,6 +5,7 @@
 var crypto = require('crypto')
   , User
   , Vehicle
+  , EventBucket
   , Slice1000
   , Slice20000
   , Slice1000000
@@ -50,6 +51,11 @@ function defineModels(mongoose, generateId, fn) {
     , user_id: ObjectId
   });
   
+  EventBucket = new Schema({
+      _id: { type: ObjectId, auto: true, generator: generateId }
+    , events: Array
+  });
+  
   Slice1000 = new Schema({
       _id: { type: ObjectId, auto: true, generator: generateId }
     , samples: Array
@@ -83,6 +89,7 @@ function defineModels(mongoose, generateId, fn) {
   
   mongoose.model('User', User);
   mongoose.model('Vehicle', Vehicle);
+  mongoose.model('EventBucket', EventBucket);
   mongoose.model('Slice1000', Slice1000);
   mongoose.model('Slice20000', Slice20000);
   mongoose.model('Slice1000000', Slice1000000);
