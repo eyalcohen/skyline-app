@@ -497,7 +497,7 @@ if (!module.parent) {
   stub = new DatabaseStub();
   //stub.clear(function () {
     //stub.create(__dirname + '/cycle.csv', 1, 100, function () {
-      app.listen(3000);
+      app.listen(8080);
       console.log("Express server listening on port %d", app.address().port);
     //});
   //});

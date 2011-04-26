@@ -38,6 +38,8 @@ Stub = (function ($) {
             init: function (d) {
               // save data
               data = d;
+              // remove loading text wrap
+              $('.details-loader-wrap', wrap).remove();
               // add canvas
               canvas.prependTo(wrap);
               // text select tool fix for chrome on mousemove
