@@ -25,7 +25,7 @@ var express = require('express')
   , Slice86400000000
   , stub
   , ProtobufSchema = require('protobuf_for_node').Schema
-  , Event = new ProtobufSchema(fs.readFileSync('./proto/Events.desc'))
+  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/proto/Events.desc'))
   , EventStream = Event['event.EventStream']
 ;
 
@@ -583,11 +583,11 @@ function handle_events(req, res) {
 
 
 
-var net = require('net');
-var server = net.createServer(function (socket) {
-  socket.write('hello\r\n');
-  socket.pipe(socket);
-});
-server.listen(1337, '127.0.0.1');
+// var net = require('net');
+// var server = net.createServer(function (socket) {
+//   socket.write('hello\r\n');
+//   socket.pipe(socket);
+// });
+// server.listen(1337, '127.0.0.1');
 
 
