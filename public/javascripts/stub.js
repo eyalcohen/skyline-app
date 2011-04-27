@@ -225,37 +225,13 @@ Stub = (function ($) {
         
         // TMP
         $('#logo').bind('click', function (e) {
-          $.put('/cycles', {}, function (serv) {
-            console.log(JSON.stringify(serv.event));
+          $.put('/cycle', {}, function (serv) {
+            console.log(serv);
           });
-          //return false;
         });
         
         
         
-        
-        
-        // $('.vehicle-row-link').live('click', function (e) {
-        //   e.preventDefault();
-        //   var element = $(this)
-        //     , form = $('<form></form>')
-        //   ;
-        //   form
-        //     .attr({
-        //         method: 'GET'
-        //       , action: '/cycles'
-        //     })
-        //     .hide()
-        //     .append('<input type="hidden" />')
-        //     .find('input')
-        //     .attr({
-        //         'name': 'vehId'
-        //       , 'value': 'delete'
-        //     })
-        //     .end()
-        //     .submit();
-        // });
-      
       }
 
 
