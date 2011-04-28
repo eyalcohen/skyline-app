@@ -15,6 +15,7 @@ message EventHeader {
    SENSOR_ACCEL = 0;
    SENSOR_GPS = 1;
    SENSOR_CELLPOS = 2;	// Cell tower based position info
+   UNKNOWN = 3;
  }
 
  required uint64 start_time = 1; // msecs since 1970

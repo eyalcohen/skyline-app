@@ -64,11 +64,12 @@ inline bool EventHeader_EventType_Parse(
 enum EventHeader_SourceType {
   EventHeader_SourceType_SENSOR_ACCEL = 0,
   EventHeader_SourceType_SENSOR_GPS = 1,
-  EventHeader_SourceType_SENSOR_CELLPOS = 2
+  EventHeader_SourceType_SENSOR_CELLPOS = 2,
+  EventHeader_SourceType_UNKNOWN = 3
 };
 bool EventHeader_SourceType_IsValid(int value);
 const EventHeader_SourceType EventHeader_SourceType_SourceType_MIN = EventHeader_SourceType_SENSOR_ACCEL;
-const EventHeader_SourceType EventHeader_SourceType_SourceType_MAX = EventHeader_SourceType_SENSOR_CELLPOS;
+const EventHeader_SourceType EventHeader_SourceType_SourceType_MAX = EventHeader_SourceType_UNKNOWN;
 const int EventHeader_SourceType_SourceType_ARRAYSIZE = EventHeader_SourceType_SourceType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* EventHeader_SourceType_descriptor();
@@ -166,6 +167,7 @@ class EventHeader : public ::google::protobuf::Message {
   static const SourceType SENSOR_ACCEL = EventHeader_SourceType_SENSOR_ACCEL;
   static const SourceType SENSOR_GPS = EventHeader_SourceType_SENSOR_GPS;
   static const SourceType SENSOR_CELLPOS = EventHeader_SourceType_SENSOR_CELLPOS;
+  static const SourceType UNKNOWN = EventHeader_SourceType_UNKNOWN;
   static inline bool SourceType_IsValid(int value) {
     return EventHeader_SourceType_IsValid(value);
   }

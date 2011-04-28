@@ -27,6 +27,7 @@ var express = require('express')
   , ProtobufSchema = require('protobuf_for_node').Schema
   , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/proto/Events.desc'))
   , EventStream = Event['event.EventStream']
+  , Stream = require('stream').Stream
 ;
 
 // Helpers
@@ -372,7 +373,7 @@ app.configure(function () {
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.bodyParser());
-  express.bodyParser.parse['application/octet-stream'] = EventStream.parse;
+  express.bodyParser.parse['application/octet-stream'] = Buffer;
   app.use(express.logger({ format: '\x1b[1m:method\x1b[0m \x1b[33m:url\x1b[0m :response-time ms' }))
   app.use(express.methodOverride());
   app.use(app.router);
@@ -432,13 +433,12 @@ app.get('/', function (req, res) {
 });
 
 app.get('/v/:vid', function (req, res) {
-  // findVehicleEvents(req.vehicle._id, function (bucks) {
-  //   res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
-  // });
-  
-  findVehicleBuckets(req.vehicle._id, 1000000, function (bucks) {
+  findVehicleEvents(req.vehicle._id, function (bucks) {
     res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
   });
+  // findVehicleBuckets(req.vehicle._id, 1000000, function (bucks) {
+  //   res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+  // });
 });
 
 
@@ -453,23 +453,15 @@ function findVehicle(id, next) {
   });
 }
 
-app.get('/test', function (req, res) {
-  res.render('buff');
-});
-
-
 app.put('/cycle', function (req, res) {
-  // var theEvent = EventStream.parse(fs.readFileSync('./proto/sample-put-payload.bin'));
-  //console.log(res);
   if (!(req.body instanceof Buffer)) {
     res.end();
-    //res.send(fs.readFileSync('./proto/sample-put-payload.bin'));
     return;
   }
+  var events = EventStream.parse(new Buffer(req.rawBody, 'binary'));
   // get or make vehicle
-  findVehicle(req.body.vehicleId, function (veh) {
+  findVehicle(events.vehicleId, function (veh) {
     if (!veh) {
-      // make a new user and vehicle
       var u = {};
       u.name = {};
       u.name.full = data.names[Math.floor(Math.random() * data.names.length)];
@@ -481,22 +473,20 @@ app.put('/cycle', function (req, res) {
           , make: v[1]
           , year: v[2][Math.floor(Math.random() * v[2].length)]
           , user_id: user._id
-        }, { vid: req.body.vehicleId, time: req.body.events[0].header.startTime - 1 });
+        }, { vid: events.vehicleId, time: events.events[0].header.startTime - 1 });
         veh.save(function (err) {
           handleEvents(veh);
         });
       });
     } else {
-      // add to existing vehicle
       handleEvents(veh);
     }
   });
   // add to db
   function handleEvents(veh) {
-    var bucket = new EventBucket(req.body, { vid: veh._id.vid, time: req.body.events[0].header.startTime });
+    var bucket = new EventBucket(events, { vid: veh._id.vid, time: events.events[0].header.startTime });
     bucket.save(function (err) {
       res.end();
-      //res.send({ event: veh });
     });
   }
 });
@@ -512,82 +502,4 @@ if (!module.parent) {
     //});
   //});
 }
-
-
-
-
-
-
-
-// var http = require('http');
-// 
-// 
-// var server = http.createServer(function (req, res) {
-//   handle_events(req, res);
-// }).listen(8000);
-
-
-function handle_events(req, res) {
-  req.setEncoding(null);
-
-  console.log(res);
-
-  // var stream = new multipart.Stream(req);
-  // stream.addListener('part', function(part) {
-  //   part.addListener('body', function(chunk) {
-  //     var progress = (stream.bytesReceived / stream.bytesTotal * 100).toFixed(2);
-  //     var mb = (stream.bytesTotal / 1024 / 1024).toFixed(1);
-  // 
-  //     sys.print("Uploading "+mb+"mb ("+progress+"%)\015");
-  // 
-  //     // chunk could be appended to a file if the uploaded file needs to be saved
-  //   });
-  // });
-  // stream.addListener('complete', function() {
-  //   res.sendHeader(200, {'Content-Type': 'text/plain'});
-  //   res.sendBody('Thanks for playing!');
-  //   res.finish();
-  //   sys.puts("\n=> Done");
-  // });
-}
-
-
-
-
-
-// var options = {
-//   host: 'localhost',
-//   port: 1337,
-//   path: '/',
-//   method: 'PUT'
-// };
-// 
-// var test_req = http.request(options, function (res) {
-//   //console.log('STATUS: ' + res.statusCode);
-//   //console.log('HEADERS: ' + JSON.stringify(res.headers));
-//   //res.setEncoding(null);
-//   //res.on('data', function (chunk) {
-//     //console.log('BODY: ' + chunk);
-//     //var theEvent = EventStream.parse(chunk);
-//     //console.log(theEvent);
-//   //});
-// });
-
-//test_req.write(fs.readFileSync('./proto/sample-put-payload.bin'));
-//req.write('data\n');
-//test_req.end();
-
-
-
-
-
-
-
-// var net = require('net');
-// var server = net.createServer(function (socket) {
-//   socket.write('hello\r\n');
-//   socket.pipe(socket);
-// });
-// server.listen(1337, '127.0.0.1');
-
 

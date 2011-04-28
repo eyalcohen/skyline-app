@@ -79,7 +79,7 @@ a:hover { color: #036; }
 /*
     // ========================================== \\
    ||                                              ||
-   ||               Start Mission Style           ||
+   ||               Start Mission Style            ||
    ||                                              ||
     \\ ========================================== //
 */
@@ -250,12 +250,12 @@ div.tr.row-details {
   user-select: none;
 }
 
-div.th, div.td {
+div.th, div.td:not(.expand) {
   padding: 7px 10px;
   -moz-box-flex: 1;
   -webkit-box-flex: 1;
   box-flex: 1;
-  width: 274px;
+  width: 264px;
 }
 
 div.th {
@@ -315,7 +315,7 @@ div.tr.row-details div.td {
   padding: 0;
 }
 
-div.details {
+div.details-wrap {
   width: 100%;
   height: 20px;
   position: relative;
@@ -324,7 +324,7 @@ div.details {
 
 div.details-bar-top, div.details-bar-bottom {
   width: 100%;
-  height: 10px;
+  height: 9px;
   position: absolute;
   background: #0d0d0d;
   background-image: -moz-linear-gradient(
@@ -350,16 +350,64 @@ div.details-bar-bottom {
   cursor: ns-resize;
 }
 
+div.details {
+  display: -moz-box;
+  display: -webkit-box;
+  display: box;
+  
+  -moz-box-orient: horizontal;
+  -webkit-box-orient: horizontal;
+  box-orient: horizontal;
+  
+  width: 100%;
+  height: 100%;
+}
+
+div.details-left, div.details-right {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 9px 0;
+  overflow: hidden;
+}
+
+div.details-bar-middle {
+  width: 9px;
+  height: 100%;
+  background: #0d0d0d;
+  background-image: -moz-linear-gradient(
+    right center,
+    rgb(13,13,13) 0%,
+    rgb(31,31,31) 100%
+  );
+  background-image: -webkit-gradient(
+    linear,
+    right top,
+    left top,
+    color-stop(0.0, rgb(13,13,13)),
+    color-stop(1.0, rgb(31,31,31))
+  );
+  
+  cursor: ew-resize;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+  background: #1c1c1c !important;
+}
+
 img.resize-x {
   position: relative;
-  top: 49%;
-  right: 2px;
+  top: 48%;
+  left: 3px;
 }
 
 img.resize-y {
   position: relative;
-  left: 49%;
-  bottom: 2px;
+  left: 48%;
+  bottom: 3px;
 }
 
 div.details-loader-wrap {

@@ -1,4 +1,7 @@
 - var color = indexInCollection % 2 ? 'dark' : 'light';
+- var miles = (Math.random() * 10000).toFixed(2);
+- var last = Math.round(Math.random() * 90);
+- var rate = (Math.random() * 10).toFixed(2);
 div.tr
   div.td.expand(class=color)
     a.expander(href="javascript:;", id="vehicle-" + row._id.vid)
@@ -7,16 +10,26 @@ div.tr
     =row.year + ' ' + row.make + ' ' + row.model
   div.td(class=color)
     =row._id.vid
-  div.td(class=color) 4,615
-  div.td(class=color) 8 hours ago
+  div.td.number(class=color)
+    =miles
   div.td(class=color)
-    a.row-link(href="javascript:;", id="ev-rating-" + 8.5) 8.5
+    =last + ' minutes ago'
+  div.td(class=color)
+    a.row-link(href="javascript:;", id="ev-rating-" + rate)
+      =rate
 div.tr.row-details
   div.td
-    div.details
+    div.details-wrap
       div.details-bar-top
       div.details-bar-bottom
         img.resize-y(src="/gfx/resize-horizontal.png")
-      div.details-loader-wrap
-        div.details-loader
-          span Loading driving data...
+      div.details
+        div.details-left
+          div.details-loader-wrap
+            span Loading time series data...
+        div.details-bar-middle
+          img.resize-x(src="/gfx/resize-vertical.png")
+        div.details-right
+          div.details-loader-wrap
+            span Loading map data...
+          div.map

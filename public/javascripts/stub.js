@@ -44,20 +44,133 @@ Stub = (function ($) {
           $this.attr({ src: noo, alt: old });
         });
       }
+      
+    , sizeDetailPanes = function () {
+        var ww = $(window).width()
+          , lw = (ww - 10) * 0.6
+          , rw = (ww - 10) * 0.4
+        ;
+        $('.details-left').width(lw);
+        $('.details-right').width(rw);
+      }
+    
+    , Map = function (wrap) {
+        var data
+          , mapData
+          , latlongs = []
+          , map
+          , path
+          , stylez = [
+                {
+                  featureType: 'administrative',
+                  elementType: 'all',
+                  stylers: [ { visibility: 'off' } ]
+                }
+              , {
+                  featureType: 'landscape',
+                  elementType: 'all',
+                  stylers: [ { saturation: 100 } ]
+                }
+              , {
+                  featureType: 'poi',
+                  elementType: 'all',
+                  stylers: [ { saturation: 100 } ]
+                }
+              , {
+                  featureType: 'road',
+                  elementType: 'all',
+                  stylers: [ { saturation: -100 } ]
+                }
+              , {
+                  featureType: 'transit',
+                  elementType: 'all',
+                  stylers: [ { visibility: 'off' } ]
+                }
+              , {
+                  featureType: 'water',
+                  elementType: 'all',
+                  stylers: [ { saturation: -100 } ]
+                }
+            ]
+          , options = {
+                zoom: 13
+              , disableDefaultUI: true
+              , mapTypeControlOptions: {
+                  mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'greyscale']
+                }
+            }
+          , styledOptions = {
+              name: 'GrayScale'
+            }
+          , mapType = new google.maps.StyledMapType(stylez, styledOptions)
+        ;
+        
+        return {
+            init: function (bucks) {
+              // ref data
+              data = bucks;
+              // use latest bucket
+              mapData = data[data.length - 1];
+              // create latlong array
+              var minlat = 90
+                , maxlat = -90
+                , minlawn = 180
+                , maxlawn = -180
+              ;
+              for (var i=0; i < mapData.events.length; i++) {
+                if (mapData.events[i].location) {
+                  var lat = mapData.events[i].location.latitude
+                    , lawn = mapData.events[i].location.longitude
+                  ;
+                  if (lat < minlat) 
+                    minlat = lat
+                  if (lat > maxlat) 
+                    maxlat = lat
+                  if (lawn < minlawn) 
+                    minlawn = lawn
+                  if (lawn > maxlawn) 
+                    maxlawn = lawn
+                  latlongs.push(new google.maps.LatLng(lat, lawn));
+                }
+              }
+              // find path 'center'
+              options.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);  
+              // make new map
+              map = new google.maps.Map(wrap.children()[1], options);
+              map.mapTypes.set('grayscale', mapType);
+              map.setMapTypeId('grayscale');
+              // draw path
+              path = new google.maps.Polygon({
+                  paths: latlongs
+                , strokeColor: '#FF0000'
+                , strokeOpacity: 0.8
+                , strokeWeight: 2
+                , fillColor: '#FF0000'
+                , fillOpacity: 0
+              });
+              path.setMap(map);
+              // hide loading text
+              $('.details-loader-wrap', wrap).remove();
+            }
+          , clear: function () {}
+        };
+      }
+      
     , TimeSeries = function (wrap) {
         var data
-          , canvas = $("<canvas width='100%' height='100%'></canvas>")
+          , canvas = $('<canvas width="100%" height="100%"></canvas>')
           , ctx
         ;
         
         return {
             init: function (d) {
+              console.log(d);
               // save data
               data = d;
               // remove loading text wrap
-              $('.details-loader-wrap', wrap).remove();
+              //$('.details-loader-wrap', wrap).remove();
               // add canvas
-              canvas.prependTo(wrap);
+              //canvas.prependTo(wrap);
               // text select tool fix for chrome on mousemove
               canvas[0].onselectstart = function () { return false; };
               // get context
@@ -66,6 +179,19 @@ Stub = (function ($) {
             }
           , clear: function () {}
         };
+      }
+      
+    , addCommas = function (n) {
+        n += '';
+        var x = n.split('.')
+          , x1 = x[0]
+          , x2 = x.length > 1 ? '.' + x[1] : ''
+          , rgx = /(\d+)(\d{3})/
+        ;
+        while (rgx.test(x1)) {
+          x1 = x1.replace(rgx, '$1' + ',' + '$2');
+        }
+        return x1 + x2;
       }
   ;
   
@@ -77,6 +203,8 @@ Stub = (function ($) {
      */
       
       go: function () {
+        
+        ///////// UTILS
         
         // determine of object is empty (non-enumerable)
         $.isEmpty = function (o) {
@@ -128,6 +256,8 @@ Stub = (function ($) {
           }
         };
         
+        //////// SETUP
+        
         // layer tabs
         var tabs = $('.tab');
         tabs.each(function (i) {
@@ -138,6 +268,17 @@ Stub = (function ($) {
           ;
           $this.css({ zIndex: z });
         });
+        
+        // add commas
+        $('.number').each(function (i) {
+          var $this = $(this);
+          $this.text(addCommas($this.text()));
+        });
+        
+        sizeDetailPanes();
+        
+        
+        //////// HANDLERS
         
         // click a tab
         tabs.live('click', function () {
@@ -156,53 +297,74 @@ Stub = (function ($) {
         });
         
         
-        // initial vehicle cycle query 
-        $('a.expander').live('click', function () {
-          var $this = $(this)
-            , arrow = $('img', $this)
-            , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
-            , deets = $(deetsHolder.children(0).children(0))
-            //, loader = $()
-          ;
-          if (!arrow.hasClass('open')) {
-            arrow.addClass('open');
-            deetsHolder.show();
-            deets.animate({ height: 252 }, 150, 'easeOutExpo', function () {
-              $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
-                if (serv.status == 'success') {
-                  var ts = new TimeSeries(deets);
-                  ts.init(serv.data.bucks);
-                } else
-                  console.log(serv.message);
-              });
-            });
-          } else {
-            arrow.removeClass('open');
-            deetsHolder.hide();
-            deets.css({ height: 20 });
-          }
+        // resize window
+        $(window).resize(function () {
+          var ww = $(this).width();
+          $('.details').each(function (i) {
+            var $this = $(this)
+              , lp = $($this.children()[0])
+              , cp = $($this.children()[1])
+              , rp = $($this.children()[2])
+              , tpw = lp.width() + cp.width() + rp.width()
+              , dif = (ww - tpw) / 2
+            ;
+            lp.width(lp.width() + dif);
+            rp.width(rp.width() + dif);
+          });
         });
         
         
-        // resize graph windows
-        $('.details-bar-bottom, img.resize-x, img.resize-y').bind('mousedown', function (e) {
+        // resize vertical panes
+        $('.details-bar-bottom, img.resize-y').bind('mousedown', function (e) {
           var pan = $(this).hasClass('details-bar-bottom') ?
               $(this.parentNode) :
               $(this.parentNode.parentNode)
             , pan_h_orig = pan.height()
             , mouse_orig = mouse(e)
           ;
-          
           // bind mouse move
           var movehandle = function (e) {
             // get mouse position
             var m = mouse(e);
             // determine new values
             var ph = pan_h_orig + (m.y - mouse_orig.y);
-            // check max width
-            if (ph < 100) return false;
-            // set widths
+            // check bounds
+            if (ph < 100 || ph > 800) return false;
+            // set height
             pan.height(ph);
+          };
+          $(document).bind('mousemove', movehandle);
+          
+          // bind mouse up
+          $(document).bind('mouseup', function () {
+            // remove all
+            $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+          });
+        });
+        
+        
+        // resize horizontal panes
+        $('.details-bar-middle, img.resize-x').bind('mousedown', function (e) {
+          var $this = $(this).hasClass('details-bar-middle') ?
+                this : this.parentNode
+            , pan_left = $($this.previousElementSibling)
+            , pan_right = $($this.nextElementSibling)
+            , pan_left_w_orig = pan_left.width()
+            , pan_right_w_orig = pan_right.width()
+            , mouse_orig = mouse(e)
+          ;
+          // bind mouse move
+          var movehandle = function (e) {
+            // get mouse position
+            var m = mouse(e);
+            // determine new values
+            var plw = pan_left_w_orig + (m.x - mouse_orig.x)
+              , prw = pan_right_w_orig - (m.x - mouse_orig.x)
+            // check bounds
+            if (plw < 200 || prw < 200) return false;
+            // set widths
+            pan_left.width(plw);
+            pan_right.width(prw);
           };
           $(document).bind('mousemove', movehandle);
           
@@ -218,17 +380,33 @@ Stub = (function ($) {
         });
         
         
-        
-        
-        
-        
-        
-        // TMP
-        $('#logo').bind('click', function (e) {
-          $.put('/cycle', {}, function (serv) {
-            console.log(serv);
-          });
+        // initial vehicle cycle query 
+        $('a.expander').live('click', function () {
+          var $this = $(this)
+            , arrow = $('img', $this)
+            , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
+            , deets = $(deetsHolder.children().children())
+          ;
+          if (!arrow.hasClass('open')) {
+            arrow.addClass('open');
+            deetsHolder.show();
+            deets.animate({ height: 252 }, 150, 'easeOutExpo', function () {
+              $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
+                if (serv.status == 'success') {
+                  //var ts = new TimeSeries(deets);
+                  var ts = new Map($('.details-right', deets));
+                  ts.init(serv.data.bucks);
+                } else
+                  console.log(serv.message);
+              });
+            });
+          } else {
+            arrow.removeClass('open');
+            deetsHolder.hide();
+            deets.css({ height: 20 });
+          }
         });
+        
         
         
         

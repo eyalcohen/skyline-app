@@ -200,26 +200,26 @@ void protobuf_AddDesc_Events_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\014Events.proto\022\005event\"\266\002\n\013EventHeader\022\022\n"
+    "\n\014Events.proto\022\005event\"\303\002\n\013EventHeader\022\022\n"
     "\nstart_time\030\001 \002(\004\022\021\n\tstop_time\030\002 \001(\004\022*\n\004"
     "type\030\003 \002(\0162\034.event.EventHeader.EventType"
     "\022-\n\006source\030\004 \001(\0162\035.event.EventHeader.Sou"
     "rceType\"a\n\tEventType\022\020\n\014SENSOR_VALID\020\000\022\021"
     "\n\rDRIVE_SESSION\020\001\022\021\n\rACCELEROMETER\020\002\022\014\n\010"
-    "LOCATION\020\003\022\016\n\nANNOTATION\020\004\"B\n\nSourceType"
+    "LOCATION\020\003\022\016\n\nANNOTATION\020\004\"O\n\nSourceType"
     "\022\020\n\014SENSOR_ACCEL\020\000\022\016\n\nSENSOR_GPS\020\001\022\022\n\016SE"
-    "NSOR_CELLPOS\020\002\"E\n\014LocationData\022\020\n\010latitu"
-    "de\030\002 \001(\002\022\021\n\tlongitude\030\003 \001(\002\022\020\n\010altitude\030"
-    "\004 \001(\005\"4\n\021AccelerometerData\022\t\n\001x\030\002 \001(\002\022\t\n"
-    "\001y\030\003 \001(\002\022\t\n\001z\030\004 \001(\002\"!\n\016AnnotationData\022\017\n"
-    "\007message\030\001 \001(\t\"\256\001\n\005Event\022\"\n\006header\030\001 \002(\013"
-    "2\022.event.EventHeader\022%\n\010location\030\002 \001(\0132\023"
-    ".event.LocationData\022/\n\raccelerometer\030\003 \001"
-    "(\0132\030.event.AccelerometerData\022)\n\nannotati"
-    "on\030\004 \001(\0132\025.event.AnnotationData\"\?\n\013Event"
-    "Stream\022\022\n\nvehicle_id\030\001 \002(\t\022\034\n\006events\030\002 \003"
-    "(\0132\014.event.EventB\"\n\026com.ridemission.even"
-    "tsB\010ProtoBuf", 772);
+    "NSOR_CELLPOS\020\002\022\013\n\007UNKNOWN\020\003\"E\n\014LocationD"
+    "ata\022\020\n\010latitude\030\002 \001(\002\022\021\n\tlongitude\030\003 \001(\002"
+    "\022\020\n\010altitude\030\004 \001(\005\"4\n\021AccelerometerData\022"
+    "\t\n\001x\030\002 \001(\002\022\t\n\001y\030\003 \001(\002\022\t\n\001z\030\004 \001(\002\"!\n\016Anno"
+    "tationData\022\017\n\007message\030\001 \001(\t\"\256\001\n\005Event\022\"\n"
+    "\006header\030\001 \002(\0132\022.event.EventHeader\022%\n\010loc"
+    "ation\030\002 \001(\0132\023.event.LocationData\022/\n\racce"
+    "lerometer\030\003 \001(\0132\030.event.AccelerometerDat"
+    "a\022)\n\nannotation\030\004 \001(\0132\025.event.Annotation"
+    "Data\"\?\n\013EventStream\022\022\n\nvehicle_id\030\001 \002(\t\022"
+    "\034\n\006events\030\002 \003(\0132\014.event.EventB\"\n\026com.rid"
+    "emission.eventsB\010ProtoBuf", 785);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Events.proto", &protobuf_RegisterTypes);
   EventHeader::default_instance_ = new EventHeader();
@@ -283,6 +283,7 @@ bool EventHeader_SourceType_IsValid(int value) {
     case 0:
     case 1:
     case 2:
+    case 3:
       return true;
     default:
       return false;
@@ -293,6 +294,7 @@ bool EventHeader_SourceType_IsValid(int value) {
 const EventHeader_SourceType EventHeader::SENSOR_ACCEL;
 const EventHeader_SourceType EventHeader::SENSOR_GPS;
 const EventHeader_SourceType EventHeader::SENSOR_CELLPOS;
+const EventHeader_SourceType EventHeader::UNKNOWN;
 const EventHeader_SourceType EventHeader::SourceType_MIN;
 const EventHeader_SourceType EventHeader::SourceType_MAX;
 const int EventHeader::SourceType_ARRAYSIZE;
