@@ -89,6 +89,7 @@ body {
   font-family: Verdana, Arial, Helvetica, sans-serif;
   font-size: 11px;
   color: white;
+  overflow-x: hidden;
 }
 
 #container {
@@ -395,12 +396,16 @@ div.details-bar-middle {
 .map {
   width: 100%;
   height: 100%;
+  background: #b3b3b3 !important;
+}
+
+.map-tmp {
   background: #1c1c1c !important;
 }
 
 img.resize-x {
   position: relative;
-  top: 48%;
+  /*top: 48%;*/
   left: 3px;
 }
 
@@ -431,9 +436,8 @@ div.details-loader-wrap {
   height: 100%;
 }
 
-div.details-loader {
-  /*display: none;*/
-  /*position: absolute;*/
+div.details-loader-wrap > span {
+  
 }
 
 a.row-link {

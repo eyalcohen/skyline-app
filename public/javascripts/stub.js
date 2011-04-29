@@ -4,12 +4,10 @@ Stub = (function ($) {
   
   
   
+  var expandDetailsTo = 436
   
-  /**
-   * get latest drive cycle
-   */
-   
-  var search = function (by, val, fn) {
+  
+    , search = function (by, val, fn) {
         jrid.empty();
         var data = {
               by  : by
@@ -19,7 +17,7 @@ Stub = (function ($) {
       }
       
       
-    , mouse = function (e) {
+    , mouse = function (e, r) {
         var px = 0;
         var py = 0;
         if ( ! e ) 
@@ -30,6 +28,11 @@ Stub = (function ($) {
         } else if ( e.clientX || e.clientY ) {
           px = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
           py = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }
+        if (r) {
+          var o = r.offset();
+          px -= o.left;
+          py -= o.top;
         }
         return { x: px, y: py };
       }
@@ -57,9 +60,14 @@ Stub = (function ($) {
     , Map = function (wrap) {
         var data
           , mapData
-          , latlongs = []
           , map
-          , path
+          , mapOptions = {
+                zoom: 13
+              , disableDefaultUI: true
+              , mapTypeControlOptions: {
+                  mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'greyscale']
+                }
+            }
           , stylez = [
                 {
                   featureType: 'administrative',
@@ -92,65 +100,112 @@ Stub = (function ($) {
                   stylers: [ { saturation: -100 } ]
                 }
             ]
-          , options = {
-                zoom: 13
-              , disableDefaultUI: true
-              , mapTypeControlOptions: {
-                  mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'greyscale']
-                }
-            }
           , styledOptions = {
               name: 'GrayScale'
             }
           , mapType = new google.maps.StyledMapType(stylez, styledOptions)
+          , poly = new google.maps.Polyline({
+                strokeColor: '#ff0000'
+              , strokeOpacity: 0.8
+              , strokeWeight: 2
+              , clickable: false
+            })
+          , distance
+          , cursor = new google.maps.Circle({
+                strokeColor: '#0000ff'
+              , strokeOpacity: 0.8
+              , strokeWeight: 0
+              , fillColor: "#0000ff"
+              , fillOpacity: 1
+              , radius: 50
+              , clickable: false
+            })
+          
+          
+          , toMiles = function (m) {
+              return m / 1609.344;
+            }
+        
         ;
         
         return {
-            init: function (bucks) {
+            init: function (bucks, fn) {
+              // hide wrap
+              wrap.hide();
+              
               // ref data
               data = bucks;
+              
               // use latest bucket
               mapData = data[data.length - 1];
-              // create latlong array
+              
+              // ploy bounds
               var minlat = 90
                 , maxlat = -90
                 , minlawn = 180
                 , maxlawn = -180
               ;
+              
+              // parse events
               for (var i=0; i < mapData.events.length; i++) {
                 if (mapData.events[i].location) {
                   var lat = mapData.events[i].location.latitude
                     , lawn = mapData.events[i].location.longitude
                   ;
-                  if (lat < minlat) 
+                  if (lat < minlat)
                     minlat = lat
-                  if (lat > maxlat) 
+                  if (lat > maxlat)
                     maxlat = lat
-                  if (lawn < minlawn) 
+                  if (lawn < minlawn)
                     minlawn = lawn
-                  if (lawn > maxlawn) 
+                  if (lawn > maxlawn)
                     maxlawn = lawn
-                  latlongs.push(new google.maps.LatLng(lat, lawn));
+                  poly.getPath().push(new google.maps.LatLng(lat, lawn));
                 }
               }
-              // find path 'center'
-              options.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);  
+              
+              // get path length
+              distance = google.maps.geometry.spherical.computeLength(poly.getPath());
+              
+              // set cursor
+              cursor.setCenter(poly.getPath().getAt(0));
+              
+              // set map 'center' from poly bounds
+              mapOptions.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);
+              
               // make new map
-              map = new google.maps.Map(wrap.children()[1], options);
+              map = new google.maps.Map(wrap[0], mapOptions);
               map.mapTypes.set('grayscale', mapType);
               map.setMapTypeId('grayscale');
-              // draw path
-              path = new google.maps.Polygon({
-                  paths: latlongs
-                , strokeColor: '#FF0000'
-                , strokeOpacity: 0.8
-                , strokeWeight: 2
-                , fillColor: '#FF0000'
-                , fillOpacity: 0
+              
+              // track cursor position
+              wrap.bind('mousemove', function (e) {
+                var m = mouse(e, wrap)
+                  , w = wrap.width()
+                  , l = poly.getPath().getLength()
+                  , f = Math.floor((m.x / w) * l)
+                  , c = poly.getPath().getAt(f)
+                ;
+                cursor.setCenter(c);
               });
-              path.setMap(map);
-              // hide loading text
-              $('.details-loader-wrap', wrap).remove();
+              
+              // resize cursor on zoom
+              google.maps.event.addListener(map, 'zoom_changed', function () {
+                var r = -10 * map.getZoom() + 180;
+                if (r < 10)
+                 r = 5;
+                cursor.setRadius(r);
+              });
+              
+              // draw path and cursor
+              poly.setMap(map);
+              cursor.setMap(map);
+              
+              // fade in
+              wrap.fadeIn(2000, function () { wrap.removeClass('map-tmp') });
+              
+              // callback
+              fn();
             }
           , clear: function () {}
         };
@@ -319,6 +374,7 @@ Stub = (function ($) {
           var pan = $(this).hasClass('details-bar-bottom') ?
               $(this.parentNode) :
               $(this.parentNode.parentNode)
+            , handle = $('img.resize-x', pan)
             , pan_h_orig = pan.height()
             , mouse_orig = mouse(e)
           ;
@@ -332,6 +388,8 @@ Stub = (function ($) {
             if (ph < 100 || ph > 800) return false;
             // set height
             pan.height(ph);
+            // move handles
+            handle.css({ top: ph / 2 - handle.height() });
           };
           $(document).bind('mousemove', movehandle);
           
@@ -386,20 +444,29 @@ Stub = (function ($) {
             , arrow = $('img', $this)
             , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
             , deets = $(deetsHolder.children().children())
+            , handle = $('img.resize-x', deets)
           ;
           if (!arrow.hasClass('open')) {
             arrow.addClass('open');
             deetsHolder.show();
-            deets.animate({ height: 252 }, 150, 'easeOutExpo', function () {
+            deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
               $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                 if (serv.status == 'success') {
-                  //var ts = new TimeSeries(deets);
-                  var ts = new Map($('.details-right', deets));
-                  ts.init(serv.data.bucks);
+                  var ts = new TimeSeries($('.details-left', deets));
+                  ts.init(serv.data.bucks, function () {
+                    // hide loading text
+                    $('.series-loading', deets).remove();
+                  });
+                  var map = new Map($('.map', deets));
+                  map.init(serv.data.bucks, function () {
+                    // hide loading text
+                    $('.map-loading', deets).remove();
+                  });
                 } else
                   console.log(serv.message);
               });
             });
+            handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
           } else {
             arrow.removeClass('open');
             deetsHolder.hide();
