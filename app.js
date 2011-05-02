@@ -381,16 +381,16 @@ app.configure(function () {
 });
 
 app.configure('development', function () {
-  app.set('db-uri', 'mongodb://localhost/stub-development');
+  app.set('db-uri', 'mongodb://localhost:27017/service-development,mongodb://localhost:27018,mongodb://localhost:27019');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
 });
 
 app.configure('test', function () {
-  app.set('db-uri', 'mongodb://localhost/stub-test');
+  app.set('db-uri', 'mongodb://localhost:27017/service-test,mongodb://localhost:27018,mongodb://localhost:27019');
 });
 
 app.configure('production', function () {
-  app.set('db-uri', 'mongodb://localhost/stub-production');
+  app.set('db-uri', 'mongodb://localhost:27017/service-production,mongodb://localhost:27018,mongodb://localhost:27019');
   app.use(express.errorHandler()); 
 });
 
@@ -404,7 +404,29 @@ models.defineModels(mongoose, generateId, function () {
   app.Slice60000000 = Slice60000000 = mongoose.model('Slice60000000');
   app.Slice3600000000 = Slice3600000000 = mongoose.model('Slice3600000000');
   app.Slice86400000000 = Slice86400000000 = mongoose.model('Slice86400000000');
-  db = mongoose.connect(app.set('db-uri'));
+  db = mongoose.connectSet(app.set('db-uri'));
+    // mongoose.connectSet(uri, function (err) {
+    //   
+    // 
+    //   mongoose.model('Test', new mongoose.Schema({
+    //       test: String
+    //   }));
+    //   
+    //   setInterval(function () {
+    //     var Test = mongoose.model('Test')
+    //       , test = new Test();
+    // 
+    //     test.test = 'aa';
+    //     test.save(function (err) {    
+    //       Test.findById(test._id, function (err, doc) {
+    //         console.log(doc._id);
+    //         //mongoose.connection.close();
+    //       });
+    //     });
+    //   }, 5000);
+    //   
+    // });
+    //
 });
 
 
