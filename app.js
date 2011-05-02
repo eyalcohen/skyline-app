@@ -25,11 +25,10 @@ var express = require('express')
   , Slice86400000000
   , stub
   , ProtobufSchema = require('protobuf_for_node').Schema
-  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/proto/Events.desc'))
-  , EventStream = Event['event.EventStream']
+  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../../mission-java/henson/common/src/main/protobuf/Events.desc'))
+  , EventWebUpload = Event['event.EventWebUpload']
   , Stream = require('stream').Stream
 ;
-
 
 // Helpers
 
@@ -116,9 +115,9 @@ function generateId(tokens) {
 
 // Protobuf helpers
 
-EventStream.prototype.numEvents = function () {
-  return this.events.length;
-};
+// EventStream.prototype.numEvents = function () {
+//   return this.events.length;
+// };
 
 
 // Database Stub
@@ -481,7 +480,7 @@ app.put('/cycle', function (req, res) {
     res.end();
     return;
   }
-  var events = EventStream.parse(new Buffer(req.rawBody, 'binary'));
+  var events = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'));
   // get or make vehicle
   findVehicle(events.vehicleId, function (veh) {
     if (!veh) {

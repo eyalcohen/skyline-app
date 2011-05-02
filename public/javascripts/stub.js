@@ -57,6 +57,20 @@ Stub = (function ($) {
         $('.details-right').width(rw);
       }
     
+    , Sandbox = function (data) {
+        var times = []
+          , locations = []
+          , accels = []
+        ;
+        // parse events
+        for (var i=0; i < data.events.length; i++) {
+          if (data.events[i].location)
+            locations.push(data.events[i].location);
+          if (data.events[i].accelerometer)
+            accels.push(data.events[i].accelerometer);
+        }
+      }
+    
     , Map = function (wrap) {
         var data
           , mapData
@@ -222,10 +236,8 @@ Stub = (function ($) {
               console.log(d);
               // save data
               data = d;
-              // remove loading text wrap
-              //$('.details-loader-wrap', wrap).remove();
               // add canvas
-              //canvas.prependTo(wrap);
+              canvas.prependTo(wrap);
               // text select tool fix for chrome on mousemove
               canvas[0].onselectstart = function () { return false; };
               // get context
@@ -452,16 +464,19 @@ Stub = (function ($) {
             deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
               $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                 if (serv.status == 'success') {
-                  var ts = new TimeSeries($('.details-left', deets));
-                  ts.init(serv.data.bucks, function () {
-                    // hide loading text
-                    $('.series-loading', deets).remove();
+                  var sandbox = new Sandbox(serv.data.bucks, function (box) {
+                    box.add();
                   });
-                  var map = new Map($('.map', deets));
-                  map.init(serv.data.bucks, function () {
-                    // hide loading text
-                    $('.map-loading', deets).remove();
-                  });
+                  // var ts = new TimeSeries($('.details-left', deets));
+                  // ts.init(serv.data.bucks, function () {
+                  //   // hide loading text
+                  //   $('.series-loading', deets).remove();
+                  // });
+                  // var map = new Map($('.map', deets));
+                  // map.init(serv.data.bucks, function () {
+                  //   // hide loading text
+                  //   $('.map-loading', deets).remove();
+                  // });
                 } else
                   console.log(serv.message);
               });
