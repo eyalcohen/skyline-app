@@ -30,7 +30,6 @@ var express = require('express')
   , Stream = require('stream').Stream
 ;
 
-var 
 
 // Helpers
 
