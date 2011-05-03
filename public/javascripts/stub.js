@@ -69,7 +69,7 @@ Stub = (function ($) {
   ;
   
   var Sandbox = function (data, fn) {
-    console.log(data);
+    
     //-- TEMP!
     data = data[data.length - 1];
     var widgets = []
@@ -82,7 +82,7 @@ Stub = (function ($) {
     // parse events
     for (var i=0; i < data.events.length; i++) {
       if (data.events[i].location)
-        locations.push({ g: data.events[i].location, t: parseInt(data.events[i].header.startTime) });
+        locations.push({ g: data.events[i].location, s: data.events[i].header.source, t: parseInt(data.events[i].header.startTime) });
       if (data.events[i].accelerometer)
         accels.push({ a: data.events[i].accelerometer, t: parseInt(data.events[i].header.startTime) });
     }
@@ -243,6 +243,12 @@ Stub = (function ($) {
           , strokeWeight: 2
           , clickable: false
         })
+      , poly_cell = new google.maps.Polyline({
+            strokeColor: '#00ff00'
+          , strokeOpacity: 0.8
+          , strokeWeight: 2
+          , clickable: false
+        })
       , distance
       , cursor = new google.maps.Circle({
             strokeColor: '#0000ff'
@@ -289,6 +295,8 @@ Stub = (function ($) {
               minlawn = lawn
             if (lawn > maxlawn)
               maxlawn = lawn
+            if (data[i].s == 'SENSOR_CELLPOS')
+              poly_cell.getPath().push(new google.maps.LatLng(lat, lawn));
             poly.getPath().push(new google.maps.LatLng(lat, lawn));
           }
           
@@ -327,6 +335,7 @@ Stub = (function ($) {
           
           // draw path and cursor
           poly.setMap(map);
+          poly_cell.setMap(map);
           cursor.setMap(map);
           
           // fade in
