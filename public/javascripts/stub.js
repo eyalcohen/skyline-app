@@ -245,8 +245,8 @@ Stub = (function ($) {
         })
       , poly_cell = new google.maps.Polyline({
             strokeColor: '#00ff00'
-          , strokeOpacity: 0.8
-          , strokeWeight: 2
+          , strokeOpacity: 0.4
+          , strokeWeight: 1
           , clickable: false
         })
       , distance
