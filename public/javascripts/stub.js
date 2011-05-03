@@ -69,6 +69,7 @@ Stub = (function ($) {
   ;
   
   var Sandbox = function (data, fn) {
+    console.log(data);
     //-- TEMP!
     data = data[data.length - 1];
     var widgets = []
