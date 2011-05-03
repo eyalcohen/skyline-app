@@ -119,12 +119,34 @@ Stub = (function ($) {
   
   var TimeSeries = function (wrap) {
     var data
-      , canvas = $('<canvas width="100%" height="100%"></canvas>')
+      , canvas = $('<canvas width="' + wrap.width() + '" height="' + wrap.height() + '"></canvas>')
       , ctx
       
       , translateX = function (x) {
           
         }
+      , drawBacker = function () {
+        var j = 5
+          , n = canvas.width() / j
+          , x = j
+          , h = canvas.height()
+        ;
+        
+        ctx.clearRect(0, 0, canvas.width(), canvas.height());
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = "#1f1f1f";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        
+        for (var i=0; i < n - 1; i++) {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, h);
+          x += j
+        }
+        
+        ctx.stroke();
+      }
+      
     ;
     
     return {
@@ -138,16 +160,13 @@ Stub = (function ($) {
           canvas[0].onselectstart = function () { return false; };
           // get context
           ctx = canvas[0].getContext('2d');
-          
-          // _ctx.clearRect( 0, 0, _c_width(), _c_height() );
-          // ctx.strokeStyle = "#00ff00";
-          // ctx.fillStyle = "#00ff00";
-          // ctx.globalAlpha = 1;
-          // ctx.lineWidth = 1;
-          // ctx.beginPath();
-          
           // callback
           fn();
+          
+          // setup
+          drawBacker();
+          
+          
         }
       , clear: function () {}
     };
@@ -505,9 +524,9 @@ Stub = (function ($) {
               $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                 if (serv.status == 'success') {
                   var sandbox = new Sandbox(serv.data.bucks, function () {
-                    this.add('TimeSeries', $('.details-left', deets), function () {
-                      $('.series-loading', deets).hide();
-                    });
+                    // this.add('TimeSeries', $('.details-left', deets), function () {
+                    //   $('.series-loading', deets).hide();
+                    // });
                     this.add('Map', $('.map', deets), function () {
                       $('.map-loading', deets).hide();
                     });

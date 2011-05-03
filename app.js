@@ -481,9 +481,13 @@ app.put('/cycle', function (req, res) {
     res.end();
     return;
   }
-  var events = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'));
-  // get or make vehicle
-  findVehicle(events[0].vehicleId, function (veh) {
+  var cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'))
+    , start = cycle.events[0].events[0].header.startTime
+    , num = cycle.events.length
+    , cnt = 0
+  ;
+  
+  findVehicle(cycle.vehicleId, function (veh) {
     if (!veh) {
       var u = {};
       u.name = {};
@@ -496,7 +500,7 @@ app.put('/cycle', function (req, res) {
           , make: v[1]
           , year: v[2][Math.floor(Math.random() * v[2].length)]
           , user_id: user._id
-        }, { vid: events[0].vehicleId, time: events[0].events[0].header.startTime - 1 });
+        }, { vid: cycle.vehicleId, time: start - 1 });
         veh.save(function (err) {
           handleEvents(veh);
         });
@@ -507,9 +511,13 @@ app.put('/cycle', function (req, res) {
   });
   // add to db
   function handleEvents(veh) {
-    var bucket = new EventBucket(events[0], { vid: veh._id.vid, time: events[0].events[0].header.startTime });
-    bucket.save(function (err) {
-      res.end();
+    cycle.events.forEach(function (event) {
+      var bucket = new EventBucket(event, { vid: veh._id.vid, time: event.events[0].header.startTime });
+      bucket.save(function (err) {
+        cnt++;
+        if (cnt == num)
+          res.end();
+      });
     });
   }
 });
