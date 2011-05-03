@@ -70,7 +70,7 @@ Stub = (function ($) {
   
   var Sandbox = function (data, fn) {
     //-- TEMP!
-    data = data[0];
+    data = data[data.length - 1];
     var widgets = []
       , locations = []
       , accels = []
@@ -119,6 +119,8 @@ Stub = (function ($) {
   
   var TimeSeries = function (wrap) {
     var data
+      , csv
+      , plot
       , canvas = $('<canvas width="' + wrap.width() + '" height="' + wrap.height() + '"></canvas>')
       , ctx
       
@@ -143,9 +145,11 @@ Stub = (function ($) {
           ctx.lineTo(x, h);
           x += j
         }
-        
         ctx.stroke();
       }
+      , toMPH = function (ms) {
+          return ms * 2.23693629;
+        }
       
     ;
     
@@ -155,18 +159,31 @@ Stub = (function ($) {
           // save data
           data = dat;
           // add canvas
-          canvas.prependTo(wrap);
+          //canvas.prependTo(wrap);
           // text select tool fix for chrome on mousemove
-          canvas[0].onselectstart = function () { return false; };
+          //canvas[0].onselectstart = function () { return false; };
           // get context
-          ctx = canvas[0].getContext('2d');
-          // callback
-          fn();
+          //ctx = canvas[0].getContext('2d');
           
           // setup
-          drawBacker();
+          //drawBacker();
           
+          // make csv style for dygraph
+          csv = 'Date,Speed\n';
+          for (var j=0; j < data.length; j++) {
+            csv += new Date(data[j].t) + ',' + toMPH(data[j].s) + '\n';
+          }
+          plot = new Dygraph(wrap[0], csv, { interactionModel : {
+              'mousedown' : downV3
+            , 'mousemove' : moveV3
+            , 'mouseup' : upV3
+            , 'click' : clickV3
+            , 'dblclick' : dblClickV3
+            , 'mousewheel' : scrollV3
+          }});
           
+          // callback
+          fn();
         }
       , clear: function () {}
     };
@@ -524,9 +541,9 @@ Stub = (function ($) {
               $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                 if (serv.status == 'success') {
                   var sandbox = new Sandbox(serv.data.bucks, function () {
-                    // this.add('TimeSeries', $('.details-left', deets), function () {
-                    //   $('.series-loading', deets).hide();
-                    // });
+                    this.add('TimeSeries', $('.details-left', deets), function () {
+                      $('.series-loading', deets).hide();
+                    });
                     this.add('Map', $('.map', deets), function () {
                       $('.map-loading', deets).hide();
                     });

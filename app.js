@@ -382,9 +382,8 @@ app.configure(function () {
 });
 
 app.configure('development', function () {
-  app.set('db-uri', 'mongodb://domU-12-31-39-13-E0-35.compute-1.internal:27017/service-development,mongodb://domU-12-31-39-0A-AD-F9.compute-1.internal:27017,mongodb://domU-12-31-39-15-3D-CF.compute-1.internal:27017');
-  //app.set('db-uri', 'mongodb://localhost:27017/service-development,mongodb://localhost:27018,mongodb://localhost:27019');
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+  app.set('db-uri', 'mongodb://localhost:27017/service-development,mongodb://localhost:27018,mongodb://localhost:27019');
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 app.configure('test', function () {
@@ -393,7 +392,8 @@ app.configure('test', function () {
 
 app.configure('production', function () {
   app.set('db-uri', 'mongodb://domU-12-31-39-13-E0-35.compute-1.internal:27017/service-production,mongodb://domU-12-31-39-0A-AD-F9.compute-1.internal:27017,mongodb://domU-12-31-39-15-3D-CF.compute-1.internal:27017');
-  app.use(express.errorHandler()); 
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  //app.use(express.errorHandler()); 
 });
 
 models.defineModels(mongoose, generateId, function () {
