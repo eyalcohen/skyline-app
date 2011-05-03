@@ -2,11 +2,9 @@
 
 Stub = (function ($) {
   
-  
-  
   var expandDetailsTo = 436
-  
-  
+    
+    
     , search = function (by, val, fn) {
         jrid.empty();
         var data = {
@@ -15,8 +13,7 @@ Stub = (function ($) {
           };
         $.get('/search/' + val + '.json', data, fn);
       }
-      
-      
+    
     , mouse = function (e, r) {
         var px = 0;
         var py = 0;
@@ -36,7 +33,7 @@ Stub = (function ($) {
         }
         return { x: px, y: py };
       }
-
+    
     , flipTabSides = function (ctx) {
         var sides = $('.tab-side img', ctx);
         sides.each(function (i) {
@@ -47,7 +44,7 @@ Stub = (function ($) {
           $this.attr({ src: noo, alt: old });
         });
       }
-      
+    
     , sizeDetailPanes = function () {
         var ww = $(window).width()
           , lw = (ww - 10) * 0.6
@@ -57,197 +54,6 @@ Stub = (function ($) {
         $('.details-right').width(rw);
       }
     
-    , Sandbox = function (data) {
-        var times = []
-          , locations = []
-          , accels = []
-        ;
-        // parse events
-        for (var i=0; i < data.events.length; i++) {
-          if (data.events[i].location)
-            locations.push(data.events[i].location);
-          if (data.events[i].accelerometer)
-            accels.push(data.events[i].accelerometer);
-        }
-      }
-    
-    , Map = function (wrap) {
-        var data
-          , mapData
-          , map
-          , mapOptions = {
-                zoom: 13
-              , disableDefaultUI: true
-              , mapTypeControlOptions: {
-                  mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'greyscale']
-                }
-            }
-          , stylez = [
-                {
-                  featureType: 'administrative',
-                  elementType: 'all',
-                  stylers: [ { visibility: 'off' } ]
-                }
-              , {
-                  featureType: 'landscape',
-                  elementType: 'all',
-                  stylers: [ { saturation: 100 } ]
-                }
-              , {
-                  featureType: 'poi',
-                  elementType: 'all',
-                  stylers: [ { saturation: 100 } ]
-                }
-              , {
-                  featureType: 'road',
-                  elementType: 'all',
-                  stylers: [ { saturation: -100 } ]
-                }
-              , {
-                  featureType: 'transit',
-                  elementType: 'all',
-                  stylers: [ { visibility: 'off' } ]
-                }
-              , {
-                  featureType: 'water',
-                  elementType: 'all',
-                  stylers: [ { saturation: -100 } ]
-                }
-            ]
-          , styledOptions = {
-              name: 'GrayScale'
-            }
-          , mapType = new google.maps.StyledMapType(stylez, styledOptions)
-          , poly = new google.maps.Polyline({
-                strokeColor: '#ff0000'
-              , strokeOpacity: 0.8
-              , strokeWeight: 2
-              , clickable: false
-            })
-          , distance
-          , cursor = new google.maps.Circle({
-                strokeColor: '#0000ff'
-              , strokeOpacity: 0.8
-              , strokeWeight: 0
-              , fillColor: "#0000ff"
-              , fillOpacity: 1
-              , radius: 50
-              , clickable: false
-            })
-          
-          
-          , toMiles = function (m) {
-              return m / 1609.344;
-            }
-        
-        ;
-        
-        return {
-            init: function (bucks, fn) {
-              // hide wrap
-              wrap.hide();
-              
-              // ref data
-              data = bucks;
-              
-              // use latest bucket
-              mapData = data[data.length - 1];
-              
-              // ploy bounds
-              var minlat = 90
-                , maxlat = -90
-                , minlawn = 180
-                , maxlawn = -180
-              ;
-              
-              // parse events
-              for (var i=0; i < mapData.events.length; i++) {
-                if (mapData.events[i].location) {
-                  var lat = mapData.events[i].location.latitude
-                    , lawn = mapData.events[i].location.longitude
-                  ;
-                  if (lat < minlat)
-                    minlat = lat
-                  if (lat > maxlat)
-                    maxlat = lat
-                  if (lawn < minlawn)
-                    minlawn = lawn
-                  if (lawn > maxlawn)
-                    maxlawn = lawn
-                  poly.getPath().push(new google.maps.LatLng(lat, lawn));
-                }
-              }
-              
-              // get path length
-              distance = google.maps.geometry.spherical.computeLength(poly.getPath());
-              
-              // set cursor
-              cursor.setCenter(poly.getPath().getAt(0));
-              
-              // set map 'center' from poly bounds
-              mapOptions.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);
-              
-              // make new map
-              map = new google.maps.Map(wrap[0], mapOptions);
-              map.mapTypes.set('grayscale', mapType);
-              map.setMapTypeId('grayscale');
-              
-              // track cursor position
-              wrap.bind('mousemove', function (e) {
-                var m = mouse(e, wrap)
-                  , w = wrap.width()
-                  , l = poly.getPath().getLength()
-                  , f = Math.floor((m.x / w) * l)
-                  , c = poly.getPath().getAt(f)
-                ;
-                cursor.setCenter(c);
-              });
-              
-              // resize cursor on zoom
-              google.maps.event.addListener(map, 'zoom_changed', function () {
-                var r = -10 * map.getZoom() + 180;
-                if (r < 10)
-                 r = 5;
-                cursor.setRadius(r);
-              });
-              
-              // draw path and cursor
-              poly.setMap(map);
-              cursor.setMap(map);
-              
-              // fade in
-              wrap.fadeIn(2000, function () { wrap.removeClass('map-tmp') });
-              
-              // callback
-              fn();
-            }
-          , clear: function () {}
-        };
-      }
-      
-    , TimeSeries = function (wrap) {
-        var data
-          , canvas = $('<canvas width="100%" height="100%"></canvas>')
-          , ctx
-        ;
-        
-        return {
-            init: function (d) {
-              console.log(d);
-              // save data
-              data = d;
-              // add canvas
-              canvas.prependTo(wrap);
-              // text select tool fix for chrome on mousemove
-              canvas[0].onselectstart = function () { return false; };
-              // get context
-              ctx = canvas[0].getContext('2d');
-              
-            }
-          , clear: function () {}
-        };
-      }
-      
     , addCommas = function (n) {
         n += '';
         var x = n.split('.')
@@ -261,6 +67,240 @@ Stub = (function ($) {
         return x1 + x2;
       }
   ;
+  
+  var Sandbox = function (data, fn) {
+    //-- TEMP!
+    data = data[0];
+    var widgets = []
+      , locations = []
+      , accels = []
+      // computed
+      , speeds = []
+    ;
+    
+    // parse events
+    for (var i=0; i < data.events.length; i++) {
+      if (data.events[i].location)
+        locations.push({ g: data.events[i].location, t: parseInt(data.events[i].header.startTime) });
+      if (data.events[i].accelerometer)
+        accels.push({ a: data.events[i].accelerometer, t: parseInt(data.events[i].header.startTime) });
+    }
+    for (var j=1; j < locations.length; j++) {
+      var d = google.maps.geometry.spherical.computeDistanceBetween(
+        new google.maps.LatLng(locations[j].g.latitude, locations[j].g.longitude),
+        new google.maps.LatLng(locations[j-1].g.latitude, locations[j-1].g.longitude)
+      );
+      speeds.push({ s: (d / (locations[j].t - locations[j-1].t)) * 1000, t: (locations[j].t + locations[j-1].t) / 2 });
+    }
+    
+    this.widgets = widgets;
+    this.locations = locations;
+    this.accels = accels;
+    this.speeds = speeds;
+    
+    fn.call(this);
+  };
+  
+  Sandbox.prototype.add = function (type, wrap, fn) {
+    var widg = new (eval(type))(wrap)
+      , data
+    ;
+    switch (type) {
+      case 'TimeSeries':
+        widg.init(this.speeds, fn);
+        break;
+      case 'Map':
+        widg.init(this.locations, fn);
+        break;
+    }
+    this.widgets.push(widg);
+  };
+  
+  
+  var TimeSeries = function (wrap) {
+    var data
+      , canvas = $('<canvas width="100%" height="100%"></canvas>')
+      , ctx
+      
+      , translateX = function (x) {
+          
+        }
+    ;
+    
+    return {
+        init: function (dat, fn) {
+          //console.log(d);
+          // save data
+          data = dat;
+          // add canvas
+          canvas.prependTo(wrap);
+          // text select tool fix for chrome on mousemove
+          canvas[0].onselectstart = function () { return false; };
+          // get context
+          ctx = canvas[0].getContext('2d');
+          
+          // _ctx.clearRect( 0, 0, _c_width(), _c_height() );
+          // ctx.strokeStyle = "#00ff00";
+          // ctx.fillStyle = "#00ff00";
+          // ctx.globalAlpha = 1;
+          // ctx.lineWidth = 1;
+          // ctx.beginPath();
+          
+          // callback
+          fn();
+        }
+      , clear: function () {}
+    };
+  };
+  
+  
+  var Map = function (wrap) {
+    var data
+      , map
+      , mapOptions = {
+            zoom: 13
+          , disableDefaultUI: true
+          , mapTypeControlOptions: {
+              mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'greyscale']
+            }
+        }
+      , stylez = [
+            {
+              featureType: 'administrative',
+              elementType: 'all',
+              stylers: [ { visibility: 'off' } ]
+            }
+          , {
+              featureType: 'landscape',
+              elementType: 'all',
+              stylers: [ { saturation: 100 } ]
+            }
+          , {
+              featureType: 'poi',
+              elementType: 'all',
+              stylers: [ { saturation: 100 } ]
+            }
+          , {
+              featureType: 'road',
+              elementType: 'all',
+              stylers: [ { saturation: -100 } ]
+            }
+          , {
+              featureType: 'transit',
+              elementType: 'all',
+              stylers: [ { visibility: 'off' } ]
+            }
+          , {
+              featureType: 'water',
+              elementType: 'all',
+              stylers: [ { saturation: -100 } ]
+            }
+        ]
+      , styledOptions = {
+          name: 'GrayScale'
+        }
+      , mapType = new google.maps.StyledMapType(stylez, styledOptions)
+      , poly = new google.maps.Polyline({
+            strokeColor: '#ff0000'
+          , strokeOpacity: 0.8
+          , strokeWeight: 2
+          , clickable: false
+        })
+      , distance
+      , cursor = new google.maps.Circle({
+            strokeColor: '#0000ff'
+          , strokeOpacity: 0.8
+          , strokeWeight: 0
+          , fillColor: "#0000ff"
+          , fillOpacity: 1
+          , radius: 50
+          , clickable: false
+        })
+      
+      
+      , toMiles = function (m) {
+          return m / 1609.344;
+        }
+    
+    ;
+    
+    return {
+        init: function (dat, fn) {
+          // hide wrap
+          wrap.hide();
+          
+          // ref data
+          data = dat;
+          
+          // poly bounds
+          var minlat = 90
+            , maxlat = -90
+            , minlawn = 180
+            , maxlawn = -180
+          ;
+          
+          // build poly
+          for (var i=0; i < data.length; i++) {
+            var lat = data[i].g.latitude
+              , lawn = data[i].g.longitude
+            ;
+            if (lat < minlat)
+              minlat = lat
+            if (lat > maxlat)
+              maxlat = lat
+            if (lawn < minlawn)
+              minlawn = lawn
+            if (lawn > maxlawn)
+              maxlawn = lawn
+            poly.getPath().push(new google.maps.LatLng(lat, lawn));
+          }
+          
+          // get path length
+          distance = google.maps.geometry.spherical.computeLength(poly.getPath());
+          
+          // set cursor
+          cursor.setCenter(poly.getPath().getAt(0));
+          
+          // set map 'center' from poly bounds
+          mapOptions.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);
+          
+          // make new map
+          map = new google.maps.Map(wrap[0], mapOptions);
+          map.mapTypes.set('grayscale', mapType);
+          map.setMapTypeId('grayscale');
+          
+          // track cursor position
+          wrap.bind('mousemove', function (e) {
+            var m = mouse(e, wrap)
+              , w = wrap.width()
+              , l = poly.getPath().getLength()
+              , f = Math.floor((m.x / w) * l)
+              , c = poly.getPath().getAt(f)
+            ;
+            cursor.setCenter(c);
+          });
+          
+          // resize cursor on zoom
+          google.maps.event.addListener(map, 'zoom_changed', function () {
+            var r = -10 * map.getZoom() + 180;
+            if (r < 10)
+             r = 5;
+            cursor.setRadius(r);
+          });
+          
+          // draw path and cursor
+          poly.setMap(map);
+          cursor.setMap(map);
+          
+          // fade in
+          wrap.fadeIn(2000, function () { wrap.removeClass('map-tmp') });
+          
+          // callback
+          fn();
+        }
+      , clear: function () {}
+    };
+  };
   
   
   return {
@@ -464,19 +504,15 @@ Stub = (function ($) {
             deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
               $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                 if (serv.status == 'success') {
-                  var sandbox = new Sandbox(serv.data.bucks, function (box) {
-                    box.add();
+                  var sandbox = new Sandbox(serv.data.bucks, function () {
+                    this.add('TimeSeries', $('.details-left', deets), function () {
+                      $('.series-loading', deets).hide();
+                    });
+                    this.add('Map', $('.map', deets), function () {
+                      $('.map-loading', deets).hide();
+                    });
+                    deets.data({ sandbox: this });
                   });
-                  // var ts = new TimeSeries($('.details-left', deets));
-                  // ts.init(serv.data.bucks, function () {
-                  //   // hide loading text
-                  //   $('.series-loading', deets).remove();
-                  // });
-                  // var map = new Map($('.map', deets));
-                  // map.init(serv.data.bucks, function () {
-                  //   // hide loading text
-                  //   $('.map-loading', deets).remove();
-                  // });
                 } else
                   console.log(serv.message);
               });
