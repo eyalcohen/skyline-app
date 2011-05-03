@@ -483,7 +483,7 @@ app.put('/cycle', function (req, res) {
   }
   var events = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'));
   // get or make vehicle
-  findVehicle(events.vehicleId, function (veh) {
+  findVehicle(events[0].vehicleId, function (veh) {
     if (!veh) {
       var u = {};
       u.name = {};
@@ -496,7 +496,7 @@ app.put('/cycle', function (req, res) {
           , make: v[1]
           , year: v[2][Math.floor(Math.random() * v[2].length)]
           , user_id: user._id
-        }, { vid: events.vehicleId, time: events.events[0].header.startTime - 1 });
+        }, { vid: events[0].vehicleId, time: events[0].events[0].header.startTime - 1 });
         veh.save(function (err) {
           handleEvents(veh);
         });
@@ -507,7 +507,7 @@ app.put('/cycle', function (req, res) {
   });
   // add to db
   function handleEvents(veh) {
-    var bucket = new EventBucket(events, { vid: veh._id.vid, time: events.events[0].header.startTime });
+    var bucket = new EventBucket(events[0], { vid: veh._id.vid, time: events[0].events[0].header.startTime });
     bucket.save(function (err) {
       res.end();
     });
