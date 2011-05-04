@@ -4,6 +4,9 @@ Stub = (function ($) {
   
   var expandDetailsTo = 436
     
+    , orange = '#ff931a'
+    , blue = '#55f5f2'
+    , green = '#55f5f2'
     
     , search = function (by, val, fn) {
         jrid.empty();
@@ -69,7 +72,6 @@ Stub = (function ($) {
   ;
   
   var Sandbox = function (data, fn) {
-    
     //-- TEMP!
     data = data[data.length - 1];
     var widgets = []
@@ -78,7 +80,7 @@ Stub = (function ($) {
       // computed
       , speeds = []
     ;
-    
+    console.log(data);
     // parse events
     for (var i=0; i < data.events.length; i++) {
       if (data.events[i].location)
@@ -120,34 +122,102 @@ Stub = (function ($) {
   
   var TimeSeries = function (wrap) {
     var data
-      , csv
-      , plot
+      , points
+      , chart
       , canvas = $('<canvas width="' + wrap.width() + '" height="' + wrap.height() + '"></canvas>')
       , ctx
       
-      , translateX = function (x) {
+      , plot = function () {
+          points = [];
+          for (var j=0; j < data.length; j++) {
+            points.push([ new Date(data[j].t), toMPH(data[j].s) ]);
+          }
+          var lines = []
+            , xline
+          ;
+          chart = new Dygraph(wrap[0], points, {
+              width: wrap.width()
+            , height: wrap.height()
+            , rightGap: 0
+            , fillGraph: true
+            , fillAlpha: 0.05
+            , gridLineColor: '#363636'
+            , colors: [orange, blue, green]
+            , strokeWidth: 1
+            , labels: [ 'time', 'mph' ]
+            , axisLineColor: 'rgba(0,0,0,0)'
+            , axisLabelColor: '#666'
+            //, drawXAxis: false
+            //, drawYAxis: false
+            , axisLabelFontSize: 9
+            //, xAxisLabelHeight: 0
+            //, yAxisLabelWidth: 0
+            //, xLabelHeight: 0
+            //, yLabelWidth: 0
+            , stepPlot: true
+            , panEdgeFraction: 0.1
+            , interactionModel : {
+                  mousedown: downV3
+                , mousemove: moveV3
+                , mouseup: upV3
+                , click: clickV3
+                , dblclick: dblClickV4
+                , mousewheel: scrollV3
+              }
+            // , highlightCallback: function (e, x, pts) {
+            //     for (var i = 0; i < pts.length; i++) {
+            //       var y = pts[i].canvasy;
+            //       lines[i].show().css({ top: y + 'px' });
+            //       if (i == 0)
+            //         xline.css({ left: pts[i].canvasx + 'px' });
+            //     }
+            //     xline.show();
+            //   }
+            // , unhighlightCallback: function(e) {
+            //     for (var i = 0; i < 2; i++) {
+            //       lines[i].hide();
+            //     }
+            //     xline.hide();
+            //   }
+          });
+          // for (var i = 0; i < 2; i++) {
+          //   var line = $('<div />').hide().css({ 
+          //       width: '100%'
+          //     , height: 1
+          //     , backgroundColor: '#797979'
+          //     , position: 'absolute' 
+          //   }).appendTo(wrap);
+          //   lines.push(line);
+          // }
+          // 
+          // var xline = $('<div />').hide().css({ 
+          //     width: 1
+          //   , height: '100%'
+          //   , backgroundColor: '#797979'
+          //   , position: 'absolute' 
+          // }).appendTo(wrap);
           
         }
-      , drawBacker = function () {
-        var j = 5
-          , n = canvas.width() / j
-          , x = j
-          , h = canvas.height()
-        ;
-        
-        ctx.clearRect(0, 0, canvas.width(), canvas.height());
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = "#1f1f1f";
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        
-        for (var i=0; i < n - 1; i++) {
-          ctx.moveTo(x, 0);
-          ctx.lineTo(x, h);
-          x += j
-        }
-        ctx.stroke();
-      }
+      // , drawBacker = function () {
+      //   var j = 5
+      //     , n = canvas.width() / j
+      //     , x = j
+      //     , h = canvas.height()
+      //   ;
+      //   
+      //   ctx.clearRect(0, 0, canvas.width(), canvas.height());
+      //   ctx.globalAlpha = 1;
+      //   ctx.strokeStyle = "#1f1f1f";
+      //   ctx.lineWidth = 0.5;
+      //   ctx.beginPath();
+      //   
+      //   for (var i=0; i < n - 1; i++) {
+      //     ctx.moveTo(x, 0);
+      //     ctx.lineTo(x, h);
+      //     x += j
+      //   }
+      //   ctx.stroke();
+      // }
       , toMPH = function (ms) {
           return ms * 2.23693629;
         }
@@ -156,35 +226,21 @@ Stub = (function ($) {
     
     return {
         init: function (dat, fn) {
-          //console.log(d);
           // save data
           data = dat;
-          // add canvas
-          //canvas.prependTo(wrap);
-          // text select tool fix for chrome on mousemove
-          //canvas[0].onselectstart = function () { return false; };
-          // get context
-          //ctx = canvas[0].getContext('2d');
           
-          // setup
-          //drawBacker();
-          
-          // make csv style for dygraph
-          csv = 'Date,Speed\n';
-          for (var j=0; j < data.length; j++) {
-            csv += new Date(data[j].t) + ',' + toMPH(data[j].s) + '\n';
-          }
-          plot = new Dygraph(wrap[0], csv, { interactionModel : {
-              'mousedown' : downV3
-            , 'mousemove' : moveV3
-            , 'mouseup' : upV3
-            , 'click' : clickV3
-            , 'dblclick' : dblClickV3
-            , 'mousewheel' : scrollV3
-          }});
+          // plot it
+          plot();
           
           // callback
           fn();
+        }
+      , resize: function (wl, hl, wr, hr) {
+          if (!wl)
+            wl = wrap.width();
+          if (!hl)
+            hl = wrap.height();
+          chart.resize(wl, hl);
         }
       , clear: function () {}
     };
@@ -194,6 +250,8 @@ Stub = (function ($) {
   var Map = function (wrap) {
     var data
       , map
+      , map_width = wrap.width()
+      , map_height = wrap.height()
       , mapOptions = {
             zoom: 13
           , disableDefaultUI: true
@@ -239,23 +297,31 @@ Stub = (function ($) {
       , mapType = new google.maps.StyledMapType(stylez, styledOptions)
       , poly = new google.maps.Polyline({
             strokeColor: '#ff0000'
-          , strokeOpacity: 0.8
-          , strokeWeight: 2
+          , strokeOpacity: 0.5
+          , strokeWeight: 5
           , clickable: false
         })
       , poly_cell = new google.maps.Polyline({
-            strokeColor: '#00ff00'
-          , strokeOpacity: 0.4
-          , strokeWeight: 1
+            strokeColor: '#00ffff'
+          , strokeOpacity: 0.5
+          , strokeWeight: 5
           , clickable: false
         })
       , distance
+      , dots = []
+      , dotStyle = {
+            strokeWeight: 0
+          , fillColor: "#00ff00"
+          , fillOpacity: 0.5
+          , radius: 10
+          , clickable: false
+        }
+      , start
+      , end
       , cursor = new google.maps.Circle({
-            strokeColor: '#0000ff'
-          , strokeOpacity: 0.8
-          , strokeWeight: 0
+            strokeWeight: 0
           , fillColor: "#0000ff"
-          , fillOpacity: 1
+          , fillOpacity: 0.5
           , radius: 50
           , clickable: false
         })
@@ -295,16 +361,18 @@ Stub = (function ($) {
               minlawn = lawn
             if (lawn > maxlawn)
               maxlawn = lawn
+            var ll = new google.maps.LatLng(lat, lawn);
             if (data[i].s == 'SENSOR_CELLPOS')
-              poly_cell.getPath().push(new google.maps.LatLng(lat, lawn));
-            poly.getPath().push(new google.maps.LatLng(lat, lawn));
+              poly_cell.getPath().push(ll);
+            else
+              poly.getPath().push(ll);
+            var d = new google.maps.Circle(dotStyle);
+            d.setCenter(ll);
+            dots.push(d);
           }
           
           // get path length
           distance = google.maps.geometry.spherical.computeLength(poly.getPath());
-          
-          // set cursor
-          cursor.setCenter(poly.getPath().getAt(0));
           
           // set map 'center' from poly bounds
           mapOptions.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);
@@ -314,6 +382,31 @@ Stub = (function ($) {
           map.mapTypes.set('grayscale', mapType);
           map.setMapTypeId('grayscale');
           
+          // set objects
+          poly.setMap(map);
+          poly_cell.setMap(map);
+          for (var k=0; k < dots.length; k++)
+            dots[k].setMap(map);
+          
+          // cursor
+          cursor = new google.maps.Marker({
+              map: map
+            , animation: google.maps.Animation.DROP
+            , position: poly.getPath().getAt(0)
+          });
+          
+          // endpoints
+          start = new google.maps.Marker({
+              map: map
+            , animation: google.maps.Animation.DROP
+            , position: poly.getPath().getAt(0)
+          });
+          end = new google.maps.Marker({
+              map: map
+            , animation: google.maps.Animation.DROP
+            , position: poly.getPath().getAt(poly.getPath().getLength() - 1)
+          });
+          
           // track cursor position
           wrap.bind('mousemove', function (e) {
             var m = mouse(e, wrap)
@@ -322,27 +415,28 @@ Stub = (function ($) {
               , f = Math.floor((m.x / w) * l)
               , c = poly.getPath().getAt(f)
             ;
-            cursor.setCenter(c);
+            cursor.setPosition(c);
           });
-          
-          // resize cursor on zoom
-          google.maps.event.addListener(map, 'zoom_changed', function () {
-            var r = -10 * map.getZoom() + 180;
-            if (r < 10)
-             r = 5;
-            cursor.setRadius(r);
+                    
+          // ready
+          google.maps.event.addListener(map, 'tilesloaded', function () {
+            fn();
+            wrap.removeClass('map-tmp');
           });
-          
-          // draw path and cursor
-          poly.setMap(map);
-          poly_cell.setMap(map);
-          cursor.setMap(map);
           
           // fade in
-          wrap.fadeIn(2000, function () { wrap.removeClass('map-tmp') });
+          wrap.fadeIn(2000);
+        }
+      , resize: function (wl, hl, wr, hr) {
+          google.maps.event.trigger(map, 'resize');
+          if (!wr)
+            wr = map_width;
+          if (!hr)
+            hr = map_height;
+          map.panBy(map_width - wr, map_height - hr);
           
-          // callback
-          fn();
+          map_width = wrap.width();
+          map_height = wrap.height();
         }
       , clear: function () {}
     };
@@ -473,9 +567,11 @@ Stub = (function ($) {
               $(this.parentNode) :
               $(this.parentNode.parentNode)
             , handle = $('img.resize-x', pan)
+            , widgets = pan.children().data().sandbox.widgets
             , pan_h_orig = pan.height()
             , mouse_orig = mouse(e)
           ;
+          
           // bind mouse move
           var movehandle = function (e) {
             // get mouse position
@@ -488,6 +584,9 @@ Stub = (function ($) {
             pan.height(ph);
             // move handles
             handle.css({ top: ph / 2 - handle.height() });
+            // widgets
+            for (var w=0; w < widgets.length; w++)
+              widgets[w].resize(null, ph - 18, null, ph - 18)
           };
           $(document).bind('mousemove', movehandle);
           
@@ -505,6 +604,8 @@ Stub = (function ($) {
                 this : this.parentNode
             , pan_left = $($this.previousElementSibling)
             , pan_right = $($this.nextElementSibling)
+            , parent = $($this.parentNode)
+            , widgets = parent.data().sandbox.widgets
             , pan_left_w_orig = pan_left.width()
             , pan_right_w_orig = pan_right.width()
             , mouse_orig = mouse(e)
@@ -521,6 +622,9 @@ Stub = (function ($) {
             // set widths
             pan_left.width(plw);
             pan_right.width(prw);
+            // widgets
+            for (var w=0; w < widgets.length; w++)
+              widgets[w].resize(plw, null, prw, null)
           };
           $(document).bind('mousemove', movehandle);
           
@@ -542,6 +646,7 @@ Stub = (function ($) {
             , arrow = $('img', $this)
             , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
             , deets = $(deetsHolder.children().children())
+            , deetsKid = $(deetsHolder.children().children().children())
             , handle = $('img.resize-x', deets)
           ;
           if (!arrow.hasClass('open')) {
@@ -557,7 +662,8 @@ Stub = (function ($) {
                     this.add('Map', $('.map', deets), function () {
                       $('.map-loading', deets).hide();
                     });
-                    deets.data({ sandbox: this });
+                    // add sanbox to details div
+                    deetsKid.data({ sandbox: this });
                   });
                 } else
                   console.log(serv.message);
@@ -572,7 +678,8 @@ Stub = (function ($) {
         });
         
         
-        
+        // TMP -- open the first vehicle pane
+        $('a.expander:first').click();
         
       }
 

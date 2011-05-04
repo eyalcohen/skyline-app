@@ -407,28 +407,6 @@ models.defineModels(mongoose, generateId, function () {
   app.Slice3600000000 = Slice3600000000 = mongoose.model('Slice3600000000');
   app.Slice86400000000 = Slice86400000000 = mongoose.model('Slice86400000000');
   db = mongoose.connectSet(app.set('db-uri'));
-    // mongoose.connectSet(uri, function (err) {
-    //   
-    // 
-    //   mongoose.model('Test', new mongoose.Schema({
-    //       test: String
-    //   }));
-    //   
-    //   setInterval(function () {
-    //     var Test = mongoose.model('Test')
-    //       , test = new Test();
-    // 
-    //     test.test = 'aa';
-    //     test.save(function (err) {    
-    //       Test.findById(test._id, function (err, doc) {
-    //         console.log(doc._id);
-    //         //mongoose.connection.close();
-    //       });
-    //     });
-    //   }, 5000);
-    //   
-    // });
-    //
 });
 
 
