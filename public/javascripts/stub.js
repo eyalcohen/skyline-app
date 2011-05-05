@@ -100,7 +100,7 @@ Stub = (function ($) {
     this.locations = locations;
     this.accels = accels;
     this.speeds = speeds;
-    
+    console.log('asfvasfdvadsfvdsafvdasfv');
     fn.call(this);
   };
   
@@ -657,7 +657,6 @@ Stub = (function ($) {
                 if (serv.status == 'success') {
                   if (!deetsKid.data().sandbox) {
                     var sandbox = new Sandbox(serv.data.bucks, function () {
-                      console.log('sdgdfvdfdfvdfv');
                       this.add('TimeSeries', $('.details-left', deetsKid), function () {
                         $('.series-loading', deetsKid).hide();
                       });
