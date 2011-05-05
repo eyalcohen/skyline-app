@@ -88,7 +88,6 @@ Stub = (function ($) {
       if (data.events[i].accelerometer)
         accels.push({ a: data.events[i].accelerometer, t: parseInt(data.events[i].header.startTime) });
     }
-    console.log(locations);
     // for (var j=1; j < locations.length; j++) {
     //   var d = google.maps.geometry.spherical.computeDistanceBetween(
     //     new google.maps.LatLng(locations[j].g.latitude, locations[j].g.longitude),
@@ -126,7 +125,7 @@ Stub = (function ($) {
       , canvas = $('<canvas width="' + wrap.width() + '" height="' + wrap.height() + '"></canvas>')
       , ctx
       
-      , plot = function () {
+      , plot = function (fn) {
           points = [];
           for (var j=0; j < data.length; j++) {
             points.push([ new Date(data[j].t), data[j].a.x, data[j].a.y, data[j].a.z ]);
@@ -190,7 +189,7 @@ Stub = (function ($) {
           //   , backgroundColor: '#797979'
           //   , position: 'absolute' 
           // }).appendTo(wrap);
-          
+          fn();
         }
       // , drawBacker = function () {
       //   var j = 5
@@ -224,10 +223,11 @@ Stub = (function ($) {
           data = dat;
           
           // plot it
-          plot();
-          
-          // callback
-          fn();
+          if (data.length == 0)
+            fn(true);
+          else {
+            plot(fn);
+          }
         }
       , resize: function (wl, hl, wr, hr) {
           if (!wl)
@@ -336,6 +336,11 @@ Stub = (function ($) {
           
           // ref data
           data = dat;
+          
+          if (data.length == 0) {
+            fn(true);
+            return;
+          }
           
           // poly bounds
           var minlat = 90
@@ -656,12 +661,18 @@ Stub = (function ($) {
                 if (serv.status == 'success') {
                   if (!deetsKid.data().sandbox) {
                     var sandbox = new Sandbox(serv.data.bucks, function () {
-                      this.add('TimeSeries', $('.details-left', deetsKid), function () {
-                        $('.series-loading', deetsKid).hide();
+                      this.add('TimeSeries', $('.details-left', deetsKid), function (empty) {
+                        if (empty)
+                          $('.series-loading', deetsKid).text('No time series data.');
+                        else
+                          $('.series-loading', deetsKid).hide();
                       });
-                      // this.add('Map', $('.map', deetsKid), function () {
-                      //   $('.map-loading', deetsKid).hide();
-                      // });
+                      this.add('Map', $('.map', deetsKid), function (empty) {
+                        if (empty)
+                          $('.map-loading', deetsKid).text('No map data.');
+                        else
+                          $('.map-loading', deetsKid).hide();
+                      });
                       // add sanbox to details div
                       deetsKid.data({ sandbox: this });
                     });
