@@ -72,8 +72,6 @@ Stub = (function ($) {
   ;
   
   var Sandbox = function (data, fn) {
-    console.log(data);
-    
     //-- TEMP!
     data = data[data.length - 1];
     var widgets = []
@@ -659,12 +657,13 @@ Stub = (function ($) {
                 if (serv.status == 'success') {
                   if (!deetsKid.data().sandbox) {
                     var sandbox = new Sandbox(serv.data.bucks, function () {
+                      console.log('sdgdfvdfdfvdfv');
                       this.add('TimeSeries', $('.details-left', deetsKid), function () {
                         $('.series-loading', deetsKid).hide();
                       });
-                      this.add('Map', $('.map', deetsKid), function () {
-                        $('.map-loading', deetsKid).hide();
-                      });
+                      // this.add('Map', $('.map', deetsKid), function () {
+                      //   $('.map-loading', deetsKid).hide();
+                      // });
                       // add sanbox to details div
                       deetsKid.data({ sandbox: this });
                     });
@@ -686,7 +685,7 @@ Stub = (function ($) {
         
         
         // TMP -- open the first vehicle pane
-        //$('a.expander:first').click();
+        $('a.expander:first').click();
         
       }
 
