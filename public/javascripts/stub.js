@@ -105,11 +105,10 @@ Stub = (function ($) {
   };
   
   Sandbox.prototype.add = function (type, wrap, fn) {
-    var widg = new (eval(type))(wrap)
-      , data
-    ;
+    var widg = new (eval(type))(wrap);
     switch (type) {
       case 'TimeSeries':
+        console.log(this.accels);
         widg.init(this.accels, fn);
         break;
       case 'Map':
@@ -223,7 +222,7 @@ Stub = (function ($) {
         init: function (dat, fn) {
           // save data
           data = dat;
-          console.log(dat);
+          
           // plot it
           plot();
           
