@@ -100,7 +100,7 @@ Stub = (function ($) {
     this.locations = locations;
     this.accels = accels;
     this.speeds = speeds;
-    console.log('asfvasfdvadsfvdsafvdasfv');
+    
     fn.call(this);
   };
   
@@ -223,7 +223,7 @@ Stub = (function ($) {
         init: function (dat, fn) {
           // save data
           data = dat;
-          
+          console.log(dat);
           // plot it
           plot();
           
