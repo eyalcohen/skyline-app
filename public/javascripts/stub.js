@@ -239,7 +239,9 @@ Stub = (function ($) {
             hl = wrap.height();
           chart.resize(wl, hl);
         }
-      , clear: function () {}
+      , clear: function () {
+          
+        }
     };
   };
   
@@ -417,6 +419,7 @@ Stub = (function ($) {
                     
           // ready
           google.maps.event.addListener(map, 'tilesloaded', function () {
+            google.maps.event.trigger(map, 'resize');
             fn();
             wrap.removeClass('map-tmp');
           });
@@ -435,7 +438,9 @@ Stub = (function ($) {
           map_width = wrap.width();
           map_height = wrap.height();
         }
-      , clear: function () {}
+      , clear: function () {
+          //wrap.remove();
+        }
     };
   };
   
@@ -643,7 +648,7 @@ Stub = (function ($) {
             , arrow = $('img', $this)
             , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
             , deets = $(deetsHolder.children().children())
-            , deetsKid = $(deetsHolder.children().children().children())
+            , deetsKid = $(deetsHolder.children().children().children()[0])
             , handle = $('img.resize-x', deets)
           ;
           if (!arrow.hasClass('open')) {
@@ -652,16 +657,18 @@ Stub = (function ($) {
             deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
               $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                 if (serv.status == 'success') {
-                  var sandbox = new Sandbox(serv.data.bucks, function () {
-                    this.add('TimeSeries', $('.details-left', deets), function () {
-                      $('.series-loading', deets).hide();
+                  if (!deetsKid.data().sandbox) {
+                    var sandbox = new Sandbox(serv.data.bucks, function () {
+                      this.add('TimeSeries', $('.details-left', deetsKid), function () {
+                        $('.series-loading', deetsKid).hide();
+                      });
+                      this.add('Map', $('.map', deetsKid), function () {
+                        $('.map-loading', deetsKid).hide();
+                      });
+                      // add sanbox to details div
+                      deetsKid.data({ sandbox: this });
                     });
-                    this.add('Map', $('.map', deets), function () {
-                      $('.map-loading', deets).hide();
-                    });
-                    // add sanbox to details div
-                    deetsKid.data({ sandbox: this });
-                  });
+                  }
                 } else
                   console.log(serv.message);
               });
@@ -671,6 +678,9 @@ Stub = (function ($) {
             arrow.removeClass('open');
             deetsHolder.hide();
             deets.css({ height: 20 });
+            deetsKid.data().sandbox.widgets.forEach(function (w) {
+              w.clear(); 
+            });
           }
         });
         
