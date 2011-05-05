@@ -897,11 +897,12 @@ Dygraph.prototype.createStatusMessage_ = function() {
       "fontSize": "10px",
       "fontfamily": "monospace",
       "zIndex": 10,
-      "width": divWidth + "px",
+      //"width": divWidth + "px",
       "top": "5px",
-      "left": (this.width_ - divWidth - 2) + "px",
+      "left": "10px !important",// (this.width_ - divWidth - 2) + "px",
       "background": "none",
-      "textAlign": "right",
+      "textAlign": "left",
+      "white-space": "nowrap",
       "overflow": "hidden"};
     Dygraph.update(messagestyle, this.attr_('labelsDivStyles'));
     var div = document.createElement("div");

@@ -6,7 +6,7 @@ Stub = (function ($) {
     
     , orange = '#ff931a'
     , blue = '#55f5f2'
-    , green = '#55f5f2'
+    , green = '#00f62e'
     
     , search = function (by, val, fn) {
         jrid.empty();
@@ -72,6 +72,8 @@ Stub = (function ($) {
   ;
   
   var Sandbox = function (data, fn) {
+    console.log(data);
+    
     //-- TEMP!
     data = data[data.length - 1];
     var widgets = []
@@ -80,7 +82,7 @@ Stub = (function ($) {
       // computed
       , speeds = []
     ;
-    console.log(data);
+    
     // parse events
     for (var i=0; i < data.events.length; i++) {
       if (data.events[i].location)
@@ -88,13 +90,13 @@ Stub = (function ($) {
       if (data.events[i].accelerometer)
         accels.push({ a: data.events[i].accelerometer, t: parseInt(data.events[i].header.startTime) });
     }
-    for (var j=1; j < locations.length; j++) {
-      var d = google.maps.geometry.spherical.computeDistanceBetween(
-        new google.maps.LatLng(locations[j].g.latitude, locations[j].g.longitude),
-        new google.maps.LatLng(locations[j-1].g.latitude, locations[j-1].g.longitude)
-      );
-      speeds.push({ s: (d / (locations[j].t - locations[j-1].t)) * 1000, t: (locations[j].t + locations[j-1].t) / 2 });
-    }
+    // for (var j=1; j < locations.length; j++) {
+    //   var d = google.maps.geometry.spherical.computeDistanceBetween(
+    //     new google.maps.LatLng(locations[j].g.latitude, locations[j].g.longitude),
+    //     new google.maps.LatLng(locations[j-1].g.latitude, locations[j-1].g.longitude)
+    //   );
+    //   speeds.push({ s: (d / (locations[j].t - locations[j-1].t)) * 1000, t: (locations[j].t + locations[j-1].t) / 2 });
+    // }
     
     this.widgets = widgets;
     this.locations = locations;
@@ -110,7 +112,7 @@ Stub = (function ($) {
     ;
     switch (type) {
       case 'TimeSeries':
-        widg.init(this.speeds, fn);
+        widg.init(this.accels, fn);
         break;
       case 'Map':
         widg.init(this.locations, fn);
@@ -130,7 +132,8 @@ Stub = (function ($) {
       , plot = function () {
           points = [];
           for (var j=0; j < data.length; j++) {
-            points.push([ new Date(data[j].t), toMPH(data[j].s) ]);
+            points.push([ new Date(data[j].t), data[j].a.x, data[j].a.y, data[j].a.z ]);
+            //points.push([ new Date(data[j].t), toMPH(data[j].s) ]);
           }
           var lines = []
             , xline
@@ -139,21 +142,15 @@ Stub = (function ($) {
               width: wrap.width()
             , height: wrap.height()
             , rightGap: 0
-            , fillGraph: true
+            //, fillGraph: true
             , fillAlpha: 0.05
             , gridLineColor: '#363636'
             , colors: [orange, blue, green]
             , strokeWidth: 1
-            , labels: [ 'time', 'mph' ]
+            , labels: [ 'time', 'ax m/s^2', 'ay m/s^2', 'az m/s^2' ]
             , axisLineColor: 'rgba(0,0,0,0)'
             , axisLabelColor: '#666'
-            //, drawXAxis: false
-            //, drawYAxis: false
             , axisLabelFontSize: 9
-            //, xAxisLabelHeight: 0
-            //, yAxisLabelWidth: 0
-            //, xLabelHeight: 0
-            //, yLabelWidth: 0
             , stepPlot: true
             , panEdgeFraction: 0.1
             , interactionModel : {

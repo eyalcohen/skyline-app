@@ -42,9 +42,14 @@ function findVehicles(next) {
       vehs.forEach(function (veh) {
         User.findById(veh.user_id, function (err, usr) {
           veh.user = usr;
+          console.log(veh._id.time);
           cnt++;
-          if (cnt == num)
+          if (cnt == num) {
+            vehs.sort(function (a, b) {
+              return b._id.time - a._id.time;
+            });
             next(vehs);
+          }
         });
       });
     else
