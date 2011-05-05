@@ -1,6 +1,8 @@
 /**
  * Module dependencies.
  */
+ 
+var Store = require('connect').session.Store;
 
 var crypto = require('crypto')
   , User

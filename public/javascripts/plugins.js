@@ -403,7 +403,7 @@ function clickV3(event, g, context) {
 
 function scrollV3(event, g, context) {
   if (lastClickedGraph != g) {
-    return;
+    //return;
   }
   var normal = event.detail ? event.detail * -1 : event.wheelDelta / 40;
   // For me the normalized value shows 0.075 for one click. If I took
@@ -440,7 +440,7 @@ function zoom(g, zoomInPercentage, xBias, yBias) {
 
   g.updateOptions({
     dateWindow: adjustAxis(g.xAxisRange(), zoomInPercentage, xBias),
-    valueRange: newYAxes[0]
+    //valueRange: newYAxes[0]
     });
 }
 

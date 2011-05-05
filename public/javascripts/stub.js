@@ -148,7 +148,7 @@ Stub = (function ($) {
             , axisLabelColor: '#666'
             , axisLabelFontSize: 9
             , stepPlot: true
-            , panEdgeFraction: 0.1
+            , panEdgeFraction: 0.0001
             , interactionModel : {
                   mousedown: downV3
                 , mousemove: moveV3
@@ -160,57 +160,40 @@ Stub = (function ($) {
             // , highlightCallback: function (e, x, pts) {
             //     for (var i = 0; i < pts.length; i++) {
             //       var y = pts[i].canvasy;
-            //       lines[i].show().css({ top: y + 'px' });
+            //       lines[i].show().css({ top: y + 9 });
             //       if (i == 0)
-            //         xline.css({ left: pts[i].canvasx + 'px' });
+            //         xline.show().css({ left: pts[i].canvasx });
             //     }
-            //     xline.show();
             //   }
             // , unhighlightCallback: function(e) {
-            //     for (var i = 0; i < 2; i++) {
+            //     for (var i = 0; i < chart.user_attrs_.labels.length - 1; i++) {
             //       lines[i].hide();
             //     }
             //     xline.hide();
             //   }
           });
-          // for (var i = 0; i < 2; i++) {
+          // for (var i = 0; i < chart.user_attrs_.labels.length - 1; i++) {
           //   var line = $('<div />').hide().css({ 
           //       width: '100%'
           //     , height: 1
           //     , backgroundColor: '#797979'
-          //     , position: 'absolute' 
+          //     , opacity: 0.5
+          //     , position: 'absolute'
           //   }).appendTo(wrap);
           //   lines.push(line);
           // }
-          // 
-          // var xline = $('<div />').hide().css({ 
+          // var xline = $('<div />').css({ 
           //     width: 1
           //   , height: '100%'
           //   , backgroundColor: '#797979'
+          //   , opacity: 0.5
+          //   , top: 0
+          //   , left: 50
           //   , position: 'absolute' 
           // }).appendTo(wrap);
+          // callback
           fn();
         }
-      // , drawBacker = function () {
-      //   var j = 5
-      //     , n = canvas.width() / j
-      //     , x = j
-      //     , h = canvas.height()
-      //   ;
-      //   
-      //   ctx.clearRect(0, 0, canvas.width(), canvas.height());
-      //   ctx.globalAlpha = 1;
-      //   ctx.strokeStyle = "#1f1f1f";
-      //   ctx.lineWidth = 0.5;
-      //   ctx.beginPath();
-      //   
-      //   for (var i=0; i < n - 1; i++) {
-      //     ctx.moveTo(x, 0);
-      //     ctx.lineTo(x, h);
-      //     x += j
-      //   }
-      //   ctx.stroke();
-      // }
       , toMPH = function (ms) {
           return ms * 2.23693629;
         }
@@ -252,7 +235,7 @@ Stub = (function ($) {
             zoom: 13
           , disableDefaultUI: true
           , mapTypeControlOptions: {
-              mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'greyscale']
+              mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ]
             }
         }
       , stylez = [

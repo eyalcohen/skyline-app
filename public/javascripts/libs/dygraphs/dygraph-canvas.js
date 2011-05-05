@@ -491,7 +491,7 @@ DygraphCanvasRenderer.prototype.render = function() {
       ctx.stroke();
     }
   }
-
+  
   // Do the ordinary rendering, as before
   this._renderLineChart();
   this._renderAxis();
@@ -562,29 +562,38 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         //   label.style.top = top + "px";
         // }
         label.style.top = top + 5 + "px";
-        if (tick[0] == 0) {
+        //if (tick[0] == 0) {
           label.style.left = "5px"; //(this.area.x - this.options.yAxisLabelWidth - this.options.axisTickSize) + "px";
           label.style.textAlign = "left";
-        } else if (tick[0] == 1) {
-          label.style.left = "5px"; //(this.area.x + this.area.w +
+        //} else if (tick[0] == 1) {
+          //label.style.left = "5px"; //(this.area.x + this.area.w +
                               //this.options.axisTickSize) + "px";
-          label.style.textAlign = "left";
-        }
+          //label.style.textAlign = "left";
+        //}
         label.style.width = this.options.yAxisLabelWidth + "px";
         label.style.fontFamily = "monospace";
         this.container.appendChild(label);
         this.ylabels.push(label);
+        
+        var label2 = label.cloneNode(true);
+        label2.style.left = "";
+        label2.style.right = "5px";
+        label2.style.textAlign = "right";
+        this.container.appendChild(label2);
+        this.ylabels.push(label2);
       }
 
       // The lowest tick on the y-axis often overlaps with the leftmost
       // tick on the x-axis. Shift the bottom tick up a little bit to
       // compensate if necessary.
-      var bottomTick = this.ylabels[0];
-      var fontSize = this.options.axisLabelFontSize;
-      var bottom = parseInt(bottomTick.style.top) + fontSize;
-      if (bottom > this.height - fontSize) {
-        bottomTick.style.top = parseInt(this.ylabels[0].style.top) - 12 + "px"; //(parseInt(bottomTick.style.top) -
-            //fontSize / 2) + "px";
+      for (var k=0; k < 2; k++) {
+        var bottomTick = this.ylabels[k];
+        var fontSize = this.options.axisLabelFontSize;
+        var bottom = parseInt(bottomTick.style.top) + fontSize;
+        if (bottom > this.height - fontSize) {
+          bottomTick.style.top = parseInt(this.ylabels[k].style.top) - 12 + "px"; //(parseInt(bottomTick.style.top) -
+              //fontSize / 2) + "px";
+        }
       }
     }
 
@@ -638,6 +647,13 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         label.style.fontFamily = "monospace";
         this.container.appendChild(label);
         this.xlabels.push(label);
+        
+        
+        var label2 = label.cloneNode(true);
+        label.style.top = "2px";
+        this.container.appendChild(label2);
+        this.xlabels.push(label2);
+        
       }
     }
 

@@ -374,6 +374,10 @@ div.details-left, div.details-right {
   position: relative;
 }
 
+div.details-left > div {
+  cursor: crosshair;
+}
+
 div.details-bar-middle {
   width: 9px;
   height: 100%;

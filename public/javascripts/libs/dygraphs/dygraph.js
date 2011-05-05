@@ -218,6 +218,8 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.file_ = file;
   this.rollPeriod_ = attrs.rollPeriod || Dygraph.DEFAULT_ROLL_PERIOD;
   this.previousVerticalX_ = -1;
+  this.previousVerticalY_ = [];
+  this.previousRects_ = [];
   this.fractions_ = attrs.fractions || false;
   this.dateWindow_ = attrs.dateWindow || null;
 
@@ -898,8 +900,8 @@ Dygraph.prototype.createStatusMessage_ = function() {
       "fontfamily": "monospace",
       "zIndex": 10,
       //"width": divWidth + "px",
-      "top": "5px",
-      "left": "10px !important",// (this.width_ - divWidth - 2) + "px",
+      "top": "20px !important",
+      "left": "20px !important",// (this.width_ - divWidth - 2) + "px",
       "background": "none",
       "textAlign": "left",
       "white-space": "nowrap",
@@ -1613,7 +1615,7 @@ Dygraph.prototype.mouseMove_ = function(event) {
   // Save last x position for callbacks.
   this.lastx_ = lastx;
 
-  this.updateSelection_();
+  this.updateSelection_(event);
 };
 
 /**
@@ -1698,7 +1700,7 @@ Dygraph.prototype.setLegendHTML_ = function(x, sel_points) {
  * takes care of cleanup of previously-drawn dots.
  * @private
  */
-Dygraph.prototype.updateSelection_ = function() {
+Dygraph.prototype.updateSelection_ = function(event) {
   // Clear the previously drawn vertical, if there is one
   var ctx = this.canvas_ctx_;
   if (this.previousVerticalX_ >= 0) {
@@ -1713,29 +1715,107 @@ Dygraph.prototype.updateSelection_ = function() {
     ctx.clearRect(px - maxCircleSize - 1, 0,
                   2 * maxCircleSize + 2, this.height_);
   }
-
-  if (this.selPoints_.length > 0) {
-    // Set the status message to indicate the selected point(s)
-    if (this.attr_('showLabelsOnHighlight')) {
-      this.setLegendHTML_(this.lastx_, this.selPoints_);
+  
+  // Clear the horizontals
+  if (this.previousVerticalY_.length > 0) {
+    for (var j = 0; j < this.previousVerticalY_.length; j++) {
+      ctx.clearRect(0, this.previousVerticalY_[j] - 0.5, this.width_, 2);
     }
+    this.previousVerticalY_ = [];
+  }
+  
+  // Clear rects this.previousRects_
+  if (this.previousRects_.length > 0) {
+    for (var k = 0; k < this.previousRects_.length; k++) {
+      ctx.clearRect(this.previousRects_[k][0].x - 1, this.previousRects_[k][0].y - 1, 
+          this.previousRects_[k][1].x - this.previousRects_[k][0].x + 2, 
+          this.previousRects_[k][3].y - this.previousRects_[k][0].y + 2);
+    }
+  }
+  
+  if (!event) {
+    this.setLegendHTML_();
+  } else {
+    if (this.selPoints_.length > 0) {
+      // Set the status message to indicate the selected point(s)
+      if (this.attr_('showLabelsOnHighlight')) {
+        this.setLegendHTML_(this.lastx_, this.selPoints_);
+      }
 
-    // Draw colored circles over the center of each selected point
-    var canvasx = this.selPoints_[0].canvasx;
-    ctx.save();
-    for (var i = 0; i < this.selPoints_.length; i++) {
-      var pt = this.selPoints_[i];
-      if (!Dygraph.isOK(pt.canvasy)) continue;
+      // Draw colored circles over the center of each selected point
+      var canvasx = this.selPoints_[0].canvasx;
+      ctx.save();
+      for (var i = 0; i < this.selPoints_.length; i++) {
+        var pt = this.selPoints_[i];
+        if (!Dygraph.isOK(pt.canvasy)) continue;
 
-      var circleSize = this.attr_('highlightCircleSize', pt.name);
+        var circleSize = this.attr_('highlightCircleSize', pt.name);
+        ctx.beginPath();
+        ctx.fillStyle = this.plotter_.colors[pt.name];
+        ctx.arc(canvasx, pt.canvasy, circleSize, 0, 2 * Math.PI, false);
+        ctx.fill();
+      
+        // ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        // ctx.lineWidth = 0.5;
+        // ctx.beginPath();
+        // var cy = Math.round(pt.canvasy) + 0.5;
+        // ctx.moveTo(0, cy);
+        // ctx.lineTo(this.width_, cy);
+        // ctx.stroke();
+        //       
+        // this.previousVerticalY_[i] = cy;
+      
+      }
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 0.5;
       ctx.beginPath();
-      ctx.fillStyle = this.plotter_.colors[pt.name];
-      ctx.arc(canvasx, pt.canvasy, circleSize, 0, 2 * Math.PI, false);
+      var cx = Math.round(canvasx) + 0.5;
+      ctx.moveTo(cx, 0);
+      ctx.lineTo(cx, this.height_);
+      
+      // draw mouse pos as y-crosshair
+      var my = Math.round(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv)) + 0.5;
+      ctx.moveTo(0, my);
+      ctx.lineTo(this.width_, my);
+      ctx.stroke();
+      this.previousVerticalY_.push(my);
+      
+      // draw tooltips
+      this.previousRects_ = [
+        // time box
+        [
+          { x: canvasx + 5, y: my - 25 },
+          { x: canvasx + 100, y: my - 25 },
+          { x: canvasx + 100, y: my - 5 },
+          { x: canvasx + 5, y: my - 5 }
+        ],
+        //
+      ];
+      
+      // tooltip style
+      ctx.fillStyle = 'rgba(56,56,56,0.5)';
+      ctx.strokeStyle = 'rgba(90,90,90,0.5)';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      
+      for (var i=0; i < this.previousRects_.length; i++) {
+        ctx.moveTo(this.previousRects_[i][0].x, this.previousRects_[i][0].y);
+        for (var j=1; j < this.previousRects_[i].length; j++) {
+          ctx.lineTo(this.previousRects_[i][j].x, this.previousRects_[i][j].y);
+        }
+        ctx.lineTo(this.previousRects_[i][0].x, this.previousRects_[i][0].y);
+      }
+      
       ctx.fill();
+      ctx.stroke();
+      
+      var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
+      
+      
+      ctx.restore();
+      
+      this.previousVerticalX_ = canvasx;
     }
-    ctx.restore();
-
-    this.previousVerticalX_ = canvasx;
   }
 };
 
