@@ -88,7 +88,7 @@ Stub = (function ($) {
       if (data.events[i].accelerometer)
         accels.push({ a: data.events[i].accelerometer, t: parseInt(data.events[i].header.startTime) });
     }
-    console.log(data.locations);
+    console.log(locations);
     // for (var j=1; j < locations.length; j++) {
     //   var d = google.maps.geometry.spherical.computeDistanceBetween(
     //     new google.maps.LatLng(locations[j].g.latitude, locations[j].g.longitude),
