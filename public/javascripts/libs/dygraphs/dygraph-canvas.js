@@ -349,7 +349,7 @@ DygraphCanvasRenderer = function(dygraph, element, elementContext, layout,
     this.area.y += this.attr_('titleHeight');
   }
   if (this.attr_('xlabel')) {
-    this.area.h -= this.attr_('xLabelHeight');
+    //this.area.h -= this.attr_('xLabelHeight');
   }
   if (this.attr_('ylabel')) {
     // It would make sense to shift the chart here to make room for the y-axis
@@ -563,7 +563,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         // }
         label.style.top = top + 5 + "px";
         //if (tick[0] == 0) {
-          label.style.left = "5px"; //(this.area.x - this.options.yAxisLabelWidth - this.options.axisTickSize) + "px";
+          label.style.left = "3px"; //(this.area.x - this.options.yAxisLabelWidth - this.options.axisTickSize) + "px";
           label.style.textAlign = "left";
         //} else if (tick[0] == 1) {
           //label.style.left = "5px"; //(this.area.x + this.area.w +
@@ -577,7 +577,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         
         var label2 = label.cloneNode(true);
         label2.style.left = "";
-        label2.style.right = "5px";
+        label2.style.right = "3px";
         label2.style.textAlign = "right";
         this.container.appendChild(label2);
         this.ylabels.push(label2);
@@ -619,7 +619,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
       for (var i = 0; i < this.layout.xticks.length; i++) {
         var tick = this.layout.xticks[i];
         if (typeof(dataset) == "function") return;
-
+        
         var x = this.area.x + tick[0] * this.area.w;
         var y = this.area.y + this.area.h;
         context.beginPath();
@@ -627,11 +627,11 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         context.lineTo(halfUp(x), halfDown(y + this.options.axisTickSize));
         context.closePath();
         context.stroke();
-
+        
         var label = makeDiv(tick[1]);
         label.style.textAlign = "left";
         label.style.top = (y + this.options.axisTickSize - 15) + 'px';
-
+        
         var left = x + 2; //(x - this.options.axisLabelWidth/2);
         if (left + this.options.axisLabelWidth > this.width) {
           left -= this.options.xAxisLabelWidth + 2; //this.width - this.options.xAxisLabelWidth;
@@ -641,13 +641,12 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
           left = 0;
           label.style.textAlign = "left";
         }
-
+        
         label.style.left = left + "px";
         label.style.width = this.options.xAxisLabelWidth + "px";
         label.style.fontFamily = "monospace";
         this.container.appendChild(label);
         this.xlabels.push(label);
-        
         
         var label2 = label.cloneNode(true);
         label.style.top = "2px";
@@ -693,7 +692,7 @@ DygraphCanvasRenderer.prototype._renderChartLabels = function() {
   if (this.attr_('xlabel')) {
     var div = document.createElement("div");
     div.style.position = 'absolute';
-    div.style.bottom = 0;  // TODO(danvk): this is lazy. Calculate style.top.
+    div.style.bottom = '15px';  // TODO(danvk): this is lazy. Calculate style.top.
     div.style.left = this.area.x + 'px';
     div.style.width = this.area.w + 'px';
     div.style.height = this.attr_('xLabelHeight') + 'px';
@@ -718,7 +717,7 @@ DygraphCanvasRenderer.prototype._renderChartLabels = function() {
     // TODO(danvk): is this outer div actually necessary?
     var div = document.createElement("div");
     div.style.position = 'absolute';
-    div.style.left = box.left;
+    div.style.left = box.left + 20 + 'px';
     div.style.top = box.top + 'px';
     div.style.width = box.width + 'px';
     div.style.height = box.height + 'px';
@@ -1034,6 +1033,8 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
     var drawPoints = this.dygraph_.attr_("drawPoints", setName);
     var points = this.layout.points;
     for (var j = 0; j < points.length; j++) {
+    //var j = 0;
+    //(function drawLine() {
       var point = points[j];
       if (point.name == setName) {
         if (!Dygraph.isOK(point.canvasy)) {
@@ -1083,7 +1084,12 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
           }
         }
       }
+      // j++;
+      // if (j < points.length) {
+      //   setTimeout(drawLine, 100);
+      // }
     }
+    //})();
   }
 
   context.restore();

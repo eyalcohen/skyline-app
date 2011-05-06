@@ -264,7 +264,7 @@ div.th {
   text-align: left;
   font-size: 9px;
   font-weight: bold;
-  color: #595959;
+  color: #808080;
   background: #1a1a1a;
   background-image: -moz-linear-gradient(
     center bottom,
@@ -285,7 +285,7 @@ div.th {
 div.td {
   font-size: 10px;
   font-weight: lighter;
-  color: #808080;
+  color: white;
 }
 
 div.th.leftest, div.td.leftest {
@@ -374,7 +374,7 @@ div.details-left, div.details-right {
   position: relative;
 }
 
-div.details-left > div {
+div.details-right > div {
   cursor: crosshair;
 }
 
@@ -442,11 +442,11 @@ div.details-loader-wrap {
 }
 
 div.details-loader-wrap > span {
-  
+  color: #808080;
 }
 
 a.row-link {
-  color: #808080;
+  color: white;
 }
 
 a.row-link:active {
@@ -467,6 +467,13 @@ img.open {
   rotation: 90deg;
 }
 
+
+
+div.dygraph-label {
+  font-family: monospace;
+  font-size: 10px;
+  color: #808080;
+}
 
 
 /*

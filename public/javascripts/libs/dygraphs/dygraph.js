@@ -1814,6 +1814,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
         var txtWidth = ctx.measureText(txt).width + 10;
         
         // make tooltip
+        // TODO: make this not crappy too
         if (canvasx - 15 - txtWidth - 20 < 0) {
           var tp = [
             { x: crisper(canvasx + txtWidth + 15), y: crisper(pt.canvasy - 17 - 15) },
@@ -1847,11 +1848,12 @@ Dygraph.prototype.updateSelection_ = function(event) {
         // ctx.moveTo(0, cy);
         // ctx.lineTo(this.width_, cy);
         // ctx.stroke();
-        //       
+        
         // this.previousVerticalY_[i] = cy;
       
       }
-      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      // crosshair at x
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
       var cx = crisper(canvasx);
@@ -1865,8 +1867,8 @@ Dygraph.prototype.updateSelection_ = function(event) {
       this.previousVerticalY_.push(my);
       
       // tooltip style
-      ctx.fillStyle = 'rgba(56,56,56,0.5)';
-      ctx.strokeStyle = 'rgba(90,90,90,0.5)';
+      ctx.fillStyle = 'rgba(56,56,56,0.8)';
+      ctx.strokeStyle = 'rgba(90,90,90,1)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
       
@@ -1874,6 +1876,15 @@ Dygraph.prototype.updateSelection_ = function(event) {
       // check bounds on value tips
       var numRects = this.previousRects_.length;
       for (var i=1; i < numRects; i++) {
+        var miny = this.getBoundingBox_(this.previousRects_[i]).miny;
+        if (miny - 5 < 0) {
+          for (var n=0; n < this.previousRects_[i].length; n++) {
+            if (n !== 2) {
+              this.previousRects_[i][n].y += crisper(5 - miny);
+            }
+          }
+          allText[i][2] += crisper(5 - miny);
+        }
         for (var j=i; j < numRects; j++) {
           if (i !== j) {
             var mv = this.overlaps_(this.previousRects_[i], this.previousRects_[j]);
@@ -1889,7 +1900,6 @@ Dygraph.prototype.updateSelection_ = function(event) {
         }
       }
       
-      
       // draw tooltips
       for (var i=0; i < numRects; i++) {
         ctx.moveTo(this.previousRects_[i][0].x, this.previousRects_[i][0].y);
@@ -1904,7 +1914,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
       
       // draw text
       ctx.font = 'bold 9px monospace';
-      ctx.fillStyle = '#b1b3b5';
+      ctx.fillStyle = '#fff';
       for (var i=0; i < allText.length; i++) {
         ctx.fillText(allText[i][0], allText[i][1], allText[i][2]);
       }

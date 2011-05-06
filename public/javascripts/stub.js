@@ -50,8 +50,8 @@ Stub = (function ($) {
     
     , sizeDetailPanes = function () {
         var ww = $(window).width()
-          , lw = (ww - 10) * 0.6
-          , rw = (ww - 10) * 0.4
+          , lw = (ww - 10) * 0.3
+          , rw = (ww - 10) * 0.7
         ;
         $('.details-left').width(lw);
         $('.details-right').width(rw);
@@ -129,7 +129,6 @@ Stub = (function ($) {
           points = [];
           for (var j=0; j < data.length; j++) {
             points.push([ new Date(data[j].t), data[j].a.x, data[j].a.y, data[j].a.z ]);
-            //points.push([ new Date(data[j].t), toMPH(data[j].s) ]);
           }
           var lines = []
             , xline
@@ -138,15 +137,17 @@ Stub = (function ($) {
               width: wrap.width()
             , height: wrap.height()
             , rightGap: 0
-            //, fillGraph: true
+            , fillGraph: true
             , fillAlpha: 0.05
-            , gridLineColor: '#363636'
+            , gridLineColor: 'rgba(255,255,255,0.25)'
             , colors: [orange, blue, green]
-            , strokeWidth: 1
-            , labels: [ 'time', 'm/s^2 (ax)', 'm/s^s (ay)', 'm/s^2 (az)' ]
+            , strokeWidth: 0.5
+            , labels: [ 'time', '(ax)', '(ay)', '(az)' ]
             , axisLineColor: 'rgba(0,0,0,0)'
-            , axisLabelColor: '#666'
+            , axisLabelColor: '#808080'
             , axisLabelFontSize: 9
+            , xlabel: 'Time'
+            , ylabel: 'Acceleration (m/s^2)'
             , stepPlot: true
             , panEdgeFraction: 0.0001
             , interactionModel : {
@@ -162,43 +163,10 @@ Stub = (function ($) {
                   }
                 , mousewheel: scrollV3
               }
-            // , highlightCallback: function (e, x, pts) {
-            //     for (var i = 0; i < pts.length; i++) {
-            //       var y = pts[i].canvasy;
-            //       lines[i].show().css({ top: y + 9 });
-            //       if (i == 0)
-            //         xline.show().css({ left: pts[i].canvasx });
-            //     }
-            //   }
-            // , unhighlightCallback: function(e) {
-            //     for (var i = 0; i < chart.user_attrs_.labels.length - 1; i++) {
-            //       lines[i].hide();
-            //     }
-            //     xline.hide();
-            //   }
           });
           chart.updateOptions({ 
             dateWindow: [ points[0][0].valueOf() + 1, points[points.length-1][0].valueOf()] 
           });
-          // for (var i = 0; i < chart.user_attrs_.labels.length - 1; i++) {
-          //   var line = $('<div />').hide().css({ 
-          //       width: '100%'
-          //     , height: 1
-          //     , backgroundColor: '#797979'
-          //     , opacity: 0.5
-          //     , position: 'absolute'
-          //   }).appendTo(wrap);
-          //   lines.push(line);
-          // }
-          // var xline = $('<div />').css({ 
-          //     width: 1
-          //   , height: '100%'
-          //   , backgroundColor: '#797979'
-          //   , opacity: 0.5
-          //   , top: 0
-          //   , left: 50
-          //   , position: 'absolute' 
-          // }).appendTo(wrap);
           // callback
           fn();
         }
@@ -313,26 +281,7 @@ Stub = (function ($) {
           , clickable: false
         })
       
-      
-      , toMiles = function (m) {
-          return m / 1609.344;
-        }
-    
-    ;
-    
-    return {
-        init: function (dat, fn) {
-          // hide wrap
-          wrap.hide();
-          
-          // ref data
-          data = dat;
-          
-          if (data.length == 0) {
-            fn(true);
-            return;
-          }
-          
+      , plot = function (fn) {
           // poly bounds
           var minlat = 90
             , maxlat = -90
@@ -409,13 +358,37 @@ Stub = (function ($) {
             ;
             cursor.setPosition(c);
           });
-                    
+          
           // ready
           google.maps.event.addListener(map, 'tilesloaded', function () {
             google.maps.event.trigger(map, 'resize');
             fn();
             wrap.removeClass('map-tmp');
           });
+        }
+      
+      , toMiles = function (m) {
+          return m / 1609.344;
+        }
+    
+    ;
+    
+    return {
+        init: function (dat, fn) {
+          // hide wrap
+          wrap.hide();
+          
+          // ref data
+          data = dat;
+          
+          // exit if nothing to do
+          if (data.length == 0) {
+            fn(true);
+            return;
+          }
+          
+          // plot map
+          plot(fn);
           
           // fade in
           wrap.fadeIn(2000);
@@ -652,7 +625,7 @@ Stub = (function ($) {
                 if (serv.status == 'success') {
                   if (!deetsKid.data().sandbox) {
                     var sandbox = new Sandbox(serv.data.bucks, function () {
-                      this.add('TimeSeries', $('.details-left', deetsKid), function (empty) {
+                      this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
                         if (empty)
                           $('.series-loading', deetsKid).text('No time series data.');
                         else
