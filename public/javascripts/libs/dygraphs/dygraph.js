@@ -1703,7 +1703,7 @@ Dygraph.prototype.setLegendHTML_ = function(x, sel_points) {
 Dygraph.prototype.updateSelection_ = function(event) {
   // Clear the previously drawn vertical, if there is one
   var ctx = this.canvas_ctx_;
-  if (this.previousVerticalX_ >= 0) {
+  if (this.previousVerticalX_ >= -1) {
     // Determine the maximum highlight circle size.
     var maxCircleSize = 0;
     var labels = this.attr_('labels');
@@ -1719,12 +1719,12 @@ Dygraph.prototype.updateSelection_ = function(event) {
   // Clear the horizontals
   if (this.previousVerticalY_.length > 0) {
     for (var j = 0; j < this.previousVerticalY_.length; j++) {
-      ctx.clearRect(0, this.previousVerticalY_[j] - 0.5, this.width_, 2);
+      ctx.clearRect(0, this.previousVerticalY_[j] - 1, this.width_, 2);
     }
     this.previousVerticalY_ = [];
   }
   
-  // Clear rects this.previousRects_
+  // Clear rects
   if (this.previousRects_.length > 0) {
     for (var k = 0; k < this.previousRects_.length; k++) {
       ctx.clearRect(this.previousRects_[k][0].x - 1, this.previousRects_[k][0].y - 1, 
@@ -1739,22 +1739,61 @@ Dygraph.prototype.updateSelection_ = function(event) {
     if (this.selPoints_.length > 0) {
       // Set the status message to indicate the selected point(s)
       if (this.attr_('showLabelsOnHighlight')) {
-        this.setLegendHTML_(this.lastx_, this.selPoints_);
+        this.setLegendHTML_();
+        //this.setLegendHTML_(this.lastx_, this.selPoints_);
       }
 
       // Draw colored circles over the center of each selected point
       var canvasx = this.selPoints_[0].canvasx;
       ctx.save();
+      
+      // save mouse y
+      var my = Math.round(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv)) + 0.5;
+      
+      // make text for tooltips
+      var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
+      time = time.substr(0, time.indexOf(' GMT'));
+      var time_width = ctx.measureText(time).width;
+      
+      
+      // draw tooltips
+      this.previousRects_ = [
+        // time box
+        [
+          { x: canvasx + 5, y: my - 5 - 17 },
+          { x: canvasx + 5 + time_width, y: my - 5 - 17 },
+          { x: canvasx + 5 + time_width, y: my - 5 },
+          { x: canvasx + 5, y: my - 5 }
+        ]
+      ];
+      
+      
+      
       for (var i = 0; i < this.selPoints_.length; i++) {
         var pt = this.selPoints_[i];
         if (!Dygraph.isOK(pt.canvasy)) continue;
-
+        
         var circleSize = this.attr_('highlightCircleSize', pt.name);
         ctx.beginPath();
         ctx.fillStyle = this.plotter_.colors[pt.name];
         ctx.arc(canvasx, pt.canvasy, circleSize, 0, 2 * Math.PI, false);
         ctx.fill();
-      
+        
+        var txt = (pt.yval).toFixed(3) + ' ' + pt.name;
+        var txt_width = ctx.measureText(txt).width + 10;
+        
+        var tp = [
+          { x: canvasx - txt_width - 20, y: pt.canvasy - 17 - 20 },
+          { x: canvasx - 20, y: pt.canvasy - 17 - 20 },
+          { x: canvasx - 20, y: pt.canvasy - 20 },
+          { x: canvasx - txt_width - 20, y: pt.canvasy - 20 }
+        ];
+        this.previousRects_.push(tp);
+        
+        ctx.font = 'bold 9px monospace';
+        ctx.fillStyle = '#b1b3b5';
+        ctx.fillText(txt, tp[3].x + 5, tp[3].y - 5);
+        
         // ctx.strokeStyle = 'rgba(255,255,255,0.25)';
         // ctx.lineWidth = 0.5;
         // ctx.beginPath();
@@ -1774,23 +1813,14 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.lineTo(cx, this.height_);
       
       // draw mouse pos as y-crosshair
-      var my = Math.round(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv)) + 0.5;
       ctx.moveTo(0, my);
       ctx.lineTo(this.width_, my);
       ctx.stroke();
       this.previousVerticalY_.push(my);
       
-      // draw tooltips
-      this.previousRects_ = [
-        // time box
-        [
-          { x: canvasx + 5, y: my - 25 },
-          { x: canvasx + 100, y: my - 25 },
-          { x: canvasx + 100, y: my - 5 },
-          { x: canvasx + 5, y: my - 5 }
-        ],
-        //
-      ];
+      
+      
+      
       
       // tooltip style
       ctx.fillStyle = 'rgba(56,56,56,0.5)';
@@ -1809,7 +1839,10 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.fill();
       ctx.stroke();
       
-      var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
+      // draw text
+      ctx.font = 'bold 9px monospace';
+      ctx.fillStyle = '#b1b3b5';
+      ctx.fillText(time, this.previousRects_[0][3].x + 5, this.previousRects_[0][3].y - 5);
       
       
       ctx.restore();

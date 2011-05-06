@@ -143,7 +143,7 @@ Stub = (function ($) {
             , gridLineColor: '#363636'
             , colors: [orange, blue, green]
             , strokeWidth: 1
-            , labels: [ 'time', 'ax m/s^2', 'ay m/s^2', 'az m/s^2' ]
+            , labels: [ 'time', 'm/s^2 (ax)', 'm/s^s (ay)', 'm/s^2 (ay)' ]
             , axisLineColor: 'rgba(0,0,0,0)'
             , axisLabelColor: '#666'
             , axisLabelFontSize: 9
@@ -154,7 +154,12 @@ Stub = (function ($) {
                 , mousemove: moveV3
                 , mouseup: upV3
                 , click: clickV3
-                , dblclick: dblClickV4
+                , dblclick: function (event, g, context) {
+                    dblClickV4(event, g, context);
+                    chart.updateOptions({ 
+                      dateWindow: [ points[0][0].valueOf() + 1, points[points.length-1][0].valueOf()]
+                    });
+                  }
                 , mousewheel: scrollV3
               }
             // , highlightCallback: function (e, x, pts) {
@@ -171,6 +176,9 @@ Stub = (function ($) {
             //     }
             //     xline.hide();
             //   }
+          });
+          chart.updateOptions({ 
+            dateWindow: [ points[0][0].valueOf() + 1, points[points.length-1][0].valueOf()] 
           });
           // for (var i = 0; i < chart.user_attrs_.labels.length - 1; i++) {
           //   var line = $('<div />').hide().css({ 
