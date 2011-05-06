@@ -143,7 +143,7 @@ Stub = (function ($) {
             , gridLineColor: '#363636'
             , colors: [orange, blue, green]
             , strokeWidth: 1
-            , labels: [ 'time', 'm/s^2 (ax)', 'm/s^s (ay)', 'm/s^2 (ay)' ]
+            , labels: [ 'time', 'm/s^2 (ax)', 'm/s^s (ay)', 'm/s^2 (az)' ]
             , axisLineColor: 'rgba(0,0,0,0)'
             , axisLabelColor: '#666'
             , axisLabelFontSize: 9
@@ -346,13 +346,13 @@ Stub = (function ($) {
               , lawn = data[i].g.longitude
             ;
             if (lat < minlat)
-              minlat = lat
+              minlat = lat;
             if (lat > maxlat)
-              maxlat = lat
+              maxlat = lat;
             if (lawn < minlawn)
-              minlawn = lawn
+              minlawn = lawn;
             if (lawn > maxlawn)
-              maxlawn = lawn
+              maxlawn = lawn;
             var ll = new google.maps.LatLng(lat, lawn);
             if (data[i].s == 'SENSOR_CELLPOS')
               poly_cell.getPath().push(ll);

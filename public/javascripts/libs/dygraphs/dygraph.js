@@ -1726,11 +1726,11 @@ Dygraph.prototype.updateSelection_ = function(event) {
   
   // Clear rects
   if (this.previousRects_.length > 0) {
-    for (var k = 0; k < this.previousRects_.length; k++) {
-      ctx.clearRect(this.previousRects_[k][0].x - 1, this.previousRects_[k][0].y - 1, 
-          this.previousRects_[k][1].x - this.previousRects_[k][0].x + 2, 
-          this.previousRects_[k][3].y - this.previousRects_[k][0].y + 2);
+    for (var k=0; k < this.previousRects_.length; k++) {
+      var box = this.getBoundingBox_(this.previousRects_[k]);
+      ctx.clearRect(box.minx - 1, box.miny - 1, box.maxx - box.minx + 2, box.maxy - box.miny + 2);
     }
+    this.previousRects_ = [];
   }
   
   if (!event) {
@@ -1748,27 +1748,57 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.save();
       
       // save mouse y
-      var my = Math.round(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv)) + 0.5;
+      var my = crisper(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv));
       
       // make text for tooltips
+      var allText = [];
       var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
       time = time.substr(0, time.indexOf(' GMT'));
-      var time_width = ctx.measureText(time).width;
+      var timeWidth = ctx.measureText(time).width;
       
+      // draw time box
+      // TODO: make this not crappy
+      var tp;
+      if (my < 40) {
+        if (canvasx + 5 + timeWidth + 20 > this.width_) {
+          tp = [
+            { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
+            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4 + 17) },
+            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4) },
+            { x: crisper(canvasx - 5), y: crisper(my + 4) }
+          ];
+          allText.push([ time, tp[1].x + 5, tp[3].y + 11 ]);
+        } else {
+          tp = [
+            { x: crisper(canvasx + 5), y: crisper(my + 4 + 17) },
+            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4 + 17) },
+            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4) },
+            { x: crisper(canvasx + 5), y: crisper(my + 4) }
+          ];
+          allText.push([ time, tp[3].x + 5, tp[3].y + 11 ]);
+        }
+      } else {
+        if (canvasx + 5 + timeWidth + 20 > this.width_) {
+          tp = [
+            { x: crisper(canvasx - 5), y: crisper(my - 6 - 17) },
+            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6 - 17) },
+            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6) },
+            { x: crisper(canvasx - 5), y: crisper(my - 6) }
+          ];
+          allText.push([ time, tp[1].x + 5, tp[3].y - 6 ]);
+        } else {
+          tp = [
+            { x: crisper(canvasx + 5), y: crisper(my - 6 - 17) },
+            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6 - 17) },
+            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6) },
+            { x: crisper(canvasx + 5), y: crisper(my - 6) }
+          ];
+          allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+        }
+      }
+      this.previousRects_.push(tp);
       
-      // draw tooltips
-      this.previousRects_ = [
-        // time box
-        [
-          { x: canvasx + 5, y: my - 5 - 17 },
-          { x: canvasx + 5 + time_width, y: my - 5 - 17 },
-          { x: canvasx + 5 + time_width, y: my - 5 },
-          { x: canvasx + 5, y: my - 5 }
-        ]
-      ];
-      
-      
-      
+      // loop over hovered points
       for (var i = 0; i < this.selPoints_.length; i++) {
         var pt = this.selPoints_[i];
         if (!Dygraph.isOK(pt.canvasy)) continue;
@@ -1779,20 +1809,36 @@ Dygraph.prototype.updateSelection_ = function(event) {
         ctx.arc(canvasx, pt.canvasy, circleSize, 0, 2 * Math.PI, false);
         ctx.fill();
         
+        // make text
         var txt = (pt.yval).toFixed(3) + ' ' + pt.name;
-        var txt_width = ctx.measureText(txt).width + 10;
+        var txtWidth = ctx.measureText(txt).width + 10;
         
-        var tp = [
-          { x: canvasx - txt_width - 20, y: pt.canvasy - 17 - 20 },
-          { x: canvasx - 20, y: pt.canvasy - 17 - 20 },
-          { x: canvasx - 20, y: pt.canvasy - 20 },
-          { x: canvasx - txt_width - 20, y: pt.canvasy - 20 }
-        ];
+        // make tooltip
+        if (canvasx - 15 - txtWidth - 20 < 0) {
+          var tp = [
+            { x: crisper(canvasx + txtWidth + 15), y: crisper(pt.canvasy - 17 - 15) },
+            { x: crisper(canvasx + 15), y: crisper(pt.canvasy - 17 - 15) },
+            { x: crisper(canvasx), y: crisper(pt.canvasy) },
+            { x: crisper(canvasx + 15), y: crisper(pt.canvasy - 15) },
+            { x: crisper(canvasx + txtWidth + 15), y: crisper(pt.canvasy - 15) }
+          ];
+          allText.push([ txt, tp[3].x + 3, tp[3].y - 6 ]);
+        } else {
+          var tp = [
+            { x: crisper(canvasx - txtWidth - 15), y: crisper(pt.canvasy - 17 - 15) },
+            { x: crisper(canvasx - 15), y: crisper(pt.canvasy - 17 - 15) },
+            { x: crisper(canvasx), y: crisper(pt.canvasy) },
+            { x: crisper(canvasx - 15), y: crisper(pt.canvasy - 15) },
+            { x: crisper(canvasx - txtWidth - 15), y: crisper(pt.canvasy - 15) }
+          ];
+          allText.push([ txt, tp[4].x + 5, tp[4].y - 6 ]);
+        }
         this.previousRects_.push(tp);
         
-        ctx.font = 'bold 9px monospace';
-        ctx.fillStyle = '#b1b3b5';
-        ctx.fillText(txt, tp[3].x + 5, tp[3].y - 5);
+        // draw horizontal lines at each point
+        //ctx.font = 'bold 9px monospace';
+        //ctx.fillStyle = '#b1b3b5';
+        //ctx.fillText(txt, tp[3].x + 5, tp[3].y - 5);
         
         // ctx.strokeStyle = 'rgba(255,255,255,0.25)';
         // ctx.lineWidth = 0.5;
@@ -1808,7 +1854,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.strokeStyle = 'rgba(255,255,255,0.25)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
-      var cx = Math.round(canvasx) + 0.5;
+      var cx = crisper(canvasx);
       ctx.moveTo(cx, 0);
       ctx.lineTo(cx, this.height_);
       
@@ -1818,17 +1864,34 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.stroke();
       this.previousVerticalY_.push(my);
       
-      
-      
-      
-      
       // tooltip style
       ctx.fillStyle = 'rgba(56,56,56,0.5)';
       ctx.strokeStyle = 'rgba(90,90,90,0.5)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
       
-      for (var i=0; i < this.previousRects_.length; i++) {
+      
+      // check bounds on value tips
+      var numRects = this.previousRects_.length;
+      for (var i=1; i < numRects; i++) {
+        for (var j=i; j < numRects; j++) {
+          if (i !== j) {
+            var mv = this.overlaps_(this.previousRects_[i], this.previousRects_[j]);
+            if (mv.movey) {
+              for (var k=0; k < mv.movey.length; k++) {
+                if (k !== 2) {
+                  mv.movey[k].y += crisper(mv.dy / 2);
+                }
+              }
+              allText[this.previousRects_.indexOf(mv.movey)][2] += crisper(mv.dy / 2);
+            }
+          }
+        }
+      }
+      
+      
+      // draw tooltips
+      for (var i=0; i < numRects; i++) {
         ctx.moveTo(this.previousRects_[i][0].x, this.previousRects_[i][0].y);
         for (var j=1; j < this.previousRects_[i].length; j++) {
           ctx.lineTo(this.previousRects_[i][j].x, this.previousRects_[i][j].y);
@@ -1842,7 +1905,9 @@ Dygraph.prototype.updateSelection_ = function(event) {
       // draw text
       ctx.font = 'bold 9px monospace';
       ctx.fillStyle = '#b1b3b5';
-      ctx.fillText(time, this.previousRects_[0][3].x + 5, this.previousRects_[0][3].y - 5);
+      for (var i=0; i < allText.length; i++) {
+        ctx.fillText(allText[i][0], allText[i][1], allText[i][2]);
+      }
       
       
       ctx.restore();
@@ -1850,7 +1915,83 @@ Dygraph.prototype.updateSelection_ = function(event) {
       this.previousVerticalX_ = canvasx;
     }
   }
+  
+  function crisper(v) {
+    return Math.round(v) + 0.5;
+  }
+  
 };
+
+
+Dygraph.prototype.getBoundingBox_ = function(shape) {
+  var b = {
+    minx: this.width_, 
+    maxx: 0, 
+    miny: this.height_, 
+    maxy: 0
+  };
+  for (var i=0; i < shape.length; i++) {
+    var x = shape[i].x, y = shape[i].y;
+    if (x < b.minx)
+      b.minx = x;
+    if (x > b.maxx)
+      b.maxx = x;
+    if (y < b.miny)
+      b.miny = y;
+    if (y > b.maxy)
+      b.maxy = y;
+  }
+  return b;
+}
+Dygraph.prototype.overlaps_ = function(a, b) {
+  var ba = this.getBoundingBox_(a)
+    , bb = this.getBoundingBox_(b)
+    , wa = ba.maxx - ba.minx
+    , wb = bb.maxx - bb.minx
+    , ha = ba.maxy - ba.miny
+    , hb = bb.maxy - bb.miny
+    , dxab = ba.minx + wa - bb.minx
+    , dxba = bb.minx + wb - ba.minx
+    , dyab = ba.miny + wa - bb.miny
+    , dyba = bb.miny + wb - ba.miny
+    , r = {
+          movex: null
+        , movey: null
+        , dx: 0
+        , dy: 0
+      }
+  ;
+  // on x
+  if (dxab < 0) {
+    // not overlapping (a b)
+  } else if (dxba < 0) {
+    // not overlapping (b a)
+  } else if (dxab > 0 && ba.minx < bb.minx) {
+    // b overlaps a (a b)
+    r.movex = b;
+    r.dx = dxab;
+  } else if (dxba > 0 && bb.minx < ba.minx) {
+    // a overlaps b (b a)
+    r.movex = a;
+    r.dx = dxba;
+  }
+  // on y
+  if (dyab < 0) {
+    // not overlapping (a b)
+  } else if (dyba < 0) {
+    // not overlapping (b a)
+  } else if (dyab > 0 && ba.miny < bb.miny) {
+    // b overlaps a (a b)
+    r.movey = b;
+    r.dy = dyab;
+  } else if (dyba > 0 && bb.miny < ba.miny) {
+    // a overlaps b (b a)
+    r.movey = a;
+    r.dy = dyba;
+  }
+  return r;
+}
+
 
 /**
  * Set manually set selected dots, and display information about them
