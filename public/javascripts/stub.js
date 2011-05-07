@@ -189,11 +189,11 @@ Stub = (function ($) {
           }
         }
       , resize: function (wl, hl, wr, hr) {
-          if (!wl)
-            wl = wrap.width();
-          if (!hl)
-            hl = wrap.height();
-          chart.resize(wl, hl);
+          if (!wr)
+            wr = wrap.width();
+          if (!hr)
+            hr = wrap.height();
+          chart.resize(wr, hr);
         }
       , clear: function () {
           
@@ -395,11 +395,11 @@ Stub = (function ($) {
         }
       , resize: function (wl, hl, wr, hr) {
           google.maps.event.trigger(map, 'resize');
-          if (!wr)
-            wr = map_width;
-          if (!hr)
-            hr = map_height;
-          map.panBy(map_width - wr, map_height - hr);
+          if (!wl)
+            wl = map_width;
+          if (!hl)
+            hl = map_height;
+          map.panBy((map_width - wl) / 2, (map_height - hl) / 2);
           
           map_width = wrap.width();
           map_height = wrap.height();
@@ -525,6 +525,11 @@ Stub = (function ($) {
             ;
             lp.width(lp.width() + dif);
             rp.width(rp.width() + dif);
+            if ($this.data().sandbox) {
+              $this.data().sandbox.widgets.forEach(function (w) {
+                w.resize(lp.width(), null, rp.width(), null);
+              }); 
+            }
           });
         });
         
