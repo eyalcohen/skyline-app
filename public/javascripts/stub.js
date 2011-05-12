@@ -920,7 +920,7 @@ Stub = (function ($) {
           
           
           // TMP -- open the first vehicle pane
-          $('a.expander:first').click();
+          $($('a.expander')[1]).click();
         }
         
       }
