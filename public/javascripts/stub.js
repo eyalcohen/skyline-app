@@ -8,6 +8,42 @@ Stub = (function ($) {
     , blue = '#55f5f2'
     , green = '#00f62e'
     
+    , mapStylez = [
+          {
+            featureType: 'administrative',
+            elementType: 'all',
+            stylers: [ { visibility: 'off' } ]
+          }
+        , {
+            featureType: 'landscape',
+            elementType: 'all',
+            stylers: [ { saturation: 100 } ]
+          }
+        , {
+            featureType: 'poi',
+            elementType: 'all',
+            stylers: [ { saturation: 100 } ]
+          }
+        , {
+            featureType: 'road',
+            elementType: 'all',
+            stylers: [ { saturation: -100 } ]
+          }
+        , {
+            featureType: 'transit',
+            elementType: 'all',
+            stylers: [ { visibility: 'off' } ]
+          }
+        , {
+            featureType: 'water',
+            elementType: 'all',
+            stylers: [ { saturation: -100 } ]
+          }
+      ]
+    , mapStyledOptions = {
+        name: 'GrayScale'
+      }
+    
     , search = function (by, val, fn) {
         jrid.empty();
         var data = {
@@ -48,15 +84,6 @@ Stub = (function ($) {
         });
       }
     
-    , sizeDetailPanes = function () {
-        var ww = $(window).width()
-          , lw = (ww - 10) * 0.3
-          , rw = (ww - 10) * 0.7
-        ;
-        $('.details-left').width(lw);
-        $('.details-right').width(rw);
-      }
-    
     , addCommas = function (n) {
         n += '';
         var x = n.split('.')
@@ -68,6 +95,42 @@ Stub = (function ($) {
           x1 = x1.replace(rgx, '$1' + ',' + '$2');
         }
         return x1 + x2;
+      }
+    
+    , addLandingMap = function () {
+        var wrap = $('#landing-map')
+          , chicago = new google.maps.LatLng(39.6,-94.35)
+          , map
+          , mapOptions = {
+                zoom: 4
+              , center: chicago
+              , disableDefaultUI: true
+              , mapTypeControlOptions: {
+                  mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ]
+                }
+            }
+          , mapType = new google.maps.StyledMapType(mapStylez, mapStyledOptions)
+        ;
+        
+        // make new map
+        map = new google.maps.Map(wrap[0], mapOptions);
+        map.mapTypes.set('grayscale', mapType);
+        map.setMapTypeId('grayscale');
+        
+        // ready
+        google.maps.event.addListener(map, 'tilesloaded', function () {
+          google.maps.event.trigger(map, 'resize');
+          wrap.removeClass('map-tmp');
+        });
+      }
+      
+    , sizeDetailPanes = function () {
+        var ww = $(window).width()
+          , lw = (ww - 10) * 0.3
+          , rw = (ww - 10) * 0.7
+        ;
+        $('.details-left').width(lw);
+        $('.details-right').width(rw);
       }
   ;
   
@@ -214,42 +277,7 @@ Stub = (function ($) {
               mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ]
             }
         }
-      , stylez = [
-            {
-              featureType: 'administrative',
-              elementType: 'all',
-              stylers: [ { visibility: 'off' } ]
-            }
-          , {
-              featureType: 'landscape',
-              elementType: 'all',
-              stylers: [ { saturation: 100 } ]
-            }
-          , {
-              featureType: 'poi',
-              elementType: 'all',
-              stylers: [ { saturation: 100 } ]
-            }
-          , {
-              featureType: 'road',
-              elementType: 'all',
-              stylers: [ { saturation: -100 } ]
-            }
-          , {
-              featureType: 'transit',
-              elementType: 'all',
-              stylers: [ { visibility: 'off' } ]
-            }
-          , {
-              featureType: 'water',
-              elementType: 'all',
-              stylers: [ { saturation: -100 } ]
-            }
-        ]
-      , styledOptions = {
-          name: 'GrayScale'
-        }
-      , mapType = new google.maps.StyledMapType(stylez, styledOptions)
+      , mapType = new google.maps.StyledMapType(mapStylez, mapStyledOptions)
       , poly = new google.maps.Polyline({
             strokeColor: '#ff0000'
           , strokeOpacity: 0.5
@@ -443,6 +471,15 @@ Stub = (function ($) {
           $.post(url, data, success, 'json');
         };
         
+        // server DEL
+        $.del = function (url, data, success) {
+          $.ajax(url, {
+              type: 'DELETE'
+            , data: data
+            , success: success
+          });
+        };
+        
         
         // map form data to JSON
         $.fn.serializeObject = function () {
@@ -473,197 +510,418 @@ Stub = (function ($) {
         
         //////// SETUP
         
-        // layer tabs
-        var tabs = $('.tab');
-        tabs.each(function (i) {
-          $this = $(this);
-          var z = $this.hasClass('tab-active') ? 
-            10001 + tabs.length - i : 
-            tabs.length - i
-          ;
-          $this.css({ zIndex: z });
-        });
         
-        // add commas
-        $('.number').each(function (i) {
-          var $this = $(this);
-          $this.text(addCommas($this.text()));
-        });
+        if (window.location.pathname == '/login') {
+          
+          // future info map
+          addLandingMap();
+        } else {
+          
+          // layer tabs
+          var tabs = $('.tab');
+          tabs.each(function (i) {
+            $this = $(this);
+            var z = $this.hasClass('tab-active') ? 
+              10001 + tabs.length - i : 
+              tabs.length - i
+            ;
+            $this.css({ zIndex: z });
+          });
+
+          // add commas
+          $('.number').each(function (i) {
+            var $this = $(this);
+            $this.text(addCommas($this.text()));
+          });
+
+          sizeDetailPanes();
+        }
         
-        sizeDetailPanes();
+        
         
         
         //////// HANDLERS
         
-        // click a tab
-        tabs.live('click', function () {
-          var $this = $(this);
-          $('.tab-active').each(function (i) {
-            var $this = $(this);
-            $this.removeClass('tab-active');
-            $this.css({ zIndex: parseInt($this.css('z-index')) - 10001 });
-            flipTabSides($this);
-            $('.tab-content', $this).addClass('tab-content-inactive');
-          });
-          $this.addClass('tab-active');
-          $this.css({ zIndex: 10001 + parseInt($this.css('z-index')) });
-          flipTabSides($this);
-          $('.tab-content', $this).removeClass('tab-content-inactive');
-        });
-        
-        
-        // resize window
-        $(window).resize(function () {
-          var ww = $(this).width();
-          $('.details').each(function (i) {
-            var $this = $(this)
-              , lp = $($this.children()[0])
-              , cp = $($this.children()[1])
-              , rp = $($this.children()[2])
-              , tpw = lp.width() + cp.width() + rp.width()
-              , dif = (ww - tpw) / 2
+        if (window.location.pathname == '/login') {
+          
+          // landing page login
+          var loginForm = $('#login-form')
+          
+          // login user
+            , loginButton = $('#login')
+            , loginEmail = $('input[name="user[email]"]')
+            , loginPassword = $('input[name="user[password]"]')
+            , loginEmailLabel = $('label[for="user[email]"]')
+            , loginPasswordLabel = $('label[for="user[password]"]')
+          
+          // register user
+            , landingMessage = $('#landing-message')
+            , landingSuccess = $('#landing-success')
+            , landingError = $('#landing-error')
+            , landingSuccessText = $('#landing-success p')
+            , landingErrorText = $('#landing-error p')
+          
+          // form control
+            , exitLoginButton = function () {
+                loginButton.removeClass('cs-button-alert');
+                resetLoginStyles();
+              }
+            , resetLoginStyles = function () {
+                loginEmailLabel.css('color', '#ccc');
+                loginPasswordLabel.css('color', '#ccc');
+              }
+            , checkInput = function () {
+                if (this.value.trim() != '') {
+                  $(this).removeClass('cs-input-alert');
+                }
+              }
+          ;
+          loginEmail.focus();
+          
+          loginButton.bind('mouseenter', function () {
+            var email = loginEmail.val().trim()
+              , password = loginPassword.val().trim()
             ;
-            lp.width(lp.width() + dif);
-            rp.width(rp.width() + dif);
-            if ($this.data().sandbox) {
-              $this.data().sandbox.widgets.forEach(function (w) {
-                w.resize(lp.width(), null, rp.width(), null);
-              }); 
+            if (email != '' && password != '') {
+              resetLoginStyles();
+            } else {
+              loginButton.addClass('cs-button-alert');
+              if (email == '')
+                loginEmailLabel.css('color', 'red');
+              if (password == '')
+                loginPasswordLabel.css('color', 'red');
+            }
+          }).bind('mouseleave', exitLoginButton);
+          
+          loginEmail.bind('keyup', checkInput);
+          loginPassword.bind('keyup', checkInput);
+          
+          loginButton.bind('click', function (e) {
+            e.preventDefault();
+            landingError.hide();
+            var data = loginForm.serializeObject();
+            $.post('/sessions', data, function (serv) {
+              if (serv.status == 'success') {
+                window.location = '/';
+              } else if (serv.status == 'fail') {
+                landingErrorText.html(serv.data.message);
+                landingError.fadeIn('fast');
+                switch (serv.data.code) {
+                  case 'MISSING_FIELD':
+                    var missing = serv.data.missing;
+                    for (var i=0; i < missing.length; i++) {
+                      $('input[name="user[' + missing[i] + ']"]').addClass('cs-input-alert');
+                    }
+                    break;
+                  case 'BAD_AUTH':
+                    loginPassword.val('').focus();
+                    break;
+                  case 'NOT_CONFIRMED':
+                    break;
+                }
+              } else if (serv.status == 'error') {
+                landingErrorText.html(serv.message);
+                landingError.fadeIn('fast');
+              }
+            }, 'json');
+          });
+          
+          
+          
+          /////////////////////////////// API TESTING
+          
+          $('.landing-logo').bind('click', function (e) {
+            e.preventDefault();
+            makeUser(this);
+            //makeVehicle(this);
+            //getUser(this);
+            //getVehicle(this);
+          });
+          
+          function makeUser(self) {
+            var element = $(self)
+              , form = $('<form></form>')
+            ;
+            form
+              .attr({
+                  method: 'POST'
+                , action: '/usercreate/sander@ridemission.com'
+              })
+              .hide()
+              .append('<input type="hidden" />')
+              .find('input')
+              .attr({
+                  'name': 'password'
+                , 'value': 'admin'
+              });
+              
+              form
+              .append('<input type="hidden" />')
+              .find('input:last-child')
+              .attr({
+                  'name': 'fullName'
+                , 'value': 'Sander Pick'
+              })
+              .end()
+              .submit();
+          }
+          
+          function makeVehicle(self) {
+            var element = $(self)
+              , form = $('<form></form>')
+            ;
+            form
+              .attr({
+                  method: 'POST'
+                , action: '/vehiclecreate/sander@island.io/Honda/Civic/2011'
+              })
+              .hide()
+              .append('<input type="hidden" />')
+              .find('input')
+              .attr({
+                  'name': 'password'
+                , 'value': 'plebeian'
+              })
+              .end()
+              .submit();
+          }
+          
+          function getUser(self) {
+            var element = $(self)
+              , form = $('<form></form>')
+            ;
+            form
+              .attr({
+                  method: 'GET'
+                , action: '/userinfo/sander@island.io'
+              })
+              .hide()
+              .append('<input type="hidden" />')
+              .find('input')
+              .attr({
+                  'name': 'password'
+                , 'value': 'plebeian'
+              })
+              .end()
+              .submit();
+          }
+          
+          function getVehicle(self) {
+            var element = $(self)
+              , form = $('<form></form>')
+            ;
+            form
+              .attr({
+                  method: 'GET'
+                , action: '/summary/sander@ridemission.com/718793916'
+              })
+              .hide()
+              .append('<input type="hidden" />')
+              .find('input')
+              .attr({
+                  'name': 'password'
+                , 'value': 'plebeian'
+              })
+              .end()
+              .submit();
+          }
+          
+          /////////////////////////////// API TESTING
+          
+        } else {
+          
+          // logout
+          $('#logout').live('click', function (e) {
+            e.preventDefault();
+            var element = $(this)
+              , form = $('<form></form>')
+            ;
+            form
+              .attr({
+                  method: 'POST'
+                , action: '/sessions'
+              })
+              .hide()
+              .append('<input type="hidden" />')
+              .find('input')
+              .attr({
+                  'name': '_method'
+                , 'value': 'delete'
+              })
+              .end()
+              .submit();
+          });
+          
+          // click a tab
+          tabs.live('click', function () {
+            var $this = $(this);
+            $('.tab-active').each(function (i) {
+              var $this = $(this);
+              $this.removeClass('tab-active');
+              $this.css({ zIndex: parseInt($this.css('z-index')) - 10001 });
+              flipTabSides($this);
+              $('.tab-content', $this).addClass('tab-content-inactive');
+            });
+            $this.addClass('tab-active');
+            $this.css({ zIndex: 10001 + parseInt($this.css('z-index')) });
+            flipTabSides($this);
+            $('.tab-content', $this).removeClass('tab-content-inactive');
+          });
+          
+          
+          // resize window
+          $(window).resize(function () {
+            var ww = $(this).width();
+            $('.details').each(function (i) {
+              var $this = $(this)
+                , lp = $($this.children()[0])
+                , cp = $($this.children()[1])
+                , rp = $($this.children()[2])
+                , tpw = lp.width() + cp.width() + rp.width()
+                , dif = (ww - tpw) / 2
+              ;
+              lp.width(lp.width() + dif);
+              rp.width(rp.width() + dif);
+              if ($this.data().sandbox) {
+                $this.data().sandbox.widgets.forEach(function (w) {
+                  w.resize(lp.width(), null, rp.width(), null);
+                }); 
+              }
+            });
+          });
+          
+          
+          // resize vertical panes
+          $('.details-bar-bottom, img.resize-y').live('mousedown', function (e) {
+            var pan = $(this).hasClass('details-bar-bottom') ?
+                $(this.parentNode) :
+                $(this.parentNode.parentNode)
+              , handle = $('img.resize-x', pan)
+              , widgets = pan.children().data().sandbox.widgets
+              , pan_h_orig = pan.height()
+              , mouse_orig = mouse(e)
+            ;
+            
+            // bind mouse move
+            var movehandle = function (e) {
+              // get mouse position
+              var m = mouse(e);
+              // determine new values
+              var ph = pan_h_orig + (m.y - mouse_orig.y);
+              // check bounds
+              if (ph < 100 || ph > 800) return false;
+              // set height
+              pan.height(ph);
+              // move handles
+              handle.css({ top: ph / 2 - handle.height() });
+              // widgets
+              for (var w=0; w < widgets.length; w++)
+                widgets[w].resize(null, ph - 18, null, ph - 18)
+            };
+            $(document).bind('mousemove', movehandle);
+            
+            // bind mouse up
+            $(document).bind('mouseup', function () {
+              // remove all
+              $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+            });
+          });
+          
+          
+          // resize horizontal panes
+          $('.details-bar-middle, img.resize-x').live('mousedown', function (e) {
+            var $this = $(this).hasClass('details-bar-middle') ?
+                  this : this.parentNode
+              , pan_left = $($this.previousElementSibling)
+              , pan_right = $($this.nextElementSibling)
+              , parent = $($this.parentNode)
+              , widgets = parent.data().sandbox.widgets
+              , pan_left_w_orig = pan_left.width()
+              , pan_right_w_orig = pan_right.width()
+              , mouse_orig = mouse(e)
+            ;
+            // bind mouse move
+            var movehandle = function (e) {
+              // get mouse position
+              var m = mouse(e);
+              // determine new values
+              var plw = pan_left_w_orig + (m.x - mouse_orig.x)
+                , prw = pan_right_w_orig - (m.x - mouse_orig.x)
+              // check bounds
+              if (plw < 200 || prw < 200) return false;
+              // set widths
+              pan_left.width(plw);
+              pan_right.width(prw);
+              // widgets
+              for (var w=0; w < widgets.length; w++)
+                widgets[w].resize(plw, null, prw, null)
+            };
+            $(document).bind('mousemove', movehandle);
+            
+            // bind mouse up
+            $(document).bind('mouseup', function () {
+              // remove all
+              $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+            });
+          });
+          
+          $('img.resize-x, img.resize-y').live('mousedown', function (e) {
+            if (e.preventDefault) e.preventDefault();
+          });
+          
+          
+          // initial vehicle cycle query 
+          $('a.expander').live('click', function () {
+            var $this = $(this)
+              , arrow = $('img', $this)
+              , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
+              , deets = $(deetsHolder.children().children())
+              , deetsKid = $(deetsHolder.children().children().children()[0])
+              , handle = $('img.resize-x', deets)
+            ;
+            if (!arrow.hasClass('open')) {
+              arrow.addClass('open');
+              deetsHolder.show();
+              deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
+                $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
+                  if (serv.status == 'success') {
+                    if (!deetsKid.data().sandbox) {
+                      var sandbox = new Sandbox(serv.data.bucks, function () {
+                        this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
+                          if (empty)
+                            $('.series-loading', deetsKid).text('No time series data.');
+                          else
+                            $('.series-loading', deetsKid).hide();
+                        });
+                        this.add('Map', $('.map', deetsKid), function (empty) {
+                          if (empty)
+                            $('.map-loading', deetsKid).text('No map data.');
+                          else
+                            $('.map-loading', deetsKid).hide();
+                        });
+                        // add sanbox to details div
+                        deetsKid.data({ sandbox: this });
+                      });
+                    }
+                  } else
+                    console.log(serv.message);
+                });
+              });
+              handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
+            } else {
+              arrow.removeClass('open');
+              deetsHolder.hide();
+              deets.css({ height: 20 });
+              deetsKid.data().sandbox.widgets.forEach(function (w) {
+                w.clear(); 
+              });
             }
           });
-        });
-        
-        
-        // resize vertical panes
-        $('.details-bar-bottom, img.resize-y').bind('mousedown', function (e) {
-          var pan = $(this).hasClass('details-bar-bottom') ?
-              $(this.parentNode) :
-              $(this.parentNode.parentNode)
-            , handle = $('img.resize-x', pan)
-            , widgets = pan.children().data().sandbox.widgets
-            , pan_h_orig = pan.height()
-            , mouse_orig = mouse(e)
-          ;
           
-          // bind mouse move
-          var movehandle = function (e) {
-            // get mouse position
-            var m = mouse(e);
-            // determine new values
-            var ph = pan_h_orig + (m.y - mouse_orig.y);
-            // check bounds
-            if (ph < 100 || ph > 800) return false;
-            // set height
-            pan.height(ph);
-            // move handles
-            handle.css({ top: ph / 2 - handle.height() });
-            // widgets
-            for (var w=0; w < widgets.length; w++)
-              widgets[w].resize(null, ph - 18, null, ph - 18)
-          };
-          $(document).bind('mousemove', movehandle);
           
-          // bind mouse up
-          $(document).bind('mouseup', function () {
-            // remove all
-            $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
-          });
-        });
-        
-        
-        // resize horizontal panes
-        $('.details-bar-middle, img.resize-x').bind('mousedown', function (e) {
-          var $this = $(this).hasClass('details-bar-middle') ?
-                this : this.parentNode
-            , pan_left = $($this.previousElementSibling)
-            , pan_right = $($this.nextElementSibling)
-            , parent = $($this.parentNode)
-            , widgets = parent.data().sandbox.widgets
-            , pan_left_w_orig = pan_left.width()
-            , pan_right_w_orig = pan_right.width()
-            , mouse_orig = mouse(e)
-          ;
-          // bind mouse move
-          var movehandle = function (e) {
-            // get mouse position
-            var m = mouse(e);
-            // determine new values
-            var plw = pan_left_w_orig + (m.x - mouse_orig.x)
-              , prw = pan_right_w_orig - (m.x - mouse_orig.x)
-            // check bounds
-            if (plw < 200 || prw < 200) return false;
-            // set widths
-            pan_left.width(plw);
-            pan_right.width(prw);
-            // widgets
-            for (var w=0; w < widgets.length; w++)
-              widgets[w].resize(plw, null, prw, null)
-          };
-          $(document).bind('mousemove', movehandle);
-          
-          // bind mouse up
-          $(document).bind('mouseup', function () {
-            // remove all
-            $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
-          });
-        });
-        
-        $('img.resize-x, img.resize-y').bind('mousedown', function (e) {
-          if (e.preventDefault) e.preventDefault();
-        });
-        
-        
-        // initial vehicle cycle query 
-        $('a.expander').live('click', function () {
-          var $this = $(this)
-            , arrow = $('img', $this)
-            , deetsHolder = $(this.parentNode.parentNode.nextElementSibling)
-            , deets = $(deetsHolder.children().children())
-            , deetsKid = $(deetsHolder.children().children().children()[0])
-            , handle = $('img.resize-x', deets)
-          ;
-          if (!arrow.hasClass('open')) {
-            arrow.addClass('open');
-            deetsHolder.show();
-            deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
-              $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
-                if (serv.status == 'success') {
-                  if (!deetsKid.data().sandbox) {
-                    var sandbox = new Sandbox(serv.data.bucks, function () {
-                      this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
-                        if (empty)
-                          $('.series-loading', deetsKid).text('No time series data.');
-                        else
-                          $('.series-loading', deetsKid).hide();
-                      });
-                      this.add('Map', $('.map', deetsKid), function (empty) {
-                        if (empty)
-                          $('.map-loading', deetsKid).text('No map data.');
-                        else
-                          $('.map-loading', deetsKid).hide();
-                      });
-                      // add sanbox to details div
-                      deetsKid.data({ sandbox: this });
-                    });
-                  }
-                } else
-                  console.log(serv.message);
-              });
-            });
-            handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
-          } else {
-            arrow.removeClass('open');
-            deetsHolder.hide();
-            deets.css({ height: 20 });
-            deetsKid.data().sandbox.widgets.forEach(function (w) {
-              w.clear(); 
-            });
-          }
-        });
-        
-        
-        // TMP -- open the first vehicle pane
-        $('a.expander:first').click();
+          // TMP -- open the first vehicle pane
+          $('a.expander:first').click();
+        }
         
       }
 

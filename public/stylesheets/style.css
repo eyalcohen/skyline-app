@@ -85,11 +85,14 @@ a:hover { color: #036; }
 */
 
 body {
-  background-color: #1a1a1a;
   font-family: Verdana, Arial, Helvetica, sans-serif;
   font-size: 11px;
   color: white;
   overflow-x: hidden;
+}
+
+a:focus {
+  outline: none;
 }
 
 #container {
@@ -107,6 +110,304 @@ footer {}
 #main {
   width: 100%;
 }
+
+.white-back {
+  background: white url(/images/white.png);
+}
+
+.black-back {
+  background: #1a1a1a url(/images/pavement-short.jpg) repeat-x;
+}
+
+.orange {
+  color: #ff931a;
+}
+
+.list {
+  list-style-type: none;
+}
+
+.list li {
+  display: inline;
+  margin: 0 0 0 20px;
+}
+
+#menu {
+  float: right;
+  margin: 0 25px 0 0;
+}
+
+a.link-button {
+  display: inline-block;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+  background: rgba(255,255,255,0.2);
+  padding: 3px 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  
+  -moz-text-shadow: gray 0 -1px;
+  -webkit-text-shadow: gray 0 -1px;
+  text-shadow: gray 0 -1px;
+}
+
+a.link-button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+a.link-button:active {
+  -moz-box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+  -webkit-box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+  box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+}
+
+
+
+
+
+
+
+div.landing-wrap {
+  width: 100%;
+  background: #1a1a1a url(/images/pavement.jpg) repeat-x;
+}
+
+div.landing-line {
+  position: absolute;
+  top: 90px;
+  background: white;
+  opacity: 0.1;
+  height: 1px;
+  width: 100%;
+}
+
+div.landing-center {
+  margin: 0 auto;
+  width: 944px;
+}
+
+div.landing-center-wide {
+  margin: 0 auto;
+  width: 984px;
+}
+
+div.landing-text {
+  padding: 65px 0 48px;
+}
+
+h1 {
+  font: bold 53px Arial, Helvetica, sans-serif;
+  color: white;
+  letter-spacing: -3px;
+  word-spacing: 1px;
+  line-height: 53px;
+  opacity: 0.8;
+  margin: 0 0 10px;
+  
+  -moz-text-shadow: black 0 -1px;
+  -webkit-text-shadow: black 0 -1px;
+  text-shadow: black 0 -1px;
+}
+
+h2.landing-one {
+  color: white;
+  line-height: 14px;
+  opacity: 0.8;
+  max-width: 600px;
+  
+  -moz-text-shadow: black 0 -1px;
+  -webkit-text-shadow: black 0 -1px;
+  text-shadow: black 0 -1px;
+}
+
+#landing-map {
+  background: #b3b3b3 !important;
+  border-top: 3px solid #ff931a;
+  position: absolute;
+  top: 325px;
+  width: 984px;
+  height: 400px;
+  
+  -moz-box-shadow: 0px 0px 10px rgba(0,0,0,1);
+  -webkit-box-shadow: 0px 0px 10px rgba(0,0,0,1);
+  box-shadow: 0px 0px 10px rgba(0,0,0,1);
+}
+
+#landing-phone {
+  position: absolute;
+  top: 400px;
+  left: 670px;
+}
+
+#landing-meta {
+  background: none;
+  position: absolute;
+  top: 400px;
+  left: 795px;
+  padding: 0 0 0 20px;
+  border-left: 1px solid #1a1a1a;
+  width: 300px;
+}
+
+h2.landing-two {
+  font-size: 16px;
+  color: #1a1a1a;
+  font-weight: bold;
+  letter-spacing: -1px;
+  word-spacing: 1px;
+  
+  -moz-text-shadow: white 0 1px;
+  -webkit-text-shadow: white 0 1px;
+  text-shadow: white 0 1px;
+}
+
+#landing-meta p {
+  color: #666;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 10px 0 0 0;
+  
+  -moz-text-shadow: white 0 1px;
+  -webkit-text-shadow: white 0 1px;
+  text-shadow: white 0 1px;
+}
+
+
+div.landing-bottom {
+  width: 100%;
+  border-top: 3px solid #ff931a;
+  position: absolute;
+  top: 335px;
+  z-index: -10;
+}
+
+div.landing-reports {
+  position: relative;
+  top: 70px;
+}
+
+#landing-message,
+#landing-success,
+#landing-error {
+  position: absolute;
+  right: 0;
+  display: none;
+}
+p.landing-report {
+  font-style: italic;
+  color: #ccc;
+}
+
+div.landing-logo {
+  margin: 0 500px 0 0;
+  padding: 30px 0 0;
+}
+
+div.landing-form {
+  float: right;
+  margin: -16px 0 0;
+  padding: 30px 0 0;
+}
+
+div.landing-form td {
+  padding: 0 0 5px 10px;
+}
+
+label {
+  font-size: 9px;
+  color: #ccc;
+}
+
+input:not([type=submit]) {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  background: rgba(255,255,255,0.2);
+  padding: 5px;
+  width: 175px;
+  border: 1px solid rgba(255,255,255,0.2);
+  
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  
+  -moz-box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+  -webkit-box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+  box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+}
+
+input:not([type=submit]):focus {
+  background: rgba(255,255,255,0.1);
+}
+
+input[type=submit] {
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  background: rgba(255,255,255,0.2);
+  padding: 5px;
+  border: 1px solid rgba(255,255,255,0.2);
+  
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  border-radius: 2px;
+  
+  -moz-text-shadow: gray 0 -1px;
+  -webkit-text-shadow: gray 0 -1px;
+  text-shadow: gray 0 -1px;
+}
+
+input[type=submit]:active {
+  -moz-box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+  -webkit-box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+  box-shadow: 0px 0px 3px rgba(0,0,0,1) inset;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+}
+
+input::-moz-focus-inner, textarea::-moz-focus-inner {
+  border: none;
+}
+
+input.cs-input-alert {
+  border: 1px solid rgba(255,0,0,0.4) !important;
+}
+
+input.cs-button-alert[type=submit] {
+  color: red !important;
+}
+
+span.landing-copy {
+  color: #808080;
+  font-size: 9px;
+  position: relative;
+  top: 420px;
+  padding: 0 0 20px;
+}
+
+#remember_me {
+  margin: 0 5px 0 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .tabs {
   position: relative;

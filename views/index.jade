@@ -1,29 +1,37 @@
 #container
   header
-    img#logo(src="/gfx/logo.png", alt="Mission Motors")
+    img#logo(src="/graphics/logo.png", alt="Mission Motors")
+    #menu.list
+      ul
+        li
+          span.welcome-user Hi, 
+            =user.name.first + ' ' + user.name.last
+        li
+          a#logout.link-button(href='javascript:;', title='Log Out') 
+            | Log Out
   #main(role="main")
     div.tabs
       div.tab.tab-active(style="left: 30px;")
         a(href="javascript:;")
           div.tab-side
-            img(src="/gfx/tab-left-side.png", alt="/gfx/tab-left-side-dark.png")
+            img(src="/graphics/tab-left-side.png", alt="/graphics/tab-left-side-dark.png")
           div.tab-content All Cycles
           div.tab-side
-            img(src="/gfx/tab-right-side.png", alt="/gfx/tab-right-side-dark.png")
+            img(src="/graphics/tab-right-side.png", alt="/graphics/tab-right-side-dark.png")
       div.tab(style="left: 128px;")
         a(href="javascript:;")
           div.tab-side
-            img(src="/gfx/tab-left-side-dark.png", alt="/gfx/tab-left-side.png")
+            img(src="/graphics/tab-left-side-dark.png", alt="/graphics/tab-left-side.png")
           div.tab-content.tab-content-inactive My History
           div.tab-side
-            img(src="/gfx/tab-right-side-dark.png", alt="/gfx/tab-right-side.png")
+            img(src="/graphics/tab-right-side-dark.png", alt="/graphics/tab-right-side.png")
       div.tab(style="right: 20px;")
         a(href="javascript:;")
           div.tab-side
-            img(src="/gfx/tab-left-side-dark.png", alt="/gfx/tab-left-side.png")
+            img(src="/graphics/tab-left-side-dark.png", alt="/graphics/tab-left-side.png")
           div.tab-content.tab-content-inactive Preferences
           div.tab-side
-            img(src="/gfx/tab-right-side-dark.png", alt="/gfx/tab-right-side.png")
+            img(src="/graphics/tab-right-side-dark.png", alt="/graphics/tab-right-side.png")
       div.tab-bar
         div.tab-bar-top
         div.tab-bar-bottom
