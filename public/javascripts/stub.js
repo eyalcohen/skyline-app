@@ -680,7 +680,7 @@ Stub = (function ($) {
               .find('input')
               .attr({
                   'name': 'password'
-                , 'value': 'plebeian'
+                , 'value': 'admin'
               })
               .end()
               .submit();
