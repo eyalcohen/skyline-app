@@ -658,11 +658,11 @@ app.get('/userinfo/:email', function (req, res) {
 
 // handle vehicle info request
 app.get('/summary/:email/:vid', function (req, res) {
-  //if (req.vehicle.user_id == req.currentUser._id) {
+  if (req.vehicle.user_id.toHexString() == req.currentUser._id.toHexString()) {
     res.send({ status: 'success', data: { user: req.currentUser, vehicle: req.vehicle } });
-  //} else {
-    //res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
-  //}
+  } else {
+    res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
+  }
 });
 
 // handle cycle events request
