@@ -613,7 +613,6 @@ app.del('/sessions', loadUser, function (req, res) {
 
 // handle user create request
 app.post('/usercreate/:newemail', function (req, res) {
-  console.log(req);
   var user = new User({
       email: req.params.newemail
     , name: { full: req.body.fullName }
@@ -630,9 +629,6 @@ app.post('/usercreate/:newemail', function (req, res) {
         }
       });
     } else {
-      console.log('**********************');
-      console.log(err);
-      console.log('**********************');
       res.send({ status: 'fail', data: { code: 'DUPLICATE_EMAIL', message: 'This email address is already being used on our system.' } });
     }
   });
