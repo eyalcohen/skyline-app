@@ -677,10 +677,12 @@ app.put('/cycle', function (req, res) {
     , cnt = 0
   ;
   // authenticate user
-  User.findOne({ email: cycle.userId }, function (err, usr) {
+  User.findOne({ email: 'jit@ridemission.com' }, function (err, usr) {
+  //User.findOne({ email: cycle.userId }, function (err, usr) {
     if (usr) {
       if (usr.authenticate(req.body.password)) {
-        findVehicle(cycle.vehicleId, function (veh) {
+        findVehicle(1299806346, function (veh) {
+        //findVehicle(cycle.vehicleId, function (veh) {
           if (veh) {
             handleEvents(veh);
           } else {
