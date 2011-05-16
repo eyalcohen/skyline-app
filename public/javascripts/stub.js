@@ -148,8 +148,8 @@ Stub = (function ($) {
     for (var i=0; i < data.events.length; i++) {
       if (data.events[i].location)
         locations.push({ g: data.events[i].location, s: data.events[i].header.source, t: parseInt(data.events[i].header.startTime) });
-      if (data.events[i].accelerometer)
-        accels.push({ a: data.events[i].accelerometer, t: parseInt(data.events[i].header.startTime) });
+      if (data.events[i].sensor)
+        accels.push({ a: data.events[i].sensor, t: parseInt(data.events[i].header.startTime) });
     }
     // for (var j=1; j < locations.length; j++) {
     //   var d = google.maps.geometry.spherical.computeDistanceBetween(
@@ -191,7 +191,7 @@ Stub = (function ($) {
       , plot = function (fn) {
           points = [];
           for (var j=0; j < data.length; j++) {
-            points.push([ new Date(data[j].t), data[j].a.x, data[j].a.y, data[j].a.z ]);
+            points.push([ new Date(data[j].t), data[j].a[0], data[j].a[1], data[j].a[2] ]);
           }
           var lines = []
             , xline
