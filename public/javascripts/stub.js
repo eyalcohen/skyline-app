@@ -886,6 +886,7 @@ Stub = (function ($) {
                 $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                   if (serv.status == 'success') {
                     if (!deetsKid.data().sandbox) {
+                      console.log(serv.data.bucks);
                       var sandbox = new Sandbox(serv.data.bucks, function () {
                         this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
                           if (empty)
@@ -899,7 +900,7 @@ Stub = (function ($) {
                           else
                             $('.map-loading', deetsKid).hide();
                         });
-                        // add sanbox to details div
+                        // add sandbox to details div
                         deetsKid.data({ sandbox: this });
                       });
                     }
@@ -920,7 +921,7 @@ Stub = (function ($) {
           
           
           // TMP -- open the first vehicle pane
-          $($('a.expander')[1]).click();
+          $($('a.expander')[0]).click();
         }
         
       }
