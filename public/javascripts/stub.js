@@ -645,7 +645,7 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/usercreate/sander@island.io'
+                , action: '/usercreate/sanderpick@gmail.com'
               })
               .hide()
               .append('<input type="hidden" />')
