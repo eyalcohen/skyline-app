@@ -613,7 +613,7 @@ app.del('/sessions', loadUser, function (req, res) {
 
 // handle user create request
 app.post('/usercreate/:newemail', function (req, res) {
-  console.log(req.body, req.params);
+  console.log(req);
   var user = new User({
       email: req.params.newemail
     , name: { full: req.body.fullName }
