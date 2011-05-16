@@ -660,7 +660,7 @@ Stub = (function ($) {
               .find('input:last-child')
               .attr({
                   'name': 'fullName'
-                , 'value': 'Sander Pick'
+                , 'value': 'Jit Bhattacharya'
               })
               .end()
               .submit();
