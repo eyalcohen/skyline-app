@@ -632,7 +632,7 @@ Stub = (function ($) {
           
           $('.landing-logo').bind('click', function (e) {
             e.preventDefault();
-            //makeUser(this);
+            makeUser(this);
             //makeVehicle(this);
             //getUser(this);
             //getVehicle(this);
@@ -645,7 +645,7 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/usercreate/sander@ridemission.com'
+                , action: '/usercreate/sander@digijoi.com'
               })
               .hide()
               .append('<input type="hidden" />')
