@@ -633,7 +633,7 @@ Stub = (function ($) {
           $('.landing-logo').bind('click', function (e) {
             e.preventDefault();
             //makeUser(this);
-            makeVehicle(this);
+            //makeVehicle(this);
             //getUser(this);
             //getVehicle(this);
           });
