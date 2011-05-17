@@ -545,13 +545,14 @@ app.get('/', loadUser, function (req, res) {
     vehs.forEach(function (v) {
       findVehicleEvents(v._id, function (bucks) {
         if (bucks.length > 0) {
+          v.events = bucks;
           vehicles.push(v);
         }
         cnt++;
         if (cnt == num) {
-          // vehicles.sort(function (a, b) {
-          //   return b[0]._id.time - a[0]._id.time;
-          // });
+          vehicles.sort(function (a, b) {
+            return b[b.length - 1]._id.time - a[a.length - 1]._id.time;
+          });
           res.render('index', {
               data: vehicles
             , user: req.currentUser
@@ -564,7 +565,22 @@ app.get('/', loadUser, function (req, res) {
 
 // Landing page
 app.get('/login', function (req, res) {
-  res.render('login');
+  if (req.session.user_id) {
+    User.findById(req.session.user_id, function (err, usr) {
+      if (usr) {
+        req.currentUser = usr;
+        res.redirect('/');
+      } else {
+        res.render('login');
+      }
+    });
+  } else if (req.cookies.logintoken) {
+    authenticateFromLoginToken(req, res, function () {
+      res.redirect('/');
+    });
+  } else {
+    res.render('login');
+  }
 });
 
 // Get one vehicle
