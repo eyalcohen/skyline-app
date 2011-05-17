@@ -633,7 +633,7 @@ Stub = (function ($) {
           $('.landing-logo').bind('click', function (e) {
             e.preventDefault();
             //makeUser(this);
-            //makeVehicle(this);
+            makeVehicle(this);
             //getUser(this);
             //getVehicle(this);
           });
@@ -673,14 +673,14 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/vehiclecreate/jit@ridemission.com/Ducati/1098/2011'
+                , action: '/vehiclecreate/sander@ridemission.com/Ducati/1098/2011'
               })
               .hide()
               .append('<input type="hidden" />')
               .find('input')
               .attr({
                   'name': 'password'
-                , 'value': 'admin'
+                , 'value': 'plebeian'
               })
               .end()
               .submit();

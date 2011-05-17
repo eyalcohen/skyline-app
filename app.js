@@ -90,7 +90,7 @@ function loadUser(req, res, next) {
 }
 
 function findVehicles(next) {
-  Vehicle.find({}, [], { limit: 100 }).sort('_id', -1).run(function (err, vehs) {
+  Vehicle.find({}, [], { limit: 100 }).run(function (err, vehs) {
     var num = vehs.length
       , cnt = 0
     ;
@@ -100,9 +100,9 @@ function findVehicles(next) {
           veh.user = usr;
           cnt++;
           if (cnt == num) {
-            vehs.sort(function (a, b) {
-              return b._id.time - a._id.time;
-            });
+            // vehs.sort(function (a, b) {
+            //   return b._id.time - a._id.time;
+            // });
             next(vehs);
           }
         });
@@ -127,7 +127,7 @@ function findVehicle(id, next) {
   var to = new oid(generateId, { vid: id, time: (new Date()).getTime() })
     , from = new oid(to.toHexString().substr(0,8) + '0000000000000000')
   ;
-  db.connections[0].collections.vehicles.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
+  Vehicle.collection.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
     next(veh);
   });
 }
@@ -155,18 +155,21 @@ function findVehicle(id, next) {
 //   });
 // }
 
-function findVehicleEvents(id, from, to, next) {
+function findVehicleEvents(id, from, to, next, events) {
   if ('function' == typeof from) {
     next = from;
     from = 0;
+    events = to;
     to = (new Date()).getTime();
   } else if ('function' == typeof to) {
+    events = next;
     next = to;
     to = (new Date()).getTime();
   }
   from = from == 0 ? id : new oid(generateId, { vid: id.vid, time: (new Date(from)).getTime() });
   to = new oid(generateId, { vid: id.vid, time: to });
-  db.connections[0].collections['eventbuckets'].find({ _id: { $gt: from, $lt: to } }, function (err, cursor) {
+  var fields = events ? null : [ '_id' ];
+  EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: fields }, function (err, cursor) {
     cursor.toArray(function (err, bucks) {
       if (err || !bucks || bucks.length == 0) {
         next([]);
@@ -519,7 +522,7 @@ app.param('vid', function (req, res, next, id) {
   var to = new oid(generateId, { vid: parseInt(id), time: (new Date()).getTime() })
     , from = new oid(to.toHexString().substr(0,8) + '0000000000000000')
   ;
-  db.connections[0].collections.vehicles.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
+  Vehicle.collection.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
     if (!err && veh) {
       req.vehicle = veh;
       next();
@@ -535,9 +538,26 @@ app.param('vid', function (req, res, next, id) {
 
 app.get('/', loadUser, function (req, res) {
   findVehicles(function (vehs) {
-    res.render('index', {
-        data: vehs
-      , user: req.currentUser
+    var vehicles = []
+      , num = vehs.length
+      , cnt = 0
+    ;
+    vehs.forEach(function (v) {
+      findVehicleEvents(v._id, function (bucks) {
+        if (bucks.length > 0) {
+          vehicles.push(v);
+        }
+        cnt++;
+        if (cnt == num) {
+          // vehicles.sort(function (a, b) {
+          //   return b[0]._id.time - a[0]._id.time;
+          // });
+          res.render('index', {
+              data: vehicles
+            , user: req.currentUser
+          });
+        }
+      });
     });
   });
 });
@@ -551,7 +571,7 @@ app.get('/login', function (req, res) {
 app.get('/v/:vid', function (req, res) {
   findVehicleEvents(req.vehicle._id, function (bucks) {
     res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
-  });
+  }, true);
 });
 
 // Login - add user to session
