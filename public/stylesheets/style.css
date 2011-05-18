@@ -676,7 +676,7 @@ div.details-left, div.details-right {
 }
 
 div.details-right > div {
-  cursor: crosshair;
+  /*cursor: move;*/
 }
 
 div.details-bar-middle {

@@ -135,68 +135,109 @@ Stub = (function ($) {
   ;
   
   var Sandbox = function (data, fn) {
-    //-- TEMP!
-    data = data[data.length - 1];
-    var widgets = []
-      , locations = []
-      , accels = []
-      // computed
-      , speeds = []
-    ;
-    
-    // parse events
-    for (var i=0; i < data.events.length; i++) {
-      if (data.events[i].location)
-        locations.push({ g: data.events[i].location, s: data.events[i].header.source, t: parseInt(data.events[i].header.startTime) });
-      if (data.events[i].sensor)
-        accels.push({ a: data.events[i].sensor, t: parseInt(data.events[i].header.startTime) });
+    // convert bounds to int
+    for (var i = 0, len = data.length; i < len; i++) {
+      data[i].bounds.start = parseInt(data[i].bounds.start);
+      data[i].bounds.stop = parseInt(data[i].bounds.stop);
     }
-    // for (var j=1; j < locations.length; j++) {
-    //   var d = google.maps.geometry.spherical.computeDistanceBetween(
-    //     new google.maps.LatLng(locations[j].g.latitude, locations[j].g.longitude),
-    //     new google.maps.LatLng(locations[j-1].g.latitude, locations[j-1].g.longitude)
-    //   );
-    //   speeds.push({ s: (d / (locations[j].t - locations[j-1].t)) * 1000, t: (locations[j].t + locations[j-1].t) / 2 });
-    // }
-    
-    this.widgets = widgets;
-    this.locations = locations;
-    this.accels = accels;
-    this.speeds = speeds;
-    
+    // save raw data
+    this.raw = data;
+    // plotter and map holder
+    this.widgets = [];
+    // used to ref cycle on map
+    this.activeCycle = null;
+    // valid data keys
+    this.validKeys = ['sensor', 'location'];
+    // start with latest cycle only
+    this.visibleCycles = [data[data.length - 1]._id];
+    this.parseVisibleCycles(this.visibleCycles);
+    // callback
     fn.call(this);
   };
   
-  Sandbox.prototype.add = function (type, wrap, fn) {
-    var widg = new (eval(type))(wrap);
-    switch (type) {
-      case 'TimeSeries':
-        widg.init(this.accels, fn);
-        break;
-      case 'Map':
-        widg.init(this.locations, fn);
-        break;
+  Sandbox.prototype.parseVisibleCycles = function (cycleIds) {
+    // only select valid key types
+    var data = {}
+      , cycles = []
+    ;
+    for (var i = 0, len = this.validKeys.length; i < len; i++) {
+      data[this.validKeys[i]] = [];
     }
+    // get data from ids
+    for (var i = 0, leni = this.raw.length; i < leni; i++) {
+      for (var j = 0, lenj = cycleIds.length; j < lenj; j++) {
+        if (this.raw[i]._id == cycleIds[j]) {
+          cycles.push(this.raw[i]);
+        }
+      }
+    }
+    // parse data
+    for (var i = 0, leni = cycles.length; i < leni; i++) {
+      for (var j = 0, lenj = cycles[i].events.length; j < lenj; j++) {
+        for (var k = 0, lenk = this.validKeys.length; k < lenk; k++) {
+          if (this.validKeys[k] in cycles[i].events[j]) {
+            cycles[i].events[j].header.startTime = new Date(parseInt(cycles[i].events[j].header.startTime));
+            cycles[i].events[j].header.stopTime = new Date(parseInt(cycles[i].events[j].header.stopTime));
+            data[this.validKeys[k]].push(cycles[i].events[j]);
+          }
+        }
+      }
+    }
+    this.visibleData = data;
+  };
+  
+  Sandbox.prototype.add = function (type, wrap, fn) {
+    var widg = new (eval(type))(this, wrap);
+    widg.init(fn);
     this.widgets.push(widg);
   };
   
+  Sandbox.prototype.notify = function (type, data) {
+    switch (type) {
+      case 'cs-time-window-change':
+        //console.log('panning...');
+        // for (var w = 0, l = this.widgets.length; w < l; w++) {
+        //   this.widgets[w].handle(type, {
+        //     //tree: _activeTree
+        //   });
+        // }
+        break;
+    }
+  };
   
-  var TimeSeries = function (wrap) {
-    var data
-      , points
+  
+  var TimeSeries = function (box, wrap) {
+    var points
       , chart
-      , canvas = $('<canvas width="' + wrap.width() + '" height="' + wrap.height() + '"></canvas>')
-      , ctx
       
-      , plot = function (fn) {
-          points = [];
-          for (var j=0; j < data.length; j++) {
-            points.push([ new Date(data[j].t), data[j].a[0], data[j].a[1], data[j].a[2] ]);
+      , parseForDrawing = function () {
+        points = {};
+        for (var i in box.visibleData) {
+          if (box.visibleData.hasOwnProperty(i)) {
+            points[i] = [];
+            for (var j = 0, len = box.visibleData[i].length; j < len; j++) {
+              var pnt = [box.visibleData[i][j].header.startTime]
+                , series = box.visibleData[i][j][i]
+              ;
+              if (series.constructor.name === 'Array') {
+                for (var s = 0, lens = series.length; s < lens; s++) {
+                  pnt.push(series[s]);
+                }
+              } else {
+                for (var s in series) {
+                  if (series.hasOwnProperty(s)) {
+                    pnt.push(series[s]);
+                  }
+                }
+              }
+              points[i].push(pnt);
+            }
           }
-          var lines = []
-            , xline
-          ;
-          chart = new Dygraph(wrap[0], points, {
+        }
+      }
+      , plot = function (fn) {
+          // make new dygrapher
+          chart = new Dygraph(wrap[0], points.sensor, {
               width: wrap.width()
             , height: wrap.height()
             , rightGap: 0
@@ -212,7 +253,7 @@ Stub = (function ($) {
             , xlabel: 'Time'
             , ylabel: 'Acceleration (m/s^2)'
             , stepPlot: true
-            , panEdgeFraction: 0.0001
+            //, panEdgeFraction: 0.0001
             , interactionModel : {
                   mousedown: downV3
                 , mousemove: moveV3
@@ -226,9 +267,38 @@ Stub = (function ($) {
                   }
                 , mousewheel: scrollV3
               }
-          });
-          chart.updateOptions({ 
-            dateWindow: [ points[0][0].valueOf() + 1, points[points.length-1][0].valueOf()] 
+            , drawCallback: function(me, initial) {
+                var range = me.xAxisRange()
+                  , min = range[0]
+                  , max = range[1]
+                ;
+                // check window bounds
+                for (var i = 0, len = box.raw.length; i < len; i++) {
+                  box.visibleCycles = [];
+                  if ((box.raw[i].bounds.start >= min && box.raw[i].bounds.start <= max) ||
+                    (box.raw[i].bounds.stop >= min && box.raw[i].bounds.stop <= max)
+                  ) {
+                    box.visibleCycles.push(box.raw[i]._id);
+                  }
+                  // } else if ((box.raw[i].bounds.stop < min || box.raw[i].bounds.start > max) &&
+                  //   box.raw[i].events
+                  // ) {
+                  //   delete box.raw[i].events;
+                  //   console.log(box.raw[i]._id);
+                  //   
+                  //   box.parseVisibleCycles(box.raw[i]._id);
+                  //   //parseForDrawing();
+                  //   
+                  //   
+                  //   // chart.updateOptions({ 
+                  //   //   data: points.sensor
+                  //   // });
+                  // }
+                }
+                console.log(box.visibleCycles);
+                // notify sandbox
+                box.notify('cs-time-window-change', range);
+              }
           });
           // callback
           fn();
@@ -240,14 +310,12 @@ Stub = (function ($) {
     ;
     
     return {
-        init: function (dat, fn) {
-          // save data
-          data = dat;
-          
+        init: function (fn) {
           // plot it
-          if (data.length == 0)
+          if (box.visibleData.length == 0) {
             fn(true);
-          else {
+          } else {
+            parseForDrawing();
             plot(fn);
           }
         }
@@ -265,8 +333,8 @@ Stub = (function ($) {
   };
   
   
-  var Map = function (wrap) {
-    var data
+  var Map = function (box, wrap) {
+    var data = box.activeCycle.locations
       , map
       , map_width = wrap.width()
       , map_height = wrap.height()
@@ -402,12 +470,9 @@ Stub = (function ($) {
     ;
     
     return {
-        init: function (dat, fn) {
+        init: function (fn) {
           // hide wrap
           wrap.hide();
-          
-          // ref data
-          data = dat;
           
           // exit if nothing to do
           if (data.length == 0) {
@@ -447,7 +512,25 @@ Stub = (function ($) {
       
       go: function () {
         
+        ///////// EXTENDS
+        
+        
+        Array.prototype.unique = function () {
+          var r = new Array();
+          o:for (var i = 0, n = this.length; i < n; i++) {
+            for(var x = 0, y = r.length; x < y; x++) {
+              if(r[x]==this[i]) {
+                continue o;
+              }
+            }
+            r[r.length] = this[i];
+          }
+          return r;
+        }
+        
+        
         ///////// UTILS
+        
         
         // determine of object is empty (non-enumerable)
         $.isEmpty = function (o) {
@@ -457,13 +540,11 @@ Stub = (function ($) {
           return true;
         }
         
-        
         // server PUT
         $.put = function (url, data, success) {
           data._method = 'PUT';
           $.post(url, data, success, 'json');
         };
-        
         
         // server GET
         $.get = function (url, data, success) {
@@ -479,7 +560,6 @@ Stub = (function ($) {
             , success: success
           });
         };
-        
         
         // map form data to JSON
         $.fn.serializeObject = function () {
@@ -497,7 +577,6 @@ Stub = (function ($) {
           return o;
         };
         
-        
         // get database ID
         $.fn.itemID = function () {
           try {
@@ -507,6 +586,7 @@ Stub = (function ($) {
             return null;
           }
         };
+        
         
         //////// SETUP
         
@@ -538,9 +618,8 @@ Stub = (function ($) {
         }
         
         
-        
-        
         //////// HANDLERS
+        
         
         if (window.location.pathname == '/login') {
           
@@ -886,7 +965,6 @@ Stub = (function ($) {
                 $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                   if (serv.status == 'success') {
                     if (!deetsKid.data().sandbox) {
-                      console.log(serv.data.bucks);
                       var sandbox = new Sandbox(serv.data.bucks, function () {
                         this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
                           if (empty)
@@ -894,12 +972,12 @@ Stub = (function ($) {
                           else
                             $('.series-loading', deetsKid).hide();
                         });
-                        this.add('Map', $('.map', deetsKid), function (empty) {
-                          if (empty)
-                            $('.map-loading', deetsKid).text('No map data.');
-                          else
-                            $('.map-loading', deetsKid).hide();
-                        });
+                        // this.add('Map', $('.map', deetsKid), function (empty) {
+                        //   if (empty)
+                        //     $('.map-loading', deetsKid).text('No map data.');
+                        //   else
+                        //     $('.map-loading', deetsKid).hide();
+                        // });
                         // add sandbox to details div
                         deetsKid.data({ sandbox: this });
                       });

@@ -3519,7 +3519,7 @@ Dygraph.prototype.parseArray_ = function(data) {
     this.attrs_.xTicker = Dygraph.dateTicker;
 
     // Assume they're all dates.
-    var parsedData = Dygraph.clone(data);
+    var parsedData = data;//Dygraph.clone(data);
     for (var i = 0; i < data.length; i++) {
       if (parsedData[i].length == 0) {
         this.error("Row " + (1 + i) + " of data is empty");

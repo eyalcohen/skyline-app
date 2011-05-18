@@ -122,9 +122,9 @@ function defineModels(mongoose, generateId, fn) {
     */
   EventBucket = new Schema({
       _id    : { type: ObjectId, auto: true, generator: generateId }
+    , bounds : {}
     , events : Array
   });
-  
   
   
   // Slice1000 = new Schema({

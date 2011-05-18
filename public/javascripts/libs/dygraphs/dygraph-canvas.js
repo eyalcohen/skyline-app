@@ -91,7 +91,7 @@ DygraphLayout.prototype._evaluateLimits = function() {
       if (series.length > 1) {
         var x1 = series[0][0];
         if (!this.minxval || x1 < this.minxval) this.minxval = x1;
-  
+
         var x2 = series[series.length - 1][0];
         if (!this.maxxval || x2 > this.maxxval) this.maxxval = x2;
       }
@@ -1055,7 +1055,7 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
           var isIsolated = (!prevX && (j == points.length - 1 ||
                                        !Dygraph.isOK(points[j+1].canvasy)));
 
-          if (!prevX) {
+          if (prevX === null) {
             prevX = point.canvasx;
             prevY = point.canvasy;
           } else {

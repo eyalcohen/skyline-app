@@ -100,9 +100,6 @@ function findVehicles(next) {
           veh.user = usr;
           cnt++;
           if (cnt == num) {
-            // vehs.sort(function (a, b) {
-            //   return b._id.time - a._id.time;
-            // });
             next(vehs);
           }
         });
@@ -132,51 +129,44 @@ function findVehicle(id, next) {
   });
 }
 
-// function findVehicleBuckets(id, slice, from, to, next) {
-//   if ('function' == typeof from) {
-//     next = from;
-//     from = 0;
-//     to = (new Date()).getTime();
-//   } else if ('function' == typeof to) {
-//     next = to;
-//     to = (new Date()).getTime();
-//   }
-//   from = from == 0 ? id : new oid(generateId, { vid: id.vid, time: (new Date(from)).getTime() });
-//   to = new oid(generateId, { vid: id.vid, time: to });
-//   db.connections[0].collections['slice' + slice + 's'].find({ _id: { $gt: from, $lt: to } }, function (err, cursor) {
-//     cursor.toArray(function (err, bucks) {
-//       if (err || !bucks || bucks.length == 0) {
-//         console.log('vehicle has no data in Slice' + slice);
-//         next([]);
-//       } else {
-//         next(bucks);
-//       }
-//     });
-//   });
-// }
-
-function findVehicleEvents(id, from, to, next, events) {
+function findVehicleEvents(id, from, to, next) {
   if ('function' == typeof from) {
     next = from;
     from = 0;
-    events = to;
     to = (new Date()).getTime();
   } else if ('function' == typeof to) {
-    events = next;
     next = to;
     to = (new Date()).getTime();
   }
   from = from == 0 ? id : new oid(generateId, { vid: id.vid, time: (new Date(from)).getTime() });
   to = new oid(generateId, { vid: id.vid, time: to });
-  var fields = events ? null : [ '_id' ];
-  EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: fields }, function (err, cursor) {
+  EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: [ '_id', 'bounds' ] }, function (err, cursor) {
     cursor.toArray(function (err, bucks) {
       if (err || !bucks || bucks.length == 0) {
         next([]);
       } else {
         next(bucks);
+        //bucks.forEach(function (b) {
+          //fillBucket(b, function () {
+            
+          //});
+        //});
       }
     });
+  });
+}
+
+function fillBucket(buck, next) {
+  EventBucket.findById(buck._id, function (err, data) {
+    if (!err && data) {
+      buck.events = data.events;
+      //data.bounds.start = parseInt(data.bounds.start);
+      //data.bounds.stop = parseInt(data.bounds.stop);
+      //data.save(function (err) { console.log(err); });
+    } else {
+      buck.events = null;
+    }
+    next();
   });
 }
 
@@ -585,9 +575,17 @@ app.get('/login', function (req, res) {
 
 // Get one vehicle
 app.get('/v/:vid', function (req, res) {
+  // get all vehicle events (handle only)
   findVehicleEvents(req.vehicle._id, function (bucks) {
-    res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
-  }, true);
+    if (bucks.length > 0) {
+      // get only the latest event's data
+      fillBucket(bucks[bucks.length - 1], function () {
+        res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+      });
+    } else {
+      res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+    }
+  });
 });
 
 // Login - add user to session
@@ -708,14 +706,14 @@ app.put('/cycle', function (req, res) {
     return;
   }
   var cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'))
-    , start = cycle.events[0].events[0].header.startTime
+    //, start = cycle.events[0].events[0].header.startTime
     , num = cycle.events.length
     , cnt = 0
   ;
   // authenticate user
-  User.findOne({ email: cycle.userId }, function (err, usr) {
-    if (usr) {
-      if (usr.authenticate(req.body.password)) {
+  // User.findOne({ email: cycle.userId }, function (err, usr) {
+  //   if (usr) {
+  //     if (usr.authenticate(req.body.password)) {
         findVehicle(cycle.vehicleId, function (veh) {
           if (veh) {
             handleEvents(veh);
@@ -723,16 +721,20 @@ app.put('/cycle', function (req, res) {
             res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
           }
         });
-      } else {
-        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
-      }
-    } else {
-      res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
-    }
-  });
+  //     } else {
+  //       res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
+  //     }
+  //   } else {
+  //     res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
+  //   }
+  // });
   // add to db
   function handleEvents(v) {
     cycle.events.forEach(function (event) {
+      event.bounds = {
+          start: event.events[0].header.startTime
+        , stop: event.events[0].header.stopTime
+      };
       var bucket = new EventBucket(event, { vid: v._id.vid, time: event.events[0].header.startTime });
       bucket.save(function (err) {
         cnt++;
