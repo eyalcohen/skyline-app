@@ -160,13 +160,20 @@ function fillBucket(buck, next) {
   EventBucket.findById(buck._id, function (err, data) {
     if (!err && data) {
       buck.events = data.events;
-      //data.bounds.start = parseInt(data.bounds.start);
-      //data.bounds.stop = parseInt(data.bounds.stop);
-      //data.save(function (err) { console.log(err); });
     } else {
       buck.events = null;
     }
     next();
+  });
+}
+
+function getCycle(id, next) {
+  EventBucket.findById(id, function (err, data) {
+    if (!err && data) {
+      next(data);
+    } else {
+      next(null);
+    }
   });
 }
 
@@ -579,13 +586,37 @@ app.get('/v/:vid', function (req, res) {
   findVehicleEvents(req.vehicle._id, function (bucks) {
     if (bucks.length > 0) {
       // get only the latest event's data
-      fillBucket(bucks[bucks.length - 1], function () {
+      var latest = bucks[bucks.length - 1];
+      getCycle(latest._id, function (cyc) {
+        bucks[bucks.length - 1] = cyc;
         res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
       });
     } else {
       res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
     }
   });
+});
+
+// Get one vehicle
+app.get('/cycles', function (req, res) {
+  if (req.body && req.body.cycles) {
+    var cycleIds = req.body.cycles
+      , num = cycleIds.length
+      , cnt = 0
+      , events = {}
+    ;
+    cycleIds.forEach(function (id) {
+      getCycle(id, function (cyc) {
+        events[cyc._id] = cyc.events;
+        cnt++;
+        if (num == cnt) {
+          res.send({ status: 'success', data: { events: events } });
+        }
+      });
+    });
+  } else {
+    res.end();
+  }
 });
 
 // Login - add user to session

@@ -150,12 +150,12 @@ Stub = (function ($) {
     this.validKeys = ['sensor', 'location'];
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
-    this.parseVisibleCycles(this.visibleCycles);
+    this.parseVisibleCycles();
     // callback
     fn.call(this);
   };
   
-  Sandbox.prototype.parseVisibleCycles = function (cycleIds) {
+  Sandbox.prototype.parseVisibleCycles = function () {
     // only select valid key types
     var data = {}
       , cycles = []
@@ -165,19 +165,29 @@ Stub = (function ($) {
     }
     // get data from ids
     for (var i = 0, leni = this.raw.length; i < leni; i++) {
-      for (var j = 0, lenj = cycleIds.length; j < lenj; j++) {
-        if (this.raw[i]._id == cycleIds[j]) {
+      for (var j = 0, lenj = this.visibleCycles.length; j < lenj; j++) {
+        if (this.raw[i]._id == this.visibleCycles[j]) {
           cycles.push(this.raw[i]);
         }
       }
     }
     // parse data
     for (var i = 0, leni = cycles.length; i < leni; i++) {
+      var initials = {};
+      for (var k = 0, lenk = this.validKeys.length; k < lenk; k++) {
+        initials[this.validKeys[k]] = true;
+      }
       for (var j = 0, lenj = cycles[i].events.length; j < lenj; j++) {
         for (var k = 0, lenk = this.validKeys.length; k < lenk; k++) {
           if (this.validKeys[k] in cycles[i].events[j]) {
-            cycles[i].events[j].header.startTime = new Date(parseInt(cycles[i].events[j].header.startTime));
-            cycles[i].events[j].header.stopTime = new Date(parseInt(cycles[i].events[j].header.stopTime));
+            if (initials[this.validKeys[k]]) {
+              cycles[i].events[j].isFirst = true;
+              initials[this.validKeys[k]] = false;
+            }
+            if ('string' == typeof cycles[i].events[j].header.startTime) {
+              cycles[i].events[j].header.startTime = new Date(parseInt(cycles[i].events[j].header.startTime));
+              cycles[i].events[j].header.stopTime = new Date(parseInt(cycles[i].events[j].header.stopTime));
+            }
             data[this.validKeys[k]].push(cycles[i].events[j]);
           }
         }
@@ -271,33 +281,52 @@ Stub = (function ($) {
                 var range = me.xAxisRange()
                   , min = range[0]
                   , max = range[1]
+                  , visible = []
                 ;
                 // check window bounds
                 for (var i = 0, len = box.raw.length; i < len; i++) {
-                  box.visibleCycles = [];
                   if ((box.raw[i].bounds.start >= min && box.raw[i].bounds.start <= max) ||
                     (box.raw[i].bounds.stop >= min && box.raw[i].bounds.stop <= max)
                   ) {
-                    box.visibleCycles.push(box.raw[i]._id);
+                    visible.push(box.raw[i]._id);
                   }
-                  // } else if ((box.raw[i].bounds.stop < min || box.raw[i].bounds.start > max) &&
-                  //   box.raw[i].events
-                  // ) {
-                  //   delete box.raw[i].events;
-                  //   console.log(box.raw[i]._id);
-                  //   
-                  //   box.parseVisibleCycles(box.raw[i]._id);
-                  //   //parseForDrawing();
-                  //   
-                  //   
-                  //   // chart.updateOptions({ 
-                  //   //   data: points.sensor
-                  //   // });
-                  // }
                 }
-                console.log(box.visibleCycles);
-                // notify sandbox
-                box.notify('cs-time-window-change', range);
+                // remove cycle ids who's data we already have
+                var empty = [];
+                for (var i = 0, leni = visible.length; i < leni; i++) {
+                  var exists = false;
+                  for (var j = 0, lenj = box.visibleCycles.length; j < lenj; j++) {
+                    if (visible[i] == box.visibleCycles[j]) {
+                      exists = true;
+                      break;
+                    }
+                  }
+                  if (!exists) {
+                    empty.push(visible[i]);
+                    box.visibleCycles.push(visible[i]);
+                  }
+                }
+                // get new data
+                if (empty.length > 0) {
+                  $.get('/cycles', { cycles: empty }, function (serv) {
+                    if (serv.status == 'success') {
+                      for (var i = 0, len = box.raw.length; i < len; i++) {
+                        if (box.raw[i]._id in serv.data.events) {
+                          box.raw[i].events = serv.data.events[box.raw[i]._id];
+                        }
+                      }
+                      box.parseVisibleCycles();
+                      parseForDrawing();
+                      chart.updateOptions({ 
+                        file: points.sensor
+                      });
+                    } else {
+                      console.log(serv.message);
+                    }
+                    // notify sandbox
+                    box.notify('cs-time-window-change', range);
+                  });
+                }
               }
           });
           // callback
@@ -516,10 +545,10 @@ Stub = (function ($) {
         
         
         Array.prototype.unique = function () {
-          var r = new Array();
+          var r = [];
           o:for (var i = 0, n = this.length; i < n; i++) {
-            for(var x = 0, y = r.length; x < y; x++) {
-              if(r[x]==this[i]) {
+            for (var x = 0, y = r.length; x < y; x++) {
+              if (r[x] === this[i]) {
                 continue o;
               }
             }
@@ -592,7 +621,6 @@ Stub = (function ($) {
         
         
         if (window.location.pathname == '/login') {
-          
           // future info map
           addLandingMap();
         } else {
@@ -607,13 +635,13 @@ Stub = (function ($) {
             ;
             $this.css({ zIndex: z });
           });
-
+          
           // add commas
           $('.number').each(function (i) {
             var $this = $(this);
             $this.text(addCommas($this.text()));
           });
-
+          
           sizeDetailPanes();
         }
         
