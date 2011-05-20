@@ -27,7 +27,7 @@ var express = require('express')
   // , Slice86400000000
   , stub
   , ProtobufSchema = require('protobuf_for_node').Schema
-  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../../mission-java/henson/common/src/main/protobuf/Events.desc'))
+  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/henson/common/src/main/protobuf/Events.desc'))
   , EventWebUpload = Event['event.EventWebUpload']
   , Stream = require('stream').Stream
   , Notify = require('./notify')
