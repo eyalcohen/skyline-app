@@ -742,9 +742,9 @@ app.put('/cycle', function (req, res) {
     , cnt = 0
   ;
   // authenticate user
-  User.findOne({ email: cycle.userId }, function (err, usr) {
-    if (usr) {
-      if (usr.authenticate(req.body.password)) {
+  // User.findOne({ email: cycle.userId }, function (err, usr) {
+  //   if (usr) {
+  //     if (usr.authenticate(req.body.password)) {
         findVehicle(cycle.vehicleId, function (veh) {
           if (veh) {
             handleEvents(veh);
@@ -752,13 +752,13 @@ app.put('/cycle', function (req, res) {
             res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
           }
         });
-      } else {
-        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
-      }
-    } else {
-      res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
-    }
-  });
+  //     } else {
+  //       res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
+  //     }
+  //   } else {
+  //     res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
+  //   }
+  // });
   // add to db
   function handleEvents(v) {
     cycle.events.forEach(function (event) {
