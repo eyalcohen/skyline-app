@@ -992,6 +992,19 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
             prevX = NaN;
             continue;
           }
+          
+          // [swp] check for endpoints to seperate drawing objects
+          for (var k = 0, lenk = this.dygraph_.starts.length; k < lenk; k++) {
+            if (this.dygraph_.starts[k][0] === point.xval) {
+              for (var m = 1, lenm = this.dygraph_.starts[k].length; m < lenm; m++) {
+                if (this.dygraph_.starts[k][m] === point.yval) {
+                  prevX = NaN;
+                  continue;
+                }
+              }
+            }
+          }
+          
           var newYs;
           if (stackedGraph) {
             lastY = baseline[point.canvasx];
@@ -1032,6 +1045,8 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
     var prevX = null, prevY = null;
     var drawPoints = this.dygraph_.attr_("drawPoints", setName);
     var points = this.layout.points;
+    
+    
     for (var j = 0; j < points.length; j++) {
     //var j = 0;
     //(function drawLine() {
@@ -1055,6 +1070,17 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
           var isIsolated = (!prevX && (j == points.length - 1 ||
                                        !Dygraph.isOK(points[j+1].canvasy)));
 
+          // [swp] check for endpoints to seperate drawing objects
+          for (var k = 0, lenk = this.dygraph_.starts.length; k < lenk; k++) {
+            if (this.dygraph_.starts[k][0] === point.xval) {
+              for (var m = 1, lenm = this.dygraph_.starts[k].length; m < lenm; m++) {
+                if (this.dygraph_.starts[k][m] === point.yval) {
+                  prevX = null;
+                }
+              }
+            }
+          }
+
           if (prevX === null) {
             prevX = point.canvasx;
             prevY = point.canvasy;
@@ -1071,6 +1097,7 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
               prevX = point.canvasx;
               prevY = point.canvasy;
               ctx.lineTo(prevX, prevY);
+              
               ctx.stroke();
             }
           }

@@ -768,7 +768,10 @@ img.open {
   rotation: 90deg;
 }
 
-
+div.dygraph {
+  position: absolute !important;
+  top: 9px;
+}
 
 div.dygraph-label {
   font-family: monospace;

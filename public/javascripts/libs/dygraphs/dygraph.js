@@ -230,10 +230,12 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   // Zoomed indicators - These indicate when the graph has been zoomed and on what axis.
   this.zoomed_x_ = false;
   this.zoomed_y_ = false;
+  
+  this.starts = attrs.starts;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
   // div, then only one will be drawn.
-  div.innerHTML = "";
+  //div.innerHTML = "";
 
   // If the div isn't already sized then inherit from our attrs or
   // give it a default size.
@@ -665,6 +667,7 @@ Dygraph.prototype.createInterface_ = function() {
   this.graphDiv = document.createElement("div");
   this.graphDiv.style.width = this.width_ + "px";
   this.graphDiv.style.height = this.height_ + "px";
+  this.graphDiv.className = "dygraph";
   enclosing.appendChild(this.graphDiv);
 
   // Create the canvas for interactive parts of the chart.
@@ -2767,6 +2770,7 @@ Dygraph.prototype.drawGraph_ = function() {
     for (var j = 0; j < data.length; j++) {
       var date = data[j][0];
       var point = data[j][i];
+      
       if (logScale) {
         // On the log scale, points less than zero do not exist.
         // This will create a gap in the chart. Note that this ignores
@@ -3806,6 +3810,10 @@ Dygraph.prototype.updateOptions = function(attrs) {
     this.start_();
   } else {
     this.predraw_();
+  }
+  
+  if ('starts' in attrs) {
+    this.starts = attrs.starts;
   }
 };
 

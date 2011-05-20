@@ -219,12 +219,15 @@ Stub = (function ($) {
   var TimeSeries = function (box, wrap) {
     var points
       , chart
+      , startPoints
       
       , parseForDrawing = function () {
         points = {};
+        startPoints = {};
         for (var i in box.visibleData) {
           if (box.visibleData.hasOwnProperty(i)) {
             points[i] = [];
+            startPoints[i] = [];
             for (var j = 0, len = box.visibleData[i].length; j < len; j++) {
               var pnt = [box.visibleData[i][j].header.startTime]
                 , series = box.visibleData[i][j][i]
@@ -239,6 +242,9 @@ Stub = (function ($) {
                     pnt.push(series[s]);
                   }
                 }
+              }
+              if (box.visibleData[i][j].isFirst) {
+                startPoints[i].push(pnt);
               }
               points[i].push(pnt);
             }
@@ -263,32 +269,37 @@ Stub = (function ($) {
             , xlabel: 'Time'
             , ylabel: 'Acceleration (m/s^2)'
             , stepPlot: true
+            , starts: startPoints.sensor
             //, panEdgeFraction: 0.0001
             , interactionModel : {
                   mousedown: downV3
                 , mousemove: moveV3
                 , mouseup: upV3
                 , click: clickV3
-                , dblclick: function (event, g, context) {
-                    dblClickV4(event, g, context);
-                    chart.updateOptions({ 
-                      dateWindow: [ points[0][0].valueOf() + 1, points[points.length-1][0].valueOf()]
-                    });
-                  }
+                , dblclick: dblClickV4
                 , mousewheel: scrollV3
               }
-            , drawCallback: function(me, initial) {
+            , drawCallback: function (me, initial) {
                 var range = me.xAxisRange()
                   , min = range[0]
                   , max = range[1]
                   , visible = []
+                  , redraw = false
                 ;
                 // check window bounds
                 for (var i = 0, len = box.raw.length; i < len; i++) {
+                  var index;
                   if ((box.raw[i].bounds.start >= min && box.raw[i].bounds.start <= max) ||
                     (box.raw[i].bounds.stop >= min && box.raw[i].bounds.stop <= max)
                   ) {
                     visible.push(box.raw[i]._id);
+                  } else if ((box.raw[i].bounds.start > max || box.raw[i].bounds.stop < min) &&
+                    (index = box.visibleCycles.indexOf(box.raw[i]._id)) !== -1 &&
+                    box.visibleCycles.length > 1
+                  ) {
+                    delete box.raw[i].events;
+                    box.visibleCycles.splice(index, 1);
+                    redraw = true;
                   }
                 }
                 // remove cycle ids who's data we already have
@@ -308,6 +319,11 @@ Stub = (function ($) {
                 }
                 // get new data
                 if (empty.length > 0) {
+                  // show loading
+                  $('.series-loading', wrap).show();
+                  // dim chart
+                  $(chart.graphDiv).css({ opacity: 0.2 });
+                  // call server
                   $.get('/cycles', { cycles: empty }, function (serv) {
                     if (serv.status == 'success') {
                       for (var i = 0, len = box.raw.length; i < len; i++) {
@@ -318,13 +334,25 @@ Stub = (function ($) {
                       box.parseVisibleCycles();
                       parseForDrawing();
                       chart.updateOptions({ 
-                        file: points.sensor
+                          file: points.sensor
+                        , starts: startPoints.sensor
                       });
                     } else {
                       console.log(serv.message);
                     }
                     // notify sandbox
                     box.notify('cs-time-window-change', range);
+                    // hide loading
+                    $('.series-loading', wrap).hide();
+                    // undim chart
+                    $(chart.graphDiv).css({ opacity: 1 });
+                  });
+                } else if (redraw) {
+                  box.parseVisibleCycles();
+                  parseForDrawing();
+                  chart.updateOptions({ 
+                      file: points.sensor
+                    , starts: startPoints.sensor
                   });
                 }
               }
@@ -363,8 +391,7 @@ Stub = (function ($) {
   
   
   var Map = function (box, wrap) {
-    var data = box.activeCycle.locations
-      , map
+    var map
       , map_width = wrap.width()
       , map_height = wrap.height()
       , mapOptions = {
@@ -407,6 +434,9 @@ Stub = (function ($) {
         })
       
       , plot = function (fn) {
+          // get data from sandbox
+          var data = box.visibleData.location;
+          
           // poly bounds
           var minlat = 90
             , maxlat = -90
@@ -415,9 +445,9 @@ Stub = (function ($) {
           ;
           
           // build poly
-          for (var i=0; i < data.length; i++) {
-            var lat = data[i].g.latitude
-              , lawn = data[i].g.longitude
+          for (var i = 0, len = data.length;  i < len; i++) {
+            var lat = data[i].location.latitude
+              , lawn = data[i].location.longitude
             ;
             if (lat < minlat)
               minlat = lat;
@@ -428,7 +458,7 @@ Stub = (function ($) {
             if (lawn > maxlawn)
               maxlawn = lawn;
             var ll = new google.maps.LatLng(lat, lawn);
-            if (data[i].s == 'SENSOR_CELLPOS')
+            if (data[i].header.source == 'SENSOR_CELLPOS')
               poly_cell.getPath().push(ll);
             else
               poly.getPath().push(ll);
@@ -438,7 +468,7 @@ Stub = (function ($) {
           }
           
           // get path length
-          distance = google.maps.geometry.spherical.computeLength(poly.getPath());
+          //distance = google.maps.geometry.spherical.computeLength(poly.getPath());
           
           // set map 'center' from poly bounds
           mapOptions.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);
@@ -451,8 +481,9 @@ Stub = (function ($) {
           // set objects
           poly.setMap(map);
           poly_cell.setMap(map);
-          for (var k=0; k < dots.length; k++)
+          for (var k = 0, len = dots.length; k < len; k++) {
             dots[k].setMap(map);
+          }
           
           // cursor
           cursor = new google.maps.Marker({
@@ -504,7 +535,7 @@ Stub = (function ($) {
           wrap.hide();
           
           // exit if nothing to do
-          if (data.length == 0) {
+          if (!box.visibleData.location.length === 0) {
             fn(true);
             return;
           }
@@ -995,17 +1026,18 @@ Stub = (function ($) {
                     if (!deetsKid.data().sandbox) {
                       var sandbox = new Sandbox(serv.data.bucks, function () {
                         this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
-                          if (empty)
+                          if (empty) {
                             $('.series-loading', deetsKid).text('No time series data.');
-                          else
+                          } else {
                             $('.series-loading', deetsKid).hide();
+                          }
                         });
-                        // this.add('Map', $('.map', deetsKid), function (empty) {
-                        //   if (empty)
-                        //     $('.map-loading', deetsKid).text('No map data.');
-                        //   else
-                        //     $('.map-loading', deetsKid).hide();
-                        // });
+                        this.add('Map', $('.map', deetsKid), function (empty) {
+                          if (empty)
+                            $('.map-loading', deetsKid).text('No map data.');
+                          else
+                            $('.map-loading', deetsKid).hide();
+                        });
                         // add sandbox to details div
                         deetsKid.data({ sandbox: this });
                       });
