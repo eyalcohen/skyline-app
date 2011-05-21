@@ -44,7 +44,7 @@ function defineModels(mongoose, generateId, fn) {
           first         : String
         , last          : String
       }
-    , role              : { type: String, enum: ['contributor', 'guest'], default: 'guest' }
+    , role              : { type: String, enum: ['admin', 'guest'], default: 'guest' }
     , created           : { type: Date, default: Date.now }
     , meta              : {
           logins        : { type: Number, default: 0 }
