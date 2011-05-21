@@ -1760,7 +1760,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
       var allText = [];
       var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
       time = time.substr(0, time.indexOf(' GMT'));
-      var timeWidth = ctx.measureText(time).width;
+      var timeWidth = ctx.measureText(time).width + 8;
       
       // draw time box
       // TODO: make this not crappy
