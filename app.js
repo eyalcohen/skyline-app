@@ -11,7 +11,7 @@ var express = require('express')
   , path = require('path')
   , csv = require('csv')
   , parser = require('mongoose/support/node-mongodb-native/lib/mongodb').BinaryParser
-  , oid = require('mongoose/lib/mongoose/types/objectid')
+  , EventID = require('./customids').EventID
   , data = require('./data')
   , models = require('./models')
   , db
@@ -19,13 +19,6 @@ var express = require('express')
   , Vehicle
   , EventBucket
   , LoginToken
-  // , Slice1000
-  // , Slice20000
-  // , Slice1000000
-  // , Slice60000000
-  // , Slice3600000000
-  // , Slice86400000000
-  , stub
   , ProtobufSchema = require('protobuf_for_node').Schema
   , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/henson/common/src/main/protobuf/Events.desc'))
   , EventWebUpload = Event['event.EventWebUpload']
@@ -33,13 +26,38 @@ var express = require('express')
   , Notify = require('./notify')
 ;
 
+
 /////////////// Helpers
 
+
 /**
- * 
- * @param
+ * Loads current session user.
  */
- 
+
+
+function loadUser(req, res, next) {
+  if (req.session.user_id) {
+    User.findById(req.session.user_id, function (err, usr) {
+      if (usr) {
+        req.currentUser = usr;
+        next();
+      } else {
+        res.redirect('/login');
+      }
+    });
+  } else if (req.cookies.logintoken) {
+    authenticateFromLoginToken(req, res, next);
+  } else {
+    res.redirect('/login');
+  }
+}
+
+
+/**
+ * Logs in with a cookie.
+ */
+
+
 function authenticateFromLoginToken(req, res, next) {
   var cookie = JSON.parse(req.cookies.logintoken);
   LoginToken.findOne({ 
@@ -68,33 +86,16 @@ function authenticateFromLoginToken(req, res, next) {
 
 
 /**
- * 
- * @param
+ * Finds all vehicles.
  */
- 
-function loadUser(req, res, next) {
-  if (req.session.user_id) {
-    User.findById(req.session.user_id, function (err, usr) {
-      if (usr) {
-        req.currentUser = usr;
-        next();
-      } else {
-        res.redirect('/login');
-      }
-    });
-  } else if (req.cookies.logintoken) {
-    authenticateFromLoginToken(req, res, next);
-  } else {
-    res.redirect('/login');
-  }
-}
+
 
 function findVehicles(next) {
   Vehicle.find({}, [], { limit: 100 }).run(function (err, vehs) {
     var num = vehs.length
       , cnt = 0
     ;
-    if (num > 0)
+    if (num > 0) {
       vehs.forEach(function (veh) {
         User.findById(veh.user_id, function (err, usr) {
           veh.user = usr;
@@ -104,11 +105,17 @@ function findVehicles(next) {
           }
         });
       });
-    else {
+    } else {
       next([]);
     }
   });
 }
+
+
+/**
+ * Gets all vehicles owned by user.
+ */
+
 
 function findVehiclesByUser(user, next) {
   Vehicle.find({ user_id: user._id }).sort('created', -1).run(function (err, vehs) {
@@ -120,16 +127,27 @@ function findVehiclesByUser(user, next) {
   });
 }
 
-function findVehicle(id, next) {
-  var to = new oid(generateId, { vid: id, time: (new Date()).getTime() })
-    , from = new oid(to.toHexString().substr(0,8) + '0000000000000000')
+/**
+ * Finds a single vehicle by integer id
+ * which is the first 4 bytes of _id
+ */
+
+function findVehicleByIntId(id, next) {
+  var to = new EventID({ id: id, time: (new Date()).getTime() })
+    , from = new EventID(to.toHexString().substr(0,8) + '0000000000000000')
   ;
   Vehicle.collection.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
     next(veh);
   });
 }
 
-function findVehicleEvents(id, from, to, next) {
+
+/**
+ * Gets all vehicle cycles but does not populate events.
+ */
+
+
+function findVehicleCycles(id, from, to, next) {
   if ('function' == typeof from) {
     next = from;
     from = 0;
@@ -138,34 +156,24 @@ function findVehicleEvents(id, from, to, next) {
     next = to;
     to = (new Date()).getTime();
   }
-  from = from == 0 ? id : new oid(generateId, { vid: id.vid, time: (new Date(from)).getTime() });
-  to = new oid(generateId, { vid: id.vid, time: to });
+  from = from == 0 ? id : new EventID({ id: id.vehicleId, time: (new Date(from)).getTime() });
+  to = new EventID({ id: id.vehicleId, time: to });
   EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: [ '_id', 'bounds' ] }, function (err, cursor) {
     cursor.toArray(function (err, bucks) {
       if (err || !bucks || bucks.length == 0) {
         next([]);
       } else {
         next(bucks);
-        //bucks.forEach(function (b) {
-          //fillBucket(b, function () {
-            
-          //});
-        //});
       }
     });
   });
 }
 
-function fillBucket(buck, next) {
-  EventBucket.findById(buck._id, function (err, data) {
-    if (!err && data) {
-      buck.events = data.events;
-    } else {
-      buck.events = null;
-    }
-    next();
-  });
-}
+
+/**
+ * Gets a single cycle including all events.
+ */
+
 
 function getCycle(id, next) {
   EventBucket.findById(id, function (err, data) {
@@ -177,268 +185,11 @@ function getCycle(id, next) {
   });
 }
 
-function generateId(tokens) {
-  var vid = tokens && tokens.vid || parseInt(Math.random() * 0xffffffff)
-    , time = tokens && tokens.time || (new Date()).getTime()
-    , vehicle4Bytes = 'number' == typeof vid ? 
-      parser.encodeInt(vid, 32, false, true) :
-      parser.encode_utf8(vid)
-    , time4Bytes = parser.encodeInt(parseInt(time / 1000), 32, true, true)
-    , time2Bytes = parser.encodeInt(parseInt(time % 1000), 16, true, true)
-    , index2Bytes = parser.encodeInt(this.get_inc16(), 16, false, true)
-  ;
-  return vehicle4Bytes + time4Bytes + time2Bytes + index2Bytes;
-}
-
-// Database Stub
-
-// var DatabaseStub = function () {
-//   this.data = [];
-// }
-// 
-// DatabaseStub.prototype.clear = function (fn) {
-//   var colls = db.connections[0].collections
-//     , collsArray = []
-//   ;
-//   for (var c in colls)
-//     if (colls.hasOwnProperty(c))
-//       collsArray.push(colls[c]);
-//   var num = collsArray.length
-//     , cnt = 0
-//   ;
-//   collsArray.forEach(function (coll) {
-//     coll.drop(function () {
-//       sys.puts('dropped ' + coll.name);
-//       cnt++;
-//       if (cnt == num)
-//         fn();
-//     });
-//   });
-// }
-//  
-// DatabaseStub.prototype.create = function (from, numUsers, res, fn) {
-//   if ('function' == typeof res) {
-//     fn = res;
-//     res = undefined;
-//   }
-//   this.res = res || 10;
-//   var self = this
-//     , to = from + '.tmp'
-//     , cnt = 0
-//   ;
-//   
-//   self.expand(from, to, function () {
-//     self.load(to, function () {
-//       fs.unlink(to);
-//       insert();
-//     });
-//   });
-//   
-//   function insert() {
-//     var u = {};
-//     u.name = {};
-//     u.name.full = data.names[Math.floor(Math.random() * data.names.length)];
-//     var user = new User(u);
-//     user.save(function (err) {
-//       var v = data.cars[Math.floor(Math.random() * data.cars.length)];
-//       var vehicle = new Vehicle({
-//           model: v[0]
-//         , make: v[1]
-//         , year: v[2][Math.floor(Math.random() * v[2].length)]
-//         , user_id: user._id
-//       }, { time: self.oldest - self.res });
-//       vehicle.save(function (err) {
-//         self.dice(vehicle._id.vid, self.data, 1000, function () {
-//           cnt++;
-//           if (cnt == numUsers)
-//             self.decimate(fn);
-//           else
-//             insert();
-//         });
-//       });
-//     });
-//   }
-// }
-// 
-// DatabaseStub.prototype.expand = function (from, to, fn) {
-//   var self = this
-//     , d = []
-//     , fileout = csv()
-//       .toPath(to)
-//       .on('end', function () {
-//         fn(self.res);
-//       })
-//   ;
-//   csv()
-//   .fromPath(from)
-//   .on('data', function (data, index) {
-//     d.push(data);
-//   })
-//   .on('end', function (count) {
-//     for (var i=0; i < d.length-1; i++) {
-//       var t = parseInt(d[i][0]);
-//       var tt = parseInt(d[i+1][0]);
-//       while (tt - t > self.res) {
-//         var r = [];
-//         for (var j=0; j < d[i].length; j++)
-//           r[j] = d[i][j];
-//         r[0] = t.toString();
-//         for (var k=0; k < r.length; k++) {
-//           fileout.write(r[k], true);
-//           if (k != r.length - 1)
-//             fileout.write(',', true);
-//         }
-//         fileout.write('\n', true);
-//         t += self.res;
-//       }
-//     }
-//     fileout.end();
-//   })
-//   .on('error', function (error) {
-//     console.log(error.message);
-//   });
-// }
-// 
-// DatabaseStub.prototype.load = function (from, fn) {
-//   var self = this;
-//   csv()
-//   .fromPath(from, { columns: ['time','lat','long','alt','speed','acx','acy','acz','soc1','soc2','soc3','bdat1','bdat2','bdat3'] })
-//   .on('data', function (data, index) {
-//     var sample = {};
-//     for (var s in data)
-//       if(data.hasOwnProperty(s))
-//         data[s] = parseFloat(data[s]);
-//     sample.time = parseInt(data.time);
-//     delete data.time;
-//     sample.duration = self.res;
-//     sample.data = data;
-//     self.data.push(sample);
-//   })
-//   .on('end', function (count) {
-//     self.oldest = self.data[0].time;
-//     self.newst = self.data[count - 1].time;
-//     fn();
-//   })
-//   .on('error', function (error) {
-//     console.log(error.message);
-//   });
-// }
-// 
-// DatabaseStub.prototype.dice = function (vid, data, into, fn) {
-//   var s = 0
-//     , bucketDuration = 0
-//     , bucket = { samples: [] }
-//     , bucketTime
-//   ;
-//   function dicer() {
-//     var sample = data[s];
-//     //console.log(sample);
-//     bucketDuration += sample.duration;
-//     if (bucket.samples.length == 0)
-//       bucketTime = sample.time;
-//     //if (bucketTime + into <= sample.time) {
-//     if (bucketDuration == into) {
-//       bucketDuration = 0;
-//       var slice = new (eval('Slice' + into))(bucket, { vid: vid, time: bucketTime });
-//       slice.save(function (err) {
-//         bucket = { samples: [] };
-//         bucketTime = sample.time;
-//         bucket.samples.push(sample);
-//         incer();
-//       });
-//     } else {
-//       bucket.samples.push(sample);
-//       incer();
-//     }
-//   }
-//   function incer() {
-//     s++;
-//     if (s == data.length) {
-//       var slice = new (eval('Slice' + into))(bucket, { vid: vid, time: bucketTime });
-//       slice.save(function (err) {
-//         fn();
-//       });
-//     } else
-//       dicer();
-//   }
-//   if (data.length != 0)
-//     dicer();
-//   else
-//     fn();
-// }
-// 
-// DatabaseStub.prototype.decimate = function (fn) {
-//   var self = this;
-//   Vehicle.find({}, function (err, vehs) {
-//     if (err || !vehs || vehs.length == 0)
-//       fn();
-//     else {
-//       var num = vehs.length
-//         , cnt = 0
-//       ;
-//       function next() {
-//         var v = vehs[cnt];
-//         self.average(v._id, 1000, function (data) {
-//           self.dice(v._id.vid, data, 20000, function () {
-//             self.average(v._id, 20000, function (data) {
-//               self.dice(v._id.vid, data, 1000000, function () {
-//                 cnt++;
-//                 if (cnt == num) {
-//                   fn();
-//                 } else
-//                   next();
-//               });
-//             });
-//           });
-//         });
-//       }
-//       next();
-//     }
-//   });
-// }
-// 
-// DatabaseStub.prototype.average = function (v_id, from, fn) {
-//   var gt = v_id;
-//   var lt = new oid(generateId, { vid: v_id.vid, time: (new Date()).getTime() });
-//   db.connections[0].collections['slice' + from + 's'].find({ _id: { $gt: gt, $lt: lt } }, function (err, cursor) {
-//     cursor.toArray(function (err, bucks) {
-//       if (err || !bucks || bucks.length == 0) {
-//         console.log('vehicle has no data in Slice' + from);
-//         fn();
-//       } else {
-//         var averaged = [];
-//         for (var i=0; i < bucks.length; i++) {
-//           var samples = bucks[i].samples
-//             , numSamples = samples.length
-//             , newSample = {
-//                 time: bucks[i]._id.time
-//               , duration: 0
-//               , _synthetic: true
-//               , data: {}
-//             }
-//           ;
-//           for (var j=0; j < numSamples; j++) {
-//             newSample.duration += samples[j].duration;
-//             for (var p in samples[j].data)
-//               if (samples[j].data.hasOwnProperty(p)) {
-//                 if (!newSample.data[p])
-//                   newSample.data[p] = 0;
-//                 newSample.data[p] += (parseFloat(100000 * (samples[j].data[p] * (samples[j].duration / from)))) / 100000;
-//               }
-//             if (newSample.duration == from)
-//               averaged.push(newSample);
-//           }
-//         }
-//         fn(averaged);
-//       }
-//     });
-//   });
-// }
-
 
 /////////////// Configuration
 
 var app = module.exports = express.createServer();
+
 
 app.configure('development', function () {
   app.set('db-uri', 'mongodb://localhost:27017/service-development,mongodb://localhost:27018,mongodb://localhost:27019');
@@ -447,11 +198,13 @@ app.configure('development', function () {
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
+
 app.configure('test', function () {
   app.set('db-uri', 'mongodb://localhost:27017/service-test,mongodb://localhost:27018,mongodb://localhost:27019');
   app.set('sessions-host', 'localhost');
   app.set('sessions-port', [27017, 27018, 27019]);
 });
+
 
 app.configure('production', function () {
   app.set('db-uri', 'mongodb://50.19.108.253:27017/service-production,mongodb://50.19.106.243:27017,mongodb://50.19.106.238:27017');
@@ -459,6 +212,7 @@ app.configure('production', function () {
   app.set('sessions-port', 27017);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
+
 
 app.configure(function () {
   app.set('views', __dirname + '/views');
@@ -481,22 +235,22 @@ app.configure(function () {
   app.use(express.static(__dirname + '/public'));
 });
 
-models.defineModels(mongoose, generateId, function () {
+
+models.defineModels(mongoose, function () {
   app.User = User = mongoose.model('User');
   app.Vehicle = Vehicle = mongoose.model('Vehicle');
   app.EventBucket = EventBucket = mongoose.model('EventBucket');
   app.LoginToken = LoginToken = mongoose.model('LoginToken');
-  // app.Slice1000 = Slice1000 = mongoose.model('Slice1000');
-  // app.Slice20000 = Slice20000 = mongoose.model('Slice20000');
-  // app.Slice1000000 = Slice1000000 = mongoose.model('Slice1000000');
-  // app.Slice60000000 = Slice60000000 = mongoose.model('Slice60000000');
-  // app.Slice3600000000 = Slice3600000000 = mongoose.model('Slice3600000000');
-  // app.Slice86400000000 = Slice86400000000 = mongoose.model('Slice86400000000');
   db = mongoose.connectSet(app.set('db-uri'));
 });
 
 
 /////////////// Params
+
+
+/**
+ * Loads user by email request param.
+ */
 
 
 app.param('email', function (req, res, next, email) {  
@@ -515,11 +269,14 @@ app.param('email', function (req, res, next, email) {
   });
 });
 
+
+/**
+ * Load vehicle by vehicleId request param.
+ */
+
+
 app.param('vid', function (req, res, next, id) {
-  var to = new oid(generateId, { vid: parseInt(id), time: (new Date()).getTime() })
-    , from = new oid(to.toHexString().substr(0,8) + '0000000000000000')
-  ;
-  Vehicle.collection.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
+  Vehicle.findById(id, function (err, veh) {
     if (!err && veh) {
       req.vehicle = veh;
       next();
@@ -532,6 +289,7 @@ app.param('vid', function (req, res, next, id) {
 
 ////////////// Web Routes
 
+// Home
 
 app.get('/', loadUser, function (req, res) {
   findVehicles(function (vehs) {
@@ -540,7 +298,7 @@ app.get('/', loadUser, function (req, res) {
       , cnt = 0
     ;
     vehs.forEach(function (v) {
-      findVehicleEvents(v._id, function (bucks) {
+      findVehicleCycles(v._id, function (bucks) {
         if (bucks.length > 0) {
           v.events = bucks;
           vehicles.push(v);
@@ -560,7 +318,9 @@ app.get('/', loadUser, function (req, res) {
   });
 });
 
+
 // Landing page
+
 app.get('/login', function (req, res) {
   if (req.session.user_id) {
     User.findById(req.session.user_id, function (err, usr) {
@@ -580,10 +340,12 @@ app.get('/login', function (req, res) {
   }
 });
 
-// Get one vehicle
+
+// Get one vehicle route
+
 app.get('/v/:vid', function (req, res) {
   // get all vehicle events (handle only)
-  findVehicleEvents(req.vehicle._id, function (bucks) {
+  findVehicleCycles(req.vehicle._id, function (bucks) {
     if (bucks.length > 0) {
       // get only the latest event's data
       var latest = bucks[bucks.length - 1];
@@ -597,7 +359,9 @@ app.get('/v/:vid', function (req, res) {
   });
 });
 
-// Get one vehicle
+
+// Get requested cycles and their events
+
 app.get('/cycles', function (req, res) {
   if (req.body && req.body.cycles) {
     var cycleIds = req.body.cycles
@@ -615,18 +379,22 @@ app.get('/cycles', function (req, res) {
       });
     });
   } else {
-    res.end();
+    res.send({ status: 'fail', data: { code: 'NO_CYCLES_REQUESTED' } });
   }
 });
 
+
 // Login - add user to session
+
 app.post('/sessions', function (req, res) {
   // check fields
   var missing = [];
-  if (!req.body.user.email)
+  if (!req.body.user.email) {
     missing.push('email');
-  if (!req.body.user.password)
+  }
+  if (!req.body.user.password) {
     missing.push('password');
+  }
   if (missing.length != 0) {
     res.send({ status: 'fail', data: { code: 'MISSING_FIELD', message: 'Both your email and password are required for login.', missing: missing } });
     return;
@@ -643,8 +411,9 @@ app.post('/sessions', function (req, res) {
               res.cookie('logintoken', loginToken.cookieValue, { expires: new Date(Date.now() + 2 * 604800000), path: '/' });
               res.send({ status: 'success' });
             });
-          } else
+          } else {
             res.send({ status: 'success' });
+          }
         } else {
           res.send({ status: 'error', message: 'We\'re experiencing an unknown problem but are looking into it now. Please try again later.' });
           Notify.problem(err);
@@ -662,7 +431,9 @@ app.post('/sessions', function (req, res) {
   });
 });
 
+
 // Delete a session on logout
+
 app.del('/sessions', loadUser, function (req, res) {
   if (req.session) {
     LoginToken.remove({ email: req.currentUser.email }, function () {});
@@ -676,7 +447,8 @@ app.del('/sessions', loadUser, function (req, res) {
 ////////////// API
 
 
-// handle user create request
+// Handle user create request
+
 app.post('/usercreate/:newemail', function (req, res) {
   var user = new User({
       email: req.params.newemail
@@ -686,9 +458,9 @@ app.post('/usercreate/:newemail', function (req, res) {
   user.save(function (err) {
     if (!err) {
       Notify.welcome(user, function (err, message) {
-        if (!err)
+        if (!err) {
           res.send({ status: 'success', data: { user: user } });
-        else {
+        } else {
           res.send({ status: 'error', message: err });
           Notify.problem(err);
         }
@@ -699,29 +471,36 @@ app.post('/usercreate/:newemail', function (req, res) {
   });
 });
 
-// handle vehicle create request
+
+// Handle vehicle create request
+
 app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
   var v = new Vehicle({
-      make: req.params.make
+      _id: new EventID()
+    , make: req.params.make
     , model: req.params.model
     , year: req.params.year
     , user_id: req.currentUser._id
   });
   v.save(function (err) {
     if (!err) {
-      res.send({ status: 'success', data: { vehicleId: v._id.vid } });
+      res.send({ status: 'success', data: { vehicleId: v._id.vehicleId } });
     } else {
       res.send({ status: 'error', message: err });
     }
   });
 });
 
-// handle user info request
+
+// Handle user info request
+
 app.get('/userinfo/:email', function (req, res) {
   res.send({ status: 'success', data: { user: req.currentUser } });
 });
 
-// handle vehicle info request
+
+// Handle vehicle info request
+
 app.get('/summary/:email/:vid', function (req, res) {
   if (req.vehicle.user_id.toHexString() == req.currentUser._id.toHexString()) {
     res.send({ status: 'success', data: { user: req.currentUser, vehicle: req.vehicle } });
@@ -730,22 +509,24 @@ app.get('/summary/:email/:vid', function (req, res) {
   }
 });
 
-// handle cycle events request
+
+// Handle cycle events request
+
 app.put('/cycle', function (req, res) {
   if (!(req.body instanceof Buffer)) {
     res.send({ status: 'fail', data: { code: 'BAD_PROTOBUF_FORMAT' } });
     return;
   }
   var cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'))
-    //, start = cycle.events[0].events[0].header.startTime
     , num = cycle.events.length
     , cnt = 0
   ;
+  
   // authenticate user
   User.findOne({ email: cycle.userId }, function (err, usr) {
     if (usr) {
       if (usr.authenticate(req.body.password)) {
-        findVehicle(cycle.vehicleId, function (veh) {
+        findVehicleByIntId(cycle.vehicleId, function (veh) {
           if (veh) {
             handleEvents(veh);
           } else {
@@ -759,6 +540,7 @@ app.put('/cycle', function (req, res) {
       res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
     }
   });
+  
   // add to db
   function handleEvents(v) {
     cycle.events.forEach(function (event) {
@@ -766,19 +548,21 @@ app.put('/cycle', function (req, res) {
           start: event.events[0].header.startTime
         , stop: event.events[0].header.stopTime
       };
-      var bucket = new EventBucket(event, { vid: v._id.vid, time: event.events[0].header.startTime });
+      event._id = new EventID({ id: v._id.vehicleId, time: event.events[0].header.startTime });
+      var bucket = new EventBucket(event);
       bucket.save(function (err) {
         cnt++;
-        if (cnt == num)
+        if (cnt == num) {
           res.end();
+        }
       });
     });
   }
 });
 
-////////////// Listen Up
 
-// Only listen on $ node app.js
+////////////// Listen on 8080 (maps to 80 on EC2)
+
 
 if (!module.parent) {
   app.listen(8080);

@@ -268,7 +268,7 @@ Stub = (function ($) {
           self.parseVisibleCycles();
           fn(true);
         } else {
-          console.log(serv.message);
+          console.log(serv.data.code);
         }
       });
     } else if (redraw) {
@@ -815,7 +815,7 @@ Stub = (function ($) {
           $('.landing-logo').bind('click', function (e) {
             e.preventDefault();
             //makeUser(this);
-            //makeVehicle(this);
+            makeVehicle(this);
             //getUser(this);
             //getVehicle(this);
           });
@@ -855,7 +855,7 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/vehiclecreate/sander@ridemission.com/Ducati/1098/2011'
+                , action: '/vehiclecreate/sander@ridemission.com/Honda/Prius/2011'
               })
               .hide()
               .append('<input type="hidden" />')
@@ -1087,7 +1087,7 @@ Stub = (function ($) {
                       });
                     }
                   } else
-                    console.log(serv.message);
+                    console.log(serv.data.code);
                 });
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');

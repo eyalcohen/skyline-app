@@ -1,33 +1,44 @@
 /**
  * Module dependencies.
  */
- 
-//var Store = require('connect').session.Store;
+
 
 var crypto = require('crypto')
   , User
   , Vehicle
   , EventBucket
   , LoginToken
-  // , Slice1000
-  // , Slice20000
-  // , Slice1000000
-  // , Slice60000000
-  // , Slice3600000000
-  // , Slice86400000000
 ;
 
-function defineModels(mongoose, generateId, fn) {
+
+/**
+  * Models wrapper used in config
+  */
+
+
+function defineModels(mongoose, fn) {
   var Schema = mongoose.Schema
     , ObjectId = Schema.ObjectId
   ;
-  
+
+
+  /**
+    * Converts string to title case.
+    */
+
+
   String.prototype.toTitleCase = function () {
     return this.replace(/\w\S*/g, function (txt) {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
   };
-  
+
+
+  /**
+    * Ensures a string exists and is not empty.
+    */
+
+
   function validatePresenceOf(value) {
     return value && value.length;
   }
@@ -36,6 +47,7 @@ function defineModels(mongoose, generateId, fn) {
   /**
     * Model: Member
     */
+
   User = new Schema({
       email             : { type: String, validate: [validatePresenceOf, 'an email is required'], index: { unique: true } }
     , hashed_password   : String
@@ -102,69 +114,40 @@ function defineModels(mongoose, generateId, fn) {
       next();
     }
   });
-  
-  
+
+
   /**
     * Model: Vehicle
     */
+
+
   Vehicle = new Schema({
-      _id     : { type: ObjectId, auto: true, generator: generateId }
-    , make    : String
+      make    : String
     , model   : String
     , year    : { type: String, index: true }
     , user_id : ObjectId
     , created : { type: Date, default: Date.now }
   });
-  
-  
+
+
   /**
     * Model: EventBucket
     */
+
+
   EventBucket = new Schema({
-      _id    : { type: ObjectId, auto: true, generator: generateId }
-    , bounds : {}
+      bounds : {}
     , events : Array
   });
-  
-  
-  // Slice1000 = new Schema({
-  //     _id: { type: ObjectId, auto: true, generator: generateId }
-  //   , samples: Array
-  // });
-  // 
-  // Slice20000 = new Schema({
-  //     _id: { type: ObjectId, auto: true, generator: generateId }
-  //   , samples: Array
-  // });
-  // 
-  // Slice1000000 = new Schema({
-  //     _id: { type: ObjectId, auto: true, generator: generateId }
-  //   , samples: Array
-  // });
-  // 
-  // Slice60000000 = new Schema({
-  //     _id: { type: ObjectId, auto: true, generator: generateId }
-  //   , samples: Array
-  // });
-  // 
-  // Slice3600000000 = new Schema({
-  //     _id: { type: ObjectId, auto: true, generator: generateId }
-  //   , samples: Array
-  // });
-  // 
-  // Slice86400000000 = new Schema({
-  //     _id: { type: ObjectId, auto: true, generator: generateId }
-  //   , samples: Array
-  // });
-  
-  
-  
-  
+
+
   /**
     * Model: LoginToken
     *
     * Used for session persistence.
     */
+
+
   LoginToken = new Schema({
       email   : { type: String, index: true }
     , series  : { type: String, index: true }
@@ -178,8 +161,9 @@ function defineModels(mongoose, generateId, fn) {
   LoginToken.pre('save', function (next) {
     // Automatically create the tokens
     this.token = this.randomToken();
-    if (this.isNew)
+    if (this.isNew) {
       this.series = this.randomToken();
+    }
     next();
   });
 
@@ -192,20 +176,14 @@ function defineModels(mongoose, generateId, fn) {
     .get(function () {
       return JSON.stringify({ email: this.email, token: this.token, series: this.series });
     });
-  
-  
-  
+
+
+
   mongoose.model('User', User);
   mongoose.model('Vehicle', Vehicle);
   mongoose.model('EventBucket', EventBucket);
   mongoose.model('LoginToken', LoginToken);
-  // mongoose.model('Slice1000', Slice1000);
-  // mongoose.model('Slice20000', Slice20000);
-  // mongoose.model('Slice1000000', Slice1000000);
-  // mongoose.model('Slice60000000', Slice60000000);
-  // mongoose.model('Slice3600000000', Slice3600000000);
-  // mongoose.model('Slice86400000000', Slice86400000000);
-  
+
   fn();
 }
 
