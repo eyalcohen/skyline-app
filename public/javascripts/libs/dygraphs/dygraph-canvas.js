@@ -653,6 +653,14 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         this.container.appendChild(label2);
         this.xlabels.push(label2);
         
+        if (this.dygraph_.index !== this.dygraph_.of - 1) {
+          label2.style.display = "none";
+        }
+        
+        if (this.dygraph_.index !== 0) {
+          label.style.display = "none";
+        }
+        
       }
     }
 
@@ -688,8 +696,8 @@ DygraphCanvasRenderer.prototype._renderChartLabels = function() {
     this.container.appendChild(div);
     this.chartLabels.title = div;
   }
-
-  if (this.attr_('xlabel')) {
+  
+  if (this.attr_('xlabel') && this.dygraph_.index === this.dygraph_.of - 1) {
     var div = document.createElement("div");
     div.style.position = 'absolute';
     div.style.bottom = '15px';  // TODO(danvk): this is lazy. Calculate style.top.

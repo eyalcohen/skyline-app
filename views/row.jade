@@ -4,12 +4,12 @@
 - var rate = (Math.random() * 10).toFixed(2);
 div.tr
   div.td.expand(class=color)
-    a.expander(href="javascript:;", id="vehicle-" + row._id.vid)
+    a.expander(href="javascript:;", id="vehicle-" + row.id)
       img(src="/graphics/arrow.png")
   div.td.leftest(class=color)
     =row.year + ' ' + row.make + ' ' + row.model
   div.td(class=color)
-    =row._id.vid
+    =row._id.vehicleId
   div.td.number(class=color)
     =miles
   div.td(class=color)

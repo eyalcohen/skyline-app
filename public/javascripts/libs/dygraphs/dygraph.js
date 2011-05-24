@@ -231,6 +231,8 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.zoomed_x_ = false;
   this.zoomed_y_ = false;
   
+  this.index = attrs.index;
+  this.of = attrs.of;
   this.starts = attrs.starts;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
@@ -668,6 +670,7 @@ Dygraph.prototype.createInterface_ = function() {
   this.graphDiv.style.width = this.width_ + "px";
   this.graphDiv.style.height = this.height_ + "px";
   this.graphDiv.className = "dygraph";
+  this.graphDiv.style.top = (this.height_ * this.index) + 9 + "px";
   enclosing.appendChild(this.graphDiv);
 
   // Create the canvas for interactive parts of the chart.
@@ -1757,7 +1760,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
       var allText = [];
       var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
       time = time.substr(0, time.indexOf(' GMT'));
-      var timeWidth = ctx.measureText(time).width;
+      var timeWidth = ctx.measureText(time).width + 8;
       
       // draw time box
       // TODO: make this not crappy
@@ -3814,6 +3817,14 @@ Dygraph.prototype.updateOptions = function(attrs) {
   
   if ('starts' in attrs) {
     this.starts = attrs.starts;
+  }
+  
+  if ('index' in attrs) {
+    this.index = attrs.index;
+  }
+  
+  if ('of' in attrs) {
+    this.of = attrs.of;
   }
 };
 

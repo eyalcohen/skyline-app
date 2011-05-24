@@ -148,6 +148,10 @@ Stub = (function ($) {
     this.activeCycle = null;
     // valid data keys
     this.validKeys = ['sensor', 'location'];
+    // titles for keys
+    this.validKeyYLabels = ['Acceleration (m/s^2)', 'Altitude (m)'];
+    // series for keys
+    this.validKeySeries = [['time', '(ax)', '(ay)', '(az)'], ['time', '*']];
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
     this.parseVisibleCycles();
@@ -202,163 +206,112 @@ Stub = (function ($) {
     this.widgets.push(widg);
   };
   
-  Sandbox.prototype.notify = function (type, data) {
+  Sandbox.prototype.notify = function (type, params, fn) {
     switch (type) {
       case 'cs-time-window-change':
-        //console.log('panning...');
-        // for (var w = 0, l = this.widgets.length; w < l; w++) {
-        //   this.widgets[w].handle(type, {
-        //     //tree: _activeTree
-        //   });
-        // }
+        this.reEvaluateData(params, fn);
         break;
     }
   };
   
+  Sandbox.prototype.reEvaluateData = function (params, fn) {
+    var self = this
+      , min = params.range[0]
+      , max = params.range[1]
+      , raw = self.raw
+      , visible = []
+      , redraw = false
+    ;
+    // check window bounds
+    for (var i = 0, len = raw.length; i < len; i++) {
+      var index;
+      if ((raw[i].bounds.start >= min && raw[i].bounds.start <= max) ||
+        (raw[i].bounds.stop >= min && raw[i].bounds.stop <= max)
+      ) {
+        visible.push(raw[i]._id);
+      } else if ((raw[i].bounds.start > max || raw[i].bounds.stop < min) &&
+        (index = self.visibleCycles.indexOf(raw[i]._id)) !== -1 &&
+        self.visibleCycles.length > 1
+      ) {
+        delete raw[i].events;
+        self.visibleCycles.splice(index, 1);
+        redraw = true;
+      }
+    }
+    // remove cycle ids who's data we already have
+    var empty = [];
+    for (var i = 0, leni = visible.length; i < leni; i++) {
+      var exists = false;
+      for (var j = 0, lenj = self.visibleCycles.length; j < lenj; j++) {
+        if (visible[i] == self.visibleCycles[j]) {
+          exists = true;
+          break;
+        }
+      }
+      if (!exists) {
+        empty.push(visible[i]);
+        self.visibleCycles.push(visible[i]);
+      }
+    }
+    // get new data
+    if (empty.length > 0) {
+      // show loading for this chart
+      params.plot.showLoading(params.index);
+      // call server
+      $.get('/cycles', { cycles: empty }, function (serv) {
+        if (serv.status == 'success') {
+          for (var i = 0, len = raw.length; i < len; i++) {
+            if (raw[i]._id in serv.data.events) {
+              raw[i].events = serv.data.events[raw[i]._id];
+            }
+          }
+          self.parseVisibleCycles();
+          fn(true);
+        } else {
+          console.log(serv.data.code);
+        }
+      });
+    } else if (redraw) {
+      self.parseVisibleCycles();
+      fn(true);
+    }
+  };
   
   var TimeSeries = function (box, wrap) {
     var points
-      , chart
       , startPoints
+      , charts = []
+      , blockRedraw = false
       
       , parseForDrawing = function () {
-        points = {};
-        startPoints = {};
-        for (var i in box.visibleData) {
-          if (box.visibleData.hasOwnProperty(i)) {
-            points[i] = [];
-            startPoints[i] = [];
-            for (var j = 0, len = box.visibleData[i].length; j < len; j++) {
-              var pnt = [box.visibleData[i][j].header.startTime]
-                , series = box.visibleData[i][j][i]
-              ;
-              if (series.constructor.name === 'Array') {
-                for (var s = 0, lens = series.length; s < lens; s++) {
-                  pnt.push(series[s]);
-                }
-              } else {
-                for (var s in series) {
-                  if (series.hasOwnProperty(s)) {
+          points = {};
+          startPoints = {};
+          for (var i in box.visibleData) {
+            if (box.visibleData.hasOwnProperty(i)) {
+              points[i] = [];
+              startPoints[i] = [];
+              for (var j = 0, len = box.visibleData[i].length; j < len; j++) {
+                var pnt = [box.visibleData[i][j].header.startTime]
+                  , series = box.visibleData[i][j][i]
+                ;
+                if (series.constructor.name === 'Array') {
+                  for (var s = 0, lens = series.length; s < lens; s++) {
                     pnt.push(series[s]);
                   }
+                } else {
+                  for (var s in series) {
+                    if (series.hasOwnProperty(s) && s != 'latitude' && s != 'longitude') {
+                      pnt.push(series[s]);
+                    }
+                  }
                 }
+                if (box.visibleData[i][j].isFirst) {
+                  startPoints[i].push(pnt);
+                }
+                points[i].push(pnt);
               }
-              if (box.visibleData[i][j].isFirst) {
-                startPoints[i].push(pnt);
-              }
-              points[i].push(pnt);
             }
           }
-        }
-      }
-      , plot = function (fn) {
-          // make new dygrapher
-          chart = new Dygraph(wrap[0], points.sensor, {
-              width: wrap.width()
-            , height: wrap.height()
-            , rightGap: 0
-            , fillGraph: true
-            , fillAlpha: 0.05
-            , gridLineColor: 'rgba(255,255,255,0.25)'
-            , colors: [orange, blue, green]
-            , strokeWidth: 0.5
-            , labels: [ 'time', '(ax)', '(ay)', '(az)' ]
-            , axisLineColor: 'rgba(0,0,0,0)'
-            , axisLabelColor: '#808080'
-            , axisLabelFontSize: 9
-            , xlabel: 'Time'
-            , ylabel: 'Acceleration (m/s^2)'
-            , stepPlot: true
-            , starts: startPoints.sensor
-            //, panEdgeFraction: 0.0001
-            , interactionModel : {
-                  mousedown: downV3
-                , mousemove: moveV3
-                , mouseup: upV3
-                , click: clickV3
-                , dblclick: dblClickV4
-                , mousewheel: scrollV3
-              }
-            , drawCallback: function (me, initial) {
-                var range = me.xAxisRange()
-                  , min = range[0]
-                  , max = range[1]
-                  , visible = []
-                  , redraw = false
-                ;
-                // check window bounds
-                for (var i = 0, len = box.raw.length; i < len; i++) {
-                  var index;
-                  if ((box.raw[i].bounds.start >= min && box.raw[i].bounds.start <= max) ||
-                    (box.raw[i].bounds.stop >= min && box.raw[i].bounds.stop <= max)
-                  ) {
-                    visible.push(box.raw[i]._id);
-                  } else if ((box.raw[i].bounds.start > max || box.raw[i].bounds.stop < min) &&
-                    (index = box.visibleCycles.indexOf(box.raw[i]._id)) !== -1 &&
-                    box.visibleCycles.length > 1
-                  ) {
-                    delete box.raw[i].events;
-                    box.visibleCycles.splice(index, 1);
-                    redraw = true;
-                  }
-                }
-                // remove cycle ids who's data we already have
-                var empty = [];
-                for (var i = 0, leni = visible.length; i < leni; i++) {
-                  var exists = false;
-                  for (var j = 0, lenj = box.visibleCycles.length; j < lenj; j++) {
-                    if (visible[i] == box.visibleCycles[j]) {
-                      exists = true;
-                      break;
-                    }
-                  }
-                  if (!exists) {
-                    empty.push(visible[i]);
-                    box.visibleCycles.push(visible[i]);
-                  }
-                }
-                // get new data
-                if (empty.length > 0) {
-                  // show loading
-                  $('.series-loading', wrap).show();
-                  // dim chart
-                  $(chart.graphDiv).css({ opacity: 0.2 });
-                  // call server
-                  $.get('/cycles', { cycles: empty }, function (serv) {
-                    if (serv.status == 'success') {
-                      for (var i = 0, len = box.raw.length; i < len; i++) {
-                        if (box.raw[i]._id in serv.data.events) {
-                          box.raw[i].events = serv.data.events[box.raw[i]._id];
-                        }
-                      }
-                      box.parseVisibleCycles();
-                      parseForDrawing();
-                      chart.updateOptions({ 
-                          file: points.sensor
-                        , starts: startPoints.sensor
-                      });
-                    } else {
-                      console.log(serv.message);
-                    }
-                    // notify sandbox
-                    box.notify('cs-time-window-change', range);
-                    // hide loading
-                    $('.series-loading', wrap).hide();
-                    // undim chart
-                    $(chart.graphDiv).css({ opacity: 1 });
-                  });
-                } else if (redraw) {
-                  box.parseVisibleCycles();
-                  parseForDrawing();
-                  chart.updateOptions({ 
-                      file: points.sensor
-                    , starts: startPoints.sensor
-                  });
-                }
-              }
-          });
-          // callback
-          fn();
         }
       , toMPH = function (ms) {
           return ms * 2.23693629;
@@ -373,15 +326,106 @@ Stub = (function ($) {
             fn(true);
           } else {
             parseForDrawing();
-            plot(fn);
+            this.plot(fn);
           }
+        }
+      , plot: function (fn) {
+          // save this scope
+          var self = this;
+          // count datasets
+          var sets = Object.keys(points);
+          // make a chart for each dataset
+          for (var i = 0, len = sets.length; i < len; i++) {
+            // make new dygraphers
+            charts.push(new Dygraph(wrap[0], points[sets[i]], {
+                width: wrap.width()
+              , height: wrap.height() / len
+              , index: i
+              , of: len
+              , rightGap: 0
+              , fillGraph: true
+              , fillAlpha: 0.05
+              , gridLineColor: 'rgba(255,255,255,0.25)'
+              , colors: [orange, blue, green]
+              , strokeWidth: 0.5
+              , labels: box.validKeySeries[i]
+              , axisLineColor: 'rgba(0,0,0,0)'
+              , axisLabelColor: '#808080'
+              , axisLabelFontSize: 9
+              , xlabel: 'Time'
+              , ylabel: box.validKeyYLabels[i]
+              , stepPlot: true
+              , starts: startPoints[sets[i]]
+              //, panEdgeFraction: 0.0001
+              , interactionModel : {
+                    mousedown: downV3
+                  , mousemove: moveV3
+                  , mouseup: upV3
+                  , click: clickV3
+                  , dblclick: dblClickV4
+                  , mousewheel: scrollV3
+                }
+              , drawCallback: function (me, initial) {
+                  var range = me.xAxisRange()
+                    , yrange = me.yAxisRange()
+                  ;
+                  // notify sandbox
+                  box.notify('cs-time-window-change', { range: range, plot: self, index: me.index }, function (redraw) {
+                    if (redraw) {
+                      parseForDrawing();
+                      charts[me.index].updateOptions({ 
+                          file: points[sets[me.index]]
+                        , starts: startPoints[sets[me.index]]
+                      });
+                      self.hideLoading(me.index);
+                    }
+                  });
+                  // synch with other plots
+                  if (charts.length < sets.length || blockRedraw) {
+                    return;
+                  }
+                  blockRedraw = true;
+                  for (var j = 0, lenj = charts.length; j < lenj; j++) {
+                    if (charts[j] == me) {
+                      continue;
+                    }
+                    charts[j].updateOptions({
+                      dateWindow: range,
+                      //valueRange: yrange
+                    });
+                  }
+                  blockRedraw = false;
+                }
+            }));
+          }
+          // callback
+          fn();
         }
       , resize: function (wl, hl, wr, hr) {
           if (!wr)
             wr = wrap.width();
           if (!hr)
             hr = wrap.height();
-          chart.resize(wr, hr);
+          chart[i].resize(wr, hr);
+        }
+      , showLoading: function (index) {
+          $('.series-loading', wrap).show();
+          for (var i in charts) {
+            if (charts.hasOwnProperty(i)) {
+              $(charts[i].graphDiv).css({ opacity: 0.2 });
+            }
+          }
+        }
+      , hideLoading: function (index) {
+          $('.series-loading', wrap).hide();
+          for (var i in charts) {
+            if (charts.hasOwnProperty(i)) {
+              $(charts[i].graphDiv).css({ opacity: 1 });
+            }
+          }
+        }
+      , getChart: function (index) {
+          return charts[index];
         }
       , clear: function () {
           
@@ -771,7 +815,7 @@ Stub = (function ($) {
           $('.landing-logo').bind('click', function (e) {
             e.preventDefault();
             //makeUser(this);
-            makeVehicle(this);
+            //makeVehicle(this);
             //getUser(this);
             //getVehicle(this);
           });
@@ -783,7 +827,7 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/usercreate/jit@ridemission.com'
+                , action: '/usercreate/sander@ridemission.com'
               })
               .hide()
               .append('<input type="hidden" />')
@@ -798,7 +842,7 @@ Stub = (function ($) {
               .find('input:last-child')
               .attr({
                   'name': 'fullName'
-                , 'value': 'Jit Bhattacharya'
+                , 'value': 'Jon Doe'
               })
               .end()
               .submit();
@@ -811,7 +855,7 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/vehiclecreate/sander@ridemission.com/Ducati/1098/2011'
+                , action: '/vehiclecreate/sander@ridemission.com/Honda/Prius/2011'
               })
               .hide()
               .append('<input type="hidden" />')
@@ -1043,7 +1087,7 @@ Stub = (function ($) {
                       });
                     }
                   } else
-                    console.log(serv.message);
+                    console.log(serv.data.code);
                 });
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
