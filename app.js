@@ -457,11 +457,9 @@ app.post('/usercreate/:newemail', function (req, res) {
   });
   user.save(function (err) {
     if (!err) {
+      res.send({ status: 'success', data: { user: user } });
       Notify.welcome(user, function (err, message) {
-        if (!err) {
-          res.send({ status: 'success', data: { user: user } });
-        } else {
-          res.send({ status: 'error', message: err });
+        if (err) {
           Notify.problem(err);
         }
       });

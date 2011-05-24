@@ -815,7 +815,7 @@ Stub = (function ($) {
           $('.landing-logo').bind('click', function (e) {
             e.preventDefault();
             //makeUser(this);
-            makeVehicle(this);
+            //makeVehicle(this);
             //getUser(this);
             //getVehicle(this);
           });
@@ -827,7 +827,7 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/usercreate/jit@ridemission.com'
+                , action: '/usercreate/sander@ridemission.com'
               })
               .hide()
               .append('<input type="hidden" />')
@@ -842,7 +842,7 @@ Stub = (function ($) {
               .find('input:last-child')
               .attr({
                   'name': 'fullName'
-                , 'value': 'Jit Bhattacharya'
+                , 'value': 'Jon Doe'
               })
               .end()
               .submit();
