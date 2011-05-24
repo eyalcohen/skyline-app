@@ -5,6 +5,7 @@
 
 var express = require('express')
   , mongoose = require('mongoose')
+  , jade = require('jade')
   , MongoStore = require('connect-mongodb')
   , fs = require('fs')
   , sys = require('sys')
@@ -133,6 +134,9 @@ function findVehiclesByUser(user, next) {
  */
 
 function findVehicleByIntId(id, next) {
+  if ('string' === typeof id) {
+    id = parseInt(id);
+  }
   var to = new EventID({ id: id, time: (new Date()).getTime() })
     , from = new EventID(to.toHexString().substr(0,8) + '0000000000000000')
   ;
@@ -278,6 +282,23 @@ app.param('email', function (req, res, next, email) {
 app.param('vid', function (req, res, next, id) {
   Vehicle.findById(id, function (err, veh) {
     if (!err && veh) {
+      req.vehicle = veh;
+      next();
+    } else {
+      res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
+    }
+  });
+});
+
+
+/**
+ * Load vehicle by vehicleId request param.
+ */
+
+
+app.param('vintid', function (req, res, next, id) {
+  findVehicleByIntId(id, function (veh) {
+    if (veh) {
       req.vehicle = veh;
       next();
     } else {
@@ -499,9 +520,13 @@ app.get('/userinfo/:email', function (req, res) {
 
 // Handle vehicle info request
 
-app.get('/summary/:email/:vid', function (req, res) {
+app.get('/summary/:email/:vintid', function (req, res) {
   if (req.vehicle.user_id.toHexString() == req.currentUser._id.toHexString()) {
-    res.send({ status: 'success', data: { user: req.currentUser, vehicle: req.vehicle } });
+    jade.renderFile(path.join(__dirname, 'views', 'summary.jade'), { locals: { user: req.currentUser } }, function (err, body) {
+      if (!err) {
+        res.send(body);
+      }
+    });
   } else {
     res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
   }
