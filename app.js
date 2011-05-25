@@ -560,7 +560,7 @@ app.put('/cycle', function (req, res) {
   // authenticate user
   User.findOne({ email: cycle.userId }, function (err, usr) {
     if (usr) {
-      if (usr.authenticate(req.body.password)) {
+      if (usr.authenticate(cycle.password)) {
         findVehicleByIntId(cycle.vehicleId, function (veh) {
           if (veh) {
             handleEvents(veh);
