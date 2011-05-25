@@ -1,6 +1,7 @@
 #container
   header
-    img#logo(src="/graphics/logo.png", alt="Mission Motors")
+    a(href="http://ridemission.com", target="_blank")
+      img#logo(src="/graphics/logo.png", alt="Mission Motors")
     #menu.list
       ul
         li
@@ -11,21 +12,14 @@
             | Log Out
   #main(role="main")
     div.tabs
-      div.tab.tab-active(style="left: 30px;")
+      div.tab.tab-active(style="left: 30px;", data-tab-target="table")
         a(href="javascript:;")
           div.tab-side
             img(src="/graphics/tab-left-side.png", alt="/graphics/tab-left-side-dark.png")
-          div.tab-content All Cycles
+          div.tab-content My History
           div.tab-side
             img(src="/graphics/tab-right-side.png", alt="/graphics/tab-right-side-dark.png")
-      div.tab(style="left: 128px;")
-        a(href="javascript:;")
-          div.tab-side
-            img(src="/graphics/tab-left-side-dark.png", alt="/graphics/tab-left-side.png")
-          div.tab-content.tab-content-inactive My History
-          div.tab-side
-            img(src="/graphics/tab-right-side-dark.png", alt="/graphics/tab-right-side.png")
-      div.tab(style="right: 20px;")
+      div.tab(style="right: 20px;", data-tab-target="preferences")
         a(href="javascript:;")
           div.tab-side
             img(src="/graphics/tab-left-side-dark.png", alt="/graphics/tab-left-side.png")
@@ -36,13 +30,15 @@
         div.tab-bar-top
         div.tab-bar-bottom
     div.folder
-      div.table
+      div.preferences.tab-target
+        | Nothing to see here yet.
+      div.table.tab-target
         div.tr
-          div.th.expand &nbsp;
+          div.td.expand.ts &nbsp;
           div.th.leftest Vehicle
           div.th Identifier
-          div.th Miles Recorded
+          //div.th Miles Recorded
           div.th Last Seen
-          div.th.rightest EV Compatibility
+          //div.th.rightest EV Compatibility
         !=partial('row', data)
   footer

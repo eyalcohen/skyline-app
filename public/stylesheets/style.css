@@ -103,7 +103,9 @@ header {
   margin: 0 0 50px 40px;
 }
 
-header #logo {}
+header #logo {
+  height: 31px;
+}
 
 footer {}
 
@@ -402,13 +404,6 @@ span.landing-copy {
 
 
 
-
-
-
-
-
-
-
 .tabs {
   position: relative;
 }
@@ -461,6 +456,8 @@ span.landing-copy {
   display: inline-block;
   position: relative;
   top: 11px;
+  width: 20px;
+  height: 32px;
 }
 
 .tab-content {
@@ -530,6 +527,12 @@ div.table {
   width: 100%;
 }
 
+div.preferences {
+  display: none;
+  background: #1a1a1a;
+  padding: 40px;
+}
+
 div.tr {
   display: -moz-box;
   display: -webkit-box;
@@ -557,7 +560,7 @@ div.th, div.td:not(.expand) {
   -moz-box-flex: 1;
   -webkit-box-flex: 1;
   box-flex: 1;
-  width: 264px;
+  width: 500px;
 }
 
 div.th {
@@ -581,6 +584,22 @@ div.th {
   );
   border-left: 1px solid #303030;
   border-right: 1px solid #131313;
+}
+
+div.ts {
+  background: #1a1a1a;
+  background-image: -moz-linear-gradient(
+    center bottom,
+    rgb(26,26,26) 0%,
+    rgb(51,51,51) 100%
+  );
+  background-image: -webkit-gradient(
+    linear,
+    left bottom,
+    left top,
+    color-stop(0.0, rgb(26,26,26)),
+    color-stop(1.0, rgb(51,51,51))
+  );
 }
 
 div.td {

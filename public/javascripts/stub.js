@@ -132,6 +132,50 @@ Stub = (function ($) {
         $('.details-left').width(lw);
         $('.details-right').width(rw);
       }
+    
+  /**
+   * handle relative time
+   */
+
+    , relativeTime = function (ts) {
+        ts = parseInt(ts);
+        var parsed_date = new Date(ts)
+          , relative_to = (arguments.length > 1) ? arguments[1] : new Date()
+          , delta = parseInt((relative_to.getTime() - parsed_date) / 1000)
+        ;
+        if (delta < 5)
+          return 'just now';
+        else if (delta < 15)
+          return 'just a moment ago';
+        else if (delta < 30)
+          return 'just a few moments ago';
+        else if (delta < 60) 
+          return 'less than a minute ago';
+        else if (delta < 120) 
+          return 'about a minute ago';
+        else if (delta < (45 * 60)) 
+          return (parseInt(delta / 60)).toString() + ' minutes ago';
+        else if (delta < (90 * 60)) 
+          return 'about an hour ago';
+        else if (delta < (24 * 60 * 60)) 
+          return 'about ' + (parseInt(delta / 3600)).toString() + ' hours ago';
+        else if (delta < (2 * 24 * 60 * 60)) 
+          return 'about a day ago';
+        else if (delta < (10 * 24 * 60 * 60))
+          return (parseInt(delta / 86400)).toString() + ' days ago';
+        else
+          return
+            new Date(ts).toLocaleDateString();
+      }
+
+    , updateTimes = function () {
+        $('[data-last-seen]').each(function (i) {
+          var time = $(this);
+          if (!time.data('ts'))
+            time.data('ts', time.attr('data-last-seen'));
+          time.text(relativeTime(time.data('ts')));
+        });
+      }
   ;
   
   var Sandbox = function (data, fn) {
@@ -300,7 +344,7 @@ Stub = (function ($) {
                   }
                 } else {
                   for (var s in series) {
-                    if (series.hasOwnProperty(s) && s != 'latitude' && s != 'longitude') {
+                    if (series.hasOwnProperty(s) && s != 'latitude' && s != 'longitude' && s != 'speed') {
                       pnt.push(series[s]);
                     }
                   }
@@ -406,7 +450,9 @@ Stub = (function ($) {
             wr = wrap.width();
           if (!hr)
             hr = wrap.height();
-          chart[i].resize(wr, hr);
+          for (var i = 0, len = charts.length; i < len; i++) {
+            charts[i].resize(wr, hr / len);
+          }
         }
       , showLoading: function (index) {
           $('.series-loading', wrap).show();
@@ -476,6 +522,8 @@ Stub = (function ($) {
           , radius: 50
           , clickable: false
         })
+      
+      , loadedHandle
       
       , plot = function (fn) {
           // get data from sandbox
@@ -560,7 +608,7 @@ Stub = (function ($) {
           });
           
           // ready
-          google.maps.event.addListener(map, 'tilesloaded', function () {
+          loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
             google.maps.event.trigger(map, 'resize');
             fn();
             wrap.removeClass('map-tmp');
@@ -602,7 +650,26 @@ Stub = (function ($) {
           map_height = wrap.height();
         }
       , clear: function () {
-          //wrap.remove();
+          // remove event listeners
+          wrap.unbind('mousemove');
+          google.maps.event.removeListener(loadedHandle);
+          // remove polygons
+          poly.setMap(null);
+          poly_cell.setMap(null);
+          for (var k = 0, len = dots.length; k < len; k++) {
+            dots[k].setMap(null);
+          }
+          // nullify
+          start.setMap(null);
+          end.setMap(null);
+          cursor.setMap(null);
+          start = null;
+          end = null;
+          cursor = null;
+          poly = null;
+          poly_cell = null;
+          dots = null;
+          map = null;
         }
     };
   };
@@ -615,6 +682,7 @@ Stub = (function ($) {
      */
       
       go: function () {
+        
         
         ///////// EXTENDS
         
@@ -720,6 +788,9 @@ Stub = (function ($) {
           sizeDetailPanes();
         }
         
+        // get relative comment times
+        setInterval(updateTimes, 5000); updateTimes();
+        
         
         //////// HANDLERS
         
@@ -810,10 +881,11 @@ Stub = (function ($) {
           
           
           
+          
           /////////////////////////////// API TESTING
           
           $('.landing-logo').bind('click', function (e) {
-            e.preventDefault();
+            //e.preventDefault();
             //makeUser(this);
             //makeVehicle(this);
             //getUser(this);
@@ -948,6 +1020,14 @@ Stub = (function ($) {
             $this.css({ zIndex: 10001 + parseInt($this.css('z-index')) });
             flipTabSides($this);
             $('.tab-content', $this).removeClass('tab-content-inactive');
+            
+            // show and hide content
+            var target = $('.' + $this.attr('data-tab-target'));
+            if (target.is(":visible")) {
+              return;
+            }
+            $('.tab-target').hide();
+            target.show();
           });
           
           
@@ -1067,25 +1147,30 @@ Stub = (function ($) {
               deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
                 $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                   if (serv.status == 'success') {
-                    if (!deetsKid.data().sandbox) {
-                      var sandbox = new Sandbox(serv.data.bucks, function () {
-                        this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
-                          if (empty) {
-                            $('.series-loading', deetsKid).text('No time series data.');
-                          } else {
-                            $('.series-loading', deetsKid).hide();
-                          }
-                        });
-                        this.add('Map', $('.map', deetsKid), function (empty) {
-                          if (empty)
-                            $('.map-loading', deetsKid).text('No map data.');
-                          else
-                            $('.map-loading', deetsKid).hide();
-                        });
-                        // add sandbox to details div
-                        deetsKid.data({ sandbox: this });
+                    // if (deetsKid.data().sandbox) {
+                    //   deetsKid.data().sandbox = null;
+                    //   $('.details-right', deetsKid).children().each(function (i) {
+                    //     if (i > 0)
+                    //       $(this).remove();
+                    //   });
+                    // }
+                    var sandbox = new Sandbox(serv.data.bucks, function () {
+                      this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
+                        if (empty) {
+                          $('.series-loading', deetsKid).text('No time series data.');
+                        } else {
+                          $('.series-loading', deetsKid).hide();
+                        }
                       });
-                    }
+                      this.add('Map', $('.map', deetsKid), function (empty) {
+                        if (empty)
+                          $('.map-loading', deetsKid).text('No map data.');
+                        else
+                          $('.map-loading', deetsKid).hide();
+                      });
+                      // add sandbox to details div
+                      deetsKid.data({ sandbox: this });
+                    });
                   } else
                     console.log(serv.data.code);
                 });
@@ -1095,15 +1180,28 @@ Stub = (function ($) {
               arrow.removeClass('open');
               deetsHolder.hide();
               deets.css({ height: 20 });
-              deetsKid.data().sandbox.widgets.forEach(function (w) {
-                w.clear(); 
+              
+              for (var i = 0, len = deetsKid.data().sandbox.widgets.length; i < len; i++) {
+                deetsKid.data().sandbox.widgets[i].clear();
+              }
+              
+              deetsKid.data().sandbox = null;
+              $('.details-right', deetsKid).children().each(function (i) {
+                if (i > 0)
+                  $(this).remove();
+                else
+                  $(this).show();
+              });
+              $('.details-left', deetsKid).children().each(function (i) {
+                if (i === 0)
+                  $(this).show();
               });
             }
           });
           
           
           // TMP -- open the first vehicle pane
-          $($('a.expander')[0]).click();
+          //$($('a.expander')[0]).click();
         }
         
       }

@@ -313,29 +313,35 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', loadUser, function (req, res) {
-  findVehicles(function (vehs) {
+  findVehiclesByUser(req.currentUser, function (vehs) {
     var vehicles = []
       , num = vehs.length
       , cnt = 0
     ;
-    vehs.forEach(function (v) {
-      findVehicleCycles(v._id, function (bucks) {
-        if (bucks.length > 0) {
-          v.events = bucks;
-          vehicles.push(v);
-        }
-        cnt++;
-        if (cnt == num) {
-          vehicles.sort(function (a, b) {
-            return b[b.length - 1]._id.time - a[a.length - 1]._id.time;
-          });
-          res.render('index', {
-              data: vehicles
-            , user: req.currentUser
-          });
-        }
+    if (num > 0) {
+      vehs.forEach(function (v) {
+        findVehicleCycles(v._id, function (bucks) {
+          if (bucks.length > 0) {
+            v.lastSeen = parseInt(bucks[0].bounds.stop);
+            vehicles.push(v);
+          }
+          cnt++;
+          if (cnt == num) {
+            vehicles.sort(function (a, b) {
+              return b[b.length - 1]._id.time - a[a.length - 1]._id.time;
+            });
+            res.render('index', {
+                data: vehicles
+              , user: req.currentUser
+            });
+          }
+        });
       });
-    });
+    } else {
+      res.render('empty', {
+        user: req.currentUser
+      });
+    }
   });
 });
 

@@ -1,0 +1,18 @@
+#container
+  header
+    img#logo(src='/graphics/logo.png', alt='Mission Motors')
+    #menu.list
+      ul
+        li
+          span.welcome-user Hi, 
+            =user.name.first + ' ' + user.name.last
+        li
+          a#logout.link-button(href='javascript:;', title='Log Out') 
+            | Log Out
+  #main(role='main')
+    div(style='margin-left: 50px;')
+      h2.landing-one
+        span.orange
+          =user.name.first 
+        | , there's nothing to see here yet. Go out and track some drive cycles.
+  footer
