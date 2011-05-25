@@ -87,39 +87,13 @@ function authenticateFromLoginToken(req, res, next) {
 
 
 /**
- * Finds all vehicles.
- */
-
-
-function findVehicles(next) {
-  Vehicle.find({}, [], { limit: 100 }).run(function (err, vehs) {
-    var num = vehs.length
-      , cnt = 0
-    ;
-    if (num > 0) {
-      vehs.forEach(function (veh) {
-        User.findById(veh.user_id, function (err, usr) {
-          veh.user = usr;
-          cnt++;
-          if (cnt == num) {
-            next(vehs);
-          }
-        });
-      });
-    } else {
-      next([]);
-    }
-  });
-}
-
-
-/**
- * Gets all vehicles owned by user.
+ * Gets all vehicles owned by user or all if user is null.
  */
 
 
 function findVehiclesByUser(user, next) {
-  Vehicle.find({ user_id: user._id }).sort('created', -1).run(function (err, vehs) {
+  var filter = user ? { user_id: user._id } : {};
+  Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
     if (!err) {
       next(vehs);
     } else {
@@ -313,7 +287,8 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', loadUser, function (req, res) {
-  findVehiclesByUser(req.currentUser, function (vehs) {
+  var filterUser = req.currentUser.role == 'admin' ? null : req.currentUser;
+  findVehiclesByUser(filterUser, function (vehs) {
     var vehicles = []
       , num = vehs.length
       , cnt = 0

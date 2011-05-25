@@ -894,8 +894,8 @@ Stub = (function ($) {
           /////////////////////////////// API TESTING
           
           $('.landing-logo').bind('click', function (e) {
-            //e.preventDefault();
-            //makeUser(this);
+            e.preventDefault();
+            makeUser(this);
             //makeVehicle(this);
             //getUser(this);
             //getVehicle(this);
@@ -908,7 +908,7 @@ Stub = (function ($) {
             form
               .attr({
                   method: 'POST'
-                , action: '/usercreate/sander@ridemission.com'
+                , action: '/usercreate/vc.c2s.mm@gmail.com'
               })
               .hide()
               .append('<input type="hidden" />')
