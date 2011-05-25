@@ -5,14 +5,14 @@
       ul
         li
           span.welcome-user Hi, 
-            =user.name.first + ' ' + user.name.last
+            =user.email
         li
           a#logout.link-button(href='javascript:;', title='Log Out') 
             | Log Out
   #main(role='main')
-    div(style='margin-left: 50px;')
+    div(style='margin-left: 40px;')
       h2.landing-one
         span.orange
-          =user.name.first 
+          =user.email
         | , there's nothing to see here yet. Go out and track some drive cycles.
   footer
