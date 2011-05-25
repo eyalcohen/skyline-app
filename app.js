@@ -330,10 +330,16 @@ app.get('/', loadUser, function (req, res) {
             vehicles.sort(function (a, b) {
               return b[b.length - 1]._id.time - a[a.length - 1]._id.time;
             });
-            res.render('index', {
-                data: vehicles
-              , user: req.currentUser
-            });
+            if (vehicles.length > 0) {
+              res.render('index', {
+                  data: vehicles
+                , user: req.currentUser
+              });
+            } else {
+              res.render('empty', {
+                user: req.currentUser
+              });
+            }
           }
         });
       });
