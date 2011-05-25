@@ -303,7 +303,7 @@ app.get('/', loadUser, function (req, res) {
           cnt++;
           if (cnt == num) {
             vehicles.sort(function (a, b) {
-              return b[b.length - 1]._id.time - a[a.length - 1]._id.time;
+              return b.lastSeen - a.lastSeen;
             });
             if (vehicles.length > 0) {
               res.render('index', {
