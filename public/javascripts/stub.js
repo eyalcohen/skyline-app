@@ -241,7 +241,16 @@ Stub = (function ($) {
         }
       }
     }
+    // clear empty keys
+    for (var i in data) {
+      if (data.hasOwnProperty(i)) {
+        if (data[i].length === 0) {
+          delete data[i];
+        }
+      }
+    }
     this.visibleData = data;
+    console.log(data);
   };
   
   Sandbox.prototype.add = function (type, wrap, fn) {
