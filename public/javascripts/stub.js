@@ -157,8 +157,13 @@ Stub = (function ($) {
           return (parseInt(delta / 60)).toString() + ' minutes ago';
         else if (delta < (90 * 60)) 
           return 'about an hour ago';
-        else if (delta < (24 * 60 * 60)) 
-          return 'about ' + (parseInt(delta / 3600)).toString() + ' hours ago';
+        else if (delta < (24 * 60 * 60)) {
+          var h = (parseInt(delta / 3600)).toString();
+          if (h != '1')
+            return 'about ' + h + ' hours ago';
+          else
+            return 'about an hour ago';
+        }
         else if (delta < (2 * 24 * 60 * 60)) 
           return 'about a day ago';
         else if (delta < (10 * 24 * 60 * 60))
@@ -242,15 +247,13 @@ Stub = (function ($) {
       }
     }
     // clear empty keys
-    for (var i in data) {
-      if (data.hasOwnProperty(i)) {
-        if (data[i].length === 0) {
-          delete data[i];
-        }
+    var keys = Object.keys(data);
+    for (var i = 0, len = keys.length; i < len; i++) {
+      if (data[keys[i]].length === 0) {
+        delete data[keys[i]];
       }
     }
-    this.visibleData = data;
-    console.log(data);
+    this.visibleData = Object.keys(data).length === 0 ? null : data;
   };
   
   Sandbox.prototype.add = function (type, wrap, fn) {
@@ -337,6 +340,7 @@ Stub = (function ($) {
       , blockRedraw = false
       
       , parseForDrawing = function () {
+          console.log(box.visibleData);
           points = {};
           startPoints = {};
           for (var i in box.visibleData) {
@@ -365,6 +369,7 @@ Stub = (function ($) {
               }
             }
           }
+          console.log(points);
         }
       , toMPH = function (ms) {
           return ms * 2.23693629;
@@ -374,13 +379,15 @@ Stub = (function ($) {
     
     return {
         init: function (fn) {
-          // plot it
-          if (box.visibleData.length == 0) {
+          // check data existence
+          if (!box.visibleData) {
             fn(true);
-          } else {
-            parseForDrawing();
-            this.plot(fn);
+            return;
           }
+          
+          // plot it
+          parseForDrawing();
+          this.plot(fn);
         }
       , plot: function (fn) {
           // save this scope
@@ -636,7 +643,7 @@ Stub = (function ($) {
           wrap.hide();
           
           // exit if nothing to do
-          if (!box.visibleData.location.length === 0) {
+          if (!box.visibleData || box.visibleData.location.length === 0) {
             fn(true);
             return;
           }
@@ -648,6 +655,8 @@ Stub = (function ($) {
           wrap.fadeIn(2000);
         }
       , resize: function (wl, hl, wr, hr) {
+          if (!map)
+            return;
           google.maps.event.trigger(map, 'resize');
           if (!wl)
             wl = map_width;
@@ -659,6 +668,8 @@ Stub = (function ($) {
           map_height = wrap.height();
         }
       , clear: function () {
+          if (!map)
+            return;
           // remove event listeners
           wrap.unbind('mousemove');
           google.maps.event.removeListener(loadedHandle);
@@ -1156,24 +1167,17 @@ Stub = (function ($) {
               deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
                 $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                   if (serv.status == 'success') {
-                    // if (deetsKid.data().sandbox) {
-                    //   deetsKid.data().sandbox = null;
-                    //   $('.details-right', deetsKid).children().each(function (i) {
-                    //     if (i > 0)
-                    //       $(this).remove();
-                    //   });
-                    // }
                     var sandbox = new Sandbox(serv.data.bucks, function () {
                       this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
                         if (empty) {
-                          $('.series-loading', deetsKid).text('No time series data.');
+                          $('.series-loading span', deetsKid).text('No time series data.');
                         } else {
                           $('.series-loading', deetsKid).hide();
                         }
                       });
                       this.add('Map', $('.map', deetsKid), function (empty) {
                         if (empty)
-                          $('.map-loading', deetsKid).text('No map data.');
+                          $('.map-loading span', deetsKid).text('No map data.');
                         else
                           $('.map-loading', deetsKid).hide();
                       });
@@ -1186,24 +1190,33 @@ Stub = (function ($) {
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
             } else {
+              // hide details
               arrow.removeClass('open');
               deetsHolder.hide();
               deets.css({ height: 20 });
               
+              // clear widgets
               for (var i = 0, len = deetsKid.data().sandbox.widgets.length; i < len; i++) {
                 deetsKid.data().sandbox.widgets[i].clear();
               }
               
+              // delete sandbox
               deetsKid.data().sandbox = null;
+              
+              // remove widget elements and show loading text
               $('.details-right', deetsKid).children().each(function (i) {
                 if (i > 0)
                   $(this).remove();
-                else
+                else {
+                  $('span', this).text('Loading time series data...');
                   $(this).show();
+                }
               });
               $('.details-left', deetsKid).children().each(function (i) {
-                if (i === 0)
+                if (i === 0) {
+                  $('span', this).text('Loading map data...');
                   $(this).show();
+                }
               });
             }
           });
