@@ -531,6 +531,10 @@ app.put('/cycle', function (req, res) {
     , num = cycle.events.length
     , cnt = 0
   ;
+  if (num < 10) {
+    res.send({ status: 'fail', data: { code: 'DRIVE_CYCLE_TOO_SHORT' } });
+    return;
+  }
   
   // authenticate user
   User.findOne({ email: cycle.userId }, function (err, usr) {
