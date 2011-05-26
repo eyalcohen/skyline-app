@@ -347,6 +347,8 @@ Stub = (function ($) {
               points[i] = [];
               startPoints[i] = [];
               for (var j = 0, len = box.visibleData[i].length; j < len; j++) {
+                if (box.visibleData[i][j].header.source == 'SENSOR_COMPASS')
+                  continue;
                 var pnt = [box.visibleData[i][j].header.startTime]
                   , series = box.visibleData[i][j][i]
                 ;
@@ -371,6 +373,7 @@ Stub = (function ($) {
               }
             }
           }
+          console.log(points);
         }
       , toMPH = function (ms) {
           return ms * 2.23693629;
@@ -577,8 +580,8 @@ Stub = (function ($) {
           }
           
           // get path length
-          //distance = google.maps.geometry.spherical.computeLength(poly.getPath());
-          
+          distance = google.maps.geometry.spherical.computeLength(poly.getPath());
+          //mapOptions.zoom = Math.ceil(toMiles(distance));  
           // set map 'center' from poly bounds
           mapOptions.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);
           

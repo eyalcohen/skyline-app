@@ -531,10 +531,6 @@ app.put('/cycle', function (req, res) {
     , num = cycle.events.length
     , cnt = 0
   ;
-  if (num < 20) {
-    res.send({ status: 'fail', data: { code: 'DRIVE_CYCLE_TOO_SHORT' } });
-    return;
-  }
   
   // authenticate user
   User.findOne({ email: cycle.userId }, function (err, usr) {
@@ -558,6 +554,13 @@ app.put('/cycle', function (req, res) {
   // add to db
   function handleEvents(v) {
     cycle.events.forEach(function (event) {
+      if (event.events.length < 20) {
+        cnt++;
+        if (cnt == num) {
+          res.end();
+        }
+        return;
+      }
       event.bounds = {
           start: event.events[0].header.startTime
         , stop: event.events[0].header.stopTime
@@ -585,15 +588,15 @@ if (!module.parent) {
 
 // clean out bad cycles
 
-EventBucket.collection.find({}, {}, function (err, cursor) {
-  cursor.toArray(function (err, bucks) {
-    bucks.forEach(function (b) {
-      if (b.events.length < 20) {
-        EventBucket.collection.remove({_id: b._id}, {}, function (err) {});
-      }
-    });
-  });
-});
+//EventBucket.collection.find({}, {}, function (err, cursor) {
+//  cursor.toArray(function (err, bucks) {
+//    bucks.forEach(function (b) {
+//      if (b.events.length < 20) {
+//        EventBucket.collection.remove({_id: b._id}, {}, function (err) {});
+//      }
+//    });
+//  });
+//});
 
 
 
