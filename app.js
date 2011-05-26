@@ -531,7 +531,7 @@ app.put('/cycle', function (req, res) {
     , num = cycle.events.length
     , cnt = 0
   ;
-  if (num < 10) {
+  if (num < 20) {
     res.send({ status: 'fail', data: { code: 'DRIVE_CYCLE_TOO_SHORT' } });
     return;
   }
@@ -582,4 +582,20 @@ if (!module.parent) {
   app.listen(8080);
   console.log("Express server listening on port %d", app.address().port);
 }
+
+// clean out bad cycles
+
+EventBucket.collection.find({}, {}, function (err, cursor) {
+  cursor.toArray(function (err, bucks) {
+    bucks.forEach(function (b) {
+      if (b.events.length < 20) {
+        EventBucket.collection.remove({_id: b._id}, {}, function (err) {});
+      }
+    });
+  });
+});
+
+
+
+
 
