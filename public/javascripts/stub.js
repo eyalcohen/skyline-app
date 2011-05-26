@@ -200,7 +200,7 @@ Stub = (function ($) {
     // titles for keys
     this.validKeyYLabels = ['Acceleration (m/s^2)', 'Altitude (m)'];
     // series for keys
-    this.validKeySeries = [['time', '(ax)', '(ay)', '(az)'], ['time', '*']];
+    this.validKeySeries = [['time', '(ax)', '(ay)', '(az)'], ['time', 'm']];
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
     this.parseVisibleCycles();
@@ -340,7 +340,6 @@ Stub = (function ($) {
       , blockRedraw = false
       
       , parseForDrawing = function () {
-          console.log(box.visibleData);
           points = {};
           startPoints = {};
           for (var i in box.visibleData) {
@@ -362,6 +361,9 @@ Stub = (function ($) {
                     }
                   }
                 }
+                if (pnt.length == 1) {
+                  pnt.push(NaN);
+                }
                 if (box.visibleData[i][j].isFirst) {
                   startPoints[i].push(pnt);
                 }
@@ -369,7 +371,6 @@ Stub = (function ($) {
               }
             }
           }
-          console.log(points);
         }
       , toMPH = function (ms) {
           return ms * 2.23693629;
