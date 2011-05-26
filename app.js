@@ -296,8 +296,9 @@ app.get('/', loadUser, function (req, res) {
     if (num > 0) {
       vehs.forEach(function (v) {
         findVehicleCycles(v._id, function (bucks) {
-          if (bucks.length > 0) {
-            v.lastSeen = parseInt(bucks[0].bounds.stop);
+          var numBucks = bucks.length;
+          if (numBucks > 0) {
+            v.lastSeen = parseInt(bucks[numBucks - 1].bounds.stop);
             vehicles.push(v);
           }
           cnt++;
