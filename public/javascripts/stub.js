@@ -1,13 +1,13 @@
 
 
 Stub = (function ($) {
-  
-  var expandDetailsTo = 436
-    
+
+  var expandDetailsTo = 200
+
     , orange = '#ff931a'
     , blue = '#55f5f2'
     , green = '#00f62e'
-    
+
     , mapStylez = [
           {
             featureType: 'administrative',
@@ -197,10 +197,12 @@ Stub = (function ($) {
     this.activeCycle = null;
     // valid data keys
     this.validKeys = ['sensor', 'location'];
+    // valid series
+    this.validKeySeries = { sensor: ['SENSOR_ACCEL', 'SENSOR_COMPASS'], location: ['speed', 'altitude']};
     // titles for keys
     this.validKeyYLabels = ['Acceleration (m/s^2)', 'Altitude (m)'];
     // series for keys
-    this.validKeySeries = [['time', '(ax)', '(ay)', '(az)'], ['time', 'm']];
+    this.validKeySeriesLabels = [['time', '(ax)', '(ay)', '(az)'], ['time', 'm']];
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
     this.parseVisibleCycles();
@@ -254,6 +256,7 @@ Stub = (function ($) {
       }
     }
     this.visibleData = Object.keys(data).length === 0 ? null : data;
+    console.log(this.visibleData);
   };
   
   Sandbox.prototype.add = function (type, wrap, fn) {
@@ -412,7 +415,7 @@ Stub = (function ($) {
               , gridLineColor: 'rgba(255,255,255,0.25)'
               , colors: [orange, blue, green]
               , strokeWidth: 0.5
-              , labels: box.validKeySeries[i]
+              , labels: box.validKeySeriesLabels[i]
               , axisLineColor: 'rgba(0,0,0,0)'
               , axisLabelColor: '#808080'
               , axisLabelFontSize: 9
@@ -505,8 +508,7 @@ Stub = (function ($) {
       , map_width = wrap.width()
       , map_height = wrap.height()
       , mapOptions = {
-            zoom: 13
-          , disableDefaultUI: true
+            disableDefaultUI: true
           , mapTypeControlOptions: {
               mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ]
             }
@@ -518,19 +520,21 @@ Stub = (function ($) {
           , strokeWeight: 5
           , clickable: false
         })
-      , poly_cell = new google.maps.Polyline({
-            strokeColor: '#00ffff'
-          , strokeOpacity: 0.5
-          , strokeWeight: 5
-          , clickable: false
-        })
       , distance
       , dots = []
+      , cellDots = []
       , dotStyle = {
             strokeWeight: 0
           , fillColor: "#00ff00"
           , fillOpacity: 0.5
           , radius: 10
+          , clickable: false
+        }
+      , cellDotStyle = {
+            strokeWeight: 0
+          , fillColor: "#0000ff"
+          , fillOpacity: 0.5
+          , radius: 50
           , clickable: false
         }
       , start
@@ -542,20 +546,20 @@ Stub = (function ($) {
           , radius: 50
           , clickable: false
         })
-      
+
       , loadedHandle
-      
+
       , plot = function (fn) {
           // get data from sandbox
           var data = box.visibleData.location;
-          
+
           // poly bounds
           var minlat = 90
             , maxlat = -90
             , minlawn = 180
             , maxlawn = -180
           ;
-          
+
           // build poly
           for (var i = 0, len = data.length;  i < len; i++) {
             var lat = data[i].location.latitude
@@ -570,40 +574,49 @@ Stub = (function ($) {
             if (lawn > maxlawn)
               maxlawn = lawn;
             var ll = new google.maps.LatLng(lat, lawn);
-            if (data[i].header.source == 'SENSOR_CELLPOS')
-              poly_cell.getPath().push(ll);
-            else
-              poly.getPath().push(ll);
             var d = new google.maps.Circle(dotStyle);
             d.setCenter(ll);
             dots.push(d);
+            if (data[i].header.source == 'SENSOR_CELLPOS') {
+              var d = new google.maps.Circle(cellDotStyle);
+              d.setCenter(ll);
+              cellDots.push(d);
+            } else
+              poly.getPath().push(ll);
           }
-          
+
           // get path length
-          distance = google.maps.geometry.spherical.computeLength(poly.getPath());
-          //mapOptions.zoom = Math.ceil(toMiles(distance));  
-          // set map 'center' from poly bounds
-          mapOptions.center = new google.maps.LatLng((minlat + maxlat) / 2, (minlawn + maxlawn) / 2);
-          
+          //distance = google.maps.geometry.spherical.computeLength(poly.getPath());
+
+          // make map bounds
+          var sw = new google.maps.LatLng(minlat, minlawn)
+            , ne = new google.maps.LatLng(maxlat, maxlawn)
+            , mapBounds = new google.maps.LatLngBounds(sw, ne)
+          ;
+
           // make new map
           map = new google.maps.Map(wrap[0], mapOptions);
           map.mapTypes.set('grayscale', mapType);
           map.setMapTypeId('grayscale');
-          
+
+          // center and zoom
+          map.setCenter(mapBounds.getCenter());
+          map.fitBounds(mapBounds);
+
           // set objects
           poly.setMap(map);
-          poly_cell.setMap(map);
-          for (var k = 0, len = dots.length; k < len; k++) {
+          for (var k = 0, len = dots.length; k < len; k++)
             dots[k].setMap(map);
-          }
-          
+          for (var k = 0, len = cellDots.length; k < len; k++)
+            cellDots[k].setMap(map);
+
           // cursor
           cursor = new google.maps.Marker({
               map: map
             , animation: google.maps.Animation.DROP
             , position: poly.getPath().getAt(0)
           });
-          
+
           // endpoints
           start = new google.maps.Marker({
               map: map
@@ -615,7 +628,7 @@ Stub = (function ($) {
             , animation: google.maps.Animation.DROP
             , position: poly.getPath().getAt(poly.getPath().getLength() - 1)
           });
-          
+
           // track cursor position
           wrap.bind('mousemove', function (e) {
             var m = mouse(e, wrap)
@@ -626,7 +639,7 @@ Stub = (function ($) {
             ;
             cursor.setPosition(c);
           });
-          
+
           // ready
           loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
             google.maps.event.trigger(map, 'resize');
@@ -634,27 +647,27 @@ Stub = (function ($) {
             wrap.removeClass('map-tmp');
           });
         }
-      
+
       , toMiles = function (m) {
           return m / 1609.344;
         }
-    
+
     ;
-    
+
     return {
         init: function (fn) {
           // hide wrap
           wrap.hide();
-          
+
           // exit if nothing to do
           if (!box.visibleData || box.visibleData.location.length === 0) {
             fn(true);
             return;
           }
-          
+
           // plot map
           plot(fn);
-          
+
           // fade in
           wrap.fadeIn(2000);
         }
@@ -667,7 +680,7 @@ Stub = (function ($) {
           if (!hl)
             hl = map_height;
           map.panBy((map_width - wl) / 2, (map_height - hl) / 2);
-          
+
           map_width = wrap.width();
           map_height = wrap.height();
         }
@@ -679,10 +692,10 @@ Stub = (function ($) {
           google.maps.event.removeListener(loadedHandle);
           // remove polygons
           poly.setMap(null);
-          poly_cell.setMap(null);
-          for (var k = 0, len = dots.length; k < len; k++) {
+          for (var k = 0, len = dots.length; k < len; k++)
             dots[k].setMap(null);
-          }
+          for (var k = 0, len = cellDots.length; k < len; k++)
+            cellDots[k].setMap(null);
           // nullify
           start.setMap(null);
           end.setMap(null);
@@ -691,9 +704,10 @@ Stub = (function ($) {
           end = null;
           cursor = null;
           poly = null;
-          poly_cell = null;
           dots = null;
+          cellDots = null;
           map = null;
+          wrap.empty();
         }
     };
   };
