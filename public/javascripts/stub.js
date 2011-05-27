@@ -2,7 +2,7 @@
 
 Stub = (function ($) {
 
-  var expandDetailsTo = 200
+  var expandDetailsTo = 600
 
     , orange = '#ff931a'
     , blue = '#55f5f2'
