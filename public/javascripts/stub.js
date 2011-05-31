@@ -43,7 +43,7 @@ Stub = (function ($) {
     , mapStyledOptions = {
         name: 'GrayScale'
       }
-    
+
     , search = function (by, val, fn) {
         jrid.empty();
         var data = {
@@ -52,7 +52,7 @@ Stub = (function ($) {
           };
         $.get('/search/' + val + '.json', data, fn);
       }
-    
+
     , mouse = function (e, r) {
         var px = 0;
         var py = 0;
@@ -72,7 +72,7 @@ Stub = (function ($) {
         }
         return { x: px, y: py };
       }
-    
+
     , flipTabSides = function (ctx) {
         var sides = $('.tab-side img', ctx);
         sides.each(function (i) {
@@ -83,7 +83,7 @@ Stub = (function ($) {
           $this.attr({ src: noo, alt: old });
         });
       }
-    
+
     , addCommas = function (n) {
         n += '';
         var x = n.split('.')
@@ -96,7 +96,7 @@ Stub = (function ($) {
         }
         return x1 + x2;
       }
-    
+
     , addLandingMap = function () {
         var wrap = $('#landing-map')
           , chicago = new google.maps.LatLng(39.6,-94.35)
@@ -111,19 +111,19 @@ Stub = (function ($) {
             }
           , mapType = new google.maps.StyledMapType(mapStylez, mapStyledOptions)
         ;
-        
+
         // make new map
         map = new google.maps.Map(wrap[0], mapOptions);
         map.mapTypes.set('grayscale', mapType);
         map.setMapTypeId('grayscale');
-        
+
         // ready
         google.maps.event.addListener(map, 'tilesloaded', function () {
           google.maps.event.trigger(map, 'resize');
           wrap.removeClass('map-tmp');
         });
       }
-      
+
     , sizeDetailPanes = function () {
         var ww = $(window).width()
           , lw = (ww - 10) * 0.3
@@ -132,7 +132,7 @@ Stub = (function ($) {
         $('.details-left').width(lw);
         $('.details-right').width(rw);
       }
-    
+
   /**
    * handle relative time
    */
@@ -149,13 +149,13 @@ Stub = (function ($) {
           return 'just a moment ago';
         else if (delta < 30)
           return 'just a few moments ago';
-        else if (delta < 60) 
+        else if (delta < 60)
           return 'less than a minute ago';
-        else if (delta < 120) 
+        else if (delta < 120)
           return 'about a minute ago';
-        else if (delta < (45 * 60)) 
+        else if (delta < (45 * 60))
           return (parseInt(delta / 60)).toString() + ' minutes ago';
-        else if (delta < (90 * 60)) 
+        else if (delta < (90 * 60))
           return 'about an hour ago';
         else if (delta < (24 * 60 * 60)) {
           var h = (parseInt(delta / 3600)).toString();
@@ -164,7 +164,7 @@ Stub = (function ($) {
           else
             return 'about an hour ago';
         }
-        else if (delta < (2 * 24 * 60 * 60)) 
+        else if (delta < (2 * 24 * 60 * 60))
           return 'about a day ago';
         else if (delta < (10 * 24 * 60 * 60))
           return (parseInt(delta / 86400)).toString() + ' days ago';
@@ -182,7 +182,7 @@ Stub = (function ($) {
         });
       }
   ;
-  
+
   var Sandbox = function (data, fn) {
     // convert bounds to int
     for (var i = 0, len = data.length; i < len; i++) {
@@ -198,26 +198,74 @@ Stub = (function ($) {
     // valid data keys
     this.validKeys = ['sensor', 'location'];
     // valid series
-    this.validKeySeries = { sensor: ['SENSOR_ACCEL', 'SENSOR_COMPASS'], location: ['speed', 'altitude']};
-    // titles for keys
-    this.validKeyYLabels = ['Acceleration (m/s^2)', 'Altitude (m)'];
-    // series for keys
-    this.validKeySeriesLabels = [['time', '(ax)', '(ay)', '(az)'], ['time', 'm']];
+    this.validSensors = {
+        SENSOR_GPS: {
+            key: 'location'
+          , series: {
+                latitude: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , titles: { x: 'Time', y: 'Latitude (˚)' }
+                  , labels: [ 'time', '˚' ]
+                }
+              , longitude: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , titles: { x: 'Time', y: 'Longitude (˚)' }
+                  , labels: ['time', '˚' ]
+                }
+              , altitude: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , titles: { x: 'Time', y: 'Altitude (m)' }
+                  , labels: ['time', 'm' ]
+                }
+              , speed: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , titles: { x: 'Time', y: 'Speed (m/s)' }
+                  , labels: ['time', 'm/s' ]
+                }
+            }
+        }
+      , SENSOR_ACCEL: {
+            key: 'sensor'
+          , name: 'acceleration'
+          , series: {
+                acceleration: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , titles: { x: 'Time', y: 'Acceleration (m/s^2)' }
+                  , labels: ['time', '(ax)', '(ay)', '(az)']
+                }
+            }
+        }
+      , SENSOR_COMPASS: {
+            key: 'sensor'
+          , name: 'compass'
+          , series: {
+                compass: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , titles: { x: 'Time', y: 'Direction (?)' }
+                  , labels: ['time', '(cx)', '(cy)', '(cz)']
+                }
+            }
+        }
+    };
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
     this.parseVisibleCycles();
     // callback
     fn.call(this);
   };
-  
+
   Sandbox.prototype.parseVisibleCycles = function () {
     // only select valid key types
-    var data = {}
+    var data = $.extend(true, {}, this.validSensors)
+      , sensors = Object.keys(this.validSensors)
       , cycles = []
     ;
-    for (var i = 0, len = this.validKeys.length; i < len; i++) {
-      data[this.validKeys[i]] = [];
-    }
     // get data from ids
     for (var i = 0, leni = this.raw.length; i < leni; i++) {
       for (var j = 0, lenj = this.visibleCycles.length; j < lenj; j++) {
@@ -228,43 +276,58 @@ Stub = (function ($) {
     }
     // parse data
     for (var i = 0, leni = cycles.length; i < leni; i++) {
-      var initials = {};
-      for (var k = 0, lenk = this.validKeys.length; k < lenk; k++) {
-        initials[this.validKeys[k]] = true;
-      }
       for (var j = 0, lenj = cycles[i].events.length; j < lenj; j++) {
-        for (var k = 0, lenk = this.validKeys.length; k < lenk; k++) {
-          if (this.validKeys[k] in cycles[i].events[j]) {
-            if (initials[this.validKeys[k]]) {
-              cycles[i].events[j].isFirst = true;
-              initials[this.validKeys[k]] = false;
+        var event = cycles[i].events[j]
+          , source = event.header.source
+        ;
+        if (source in data) {
+          if (data[source].key in event) {
+            var key = event[data[source].key]
+              , lenk = key.length
+              , time = new Date(parseInt(event.header.startTime))
+            ;
+            if (lenk) {
+              // is array
+              var name = data[source].name
+                , series = data[source].series[name]
+                , point = key
+              ;
+              point.unshift(time);
+              series.dataPoints.push(point);
+              // check if first
+              if (series.cycleStartTimes.length === i)
+                series.cycleStartTimes.push(time);
+            } else {
+              // is object
+              for (var k in key) {
+                var series = data[source].series[k];
+                if (key.hasOwnProperty(k) && series) {
+                  var point = [time, key[k]];
+                  series.dataPoints.push(point);
+                  // check if first
+                  if (series.cycleStartTimes.length === i)
+                    series.cycleStartTimes.push(time);
+                }
+              }
             }
-            if ('string' == typeof cycles[i].events[j].header.startTime) {
-              cycles[i].events[j].header.startTime = new Date(parseInt(cycles[i].events[j].header.startTime));
-              cycles[i].events[j].header.stopTime = new Date(parseInt(cycles[i].events[j].header.stopTime));
-            }
-            data[this.validKeys[k]].push(cycles[i].events[j]);
           }
         }
       }
     }
-    // clear empty keys
-    var keys = Object.keys(data);
-    for (var i = 0, len = keys.length; i < len; i++) {
-      if (data[keys[i]].length === 0) {
-        delete data[keys[i]];
-      }
-    }
-    this.visibleData = Object.keys(data).length === 0 ? null : data;
-    console.log(this.visibleData);
+
+    // done
+    this.visibleSensors = data;
+
+    // log for now
+    console.log(data);
   };
-  
+
   Sandbox.prototype.add = function (type, wrap, fn) {
     var widg = new (eval(type))(this, wrap);
     widg.init(fn);
     this.widgets.push(widg);
   };
-  
+
   Sandbox.prototype.notify = function (type, params, fn) {
     switch (type) {
       case 'cs-time-window-change':
@@ -272,7 +335,7 @@ Stub = (function ($) {
         break;
     }
   };
-  
+
   Sandbox.prototype.reEvaluateData = function (params, fn) {
     var self = this
       , min = params.range[0]
@@ -335,136 +398,159 @@ Stub = (function ($) {
       fn(true);
     }
   };
-  
+
   var TimeSeries = function (box, wrap) {
-    var points
-      , startPoints
+    var defaultSeries = ['speed', 'altitude', 'acceleration']
       , charts = []
+      , plotColors = [orange, blue, green]
       , blockRedraw = false
-      
-      , parseForDrawing = function () {
-          points = {};
-          startPoints = {};
-          for (var i in box.visibleData) {
-            if (box.visibleData.hasOwnProperty(i)) {
-              points[i] = [];
-              startPoints[i] = [];
-              for (var j = 0, len = box.visibleData[i].length; j < len; j++) {
-                if (box.visibleData[i][j].header.source == 'SENSOR_COMPASS')
-                  continue;
-                var pnt = [box.visibleData[i][j].header.startTime]
-                  , series = box.visibleData[i][j][i]
-                ;
-                if (series.constructor.name === 'Array') {
-                  for (var s = 0, lens = series.length; s < lens; s++) {
-                    pnt.push(series[s]);
-                  }
-                } else {
-                  for (var s in series) {
-                    if (series.hasOwnProperty(s) && s != 'latitude' && s != 'longitude' && s != 'speed') {
-                      pnt.push(series[s]);
-                    }
-                  }
-                }
-                if (pnt.length == 1) {
-                  pnt.push(NaN);
-                }
-                if (box.visibleData[i][j].isFirst) {
-                  startPoints[i].push(pnt);
-                }
-                points[i].push(pnt);
-              }
-            }
-          }
-          console.log(points);
-        }
-      , toMPH = function (ms) {
-          return ms * 2.23693629;
-        }
-      
+
+      // , parseForDrawing = function () {
+      //     points = {};
+      //     startPoints = {};
+      //     for (var i in box.visibleSensors) {
+      //       if (box.visibleSensors.hasOwnProperty(i)) {
+      //         points[i] = [];
+      //         startPoints[i] = [];
+      //         for (var j = 0, len = box.visibleSensors[i].length; j < len; j++) {
+      //           if (box.visibleSensors[i][j].header.source == 'SENSOR_COMPASS')
+      //             continue;
+      //           var pnt = [box.visibleSensors[i][j].header.startTime]
+      //             , series = box.visibleSensors[i][j][i]
+      //           ;
+      //           if (series.constructor.name === 'Array') {
+      //             for (var s = 0, lens = series.length; s < lens; s++) {
+      //               pnt.push(series[s]);
+      //             }
+      //           } else {
+      //             for (var s in series) {
+      //               if (series.hasOwnProperty(s) && s != 'latitude' && s != 'longitude' && s != 'speed') {
+      //                 pnt.push(series[s]);
+      //               }
+      //             }
+      //           }
+      //           if (pnt.length == 1) {
+      //             pnt.push(NaN);
+      //           }
+      //           if (box.visibleSensors[i][j].isFirst) {
+      //             startPoints[i].push(pnt);
+      //           }
+      //           points[i].push(pnt);
+      //         }
+      //       }
+      //     }
+      //     //console.log(points);
+      //   }
+      // , toMPH = function (ms) {
+      //     return ms * 2.23693629;
+      //   }
+
     ;
-    
+
     return {
         init: function (fn) {
           // check data existence
-          if (!box.visibleData) {
+          if (!box.visibleSensors) {
             fn(true);
             return;
           }
-          
+
           // plot it
-          parseForDrawing();
           this.plot(fn);
         }
-      , plot: function (fn) {
+      , plot: function (desiredSeries, fn) {
           // save this scope
-          var self = this;
-          // count datasets
-          var sets = Object.keys(points);
-          // make a chart for each dataset
-          for (var i = 0, len = sets.length; i < len; i++) {
-            // make new dygraphers
-            charts.push(new Dygraph(wrap[0], points[sets[i]], {
-                width: wrap.width()
-              , height: wrap.height() / len
-              , index: i
-              , of: len
-              , rightGap: 0
-              , fillGraph: true
-              , fillAlpha: 0.05
-              , gridLineColor: 'rgba(255,255,255,0.25)'
-              , colors: [orange, blue, green]
-              , strokeWidth: 0.5
-              , labels: box.validKeySeriesLabels[i]
-              , axisLineColor: 'rgba(0,0,0,0)'
-              , axisLabelColor: '#808080'
-              , axisLabelFontSize: 9
-              , xlabel: 'Time'
-              , ylabel: box.validKeyYLabels[i]
-              , stepPlot: true
-              , starts: startPoints[sets[i]]
-              //, panEdgeFraction: 0.0001
-              , interactionModel : {
-                    mousedown: downV3
-                  , mousemove: moveV3
-                  , mouseup: upV3
-                  , click: clickV3
-                  , dblclick: dblClickV4
-                  , mousewheel: scrollV3
-                }
-              , drawCallback: function (me, initial) {
-                  var range = me.xAxisRange()
-                    , yrange = me.yAxisRange()
-                  ;
-                  // notify sandbox
-                  box.notify('cs-time-window-change', { range: range, plot: self, index: me.index }, function (redraw) {
-                    if (redraw) {
-                      parseForDrawing();
-                      charts[me.index].updateOptions({ 
-                          file: points[sets[me.index]]
-                        , starts: startPoints[sets[me.index]]
-                      });
-                      self.hideLoading(me.index);
-                    }
-                  });
-                  // synch with other plots
-                  if (charts.length < sets.length || blockRedraw) {
-                    return;
-                  }
-                  blockRedraw = true;
-                  for (var j = 0, lenj = charts.length; j < lenj; j++) {
-                    if (charts[j] == me) {
-                      continue;
-                    }
-                    charts[j].updateOptions({
-                      dateWindow: range,
-                      //valueRange: yrange
-                    });
-                  }
-                  blockRedraw = false;
-                }
-            }));
+          var self = this
+            , sensors = box.visibleSensors
+          ;
+          if (!fn) {
+            fn = desiredSeries;
+            desiredSeries = defaultSeries;
           }
+          // create each chart
+          for (var s in sensors) {
+            if (sensors.hasOwnProperty(s)) {
+              var series = sensors[s].series;
+              for (var i = 0, len = desiredSeries.length; i < len; i++) {
+                if (desiredSeries[i] in series) {
+                  var plot = series[desiredSeries[i]]
+                    , points = plot.dataPoints.length !== 0 ? plot.dataPoints : [[NaN, NaN],[NaN, NaN],[NaN, NaN]]
+                    , colors = points[0].length > 2 ? plotColors : [plotColors[i]]
+                  ; 
+                  charts.push(new Dygraph(wrap[0], points, {
+                      width: wrap.width()
+                    , height: wrap.height() / len
+                    , index: i
+                    , of: len
+                    , key: desiredSeries[i]
+                    , rightGap: 0
+                    , fillGraph: true
+                    , fillAlpha: 0.05
+                    , gridLineColor: 'rgba(255,255,255,0.25)'
+                    , colors: colors
+                    , strokeWidth: 0.5
+                    , labels: plot.labels
+                    , axisLineColor: 'rgba(0,0,0,0)'
+                    , axisLabelColor: '#808080'
+                    , axisLabelFontSize: 9
+                    , xlabel: plot.titles.x
+                    , ylabel: plot.titles.y
+                    , stepPlot: true
+                    , starts: plot.cycleStartTimes
+                    , interactionModel : {
+                          mousedown: downV3
+                        , mousemove: moveV3
+                        , mouseup: upV3
+                        , click: clickV3
+                        , dblclick: dblClickV4
+                        , mousewheel: scrollV3
+                      }
+                    , drawCallback: function (me, initial) {
+                        var range = me.xAxisRange()
+                          , yrange = me.yAxisRange()
+                        ;
+                        // notify sandbox
+                        box.notify('cs-time-window-change', {
+                            range: range
+                          , plot: self
+                          , index: me.index
+                        }, function (redraw) {
+                          if (redraw) {
+                            for (var i = 0, len = charts.length; i < len; i++) {
+                              charts[i].updateOptions({
+                                  file: box.visibleSensors[charts[i].key].dataPoints
+                                , starts: box.visibleSensors[charts[i].key].cycleStartTimes
+                              });
+                            }
+                            self.hideLoading();
+                          }
+                        });
+                        // synch with other plots
+                        if (charts.length < len || blockRedraw)
+                          return;
+                        blockRedraw = true;
+                        for (var j = 0, lenj = charts.length; j < lenj; j++) {
+                          if (charts[j] == me)
+                            continue;
+                          charts[j].updateOptions({
+                            dateWindow: range,
+                          });
+                        }
+                        blockRedraw = false;
+                      }
+                  }));
+                }
+              }
+            }
+          }
+          
+          // add ref to all charts in each
+          for (var i = 0, len = charts.length; i < len; i++) {
+            charts[i].updateOptions({
+              siblings: charts
+            });
+          }
+          
           // callback
           fn();
         }
@@ -485,24 +571,21 @@ Stub = (function ($) {
             }
           }
         }
-      , hideLoading: function (index) {
+      , hideLoading: function () {
           $('.series-loading', wrap).hide();
-          for (var i in charts) {
-            if (charts.hasOwnProperty(i)) {
-              $(charts[i].graphDiv).css({ opacity: 1 });
-            }
-          }
+          for (var i = 0, len = charts.length; i < len; i++)
+            $(charts[i].graphDiv).css({ opacity: 1 });
         }
       , getChart: function (index) {
           return charts[index];
         }
       , clear: function () {
-          
+
         }
     };
   };
-  
-  
+
+
   var Map = function (box, wrap) {
     var map
       , map_width = wrap.width()
@@ -550,8 +633,9 @@ Stub = (function ($) {
       , loadedHandle
 
       , plot = function (fn) {
+          return;
           // get data from sandbox
-          var data = box.visibleData.location;
+          var data = box.visibleSensors.location;
 
           // poly bounds
           var minlat = 90
@@ -660,7 +744,7 @@ Stub = (function ($) {
           wrap.hide();
 
           // exit if nothing to do
-          if (!box.visibleData || box.visibleData.location.length === 0) {
+          if (!box.visibleSensors || box.visibleSensors.location.length === 0) {
             fn(true);
             return;
           }
@@ -711,37 +795,37 @@ Stub = (function ($) {
         }
     };
   };
-  
-  
+
+
   return {
-    
+
     /**
      * setup doc
      */
-      
+
       go: function () {
-        
-        
+
+
         ///////// EXTENDS
-        
-        
-        Array.prototype.unique = function () {
-          var r = [];
-          o:for (var i = 0, n = this.length; i < n; i++) {
-            for (var x = 0, y = r.length; x < y; x++) {
-              if (r[x] === this[i]) {
-                continue o;
-              }
-            }
-            r[r.length] = this[i];
-          }
-          return r;
-        }
-        
-        
+
+
+        // Array.prototype.unique = function () {
+        //   var r = [];
+        //   o:for (var i = 0, n = this.length; i < n; i++) {
+        //     for (var x = 0, y = r.length; x < y; x++) {
+        //       if (r[x] === this[i]) {
+        //         continue o;
+        //       }
+        //     }
+        //     r[r.length] = this[i];
+        //   }
+        //   return r;
+        // }
+
+
         ///////// UTILS
-        
-        
+
+
         // determine of object is empty (non-enumerable)
         $.isEmpty = function (o) {
           for (var p in o)
@@ -749,19 +833,19 @@ Stub = (function ($) {
               return false;
           return true;
         }
-        
+
         // server PUT
         $.put = function (url, data, success) {
           data._method = 'PUT';
           $.post(url, data, success, 'json');
         };
-        
+
         // server GET
         $.get = function (url, data, success) {
           data._method = 'GET';
           $.post(url, data, success, 'json');
         };
-        
+
         // server DEL
         $.del = function (url, data, success) {
           $.ajax(url, {
@@ -770,7 +854,7 @@ Stub = (function ($) {
             , success: success
           });
         };
-        
+
         // map form data to JSON
         $.fn.serializeObject = function () {
           var o = {}
@@ -786,7 +870,7 @@ Stub = (function ($) {
           });
           return o;
         };
-        
+
         // get database ID
         $.fn.itemID = function () {
           try {
@@ -796,16 +880,16 @@ Stub = (function ($) {
             return null;
           }
         };
-        
-        
+
+
         //////// SETUP
-        
-        
+
+
         if (window.location.pathname == '/login') {
           // future info map
           addLandingMap();
         } else {
-          
+
           // layer tabs
           var tabs = $('.tab');
           tabs.each(function (i) {
@@ -816,42 +900,42 @@ Stub = (function ($) {
             ;
             $this.css({ zIndex: z });
           });
-          
+
           // add commas
           $('.number').each(function (i) {
             var $this = $(this);
             $this.text(addCommas($this.text()));
           });
-          
+
           sizeDetailPanes();
         }
-        
+
         // get relative comment times
         setInterval(updateTimes, 5000); updateTimes();
-        
-        
+
+
         //////// HANDLERS
-        
-        
+
+
         if (window.location.pathname == '/login') {
-          
+
           // landing page login
           var loginForm = $('#login-form')
-          
+
           // login user
             , loginButton = $('#login')
             , loginEmail = $('input[name="user[email]"]')
             , loginPassword = $('input[name="user[password]"]')
             , loginEmailLabel = $('label[for="user[email]"]')
             , loginPasswordLabel = $('label[for="user[password]"]')
-          
-          // register user
+
+          // reports
             , landingMessage = $('#landing-message')
             , landingSuccess = $('#landing-success')
             , landingError = $('#landing-error')
             , landingSuccessText = $('#landing-success p')
             , landingErrorText = $('#landing-error p')
-          
+
           // form control
             , exitLoginButton = function () {
                 loginButton.removeClass('cs-button-alert');
@@ -868,7 +952,7 @@ Stub = (function ($) {
               }
           ;
           loginEmail.focus();
-          
+
           loginButton.bind('mouseenter', function () {
             var email = loginEmail.val().trim()
               , password = loginPassword.val().trim()
@@ -883,10 +967,10 @@ Stub = (function ($) {
                 loginPasswordLabel.css('color', 'red');
             }
           }).bind('mouseleave', exitLoginButton);
-          
+
           loginEmail.bind('keyup', checkInput);
           loginPassword.bind('keyup', checkInput);
-          
+
           loginButton.bind('click', function (e) {
             e.preventDefault();
             landingError.hide();
@@ -916,12 +1000,12 @@ Stub = (function ($) {
               }
             }, 'json');
           });
-          
-          
-          
-          
+
+
+
+
           /////////////////////////////// API TESTING
-          
+
           $('.landing-logo').bind('click', function (e) {
             //e.preventDefault();
             //makeUser(this);
@@ -929,7 +1013,7 @@ Stub = (function ($) {
             //getUser(this);
             //getVehicle(this);
           });
-          
+
           function makeUser(self) {
             var element = $(self)
               , form = $('<form></form>')
@@ -946,7 +1030,7 @@ Stub = (function ($) {
                   'name': 'password'
                 , 'value': 'admin'
               });
-              
+
               form
               .append('<input type="hidden" />')
               .find('input:last-child')
@@ -957,7 +1041,7 @@ Stub = (function ($) {
               .end()
               .submit();
           }
-          
+
           function makeVehicle(self) {
             var element = $(self)
               , form = $('<form></form>')
@@ -977,7 +1061,7 @@ Stub = (function ($) {
               .end()
               .submit();
           }
-          
+
           function getUser(self) {
             var element = $(self)
               , form = $('<form></form>')
@@ -997,7 +1081,7 @@ Stub = (function ($) {
               .end()
               .submit();
           }
-          
+
           function getVehicle(self) {
             var element = $(self)
               , form = $('<form></form>')
@@ -1017,11 +1101,11 @@ Stub = (function ($) {
               .end()
               .submit();
           }
-          
+
           /////////////////////////////// API TESTING
-          
+
         } else {
-          
+
           // logout
           $('#logout').live('click', function (e) {
             e.preventDefault();
@@ -1043,7 +1127,7 @@ Stub = (function ($) {
               .end()
               .submit();
           });
-          
+
           // click a tab
           tabs.live('click', function () {
             var $this = $(this);
@@ -1058,7 +1142,7 @@ Stub = (function ($) {
             $this.css({ zIndex: 10001 + parseInt($this.css('z-index')) });
             flipTabSides($this);
             $('.tab-content', $this).removeClass('tab-content-inactive');
-            
+
             // show and hide content
             var target = $('.' + $this.attr('data-tab-target'));
             if (target.is(":visible")) {
@@ -1067,8 +1151,8 @@ Stub = (function ($) {
             $('.tab-target').hide();
             target.show();
           });
-          
-          
+
+
           // resize window
           $(window).resize(function () {
             var ww = $(this).width();
@@ -1085,12 +1169,12 @@ Stub = (function ($) {
               if ($this.data().sandbox) {
                 $this.data().sandbox.widgets.forEach(function (w) {
                   w.resize(lp.width(), null, rp.width(), null);
-                }); 
+                });
               }
             });
           });
-          
-          
+
+
           // resize vertical panes
           $('.details-bar-bottom, img.resize-y').live('mousedown', function (e) {
             var pan = $(this).hasClass('details-bar-bottom') ?
@@ -1101,7 +1185,7 @@ Stub = (function ($) {
               , pan_h_orig = pan.height()
               , mouse_orig = mouse(e)
             ;
-            
+
             // bind mouse move
             var movehandle = function (e) {
               // get mouse position
@@ -1119,15 +1203,15 @@ Stub = (function ($) {
                 widgets[w].resize(null, ph - 18, null, ph - 18)
             };
             $(document).bind('mousemove', movehandle);
-            
+
             // bind mouse up
             $(document).bind('mouseup', function () {
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
             });
           });
-          
-          
+
+
           // resize horizontal panes
           $('.details-bar-middle, img.resize-x').live('mousedown', function (e) {
             var $this = $(this).hasClass('details-bar-middle') ?
@@ -1157,19 +1241,19 @@ Stub = (function ($) {
                 widgets[w].resize(plw, null, prw, null)
             };
             $(document).bind('mousemove', movehandle);
-            
+
             // bind mouse up
             $(document).bind('mouseup', function () {
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
             });
           });
-          
+
           $('img.resize-x, img.resize-y').live('mousedown', function (e) {
             if (e.preventDefault) e.preventDefault();
           });
-          
-          
+
+
           // initial vehicle cycle query 
           $('a.expander').live('click', function () {
             var $this = $(this)
@@ -1193,12 +1277,12 @@ Stub = (function ($) {
                           $('.series-loading', deetsKid).hide();
                         }
                       });
-                      this.add('Map', $('.map', deetsKid), function (empty) {
-                        if (empty)
-                          $('.map-loading span', deetsKid).text('No map data.');
-                        else
-                          $('.map-loading', deetsKid).hide();
-                      });
+                      // this.add('Map', $('.map', deetsKid), function (empty) {
+                      //   if (empty)
+                      //     $('.map-loading span', deetsKid).text('No map data.');
+                      //   else
+                      //     $('.map-loading', deetsKid).hide();
+                      // });
                       // add sandbox to details div
                       deetsKid.data({ sandbox: this });
                     });
@@ -1212,15 +1296,15 @@ Stub = (function ($) {
               arrow.removeClass('open');
               deetsHolder.hide();
               deets.css({ height: 20 });
-              
+
               // clear widgets
               for (var i = 0, len = deetsKid.data().sandbox.widgets.length; i < len; i++) {
                 deetsKid.data().sandbox.widgets[i].clear();
               }
-              
+
               // delete sandbox
               deetsKid.data().sandbox = null;
-              
+
               // remove widget elements and show loading text
               $('.details-right', deetsKid).children().each(function (i) {
                 if (i > 0)
@@ -1238,16 +1322,12 @@ Stub = (function ($) {
               });
             }
           });
-          
-          
+
+
           // TMP -- open the first vehicle pane
-          //$($('a.expander')[0]).click();
+          $($('a.expander')[0]).click();
         }
-        
       }
-
-
   }
-
 })(jQuery);
 

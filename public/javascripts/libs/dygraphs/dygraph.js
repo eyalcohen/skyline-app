@@ -234,6 +234,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.index = attrs.index;
   this.of = attrs.of;
   this.starts = attrs.starts;
+  this.key = attrs.key;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
   // div, then only one will be drawn.
@@ -3826,6 +3827,15 @@ Dygraph.prototype.updateOptions = function(attrs) {
   if ('of' in attrs) {
     this.of = attrs.of;
   }
+  
+  if ('siblings' in attrs) {
+    this.siblings = attrs.siblings;
+  }
+  
+  if ('key' in attrs) {
+    this.key = attrs.key;
+  }
+
 };
 
 /**
