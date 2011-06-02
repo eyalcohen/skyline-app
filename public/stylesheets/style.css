@@ -789,12 +789,54 @@ img.open {
 
 div.dygraph {
   position: absolute !important;
+  /*border-bottom: 9px solid #1a1a1a;*/
+  /*-webkit-border-image: url(/graphics/graph-border.png) 5 round round;*/
+}
+
+div.dygraph-bar {
+  height: 5px;
+  position: absolute;
+  background: #0d0d0d;
+  background-image: -moz-linear-gradient(
+    center bottom,
+    rgb(13,13,13) 0%,
+    rgb(31,31,31) 100%
+  );
+  background-image: -webkit-gradient(
+    linear,
+    left bottom,
+    left top,
+    color-stop(0.0, rgb(13,13,13)),
+    color-stop(1.0, rgb(31,31,31))
+  );
 }
 
 div.dygraph-label {
   font-family: monospace;
   font-size: 10px;
   color: #808080;
+}
+
+p.empty-dygraph {
+  display: -moz-box;
+  display: -webkit-box;
+  display: box;
+  
+  -moz-box-orient: horizontal;
+  -webkit-box-orient: horizontal;
+  box-orient: horizontal;
+  
+  -moz-box-pack: center;
+  -webkit-box-pack: center;
+  box-pack: center;
+  
+  -moz-box-align: center;
+  -webkit-box-align: center;
+  box-align: center;
+  
+  color: #808080;
+  
+  background: url(/graphics/stripe.png) repeat;
 }
 
 

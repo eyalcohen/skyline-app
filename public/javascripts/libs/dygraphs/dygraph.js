@@ -49,7 +49,7 @@
  * @param {Object} attrs Various other attributes, e.g. errorBars determines
  * whether the input data contains error ranges.
  */
-Dygraph = function(div, data, opts) {
+Dygraph = function(div, data, opts) {  
   if (arguments.length > 0) {
     if (arguments.length == 4) {
       // Old versions of dygraphs took in the series labels as a constructor
@@ -235,11 +235,11 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.of = attrs.of;
   this.starts = attrs.starts;
   this.key = attrs.key;
+  this.sensor = attrs.sensor;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
   // div, then only one will be drawn.
   //div.innerHTML = "";
-
   // If the div isn't already sized then inherit from our attrs or
   // give it a default size.
   if (div.style.width == '') {
@@ -291,7 +291,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
 
   // Make a note of whether labels will be pulled from the CSV file.
   this.labelsFromCSV_ = (this.attr_("labels") == null);
-
+  
   // Create the containing DIV and other interactive elements
   this.createInterface_();
 
@@ -397,6 +397,8 @@ Dygraph.prototype.xAxisRange = function() {
  * data set.
  */
 Dygraph.prototype.xAxisExtremes = function() {
+  if (!this.file_)
+    return null;
   var left = this.rawData_[0][0];
   var right = this.rawData_[this.rawData_.length - 1][0];
   return [left, right];
@@ -410,7 +412,7 @@ Dygraph.prototype.xAxisExtremes = function() {
  */
 Dygraph.prototype.yAxisRange = function(idx) {
   if (typeof(idx) == "undefined") idx = 0;
-  if (idx < 0 || idx >= this.axes_.length) return null;
+  if (idx < 0 || idx >= this.axes_.length || !this.file_) return null;
   return [ this.axes_[idx].computedValueRange[0],
            this.axes_[idx].computedValueRange[1] ];
 };
@@ -666,13 +668,34 @@ Dygraph.cancelEvent = function(e) {
 Dygraph.prototype.createInterface_ = function() {
   // Create the all-enclosing graph div
   var enclosing = this.maindiv_;
-
+  
+  try { enclosing.removeChild(this.graphDiv); } catch (e) {}
+  
   this.graphDiv = document.createElement("div");
   this.graphDiv.style.width = this.width_ + "px";
   this.graphDiv.style.height = this.height_ + "px";
   this.graphDiv.className = "dygraph";
-  this.graphDiv.style.top = (this.height_ * this.index) + 9 + "px";
+  this.graphDiv.style.top = ((this.height_ + 5) * this.index) + 9 + "px";
   enclosing.appendChild(this.graphDiv);
+  
+  if (this.index !== 0) {
+    this.barDiv = document.createElement("div");
+    this.barDiv.className = "dygraph-bar";
+    this.barDiv.style.width = this.width_ + "px";
+    this.barDiv.style.top = "-5px";
+    this.graphDiv.appendChild(this.barDiv);
+  }
+  
+  // [swp]
+  if (this.file_ === null) {
+    this.emptyDiv = document.createElement("p");
+    this.emptyDiv.appendChild(document.createTextNode("This channel is empty"));
+    this.emptyDiv.style.width = this.width_ + "px";
+    this.emptyDiv.style.height = this.height_ + "px";
+    this.emptyDiv.className = "dygraph empty-dygraph";
+    this.emptyDiv.style.top = ((this.height_ + 5) * this.index) + 9 + "px";
+    this.graphDiv.appendChild(this.emptyDiv);
+  }
 
   // Create the canvas for interactive parts of the chart.
   this.canvas_ = Dygraph.createCanvas();
@@ -1015,8 +1038,11 @@ Dygraph.prototype.dragGetY_ = function(e, context) {
 // panning behavior.
 //
 Dygraph.startPan = function(event, g, context) {
+  //if (!this.file_) return;
   context.isPanning = true;
   var xRange = g.xAxisRange();
+  if (!xRange)
+    return;
   context.dateRange = xRange[1] - xRange[0];
   context.initialLeftmostDate = xRange[0];
   context.xUnitsPerPixel = context.dateRange / (g.plotter_.area.w - 1);
@@ -1561,7 +1587,13 @@ Dygraph.prototype.doUnzoom_ = function() {
  * @param {Object} event The mousemove event from the browser.
  * @private
  */
-Dygraph.prototype.mouseMove_ = function(event) {
+Dygraph.prototype.mouseMove_ = function(event, external) {
+  // invoke same action for sibling plots too
+  for (var i = 0, len = this.siblings.length; i < len; i++) {
+    if (this.siblings[i] !== this && !external) {
+      this.siblings[i].mouseMove_(event, true);
+    }
+  }
   // This prevents JS errors when mousing over the canvas before data loads.
   var points = this.layout_.points;
   if (points === undefined) return;
@@ -1766,7 +1798,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
       // draw time box
       // TODO: make this not crappy
       var tp;
-      if (my < 40) {
+      if (my < 40 && this.index == 0) {
         if (canvasx + 5 + timeWidth + 20 > this.width_) {
           tp = [
             { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
@@ -2744,7 +2776,9 @@ Dygraph.prototype.predraw_ = function() {
  */
 Dygraph.prototype.drawGraph_ = function() {
   var data = this.rawData_;
-
+  
+  if (!data)
+    return;
   // This is used to set the second parameter to drawCallback, below.
   var is_initial_draw = this.is_initial_draw_;
   this.is_initial_draw_ = false;
@@ -3737,7 +3771,10 @@ Dygraph.clone = function(o) {
  * @private
  */
 Dygraph.prototype.start_ = function() {
-  if (typeof this.file_ == 'function') {
+  if (this.file_ === null) {
+    // no data
+    this.error("Unknown data format: " + (typeof this.file_));
+  } else if (typeof this.file_ == 'function') {
     // CSV string. Pretend we got it via XHR.
     this.loadedEvent_(this.file_());
   } else if (Dygraph.isArrayLike(this.file_)) {
@@ -3835,6 +3872,10 @@ Dygraph.prototype.updateOptions = function(attrs) {
   if ('key' in attrs) {
     this.key = attrs.key;
   }
+  
+  if ('sensor' in attrs) {
+    this.sensor = attrs.sensor;
+  }
 
 };
 
@@ -3873,6 +3914,7 @@ Dygraph.prototype.resize = function(width, height) {
   } else {
     this.width_ = this.maindiv_.offsetWidth;
     this.height_ = this.maindiv_.offsetHeight;
+    //this.height_ = (wrap.height() - (9 * (len - 1))) / len;
   }
 
   this.createInterface_();
@@ -3900,8 +3942,10 @@ Dygraph.prototype.visibility = function() {
   if (!this.attr_("visibility")) {
     this.attrs_["visibility"] = [];
   }
-  while (this.attr_("visibility").length < this.rawData_[0].length - 1) {
-    this.attr_("visibility").push(true);
+  if (this.rawData_) {
+    while (this.attr_("visibility").length < this.rawData_[0].length - 1) {
+      this.attr_("visibility").push(true);
+    }
   }
   return this.attr_("visibility");
 };

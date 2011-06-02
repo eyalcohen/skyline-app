@@ -1000,19 +1000,15 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
             prevX = NaN;
             continue;
           }
-          
+
           // [swp] check for endpoints to seperate drawing objects
           for (var k = 0, lenk = this.dygraph_.starts.length; k < lenk; k++) {
-            if (this.dygraph_.starts[k][0] === point.xval) {
-              for (var m = 1, lenm = this.dygraph_.starts[k].length; m < lenm; m++) {
-                if (this.dygraph_.starts[k][m] === point.yval) {
-                  prevX = NaN;
-                  continue;
-                }
-              }
+            if (this.dygraph_.starts[k].valueOf() === point.xval) {
+              prevX = NaN;
+              continue; 
             }
           }
-          
+                    
           var newYs;
           if (stackedGraph) {
             lastY = baseline[point.canvasx];
@@ -1080,16 +1076,13 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
 
           // [swp] check for endpoints to seperate drawing objects
           for (var k = 0, lenk = this.dygraph_.starts.length; k < lenk; k++) {
-            if (this.dygraph_.starts[k][0] === point.xval) {
-              for (var m = 1, lenm = this.dygraph_.starts[k].length; m < lenm; m++) {
-                if (this.dygraph_.starts[k][m] === point.yval) {
-                  prevX = null;
-                }
-              }
+            if (this.dygraph_.starts[k].valueOf() === point.xval) {
+              prevX = NaN;
+              continue; 
             }
           }
 
-          if (prevX === null) {
+          if (prevX === null || prevY === null) {
             prevX = point.canvasx;
             prevY = point.canvasy;
           } else {

@@ -156,6 +156,13 @@ function findVehicleCycles(id, from, to, next) {
 function getCycle(id, next) {
   EventBucket.findById(id, function (err, data) {
     if (!err && data) {
+      var events = [];
+      for (var i = 0, len = data.events.length; i < len; i++) {
+        if (data.events[i].header.type !== 'ANNOTATION') {
+          events.push(data.events[i]);
+        }
+      }
+      data.events = events;
       next(data);
     } else {
       next(null);

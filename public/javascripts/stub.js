@@ -2,11 +2,14 @@
 
 Stub = (function ($) {
 
-  var expandDetailsTo = 600
+  var expandDetailsTo = 300
 
     , orange = '#ff931a'
     , blue = '#55f5f2'
     , green = '#00f62e'
+    , red = '#fe110e'
+    , yellow = '#befe11'
+    , purple = '#5a1ada'
 
     , mapStylez = [
           {
@@ -204,24 +207,28 @@ Stub = (function ($) {
           , series: {
                 latitude: {
                     dataPoints: []
+                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Latitude (˚)' }
                   , labels: [ 'time', '˚' ]
                 }
               , longitude: {
                     dataPoints: []
+                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Longitude (˚)' }
                   , labels: ['time', '˚' ]
                 }
               , altitude: {
                     dataPoints: []
+                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Altitude (m)' }
                   , labels: ['time', 'm' ]
                 }
               , speed: {
                     dataPoints: []
+                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Speed (m/s)' }
                   , labels: ['time', 'm/s' ]
@@ -234,6 +241,7 @@ Stub = (function ($) {
           , series: {
                 acceleration: {
                     dataPoints: []
+                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Acceleration (m/s^2)' }
                   , labels: ['time', '(ax)', '(ay)', '(az)']
@@ -246,6 +254,7 @@ Stub = (function ($) {
           , series: {
                 compass: {
                     dataPoints: []
+                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Direction (?)' }
                   , labels: ['time', '(cx)', '(cy)', '(cz)']
@@ -266,6 +275,7 @@ Stub = (function ($) {
       , sensors = Object.keys(this.validSensors)
       , cycles = []
     ;
+
     // get data from ids
     for (var i = 0, leni = this.raw.length; i < leni; i++) {
       for (var j = 0, lenj = this.visibleCycles.length; j < lenj; j++) {
@@ -274,6 +284,7 @@ Stub = (function ($) {
         }
       }
     }
+
     // parse data
     for (var i = 0, leni = cycles.length; i < leni; i++) {
       for (var j = 0, lenj = cycles[i].events.length; j < lenj; j++) {
@@ -285,15 +296,21 @@ Stub = (function ($) {
             var key = event[data[source].key]
               , lenk = key.length
               , time = new Date(parseInt(event.header.startTime))
+              , src = event.header.source
             ;
             if (lenk) {
               // is array
               var name = data[source].name
                 , series = data[source].series[name]
-                , point = key
+                , point = []
               ;
-              point.unshift(time);
+              point.push(time);
+              for (var k = 0; k < lenk; k++)
+                point.push(key[k]);
+              // add to series
               series.dataPoints.push(point);
+              // save source
+              series.sources.push(src);
               // check if first
               if (series.cycleStartTimes.length === i)
                 series.cycleStartTimes.push(time);
@@ -303,7 +320,10 @@ Stub = (function ($) {
                 var series = data[source].series[k];
                 if (key.hasOwnProperty(k) && series) {
                   var point = [time, key[k]];
+                  // add to series
                   series.dataPoints.push(point);
+                  // save source
+                  series.sources.push(src);
                   // check if first
                   if (series.cycleStartTimes.length === i)
                     series.cycleStartTimes.push(time);
@@ -382,69 +402,26 @@ Stub = (function ($) {
       // call server
       $.get('/cycles', { cycles: empty }, function (serv) {
         if (serv.status == 'success') {
-          for (var i = 0, len = raw.length; i < len; i++) {
-            if (raw[i]._id in serv.data.events) {
+          for (var i = 0, len = raw.length; i < len; i++)
+            if (raw[i]._id in serv.data.events)
               raw[i].events = serv.data.events[raw[i]._id];
-            }
-          }
           self.parseVisibleCycles();
           fn(true);
-        } else {
+        } else
           console.log(serv.data.code);
-        }
       });
     } else if (redraw) {
       self.parseVisibleCycles();
       fn(true);
-    }
+    } else
+      fn(false);
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'altitude', 'acceleration']
+    var defaultSeries = ['speed', 'acceleration', 'altitude']
       , charts = []
-      , plotColors = [orange, blue, green]
+      , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
-
-      // , parseForDrawing = function () {
-      //     points = {};
-      //     startPoints = {};
-      //     for (var i in box.visibleSensors) {
-      //       if (box.visibleSensors.hasOwnProperty(i)) {
-      //         points[i] = [];
-      //         startPoints[i] = [];
-      //         for (var j = 0, len = box.visibleSensors[i].length; j < len; j++) {
-      //           if (box.visibleSensors[i][j].header.source == 'SENSOR_COMPASS')
-      //             continue;
-      //           var pnt = [box.visibleSensors[i][j].header.startTime]
-      //             , series = box.visibleSensors[i][j][i]
-      //           ;
-      //           if (series.constructor.name === 'Array') {
-      //             for (var s = 0, lens = series.length; s < lens; s++) {
-      //               pnt.push(series[s]);
-      //             }
-      //           } else {
-      //             for (var s in series) {
-      //               if (series.hasOwnProperty(s) && s != 'latitude' && s != 'longitude' && s != 'speed') {
-      //                 pnt.push(series[s]);
-      //               }
-      //             }
-      //           }
-      //           if (pnt.length == 1) {
-      //             pnt.push(NaN);
-      //           }
-      //           if (box.visibleSensors[i][j].isFirst) {
-      //             startPoints[i].push(pnt);
-      //           }
-      //           points[i].push(pnt);
-      //         }
-      //       }
-      //     }
-      //     //console.log(points);
-      //   }
-      // , toMPH = function (ms) {
-      //     return ms * 2.23693629;
-      //   }
-
     ;
 
     return {
@@ -462,6 +439,8 @@ Stub = (function ($) {
           // save this scope
           var self = this
             , sensors = box.visibleSensors
+            , numColors = plotColors.length
+            , colorCnt = 0
           ;
           if (!fn) {
             fn = desiredSeries;
@@ -474,15 +453,27 @@ Stub = (function ($) {
               for (var i = 0, len = desiredSeries.length; i < len; i++) {
                 if (desiredSeries[i] in series) {
                   var plot = series[desiredSeries[i]]
-                    , points = plot.dataPoints.length !== 0 ? plot.dataPoints : [[NaN, NaN],[NaN, NaN],[NaN, NaN]]
-                    , colors = points[0].length > 2 ? plotColors : [plotColors[i]]
-                  ; 
+                    , points = plot.dataPoints.length !== 0 ? plot.dataPoints : null
+                    , colors = []
+                  ;
+                  
+                  // get colors
+                  if (points && points[0].length > 2) {
+                    for (var c = colorCnt, lenc = plotColors.length; c < lenc; c++) {
+                      colors.push(plotColors[c]);
+                    }
+                  } else
+                    colors.push(plotColors[colorCnt]);
+                  colorCnt++;
+                  
+                  // add to charts
                   charts.push(new Dygraph(wrap[0], points, {
                       width: wrap.width()
-                    , height: wrap.height() / len
+                    , height: (wrap.height() - (5 * (len - 1))) / len
                     , index: i
                     , of: len
                     , key: desiredSeries[i]
+                    , sensor: s
                     , rightGap: 0
                     , fillGraph: true
                     , fillAlpha: 0.05
@@ -515,28 +506,33 @@ Stub = (function ($) {
                           , plot: self
                           , index: me.index
                         }, function (redraw) {
+                          // synch with other plots
+                          if (charts.length < len || blockRedraw)
+                            return;
+                          blockRedraw = true;
+                          for (var k = 0, lenk = charts.length; k < lenk; k++) {
+                            if (charts[k] == me || !charts[k].file_)
+                              continue;
+                            charts[k].updateOptions({
+                              dateWindow: range
+                            });
+                          }
+                          blockRedraw = false;
+                          
+                          // update plots with new data
                           if (redraw) {
-                            for (var i = 0, len = charts.length; i < len; i++) {
-                              charts[i].updateOptions({
-                                  file: box.visibleSensors[charts[i].key].dataPoints
-                                , starts: box.visibleSensors[charts[i].key].cycleStartTimes
+                            for (var j = 0, lenj = charts.length; j < lenj; j++) {
+                              var sen = box.visibleSensors[charts[j].sensor]
+                                , ser = sen.series[charts[j].key]
+                              ;
+                              charts[j].updateOptions({
+                                  file: ser.dataPoints
+                                , starts: ser.cycleStartTimes
                               });
                             }
                             self.hideLoading();
                           }
                         });
-                        // synch with other plots
-                        if (charts.length < len || blockRedraw)
-                          return;
-                        blockRedraw = true;
-                        for (var j = 0, lenj = charts.length; j < lenj; j++) {
-                          if (charts[j] == me)
-                            continue;
-                          charts[j].updateOptions({
-                            dateWindow: range,
-                          });
-                        }
-                        blockRedraw = false;
                       }
                   }));
                 }
@@ -560,7 +556,7 @@ Stub = (function ($) {
           if (!hr)
             hr = wrap.height();
           for (var i = 0, len = charts.length; i < len; i++) {
-            charts[i].resize(wr, hr / len);
+            charts[i].resize(wr, (hr - (5 * (len - 1))) / len);
           }
         }
       , showLoading: function (index) {
@@ -633,9 +629,10 @@ Stub = (function ($) {
       , loadedHandle
 
       , plot = function (fn) {
-          return;
           // get data from sandbox
-          var data = box.visibleSensors.location;
+          var data = box.visibleSensors;
+
+          // construct map specific data
 
           // poly bounds
           var minlat = 90
@@ -645,9 +642,9 @@ Stub = (function ($) {
           ;
 
           // build poly
-          for (var i = 0, len = data.length;  i < len; i++) {
-            var lat = data[i].location.latitude
-              , lawn = data[i].location.longitude
+          for (var i = 0, len = data.SENSOR_GPS.series.latitude.dataPoints.length;  i < len; i++) {
+            var lat = data.SENSOR_GPS.series.latitude.dataPoints[i][1]
+              , lawn = data.SENSOR_GPS.series.longitude.dataPoints[i][1]
             ;
             if (lat < minlat)
               minlat = lat;
@@ -661,7 +658,7 @@ Stub = (function ($) {
             var d = new google.maps.Circle(dotStyle);
             d.setCenter(ll);
             dots.push(d);
-            if (data[i].header.source == 'SENSOR_CELLPOS') {
+            if (data.SENSOR_GPS.series.latitude.sources[i] == 'SENSOR_CELLPOS') {
               var d = new google.maps.Circle(cellDotStyle);
               d.setCenter(ll);
               cellDots.push(d);
@@ -677,15 +674,11 @@ Stub = (function ($) {
             , ne = new google.maps.LatLng(maxlat, maxlawn)
             , mapBounds = new google.maps.LatLngBounds(sw, ne)
           ;
-
+          
           // make new map
           map = new google.maps.Map(wrap[0], mapOptions);
           map.mapTypes.set('grayscale', mapType);
           map.setMapTypeId('grayscale');
-
-          // center and zoom
-          map.setCenter(mapBounds.getCenter());
-          map.fitBounds(mapBounds);
 
           // set objects
           poly.setMap(map);
@@ -713,6 +706,10 @@ Stub = (function ($) {
             , position: poly.getPath().getAt(poly.getPath().getLength() - 1)
           });
 
+          // center and zoom
+          map.setCenter(mapBounds.getCenter());
+          map.fitBounds(mapBounds);
+
           // track cursor position
           wrap.bind('mousemove', function (e) {
             var m = mouse(e, wrap)
@@ -727,6 +724,8 @@ Stub = (function ($) {
           // ready
           loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
             google.maps.event.trigger(map, 'resize');
+            map.setCenter(mapBounds.getCenter());
+            map.fitBounds(mapBounds);
             fn();
             wrap.removeClass('map-tmp');
           });
@@ -744,7 +743,7 @@ Stub = (function ($) {
           wrap.hide();
 
           // exit if nothing to do
-          if (!box.visibleSensors || box.visibleSensors.location.length === 0) {
+          if (box.visibleSensors.SENSOR_GPS.series.latitude.length === 0) {
             fn(true);
             return;
           }
@@ -1277,12 +1276,12 @@ Stub = (function ($) {
                           $('.series-loading', deetsKid).hide();
                         }
                       });
-                      // this.add('Map', $('.map', deetsKid), function (empty) {
-                      //   if (empty)
-                      //     $('.map-loading span', deetsKid).text('No map data.');
-                      //   else
-                      //     $('.map-loading', deetsKid).hide();
-                      // });
+                      this.add('Map', $('.map', deetsKid), function (empty) {
+                        if (empty)
+                          $('.map-loading span', deetsKid).text('No map data.');
+                        else
+                          $('.map-loading', deetsKid).hide();
+                      });
                       // add sandbox to details div
                       deetsKid.data({ sandbox: this });
                     });

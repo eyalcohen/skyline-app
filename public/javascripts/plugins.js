@@ -332,7 +332,6 @@ function downV3(event, g, context) {
 }
 
 function moveV3(event, g, context) {
-  //console.log(event, g, context);
   if (context.isPanning) {
     Dygraph.movePan(event, g, context);
   } else if (context.isZooming) {
@@ -382,6 +381,8 @@ function offsetToPercentage(g, offsetX, offsetY) {
 }
 
 function dblClickV3(event, g, context) {
+  if (!g.file_)
+    return;
   // Reducing by 20% makes it 80% the original size, which means
   // to restore to original size it must grow by 25%
   var percentages = offsetToPercentage(g, event.offsetX, event.offsetY);
@@ -403,6 +404,8 @@ function clickV3(event, g, context) {
 }
 
 function scrollV3(event, g, context) {
+  if (!g.file_)
+    return;
   if (lastClickedGraph != g) {
     //return;
   }
