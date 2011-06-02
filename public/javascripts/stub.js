@@ -2,7 +2,7 @@
 
 Stub = (function ($) {
 
-  var expandDetailsTo = 300
+  var expandDetailsTo = 500
 
     , orange = '#ff931a'
     , blue = '#55f5f2'
@@ -626,6 +626,7 @@ Stub = (function ($) {
           , clickable: false
         })
 
+      , firstRun = true
       , loadedHandle
 
       , plot = function (fn) {
@@ -720,14 +721,17 @@ Stub = (function ($) {
             ;
             cursor.setPosition(c);
           });
-
+          
           // ready
           loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
-            google.maps.event.trigger(map, 'resize');
-            map.setCenter(mapBounds.getCenter());
-            map.fitBounds(mapBounds);
-            fn();
-            wrap.removeClass('map-tmp');
+            if (firstRun) {
+              firstRun = false;
+              google.maps.event.trigger(map, 'resize');
+              map.setCenter(mapBounds.getCenter());
+              map.fitBounds(mapBounds);
+              fn();
+              wrap.removeClass('map-tmp');
+            }
           });
         }
 
