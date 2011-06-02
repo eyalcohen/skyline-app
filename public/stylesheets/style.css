@@ -789,8 +789,7 @@ img.open {
 
 div.dygraph {
   position: absolute !important;
-  /*border-bottom: 9px solid #1a1a1a;*/
-  /*-webkit-border-image: url(/graphics/graph-border.png) 5 round round;*/
+  cursor: crosshair;
 }
 
 div.dygraph-bar {

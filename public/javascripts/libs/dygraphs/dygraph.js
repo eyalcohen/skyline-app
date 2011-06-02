@@ -218,6 +218,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.file_ = file;
   this.rollPeriod_ = attrs.rollPeriod || Dygraph.DEFAULT_ROLL_PERIOD;
   this.previousVerticalX_ = -1;
+  this.previousCrossHairX_ = -1;
   this.previousVerticalY_ = [];
   this.previousRects_ = [];
   this.fractions_ = attrs.fractions || false;
@@ -1763,6 +1764,9 @@ Dygraph.prototype.updateSelection_ = function(event) {
     this.previousVerticalY_ = [];
   }
   
+  // clear vertical crosshair
+  ctx.clearRect(this.previousCrossHairX_ - 1, 0, this.previousCrossHairX_ + 1, this.height_);
+  
   // Clear rects
   if (this.previousRects_.length > 0) {
     for (var k=0; k < this.previousRects_.length; k++) {
@@ -1786,9 +1790,10 @@ Dygraph.prototype.updateSelection_ = function(event) {
       var canvasx = this.selPoints_[0].canvasx;
       ctx.save();
       
-      // save mouse y
+      // save mouse
       var my = crisper(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv));
-      
+      var mx = crisper(Dygraph.pageX(event) - Dygraph.findPosX(this.graphDiv));
+
       // make text for tooltips
       var allText = [];
       var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
@@ -1895,9 +1900,9 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
-      var cx = crisper(canvasx);
-      ctx.moveTo(cx, 0);
-      ctx.lineTo(cx, this.height_);
+      //var cx = crisper(canvasx);
+      ctx.moveTo(mx, 0);
+      ctx.lineTo(mx, this.height_);
       
       // draw mouse pos as y-crosshair
       ctx.moveTo(0, my);
@@ -1962,6 +1967,8 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.restore();
       
       this.previousVerticalX_ = canvasx;
+      
+      this.previousCrossHairX_ = mx;
     }
   }
   
