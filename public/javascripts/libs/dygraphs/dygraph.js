@@ -667,6 +667,14 @@ Dygraph.cancelEvent = function(e) {
  * @private
  */
 Dygraph.prototype.createInterface_ = function() {
+  
+  // <select>
+  // <option value ="sydney">Sydney</option>
+  // <option value ="melbourne">Melbourne</option>
+  // <option value ="cromwell" selected>Cromwell</option>
+  // <option value ="queenstown">Queenstown</option>
+  // </select>
+  
   // Create the all-enclosing graph div
   var enclosing = this.maindiv_;
   

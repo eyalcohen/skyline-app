@@ -187,6 +187,7 @@ Stub = (function ($) {
   ;
 
   var Sandbox = function (data, fn) {
+    console.log(data);
     // convert bounds to int
     for (var i = 0, len = data.length; i < len; i++) {
       data[i].bounds.start = parseInt(data[i].bounds.start);
@@ -207,41 +208,53 @@ Stub = (function ($) {
           , series: {
                 latitude: {
                     dataPoints: []
-                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Latitude (˚)' }
                   , labels: [ 'time', '˚' ]
                 }
               , longitude: {
                     dataPoints: []
-                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Longitude (˚)' }
                   , labels: ['time', '˚' ]
                 }
               , altitude: {
                     dataPoints: []
-                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Altitude (m)' }
                   , labels: ['time', 'm' ]
                 }
               , speed: {
                     dataPoints: []
-                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Speed (m/s)' }
                   , labels: ['time', 'm/s' ]
                 }
             }
         }
+      , SENSOR_CELLPOS: {
+          key: 'location'
+        , series: {
+              latitude: {
+                  dataPoints: []
+                , cycleStartTimes: []
+                , titles: { x: 'Time', y: 'Latitude (˚)' }
+                , labels: [ 'time', '˚' ]
+              }
+            , longitude: {
+                  dataPoints: []
+                , cycleStartTimes: []
+                , titles: { x: 'Time', y: 'Longitude (˚)' }
+                , labels: ['time', '˚' ]
+              }
+          }
+      }
       , SENSOR_ACCEL: {
             key: 'sensor'
           , name: 'acceleration'
           , series: {
                 acceleration: {
                     dataPoints: []
-                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Acceleration (m/s^2)' }
                   , labels: ['time', '(ax)', '(ay)', '(az)']
@@ -254,7 +267,6 @@ Stub = (function ($) {
           , series: {
                 compass: {
                     dataPoints: []
-                  , sources: []
                   , cycleStartTimes: []
                   , titles: { x: 'Time', y: 'Direction (?)' }
                   , labels: ['time', '(cx)', '(cy)', '(cz)']
@@ -309,8 +321,6 @@ Stub = (function ($) {
                 point.push(key[k]);
               // add to series
               series.dataPoints.push(point);
-              // save source
-              series.sources.push(src);
               // check if first
               if (series.cycleStartTimes.length === i)
                 series.cycleStartTimes.push(time);
@@ -322,8 +332,6 @@ Stub = (function ($) {
                   var point = [time, key[k]];
                   // add to series
                   series.dataPoints.push(point);
-                  // save source
-                  series.sources.push(src);
                   // check if first
                   if (series.cycleStartTimes.length === i)
                     series.cycleStartTimes.push(time);
@@ -407,8 +415,10 @@ Stub = (function ($) {
               raw[i].events = serv.data.events[raw[i]._id];
           self.parseVisibleCycles();
           fn(true);
-        } else
+        } else {
           console.log(serv.data.code);
+          fn(false);
+        }
       });
     } else if (redraw) {
       self.parseVisibleCycles();
@@ -659,11 +669,11 @@ Stub = (function ($) {
             var d = new google.maps.Circle(dotStyle);
             d.setCenter(ll);
             dots.push(d);
-            if (data.SENSOR_GPS.series.latitude.sources[i] == 'SENSOR_CELLPOS') {
-              var d = new google.maps.Circle(cellDotStyle);
-              d.setCenter(ll);
-              cellDots.push(d);
-            } else
+            // if (data.SENSOR_GPS.series.latitude.sources[i] == 'SENSOR_CELLPOS') {
+            //   var d = new google.maps.Circle(cellDotStyle);
+            //   d.setCenter(ll);
+            //   cellDots.push(d);
+            // } else
               poly.getPath().push(ll);
           }
 
@@ -721,7 +731,7 @@ Stub = (function ($) {
             ;
             cursor.setPosition(c);
           });
-          
+
           // ready
           loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
             if (firstRun) {
@@ -747,7 +757,7 @@ Stub = (function ($) {
           wrap.hide();
 
           // exit if nothing to do
-          if (box.visibleSensors.SENSOR_GPS.series.latitude.length === 0) {
+          if (box.visibleSensors.SENSOR_GPS.series.latitude.dataPoints.length === 0) {
             fn(true);
             return;
           }
@@ -1273,6 +1283,12 @@ Stub = (function ($) {
                 $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                   if (serv.status == 'success') {
                     var sandbox = new Sandbox(serv.data.bucks, function () {
+                      this.add('Map', $('.map', deetsKid), function (empty) {
+                        if (empty)
+                          $('.map-loading span', deetsKid).text('No map data.');
+                        else
+                          $('.map-loading', deetsKid).hide();
+                      });
                       this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
                         if (empty) {
                           $('.series-loading span', deetsKid).text('No time series data.');
@@ -1280,17 +1296,14 @@ Stub = (function ($) {
                           $('.series-loading', deetsKid).hide();
                         }
                       });
-                      this.add('Map', $('.map', deetsKid), function (empty) {
-                        if (empty)
-                          $('.map-loading span', deetsKid).text('No map data.');
-                        else
-                          $('.map-loading', deetsKid).hide();
-                      });
                       // add sandbox to details div
                       deetsKid.data({ sandbox: this });
                     });
-                  } else
+                  } else {
                     console.log(serv.data.code);
+                    $('.map-loading span', deetsKid).text('No map data.');
+                    $('.series-loading span', deetsKid).text('No time series data.');
+                  }
                 });
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
@@ -1300,9 +1313,11 @@ Stub = (function ($) {
               deetsHolder.hide();
               deets.css({ height: 20 });
 
-              // clear widgets
-              for (var i = 0, len = deetsKid.data().sandbox.widgets.length; i < len; i++) {
-                deetsKid.data().sandbox.widgets[i].clear();
+              if (deetsKid.data().sandbox) {
+                // clear widgets
+                for (var i = 0, len = deetsKid.data().sandbox.widgets.length; i < len; i++) {
+                  deetsKid.data().sandbox.widgets[i].clear();
+                }
               }
 
               // delete sandbox
