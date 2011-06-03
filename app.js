@@ -411,10 +411,21 @@ app.get('/cycles', function (req, res) {
     ;
     cycleIds.forEach(function (id) {
       getCycle(id, function (cyc) {
-        events[cyc._id] = cyc.events;
-        cnt++;
-        if (num === cnt) {
-          res.send({ status: 'success', data: { events: events } });
+        if (cyc) {
+          // TMP: use SENSOR_GPS latitude to determine of this cycle is "valid"
+          var validCnt = 0;
+          for (var i = 0, len = cyc.events.length; i < len; i++) {
+            if (cyc.events[i].header.source === 'SENSOR_GPS' && 'location' in cyc.events[i]) {
+              validCnt++;
+            }
+          }
+          events[cyc._id] = validCnt < 20 ? null : cyc.events;
+          cnt++;
+          if (num === cnt) {
+            res.send({ status: 'success', data: { events: events } });
+          }
+        } else {
+          res.send({ status: 'fail', data: { code: 'NO_VEHICLE_CYCLES' } });
         }
       });
     });

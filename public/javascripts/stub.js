@@ -187,7 +187,6 @@ Stub = (function ($) {
   ;
 
   var Sandbox = function (data, fn) {
-    console.log(data);
     // convert bounds to int
     for (var i = 0, len = data.length; i < len; i++) {
       data[i].bounds.start = parseInt(data[i].bounds.start);
@@ -195,7 +194,7 @@ Stub = (function ($) {
     }
     // save raw data
     this.raw = data;
-    // plotter and map holder
+    // plotter and map ref holder
     this.widgets = [];
     // used to ref cycle on map
     this.activeCycle = null;
@@ -268,8 +267,8 @@ Stub = (function ($) {
                 compass: {
                     dataPoints: []
                   , cycleStartTimes: []
-                  , titles: { x: 'Time', y: 'Direction (?)' }
-                  , labels: ['time', '(cx)', '(cy)', '(cz)']
+                  , titles: { x: 'Time', y: 'Heading (˚)' }
+                  , labels: ['time', '(x)', '(y)', '(z)']
                 }
             }
         }
@@ -291,7 +290,7 @@ Stub = (function ($) {
     // get data from ids
     for (var i = 0, leni = this.raw.length; i < leni; i++) {
       for (var j = 0, lenj = this.visibleCycles.length; j < lenj; j++) {
-        if (this.raw[i]._id == this.visibleCycles[j]) {
+        if (this.raw[i]._id === this.visibleCycles[j]) {
           cycles.push(this.raw[i]);
         }
       }
@@ -299,6 +298,8 @@ Stub = (function ($) {
 
     // parse data
     for (var i = 0, leni = cycles.length; i < leni; i++) {
+      if (!cycles[i].events)
+        continue;
       for (var j = 0, lenj = cycles[i].events.length; j < lenj; j++) {
         var event = cycles[i].events[j]
           , source = event.header.source
@@ -351,15 +352,27 @@ Stub = (function ($) {
   };
 
   Sandbox.prototype.add = function (type, wrap, fn) {
-    var widg = new (eval(type))(this, wrap);
-    widg.init(fn);
-    this.widgets.push(widg);
+    switch (type) {
+      case 'Map':
+        this.map = new Map(this, wrap);
+        this.widgets.push(this.map);
+        this.map.init(fn);
+        break;
+      case 'TimeSeries':
+        this.timeseries = new TimeSeries(this, wrap);
+        this.widgets.push(this.timeseries);
+        this.timeseries.init(fn);
+        break;
+    }
   };
 
   Sandbox.prototype.notify = function (type, params, fn) {
     switch (type) {
       case 'cs-time-window-change':
         this.reEvaluateData(params, fn);
+        break;
+      case 'cs-point-hover':
+        this.map.update(params.time);
         break;
     }
   };
@@ -368,22 +381,21 @@ Stub = (function ($) {
     var self = this
       , min = params.range[0]
       , max = params.range[1]
-      , raw = self.raw
       , visible = []
       , redraw = false
     ;
     // check window bounds
-    for (var i = 0, len = raw.length; i < len; i++) {
+    for (var i = 0, len = self.raw.length; i < len; i++) {
       var index;
-      if ((raw[i].bounds.start >= min && raw[i].bounds.start <= max) ||
-        (raw[i].bounds.stop >= min && raw[i].bounds.stop <= max)
+      if ((self.raw[i].bounds.start >= min && self.raw[i].bounds.start <= max) ||
+        (self.raw[i].bounds.stop >= min && self.raw[i].bounds.stop <= max)
       ) {
-        visible.push(raw[i]._id);
-      } else if ((raw[i].bounds.start > max || raw[i].bounds.stop < min) &&
-        (index = self.visibleCycles.indexOf(raw[i]._id)) !== -1 &&
+        visible.push(self.raw[i]._id);
+      } else if ((self.raw[i].bounds.start > max || self.raw[i].bounds.stop < min) &&
+        (index = self.visibleCycles.indexOf(self.raw[i]._id)) !== -1 &&
         self.visibleCycles.length > 1
       ) {
-        delete raw[i].events;
+        delete self.raw[i].events;
         self.visibleCycles.splice(index, 1);
         redraw = true;
       }
@@ -410,9 +422,18 @@ Stub = (function ($) {
       // call server
       $.get('/cycles', { cycles: empty }, function (serv) {
         if (serv.status == 'success') {
-          for (var i = 0, len = raw.length; i < len; i++)
-            if (raw[i]._id in serv.data.events)
-              raw[i].events = serv.data.events[raw[i]._id];
+          for (var i = 0, len = self.raw.length; i < len; i++) {
+            if (self.raw[i]._id in serv.data.events) {
+              if (serv.data.events[self.raw[i]._id]) {
+                self.raw[i].events = serv.data.events[self.raw[i]._id];
+              } else {
+                var rem = self.visibleCycles.indexOf(self.raw[i]._id);
+                self.visibleCycles.splice(rem, 1);
+                self.raw[i] = null;
+              }
+            }
+          }
+          self.raw = self.raw.filter(function (e) { return e; });
           self.parseVisibleCycles();
           fn(true);
         } else {
@@ -428,7 +449,7 @@ Stub = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'acceleration', 'altitude']
+    var defaultSeries = ['acceleration', 'compass']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -505,6 +526,12 @@ Stub = (function ($) {
                         , click: clickV3
                         , dblclick: dblClickV4
                         , mousewheel: scrollV3
+                      }
+                    , highlightCallback: function(e, x, pts, row) {
+                        // notify sandbox
+                        box.notify('cs-point-hover', {
+                          time: new Date(x)
+                        });
                       }
                     , drawCallback: function (me, initial) {
                         var range = me.xAxisRange()
@@ -593,7 +620,8 @@ Stub = (function ($) {
 
 
   var Map = function (box, wrap) {
-    var map
+    var points = []
+      , map
       , map_width = wrap.width()
       , map_height = wrap.height()
       , mapOptions = {
@@ -639,12 +667,7 @@ Stub = (function ($) {
       , firstRun = true
       , loadedHandle
 
-      , plot = function (fn) {
-          // get data from sandbox
-          var data = box.visibleSensors;
-
-          // construct map specific data
-
+      , plot = function (data, fn) {
           // poly bounds
           var minlat = 90
             , maxlat = -90
@@ -748,7 +771,6 @@ Stub = (function ($) {
       , toMiles = function (m) {
           return m / 1609.344;
         }
-
     ;
 
     return {
@@ -763,10 +785,26 @@ Stub = (function ($) {
           }
 
           // plot map
-          plot(fn);
+          plot(box.visibleSensors, fn);
 
           // fade in
           wrap.fadeIn(2000);
+        }
+      , extract: function () {
+          points = [];
+          var locations = box.visibleSensors.SENSOR_GPS.series
+            , len = locations.latitude.dataPoints.length
+          ;
+          for (var i = 0; i < len; i++) {
+            var time = locations.locations.latitude.dataPoints[i][0]
+              , lat = locations.locations.latitude.dataPoints[i][1]
+              , lawn = locations.locations.longitude.dataPoints[i][1]
+            ;
+            points.push([time, lat, lawn]);
+          }
+        }
+      , update: function (time) {
+          //console.log(time);
         }
       , resize: function (wl, hl, wr, hr) {
           if (!map)
@@ -818,22 +856,28 @@ Stub = (function ($) {
 
       go: function () {
 
-
         ///////// EXTENDS
 
-
-        // Array.prototype.unique = function () {
-        //   var r = [];
-        //   o:for (var i = 0, n = this.length; i < n; i++) {
-        //     for (var x = 0, y = r.length; x < y; x++) {
-        //       if (r[x] === this[i]) {
-        //         continue o;
-        //       }
-        //     }
-        //     r[r.length] = this[i];
-        //   }
-        //   return r;
-        // }
+        // Array Unique
+        Array.prototype.unique = function () {
+          var r = [];
+          o:for (var i = 0, n = this.length; i < n; i++) {
+            for (var x = 0, y = r.length; x < y; x++) {
+              if (r[x] === this[i]) {
+                continue o;
+              }
+            }
+            r[r.length] = this[i];
+          }
+          return r;
+        }
+        
+        // Array Remove - By John Resig (MIT Licensed)
+        Array.prototype.remove = function(from, to) {
+          var rest = this.slice((to || from) + 1 || this.length);
+          this.length = from < 0 ? this.length + from : from;
+          return this.push.apply(this, rest);
+        };
 
 
         ///////// UTILS
@@ -1343,7 +1387,7 @@ Stub = (function ($) {
 
 
           // TMP -- open the first vehicle pane
-          $($('a.expander')[0]).click();
+          //$($('a.expander')[0]).click();
         }
       }
   }
