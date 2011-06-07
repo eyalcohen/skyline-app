@@ -155,9 +155,12 @@ function findVehicleCycles(id, from, to, next) {
 function getCycle(id, next) {
   EventBucket.findById(id, function (err, data) {
     if (!err && data) {
-      var events = [];
-      for (var i = 0, len = data.events.length; i < len; i++) {
-        if (data.events[i].header.type !== 'ANNOTATION') {
+      var events = []
+        , len = data.events.length
+        , every = len > 1000 ? Math.round(len / 2000) : 1
+      ;
+      for (var i = 0; i < len; i++) {
+        if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
           events.push(data.events[i]);
         }
       }
@@ -574,7 +577,7 @@ app.put('/cycle', function (req, res) {
     , num = cycle.events.length
     , cnt = 0
   ;
-  
+
   // authenticate user
   User.findOne({ email: cycle.userId }, function (err, usr) {
     if (usr) {

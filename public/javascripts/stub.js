@@ -172,8 +172,7 @@ Stub = (function ($) {
         else if (delta < (10 * 24 * 60 * 60))
           return (parseInt(delta / 86400)).toString() + ' days ago';
         else
-          return
-            new Date(ts).toLocaleDateString();
+          return new Date(ts).toLocaleDateString();
       }
 
     , updateTimes = function () {
@@ -208,46 +207,52 @@ Stub = (function ($) {
                 latitude: {
                     dataPoints: []
                   , cycleStartTimes: []
+                  , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Latitude (˚)' }
                   , labels: [ 'time', '˚' ]
                 }
               , longitude: {
                     dataPoints: []
                   , cycleStartTimes: []
+                  , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Longitude (˚)' }
                   , labels: ['time', '˚' ]
                 }
               , altitude: {
                     dataPoints: []
                   , cycleStartTimes: []
+                  , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Altitude (m)' }
                   , labels: ['time', 'm' ]
                 }
               , speed: {
                     dataPoints: []
                   , cycleStartTimes: []
+                  , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Speed (m/s)' }
                   , labels: ['time', 'm/s' ]
                 }
             }
         }
-      , SENSOR_CELLPOS: {
-          key: 'location'
-        , series: {
-              latitude: {
-                  dataPoints: []
-                , cycleStartTimes: []
-                , titles: { x: 'Time', y: 'Latitude (˚)' }
-                , labels: [ 'time', '˚' ]
-              }
-            , longitude: {
-                  dataPoints: []
-                , cycleStartTimes: []
-                , titles: { x: 'Time', y: 'Longitude (˚)' }
-                , labels: ['time', '˚' ]
-              }
-          }
-      }
+      // , SENSOR_CELLPOS: {
+      //     key: 'location'
+      //   , series: {
+      //         latitude: {
+      //             dataPoints: []
+      //           , cycleStartTimes: []
+      //           , cycleEndTimes: []
+      //           , titles: { x: 'Time', y: 'Latitude (˚)' }
+      //           , labels: [ 'time', '˚' ]
+      //         }
+      //       , longitude: {
+      //             dataPoints: []
+      //           , cycleStartTimes: []
+      //           , cycleEndTimes: []
+      //           , titles: { x: 'Time', y: 'Longitude (˚)' }
+      //           , labels: ['time', '˚' ]
+      //         }
+      //     }
+      // }
       , SENSOR_ACCEL: {
             key: 'sensor'
           , name: 'acceleration'
@@ -255,6 +260,7 @@ Stub = (function ($) {
                 acceleration: {
                     dataPoints: []
                   , cycleStartTimes: []
+                  , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Acceleration (m/s^2)' }
                   , labels: ['time', '(ax)', '(ay)', '(az)']
                 }
@@ -267,6 +273,7 @@ Stub = (function ($) {
                 compass: {
                     dataPoints: []
                   , cycleStartTimes: []
+                  , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Heading (˚)' }
                   , labels: ['time', '(x)', '(y)', '(z)']
                 }
@@ -325,6 +332,8 @@ Stub = (function ($) {
               // check if first
               if (series.cycleStartTimes.length === i)
                 series.cycleStartTimes.push(time);
+              // check if last
+              series.cycleEndTimes[i] = time;
             } else {
               // is object
               for (var k in key) {
@@ -336,6 +345,8 @@ Stub = (function ($) {
                   // check if first
                   if (series.cycleStartTimes.length === i)
                     series.cycleStartTimes.push(time);
+                  // check if last
+                  series.cycleEndTimes[i] = time;
                 }
               }
             }
@@ -351,15 +362,15 @@ Stub = (function ($) {
     console.log(data);
   };
 
-  Sandbox.prototype.add = function (type, wrap, fn) {
+  Sandbox.prototype.add = function (type, wrap, loading, fn) {
     switch (type) {
       case 'Map':
-        this.map = new Map(this, wrap);
+        this.map = new Map(this, wrap, loading);
         this.widgets.push(this.map);
         this.map.init(fn);
         break;
       case 'TimeSeries':
-        this.timeseries = new TimeSeries(this, wrap);
+        this.timeseries = new TimeSeries(this, wrap, loading);
         this.widgets.push(this.timeseries);
         this.timeseries.init(fn);
         break;
@@ -449,7 +460,7 @@ Stub = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['acceleration', 'compass']
+    var defaultSeries = ['speed', 'latitude', 'longitude', 'altitude']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -619,55 +630,94 @@ Stub = (function ($) {
   };
 
 
-  var Map = function (box, wrap) {
-    var points = []
+  var Map = function (box, wrap, loading) {
+    var gpsPoints
+      , timeBounds
+      , cellPoints
       , map
-      , map_width = wrap.width()
-      , map_height = wrap.height()
-      , mapOptions = {
-            disableDefaultUI: true
-          , mapTypeControlOptions: {
-              mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ]
-            }
-        }
-      , mapType = new google.maps.StyledMapType(mapStylez, mapStyledOptions)
-      , poly = new google.maps.Polyline({
-            strokeColor: '#ff0000'
-          , strokeOpacity: 0.5
-          , strokeWeight: 5
-          , clickable: false
-        })
+      , mapWidth
+      , mapHeight
+      , mapOptions
+      , mapType
+      , poly
       , distance
-      , dots = []
-      , cellDots = []
-      , dotStyle = {
-            strokeWeight: 0
-          , fillColor: "#00ff00"
-          , fillOpacity: 0.5
-          , radius: 10
-          , clickable: false
-        }
-      , cellDotStyle = {
-            strokeWeight: 0
-          , fillColor: "#0000ff"
-          , fillOpacity: 0.5
-          , radius: 50
-          , clickable: false
-        }
+      , dots
+      , cellDots
+      , dotStyle
+      , cellDotStyle
       , start
       , end
-      , cursor = new google.maps.Circle({
-            strokeWeight: 0
-          , fillColor: "#0000ff"
-          , fillOpacity: 0.5
-          , radius: 50
-          , clickable: false
-        })
-
-      , firstRun = true
+      , cursor
+      , firstRun
       , loadedHandle
+      , dragHandle
 
-      , plot = function (data, fn) {
+      , refreshVars = function () {
+          gpsPoints = {};
+          cellPoints = {};
+          mapWidth = wrap.width();
+          mapHeight = wrap.height();
+          mapOptions = {
+              disableDefaultUI: true
+            , mapTypeControlOptions: {
+                mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ]
+              }
+          };
+          mapType = new google.maps.StyledMapType(mapStylez, mapStyledOptions);
+          poly = new google.maps.Polyline({
+              strokeColor: '#000000'
+            , strokeOpacity: 0.6
+            , strokeWeight: 8
+            , clickable: false
+          });
+          dots = [];
+          cellDots = [];
+          dotStyle = {
+              strokeWeight: 0
+            , fillColor: "#ffffff"
+            , fillOpacity: 0.5
+            , radius: 10
+            , clickable: false
+          };
+          cellDotStyle = {
+              strokeWeight: 0
+            , fillColor: "#ff00ff"
+            , fillOpacity: 0.5
+            , radius: 50
+            , clickable: false
+          };
+          firstRun = true;
+        }
+
+
+
+      , plot = function (fn) {
+          
+          var src = box.visibleSensors.SENSOR_GPS.series
+            , len = src.latitude.dataPoints.length
+          ;
+
+          // exit if nothing to do
+          if (src.latitude.dataPoints.length === 0) {
+            fn(true);
+            return;
+          }
+          
+          if (!timeBounds)
+            timeBounds = [src.latitude.cycleStartTimes[0], src.latitude.cycleEndTimes[0]];
+
+          refreshVars();
+
+          for (var i = 0; i < len; i++) {
+            var time = src.latitude.dataPoints[i][0];
+            if (time >= timeBounds[0] && time <= timeBounds[1]) {
+              var lat = src.latitude.dataPoints[i][1]
+                , lawn = src.longitude.dataPoints[i][1]
+              ;
+              gpsPoints[time.valueOf()] = [lat, lawn];
+            }
+          }
+
           // poly bounds
           var minlat = 90
             , maxlat = -90
@@ -676,9 +726,10 @@ Stub = (function ($) {
           ;
 
           // build poly
-          for (var i = 0, len = data.SENSOR_GPS.series.latitude.dataPoints.length;  i < len; i++) {
-            var lat = data.SENSOR_GPS.series.latitude.dataPoints[i][1]
-              , lawn = data.SENSOR_GPS.series.longitude.dataPoints[i][1]
+          var points = Object.keys(gpsPoints);
+          for (var i = 0, len = points.length;  i < len; i++) {
+            var lat = gpsPoints[points[i]][0]
+              , lawn = gpsPoints[points[i]][1]
             ;
             if (lat < minlat)
               minlat = lat;
@@ -692,16 +743,18 @@ Stub = (function ($) {
             var d = new google.maps.Circle(dotStyle);
             d.setCenter(ll);
             dots.push(d);
+            
             // if (data.SENSOR_GPS.series.latitude.sources[i] == 'SENSOR_CELLPOS') {
             //   var d = new google.maps.Circle(cellDotStyle);
             //   d.setCenter(ll);
             //   cellDots.push(d);
             // } else
-              poly.getPath().push(ll);
+            
+            poly.getPath().push(ll);
           }
 
           // get path length
-          //distance = google.maps.geometry.spherical.computeLength(poly.getPath());
+          distance = google.maps.geometry.spherical.computeLength(poly.getPath());
 
           // make map bounds
           var sw = new google.maps.LatLng(minlat, minlawn)
@@ -726,18 +779,39 @@ Stub = (function ($) {
               map: map
             , animation: google.maps.Animation.DROP
             , position: poly.getPath().getAt(0)
+            , dragable: true
+            , icon: 'http://google-maps-icons.googlecode.com/files/car.png'
           });
 
           // endpoints
+          var imageA = new google.maps.MarkerImage("/graphics/black_MarkerA.png",
+              new google.maps.Size(20.0, 34.0),
+              new google.maps.Point(0, 0),
+              new google.maps.Point(10.0, 34.0)
+          );
+          var imageB = new google.maps.MarkerImage("/graphics/black_MarkerB.png",
+              new google.maps.Size(20.0, 34.0),
+              new google.maps.Point(0, 0),
+              new google.maps.Point(10.0, 34.0)
+          );
+          var shadow = new google.maps.MarkerImage("graphics/marker-shadow.png",
+              new google.maps.Size(38.0, 34.0),
+              new google.maps.Point(0, 0),
+              new google.maps.Point(10.0, 34.0)
+          );
           start = new google.maps.Marker({
               map: map
             , animation: google.maps.Animation.DROP
             , position: poly.getPath().getAt(0)
+            , icon: imageA
+            , shadow: shadow
           });
           end = new google.maps.Marker({
               map: map
             , animation: google.maps.Animation.DROP
             , position: poly.getPath().getAt(poly.getPath().getLength() - 1)
+            , icon: imageB
+            , shadow: shadow
           });
 
           // center and zoom
@@ -745,14 +819,40 @@ Stub = (function ($) {
           map.fitBounds(mapBounds);
 
           // track cursor position
-          wrap.bind('mousemove', function (e) {
-            var m = mouse(e, wrap)
-              , w = wrap.width()
-              , l = poly.getPath().getLength()
-              , f = Math.floor((m.x / w) * l)
-              , c = poly.getPath().getAt(f)
-            ;
-            cursor.setPosition(c);
+          // wrap.bind('mousemove', function (e) {
+          //   var m = mouse(e, wrap)
+          //     , w = wrap.width()
+          //     , l = poly.getPath().getLength()
+          //     , f = Math.floor((m.x / w) * l)
+          //     , c = poly.getPath().getAt(f)
+          //   ;
+          //   cursor.setPosition(c);
+          // });
+          
+          dragHandle = google.maps.event.addListener(cursor, 'mousedown', function (e) {
+            // bind mouse move
+            var movehandle = function (e) {
+              // get mouse position
+              var m = mouse(e, wrap);
+              
+              //cursor.setPosition(poly.getPath().getAt(50));
+              
+            };
+            $(document).bind('mousemove', movehandle);
+
+            // bind mouse up
+            $(document).bind('mouseup', function () {
+              // remove all
+              $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+            });
+            //e.latLng
+            // var times = Object.keys(gpsPoints)
+            //   , ts = snappedTime.valueOf()
+            // ;
+            // if (ts in gpsPoints) {
+            //   var ll = poly.getPath().getAt(times.indexOf(ts.toString()));
+            //   cursor.setPosition(ll);
+            // }
           });
 
           // ready
@@ -762,7 +862,7 @@ Stub = (function ($) {
               google.maps.event.trigger(map, 'resize');
               map.setCenter(mapBounds.getCenter());
               map.fitBounds(mapBounds);
-              fn();
+              if (fn) fn();
               wrap.removeClass('map-tmp');
             }
           });
@@ -778,59 +878,68 @@ Stub = (function ($) {
           // hide wrap
           wrap.hide();
 
-          // exit if nothing to do
-          if (box.visibleSensors.SENSOR_GPS.series.latitude.dataPoints.length === 0) {
-            fn(true);
-            return;
-          }
-
           // plot map
-          plot(box.visibleSensors, fn);
+          plot(fn);
 
           // fade in
           wrap.fadeIn(2000);
         }
-      , extract: function () {
-          points = [];
-          var locations = box.visibleSensors.SENSOR_GPS.series
-            , len = locations.latitude.dataPoints.length
-          ;
-          for (var i = 0; i < len; i++) {
-            var time = locations.locations.latitude.dataPoints[i][0]
-              , lat = locations.locations.latitude.dataPoints[i][1]
-              , lawn = locations.locations.longitude.dataPoints[i][1]
+      , update: function (snappedTime) {
+          if (snappedTime < timeBounds[0] || snappedTime > timeBounds[1]) {
+            // clear map
+            loading.show();
+            this.clear();
+            
+            // get bounds for cycle to plot
+            var starts = box.visibleSensors.SENSOR_GPS.series.latitude.cycleStartTimes
+              , ends = box.visibleSensors.SENSOR_GPS.series.latitude.cycleEndTimes
+            for (var i = 0, len = starts.length; i < len; i++) {
+              if (snappedTime >= starts[i] && snappedTime <= ends[i]) {
+                timeBounds = [starts[i], ends[i]];
+                plot(function () {
+                  loading.hide();
+                });
+                break;
+              }
+            }
+          } else {
+            var times = Object.keys(gpsPoints)
+              , ts = snappedTime.valueOf()
             ;
-            points.push([time, lat, lawn]);
+            if (ts in gpsPoints) {
+              var ll = poly.getPath().getAt(times.indexOf(ts.toString()));
+              cursor.setPosition(ll);
+            }
           }
-        }
-      , update: function (time) {
-          //console.log(time);
         }
       , resize: function (wl, hl, wr, hr) {
           if (!map)
             return;
           google.maps.event.trigger(map, 'resize');
           if (!wl)
-            wl = map_width;
+            wl = mapWidth;
           if (!hl)
-            hl = map_height;
-          map.panBy((map_width - wl) / 2, (map_height - hl) / 2);
+            hl = mapHeight;
+          map.panBy((mapWidth - wl) / 2, (mapHeight - hl) / 2);
 
-          map_width = wrap.width();
-          map_height = wrap.height();
+          mapWidth = wrap.width();
+          mapHeight = wrap.height();
         }
-      , clear: function () {
-          if (!map)
-            return;
-          // remove event listeners
-          wrap.unbind('mousemove');
-          google.maps.event.removeListener(loadedHandle);
+      , wipe: function () {
           // remove polygons
           poly.setMap(null);
           for (var k = 0, len = dots.length; k < len; k++)
             dots[k].setMap(null);
           for (var k = 0, len = cellDots.length; k < len; k++)
             cellDots[k].setMap(null);
+        }
+      , clear: function () {
+          if (!map)
+            return;
+          // remove event listeners
+          //wrap.unbind('mousemove');
+          google.maps.event.removeListener(loadedHandle);
+          this.wipe();
           // nullify
           start.setMap(null);
           end.setMap(null);
@@ -842,6 +951,8 @@ Stub = (function ($) {
           dots = null;
           cellDots = null;
           map = null;
+          gpsPoints = null;
+          cellPoints = null;
           wrap.empty();
         }
     };
@@ -1327,13 +1438,13 @@ Stub = (function ($) {
                 $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
                   if (serv.status == 'success') {
                     var sandbox = new Sandbox(serv.data.bucks, function () {
-                      this.add('Map', $('.map', deetsKid), function (empty) {
+                      this.add('Map', $('.map', deetsKid), $('.map-loading', deetsKid), function (empty) {
                         if (empty)
                           $('.map-loading span', deetsKid).text('No map data.');
                         else
                           $('.map-loading', deetsKid).hide();
                       });
-                      this.add('TimeSeries', $('.details-right', deetsKid), function (empty) {
+                      this.add('TimeSeries', $('.details-right', deetsKid), $('.series-loading', deetsKid), function (empty) {
                         if (empty) {
                           $('.series-loading span', deetsKid).text('No time series data.');
                         } else {

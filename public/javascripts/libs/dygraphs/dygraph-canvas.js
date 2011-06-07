@@ -725,7 +725,7 @@ DygraphCanvasRenderer.prototype._renderChartLabels = function() {
     // TODO(danvk): is this outer div actually necessary?
     var div = document.createElement("div");
     div.style.position = 'absolute';
-    div.style.left = box.left + 20 + 'px';
+    div.style.left = box.left + 40 + 'px';
     div.style.top = box.top + 'px';
     div.style.width = box.width + 'px';
     div.style.height = box.height + 'px';
