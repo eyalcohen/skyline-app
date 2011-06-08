@@ -1,6 +1,6 @@
 
 
-Stub = (function ($) {
+ServiceGUI = (function ($) {
 
   var expandDetailsTo = 500
 
@@ -59,12 +59,12 @@ Stub = (function ($) {
     , mouse = function (e, r) {
         var px = 0;
         var py = 0;
-        if ( ! e ) 
+        if (!e) 
           var e = window.event;
-        if ( e.pageX || e.pageY ) {
+        if (e.pageX || e.pageY) {
           px = e.pageX;
           py = e.pageY;
-        } else if ( e.clientX || e.clientY ) {
+        } else if (e.clientX || e.clientY) {
           px = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
           py = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
         }
@@ -385,6 +385,9 @@ Stub = (function ($) {
       case 'cs-point-hover':
         this.map.update(params.time);
         break;
+      case 'cs-map-cursormove':
+        this.timeseries.update(params);
+        break;
     }
   };
 
@@ -399,7 +402,7 @@ Stub = (function ($) {
     for (var i = 0, len = self.raw.length; i < len; i++) {
       var index;
       if ((self.raw[i].bounds.start >= min && self.raw[i].bounds.start <= max) ||
-        (self.raw[i].bounds.stop >= min && self.raw[i].bounds.stop <= max)
+          (self.raw[i].bounds.stop >= min && self.raw[i].bounds.stop <= max)
       ) {
         visible.push(self.raw[i]._id);
       } else if ((self.raw[i].bounds.start > max || self.raw[i].bounds.stop < min) &&
@@ -478,6 +481,7 @@ Stub = (function ($) {
           this.plot(fn);
         }
       , plot: function (desiredSeries, fn) {
+          
           // save this scope
           var self = this
             , sensors = box.visibleSensors
@@ -488,6 +492,7 @@ Stub = (function ($) {
             fn = desiredSeries;
             desiredSeries = defaultSeries;
           }
+          
           // create each chart
           for (var s in sensors) {
             if (sensors.hasOwnProperty(s)) {
@@ -539,6 +544,7 @@ Stub = (function ($) {
                         , mousewheel: scrollV3
                       }
                     , highlightCallback: function(e, x, pts, row) {
+                        
                         // notify sandbox
                         box.notify('cs-point-hover', {
                           time: new Date(x)
@@ -548,12 +554,14 @@ Stub = (function ($) {
                         var range = me.xAxisRange()
                           , yrange = me.yAxisRange()
                         ;
+                        
                         // notify sandbox
                         box.notify('cs-time-window-change', {
                             range: range
                           , plot: self
                           , index: me.index
                         }, function (redraw) {
+                          
                           // synch with other plots
                           if (charts.length < len || blockRedraw)
                             return;
@@ -607,6 +615,9 @@ Stub = (function ($) {
             charts[i].resize(wr, (hr - (5 * (len - 1))) / len);
           }
         }
+      , update: function (time) {
+          console.log(time);
+        }
       , showLoading: function (index) {
           $('.series-loading', wrap).show();
           for (var i in charts) {
@@ -634,6 +645,7 @@ Stub = (function ($) {
     var gpsPoints
       , timeBounds
       , cellPoints
+      , times
       , map
       , mapWidth
       , mapHeight
@@ -655,6 +667,7 @@ Stub = (function ($) {
       , refreshVars = function () {
           gpsPoints = {};
           cellPoints = {};
+          times = [];
           mapWidth = wrap.width();
           mapHeight = wrap.height();
           mapOptions = {
@@ -689,10 +702,9 @@ Stub = (function ($) {
           firstRun = true;
         }
 
-
-
       , plot = function (fn) {
           
+          // inits
           var src = box.visibleSensors.SENSOR_GPS.series
             , len = src.latitude.dataPoints.length
           ;
@@ -703,55 +715,45 @@ Stub = (function ($) {
             return;
           }
           
+          // init data points time boundary
           if (!timeBounds)
             timeBounds = [src.latitude.cycleStartTimes[0], src.latitude.cycleEndTimes[0]];
-
+          
+          // clear for new map
           refreshVars();
-
-          for (var i = 0; i < len; i++) {
-            var time = src.latitude.dataPoints[i][0];
-            if (time >= timeBounds[0] && time <= timeBounds[1]) {
-              var lat = src.latitude.dataPoints[i][1]
-                , lawn = src.longitude.dataPoints[i][1]
-              ;
-              gpsPoints[time.valueOf()] = [lat, lawn];
-            }
-          }
-
+          
           // poly bounds
           var minlat = 90
             , maxlat = -90
             , minlawn = 180
             , maxlawn = -180
           ;
-
-          // build poly
-          var points = Object.keys(gpsPoints);
-          for (var i = 0, len = points.length;  i < len; i++) {
-            var lat = gpsPoints[points[i]][0]
-              , lawn = gpsPoints[points[i]][1]
-            ;
-            if (lat < minlat)
-              minlat = lat;
-            if (lat > maxlat)
-              maxlat = lat;
-            if (lawn < minlawn)
-              minlawn = lawn;
-            if (lawn > maxlawn)
-              maxlawn = lawn;
-            var ll = new google.maps.LatLng(lat, lawn);
-            var d = new google.maps.Circle(dotStyle);
-            d.setCenter(ll);
-            dots.push(d);
-            
-            // if (data.SENSOR_GPS.series.latitude.sources[i] == 'SENSOR_CELLPOS') {
-            //   var d = new google.maps.Circle(cellDotStyle);
-            //   d.setCenter(ll);
-            //   cellDots.push(d);
-            // } else
-            
-            poly.getPath().push(ll);
+          
+          for (var i = 0; i < len; i++) {
+            var time = src.latitude.dataPoints[i][0];
+            if (time >= timeBounds[0] && time <= timeBounds[1]) {
+              var lat = src.latitude.dataPoints[i][1]
+                , lawn = src.longitude.dataPoints[i][1]
+              ;
+              if (lat < minlat)
+                minlat = lat;
+              if (lat > maxlat)
+                maxlat = lat;
+              if (lawn < minlawn)
+                minlawn = lawn;
+              if (lawn > maxlawn)
+                maxlawn = lawn;
+              var ll = new google.maps.LatLng(lat, lawn);
+              var d = new google.maps.Circle(dotStyle);
+              d.setCenter(ll);
+              dots.push(d);
+              poly.getPath().push(ll);
+              gpsPoints[time.valueOf()] = ll;
+            }
           }
+
+          // make array of times
+          times = Object.keys(gpsPoints);
 
           // get path length
           distance = google.maps.geometry.spherical.computeLength(poly.getPath());
@@ -779,8 +781,8 @@ Stub = (function ($) {
               map: map
             , animation: google.maps.Animation.DROP
             , position: poly.getPath().getAt(0)
-            , dragable: true
             , icon: 'http://google-maps-icons.googlecode.com/files/car.png'
+            , zIndex: 1000001
           });
 
           // endpoints
@@ -818,33 +820,127 @@ Stub = (function ($) {
           map.setCenter(mapBounds.getCenter());
           map.fitBounds(mapBounds);
 
-          // track cursor position
-          // wrap.bind('mousemove', function (e) {
-          //   var m = mouse(e, wrap)
-          //     , w = wrap.width()
-          //     , l = poly.getPath().getLength()
-          //     , f = Math.floor((m.x / w) * l)
-          //     , c = poly.getPath().getAt(f)
-          //   ;
-          //   cursor.setPosition(c);
-          // });
-          
-          dragHandle = google.maps.event.addListener(cursor, 'mousedown', function (e) {
+          // drag cursor around cycle
+          dragHandle = google.maps.event.addListener(cursor, 'mousedown', function (ed) {
+
+            // get current mouse position
+            var mi = mouse(null, wrap)
+
+            // get current zoom level and center
+            , zl = map.getZoom()
+            , c = map.getCenter()
+
             // bind mouse move
-            var movehandle = function (e) {
-              // get mouse position
-              var m = mouse(e, wrap);
+            , moveHandler = function (em) {
               
-              //cursor.setPosition(poly.getPath().getAt(50));
+              // inits
+              var minDist = 1000
+                , snapTo
+              ;
               
-            };
-            $(document).bind('mousemove', movehandle);
+              // find closest point
+              times.forEach(function (t) {
+                
+                // compute distances
+                var deltaLat = Math.abs(gpsPoints[t].Ia - em.latLng.Ia)
+                  , deltaLawn = Math.abs(gpsPoints[t].Ja - em.latLng.Ja)
+                  , dist = Math.sqrt((deltaLat * deltaLat) + (deltaLawn * deltaLawn))
+                ;
+                
+                // compare distance
+                if (dist < minDist) {
+                  minDist = dist;
+                  snapTo = { time: t, latLng: gpsPoints[t] };
+                }
+                
+                // if (present[0] === cp.Ia && present[1] === cp.Ja) {
+                //   var forward = gpsPoints[times[i+1]] || gpsPoints[times[0]]
+                //     , backward = gpsPoints[times[i-1]] || gpsPoints[times[len - 1]]
+                //   ;
+                //   // determine desired quadrant to move cursor into
+                //   if (mc.y - mi.y < 0 && mc.x - mi.x > 0) { // q1
+                //     // move cursor if that makes sense
+                //     if (forward[0] > present[0] &&
+                //         forward[1] > present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i+1));
+                //     } else if (backward[0] > present[0] &&
+                //                backward[1] > present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i-1));
+                //     }
+                //   } else if (mc.y - mi.y < 0 && mc.x - mi.x < 0) { // q2
+                //     // move cursor if that makes sense
+                //     if (forward[0] > present[0] &&
+                //         forward[1] < present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i+1));
+                //     } else if (backward[0] > present[0] &&
+                //                backward[1] < present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i-1));
+                //     }
+                //   } else if (mc.y - mi.y > 0 && mc.x - mi.x < 0) { // q3
+                //     // move cursor if that makes sense
+                //     if (forward[0] < present[0] &&
+                //         forward[1] < present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i+1));
+                //     } else if (backward[0] < present[0] &&
+                //                backward[1] < present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i-1));
+                //     }
+                //   } else if (mc.y - mi.y > 0 && mc.x - mi.x > 0) { // q4
+                //     // move cursor if that makes sense
+                //     if (forward[0] < present[0] &&
+                //         forward[1] > present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i+1));
+                //     } else if (backward[0] < present[0] &&
+                //                backward[1] > present[1]
+                //     ) {
+                //       cursor.setPosition(poly.getPath().getAt(i-1));
+                //     }
+                //   }
+                // }
+              });
+              
+              // move the cursor
+              if (snapTo)
+                cursor.setPosition(snapTo.latLng);
+              
+              // notify sandbox
+              box.notify('cs-map-cursormove', snapTo.time);
+            }
+            
+            // listen for moves
+            , moveHandle = google.maps.event.addListener(cursor, 'mousemove', moveHandler)
+            , moveHandleMap = google.maps.event.addListener(map, 'mousemove', moveHandler)
+            
+            // lock zoom
+            , zoomHandle = google.maps.event.addListener(map, 'zoom_changed', function (e) {
+              if (zl !== map.getZoom())
+                map.setZoom(zl);
+            })
+            
+            // lock pan
+            , panHandle = google.maps.event.addListener(map, 'center_changed', function (e) {
+              if (c !== map.getCenter())
+                map.setCenter(c);
+            });
 
             // bind mouse up
             $(document).bind('mouseup', function () {
-              // remove all
-              $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+              // remove doc events
+              $(this).unbind('mouseup', arguments.callee);
+              // remove map events
+              google.maps.event.removeListener(zoomHandle);
+              google.maps.event.removeListener(panHandle);
+              google.maps.event.removeListener(moveHandle);
+              google.maps.event.removeListener(moveHandleMap);
             });
+
             //e.latLng
             // var times = Object.keys(gpsPoints)
             //   , ts = snappedTime.valueOf()
@@ -885,7 +981,10 @@ Stub = (function ($) {
           wrap.fadeIn(2000);
         }
       , update: function (snappedTime) {
+
+          // check bounds
           if (snappedTime < timeBounds[0] || snappedTime > timeBounds[1]) {
+            
             // clear map
             loading.show();
             this.clear();
@@ -903,13 +1002,11 @@ Stub = (function ($) {
               }
             }
           } else {
-            var times = Object.keys(gpsPoints)
-              , ts = snappedTime.valueOf()
-            ;
-            if (ts in gpsPoints) {
-              var ll = poly.getPath().getAt(times.indexOf(ts.toString()));
-              cursor.setPosition(ll);
-            }
+            
+            // move cursor
+            var ts = snappedTime.valueOf();
+            if (ts in gpsPoints)
+              cursor.setPosition(gpsPoints[ts]);
           }
         }
       , resize: function (wl, hl, wr, hr) {
