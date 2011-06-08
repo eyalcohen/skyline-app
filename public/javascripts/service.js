@@ -359,7 +359,7 @@ ServiceGUI = (function ($) {
     this.visibleSensors = data;
 
     // log for now
-    console.log(data);
+    // console.log(data);
   };
 
   Sandbox.prototype.add = function (type, wrap, loading, fn) {
@@ -388,16 +388,21 @@ ServiceGUI = (function ($) {
       case 'cs-map-cursormove':
         this.timeseries.update(params);
         break;
+      case 'cs-map-cursorout':
+        this.timeseries.clearSelection();
+        break;
     }
   };
 
   Sandbox.prototype.reEvaluateData = function (params, fn) {
+    
     var self = this
       , min = params.range[0]
       , max = params.range[1]
       , visible = []
       , redraw = false
     ;
+    
     // check window bounds
     for (var i = 0, len = self.raw.length; i < len; i++) {
       var index;
@@ -414,6 +419,7 @@ ServiceGUI = (function ($) {
         redraw = true;
       }
     }
+    
     // remove cycle ids who's data we already have
     var empty = [];
     for (var i = 0, leni = visible.length; i < leni; i++) {
@@ -429,10 +435,13 @@ ServiceGUI = (function ($) {
         self.visibleCycles.push(visible[i]);
       }
     }
+    
     // get new data
     if (empty.length > 0) {
+      
       // show loading for this chart
       params.plot.showLoading(params.index);
+      
       // call server
       $.get('/cycles', { cycles: empty }, function (serv) {
         if (serv.status == 'success') {
@@ -535,6 +544,7 @@ ServiceGUI = (function ($) {
                     , ylabel: plot.titles.y
                     , stepPlot: true
                     , starts: plot.cycleStartTimes
+                    
                     , interactionModel : {
                           mousedown: downV3
                         , mousemove: moveV3
@@ -543,6 +553,7 @@ ServiceGUI = (function ($) {
                         , dblclick: dblClickV4
                         , mousewheel: scrollV3
                       }
+                    
                     , highlightCallback: function(e, x, pts, row) {
                         
                         // notify sandbox
@@ -550,6 +561,7 @@ ServiceGUI = (function ($) {
                           time: new Date(x)
                         });
                       }
+                    
                     , drawCallback: function (me, initial) {
                         var range = me.xAxisRange()
                           , yrange = me.yAxisRange()
@@ -616,7 +628,9 @@ ServiceGUI = (function ($) {
           }
         }
       , update: function (time) {
-          console.log(time);
+          for (var i = 0, len = charts.length; i < len; i++) {
+            charts[i].highlight_(time);
+          }
         }
       , showLoading: function (index) {
           $('.series-loading', wrap).show();
@@ -633,6 +647,11 @@ ServiceGUI = (function ($) {
         }
       , getChart: function (index) {
           return charts[index];
+        }
+      , clearSelection: function () {
+          for (var i = 0, len = charts.length; i < len; i++) {
+            charts[i].clearSelection();
+          }
         }
       , clear: function () {
 
@@ -663,6 +682,7 @@ ServiceGUI = (function ($) {
       , firstRun
       , loadedHandle
       , dragHandle
+      , leaveHandle
 
       , refreshVars = function () {
           gpsPoints = {};
@@ -729,6 +749,7 @@ ServiceGUI = (function ($) {
             , maxlawn = -180
           ;
           
+          // built poly
           for (var i = 0; i < len; i++) {
             var time = src.latitude.dataPoints[i][0];
             if (time >= timeBounds[0] && time <= timeBounds[1]) {
@@ -783,6 +804,7 @@ ServiceGUI = (function ($) {
             , position: poly.getPath().getAt(0)
             , icon: 'http://google-maps-icons.googlecode.com/files/car.png'
             , zIndex: 1000001
+            , clickable: false
           });
 
           // endpoints
@@ -807,6 +829,7 @@ ServiceGUI = (function ($) {
             , position: poly.getPath().getAt(0)
             , icon: imageA
             , shadow: shadow
+            , clickable: false
           });
           end = new google.maps.Marker({
               map: map
@@ -814,142 +837,132 @@ ServiceGUI = (function ($) {
             , position: poly.getPath().getAt(poly.getPath().getLength() - 1)
             , icon: imageB
             , shadow: shadow
+            , clickable: false
           });
 
           // center and zoom
           map.setCenter(mapBounds.getCenter());
           map.fitBounds(mapBounds);
-
-          // drag cursor around cycle
-          dragHandle = google.maps.event.addListener(cursor, 'mousedown', function (ed) {
+          
+          // move cursor on mouse hover
+          dragHandle = google.maps.event.addListener(map, 'mousemove', function (e) {
 
             // get current mouse position
             var mi = mouse(null, wrap)
 
-            // get current zoom level and center
-            , zl = map.getZoom()
-            , c = map.getCenter()
-
-            // bind mouse move
-            , moveHandler = function (em) {
+            // inits
+            var minDist = 1e+100
+              , snapTo
+              , keys = Object.keys(e.latLng)
+            ;
+            
+            // find closest point
+            times.forEach(function (t) {
               
-              // inits
-              var minDist = 1000
-                , snapTo
+              // compute distances
+              var deltaLat = Math.abs(gpsPoints[t][keys[0]] - e.latLng[keys[0]])
+                , deltaLawn = Math.abs(gpsPoints[t][keys[1]] - e.latLng[keys[1]])
+                , dist = Math.sqrt((deltaLat * deltaLat) + (deltaLawn * deltaLawn))
               ;
+
+              // compare distance
+              if (dist < minDist) {
+                minDist = dist;
+                snapTo = { time: parseInt(t), latLng: gpsPoints[t] };
+              }
               
-              // find closest point
-              times.forEach(function (t) {
-                
-                // compute distances
-                var deltaLat = Math.abs(gpsPoints[t].Ia - em.latLng.Ia)
-                  , deltaLawn = Math.abs(gpsPoints[t].Ja - em.latLng.Ja)
-                  , dist = Math.sqrt((deltaLat * deltaLat) + (deltaLawn * deltaLawn))
-                ;
-                
-                // compare distance
-                if (dist < minDist) {
-                  minDist = dist;
-                  snapTo = { time: t, latLng: gpsPoints[t] };
-                }
-                
-                // if (present[0] === cp.Ia && present[1] === cp.Ja) {
-                //   var forward = gpsPoints[times[i+1]] || gpsPoints[times[0]]
-                //     , backward = gpsPoints[times[i-1]] || gpsPoints[times[len - 1]]
-                //   ;
-                //   // determine desired quadrant to move cursor into
-                //   if (mc.y - mi.y < 0 && mc.x - mi.x > 0) { // q1
-                //     // move cursor if that makes sense
-                //     if (forward[0] > present[0] &&
-                //         forward[1] > present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i+1));
-                //     } else if (backward[0] > present[0] &&
-                //                backward[1] > present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i-1));
-                //     }
-                //   } else if (mc.y - mi.y < 0 && mc.x - mi.x < 0) { // q2
-                //     // move cursor if that makes sense
-                //     if (forward[0] > present[0] &&
-                //         forward[1] < present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i+1));
-                //     } else if (backward[0] > present[0] &&
-                //                backward[1] < present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i-1));
-                //     }
-                //   } else if (mc.y - mi.y > 0 && mc.x - mi.x < 0) { // q3
-                //     // move cursor if that makes sense
-                //     if (forward[0] < present[0] &&
-                //         forward[1] < present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i+1));
-                //     } else if (backward[0] < present[0] &&
-                //                backward[1] < present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i-1));
-                //     }
-                //   } else if (mc.y - mi.y > 0 && mc.x - mi.x > 0) { // q4
-                //     // move cursor if that makes sense
-                //     if (forward[0] < present[0] &&
-                //         forward[1] > present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i+1));
-                //     } else if (backward[0] < present[0] &&
-                //                backward[1] > present[1]
-                //     ) {
-                //       cursor.setPosition(poly.getPath().getAt(i-1));
-                //     }
-                //   }
-                // }
-              });
-              
-              // move the cursor
-              if (snapTo)
-                cursor.setPosition(snapTo.latLng);
-              
+            });
+            
+            // move the cursor
+            if (snapTo) {
+              cursor.setPosition(snapTo.latLng);
+
               // notify sandbox
               box.notify('cs-map-cursormove', snapTo.time);
             }
-            
-            // listen for moves
-            , moveHandle = google.maps.event.addListener(cursor, 'mousemove', moveHandler)
-            , moveHandleMap = google.maps.event.addListener(map, 'mousemove', moveHandler)
-            
-            // lock zoom
-            , zoomHandle = google.maps.event.addListener(map, 'zoom_changed', function (e) {
-              if (zl !== map.getZoom())
-                map.setZoom(zl);
-            })
-            
-            // lock pan
-            , panHandle = google.maps.event.addListener(map, 'center_changed', function (e) {
-              if (c !== map.getCenter())
-                map.setCenter(c);
-            });
-
-            // bind mouse up
-            $(document).bind('mouseup', function () {
-              // remove doc events
-              $(this).unbind('mouseup', arguments.callee);
-              // remove map events
-              google.maps.event.removeListener(zoomHandle);
-              google.maps.event.removeListener(panHandle);
-              google.maps.event.removeListener(moveHandle);
-              google.maps.event.removeListener(moveHandleMap);
-            });
-
-            //e.latLng
-            // var times = Object.keys(gpsPoints)
-            //   , ts = snappedTime.valueOf()
-            // ;
-            // if (ts in gpsPoints) {
-            //   var ll = poly.getPath().getAt(times.indexOf(ts.toString()));
-            //   cursor.setPosition(ll);
-            // }
           });
+          
+          // clear plot when leave map
+          leaveHandle = google.maps.event.addListener(map, 'mouseout', function (e) {
+
+            // notify sandbox
+            box.notify('cs-map-cursorout');
+          });
+
+          // drag cursor around cycle
+          // dragHandle = google.maps.event.addListener(cursor, 'mousedown', function (ed) {
+          // 
+          //   // get current mouse position
+          //   var mi = mouse(null, wrap)
+          // 
+          //   // get current zoom level and center
+          //   , zl = map.getZoom()
+          //   , c = map.getCenter()
+          // 
+          //   // bind mouse move
+          //   , moveHandler = function (em) {
+          // 
+          //     // inits
+          //     var minDist = 1e+100
+          //       , snapTo
+          //       , keys = Object.keys(em.latLng)
+          //     ;
+          //     
+          //     // find closest point
+          //     times.forEach(function (t) {
+          //       
+          //       // compute distances
+          //       var deltaLat = Math.abs(gpsPoints[t][keys[0]] - em.latLng[keys[0]])
+          //         , deltaLawn = Math.abs(gpsPoints[t][keys[1]] - em.latLng[keys[1]])
+          //         , dist = Math.sqrt((deltaLat * deltaLat) + (deltaLawn * deltaLawn))
+          //       ;
+          // 
+          //       // compare distance
+          //       if (dist < minDist) {
+          //         minDist = dist;
+          //         snapTo = { time: parseInt(t), latLng: gpsPoints[t] };
+          //       }
+          //       
+          //     });
+          //     
+          //     // move the cursor
+          //     if (snapTo) {
+          //       cursor.setPosition(snapTo.latLng);
+          // 
+          //       // notify sandbox
+          //       box.notify('cs-map-cursormove', snapTo.time);
+          //     }
+          //   }
+          //   
+          //   // listen for moves
+          //   , moveHandle = google.maps.event.addListener(cursor, 'mousemove', moveHandler)
+          //   , moveHandleMap = google.maps.event.addListener(map, 'mousemove', moveHandler)
+          //   
+          //   // lock zoom
+          //   , zoomHandle = google.maps.event.addListener(map, 'zoom_changed', function (e) {
+          //     if (zl !== map.getZoom())
+          //       map.setZoom(zl);
+          //   })
+          //   
+          //   // lock pan
+          //   , panHandle = google.maps.event.addListener(map, 'center_changed', function (e) {
+          //     if (c !== map.getCenter())
+          //       map.setCenter(c);
+          //   });
+          // 
+          //   // bind mouse up
+          //   $(document).bind('mouseup', function () {
+          //     
+          //     // remove doc events
+          //     $(this).unbind('mouseup', arguments.callee);
+          //     
+          //     // remove map events
+          //     google.maps.event.removeListener(zoomHandle);
+          //     google.maps.event.removeListener(panHandle);
+          //     google.maps.event.removeListener(moveHandle);
+          //     google.maps.event.removeListener(moveHandleMap);
+          //   });
+          // });
 
           // ready
           loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
@@ -1034,8 +1047,9 @@ ServiceGUI = (function ($) {
           if (!map)
             return;
           // remove event listeners
-          //wrap.unbind('mousemove');
           google.maps.event.removeListener(loadedHandle);
+          google.maps.event.removeListener(dragHandle);
+          google.maps.event.removeListener(leaveHandle);
           this.wipe();
           // nullify
           start.setMap(null);
@@ -1548,6 +1562,7 @@ ServiceGUI = (function ($) {
                           $('.series-loading', deetsKid).hide();
                         }
                       });
+                      
                       // add sandbox to details div
                       deetsKid.data({ sandbox: this });
                     });
@@ -1560,12 +1575,14 @@ ServiceGUI = (function ($) {
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
             } else {
+              
               // hide details
               arrow.removeClass('open');
               deetsHolder.hide();
               deets.css({ height: 20 });
 
               if (deetsKid.data().sandbox) {
+                
                 // clear widgets
                 for (var i = 0, len = deetsKid.data().sandbox.widgets.length; i < len; i++) {
                   deetsKid.data().sandbox.widgets[i].clear();
@@ -1592,7 +1609,7 @@ ServiceGUI = (function ($) {
               });
             }
           });
-
+          
 
           // TMP -- open the first vehicle pane
           //$($('a.expander')[0]).click();

@@ -1597,6 +1597,7 @@ Dygraph.prototype.doUnzoom_ = function() {
  * @private
  */
 Dygraph.prototype.mouseMove_ = function(event, external) {
+  
   // invoke same action for sibling plots too
   for (var i = 0, len = this.siblings.length; i < len; i++) {
     if (this.siblings[i] !== this && !external) {
@@ -1608,7 +1609,7 @@ Dygraph.prototype.mouseMove_ = function(event, external) {
   if (points === undefined) return;
 
   var canvasx = Dygraph.pageX(event) - Dygraph.findPosX(this.mouseEventElement_);
-
+  
   var lastx = -1;
   var lasty = -1;
 
@@ -1665,6 +1666,70 @@ Dygraph.prototype.mouseMove_ = function(event, external) {
 
   this.updateSelection_(event);
 };
+
+
+/**
+ * When the mouse moves in the canvas, display information about a nearby data
+ * point and draw dots over those points in the data series. This function
+ * takes care of cleanup of previously-drawn dots.
+ * @param {Object} event The mousemove event from the browser.
+ * @private
+ */
+Dygraph.prototype.highlight_ = function(time) {
+  
+  // This prevents JS errors when mousing over the canvas before data loads.
+  var points = this.layout_.points;
+  if (points === undefined) return;
+  
+  var lastx = -1;
+  var lasty = -1;
+
+  // Loop through all the points and find the date nearest to our current
+  // location.
+  var minDist = 1e+100;
+  var idx = -1;
+  for (var i = 0, len = points.length; i < len; i++) {
+    var point = points[i];
+    if (point == null) continue;
+    var dist = Math.abs(point.xval - time);
+    if (dist > minDist) continue;
+    minDist = dist;
+    idx = i;
+  }
+  if (idx >= 0) lastx = points[idx].xval;
+
+  // Extract the points we've selected
+  this.selPoints_ = [];
+  var l = points.length;
+  if (!this.attr_("stackedGraph")) {
+    for (var i = 0; i < l; i++) {
+      if (points[i].xval == lastx) {
+        this.selPoints_.push(points[i]);
+      }
+    }
+  } else {
+    // Need to 'unstack' points starting from the bottom
+    var cumulative_sum = 0;
+    for (var i = l - 1; i >= 0; i--) {
+      if (points[i].xval == lastx) {
+        var p = {};  // Clone the point since we modify it
+        for (var k in points[i]) {
+          p[k] = points[i][k];
+        }
+        p.yval -= cumulative_sum;
+        cumulative_sum += p.yval;
+        this.selPoints_.push(p);
+      }
+    }
+    this.selPoints_.reverse();
+  }
+
+  // Save last x position for callbacks.
+  this.lastx_ = lastx;
+  
+  this.updateSelection_({ x: this.selPoints_[0].canvasx, y: this.selPoints_[0].canvasy });
+};
+
 
 /**
  * Transforms layout_.points index into data row number.
@@ -1749,6 +1814,9 @@ Dygraph.prototype.setLegendHTML_ = function(x, sel_points) {
  * @private
  */
 Dygraph.prototype.updateSelection_ = function(event) {
+  
+  var fromMap = !(event instanceof MouseEvent);
+  
   // Clear the previously drawn vertical, if there is one
   var ctx = this.canvas_ctx_;
   if (this.previousVerticalX_ >= -1) {
@@ -1799,9 +1867,9 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.save();
       
       // save mouse
-      var my = crisper(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv));
-      var mx = crisper(Dygraph.pageX(event) - Dygraph.findPosX(this.graphDiv));
-
+      var mx = !fromMap ? crisper(Dygraph.pageX(event) - Dygraph.findPosX(this.graphDiv)) : crisper(event.x);
+      var my = !fromMap ? crisper(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv)) : crisper(event.y);
+      
       // make text for tooltips
       var allText = [];
       var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
@@ -1811,44 +1879,55 @@ Dygraph.prototype.updateSelection_ = function(event) {
       // draw time box
       // TODO: make this not crappy
       var tp;
-      if (my < 40 && this.index == 0) {
-        if (canvasx + 5 + timeWidth + 20 > this.width_) {
-          tp = [
-            { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4) },
-            { x: crisper(canvasx - 5), y: crisper(my + 4) }
-          ];
-          allText.push([ time, tp[1].x + 5, tp[3].y + 11 ]);
+      if (fromMap && this.index === 0) {
+        tp = [
+          { x: crisper(75 + 5), y: crisper(60 - 6 - 17) },
+          { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6 - 17) },
+          { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6) },
+          { x: crisper(75 + 5), y: crisper(60 - 6) }
+        ];
+        allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+      } else if (!fromMap) {
+        if (my < 40 && this.index === 0) {
+          if (canvasx + 5 + timeWidth + 20 > this.width_) {
+            tp = [
+              { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4) },
+              { x: crisper(canvasx - 5), y: crisper(my + 4) }
+            ];
+            allText.push([ time, tp[1].x + 5, tp[3].y + 11 ]);
+          } else {
+            tp = [
+              { x: crisper(canvasx + 5), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4) },
+              { x: crisper(canvasx + 5), y: crisper(my + 4) }
+            ];
+            allText.push([ time, tp[3].x + 5, tp[3].y + 11 ]);
+          }
         } else {
-          tp = [
-            { x: crisper(canvasx + 5), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4) },
-            { x: crisper(canvasx + 5), y: crisper(my + 4) }
-          ];
-          allText.push([ time, tp[3].x + 5, tp[3].y + 11 ]);
-        }
-      } else {
-        if (canvasx + 5 + timeWidth + 20 > this.width_) {
-          tp = [
-            { x: crisper(canvasx - 5), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6) },
-            { x: crisper(canvasx - 5), y: crisper(my - 6) }
-          ];
-          allText.push([ time, tp[1].x + 5, tp[3].y - 6 ]);
-        } else {
-          tp = [
-            { x: crisper(canvasx + 5), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6) },
-            { x: crisper(canvasx + 5), y: crisper(my - 6) }
-          ];
-          allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+          if (canvasx + 5 + timeWidth + 20 > this.width_) {
+            tp = [
+              { x: crisper(canvasx - 5), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6) },
+              { x: crisper(canvasx - 5), y: crisper(my - 6) }
+            ];
+            allText.push([ time, tp[1].x + 5, tp[3].y - 6 ]);
+          } else {
+            tp = [
+              { x: crisper(canvasx + 5), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6) },
+              { x: crisper(canvasx + 5), y: crisper(my - 6) }
+            ];
+            allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+          }
         }
       }
-      this.previousRects_.push(tp);
+      if (tp)
+        this.previousRects_.push(tp);
       
       // loop over hovered points
       for (var i = 0; i < this.selPoints_.length; i++) {
@@ -2101,13 +2180,20 @@ Dygraph.prototype.setSelection = function(row) {
  * @param {Object} event the mouseout event from the browser.
  * @private
  */
-Dygraph.prototype.mouseOut_ = function(event) {
+Dygraph.prototype.mouseOut_ = function(event, external) {
   if (this.attr_("unhighlightCallback")) {
     this.attr_("unhighlightCallback")(event);
   }
 
   if (this.attr_("hideOverlayOnMouseOut")) {
     this.clearSelection();
+    
+    // invoke same action for sibling plots too
+    for (var i = 0, len = this.siblings.length; i < len; i++) {
+      if (this.siblings[i] !== this && !external) {
+        this.siblings[i].mouseOut_(event, true);
+      }
+    }
   }
 };
 
