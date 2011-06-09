@@ -409,12 +409,15 @@ function scrollV3(event, g, context) {
   if (lastClickedGraph != g) {
     //return;
   }
-  var normal = event.detail ? event.detail * -1 : event.wheelDelta / 40;
+  var normal = event.detail ? -1 * event.detail / 10 : event.wheelDelta / 40;
   // For me the normalized value shows 0.075 for one click. If I took
   // that verbatim, it would be a 7.5%.
   var percentage = normal / 50;
-
-  var percentages = offsetToPercentage(g, event.offsetX, event.offsetY);
+  
+  var off = !event.offsetX ? $(g.graphDiv).offset() : null;
+  var offsetX = event.offsetX || event.pageX - off.left;
+  var offsetY = event.offsetY || event.pageY - off.top;
+  var percentages = offsetToPercentage(g, offsetX, offsetY);
   var xPct = percentages[0];
   var yPct = percentages[1];
 

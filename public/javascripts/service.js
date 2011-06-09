@@ -59,7 +59,7 @@ ServiceGUI = (function ($) {
     , mouse = function (e, r) {
         var px = 0;
         var py = 0;
-        if (!e) 
+        if (!e)
           var e = window.event;
         if (e.pageX || e.pageY) {
           px = e.pageX;
@@ -552,6 +552,7 @@ ServiceGUI = (function ($) {
                         , click: clickV3
                         , dblclick: dblClickV4
                         , mousewheel: scrollV3
+                        , DOMMouseScroll: scrollV3
                       }
                     
                     , highlightCallback: function(e, x, pts, row) {
@@ -615,6 +616,9 @@ ServiceGUI = (function ($) {
             });
           }
           
+          // init the dropdowns
+          $('select').selectBox();
+          
           // callback
           fn();
         }
@@ -633,17 +637,10 @@ ServiceGUI = (function ($) {
           }
         }
       , showLoading: function (index) {
-          $('.series-loading', wrap).show();
-          for (var i in charts) {
-            if (charts.hasOwnProperty(i)) {
-              $(charts[i].graphDiv).css({ opacity: 0.2 });
-            }
-          }
+          $('.loading-more', wrap).show()
         }
       , hideLoading: function () {
-          $('.series-loading', wrap).hide();
-          for (var i = 0, len = charts.length; i < len; i++)
-            $(charts[i].graphDiv).css({ opacity: 1 });
+          $('.loading-more', wrap).hide();
         }
       , getChart: function (index) {
           return charts[index];
@@ -741,6 +738,7 @@ ServiceGUI = (function ($) {
           
           // clear for new map
           refreshVars();
+          hideInfo();
           
           // poly bounds
           var minlat = 90
@@ -844,11 +842,25 @@ ServiceGUI = (function ($) {
           map.setCenter(mapBounds.getCenter());
           map.fitBounds(mapBounds);
           
+          // enter map
+          enterHandle = google.maps.event.addListener(map, 'mouseover', function (e) {
+
+            // show time
+            $('.map-time', wrap.parent()).show();
+          });
+          
+          // clear plot when leave map
+          leaveHandle = google.maps.event.addListener(map, 'mouseout', function (e) {
+
+            // notify sandbox
+            box.notify('cs-map-cursorout');
+            
+            // hide time
+            $('.map-time', wrap.parent()).hide();
+          });
+          
           // move cursor on mouse hover
           dragHandle = google.maps.event.addListener(map, 'mousemove', function (e) {
-
-            // get current mouse position
-            var mi = mouse(null, wrap)
 
             // inits
             var minDist = 1e+100
@@ -880,13 +892,13 @@ ServiceGUI = (function ($) {
               // notify sandbox
               box.notify('cs-map-cursormove', snapTo.time);
             }
-          });
-          
-          // clear plot when leave map
-          leaveHandle = google.maps.event.addListener(map, 'mouseout', function (e) {
-
-            // notify sandbox
-            box.notify('cs-map-cursorout');
+            
+            // update time
+            var timeTxt = (new Date(snapTo.time)).toLocaleString();
+            var gmti = timeTxt.indexOf(' GMT');
+            if (gmti !== -1)
+              timeTxt = timeTxt.substr(0, gmti);
+            $('.map-time', wrap.parent()).text(timeTxt);
           });
 
           // drag cursor around cycle
@@ -973,12 +985,29 @@ ServiceGUI = (function ($) {
               map.fitBounds(mapBounds);
               if (fn) fn();
               wrap.removeClass('map-tmp');
+              showInfo();
             }
           });
         }
 
       , toMiles = function (m) {
           return m / 1609.344;
+        }
+      , showInfo = function () {
+          var distanceTxt = 'Distance traveled: ' + addCommas(distance.toFixed(2)) + ' m'
+            , timeTxt = 'Cycle duration: ' + addCommas(((parseInt(times[times.length - 1]) - parseInt(times[0])) / 1000 / 60).toFixed(2)) + ' min'
+            , infoP = $('.map-info', wrap.parent())
+            , timeP = $('.map-time', wrap.parent())
+          ;
+          
+          // set text
+          infoP.html(distanceTxt + '<br/>' + timeTxt).show();
+          
+          // offset time p
+          timeP.css({ top: parseInt(timeP.css('top')) + infoP.height() + 10 });
+        }
+      , hideInfo = function () {
+          $('.map-info', wrap.parent()).hide();
         }
     ;
 
@@ -993,6 +1022,7 @@ ServiceGUI = (function ($) {
           // fade in
           wrap.fadeIn(2000);
         }
+        
       , update: function (snappedTime) {
 
           // check bounds
@@ -1022,6 +1052,7 @@ ServiceGUI = (function ($) {
               cursor.setPosition(gpsPoints[ts]);
           }
         }
+        
       , resize: function (wl, hl, wr, hr) {
           if (!map)
             return;
@@ -1035,6 +1066,7 @@ ServiceGUI = (function ($) {
           mapWidth = wrap.width();
           mapHeight = wrap.height();
         }
+        
       , wipe: function () {
           // remove polygons
           poly.setMap(null);
@@ -1043,6 +1075,7 @@ ServiceGUI = (function ($) {
           for (var k = 0, len = cellDots.length; k < len; k++)
             cellDots[k].setMap(null);
         }
+        
       , clear: function () {
           if (!map)
             return;
@@ -1164,7 +1197,8 @@ ServiceGUI = (function ($) {
         //////// SETUP
 
 
-        if (window.location.pathname == '/login') {
+        if (window.location.pathname === '/login') {
+          
           // future info map
           addLandingMap();
         } else {
@@ -1185,12 +1219,13 @@ ServiceGUI = (function ($) {
             var $this = $(this);
             $this.text(addCommas($this.text()));
           });
-
+          
+          // fit layout
           sizeDetailPanes();
+          
+          // get relative comment times
+          setInterval(updateTimes, 5000); updateTimes();
         }
-
-        // get relative comment times
-        setInterval(updateTimes, 5000); updateTimes();
 
 
         //////// HANDLERS

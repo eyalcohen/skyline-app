@@ -668,13 +668,6 @@ Dygraph.cancelEvent = function(e) {
  */
 Dygraph.prototype.createInterface_ = function() {
   
-  // <select>
-  // <option value ="sydney">Sydney</option>
-  // <option value ="melbourne">Melbourne</option>
-  // <option value ="cromwell" selected>Cromwell</option>
-  // <option value ="queenstown">Queenstown</option>
-  // </select>
-  
   // Create the all-enclosing graph div
   var enclosing = this.maindiv_;
   
@@ -694,6 +687,19 @@ Dygraph.prototype.createInterface_ = function() {
     this.barDiv.style.top = "-5px";
     this.graphDiv.appendChild(this.barDiv);
   }
+  
+  this.selectDiv = document.createElement("div");
+  this.selectDiv.className = "dygraph-select";
+  
+  var select = document.createElement("select");
+  
+  var o1 = document.createElement("option");
+  o1.value = 'compass';
+  o1.text = 'compass';
+  select.appendChild(o1);
+  
+  this.selectDiv.appendChild(select);
+  //this.graphDiv.appendChild(this.selectDiv);
   
   // [swp]
   if (this.file_ === null) {
@@ -1873,20 +1879,26 @@ Dygraph.prototype.updateSelection_ = function(event) {
       // make text for tooltips
       var allText = [];
       var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
-      time = time.substr(0, time.indexOf(' GMT'));
-      var timeWidth = ctx.measureText(time).width + 8;
-      
+      var gmti = time.indexOf(' GMT');
+      var timeWidth;
+      if (gmti !== -1) {
+        time = time.substr(0, gmti);
+        timeWidth = ctx.measureText(time).width + 8;
+      } else {
+        timeWidth = ctx.measureText(time).width + 24;
+      }
+
       // draw time box
       // TODO: make this not crappy
       var tp;
       if (fromMap && this.index === 0) {
-        tp = [
-          { x: crisper(75 + 5), y: crisper(60 - 6 - 17) },
-          { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6 - 17) },
-          { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6) },
-          { x: crisper(75 + 5), y: crisper(60 - 6) }
-        ];
-        allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+        // tp = [
+        //   { x: crisper(75 + 5), y: crisper(60 - 6 - 17) },
+        //   { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6 - 17) },
+        //   { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6) },
+        //   { x: crisper(75 + 5), y: crisper(60 - 6) }
+        // ];
+        // allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
       } else if (!fromMap) {
         if (my < 40 && this.index === 0) {
           if (canvasx + 5 + timeWidth + 20 > this.width_) {
