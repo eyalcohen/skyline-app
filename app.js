@@ -591,7 +591,13 @@ app.put('/cycle', function (req, res) {
                 console.log('************ EMPTY EVENTS ************');
                 console.log('VEHICLE: ' + cycle.vehicleId);
                 console.log('USER: ' + cycle.userId);
-                console.log('EVENTSTREAM: ' + event);
+                console.log('EVENTSTREAM:');
+                for (var i in event) {
+                  if (event.hasOwnProperty(i)) {
+                    console.log(i + ':');
+                    console.log(event[i]);
+                  }
+                }
                 console.log('**************************************');
                 res.end();
                 return;
