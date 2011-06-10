@@ -133,7 +133,7 @@ ServiceGUI = (function ($) {
           , rw = (ww - 10) * 0.7
         ;
         $('.details-left').width(lw);
-        $('.details-right').width(rw);
+        $('.details-right').width(rw - 13);
       }
 
   /**
@@ -195,10 +195,6 @@ ServiceGUI = (function ($) {
     this.raw = data;
     // plotter and map ref holder
     this.widgets = [];
-    // used to ref cycle on map
-    this.activeCycle = null;
-    // valid data keys
-    this.validKeys = ['sensor', 'location'];
     // valid series
     this.validSensors = {
         SENSOR_GPS: {
@@ -280,6 +276,8 @@ ServiceGUI = (function ($) {
             }
         }
     };
+    // currently available channels
+    this.availableChannels = {};
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
     this.parseVisibleCycles();
@@ -354,6 +352,17 @@ ServiceGUI = (function ($) {
         }
       }
     }
+    
+    // update available channels
+    this.availableChannels = {};
+    for (var sensor in data)
+      if (data.hasOwnProperty(sensor)) {
+        this.availableChannels[sensor] = [];
+        for (var s in data[sensor].series)
+          if (data[sensor].series.hasOwnProperty(s))
+            if (data[sensor].series[s].dataPoints.length > 0)
+              this.availableChannels[sensor].push(s);
+      }
 
     // done
     this.visibleSensors = data;
@@ -472,7 +481,7 @@ ServiceGUI = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'latitude', 'longitude', 'altitude']
+    var defaultSeries = ['speed', 'latitude', 'longitude', 'speed']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -488,6 +497,29 @@ ServiceGUI = (function ($) {
 
           // plot it
           this.plot(fn);
+
+          // channel selects
+          var self = this;
+          $('select').live('change', function () {
+            var $this = $(this)
+              , chart = charts[$this.parent().itemID()]
+              , key = $this.val()
+              , sensor = $(':selected', $this).attr('class')
+              , series = box.visibleSensors[sensor].series[key]
+            ;
+
+            // update chart
+            chart.updateOptions({
+                file: series.dataPoints
+              , starts: series.cycleStartTimes
+              , sensor: sensor
+              , key: key
+              , labels: series.labels
+              , xlabel: series.titles.x
+              , ylabel: series.titles.y
+              , colors: plotColors
+            });
+          });
         }
       , plot: function (desiredSeries, fn) {
           
@@ -528,6 +560,7 @@ ServiceGUI = (function ($) {
                     , height: (wrap.height() - (5 * (len - 1))) / len
                     , index: i
                     , of: len
+                    , channels: box.availableChannels
                     , key: desiredSeries[i]
                     , sensor: s
                     , rightGap: 0
@@ -567,14 +600,12 @@ ServiceGUI = (function ($) {
                         var range = me.xAxisRange()
                           , yrange = me.yAxisRange()
                         ;
-                        
                         // notify sandbox
                         box.notify('cs-time-window-change', {
                             range: range
                           , plot: self
                           , index: me.index
                         }, function (redraw) {
-                          
                           // synch with other plots
                           if (charts.length < len || blockRedraw)
                             return;
@@ -609,15 +640,19 @@ ServiceGUI = (function ($) {
             }
           }
           
-          // add ref to all charts in each
+          // add extra props
           for (var i = 0, len = charts.length; i < len; i++) {
+            
+            // add ref to all charts in each
             charts[i].updateOptions({
               siblings: charts
             });
           }
           
           // init the dropdowns
-          $('select').selectBox();
+          $('select').sb({
+            animDuration: 50
+          });
           
           // callback
           fn();
@@ -630,6 +665,11 @@ ServiceGUI = (function ($) {
           for (var i = 0, len = charts.length; i < len; i++) {
             charts[i].resize(wr, (hr - (5 * (len - 1))) / len);
           }
+          
+          // init the dropdowns
+          $('select').sb({
+            animDuration: 50
+          });
         }
       , update: function (time) {
           for (var i = 0, len = charts.length; i < len; i++) {
@@ -1231,7 +1271,7 @@ ServiceGUI = (function ($) {
         //////// HANDLERS
 
 
-        if (window.location.pathname == '/login') {
+        if (window.location.pathname === '/login') {
 
           // landing page login
           var loginForm = $('#login-form')
@@ -1645,9 +1685,9 @@ ServiceGUI = (function ($) {
             }
           });
           
-
+          
           // TMP -- open the first vehicle pane
-          //$($('a.expander')[0]).click();
+          $($('a.expander')[0]).click();
         }
       }
   }

@@ -236,6 +236,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.of = attrs.of;
   this.starts = attrs.starts;
   this.key = attrs.key;
+  this.channels = attrs.channels;
   this.sensor = attrs.sensor;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
@@ -690,17 +691,28 @@ Dygraph.prototype.createInterface_ = function() {
   
   this.selectDiv = document.createElement("div");
   this.selectDiv.className = "dygraph-select";
-  
+  this.selectDiv.id = "selector-" + this.index;
   var select = document.createElement("select");
+  select.className = "round_sb";
   
-  var o1 = document.createElement("option");
-  o1.value = 'compass';
-  o1.text = 'compass';
-  select.appendChild(o1);
-  
+  for (var i in this.channels) {
+    if (this.channels.hasOwnProperty(i)) {
+      for (var j = 0, len = this.channels[i].length; j < len; j++) {
+        var o = document.createElement("option");
+        o.value = this.channels[i][j];
+        o.text = this.channels[i][j];
+        o.className = i;
+        if (this.channels[i][j] === this.key) {
+          o.selected = "selected";
+        }
+        select.appendChild(o);
+      }
+    }
+  }
+
   this.selectDiv.appendChild(select);
-  //this.graphDiv.appendChild(this.selectDiv);
-  
+  this.graphDiv.appendChild(this.selectDiv);
+
   // [swp]
   if (this.file_ === null) {
     this.emptyDiv = document.createElement("p");
@@ -1214,7 +1226,7 @@ Dygraph.startZoom = function(event, g, context) {
 // Custom interaction model builders can use it to provide the default
 // zooming behavior.
 //
-Dygraph.moveZoom = function(event, g, context) {
+Dygraph.moveZoom = function(event, g, context, src) {
   context.dragEndX = g.dragGetX_(event, context);
   context.dragEndY = g.dragGetY_(event, context);
 
@@ -1223,6 +1235,8 @@ Dygraph.moveZoom = function(event, g, context) {
 
   // drag direction threshold for y axis is twice as large as x axis
   context.dragDirection = (xDelta < yDelta / 2) ? Dygraph.VERTICAL : Dygraph.HORIZONTAL;
+
+  if (context.dragDirection === Dygraph.VERTICAL && g !== src) return;
 
   g.drawZoomRect_(
       context.dragDirection,
@@ -2415,7 +2429,7 @@ Dygraph.prototype.addXTicks_ = function() {
   } else {
     range = [this.rawData_[0][0], this.rawData_[this.rawData_.length - 1][0]];
   }
-
+  
   var xTicks = this.attr_('xTicker')(range[0], range[1], this);
   this.layout_.updateOptions({xTicks: xTicks});
 };
@@ -2529,7 +2543,7 @@ Dygraph.prototype.GetXAxis = function(start_time, end_time, granularity) {
       }
     }
     start_time = d.getTime();
-
+    
     for (var t = start_time; t <= end_time; t += spacing) {
       ticks.push({ v:t, label: formatter(new Date(t), granularity) });
     }
@@ -3672,7 +3686,6 @@ Dygraph.prototype.parseArray_ = function(data) {
     this.attrs_.xValueFormatter = Dygraph.dateString_;
     this.attrs_.xAxisLabelFormatter = Dygraph.dateAxisFormatter;
     this.attrs_.xTicker = Dygraph.dateTicker;
-
     // Assume they're all dates.
     var parsedData = data;//Dygraph.clone(data);
     for (var i = 0; i < data.length; i++) {
@@ -3680,11 +3693,14 @@ Dygraph.prototype.parseArray_ = function(data) {
         this.error("Row " + (1 + i) + " of data is empty");
         return null;
       }
-      if (parsedData[i][0] == null
-          || typeof(parsedData[i][0].getTime) != 'function'
-          || isNaN(parsedData[i][0].getTime())) {
-        this.error("x value in row " + (1 + i) + " is not a Date");
-        return null;
+      // if (parsedData[i][0] == null
+      //     || typeof(parsedData[i][0].getTime) != 'function'
+      //     || isNaN(parsedData[i][0].getTime())) {
+      //   this.error("x value in row " + (1 + i) + " is not a Date");
+      //   return null;
+      // }
+      if ('number' === typeof data[i][0]) {
+        data[i][0] = new Date(data[i][0]);
       }
       parsedData[i][0] = parsedData[i][0].getTime();
     }
@@ -3857,6 +3873,8 @@ Dygraph.isArrayLike = function (o) {
 };
 
 Dygraph.isDateLike = function (o) {
+  // TMP 
+  return true;
   if (typeof(o) != "object" || o === null ||
       typeof(o.getTime) != 'function') {
     return false;
@@ -3984,6 +4002,10 @@ Dygraph.prototype.updateOptions = function(attrs) {
   
   if ('key' in attrs) {
     this.key = attrs.key;
+  }
+  
+  if ('channels' in attrs) {
+    this.channels = attrs.channels;
   }
   
   if ('sensor' in attrs) {

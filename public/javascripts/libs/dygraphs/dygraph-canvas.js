@@ -161,7 +161,7 @@ DygraphLayout.prototype._evaluateLineTicks = function() {
       this.xticks.push([pos, label]);
     }
   }
-
+  
   this.yticks = new Array();
   for (var i = 0; i < this.options.yAxes.length; i++ ) {
     var axis = this.options.yAxes[i];
