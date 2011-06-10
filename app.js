@@ -604,7 +604,7 @@ app.put('/cycle', function (req, res) {
                   start: event.events[0].header.startTime
                 , stop: event.events[0].header.stopTime
               };
-              event._id = new EventID({ id: v._id.vehicleId, time: event.events[0].header.startTime });
+              event._id = new EventID({ id: veh._id.vehicleId, time: event.events[0].header.startTime });
               var bucket = new EventBucket(event);
               bucket.save(function (err) {
                 cnt++;

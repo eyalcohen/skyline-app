@@ -481,7 +481,7 @@ ServiceGUI = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'latitude', 'longitude', 'altitude']
+    var defaultSeries = ['speed', 'altitude', 'acceleration']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -1068,19 +1068,25 @@ ServiceGUI = (function ($) {
           // check bounds
           if (snappedTime < timeBounds[0] || snappedTime > timeBounds[1]) {
             
-            // clear map
-            loading.show();
-            this.clear();
-            
             // get bounds for cycle to plot
             var starts = box.visibleSensors.SENSOR_GPS.series.latitude.cycleStartTimes
               , ends = box.visibleSensors.SENSOR_GPS.series.latitude.cycleEndTimes
             for (var i = 0, len = starts.length; i < len; i++) {
               if (snappedTime >= starts[i] && snappedTime <= ends[i]) {
-                timeBounds = [starts[i], ends[i]];
-                plot(function () {
-                  loading.hide();
-                });
+                if (timeBounds[0] !== starts[i] && timeBounds[1] !== ends[i]) {
+                  
+                  // clear map
+                  loading.show();
+                  this.clear();
+                  
+                  // set new bounds
+                  timeBounds = [starts[i], ends[i]];
+                  
+                  // draw new map
+                  plot(function () {
+                    loading.hide();
+                  });
+                }
                 break;
               }
             }
@@ -1108,6 +1114,7 @@ ServiceGUI = (function ($) {
         }
         
       , wipe: function () {
+        
           // remove polygons
           poly.setMap(null);
           for (var k = 0, len = dots.length; k < len; k++)
@@ -1687,7 +1694,7 @@ ServiceGUI = (function ($) {
           
           
           // TMP -- open the first vehicle pane
-          $($('a.expander')[0]).click();
+          // $($('a.expander')[1]).click();
         }
       }
   }
