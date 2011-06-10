@@ -602,6 +602,9 @@ app.put('/cycle', function (req, res) {
     cycle.events.forEach(function (event) {
       // TMP: use SENSOR_GPS to determine of this cycle is "valid"
       var validCnt = 0;
+      if (!event.events) {
+        return;
+      }
       for (var i = 0, len = event.events.length; i < len; i++) {
         if (event.events[i].header.source === 'SENSOR_GPS' && 'location' in event.events[i]) {
           validCnt++;
