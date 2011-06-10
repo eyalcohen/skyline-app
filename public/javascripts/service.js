@@ -481,7 +481,7 @@ ServiceGUI = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'latitude', 'longitude', 'speed']
+    var defaultSeries = ['speed', 'latitude', 'longitude', 'altitude']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
