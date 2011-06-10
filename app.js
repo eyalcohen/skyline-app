@@ -588,10 +588,12 @@ app.put('/cycle', function (req, res) {
               // TMP: use SENSOR_GPS to determine of this cycle is "valid"
               var validCnt = 0;
               if (!event.events) {
-                console.log('**************************************');
                 console.log('************ EMPTY EVENTS ************');
-                console.log(usr);
+                console.log('VEHICLE: ' + cycle.vehicleId);
+                console.log('USER: ' + cycle.userId);
+                console.log('EVENTSTREAM: ' + event);
                 console.log('**************************************');
+                res.end();
                 return;
               }
               for (var i = 0, len = event.events.length; i < len; i++) {
