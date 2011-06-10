@@ -584,7 +584,35 @@ app.put('/cycle', function (req, res) {
       if (usr.authenticate(cycle.password)) {
         findVehicleByIntId(cycle.vehicleId, function (veh) {
           if (veh) {
-            handleEvents(veh);
+            cycle.events.forEach(function (event) {
+              // TMP: use SENSOR_GPS to determine of this cycle is "valid"
+              var validCnt = 0;
+              if (!event.events) {
+                console.log('**************************************');
+                console.log('************ EMPTY EVENTS ************');
+                console.log(usr);
+                console.log('**************************************');
+                return;
+              }
+              for (var i = 0, len = event.events.length; i < len; i++) {
+                if (event.events[i].header.source === 'SENSOR_GPS' && 'location' in event.events[i]) {
+                  validCnt++;
+                }
+              }
+              event.valid = validCnt < 20;
+              event.bounds = {
+                  start: event.events[0].header.startTime
+                , stop: event.events[0].header.stopTime
+              };
+              event._id = new EventID({ id: v._id.vehicleId, time: event.events[0].header.startTime });
+              var bucket = new EventBucket(event);
+              bucket.save(function (err) {
+                cnt++;
+                if (cnt === num) {
+                  res.end();
+                }
+              });
+            });
           } else {
             res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
           }
@@ -599,31 +627,7 @@ app.put('/cycle', function (req, res) {
   
   // add to db
   function handleEvents(v) {
-    cycle.events.forEach(function (event) {
-      // TMP: use SENSOR_GPS to determine of this cycle is "valid"
-      var validCnt = 0;
-      if (!event.events) {
-        return;
-      }
-      for (var i = 0, len = event.events.length; i < len; i++) {
-        if (event.events[i].header.source === 'SENSOR_GPS' && 'location' in event.events[i]) {
-          validCnt++;
-        }
-      }
-      event.valid = validCnt < 20;
-      event.bounds = {
-          start: event.events[0].header.startTime
-        , stop: event.events[0].header.stopTime
-      };
-      event._id = new EventID({ id: v._id.vehicleId, time: event.events[0].header.startTime });
-      var bucket = new EventBucket(event);
-      bucket.save(function (err) {
-        cnt++;
-        if (cnt === num) {
-          res.end();
-        }
-      });
-    });
+    
   }
 });
 
