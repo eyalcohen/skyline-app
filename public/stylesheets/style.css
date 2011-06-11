@@ -828,6 +828,26 @@ img.open {
   rotation: 90deg;
 }
 
+div.file-menu {
+  height: 30px;
+  width: 100%;
+  position: absolute;
+  top: 9px;
+  background: #0d0d0d;
+  background-image: -moz-linear-gradient(
+    center bottom,
+    rgb(31,31,31) 0%,
+    rgb(13,13,13) 100%
+  );
+  background-image: -webkit-gradient(
+    linear,
+    left bottom,
+    left top,
+    color-stop(0.0, rgb(31,31,31)),
+    color-stop(1.0, rgb(13,13,13))
+  );
+}
+
 div.dygraph {
   position: absolute !important;
   cursor: hand;
@@ -914,9 +934,9 @@ p.empty-dygraph {
 .has_sb{position:absolute;left:-999999em;text-indent:-999999em;}
  
 /* always visible styles */
-.selectbox{display:inline-block;*display:inline;font-size:9px;margin:1px;position:relative;vertical-align:middle;zoom:1;}
+.selectbox{display:inline-block;*display:inline;font-size:10px;/*margin:1px;*/position:relative;vertical-align:middle;zoom:1;width: 85px;}
 .selectbox .display{
-  background:rgba(255, 255, 255, 0.4);
+  background:rgba(255, 255, 255, 0.8);
   border:none;
   color:#000;
   cursor:default;
@@ -966,7 +986,7 @@ p.empty-dygraph {
  
 /* dropdown styles */
 .selectbox.items{
-  background:rgba(255,255,255,0.4);
+  background:rgba(255,255,255,0.8);
   /*border:1px solid #828790;*/
   display:block;
   /*font-family:arial;*/
@@ -1003,13 +1023,13 @@ p.empty-dygraph {
  
 /* easy rounding styles */
 .selectbox .round_sb.display{
-  padding:2px 26px 2px 5px;
+  padding:3px 26px 3px 5px;
   border-radius:0px;
   -moz-border-radius:0px;
   -webkit-border-radius:0px;
 }
 .selectbox .round_sb.display .arrow_btn{
-  right:2px;
+  right:3px;
   top:2px;
   border-radius:3px;
   -moz-border-radius:3px;
@@ -1059,6 +1079,78 @@ p.empty-dygraph {
 
 
 
+
+
+.miniColors-trigger {
+  height: 20px;
+  width: 20px;
+  background: url(/graphics/trigger.png) center no-repeat;
+  vertical-align: middle;
+  /*margin: 0 .25em;*/
+  display: inline-block;
+  outline: none;
+  
+  position: absolute;
+  top: 20px;
+  right: 128px;
+  z-index: 10001;
+}
+
+.miniColors-selector {
+  position: absolute;
+  width: 175px;
+  height: 150px;
+  background: rgba(255,255,255,0.4);
+  /*border: solid 1px #BBB;*/
+  -moz-box-shadow: 0 0 6px rgba(0, 0, 0, .25);
+  -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, .25);
+  box-shadow: 0 0 6px rgba(0, 0, 0, .25);
+  /*-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;*/
+  padding: 5px;
+  z-index: 999999;
+}
+
+.miniColors-selector.black {
+  background: #000;
+  border-color: #000;
+}
+
+.miniColors-colors {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 150px;
+  height: 150px;
+  background: url(/graphics/gradient.png) center no-repeat;
+  cursor: crosshair;
+}
+
+.miniColors-hues {
+  position: absolute;
+  top: 5px;
+  left: 160px;
+  width: 20px;
+  height: 150px;
+  background: url(/graphics/rainbow.png) center no-repeat;
+  cursor: crosshair;
+}
+
+.miniColors-colorPicker {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  background: url(/graphics/circle.gif) center no-repeat;
+}
+
+.miniColors-huePicker {
+  position: absolute;
+  left: -3px;
+  width: 26px;
+  height: 3px;
+  background: url(/graphics/line.gif) center no-repeat;
+}
 
 
 

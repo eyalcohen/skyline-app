@@ -651,7 +651,22 @@ ServiceGUI = (function ($) {
           
           // init the dropdowns
           $('select').sb({
-            animDuration: 50
+              fixedWidth: true
+            , animDuration: 50
+          });
+          
+          // init color picker
+          $(".colors").miniColors({
+            change: function(hex, rgb) {
+              var $this = $(this)
+                , chart = charts[$this.itemID()]
+              ;
+              
+              // update chart
+              chart.updateOptions({
+                colors: [hex]
+              });
+            }
           });
           
           // callback
@@ -668,7 +683,8 @@ ServiceGUI = (function ($) {
           
           // init the dropdowns
           $('select').sb({
-            animDuration: 50
+              fixedWidth: true
+            , animDuration: 50
           });
         }
       , update: function (time) {
@@ -1694,7 +1710,7 @@ ServiceGUI = (function ($) {
           
           
           // TMP -- open the first vehicle pane
-          // $($('a.expander')[1]).click();
+          $($('a.expander')[0]).click();
         }
       }
   }

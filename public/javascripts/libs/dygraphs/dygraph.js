@@ -689,6 +689,7 @@ Dygraph.prototype.createInterface_ = function() {
     this.graphDiv.appendChild(this.barDiv);
   }
   
+  // add selectbox
   this.selectDiv = document.createElement("div");
   this.selectDiv.className = "dygraph-select";
   this.selectDiv.id = "selector-" + this.index;
@@ -713,6 +714,14 @@ Dygraph.prototype.createInterface_ = function() {
   this.selectDiv.appendChild(select);
   this.graphDiv.appendChild(this.selectDiv);
 
+
+  // add color picker
+  this.colorInput = document.createElement("input");
+  this.colorInput.type = "hidden";
+  this.colorInput.className = "colors";
+  this.colorInput.id = "picker-" + this.index;
+  this.graphDiv.appendChild(this.colorInput);
+  
   // [swp]
   if (this.file_ === null) {
     this.emptyDiv = document.createElement("p");
