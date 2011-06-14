@@ -485,6 +485,193 @@ ServiceGUI = (function ($) {
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
+
+
+      , makeChart = function (params) {
+        
+          var chart = new Dygraph(wrap[0], params.points, {
+              width: wrap.width()
+            , height: (wrap.height() - (5 * (params.of - 1))) / params.of
+            , index: params.index
+            , of: params.of
+            , channels: box.availableChannels
+            , key: params.key
+            , sensor: params.sensor
+            , rightGap: 0
+            , fillGraph: true
+            , fillAlpha: 0.05
+            , gridLineColor: 'rgba(255,255,255,0.25)'
+            , colors: params.colors
+            , strokeWidth: 0.5
+            , labels: params.plot.labels
+            , axisLineColor: 'rgba(0,0,0,0)'
+            , axisLabelColor: '#808080'
+            , axisLabelFontSize: 9
+            , xlabel: params.plot.titles.x
+            , ylabel: params.plot.titles.y
+            , stepPlot: true
+            , starts: params.plot.cycleStartTimes
+            , plot: params.plot
+          
+            , interactionModel : {
+                  mousedown: downV3
+                , mousemove: moveV3
+                , mouseup: upV3
+                , click: clickV3
+                , dblclick: dblClickV4
+                , mousewheel: scrollV3
+                , DOMMouseScroll: scrollV3
+              }
+          
+            , highlightCallback: function(e, x, pts, row) {
+              
+                // notify sandbox
+                box.notify('cs-point-hover', {
+                  time: new Date(x)
+                });
+              }
+          
+            , drawCallback: function (me, initial) {
+                var range = me.xAxisRange()
+                  , yrange = me.yAxisRange()
+                ;
+                // notify sandbox
+                box.notify('cs-time-window-change', {
+                    range: range
+                  , plot: params.self
+                  , index: me.index
+                }, function (redraw) {
+                  // synch with other plots
+                  if (charts.length < me.of || blockRedraw)
+                    return;
+                  blockRedraw = true;
+                  for (var k = 0, lenk = charts.length; k < lenk; k++) {
+                    if (charts[k] == me || !charts[k].file_)
+                      continue;
+                    charts[k].updateOptions({
+                      dateWindow: range
+                    });
+                  }
+                  blockRedraw = false;
+                
+                  // update plots with new data
+                  if (redraw) {
+                    for (var j = 0, lenj = charts.length; j < lenj; j++) {
+                      var sen = box.visibleSensors[charts[j].sensor]
+                        , ser = sen.series[charts[j].key]
+                      ;
+                      charts[j].updateOptions({
+                          file: ser.dataPoints
+                        , starts: ser.cycleStartTimes
+                      });
+                    }
+                    params.self.hideLoading();
+                  }
+                });
+              }
+          });
+          return chart;
+        }
+      , bindRightClickMenu = function (self) {
+          $('canvas').contextMenu('context-menu-1', { 
+              // 'Add Plot Above': {
+              //   click: function (el) {
+              //     var i = el.itemID()
+              //       , chart = charts[i];
+              //     
+              //     // make a new dygraph
+              //     var newChart = makeChart({
+              //         points: chart.file_
+              //       , of: chart.of + 1
+              //       , index: chart.index - 1
+              //       , self: self
+              //       , key: chart.key
+              //       , colors: plotColors
+              //       , sensor: chart.sensor
+              //       , plot: chart.plot
+              //     });
+              //     
+              //     // collect it for later
+              //     if (i === 0)
+              //       charts.splice(i-1, 0, newChart);
+              //     else
+              //       charts.unshift(newChart);
+              //       
+              //     // update other charts
+              //     for (var j = 0, len = charts.length; j < len; j++) {
+              //       charts[j].updateOptions({
+              //           of: len
+              //         , index: j
+              //         , siblings: charts
+              //       });
+              //     }
+              //     
+              //     // resize container
+              //     self.resize();
+              //   }
+              // }
+              'Insert Plot Below...': {
+                click: function (el) {
+                  var i = el.itemID()
+                    , chart = charts[i];
+                  
+                  // make a new dygraph
+                  var newChart = makeChart({
+                      points: chart.file_
+                    , of: chart.of + 1
+                    , index: chart.index + 1
+                    , self: self
+                    , key: chart.key
+                    , colors: plotColors
+                    , sensor: chart.sensor
+                    , plot: chart.plot
+                  });
+                  
+                  // collect it for later
+                  charts.splice(i, 0, newChart);
+                  
+                  // update other charts
+                  for (var j = 0, len = charts.length; j < len; j++) {
+                    charts[j].updateOptions({
+                        of: len
+                      , index: j
+                      , siblings: charts
+                    });
+                  }
+                  
+                  // resize container
+                  self.resize();
+                }
+              }
+              , 'Delete': {
+                click: function (el) {
+                  var i = el.itemID();
+                  
+                  // kill it
+                  charts[i].destroy();
+                  
+                  // remove index in list
+                  charts.splice(i, 1);
+                  
+                  // update other charts
+                  for (var j = 0, len = charts.length; j < len; j++) {
+                    charts[j].updateOptions({
+                        of: len
+                      , index: j
+                    });
+                  }
+                  
+                  // resize container
+                  self.resize();
+                }
+              }
+            }
+            , {
+                showMenu: function() {}
+              , hideMenu: function() {}
+            }
+          );
+        }
     ;
 
     return {
@@ -520,6 +707,9 @@ ServiceGUI = (function ($) {
               , colors: plotColors
             });
           });
+          
+          // init right clicks
+          bindRightClickMenu(self);
         }
       , plot: function (desiredSeries, fn) {
           
@@ -554,87 +744,20 @@ ServiceGUI = (function ($) {
                     colors.push(plotColors[colorCnt]);
                   colorCnt++;
                   
-                  // add to charts
-                  charts.push(new Dygraph(wrap[0], points, {
-                      width: wrap.width()
-                    , height: (wrap.height() - (5 * (len - 1))) / len
-                    , index: i
+                  // make a new dygraph
+                  var chart = makeChart({
+                      points: points
                     , of: len
-                    , channels: box.availableChannels
+                    , index: i
+                    , self: self
                     , key: desiredSeries[i]
-                    , sensor: s
-                    , rightGap: 0
-                    , fillGraph: true
-                    , fillAlpha: 0.05
-                    , gridLineColor: 'rgba(255,255,255,0.25)'
                     , colors: colors
-                    , strokeWidth: 0.5
-                    , labels: plot.labels
-                    , axisLineColor: 'rgba(0,0,0,0)'
-                    , axisLabelColor: '#808080'
-                    , axisLabelFontSize: 9
-                    , xlabel: plot.titles.x
-                    , ylabel: plot.titles.y
-                    , stepPlot: true
-                    , starts: plot.cycleStartTimes
-                    
-                    , interactionModel : {
-                          mousedown: downV3
-                        , mousemove: moveV3
-                        , mouseup: upV3
-                        , click: clickV3
-                        , dblclick: dblClickV4
-                        , mousewheel: scrollV3
-                        , DOMMouseScroll: scrollV3
-                      }
-                    
-                    , highlightCallback: function(e, x, pts, row) {
-                        
-                        // notify sandbox
-                        box.notify('cs-point-hover', {
-                          time: new Date(x)
-                        });
-                      }
-                    
-                    , drawCallback: function (me, initial) {
-                        var range = me.xAxisRange()
-                          , yrange = me.yAxisRange()
-                        ;
-                        // notify sandbox
-                        box.notify('cs-time-window-change', {
-                            range: range
-                          , plot: self
-                          , index: me.index
-                        }, function (redraw) {
-                          // synch with other plots
-                          if (charts.length < len || blockRedraw)
-                            return;
-                          blockRedraw = true;
-                          for (var k = 0, lenk = charts.length; k < lenk; k++) {
-                            if (charts[k] == me || !charts[k].file_)
-                              continue;
-                            charts[k].updateOptions({
-                              dateWindow: range
-                            });
-                          }
-                          blockRedraw = false;
-                          
-                          // update plots with new data
-                          if (redraw) {
-                            for (var j = 0, lenj = charts.length; j < lenj; j++) {
-                              var sen = box.visibleSensors[charts[j].sensor]
-                                , ser = sen.series[charts[j].key]
-                              ;
-                              charts[j].updateOptions({
-                                  file: ser.dataPoints
-                                , starts: ser.cycleStartTimes
-                              });
-                            }
-                            self.hideLoading();
-                          }
-                        });
-                      }
-                  }));
+                    , sensor: s
+                    , plot: plot
+                  });
+                  
+                  // collect it for later
+                  charts.push(chart);
                 }
               }
             }
@@ -656,7 +779,7 @@ ServiceGUI = (function ($) {
           });
           
           // init color picker
-          $(".colors").miniColors({
+          $('.colors').miniColors({
             change: function(hex, rgb) {
               var $this = $(this)
                 , chart = charts[$this.itemID()]
@@ -668,11 +791,18 @@ ServiceGUI = (function ($) {
               });
             }
           });
+          // color in the squares
+          $('.miniColors-trigger').each(function (i) {
+            var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];
+            $(this).css({ backgroundColor: color });
+          });
           
           // callback
           fn();
         }
       , resize: function (wl, hl, wr, hr) {
+          var self = this;
+        
           if (!wr)
             wr = wrap.width();
           if (!hr)
@@ -686,6 +816,28 @@ ServiceGUI = (function ($) {
               fixedWidth: true
             , animDuration: 50
           });
+          
+          // init color picker
+          $('.colors').miniColors({
+            change: function(hex, rgb) {
+              var $this = $(this)
+                , chart = charts[$this.itemID()]
+              ;
+              
+              // update chart
+              chart.updateOptions({
+                colors: [hex]
+              });
+            }
+          });
+          // color in the squares
+          $('.miniColors-trigger').each(function (i) {
+            var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];
+            $(this).css({ backgroundColor: color });
+          });
+          
+          // init right clicks
+          bindRightClickMenu(self);
         }
       , update: function (time) {
           for (var i = 0, len = charts.length; i < len; i++) {
@@ -1060,7 +1212,7 @@ ServiceGUI = (function ($) {
           infoP.html(distanceTxt + '<br/>' + timeTxt).show();
           
           // offset time p
-          timeP.css({ top: parseInt(timeP.css('top')) + infoP.height() + 10 });
+          timeP.css({ top: parseInt(timeP.css('top')) + infoP.height() + 12 });
         }
       , hideInfo = function () {
           $('.map-info', wrap.parent()).hide();
@@ -1710,7 +1862,7 @@ ServiceGUI = (function ($) {
           
           
           // TMP -- open the first vehicle pane
-          $($('a.expander')[0]).click();
+          // $($('a.expander')[0]).click();
         }
       }
   }

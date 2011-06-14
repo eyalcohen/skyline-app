@@ -208,7 +208,7 @@ app.configure(function () {
   express.bodyParser.parse['application/octet-stream'] = Buffer;
   app.use(express.cookieParser());
   app.use(express.session({
-    cookie: { maxAge: 86400 * 1000 }, // one day 86400
+    cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
     secret: 'topsecretislandshit',
     store: new MongoStore({
       host: app.set('sessions-host'),

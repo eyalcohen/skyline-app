@@ -238,6 +238,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.key = attrs.key;
   this.channels = attrs.channels;
   this.sensor = attrs.sensor;
+  this.plot = attrs.plot
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
   // div, then only one will be drawn.
@@ -668,7 +669,6 @@ Dygraph.cancelEvent = function(e) {
  * @private
  */
 Dygraph.prototype.createInterface_ = function() {
-  
   // Create the all-enclosing graph div
   var enclosing = this.maindiv_;
   
@@ -689,6 +689,18 @@ Dygraph.prototype.createInterface_ = function() {
     this.graphDiv.appendChild(this.barDiv);
   }
   
+  // series div (holds selectbox and color picker)
+  this.seriesDiv = document.createElement("div");
+  this.seriesDiv.className = "dygraph-series-box " + "color-" + this.attr_('colors')[0];
+  this.graphDiv.appendChild(this.seriesDiv);
+  
+  // add color picker
+  this.colorInput = document.createElement("input");
+  this.colorInput.type = "hidden";
+  this.colorInput.className = "colors";
+  this.colorInput.id = "picker-" + this.index;
+  this.seriesDiv.appendChild(this.colorInput);
+  
   // add selectbox
   this.selectDiv = document.createElement("div");
   this.selectDiv.className = "dygraph-select";
@@ -701,7 +713,7 @@ Dygraph.prototype.createInterface_ = function() {
       for (var j = 0, len = this.channels[i].length; j < len; j++) {
         var o = document.createElement("option");
         o.value = this.channels[i][j];
-        o.text = this.channels[i][j];
+        o.text = this.channels[i][j].substr(0, 1).toUpperCase() + this.channels[i][j].substr(1);
         o.className = i;
         if (this.channels[i][j] === this.key) {
           o.selected = "selected";
@@ -712,15 +724,10 @@ Dygraph.prototype.createInterface_ = function() {
   }
 
   this.selectDiv.appendChild(select);
-  this.graphDiv.appendChild(this.selectDiv);
+  this.seriesDiv.appendChild(this.selectDiv);
 
 
-  // add color picker
-  this.colorInput = document.createElement("input");
-  this.colorInput.type = "hidden";
-  this.colorInput.className = "colors";
-  this.colorInput.id = "picker-" + this.index;
-  this.graphDiv.appendChild(this.colorInput);
+  
   
   // [swp]
   if (this.file_ === null) {
@@ -740,6 +747,7 @@ Dygraph.prototype.createInterface_ = function() {
   this.canvas_.height = this.height_;
   this.canvas_.style.width = this.width_ + "px";    // for IE
   this.canvas_.style.height = this.height_ + "px";  // for IE
+  this.canvas_.id = "canvas-" + this.index;
 
   this.canvas_ctx_ = Dygraph.getContext(this.canvas_);
 
@@ -793,8 +801,10 @@ Dygraph.prototype.destroy = function() {
       node.removeChild(node.firstChild);
     }
   };
-  removeRecursive(this.maindiv_);
-
+  // removeRecursive(this.maindiv_);
+  
+  this.maindiv_.removeChild(this.graphDiv);
+  
   var nullOut = function(obj) {
     for (var n in obj) {
       if (typeof(obj[n]) === 'object') {
@@ -963,7 +973,7 @@ Dygraph.prototype.createStatusMessage_ = function() {
     var messagestyle = {
       "position": "absolute",
       "fontSize": "10px",
-      "fontfamily": "monospace",
+      // "fontfamily": "monospace",
       "zIndex": 10,
       //"width": divWidth + "px",
       "top": "20px !important",
@@ -1906,7 +1916,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
       var timeWidth;
       if (gmti !== -1) {
         time = time.substr(0, gmti);
-        timeWidth = ctx.measureText(time).width + 8;
+        timeWidth = ctx.measureText(time).width + 10;
       } else {
         timeWidth = ctx.measureText(time).width + 24;
       }
@@ -4019,6 +4029,10 @@ Dygraph.prototype.updateOptions = function(attrs) {
   
   if ('sensor' in attrs) {
     this.sensor = attrs.sensor;
+  }
+  
+  if ('plot' in attrs) {
+    this.plot = attrs.plot;
   }
 
 };

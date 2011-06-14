@@ -571,7 +571,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
           //label.style.textAlign = "left";
         //}
         label.style.width = this.options.yAxisLabelWidth + "px";
-        label.style.fontFamily = "monospace";
+        // label.style.fontFamily = "monospace";
         this.container.appendChild(label);
         this.ylabels.push(label);
         
@@ -644,7 +644,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         
         label.style.left = left + "px";
         label.style.width = this.options.xAxisLabelWidth + "px";
-        label.style.fontFamily = "monospace";
+        // label.style.fontFamily = "monospace";
         this.container.appendChild(label);
         this.xlabels.push(label);
         
