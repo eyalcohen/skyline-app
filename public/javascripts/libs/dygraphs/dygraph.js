@@ -49,7 +49,7 @@
  * @param {Object} attrs Various other attributes, e.g. errorBars determines
  * whether the input data contains error ranges.
  */
-Dygraph = function(div, data, opts) {
+Dygraph = function(div, data, opts) {  
   if (arguments.length > 0) {
     if (arguments.length == 4) {
       // Old versions of dygraphs took in the series labels as a constructor
@@ -218,6 +218,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.file_ = file;
   this.rollPeriod_ = attrs.rollPeriod || Dygraph.DEFAULT_ROLL_PERIOD;
   this.previousVerticalX_ = -1;
+  this.previousCrossHairX_ = -1;
   this.previousVerticalY_ = [];
   this.previousRects_ = [];
   this.fractions_ = attrs.fractions || false;
@@ -234,11 +235,14 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.index = attrs.index;
   this.of = attrs.of;
   this.starts = attrs.starts;
+  this.key = attrs.key;
+  this.channels = attrs.channels;
+  this.sensor = attrs.sensor;
+  this.plot = attrs.plot
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
   // div, then only one will be drawn.
   //div.innerHTML = "";
-
   // If the div isn't already sized then inherit from our attrs or
   // give it a default size.
   if (div.style.width == '') {
@@ -290,7 +294,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
 
   // Make a note of whether labels will be pulled from the CSV file.
   this.labelsFromCSV_ = (this.attr_("labels") == null);
-
+  
   // Create the containing DIV and other interactive elements
   this.createInterface_();
 
@@ -396,6 +400,8 @@ Dygraph.prototype.xAxisRange = function() {
  * data set.
  */
 Dygraph.prototype.xAxisExtremes = function() {
+  if (!this.file_)
+    return null;
   var left = this.rawData_[0][0];
   var right = this.rawData_[this.rawData_.length - 1][0];
   return [left, right];
@@ -409,7 +415,7 @@ Dygraph.prototype.xAxisExtremes = function() {
  */
 Dygraph.prototype.yAxisRange = function(idx) {
   if (typeof(idx) == "undefined") idx = 0;
-  if (idx < 0 || idx >= this.axes_.length) return null;
+  if (idx < 0 || idx >= this.axes_.length || !this.file_) return null;
   return [ this.axes_[idx].computedValueRange[0],
            this.axes_[idx].computedValueRange[1] ];
 };
@@ -665,13 +671,74 @@ Dygraph.cancelEvent = function(e) {
 Dygraph.prototype.createInterface_ = function() {
   // Create the all-enclosing graph div
   var enclosing = this.maindiv_;
-
+  
+  try { enclosing.removeChild(this.graphDiv); } catch (e) {}
+  
   this.graphDiv = document.createElement("div");
   this.graphDiv.style.width = this.width_ + "px";
   this.graphDiv.style.height = this.height_ + "px";
   this.graphDiv.className = "dygraph";
-  this.graphDiv.style.top = (this.height_ * this.index) + 9 + "px";
+  this.graphDiv.style.top = ((this.height_ + 5) * this.index) + 9 + "px";
   enclosing.appendChild(this.graphDiv);
+  
+  if (this.index !== 0) {
+    this.barDiv = document.createElement("div");
+    this.barDiv.className = "dygraph-bar";
+    this.barDiv.style.width = this.width_ + "px";
+    this.barDiv.style.top = "-5px";
+    this.graphDiv.appendChild(this.barDiv);
+  }
+  
+  // series div (holds selectbox and color picker)
+  this.seriesDiv = document.createElement("div");
+  this.seriesDiv.className = "dygraph-series-box " + "color-" + this.attr_('colors')[0];
+  this.graphDiv.appendChild(this.seriesDiv);
+  
+  // add color picker
+  this.colorInput = document.createElement("input");
+  this.colorInput.type = "hidden";
+  this.colorInput.className = "colors";
+  this.colorInput.id = "picker-" + this.index;
+  this.seriesDiv.appendChild(this.colorInput);
+  
+  // add selectbox
+  this.selectDiv = document.createElement("div");
+  this.selectDiv.className = "dygraph-select";
+  this.selectDiv.id = "selector-" + this.index;
+  var select = document.createElement("select");
+  select.className = "round_sb";
+  
+  for (var i in this.channels) {
+    if (this.channels.hasOwnProperty(i)) {
+      for (var j = 0, len = this.channels[i].length; j < len; j++) {
+        var o = document.createElement("option");
+        o.value = this.channels[i][j];
+        o.text = this.channels[i][j].substr(0, 1).toUpperCase() + this.channels[i][j].substr(1);
+        o.className = i;
+        if (this.channels[i][j] === this.key) {
+          o.selected = "selected";
+        }
+        select.appendChild(o);
+      }
+    }
+  }
+
+  this.selectDiv.appendChild(select);
+  this.seriesDiv.appendChild(this.selectDiv);
+
+
+  
+  
+  // [swp]
+  if (this.file_ === null) {
+    this.emptyDiv = document.createElement("p");
+    this.emptyDiv.appendChild(document.createTextNode("This channel is empty"));
+    this.emptyDiv.style.width = this.width_ + "px";
+    this.emptyDiv.style.height = this.height_ + "px";
+    this.emptyDiv.className = "dygraph empty-dygraph";
+    this.emptyDiv.style.top = ((this.height_ + 5) * this.index) + 9 + "px";
+    this.graphDiv.appendChild(this.emptyDiv);
+  }
 
   // Create the canvas for interactive parts of the chart.
   this.canvas_ = Dygraph.createCanvas();
@@ -680,6 +747,7 @@ Dygraph.prototype.createInterface_ = function() {
   this.canvas_.height = this.height_;
   this.canvas_.style.width = this.width_ + "px";    // for IE
   this.canvas_.style.height = this.height_ + "px";  // for IE
+  this.canvas_.id = "canvas-" + this.index;
 
   this.canvas_ctx_ = Dygraph.getContext(this.canvas_);
 
@@ -733,8 +801,10 @@ Dygraph.prototype.destroy = function() {
       node.removeChild(node.firstChild);
     }
   };
-  removeRecursive(this.maindiv_);
-
+  // removeRecursive(this.maindiv_);
+  
+  this.maindiv_.removeChild(this.graphDiv);
+  
   var nullOut = function(obj) {
     for (var n in obj) {
       if (typeof(obj[n]) === 'object') {
@@ -903,7 +973,7 @@ Dygraph.prototype.createStatusMessage_ = function() {
     var messagestyle = {
       "position": "absolute",
       "fontSize": "10px",
-      "fontfamily": "monospace",
+      // "fontfamily": "monospace",
       "zIndex": 10,
       //"width": divWidth + "px",
       "top": "20px !important",
@@ -1014,8 +1084,11 @@ Dygraph.prototype.dragGetY_ = function(e, context) {
 // panning behavior.
 //
 Dygraph.startPan = function(event, g, context) {
+  //if (!this.file_) return;
   context.isPanning = true;
   var xRange = g.xAxisRange();
+  if (!xRange)
+    return;
   context.dateRange = xRange[1] - xRange[0];
   context.initialLeftmostDate = xRange[0];
   context.xUnitsPerPixel = context.dateRange / (g.plotter_.area.w - 1);
@@ -1172,7 +1245,7 @@ Dygraph.startZoom = function(event, g, context) {
 // Custom interaction model builders can use it to provide the default
 // zooming behavior.
 //
-Dygraph.moveZoom = function(event, g, context) {
+Dygraph.moveZoom = function(event, g, context, src) {
   context.dragEndX = g.dragGetX_(event, context);
   context.dragEndY = g.dragGetY_(event, context);
 
@@ -1181,6 +1254,8 @@ Dygraph.moveZoom = function(event, g, context) {
 
   // drag direction threshold for y axis is twice as large as x axis
   context.dragDirection = (xDelta < yDelta / 2) ? Dygraph.VERTICAL : Dygraph.HORIZONTAL;
+
+  if (context.dragDirection === Dygraph.VERTICAL && g !== src) return;
 
   g.drawZoomRect_(
       context.dragDirection,
@@ -1560,13 +1635,20 @@ Dygraph.prototype.doUnzoom_ = function() {
  * @param {Object} event The mousemove event from the browser.
  * @private
  */
-Dygraph.prototype.mouseMove_ = function(event) {
+Dygraph.prototype.mouseMove_ = function(event, external) {
+  
+  // invoke same action for sibling plots too
+  for (var i = 0, len = this.siblings.length; i < len; i++) {
+    if (this.siblings[i] !== this && !external) {
+      this.siblings[i].mouseMove_(event, true);
+    }
+  }
   // This prevents JS errors when mousing over the canvas before data loads.
   var points = this.layout_.points;
   if (points === undefined) return;
 
   var canvasx = Dygraph.pageX(event) - Dygraph.findPosX(this.mouseEventElement_);
-
+  
   var lastx = -1;
   var lasty = -1;
 
@@ -1623,6 +1705,70 @@ Dygraph.prototype.mouseMove_ = function(event) {
 
   this.updateSelection_(event);
 };
+
+
+/**
+ * When the mouse moves in the canvas, display information about a nearby data
+ * point and draw dots over those points in the data series. This function
+ * takes care of cleanup of previously-drawn dots.
+ * @param {Object} event The mousemove event from the browser.
+ * @private
+ */
+Dygraph.prototype.highlight_ = function(time) {
+  
+  // This prevents JS errors when mousing over the canvas before data loads.
+  var points = this.layout_.points;
+  if (points === undefined) return;
+  
+  var lastx = -1;
+  var lasty = -1;
+
+  // Loop through all the points and find the date nearest to our current
+  // location.
+  var minDist = 1e+100;
+  var idx = -1;
+  for (var i = 0, len = points.length; i < len; i++) {
+    var point = points[i];
+    if (point == null) continue;
+    var dist = Math.abs(point.xval - time);
+    if (dist > minDist) continue;
+    minDist = dist;
+    idx = i;
+  }
+  if (idx >= 0) lastx = points[idx].xval;
+
+  // Extract the points we've selected
+  this.selPoints_ = [];
+  var l = points.length;
+  if (!this.attr_("stackedGraph")) {
+    for (var i = 0; i < l; i++) {
+      if (points[i].xval == lastx) {
+        this.selPoints_.push(points[i]);
+      }
+    }
+  } else {
+    // Need to 'unstack' points starting from the bottom
+    var cumulative_sum = 0;
+    for (var i = l - 1; i >= 0; i--) {
+      if (points[i].xval == lastx) {
+        var p = {};  // Clone the point since we modify it
+        for (var k in points[i]) {
+          p[k] = points[i][k];
+        }
+        p.yval -= cumulative_sum;
+        cumulative_sum += p.yval;
+        this.selPoints_.push(p);
+      }
+    }
+    this.selPoints_.reverse();
+  }
+
+  // Save last x position for callbacks.
+  this.lastx_ = lastx;
+  
+  this.updateSelection_({ x: this.selPoints_[0].canvasx, y: this.selPoints_[0].canvasy });
+};
+
 
 /**
  * Transforms layout_.points index into data row number.
@@ -1707,6 +1853,9 @@ Dygraph.prototype.setLegendHTML_ = function(x, sel_points) {
  * @private
  */
 Dygraph.prototype.updateSelection_ = function(event) {
+  
+  var fromMap = !(event instanceof MouseEvent);
+  
   // Clear the previously drawn vertical, if there is one
   var ctx = this.canvas_ctx_;
   if (this.previousVerticalX_ >= -1) {
@@ -1729,6 +1878,9 @@ Dygraph.prototype.updateSelection_ = function(event) {
     }
     this.previousVerticalY_ = [];
   }
+  
+  // clear vertical crosshair
+  ctx.clearRect(this.previousCrossHairX_ - 1, 0, this.previousCrossHairX_ + 1, this.height_);
   
   // Clear rects
   if (this.previousRects_.length > 0) {
@@ -1753,56 +1905,74 @@ Dygraph.prototype.updateSelection_ = function(event) {
       var canvasx = this.selPoints_[0].canvasx;
       ctx.save();
       
-      // save mouse y
-      var my = crisper(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv));
+      // save mouse
+      var mx = !fromMap ? crisper(Dygraph.pageX(event) - Dygraph.findPosX(this.graphDiv)) : crisper(event.x);
+      var my = !fromMap ? crisper(Dygraph.pageY(event) - Dygraph.findPosY(this.graphDiv)) : crisper(event.y);
       
       // make text for tooltips
       var allText = [];
       var time = (new Date(this.selPoints_[0].xval)).toLocaleString();
-      time = time.substr(0, time.indexOf(' GMT'));
-      var timeWidth = ctx.measureText(time).width + 8;
-      
+      var gmti = time.indexOf(' GMT');
+      var timeWidth;
+      if (gmti !== -1) {
+        time = time.substr(0, gmti);
+        timeWidth = ctx.measureText(time).width + 10;
+      } else {
+        timeWidth = ctx.measureText(time).width + 24;
+      }
+
       // draw time box
       // TODO: make this not crappy
       var tp;
-      if (my < 40) {
-        if (canvasx + 5 + timeWidth + 20 > this.width_) {
-          tp = [
-            { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4) },
-            { x: crisper(canvasx - 5), y: crisper(my + 4) }
-          ];
-          allText.push([ time, tp[1].x + 5, tp[3].y + 11 ]);
+      if (fromMap && this.index === 0) {
+        // tp = [
+        //   { x: crisper(75 + 5), y: crisper(60 - 6 - 17) },
+        //   { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6 - 17) },
+        //   { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6) },
+        //   { x: crisper(75 + 5), y: crisper(60 - 6) }
+        // ];
+        // allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+      } else if (!fromMap) {
+        if (my < 40 && this.index === 0) {
+          if (canvasx + 5 + timeWidth + 20 > this.width_) {
+            tp = [
+              { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4) },
+              { x: crisper(canvasx - 5), y: crisper(my + 4) }
+            ];
+            allText.push([ time, tp[1].x + 5, tp[3].y + 11 ]);
+          } else {
+            tp = [
+              { x: crisper(canvasx + 5), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4 + 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4) },
+              { x: crisper(canvasx + 5), y: crisper(my + 4) }
+            ];
+            allText.push([ time, tp[3].x + 5, tp[3].y + 11 ]);
+          }
         } else {
-          tp = [
-            { x: crisper(canvasx + 5), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4 + 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4) },
-            { x: crisper(canvasx + 5), y: crisper(my + 4) }
-          ];
-          allText.push([ time, tp[3].x + 5, tp[3].y + 11 ]);
-        }
-      } else {
-        if (canvasx + 5 + timeWidth + 20 > this.width_) {
-          tp = [
-            { x: crisper(canvasx - 5), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6) },
-            { x: crisper(canvasx - 5), y: crisper(my - 6) }
-          ];
-          allText.push([ time, tp[1].x + 5, tp[3].y - 6 ]);
-        } else {
-          tp = [
-            { x: crisper(canvasx + 5), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6 - 17) },
-            { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6) },
-            { x: crisper(canvasx + 5), y: crisper(my - 6) }
-          ];
-          allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+          if (canvasx + 5 + timeWidth + 20 > this.width_) {
+            tp = [
+              { x: crisper(canvasx - 5), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6) },
+              { x: crisper(canvasx - 5), y: crisper(my - 6) }
+            ];
+            allText.push([ time, tp[1].x + 5, tp[3].y - 6 ]);
+          } else {
+            tp = [
+              { x: crisper(canvasx + 5), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6 - 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6) },
+              { x: crisper(canvasx + 5), y: crisper(my - 6) }
+            ];
+            allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+          }
         }
       }
-      this.previousRects_.push(tp);
+      if (tp)
+        this.previousRects_.push(tp);
       
       // loop over hovered points
       for (var i = 0; i < this.selPoints_.length; i++) {
@@ -1862,9 +2032,9 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.strokeStyle = 'rgba(255,255,255,0.5)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
-      var cx = crisper(canvasx);
-      ctx.moveTo(cx, 0);
-      ctx.lineTo(cx, this.height_);
+      //var cx = crisper(canvasx);
+      ctx.moveTo(mx, 0);
+      ctx.lineTo(mx, this.height_);
       
       // draw mouse pos as y-crosshair
       ctx.moveTo(0, my);
@@ -1929,6 +2099,8 @@ Dygraph.prototype.updateSelection_ = function(event) {
       ctx.restore();
       
       this.previousVerticalX_ = canvasx;
+      
+      this.previousCrossHairX_ = mx;
     }
   }
   
@@ -2053,13 +2225,20 @@ Dygraph.prototype.setSelection = function(row) {
  * @param {Object} event the mouseout event from the browser.
  * @private
  */
-Dygraph.prototype.mouseOut_ = function(event) {
+Dygraph.prototype.mouseOut_ = function(event, external) {
   if (this.attr_("unhighlightCallback")) {
     this.attr_("unhighlightCallback")(event);
   }
 
   if (this.attr_("hideOverlayOnMouseOut")) {
     this.clearSelection();
+    
+    // invoke same action for sibling plots too
+    for (var i = 0, len = this.siblings.length; i < len; i++) {
+      if (this.siblings[i] !== this && !external) {
+        this.siblings[i].mouseOut_(event, true);
+      }
+    }
   }
 };
 
@@ -2269,7 +2448,7 @@ Dygraph.prototype.addXTicks_ = function() {
   } else {
     range = [this.rawData_[0][0], this.rawData_[this.rawData_.length - 1][0]];
   }
-
+  
   var xTicks = this.attr_('xTicker')(range[0], range[1], this);
   this.layout_.updateOptions({xTicks: xTicks});
 };
@@ -2383,7 +2562,7 @@ Dygraph.prototype.GetXAxis = function(start_time, end_time, granularity) {
       }
     }
     start_time = d.getTime();
-
+    
     for (var t = start_time; t <= end_time; t += spacing) {
       ticks.push({ v:t, label: formatter(new Date(t), granularity) });
     }
@@ -2743,7 +2922,9 @@ Dygraph.prototype.predraw_ = function() {
  */
 Dygraph.prototype.drawGraph_ = function() {
   var data = this.rawData_;
-
+  
+  if (!data)
+    return;
   // This is used to set the second parameter to drawCallback, below.
   var is_initial_draw = this.is_initial_draw_;
   this.is_initial_draw_ = false;
@@ -3524,7 +3705,6 @@ Dygraph.prototype.parseArray_ = function(data) {
     this.attrs_.xValueFormatter = Dygraph.dateString_;
     this.attrs_.xAxisLabelFormatter = Dygraph.dateAxisFormatter;
     this.attrs_.xTicker = Dygraph.dateTicker;
-
     // Assume they're all dates.
     var parsedData = data;//Dygraph.clone(data);
     for (var i = 0; i < data.length; i++) {
@@ -3532,11 +3712,14 @@ Dygraph.prototype.parseArray_ = function(data) {
         this.error("Row " + (1 + i) + " of data is empty");
         return null;
       }
-      if (parsedData[i][0] == null
-          || typeof(parsedData[i][0].getTime) != 'function'
-          || isNaN(parsedData[i][0].getTime())) {
-        this.error("x value in row " + (1 + i) + " is not a Date");
-        return null;
+      // if (parsedData[i][0] == null
+      //     || typeof(parsedData[i][0].getTime) != 'function'
+      //     || isNaN(parsedData[i][0].getTime())) {
+      //   this.error("x value in row " + (1 + i) + " is not a Date");
+      //   return null;
+      // }
+      if ('number' === typeof data[i][0]) {
+        data[i][0] = new Date(data[i][0]);
       }
       parsedData[i][0] = parsedData[i][0].getTime();
     }
@@ -3709,6 +3892,8 @@ Dygraph.isArrayLike = function (o) {
 };
 
 Dygraph.isDateLike = function (o) {
+  // TMP 
+  return true;
   if (typeof(o) != "object" || o === null ||
       typeof(o.getTime) != 'function') {
     return false;
@@ -3736,7 +3921,10 @@ Dygraph.clone = function(o) {
  * @private
  */
 Dygraph.prototype.start_ = function() {
-  if (typeof this.file_ == 'function') {
+  if (this.file_ === null) {
+    // no data
+    this.error("Unknown data format: " + (typeof this.file_));
+  } else if (typeof this.file_ == 'function') {
     // CSV string. Pretend we got it via XHR.
     this.loadedEvent_(this.file_());
   } else if (Dygraph.isArrayLike(this.file_)) {
@@ -3826,6 +4014,27 @@ Dygraph.prototype.updateOptions = function(attrs) {
   if ('of' in attrs) {
     this.of = attrs.of;
   }
+  
+  if ('siblings' in attrs) {
+    this.siblings = attrs.siblings;
+  }
+  
+  if ('key' in attrs) {
+    this.key = attrs.key;
+  }
+  
+  if ('channels' in attrs) {
+    this.channels = attrs.channels;
+  }
+  
+  if ('sensor' in attrs) {
+    this.sensor = attrs.sensor;
+  }
+  
+  if ('plot' in attrs) {
+    this.plot = attrs.plot;
+  }
+
 };
 
 /**
@@ -3852,7 +4061,7 @@ Dygraph.prototype.resize = function(width, height) {
   }
 
   // TODO(danvk): there should be a clear() method.
-  this.maindiv_.innerHTML = "";
+  //this.maindiv_.innerHTML = "";
   this.attrs_.labelsDiv = null;
 
   if (width) {
@@ -3863,6 +4072,7 @@ Dygraph.prototype.resize = function(width, height) {
   } else {
     this.width_ = this.maindiv_.offsetWidth;
     this.height_ = this.maindiv_.offsetHeight;
+    //this.height_ = (wrap.height() - (9 * (len - 1))) / len;
   }
 
   this.createInterface_();
@@ -3890,8 +4100,10 @@ Dygraph.prototype.visibility = function() {
   if (!this.attr_("visibility")) {
     this.attrs_["visibility"] = [];
   }
-  while (this.attr_("visibility").length < this.rawData_[0].length - 1) {
-    this.attr_("visibility").push(true);
+  if (this.rawData_) {
+    while (this.attr_("visibility").length < this.rawData_[0].length - 1) {
+      this.attr_("visibility").push(true);
+    }
   }
   return this.attr_("visibility");
 };

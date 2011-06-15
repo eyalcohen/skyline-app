@@ -13,7 +13,6 @@ var express = require('express')
   , csv = require('csv')
   , parser = require('mongoose/support/node-mongodb-native/lib/mongodb').BinaryParser
   , EventID = require('./customids').EventID
-  , data = require('./data')
   , models = require('./models')
   , db
   , User
@@ -87,39 +86,13 @@ function authenticateFromLoginToken(req, res, next) {
 
 
 /**
- * Finds all vehicles.
- */
-
-
-function findVehicles(next) {
-  Vehicle.find({}, [], { limit: 100 }).run(function (err, vehs) {
-    var num = vehs.length
-      , cnt = 0
-    ;
-    if (num > 0) {
-      vehs.forEach(function (veh) {
-        User.findById(veh.user_id, function (err, usr) {
-          veh.user = usr;
-          cnt++;
-          if (cnt == num) {
-            next(vehs);
-          }
-        });
-      });
-    } else {
-      next([]);
-    }
-  });
-}
-
-
-/**
- * Gets all vehicles owned by user.
+ * Gets all vehicles owned by user or all if user is null.
  */
 
 
 function findVehiclesByUser(user, next) {
-  Vehicle.find({ user_id: user._id }).sort('created', -1).run(function (err, vehs) {
+  var filter = user ? { user_id: user._id } : {};
+  Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
     if (!err) {
       next(vehs);
     } else {
@@ -152,19 +125,19 @@ function findVehicleByIntId(id, next) {
 
 
 function findVehicleCycles(id, from, to, next) {
-  if ('function' == typeof from) {
+  if ('function' === typeof from) {
     next = from;
     from = 0;
     to = (new Date()).getTime();
-  } else if ('function' == typeof to) {
+  } else if ('function' === typeof to) {
     next = to;
     to = (new Date()).getTime();
   }
-  from = from == 0 ? id : new EventID({ id: id.vehicleId, time: (new Date(from)).getTime() });
+  from = from === 0 ? id : new EventID({ id: id.vehicleId, time: (new Date(from)).getTime() });
   to = new EventID({ id: id.vehicleId, time: to });
   EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: [ '_id', 'bounds' ] }, function (err, cursor) {
     cursor.toArray(function (err, bucks) {
-      if (err || !bucks || bucks.length == 0) {
+      if (err || !bucks || bucks.length === 0) {
         next([]);
       } else {
         next(bucks);
@@ -182,6 +155,16 @@ function findVehicleCycles(id, from, to, next) {
 function getCycle(id, next) {
   EventBucket.findById(id, function (err, data) {
     if (!err && data) {
+      var events = []
+        , len = data.events.length
+        , every = len > 1000 ? Math.round(len / 2000) : 1
+      ;
+      for (var i = 0; i < len; i++) {
+        if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
+          events.push(data.events[i]);
+        }
+      }
+      data.events = events;
       next(data);
     } else {
       next(null);
@@ -225,8 +208,8 @@ app.configure(function () {
   express.bodyParser.parse['application/octet-stream'] = Buffer;
   app.use(express.cookieParser());
   app.use(express.session({
-    cookie: { maxAge: 86400 * 1000 }, // one day 86400
-    secret: 'topsecretislandshit',
+    cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
+    secret: 'topsecretmission',
     store: new MongoStore({
       host: app.set('sessions-host'),
       port: app.set('sessions-port'),
@@ -313,29 +296,43 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', loadUser, function (req, res) {
-  findVehicles(function (vehs) {
+  var filterUser = req.currentUser.role === 'admin' ? null : req.currentUser;
+  findVehiclesByUser(filterUser, function (vehs) {
     var vehicles = []
       , num = vehs.length
       , cnt = 0
     ;
-    vehs.forEach(function (v) {
-      findVehicleCycles(v._id, function (bucks) {
-        if (bucks.length > 0) {
-          v.events = bucks;
-          vehicles.push(v);
-        }
-        cnt++;
-        if (cnt == num) {
-          vehicles.sort(function (a, b) {
-            return b[b.length - 1]._id.time - a[a.length - 1]._id.time;
-          });
-          res.render('index', {
-              data: vehicles
-            , user: req.currentUser
-          });
-        }
+    if (num > 0) {
+      vehs.forEach(function (v) {
+        findVehicleCycles(v._id, function (bucks) {
+          var numBucks = bucks.length;
+          if (numBucks > 0) {
+            v.lastSeen = parseInt(bucks[numBucks - 1].bounds.stop);
+            vehicles.push(v);
+          }
+          cnt++;
+          if (cnt === num) {
+            vehicles.sort(function (a, b) {
+              return b.lastSeen - a.lastSeen;
+            });
+            if (vehicles.length > 0) {
+              res.render('index', {
+                  data: vehicles
+                , user: req.currentUser
+              });
+            } else {
+              res.render('empty', {
+                user: req.currentUser
+              });
+            }
+          }
+        });
       });
-    });
+    } else {
+      res.render('empty', {
+        user: req.currentUser
+      });
+    }
   });
 });
 
@@ -368,14 +365,39 @@ app.get('/v/:vid', function (req, res) {
   // get all vehicle events (handle only)
   findVehicleCycles(req.vehicle._id, function (bucks) {
     if (bucks.length > 0) {
-      // get only the latest event's data
-      var latest = bucks[bucks.length - 1];
-      getCycle(latest._id, function (cyc) {
-        bucks[bucks.length - 1] = cyc;
-        res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
-      });
+      // get only the latest cycle's data
+      var events = []
+        , buckIndex = bucks.length - 1
+      ;
+      (function fillEvents() {
+        getCycle(bucks[buckIndex]._id, function (cyc) {
+          if (cyc) {
+            // TMP: use SENSOR_GPS latitude to determine of this cycle is "valid"
+            var validCnt = 0;
+            for (var i = 0, len = cyc.events.length; i < len; i++) {
+              if (cyc.events[i].header.source === 'SENSOR_GPS' && 'location' in cyc.events[i]) {
+                validCnt++;
+              }
+            }
+            if (validCnt < 20) {
+              bucks.pop();
+              buckIndex--;
+              if (buckIndex !== -1) {
+                fillEvents();
+              } else {
+                res.send({ status: 'fail', data: { code: 'NO_CYCLE_EVENTS' } });
+              }
+            } else {
+              bucks[buckIndex] = cyc;
+              res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+            }
+          } else {
+            res.send({ status: 'fail', data: { code: 'NO_CYCLE_EVENTS' } });
+          }
+        });
+      })();
     } else {
-      res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+      res.send({ status: 'fail', data: { code: 'NO_VEHICLE_CYCLES' } });
     }
   });
 });
@@ -392,10 +414,21 @@ app.get('/cycles', function (req, res) {
     ;
     cycleIds.forEach(function (id) {
       getCycle(id, function (cyc) {
-        events[cyc._id] = cyc.events;
-        cnt++;
-        if (num == cnt) {
-          res.send({ status: 'success', data: { events: events } });
+        if (cyc) {
+          // TMP: use SENSOR_GPS latitude to determine of this cycle is "valid"
+          var validCnt = 0;
+          for (var i = 0, len = cyc.events.length; i < len; i++) {
+            if (cyc.events[i].header.source === 'SENSOR_GPS' && 'location' in cyc.events[i]) {
+              validCnt++;
+            }
+          }
+          events[cyc._id] = validCnt < 20 ? null : cyc.events;
+          cnt++;
+          if (num === cnt) {
+            res.send({ status: 'success', data: { events: events } });
+          }
+        } else {
+          res.send({ status: 'fail', data: { code: 'NO_VEHICLE_CYCLES' } });
         }
       });
     });
@@ -521,7 +554,7 @@ app.get('/userinfo/:email', function (req, res) {
 // Handle vehicle info request
 
 app.get('/summary/:email/:vintid', function (req, res) {
-  if (req.vehicle.user_id.toHexString() == req.currentUser._id.toHexString()) {
+  if (req.vehicle.user_id.toHexString() === req.currentUser._id.toHexString()) {
     jade.renderFile(path.join(__dirname, 'views', 'summary.jade'), { locals: { user: req.currentUser } }, function (err, body) {
       if (!err) {
         res.send(body);
@@ -544,14 +577,50 @@ app.put('/cycle', function (req, res) {
     , num = cycle.events.length
     , cnt = 0
   ;
-  
+
   // authenticate user
   User.findOne({ email: cycle.userId }, function (err, usr) {
     if (usr) {
-      if (usr.authenticate(req.body.password)) {
+      if (usr.authenticate(cycle.password)) {
         findVehicleByIntId(cycle.vehicleId, function (veh) {
           if (veh) {
-            handleEvents(veh);
+            cycle.events.forEach(function (event) {
+              // TMP: use SENSOR_GPS to determine of this cycle is "valid"
+              var validCnt = 0;
+              if (!event.events) {
+                console.log('************ EMPTY EVENTS ************');
+                console.log('VEHICLE: ' + cycle.vehicleId);
+                console.log('USER: ' + cycle.userId);
+                console.log('EVENTSTREAM:');
+                for (var i in event) {
+                  if (event.hasOwnProperty(i)) {
+                    console.log(i + ':');
+                    console.log(event[i]);
+                  }
+                }
+                console.log('**************************************');
+                res.end();
+                return;
+              }
+              for (var i = 0, len = event.events.length; i < len; i++) {
+                if (event.events[i].header.source === 'SENSOR_GPS' && 'location' in event.events[i]) {
+                  validCnt++;
+                }
+              }
+              event.valid = validCnt < 20;
+              event.bounds = {
+                  start: event.events[0].header.startTime
+                , stop: event.events[0].header.stopTime
+              };
+              event._id = new EventID({ id: veh._id.vehicleId, time: event.events[0].header.startTime });
+              var bucket = new EventBucket(event);
+              bucket.save(function (err) {
+                cnt++;
+                if (cnt === num) {
+                  res.end();
+                }
+              });
+            });
           } else {
             res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
           }
@@ -566,20 +635,7 @@ app.put('/cycle', function (req, res) {
   
   // add to db
   function handleEvents(v) {
-    cycle.events.forEach(function (event) {
-      event.bounds = {
-          start: event.events[0].header.startTime
-        , stop: event.events[0].header.stopTime
-      };
-      event._id = new EventID({ id: v._id.vehicleId, time: event.events[0].header.startTime });
-      var bucket = new EventBucket(event);
-      bucket.save(function (err) {
-        cnt++;
-        if (cnt == num) {
-          res.end();
-        }
-      });
-    });
+    
   }
 });
 
@@ -592,3 +648,28 @@ if (!module.parent) {
   console.log("Express server listening on port %d", app.address().port);
 }
 
+
+// TMP: add "valid" key to cycles
+// EventBucket.collection.find({ _id: { $gt: new EventID(000000000000) } }, { sort: '_id', fields: [ '_id', 'bounds', 'events' ] }, function (err, cursor) {
+//   cursor.toArray(function (err, bucks) {
+//     console.log(err, bucks.length);
+//     if (!err && bucks && bucks.length !== 0) {
+//       for (var i = 0, leni = bucks.length; i < leni; i++) {
+//         var b = bucks[i]
+//           , validCnt = 0
+//         ;
+//         for (var j = 0, lenj = b.events.length; j < lenj; j++) {
+//           if (b.events[j].header.source === 'SENSOR_GPS'  && 'location' in b.events[j]) {
+//             validCnt++;
+//           }
+//         }
+//         var valid = validCnt < 20;
+//         EventBucket.collection.findAndModify({ _id: b._id }, [['_id','asc']], {$set: { valid: valid }}, {}, function(err, object) {
+//           if (err) {
+//             console.warn(err.message);
+//           }
+//         });
+//       }
+//     }
+//   });
+// });

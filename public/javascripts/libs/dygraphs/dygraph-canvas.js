@@ -161,7 +161,7 @@ DygraphLayout.prototype._evaluateLineTicks = function() {
       this.xticks.push([pos, label]);
     }
   }
-
+  
   this.yticks = new Array();
   for (var i = 0; i < this.options.yAxes.length; i++ ) {
     var axis = this.options.yAxes[i];
@@ -571,7 +571,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
           //label.style.textAlign = "left";
         //}
         label.style.width = this.options.yAxisLabelWidth + "px";
-        label.style.fontFamily = "monospace";
+        // label.style.fontFamily = "monospace";
         this.container.appendChild(label);
         this.ylabels.push(label);
         
@@ -632,9 +632,9 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         label.style.textAlign = "left";
         label.style.top = (y + this.options.axisTickSize - 15) + 'px';
         
-        var left = x + 2; //(x - this.options.axisLabelWidth/2);
+        var left = x + 4; //(x - this.options.axisLabelWidth/2);
         if (left + this.options.axisLabelWidth > this.width) {
-          left -= this.options.xAxisLabelWidth + 2; //this.width - this.options.xAxisLabelWidth;
+          left -= this.options.xAxisLabelWidth + 4; //this.width - this.options.xAxisLabelWidth;
           label.style.textAlign = "right";
         }
         if (left < 0) {
@@ -644,7 +644,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         
         label.style.left = left + "px";
         label.style.width = this.options.xAxisLabelWidth + "px";
-        label.style.fontFamily = "monospace";
+        // label.style.fontFamily = "monospace";
         this.container.appendChild(label);
         this.xlabels.push(label);
         
@@ -725,7 +725,7 @@ DygraphCanvasRenderer.prototype._renderChartLabels = function() {
     // TODO(danvk): is this outer div actually necessary?
     var div = document.createElement("div");
     div.style.position = 'absolute';
-    div.style.left = box.left + 20 + 'px';
+    div.style.left = box.left + 40 + 'px';
     div.style.top = box.top + 'px';
     div.style.width = box.width + 'px';
     div.style.height = box.height + 'px';
@@ -1000,19 +1000,15 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
             prevX = NaN;
             continue;
           }
-          
+
           // [swp] check for endpoints to seperate drawing objects
           for (var k = 0, lenk = this.dygraph_.starts.length; k < lenk; k++) {
-            if (this.dygraph_.starts[k][0] === point.xval) {
-              for (var m = 1, lenm = this.dygraph_.starts[k].length; m < lenm; m++) {
-                if (this.dygraph_.starts[k][m] === point.yval) {
-                  prevX = NaN;
-                  continue;
-                }
-              }
+            if (this.dygraph_.starts[k].valueOf() === point.xval) {
+              prevX = NaN;
+              continue; 
             }
           }
-          
+                    
           var newYs;
           if (stackedGraph) {
             lastY = baseline[point.canvasx];
@@ -1080,16 +1076,13 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
 
           // [swp] check for endpoints to seperate drawing objects
           for (var k = 0, lenk = this.dygraph_.starts.length; k < lenk; k++) {
-            if (this.dygraph_.starts[k][0] === point.xval) {
-              for (var m = 1, lenm = this.dygraph_.starts[k].length; m < lenm; m++) {
-                if (this.dygraph_.starts[k][m] === point.yval) {
-                  prevX = null;
-                }
-              }
+            if (this.dygraph_.starts[k].valueOf() === point.xval) {
+              prevX = NaN;
+              continue; 
             }
           }
 
-          if (prevX === null) {
+          if (prevX === null || prevY === null) {
             prevX = point.canvasx;
             prevY = point.canvasy;
           } else {
