@@ -133,7 +133,7 @@ ServiceGUI = (function ($) {
           , rw = (ww - 10) * 0.7
         ;
         $('.details-left').width(lw);
-        $('.details-right').width(rw - 13);
+        $('.details-right').width(rw - 14);
       }
 
   /**
@@ -383,6 +383,11 @@ ServiceGUI = (function ($) {
         this.widgets.push(this.timeseries);
         this.timeseries.init(fn);
         break;
+      case 'Overviewer':
+        this.overviewer = new Overviewer(this, wrap);
+        this.widgets.push(this.overviewer);
+        this.overviewer.init();
+        break;
     }
   };
 
@@ -485,13 +490,14 @@ ServiceGUI = (function ($) {
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
+      , overviewHeight = $('.overviewer', wrap).height() + 5
 
 
       , makeChart = function (params) {
         
           var chart = new Dygraph(wrap[0], params.points, {
               width: wrap.width()
-            , height: (wrap.height() - (5 * (params.of - 1))) / params.of
+            , height: (wrap.height() - (5 * (params.of - 1)) - overviewHeight) / params.of
             , index: params.index
             , of: params.of
             , channels: box.availableChannels
@@ -573,7 +579,7 @@ ServiceGUI = (function ($) {
           return chart;
         }
       , bindRightClickMenu = function (self) {
-          $('canvas').contextMenu('context-menu-1', { 
+          $('canvas').not('.overviewer-cnavas').contextMenu('context-menu-1', { 
               // 'Add Plot Above': {
               //   click: function (el) {
               //     var i = el.itemID()
@@ -808,7 +814,7 @@ ServiceGUI = (function ($) {
           if (!hr)
             hr = wrap.height();
           for (var i = 0, len = charts.length; i < len; i++) {
-            charts[i].resize(wr, (hr - (5 * (len - 1))) / len);
+            charts[i].resize(wr, (hr - (5 * (len - 1)) - overviewHeight) / len);
           }
           
           // init the dropdowns
@@ -860,6 +866,183 @@ ServiceGUI = (function ($) {
         }
       , clear: function () {
 
+        }
+    };
+  };
+  
+  
+  var Overviewer = function (box, wrap) {
+    var width = wrap.width()
+      , height = wrap.height()
+      , canvas = $('<canvas class="overviewer-canvas" width="' + width + '" height="' + height + '"></canvas>')
+      , ctx = canvas[0].getContext('2d')
+      , bounds = {}
+      , cycles = {}
+      , scale
+      , hoveredBounds = {}
+      , hovered = []
+      
+      , render = function () {
+          
+          // clear canvas
+          ctx.fillStyle = '#ffffff';
+          ctx.clearRect(0, 0, width, height);
+          
+          // draw cycles
+          for (var i in cycles) {
+            if (cycles.hasOwnProperty(i)) {
+              var x = msToPx(cycles[i].start)
+                , y = 0
+                , w = Math.ceil((cycles[i].stop - cycles[i].start) * scale)
+                , h = height
+              ;
+              // TMP!
+              w = w || 0.5;
+              ctx.fillRect(x, y, w, h);
+            }
+          }
+        }
+      , msToPx = function (ms) {
+          if ('string' === typeof ms)
+            ms = parseInt(ms);
+          return crisper((ms * scale) - (scale * bounds.start));
+        }
+      , crisper = function (v) {
+          return Math.round(v) + 0.5;
+        }
+    ;
+
+    return {
+        init: function () {
+          // add to doc
+          canvas.appendTo(wrap);
+          
+          // text select tool fix for chrome on mousemove
+          canvas[0].onselectstart = function () {
+            return false;
+          };
+          
+          // parse into cycles
+          for (var i = 0, len = box.raw.length; i < len; i++)
+            cycles[box.raw[i]._id] = box.raw[i].bounds;
+          
+          // get global bounds for all events
+          bounds.start = box.raw[0].bounds.start;
+          bounds.stop = box.raw[len - 1].bounds.stop;
+
+          // determine ms / px
+          scale = width / (bounds.stop - bounds.start);
+          
+          // draw the viewer
+          render();
+          
+          // resize overviewer mag
+          $('.overviewer-mag-side, img.resize-mag').live('mousedown', function (e) {
+            var $this = $(this).hasClass('overviewer-mag-side') ?
+                  this : this.parentNode
+              , side = $($this).hasClass('lefted') ? 'left' : 'right'
+              , parent = $($this.parentNode)
+              , parent_w_orig = parent.width()
+              , parent_r_orig = parseInt(parent.css('right'))
+              , parent_l_orig = parent.offset().left
+              , grandparent_l = parent.parent().offset().left
+              , mouse_orig = mouse(e)
+            ;
+
+            // bind mouse move
+            var movehandle = function (e) {
+              
+              // get mouse position
+              var m = mouse(e)
+                , pw
+                , pr
+                , pl
+              ;
+              
+              // determine new values
+              if (side === 'left')
+                pw = parent_w_orig - (m.x - mouse_orig.x);
+              else {
+                pw = parent_w_orig + (m.x - mouse_orig.x);
+                pr = parent_r_orig - (m.x - mouse_orig.x);
+              }
+              pl = parent_l_orig + (m.x - mouse_orig.x);
+
+              // check bounds
+              if (pw < 20 || pr < 0 || pl < grandparent_l) return;
+              
+              // set new values
+              parent.width(pw);
+              if (pr)
+                parent.css({ right: pr });
+            };
+            $(document).bind('mousemove', movehandle);
+
+            // bind mouse up
+            $(document).bind('mouseup', function () {
+              
+              // remove all
+              $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+            });
+          });
+          
+          // move overviewer mag
+          $('.overviewer-mag').live('mousedown', function (e) {
+
+            // source check
+            e.preventDefault();
+            if (e.target.className === 'resize-mag' || e.target.className.substr(0, 19) === 'overviewer-mag-side') return;
+            
+            // pre-move vars
+            var $this = $(this)
+              , r_orig = parseInt($this.css('right'))
+              , l_orig = $this.offset().left
+              , parent_l = $this.parent().offset().left
+              , mouse_orig = mouse(e)
+            ;
+
+            // bind mouse move
+            var movehandle = function (e) {
+              
+              // get mouse position
+              var m = mouse(e)
+                , r
+                , l
+              ;
+              
+              // determine new values
+              r = r_orig - (m.x - mouse_orig.x);
+              l = l_orig + (m.x - mouse_orig.x);
+              
+              // check bounds
+              if (r < 0 || l < parent_l) return;
+              
+              // set new values
+              $this.css({ right: r });
+            
+            };
+            $(document).bind('mousemove', movehandle);
+
+            // bind mouse up
+            $(document).bind('mouseup', function () {
+              
+              // remove all
+              $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+            });
+          });
+
+        }
+        
+      , update: function (snappedTime) {
+          
+        }
+
+      , resize: function (wl, hl, wr, hr) {
+
+        }
+        
+      , clear: function () {
+          
         }
     };
   };
@@ -1717,16 +1900,22 @@ ServiceGUI = (function ($) {
 
             // bind mouse move
             var movehandle = function (e) {
+              
               // get mouse position
               var m = mouse(e);
+              
               // determine new values
               var ph = pan_h_orig + (m.y - mouse_orig.y);
+              
               // check bounds
               if (ph < 100 || ph > 800) return false;
+              
               // set height
               pan.height(ph);
+              
               // move handles
               handle.css({ top: ph / 2 - handle.height() });
+              
               // widgets
               for (var w=0; w < widgets.length; w++)
                 widgets[w].resize(null, ph - 18, null, ph - 18)
@@ -1735,6 +1924,7 @@ ServiceGUI = (function ($) {
 
             // bind mouse up
             $(document).bind('mouseup', function () {
+              
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
             });
@@ -1753,18 +1943,24 @@ ServiceGUI = (function ($) {
               , pan_right_w_orig = pan_right.width()
               , mouse_orig = mouse(e)
             ;
+            
             // bind mouse move
             var movehandle = function (e) {
+              
               // get mouse position
               var m = mouse(e);
+              
               // determine new values
               var plw = pan_left_w_orig + (m.x - mouse_orig.x)
                 , prw = pan_right_w_orig - (m.x - mouse_orig.x)
+              
               // check bounds
               if (plw < 200 || prw < 200) return false;
+              
               // set widths
               pan_left.width(plw);
               pan_right.width(prw);
+              
               // widgets
               for (var w=0; w < widgets.length; w++)
                 widgets[w].resize(plw, null, prw, null)
@@ -1773,12 +1969,14 @@ ServiceGUI = (function ($) {
 
             // bind mouse up
             $(document).bind('mouseup', function () {
+              
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
             });
           });
-
-          $('img.resize-x, img.resize-y').live('mousedown', function (e) {
+          
+          // no image dragging
+          $('img.resize-x, img.resize-y, img.resize-mag').live('mousedown', function (e) {
             if (e.preventDefault) e.preventDefault();
           });
 
@@ -1812,6 +2010,7 @@ ServiceGUI = (function ($) {
                           $('.series-loading', deetsKid).hide();
                         }
                       });
+                      this.add('Overviewer', $('.overviewer', deetsKid), null, function () {});
                       
                       // add sandbox to details div
                       deetsKid.data({ sandbox: this });

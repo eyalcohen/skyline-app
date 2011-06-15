@@ -26,9 +26,13 @@ div.tr.row-details
         div.details-bar-middle
           img.resize-x(src="/graphics/resize-vertical.png")
         div.details-right
-          //div.file-menu
-          //a.button.dygraph-prefs(href="javascript:;")
-          //img(src="/graphics/prefs.png")
+          div.dygraph-bar(style="bottom:30px; width:100%; z-index:10001")
+          div.overviewer
+            div.overviewer-mag
+              div.overviewer-mag-side.lefted
+                img.resize-mag(src="/graphics/resize-vertical.png")
+              div.overviewer-mag-side.righted
+                img.resize-mag(src="/graphics/resize-vertical.png")
           div.loading-more
             span Loading...
           div.details-loader-wrap.series-loading

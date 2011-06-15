@@ -209,7 +209,7 @@ app.configure(function () {
   app.use(express.cookieParser());
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
-    secret: 'topsecretislandshit',
+    secret: 'topsecretmission',
     store: new MongoStore({
       host: app.set('sessions-host'),
       port: app.set('sessions-port'),

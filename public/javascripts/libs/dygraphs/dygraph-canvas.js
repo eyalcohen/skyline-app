@@ -632,9 +632,9 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         label.style.textAlign = "left";
         label.style.top = (y + this.options.axisTickSize - 15) + 'px';
         
-        var left = x + 2; //(x - this.options.axisLabelWidth/2);
+        var left = x + 4; //(x - this.options.axisLabelWidth/2);
         if (left + this.options.axisLabelWidth > this.width) {
-          left -= this.options.xAxisLabelWidth + 2; //this.width - this.options.xAxisLabelWidth;
+          left -= this.options.xAxisLabelWidth + 4; //this.width - this.options.xAxisLabelWidth;
           label.style.textAlign = "right";
         }
         if (left < 0) {
