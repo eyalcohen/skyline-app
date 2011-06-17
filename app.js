@@ -91,7 +91,14 @@ function authenticateFromLoginToken(req, res, next) {
 
 
 function findVehiclesByUser(user, next) {
-  var filter = user ? { user_id: user._id } : {};
+  var filter;
+  if (!user) {
+    filter = {};
+  } else if (user.length) {
+    filter = { user_id: { $in: user }};
+  } else {
+    filter = { user_id: user._id };
+  }
   Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
     if (!err) {
       next(vehs);
@@ -296,7 +303,14 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', loadUser, function (req, res) {
-  var filterUser = req.currentUser.role === 'admin' ? null : req.currentUser;
+  var filterUser;
+  if (req.currentUser.role === 'admin') {
+    filterUser = null;
+  } else if (req.currentUser.role === 'office') {
+    filterUser = ['4ddc6340f978287c5e000003', '4ddc84a0c2e5c2205f000001', '4ddee7a08fa7e041710001cb'];
+  } else {
+    filterUser = req.currentUser;
+  }
   findVehiclesByUser(filterUser, function (vehs) {
     var vehicles = []
       , num = vehs.length
@@ -648,6 +662,19 @@ if (!module.parent) {
   console.log("Express server listening on port %d", app.address().port);
 }
 
+
+
+// var user = new User({
+//     email: 'office@ridemission.com'
+//   , name: { full: 'Mission Team' }
+//   , password: 'rider'
+//   , role: 'office'
+// });
+// user.save(function (err) {
+//   console.log('***********************************');
+//   console.log(err);
+//   console.log('***********************************');
+// });
 
 // TMP: add "valid" key to cycles
 // EventBucket.collection.find({ _id: { $gt: new EventID(000000000000) } }, { sort: '_id', fields: [ '_id', 'bounds', 'events' ] }, function (err, cursor) {
