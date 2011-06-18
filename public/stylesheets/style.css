@@ -1098,11 +1098,16 @@ div.overviewer {
 /*  border-top: 1px solid #5a5a5a;*/
 }
 
-div.overviewer-mag {
+.overviewer-canvas {
+  position: absolute;
+}
+
+div.overviewer-slider {
+  display: none;
   position: absolute;
   top: -1px;
   right: 0;
-  width: 200px;
+  width: 21px;
   height: 21px;
   
   -webkit-box-shadow: rgba(0, 0, 0, 0.8) 0 1px 3px, rgba(0, 0, 0, 0.65) 0 0 0 1px, inset rgba(255, 255, 255, 0.15) 0 1px 1px, inset rgba(0, 0, 0, 0.25) 0 -1px 1px;
@@ -1131,14 +1136,14 @@ div.overviewer-mag {
   cursor: move;
 }
 
-div.overviewer-mag-side {
+div.overviewer-slider-side {
   position: absolute;
   width: 9px;
   height: 100%;
   cursor: ew-resize;
 }
 
-img.resize-mag {
+img.resize-slider {
   position: relative;
   top: 4px;
   left: 3px;

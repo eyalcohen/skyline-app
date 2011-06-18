@@ -3075,7 +3075,7 @@ Dygraph.prototype.drawGraph_ = function() {
     }
   }
 
-  if (this.attr_("drawCallback") !== null) {
+  if (this.attr_("drawCallback") !== null && !this.skipCallback) {
     this.attr_("drawCallback")(this, is_initial_draw);
   }
 };
@@ -3967,7 +3967,8 @@ Dygraph.prototype.start_ = function() {
  *
  * @param {Object} attrs The new properties and values
  */
-Dygraph.prototype.updateOptions = function(attrs) {
+Dygraph.prototype.updateOptions = function(attrs, skipCallback) {
+  this.skipCallback = skipCallback;
   // TODO(danvk): this is a mess. Rethink this function.
   if ('rollPeriod' in attrs) {
     this.rollPeriod_ = attrs.rollPeriod;

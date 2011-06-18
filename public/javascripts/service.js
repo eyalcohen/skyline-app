@@ -276,16 +276,20 @@ ServiceGUI = (function ($) {
             }
         }
     };
+    
     // currently available channels
     this.availableChannels = {};
+    
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
     this.parseVisibleCycles();
+
     // callback
     fn.call(this);
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
+    console.log(this.raw);
     // only select valid key types
     var data = $.extend(true, {}, this.validSensors)
       , sensors = Object.keys(this.validSensors)
@@ -368,7 +372,7 @@ ServiceGUI = (function ($) {
     this.visibleSensors = data;
 
     // log for now
-    // console.log(data);
+    //console.log(data);
   };
 
   Sandbox.prototype.add = function (type, wrap, loading, fn) {
@@ -409,22 +413,27 @@ ServiceGUI = (function ($) {
   };
 
   Sandbox.prototype.reEvaluateData = function (params, fn) {
-    
+
     var self = this
       , min = params.range[0]
       , max = params.range[1]
-      , visible = []
+      , visibleAndEmpty = []
       , redraw = false
     ;
     
     // check window bounds
-    for (var i = 0, len = self.raw.length; i < len; i++) {
+    for (var i = 0, leni = self.raw.length; i < leni; i++) {
       var index;
       if ((self.raw[i].bounds.start >= min && self.raw[i].bounds.start <= max) ||
           (self.raw[i].bounds.stop >= min && self.raw[i].bounds.stop <= max)
       ) {
-        visible.push(self.raw[i]._id);
-      } else if ((self.raw[i].bounds.start > max || self.raw[i].bounds.stop < min) &&
+        if (self.visibleCycles.indexOf(self.raw[i]._id) === -1) {
+          visibleAndEmpty.push(self.raw[i]._id);
+          self.visibleCycles.push(self.raw[i]._id);
+        }
+      } 
+      
+      if ((self.raw[i].bounds.start > max || self.raw[i].bounds.stop < min) &&
         (index = self.visibleCycles.indexOf(self.raw[i]._id)) !== -1 &&
         self.visibleCycles.length > 1
       ) {
@@ -433,31 +442,15 @@ ServiceGUI = (function ($) {
         redraw = true;
       }
     }
-    
-    // remove cycle ids who's data we already have
-    var empty = [];
-    for (var i = 0, leni = visible.length; i < leni; i++) {
-      var exists = false;
-      for (var j = 0, lenj = self.visibleCycles.length; j < lenj; j++) {
-        if (visible[i] == self.visibleCycles[j]) {
-          exists = true;
-          break;
-        }
-      }
-      if (!exists) {
-        empty.push(visible[i]);
-        self.visibleCycles.push(visible[i]);
-      }
-    }
-    
+
     // get new data
-    if (empty.length > 0) {
+    if (visibleAndEmpty.length > 0) {
       
       // show loading for this chart
-      params.plot.showLoading(params.index);
+      this.timeseries.showLoading();
       
       // call server
-      $.get('/cycles', { cycles: empty }, function (serv) {
+      $.get('/cycles', { cycles: visibleAndEmpty }, function (serv) {
         if (serv.status == 'success') {
           for (var i = 0, len = self.raw.length; i < len; i++) {
             if (self.raw[i]._id in serv.data.events) {
@@ -491,7 +484,6 @@ ServiceGUI = (function ($) {
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
       , overviewHeight = $('.overviewer', wrap).height() + 5
-
 
       , makeChart = function (params) {
         
@@ -538,84 +530,57 @@ ServiceGUI = (function ($) {
               }
           
             , drawCallback: function (me, initial) {
+                if (initial) return;
+                
+                // get new date window
                 var range = me.xAxisRange()
                   , yrange = me.yAxisRange()
                 ;
+                
                 // notify sandbox
                 box.notify('cs-time-window-change', {
-                    range: range
-                  , plot: params.self
-                  , index: me.index
+                  range: range
                 }, function (redraw) {
-                  // synch with other plots
+                  
                   if (charts.length < me.of || blockRedraw)
                     return;
+                    
                   blockRedraw = true;
-                  for (var k = 0, lenk = charts.length; k < lenk; k++) {
-                    if (charts[k] == me || !charts[k].file_)
-                      continue;
-                    charts[k].updateOptions({
-                      dateWindow: range
-                    });
-                  }
-                  blockRedraw = false;
-                
-                  // update plots with new data
+                  
                   if (redraw) {
-                    for (var j = 0, lenj = charts.length; j < lenj; j++) {
-                      var sen = box.visibleSensors[charts[j].sensor]
-                        , ser = sen.series[charts[j].key]
+                    for (var i = 0, len = charts.length; i < len; i++) {
+                      var sen = box.visibleSensors[charts[i].sensor]
+                        , ser = sen.series[charts[i].key]
                       ;
-                      charts[j].updateOptions({
+                      charts[i].updateOptions({
                           file: ser.dataPoints
                         , starts: ser.cycleStartTimes
-                      });
+                        , dateWindow: range
+                      }, true);
                     }
-                    params.self.hideLoading();
+                    hideLoading();
+                  } else {
+                    for (var i = 0, len = charts.length; i < len; i++) {
+                      if (charts[i] == me || !charts[i].file_)
+                        continue;
+                      charts[i].updateOptions({
+                        dateWindow: range
+                      }, true);
+                    }
                   }
+                  
+                  blockRedraw = false;
+                
                 });
               }
           });
+          
           return chart;
+        
         }
+        
       , bindRightClickMenu = function (self) {
           $('canvas').not('.overviewer-cnavas').contextMenu('context-menu-1', { 
-              // 'Add Plot Above': {
-              //   click: function (el) {
-              //     var i = el.itemID()
-              //       , chart = charts[i];
-              //     
-              //     // make a new dygraph
-              //     var newChart = makeChart({
-              //         points: chart.file_
-              //       , of: chart.of + 1
-              //       , index: chart.index - 1
-              //       , self: self
-              //       , key: chart.key
-              //       , colors: plotColors
-              //       , sensor: chart.sensor
-              //       , plot: chart.plot
-              //     });
-              //     
-              //     // collect it for later
-              //     if (i === 0)
-              //       charts.splice(i-1, 0, newChart);
-              //     else
-              //       charts.unshift(newChart);
-              //       
-              //     // update other charts
-              //     for (var j = 0, len = charts.length; j < len; j++) {
-              //       charts[j].updateOptions({
-              //           of: len
-              //         , index: j
-              //         , siblings: charts
-              //       });
-              //     }
-              //     
-              //     // resize container
-              //     self.resize();
-              //   }
-              // }
               'Insert Plot Below...': {
                 click: function (el) {
                   var i = el.itemID()
@@ -642,7 +607,7 @@ ServiceGUI = (function ($) {
                         of: len
                       , index: j
                       , siblings: charts
-                    });
+                    }, true);
                   }
                   
                   // resize container
@@ -664,7 +629,7 @@ ServiceGUI = (function ($) {
                     charts[j].updateOptions({
                         of: len
                       , index: j
-                    });
+                    }, true);
                   }
                   
                   // resize container
@@ -678,9 +643,17 @@ ServiceGUI = (function ($) {
             }
           );
         }
+        
+      , showLoading = function () {
+          $('.loading-more', wrap).show()
+        }
+      , hideLoading = function () {
+          $('.loading-more', wrap).hide();
+        }
     ;
 
     return {
+      
         init: function (fn) {
           // check data existence
           if (!box.visibleSensors) {
@@ -711,12 +684,13 @@ ServiceGUI = (function ($) {
               , xlabel: series.titles.x
               , ylabel: series.titles.y
               , colors: plotColors
-            });
+            }, true);
           });
           
           // init right clicks
           bindRightClickMenu(self);
         }
+        
       , plot: function (desiredSeries, fn) {
           
           // save this scope
@@ -769,13 +743,26 @@ ServiceGUI = (function ($) {
             }
           }
           
-          // add extra props
+          // get widest range
+          var maxRange = []
+            , maxRangeDiff = 0
+          ;
           for (var i = 0, len = charts.length; i < len; i++) {
-            
-            // add ref to all charts in each
+            var r = charts[i].xAxisRange()
+              , d = r[1] - r[0]
+            ;
+            if (d > maxRangeDiff) {
+              maxRangeDiff = d;
+              maxRange = r;
+            }
+          }
+
+          // add siblings ref and snap to widest range
+          for (var i = 0; i < len; i++) {
             charts[i].updateOptions({
-              siblings: charts
-            });
+                siblings: charts
+              , dateWindow: maxRange
+            }, true);
           }
           
           // init the dropdowns
@@ -794,9 +781,10 @@ ServiceGUI = (function ($) {
               // update chart
               chart.updateOptions({
                 colors: [hex]
-              });
+              }, true);
             }
           });
+          
           // color in the squares
           $('.miniColors-trigger').each(function (i) {
             var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];
@@ -806,6 +794,38 @@ ServiceGUI = (function ($) {
           // callback
           fn();
         }
+        
+      , snap: function (range, fn) {
+          
+          // if ('object' === typeof range[0]) {
+          //   range[0] = range[0].valueOf();
+          //   range[1] = range[1].valueOf();
+          // }
+
+          // notify sandbox
+          box.notify('cs-time-window-change', {
+            range: range
+          }, function (redraw) {
+
+            // update plots with new data
+            if (redraw) {
+              for (var i = 0, len = charts.length; i < len; i++) {
+                var sen = box.visibleSensors[charts[i].sensor]
+                  , ser = sen.series[charts[i].key]
+                ;
+                charts[i].updateOptions({
+                    file: ser.dataPoints
+                  , starts: ser.cycleStartTimes
+                  , dateWindow: range
+                }, true);
+              }
+            }
+            
+            hideLoading();
+            fn();
+          });
+        }
+        
       , resize: function (wl, hl, wr, hr) {
           var self = this;
         
@@ -833,7 +853,7 @@ ServiceGUI = (function ($) {
               // update chart
               chart.updateOptions({
                 colors: [hex]
-              });
+              }, true);
             }
           });
           // color in the squares
@@ -850,12 +870,7 @@ ServiceGUI = (function ($) {
             charts[i].highlight_(time);
           }
         }
-      , showLoading: function (index) {
-          $('.loading-more', wrap).show()
-        }
-      , hideLoading: function () {
-          $('.loading-more', wrap).hide();
-        }
+      , showLoading: showLoading
       , getChart: function (index) {
           return charts[index];
         }
@@ -865,48 +880,77 @@ ServiceGUI = (function ($) {
           }
         }
       , clear: function () {
-
+          for (var i = 0, len = charts.length; i < len; i++) {
+            charts[i].destroy();
+          }
         }
     };
   };
-  
-  
+
+
   var Overviewer = function (box, wrap) {
     var width = wrap.width()
       , height = wrap.height()
-      , canvas = $('<canvas class="overviewer-canvas" width="' + width + '" height="' + height + '"></canvas>')
-      , ctx = canvas[0].getContext('2d')
+      , slider = $('.overviewer-slider')
+      , dotsCanvas = $('<canvas class="overviewer-canvas" width="' + width + '" height="' + height + '"></canvas>')
+      , dragCanvas = $('<canvas class="overviewer-canvas" width="' + width + '" height="' + height + '"></canvas>')
+      , dotsCtx = dotsCanvas[0].getContext('2d')
+      , dragCtx = dragCanvas[0].getContext('2d')
       , bounds = {}
-      , cycles = {}
+      , padding
+      , dots = []
       , scale
-      , hoveredBounds = {}
-      , hovered = []
-      
-      , render = function () {
+      , dragBounds = []
+      , draggedDots = []
+
+      , updateDots = function () {
+          
+          // get width again
+          width = wrap.width();
+          
+          // redo scale
+          scale = width / (bounds.stop - bounds.start);
           
           // clear canvas
-          ctx.fillStyle = '#ffffff';
-          ctx.clearRect(0, 0, width, height);
-          
-          // draw cycles
-          for (var i in cycles) {
-            if (cycles.hasOwnProperty(i)) {
-              var x = msToPx(cycles[i].start)
-                , y = 0
-                , w = Math.ceil((cycles[i].stop - cycles[i].start) * scale)
-                , h = height
-              ;
-              // TMP!
-              w = w || 0.5;
-              ctx.fillRect(x, y, w, h);
-            }
+          dotsCtx.clearRect(0, 0, width, height);
+
+          // reset dots
+          for (var i = 0, len = dots.length; i < len; i++) {
+            var dot = dots[i];
+            dot.color = '#ffffff';
+            dot.screenX = msToPx(dot.time);
           }
         }
-      , msToPx = function (ms) {
-          if ('string' === typeof ms)
-            ms = parseInt(ms);
-          return crisper((ms * scale) - (scale * bounds.start));
+      
+      , renderDots = function () {
+          for (var i = 0, len = dots.length; i < len; i++) {
+            dots[i].draw(dotsCtx);
+          }
         }
+        
+      , clearDrag = function () {
+
+          // clear canvas
+          dragCtx.clearRect(0, 0, width, height);
+        }
+
+      , renderDrag = function () {
+          
+          // draw select box
+          dragCtx.fillRect(dragBounds[0], 0, dragBounds[1] - dragBounds[0], height);
+        }
+
+        // time to pixel mapping
+      , msToPx = function (ms) {
+          return ms * scale - scale * bounds.start;
+        }
+
+        // pixel to time mapping
+      , pxToMs = function (px) {
+          return parseInt((px + scale * bounds.start) / scale);
+        }
+
+        // force graphics to half-pixels
       , crisper = function (v) {
           return Math.round(v) + 0.5;
         }
@@ -914,112 +958,111 @@ ServiceGUI = (function ($) {
 
     return {
         init: function () {
+
           // add to doc
-          canvas.appendTo(wrap);
-          
+          dragCanvas.appendTo(wrap);
+          dotsCanvas.appendTo(wrap);
+
           // text select tool fix for chrome on mousemove
-          canvas[0].onselectstart = function () {
+          dotsCanvas[0].onselectstart = function () {
             return false;
           };
-          
-          // parse into cycles
-          for (var i = 0, len = box.raw.length; i < len; i++)
-            cycles[box.raw[i]._id] = box.raw[i].bounds;
-          
+
           // get global bounds for all events
           bounds.start = box.raw[0].bounds.start;
-          bounds.stop = box.raw[len - 1].bounds.stop;
+          bounds.stop = box.raw[box.raw.length - 1].bounds.stop;
 
+          // padding will be 2% or total time shown
+          padding = 0.02 * (bounds.stop - bounds.start);
+          
+          // include padding
+          bounds.start -= padding;
+          bounds.stop += padding;
+          
           // determine ms / px
           scale = width / (bounds.stop - bounds.start);
           
-          // draw the viewer
-          render();
+          // plot cylces
+          for (var i = 0, len = box.raw.length; i < len; i++) {
+            var dot = new Dot(box.raw[i]._id);
+            dot.range = [box.raw[i].bounds.start, box.raw[i].bounds.stop];
+            //dot.range = [new Date(box.raw[i].bounds.start), new Date(box.raw[i].bounds.stop)];
+            dot.time = Math.round((box.raw[i].bounds.stop + box.raw[i].bounds.start) / 2);
+            dot.screenX = msToPx(dot.time);
+            //dot.radius = scale * (box.raw[i].bounds.stop - box.raw[i].bounds.start) / (bounds.stop - bounds.start);
+            dots.push(dot);
+            if (i === len - 1)
+              dot.color = orange;
+            dot.draw(dotsCtx);
+          }
           
-          // resize overviewer mag
-          $('.overviewer-mag-side, img.resize-mag').live('mousedown', function (e) {
-            var $this = $(this).hasClass('overviewer-mag-side') ?
-                  this : this.parentNode
-              , side = $($this).hasClass('lefted') ? 'left' : 'right'
-              , parent = $($this.parentNode)
-              , parent_w_orig = parent.width()
-              , parent_r_orig = parseInt(parent.css('right'))
-              , parent_l_orig = parent.offset().left
-              , grandparent_l = parent.parent().offset().left
-              , mouse_orig = mouse(e)
-            ;
+          wrap.live('click', function (e) {
 
-            // bind mouse move
-            var movehandle = function (e) {
-              
-              // get mouse position
-              var m = mouse(e)
-                , pw
-                , pr
-                , pl
-              ;
-              
-              // determine new values
-              if (side === 'left')
-                pw = parent_w_orig - (m.x - mouse_orig.x);
-              else {
-                pw = parent_w_orig + (m.x - mouse_orig.x);
-                pr = parent_r_orig - (m.x - mouse_orig.x);
-              }
-              pl = parent_l_orig + (m.x - mouse_orig.x);
+            // get mouse position
+            var m = mouse(e, dotsCanvas);
 
-              // check bounds
-              if (pw < 20 || pr < 0 || pl < grandparent_l) return;
-              
-              // set new values
-              parent.width(pw);
-              if (pr)
-                parent.css({ right: pr });
-            };
-            $(document).bind('mousemove', movehandle);
-
-            // bind mouse up
-            $(document).bind('mouseup', function () {
-              
-              // remove all
-              $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
-            });
+            // find nearby dots
+            for (var i = 0, len = dots.length; i < len; i++) {
+              if (m.x <= dots[i].screenX + dots[i].radius && 
+                m.x >= dots[i].screenX - dots[i].radius &&
+                m.y <= dots[i].screenY + dots[i].radius &&
+                m.y >= dots[i].screenY - dots[i].radius
+              ) {
+                updateDots();
+                var dot = dots[i];
+                dot.color = orange;
+                renderDots();
+                box.map.showLoading();
+                box.timeseries.snap(dot.range, function () {
+                  box.map.clear();
+                  box.map.refresh(dot.range);
+                });
+                break;
+              } 
+            }
+            
           });
           
-          // move overviewer mag
-          $('.overviewer-mag').live('mousedown', function (e) {
+          dragCtx.fillStyle = '#ffffff';
+          dragCtx.globalAlpha = 0.2;
+          
+          wrap.live('mousedown', function (e) {
 
-            // source check
-            e.preventDefault();
-            if (e.target.className === 'resize-mag' || e.target.className.substr(0, 19) === 'overviewer-mag-side') return;
+            // get mouse position
+            var m_orig = mouse(e, dragCanvas);
             
-            // pre-move vars
-            var $this = $(this)
-              , r_orig = parseInt($this.css('right'))
-              , l_orig = $this.offset().left
-              , parent_l = $this.parent().offset().left
-              , mouse_orig = mouse(e)
-            ;
-
+            // clear dots
+            draggedDots = [];
+            
             // bind mouse move
             var movehandle = function (e) {
               
               // get mouse position
-              var m = mouse(e)
-                , r
-                , l
-              ;
+              var m = mouse(e, dragCanvas);
               
-              // determine new values
-              r = r_orig - (m.x - mouse_orig.x);
-              l = l_orig + (m.x - mouse_orig.x);
+              if (m.x === m_orig.x)
+                return;
+              else if (m.x > m_orig.x) {
+                dragBounds[0] = m_orig.x;
+                dragBounds[1] = m.x;
+              } else if (m.x < m_orig.x) {
+                dragBounds[0] = m.x;
+                dragBounds[1] = m_orig.x;
+              }
               
-              // check bounds
-              if (r < 0 || l < parent_l) return;
+              clearDrag();
+              renderDrag();
               
-              // set new values
-              $this.css({ right: r });
-            
+              // find nearby dots
+              for (var i = 0, len = dots.length; i < len; i++) {
+                if (dragBounds[0] <= dots[i].screenX - dots[i].radius && 
+                  dragBounds[1] >= dots[i].screenX + dots[i].radius
+                ) {
+                  if (draggedDots.indexOf(dots[i]) === -1)
+                    draggedDots.push(dots[i]);
+                } 
+              }
+              
             };
             $(document).bind('mousemove', movehandle);
 
@@ -1028,21 +1071,73 @@ ServiceGUI = (function ($) {
               
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
+              
+              // erase select box
+              clearDrag();
+              
+              // check if got any dots
+              if (draggedDots.length === 0)
+                return;
+              
+              // clear dots
+              updateDots();
+              
+              // find selected dot range
+              var range = [bounds.stop, bounds.start];
+              for (var i = 0, len = draggedDots.length; i < len; i++) {
+                var dot = draggedDots[i];
+                dot.color = orange;
+                if (dot.range[0] < range[0])
+                  range[0] = dot.range[0];
+                if (dot.range[1] > range[1])
+                  range[1] = dot.range[1];
+              }
+              
+              // draw dots
+              renderDots();
+              
+              // update map and plots
+              box.map.showLoading();
+              box.timeseries.snap(dot.range, function () {
+                box.map.clear();
+                box.map.refresh(dot.range);
+              });
             });
           });
 
         }
         
       , update: function (snappedTime) {
-          
-        }
 
+        }
+      
       , resize: function (wl, hl, wr, hr) {
 
         }
         
       , clear: function () {
           
+        }
+    };
+  };
+
+
+  var Dot = function (id) {
+    return {
+        id: id
+      , range: null
+      , time: null
+      , screenX: null
+      , screenY: 10
+      , color: '#ffffff'
+      , opacity: 0.5
+      , radius: 5
+      , draw: function (ctx) {
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = this.opacity;
+          ctx.beginPath();
+          ctx.arc(this.screenX, this.screenY, this.radius, 0, 2 * Math.PI);
+          ctx.fill();
         }
     };
   };
@@ -1081,7 +1176,7 @@ ServiceGUI = (function ($) {
           mapOptions = {
               disableDefaultUI: true
             , mapTypeControlOptions: {
-                mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ]
+                mapTypeIds: [google.maps.MapTypeId.ROADMAP, 'greyscale']
               }
           };
           mapType = new google.maps.StyledMapType(mapStylez, mapStyledOptions);
@@ -1122,7 +1217,7 @@ ServiceGUI = (function ($) {
             fn(true);
             return;
           }
-          
+
           // init data points time boundary
           if (!timeBounds)
             timeBounds = [src.latitude.cycleStartTimes[0], src.latitude.cycleEndTimes[0]];
@@ -1161,7 +1256,7 @@ ServiceGUI = (function ($) {
               gpsPoints[time.valueOf()] = ll;
             }
           }
-
+          
           // make array of times
           times = Object.keys(gpsPoints);
 
@@ -1173,7 +1268,7 @@ ServiceGUI = (function ($) {
             , ne = new google.maps.LatLng(maxlat, maxlawn)
             , mapBounds = new google.maps.LatLngBounds(sw, ne)
           ;
-          
+
           // make new map
           map = new google.maps.Map(wrap[0], mapOptions);
           map.mapTypes.set('grayscale', mapType);
@@ -1291,82 +1386,7 @@ ServiceGUI = (function ($) {
               timeTxt = timeTxt.substr(0, gmti);
             $('.map-time', wrap.parent()).text(timeTxt);
           });
-
-          // drag cursor around cycle
-          // dragHandle = google.maps.event.addListener(cursor, 'mousedown', function (ed) {
-          // 
-          //   // get current mouse position
-          //   var mi = mouse(null, wrap)
-          // 
-          //   // get current zoom level and center
-          //   , zl = map.getZoom()
-          //   , c = map.getCenter()
-          // 
-          //   // bind mouse move
-          //   , moveHandler = function (em) {
-          // 
-          //     // inits
-          //     var minDist = 1e+100
-          //       , snapTo
-          //       , keys = Object.keys(em.latLng)
-          //     ;
-          //     
-          //     // find closest point
-          //     times.forEach(function (t) {
-          //       
-          //       // compute distances
-          //       var deltaLat = Math.abs(gpsPoints[t][keys[0]] - em.latLng[keys[0]])
-          //         , deltaLawn = Math.abs(gpsPoints[t][keys[1]] - em.latLng[keys[1]])
-          //         , dist = Math.sqrt((deltaLat * deltaLat) + (deltaLawn * deltaLawn))
-          //       ;
-          // 
-          //       // compare distance
-          //       if (dist < minDist) {
-          //         minDist = dist;
-          //         snapTo = { time: parseInt(t), latLng: gpsPoints[t] };
-          //       }
-          //       
-          //     });
-          //     
-          //     // move the cursor
-          //     if (snapTo) {
-          //       cursor.setPosition(snapTo.latLng);
-          // 
-          //       // notify sandbox
-          //       box.notify('cs-map-cursormove', snapTo.time);
-          //     }
-          //   }
-          //   
-          //   // listen for moves
-          //   , moveHandle = google.maps.event.addListener(cursor, 'mousemove', moveHandler)
-          //   , moveHandleMap = google.maps.event.addListener(map, 'mousemove', moveHandler)
-          //   
-          //   // lock zoom
-          //   , zoomHandle = google.maps.event.addListener(map, 'zoom_changed', function (e) {
-          //     if (zl !== map.getZoom())
-          //       map.setZoom(zl);
-          //   })
-          //   
-          //   // lock pan
-          //   , panHandle = google.maps.event.addListener(map, 'center_changed', function (e) {
-          //     if (c !== map.getCenter())
-          //       map.setCenter(c);
-          //   });
-          // 
-          //   // bind mouse up
-          //   $(document).bind('mouseup', function () {
-          //     
-          //     // remove doc events
-          //     $(this).unbind('mouseup', arguments.callee);
-          //     
-          //     // remove map events
-          //     google.maps.event.removeListener(zoomHandle);
-          //     google.maps.event.removeListener(panHandle);
-          //     google.maps.event.removeListener(moveHandle);
-          //     google.maps.event.removeListener(moveHandleMap);
-          //   });
-          // });
-
+          
           // ready
           loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
             if (firstRun) {
@@ -1384,6 +1404,7 @@ ServiceGUI = (function ($) {
       , toMiles = function (m) {
           return m / 1609.344;
         }
+        
       , showInfo = function () {
           var distanceTxt = 'Distance traveled: ' + addCommas(distance.toFixed(2)) + ' m'
             , timeTxt = 'Cycle duration: ' + addCommas(((parseInt(times[times.length - 1]) - parseInt(times[0])) / 1000 / 60).toFixed(2)) + ' min'
@@ -1415,28 +1436,23 @@ ServiceGUI = (function ($) {
         }
         
       , update: function (snappedTime) {
-
+          
           // check bounds
           if (snappedTime < timeBounds[0] || snappedTime > timeBounds[1]) {
-            
-            // get bounds for cycle to plot
+
+            // get time bounds for all cycles
             var starts = box.visibleSensors.SENSOR_GPS.series.latitude.cycleStartTimes
               , ends = box.visibleSensors.SENSOR_GPS.series.latitude.cycleEndTimes
+            
+            // find the cycle we want
             for (var i = 0, len = starts.length; i < len; i++) {
               if (snappedTime >= starts[i] && snappedTime <= ends[i]) {
                 if (timeBounds[0] !== starts[i] && timeBounds[1] !== ends[i]) {
                   
-                  // clear map
+                  // refresh map with new time bounds
                   loading.show();
                   this.clear();
-                  
-                  // set new bounds
-                  timeBounds = [starts[i], ends[i]];
-                  
-                  // draw new map
-                  plot(function () {
-                    loading.hide();
-                  });
+                  this.refresh([starts[i], ends[i]]);
                 }
                 break;
               }
@@ -1448,6 +1464,26 @@ ServiceGUI = (function ($) {
             if (ts in gpsPoints)
               cursor.setPosition(gpsPoints[ts]);
           }
+        }
+      
+      , showLoading: function () {
+          loading.show();
+        }
+      
+      , refresh: function (bounds) {
+          
+          // if ('number' === typeof bounds[0]) {
+          //   bounds[0] = new Date(bounds[0]);
+          //   bounds[1] = new Date(bounds[1]);
+          // }
+          
+          // set new bounds
+          timeBounds = bounds;
+
+          // draw new map
+          plot(function () {
+            loading.hide();
+          });
         }
         
       , resize: function (wl, hl, wr, hr) {
@@ -1976,7 +2012,7 @@ ServiceGUI = (function ($) {
           });
           
           // no image dragging
-          $('img.resize-x, img.resize-y, img.resize-mag').live('mousedown', function (e) {
+          $('img.resize-x, img.resize-y, img.resize-slider').live('mousedown', function (e) {
             if (e.preventDefault) e.preventDefault();
           });
 
@@ -2061,7 +2097,7 @@ ServiceGUI = (function ($) {
           
           
           // TMP -- open the first vehicle pane
-          // $($('a.expander')[0]).click();
+          $($('a.expander')[0]).click();
         }
       }
   }

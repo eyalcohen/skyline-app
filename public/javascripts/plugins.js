@@ -442,12 +442,11 @@ function zoom(g, zoomInPercentage, xBias, yBias) {
     var foo = [increment * bias, increment * (1-bias)];
     return [ axis[0] + foo[0], axis[1] - foo[1] ];
   }
-  var yAxes = g.yAxisRanges();
-  var newYAxes = [];
-  for (var i = 0; i < yAxes.length; i++) {
-    newYAxes[i] = adjustAxis(yAxes[i], zoomInPercentage, yBias);
-  }
-
+  // var yAxes = g.yAxisRanges();
+  // var newYAxes = [];
+  // for (var i = 0; i < yAxes.length; i++) {
+  //   newYAxes[i] = adjustAxis(yAxes[i], zoomInPercentage, yBias);
+  // }
   g.updateOptions({
     dateWindow: adjustAxis(g.xAxisRange(), zoomInPercentage, xBias),
     //valueRange: newYAxes[0]
