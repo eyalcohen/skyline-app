@@ -7,6 +7,7 @@ var express = require('express')
   , mongoose = require('mongoose')
   , jade = require('jade')
   , MongoStore = require('connect-mongodb')
+  , gzip = require('connect-gzip')
   , fs = require('fs')
   , sys = require('sys')
   , path = require('path')
@@ -209,6 +210,13 @@ app.configure('production', function () {
 
 
 app.configure(function () {
+  // Use gzip compression for all responses.
+  // Note that this adds computation cost and latency, but will help
+  // significantly on low-bandwidth connections.
+  // Note: right now, this uses a gzip process to do the compression -
+  // expensive!  TODO: make a binary module with zlib library support.
+  app.use(gzip.gzip({flags: '-1'}));
+
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.bodyParser());
