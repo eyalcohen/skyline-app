@@ -12,7 +12,6 @@ var express = require('express')
   , sys = require('sys')
   , path = require('path')
   , csv = require('csv')
-  , parser = require('mongoose/support/node-mongodb-native/lib/mongodb').BinaryParser
   , EventID = require('./customids').EventID
   , models = require('./models')
   , db
