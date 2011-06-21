@@ -158,7 +158,7 @@ MONGOSTORE.prototype.get = function (sid, cb) {
   _collection.findOne({_id: sid}, function (err, data) {
     try {
       if (data) {
-        cb(null, data.session);
+        cb(null, JSON.parse(data.session.toString()));
       } else {
         cb();
       }
@@ -181,7 +181,7 @@ MONGOSTORE.prototype.get = function (sid, cb) {
 MONGOSTORE.prototype.set = function (sid, sess, cb) {
   _default(cb);
   try {
-    var update = {_id: sid, session: sess};
+    var update = {_id: sid, session: JSON.stringify(sess)};
     if (sess && sess.cookie && sess.cookie.expires) {
       update.expires = Date.parse(sess.cookie.expires);
     }
