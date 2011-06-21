@@ -12,6 +12,7 @@ var express = require('express')
   , sys = require('sys')
   , path = require('path')
   , csv = require('csv')
+  , util = require('util')
   , EventID = require('./customids').EventID
   , models = require('./models')
   , db
@@ -190,6 +191,7 @@ app.configure('development', function () {
   app.set('sessions-host', 'localhost');
   app.set('sessions-port', [27017, 27018, 27019]);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  Notify.active = false;
 });
 
 
@@ -197,6 +199,7 @@ app.configure('test', function () {
   app.set('db-uri', 'mongodb://localhost:27017/service-test,mongodb://localhost:27018,mongodb://localhost:27019');
   app.set('sessions-host', 'localhost');
   app.set('sessions-port', [27017, 27018, 27019]);
+  Notify.active = false;
 });
 
 
@@ -205,6 +208,7 @@ app.configure('production', function () {
   app.set('sessions-host', ['50.19.108.253','50.19.106.243','50.19.106.238']);
   app.set('sessions-port', 27017);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  Notify.active = true;
 });
 
 
@@ -491,6 +495,7 @@ app.post('/sessions', function (req, res) {
           }
         } else {
           res.send({ status: 'error', message: 'We\'re experiencing an unknown problem but are looking into it now. Please try again later.' });
+          util.log("Error finding user '" + req.body.user.email + "': " + err);
           Notify.problem(err);
         }
       });
@@ -535,6 +540,7 @@ app.post('/usercreate/:newemail', function (req, res) {
       res.send({ status: 'success', data: { user: user } });
       Notify.welcome(user, function (err, message) {
         if (err) {
+          util.log("Error creating user '" + req.params.newemail + "': " + err);
           Notify.problem(err);
         }
       });
@@ -666,7 +672,7 @@ app.put('/cycle', function (req, res) {
 
 if (!module.parent) {
   app.listen(8080);
-  console.log("Express server listening on port %d", app.address().port);
+  util.log("Express server listening on port " + app.address().port);
 }
 
 

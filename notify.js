@@ -2,6 +2,7 @@ var mailer = require('emailjs')
   , crypto = require('crypto')
   , path = require('path')
   , sys = require('sys')
+  , util = require('util')
   , jade = require('jade')
   , SMTP
 ;
@@ -27,6 +28,14 @@ var emailServer = {
    */
    
   , email = function (options, template, fn) {
+      if (!exports.active)
+        return;
+
+      util.log("Sending notification email using options:\n" +
+               util.inspect(options) + "\n" +
+               "Template:\n" +
+               util.inspect(template));
+
       if ('function' == typeof template) {
         fn = template;
         template = false;
@@ -85,6 +94,7 @@ var emailServer = {
   
 
 
+exports.active = true;
 exports.email = email;
 exports.welcome = welcome;
 exports.problem = problem;
