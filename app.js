@@ -637,54 +637,90 @@ app.get('/summary/:email/:vintid', function (req, res) {
 // Handle cycle events request
 
 app.put('/cycle', function (req, res) {
+  
+  // check that body was encoded properly
   if (!(req.body instanceof Buffer)) {
     res.send({ status: 'fail', data: { code: 'BAD_PROTOBUF_FORMAT' } });
     return;
   }
+  
+  // parse to JSON
   var cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'))
     , num = cycle.events.length
     , cnt = 0
   ;
 
-  // authenticate user
+  // get the cycle's user
   User.findOne({ email: cycle.userId }, function (err, usr) {
     if (usr) {
+
+      // authenticate user
       if (usr.authenticate(cycle.password)) {
+
+        // get the cycle's vehicle
         findVehicleByIntId(cycle.vehicleId, function (veh) {
           if (veh) {
+
+            // loop over each cycle in event
             cycle.events.forEach(function (event) {
-              // TMP: use SENSOR_GPS to determine of this cycle is "valid"
-              var validCnt = 0;
+
+              // check for empty events
               if (!event.events) {
                 res.end();
                 return;
               }
+
+              // TMP: use SENSOR_GPS to determine of this cycle is "valid"
+              var validCnt = 0
+                , driveHeader
+              ;
+
+              // count location events and find drive session header
               for (var i = 0, len = event.events.length; i < len; i++) {
                 if (event.events[i].header.source === 'SENSOR_GPS' && 'location' in event.events[i]) {
                   validCnt++;
                 }
+                if (event.events[i].header.type === 'DRIVE_SESSION') {
+                  driveHeader = event.events[i].header;
+                }
               }
-              event.valid = validCnt > 20;
-              event.bounds = {
-                  start: event.events[0].header.startTime
-                , stop: event.events[0].header.stopTime
-              };
-              event._id = new EventID({ id: veh._id.vehicleId, time: event.events[0].header.startTime });
-              var bucket = new EventBucket(event);
-              bucket.save(function (err) {
+
+              // check for drive session header
+              if (!driveHeader) {
                 cnt++;
                 if (cnt === num) {
                   res.end();
                 }
-              });
+
+              // add new cycle
+              } else {
+                console.log(driveHeader);
+                event.valid = validCnt > 20;
+                event.bounds = {
+                    start: driveHeader.startTime
+                  , stop: driveHeader.stopTime
+                };
+                event._id = new EventID({ id: veh._id.vehicleId, time: driveHeader.startTime });
+                var bucket = new EventBucket(event);
+                bucket.save(function (err) {
+                  cnt++;
+                  if (cnt === num) {
+                    res.end();
+                  }
+                });
+              }
+
             });
+
           } else {
             res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
           }
         });
+
       } else {
         res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
       }
+
     } else {
       res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
     }

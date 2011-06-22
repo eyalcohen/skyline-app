@@ -2060,14 +2060,14 @@ ServiceGUI = (function ($) {
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
             } else {
-              
+
               // hide details
               arrow.removeClass('open');
               deetsHolder.hide();
               deets.css({ height: 20 });
 
               if (deetsKid.data().sandbox) {
-                
+
                 // clear widgets
                 for (var i = 0, len = deetsKid.data().sandbox.widgets.length; i < len; i++) {
                   deetsKid.data().sandbox.widgets[i].clear();
@@ -2094,8 +2094,8 @@ ServiceGUI = (function ($) {
               });
             }
           });
-          
-          
+
+
           // TMP -- open the first vehicle pane
           // $($('a.expander')[1]).click();
         }
