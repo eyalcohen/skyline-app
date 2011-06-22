@@ -2097,7 +2097,7 @@ ServiceGUI = (function ($) {
           
           
           // TMP -- open the first vehicle pane
-          $($('a.expander')[0]).click();
+          // $($('a.expander')[1]).click();
         }
       }
   }

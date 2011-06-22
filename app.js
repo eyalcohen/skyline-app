@@ -148,6 +148,20 @@ function findVehicleCycles(id, from, to, next) {
         next([]);
       } else {
         next(bucks);
+        // getCycle('6284fb404de715df03180003', function () {
+        //   console.log('sfvsdfvsdfvdv');
+        // });
+        // var len = bucks.length
+        //   , cnt = 0;
+        // bucks.forEach(function (b) {
+        //   getCycle(b._id, function () {
+        //     //console.log('done');
+        //     cnt++;
+        //     if (cnt === len) {
+        //       next(bucks);
+        //     }
+        //   });
+        // });
       }
     });
   });
@@ -165,14 +179,42 @@ function getCycle(id, next) {
       var events = []
         , len = data.events.length
         , every = len > 1000 ? Math.round(len / 2000) : 1
+        , start_orig = parseInt(data.bounds.start)
+        , stop_orig = parseInt(data.bounds.stop)
       ;
-      for (var i = 0; i < len; i++) {
-        if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
-          events.push(data.events[i]);
+      // console.log(start_orig === stop_orig);
+      //       if (start_orig === stop_orig) {
+      //         var start = 9999999999999
+      //           , stop = 0
+      //         ;
+      //         for (var i = 0; i < len; i++) {
+      //           var s = parseInt(data.events[i].header.startTime)
+      //             , p = parseInt(data.events[i].header.stopTime)
+      //           ;
+      //           if (s < start) {
+      //             start = s;
+      //           }
+      //           if (p > stop) {
+      //             stop = p;
+      //           }
+      //         }
+      //         EventBucket.collection.findAndModify({ _id: id }, [['_id','asc']], { $set: { bounds: { start: start, stop: stop } } }, {}, function(err, object) {
+      //           if (err) {
+      //             console.warn(err.message);
+      //           } else {
+      //             getCycle(id, next);
+      //           }
+      //         });
+      // } else {
+        for (var i = 0; i < len; i++) {
+          // if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
+          if (data.events[i].header.type !== 'ANNOTATION') {
+            events.push(data.events[i]);
+          }
         }
-      }
-      data.events = events;
-      next(data);
+        data.events = events;
+        next(data);
+      // }
     } else {
       next(null);
     }
@@ -602,17 +644,6 @@ app.put('/cycle', function (req, res) {
               // TMP: use SENSOR_GPS to determine of this cycle is "valid"
               var validCnt = 0;
               if (!event.events) {
-                console.log('************ EMPTY EVENTS ************');
-                console.log('VEHICLE: ' + cycle.vehicleId);
-                console.log('USER: ' + cycle.userId);
-                console.log('EVENTSTREAM:');
-                for (var i in event) {
-                  if (event.hasOwnProperty(i)) {
-                    console.log(i + ':');
-                    console.log(event[i]);
-                  }
-                }
-                console.log('**************************************');
                 res.end();
                 return;
               }
@@ -646,11 +677,6 @@ app.put('/cycle', function (req, res) {
       res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
     }
   });
-  
-  // add to db
-  function handleEvents(v) {
-    
-  }
 });
 
 
@@ -661,42 +687,3 @@ if (!module.parent) {
   app.listen(8080);
   console.log("Express server listening on port %d", app.address().port);
 }
-
-
-
-// var user = new User({
-//     email: 'office@ridemission.com'
-//   , name: { full: 'Mission Team' }
-//   , password: 'rider'
-//   , role: 'office'
-// });
-// user.save(function (err) {
-//   console.log('***********************************');
-//   console.log(err);
-//   console.log('***********************************');
-// });
-
-// TMP: add "valid" key to cycles
-// EventBucket.collection.find({ _id: { $gt: new EventID(000000000000) } }, { sort: '_id', fields: [ '_id', 'bounds', 'events' ] }, function (err, cursor) {
-//   cursor.toArray(function (err, bucks) {
-//     console.log(err, bucks.length);
-//     if (!err && bucks && bucks.length !== 0) {
-//       for (var i = 0, leni = bucks.length; i < leni; i++) {
-//         var b = bucks[i]
-//           , validCnt = 0
-//         ;
-//         for (var j = 0, lenj = b.events.length; j < lenj; j++) {
-//           if (b.events[j].header.source === 'SENSOR_GPS'  && 'location' in b.events[j]) {
-//             validCnt++;
-//           }
-//         }
-//         var valid = validCnt < 20;
-//         EventBucket.collection.findAndModify({ _id: b._id }, [['_id','asc']], {$set: { valid: valid }}, {}, function(err, object) {
-//           if (err) {
-//             console.warn(err.message);
-//           }
-//         });
-//       }
-//     }
-//   });
-// });
