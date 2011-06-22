@@ -7,11 +7,12 @@ var express = require('express')
   , mongoose = require('mongoose')
   , jade = require('jade')
   , MongoStore = require('connect-mongodb')
+  , gzip = require('connect-gzip')
   , fs = require('fs')
   , sys = require('sys')
   , path = require('path')
   , csv = require('csv')
-  , parser = require('mongoose/support/node-mongodb-native/lib/mongodb').BinaryParser
+  , util = require('util')
   , EventID = require('./customids').EventID
   , models = require('./models')
   , db
@@ -232,6 +233,7 @@ app.configure('development', function () {
   app.set('sessions-host', 'localhost');
   app.set('sessions-port', [27017, 27018, 27019]);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  Notify.active = false;
 });
 
 
@@ -239,6 +241,7 @@ app.configure('test', function () {
   app.set('db-uri', 'mongodb://localhost:27017/service-test,mongodb://localhost:27018,mongodb://localhost:27019');
   app.set('sessions-host', 'localhost');
   app.set('sessions-port', [27017, 27018, 27019]);
+  Notify.active = false;
 });
 
 
@@ -247,10 +250,18 @@ app.configure('production', function () {
   app.set('sessions-host', ['50.19.108.253','50.19.106.243','50.19.106.238']);
   app.set('sessions-port', 27017);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  Notify.active = true;
 });
 
 
 app.configure(function () {
+  // Use gzip compression for all responses.
+  // Note that this adds computation cost and latency, but will help
+  // significantly on low-bandwidth connections.
+  // Note: right now, this uses a gzip process to do the compression -
+  // expensive!  TODO: make a binary module with zlib library support.
+  app.use(gzip.gzip({flags: '-1'}));
+
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.bodyParser());
@@ -526,6 +537,7 @@ app.post('/sessions', function (req, res) {
           }
         } else {
           res.send({ status: 'error', message: 'We\'re experiencing an unknown problem but are looking into it now. Please try again later.' });
+          util.log("Error finding user '" + req.body.user.email + "': " + err);
           Notify.problem(err);
         }
       });
@@ -570,6 +582,7 @@ app.post('/usercreate/:newemail', function (req, res) {
       res.send({ status: 'success', data: { user: user } });
       Notify.welcome(user, function (err, message) {
         if (err) {
+          util.log("Error creating user '" + req.params.newemail + "': " + err);
           Notify.problem(err);
         }
       });
@@ -685,5 +698,5 @@ app.put('/cycle', function (req, res) {
 
 if (!module.parent) {
   app.listen(8080);
-  console.log("Express server listening on port %d", app.address().port);
+  util.log("Express server listening on port " + app.address().port);
 }
