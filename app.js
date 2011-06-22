@@ -1,3 +1,4 @@
+require.paths.unshift(__dirname);
 
 /**
  * Module dependencies.
@@ -23,7 +24,6 @@ var express = require('express')
   , ProtobufSchema = require('protobuf_for_node').Schema
   , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/henson/common/src/main/protobuf/Events.desc'))
   , EventWebUpload = Event['event.EventWebUpload']
-  , Stream = require('stream').Stream
   , Notify = require('./notify')
 ;
 
