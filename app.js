@@ -1,4 +1,3 @@
-require.paths.unshift(__dirname);
 
 /**
  * Module dependencies.
@@ -665,7 +664,7 @@ app.put('/cycle', function (req, res) {
                   validCnt++;
                 }
               }
-              event.valid = validCnt < 20;
+              event.valid = validCnt > 20;
               event.bounds = {
                   start: event.events[0].header.startTime
                 , stop: event.events[0].header.stopTime
