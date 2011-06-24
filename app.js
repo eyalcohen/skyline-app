@@ -638,6 +638,7 @@ app.put('/cycle', function (req, res) {
               // TMP: use SENSOR_GPS to determine of this cycle is "valid"
               var validCnt = 0
                 , driveHeader
+                , events = []
               ;
 
               // count location events and find drive session header
@@ -647,6 +648,9 @@ app.put('/cycle', function (req, res) {
                 }
                 if (event.events[i].header.type === 'DRIVE_SESSION') {
                   driveHeader = event.events[i].header;
+                }                
+                if (event.events[i].header.type !== 'ANNOTATION' && event.events[i].header.source !== 'SENSOR_COMPASS') {
+                  events.push(event.events[i]);
                 }
               }
 
@@ -659,6 +663,7 @@ app.put('/cycle', function (req, res) {
 
               // add new cycle
               } else {
+                event.events = events;
                 event.valid = validCnt > 20;
                 event.bounds = {
                     start: driveHeader.startTime

@@ -317,7 +317,7 @@ ServiceGUI = (function ($) {
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
-    console.log(this.raw);
+
     // only select valid key types
     var data = $.extend(true, {}, this.validSensors)
       , sensors = Object.keys(this.validSensors)
@@ -414,7 +414,7 @@ ServiceGUI = (function ($) {
     this.visibleSensors = data;
 
     // log for now
-    console.log(data);
+    // console.log(data);
   };
 
   Sandbox.prototype.add = function (type, wrap, loading, fn) {
@@ -2209,7 +2209,7 @@ ServiceGUI = (function ($) {
 
 
           // TMP -- open the first vehicle pane
-          $($('a.expander')[0]).click();
+          // $($('a.expander')[0]).click();
         }
       }
   }
