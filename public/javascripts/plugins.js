@@ -327,17 +327,24 @@ function downV3(event, g, context) {
   if (event.altKey || event.shiftKey) {
     Dygraph.startZoom(event, g, context);
   } else {
+    // for (var i = 0, len = g.siblings.length; i < len; i++) {
+    //   Dygraph.startPan(event, g.siblings[i], context);
+    // }
     Dygraph.startPan(event, g, context);
   }
 }
 
 function moveV3(event, g, context) {
   if (context.isPanning) {
+    // for (var i = 0, len = g.siblings.length; i < len; i++) {
+    //   Dygraph.movePan(event, g.siblings[i], context);
+    // }
     Dygraph.movePan(event, g, context);
   } else if (context.isZooming) {
-    for (var i = 0, len = g.siblings.length; i < len; i++) {
-      Dygraph.moveZoom(event, g.siblings[i], context, g);
-    }
+    // for (var i = 0, len = g.siblings.length; i < len; i++) {
+    //   Dygraph.moveZoom(event, g.siblings[i], context, g);
+    // }
+    Dygraph.moveZoom(event, g, context);
   }
 }
 

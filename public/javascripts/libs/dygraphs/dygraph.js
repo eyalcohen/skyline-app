@@ -239,6 +239,7 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.channels = attrs.channels;
   this.sensor = attrs.sensor;
   this.plot = attrs.plot
+  this.skipCallback = null;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
   // div, then only one will be drawn.
@@ -668,6 +669,19 @@ Dygraph.cancelEvent = function(e) {
  * period. Also creates the Renderer/Layout elements.
  * @private
  */
+Dygraph.toSelectCase = function (t) {
+  var words = t.split('_')
+    , text = ''
+  ;
+  for (var i = 0, len = words.length; i < len; i++) {
+    words[i] = words[i].substr(0, 1).toUpperCase() + words[i].substr(1);
+    text += words[i];
+    if (i !== len - 1)
+      text += ' ';
+  }
+  return text;
+};
+ 
 Dygraph.prototype.createInterface_ = function() {
   // Create the all-enclosing graph div
   var enclosing = this.maindiv_;
@@ -713,7 +727,7 @@ Dygraph.prototype.createInterface_ = function() {
       for (var j = 0, len = this.channels[i].length; j < len; j++) {
         var o = document.createElement("option");
         o.value = this.channels[i][j];
-        o.text = this.channels[i][j].substr(0, 1).toUpperCase() + this.channels[i][j].substr(1);
+        o.text = Dygraph.toSelectCase(this.channels[i][j]); // this.channels[i][j].substr(0, 1).toUpperCase() + this.channels[i][j].substr(1);
         o.className = i;
         if (this.channels[i][j] === this.key) {
           o.selected = "selected";
@@ -1203,7 +1217,7 @@ Dygraph.movePan = function(event, g, context) {
       }
     }
   }
-
+  g.skipCallback = null;
   g.drawGraph_();
 }
 
@@ -3077,6 +3091,7 @@ Dygraph.prototype.drawGraph_ = function() {
 
   if (this.attr_("drawCallback") !== null && !this.skipCallback) {
     this.attr_("drawCallback")(this, is_initial_draw);
+    this.skipCallback = null;
   }
 };
 
@@ -3989,20 +4004,7 @@ Dygraph.prototype.updateOptions = function(attrs, skipCallback) {
   // pointSize
   // drawPoints
   // highlightCircleSize
-
-  Dygraph.update(this.user_attrs_, attrs);
-  Dygraph.update(this.renderOptions_, attrs);
-
-  this.labelsFromCSV_ = (this.attr_("labels") == null);
-
-  // TODO(danvk): this doesn't match the constructor logic
-  this.layout_.updateOptions({ 'errorBars': this.attr_("errorBars") });
-  if (attrs['file']) {
-    this.file_ = attrs['file'];
-    this.start_();
-  } else {
-    this.predraw_();
-  }
+  
   
   if ('starts' in attrs) {
     this.starts = attrs.starts;
@@ -4035,6 +4037,23 @@ Dygraph.prototype.updateOptions = function(attrs, skipCallback) {
   if ('plot' in attrs) {
     this.plot = attrs.plot;
   }
+  
+
+  Dygraph.update(this.user_attrs_, attrs);
+  Dygraph.update(this.renderOptions_, attrs);
+
+  this.labelsFromCSV_ = (this.attr_("labels") == null);
+
+  // TODO(danvk): this doesn't match the constructor logic
+  this.layout_.updateOptions({ 'errorBars': this.attr_("errorBars") });
+  if (attrs['file']) {
+    this.file_ = attrs['file'];
+    this.start_();
+  } else {
+    this.predraw_();
+  }
+  
+  
 
 };
 

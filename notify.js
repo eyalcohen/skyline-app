@@ -36,7 +36,7 @@ var emailServer = {
                "Template:\n" +
                util.inspect(template));
 
-      if ('function' == typeof template) {
+      if ('function' === typeof template) {
         fn = template;
         template = false;
       }

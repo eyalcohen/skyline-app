@@ -7,12 +7,7 @@ div.tr
     =row.year + ' ' + row.make + ' ' + row.model
   div.td(class=color)
     =row._id.vehicleId
-  //div.td.number(class=color)
-  //=miles
   div.td(class=color, data-last-seen=row.lastSeen)
-  //div.td(class=color)
-  //a.row-link(href="javascript:;", id="ev-rating-" + rate)
-  //=rate
 div.tr.row-details
   div.td
     div.details-wrap
@@ -28,11 +23,6 @@ div.tr.row-details
         div.details-right
           div.dygraph-bar(style="bottom:30px; width:100%; z-index:10001")
           div.overviewer
-            div.overviewer-slider
-              div.overviewer-slider-side.lefted
-                img.resize-slider(src="/graphics/resize-vertical.png")
-              div.overviewer-slider-side.righted
-                img.resize-slider(src="/graphics/resize-vertical.png")
           div.loading-more
             span Loading...
           div.details-loader-wrap.series-loading

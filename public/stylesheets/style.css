@@ -1254,25 +1254,6 @@ p.empty-dygraph {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* applied to original <select> to hide */
 .has_sb{position:absolute;left:-999999em;text-indent:-999999em;}
  
@@ -1284,7 +1265,7 @@ p.empty-dygraph {
   position:relative;
   vertical-align:middle;
   zoom:1;
-  width: 85px;
+  width: 102px;
   
   -webkit-user-select: none;
   -moz-user-select: none;

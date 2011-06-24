@@ -108,10 +108,12 @@ function findVehiclesByUser(user, next) {
   });
 }
 
+
 /**
  * Finds a single vehicle by integer id
  * which is the first 4 bytes of _id
  */
+
 
 function findVehicleByIntId(id, next) {
   if ('string' === typeof id) {
@@ -148,20 +150,6 @@ function findVehicleCycles(id, from, to, next) {
         next([]);
       } else {
         next(bucks);
-        // getCycle('6284fb404de715df03180003', function () {
-        //   console.log('sfvsdfvsdfvdv');
-        // });
-        // var len = bucks.length
-        //   , cnt = 0;
-        // bucks.forEach(function (b) {
-        //   getCycle(b._id, function () {
-        //     //console.log('done');
-        //     cnt++;
-        //     if (cnt === len) {
-        //       next(bucks);
-        //     }
-        //   });
-        // });
       }
     });
   });
@@ -182,39 +170,14 @@ function getCycle(id, next) {
         , start_orig = parseInt(data.bounds.start)
         , stop_orig = parseInt(data.bounds.stop)
       ;
-      // console.log(start_orig === stop_orig);
-      //       if (start_orig === stop_orig) {
-      //         var start = 9999999999999
-      //           , stop = 0
-      //         ;
-      //         for (var i = 0; i < len; i++) {
-      //           var s = parseInt(data.events[i].header.startTime)
-      //             , p = parseInt(data.events[i].header.stopTime)
-      //           ;
-      //           if (s < start) {
-      //             start = s;
-      //           }
-      //           if (p > stop) {
-      //             stop = p;
-      //           }
-      //         }
-      //         EventBucket.collection.findAndModify({ _id: id }, [['_id','asc']], { $set: { bounds: { start: start, stop: stop } } }, {}, function(err, object) {
-      //           if (err) {
-      //             console.warn(err.message);
-      //           } else {
-      //             getCycle(id, next);
-      //           }
-      //         });
-      // } else {
-        for (var i = 0; i < len; i++) {
-          // if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
-          if (data.events[i].header.type !== 'ANNOTATION') {
-            events.push(data.events[i]);
-          }
+      for (var i = 0; i < len; i++) {
+        // if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
+        if (data.events[i].header.type !== 'ANNOTATION') {
+          events.push(data.events[i]);
         }
-        data.events = events;
-        next(data);
-      // }
+      }
+      data.events = events;
+      next(data);
     } else {
       next(null);
     }
@@ -334,7 +297,7 @@ app.param('vid', function (req, res, next, id) {
 
 
 /**
- * Load vehicle by vehicleId request param.
+ * Load vehicle by vehicleId in integer form request param.
  */
 
 
@@ -428,9 +391,11 @@ app.get('/login', function (req, res) {
 // Get one vehicle route
 
 app.get('/v/:vid', function (req, res) {
+  
   // get all vehicle events (handle only)
   findVehicleCycles(req.vehicle._id, function (bucks) {
     if (bucks.length > 0) {
+      
       // get only the latest cycle's data
       var events = []
         , buckIndex = bucks.length - 1
@@ -515,7 +480,7 @@ app.post('/sessions', function (req, res) {
   if (!req.body.user.password) {
     missing.push('password');
   }
-  if (missing.length != 0) {
+  if (missing.length !== 0) {
     res.send({ status: 'fail', data: { code: 'MISSING_FIELD', message: 'Both your email and password are required for login.', missing: missing } });
     return;
   }
@@ -694,7 +659,6 @@ app.put('/cycle', function (req, res) {
 
               // add new cycle
               } else {
-                console.log(driveHeader);
                 event.valid = validCnt > 20;
                 event.bounds = {
                     start: driveHeader.startTime

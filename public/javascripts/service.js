@@ -129,11 +129,11 @@ ServiceGUI = (function ($) {
 
     , sizeDetailPanes = function () {
         var ww = $(window).width()
-          , lw = (ww - 10) * 0.3
-          , rw = (ww - 10) * 0.7
+          , lw = Math.ceil((ww - 9) * 0.3)
+          , rw = Math.floor((ww - 9) * 0.7)
         ;
         $('.details-left').width(lw);
-        $('.details-right').width(rw - 14);
+        $('.details-right').width(rw);
       }
 
   /**
@@ -251,27 +251,55 @@ ServiceGUI = (function ($) {
       // }
       , SENSOR_ACCEL: {
             key: 'sensor'
-          , name: 'acceleration'
+          , names: ['acceleration_x', 'acceleration_y', 'acceleration_z']
           , series: {
-                acceleration: {
+                acceleration_x: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Acceleration (m/s^2)' }
-                  , labels: ['time', '(ax)', '(ay)', '(az)']
+                  , titles: { x: 'Time', y: 'Acceleration X (m/s^2)' }
+                  , labels: ['time', 'm/s^2']
+                }
+              , acceleration_y: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , cycleEndTimes: []
+                  , titles: { x: 'Time', y: 'Acceleration Y (m/s^2)' }
+                  , labels: ['time', 'm/s^2']
+                }
+              , acceleration_z: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , cycleEndTimes: []
+                  , titles: { x: 'Time', y: 'Acceleration Z (m/s^2)' }
+                  , labels: ['time', 'm/s^2']
                 }
             }
         }
       , SENSOR_COMPASS: {
             key: 'sensor'
-          , name: 'compass'
+          , names: ['compass_x', 'compass_y', 'compass_z']
           , series: {
-                compass: {
+                compass_x: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Heading (˚)' }
-                  , labels: ['time', '(x)', '(y)', '(z)']
+                  , titles: { x: 'Time', y: 'Heading X (deg)' }
+                  , labels: ['time', 'deg']
+                }
+              , compass_y: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , cycleEndTimes: []
+                  , titles: { x: 'Time', y: 'Heading Y (deg)' }
+                  , labels: ['time', 'deg']
+                }
+              , compass_x: {
+                    dataPoints: []
+                  , cycleStartTimes: []
+                  , cycleEndTimes: []
+                  , titles: { x: 'Time', y: 'Heading Z (deg)' }
+                  , labels: ['time', 'deg']
                 }
             }
         }
@@ -289,7 +317,7 @@ ServiceGUI = (function ($) {
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
-    console.log(this.raw);
+    
     // only select valid key types
     var data = $.extend(true, {}, this.validSensors)
       , sensors = Object.keys(this.validSensors)
@@ -322,20 +350,34 @@ ServiceGUI = (function ($) {
             ;
             if (lenk) {
               // is array
-              var name = data[source].name
-                , series = data[source].series[name]
-                , point = []
-              ;
-              point.push(time);
-              for (var k = 0; k < lenk; k++)
-                point.push(key[k]);
-              // add to series
-              series.dataPoints.push(point);
-              // check if first
-              if (series.cycleStartTimes.length === i)
-                series.cycleStartTimes.push(time);
-              // check if last
-              series.cycleEndTimes[i] = time;
+              var names = data[source].names;              
+              for (var n = 0, lenn = names.length; n < lenn; n++) {
+                var series = data[source].series[names[n]]
+                  , point = [time, key[n]]
+                ;
+                // add to series
+                series.dataPoints.push(point);
+                // check if first
+                if (series.cycleStartTimes.length === i)
+                  series.cycleStartTimes.push(time);
+                // update last
+                series.cycleEndTimes[i] = time;
+              }
+              
+              // var name = data[source].name
+              //   , series = data[source].series[name]
+              //   , point = []
+              // ;
+              // point.push(time);
+              // for (var k = 0; k < lenk; k++)
+              //   point.push(key[k]);
+              // // add to series
+              // series.dataPoints.push(point);
+              // // check if first
+              // if (series.cycleStartTimes.length === i)
+              //   series.cycleStartTimes.push(time);
+              // // update last
+              // series.cycleEndTimes[i] = time;
             } else {
               // is object
               for (var k in key) {
@@ -347,7 +389,7 @@ ServiceGUI = (function ($) {
                   // check if first
                   if (series.cycleStartTimes.length === i)
                     series.cycleStartTimes.push(time);
-                  // check if last
+                  // update last
                   series.cycleEndTimes[i] = time;
                 }
               }
@@ -372,7 +414,7 @@ ServiceGUI = (function ($) {
     this.visibleSensors = data;
 
     // log for now
-    //console.log(data);
+    // console.log(data);
   };
 
   Sandbox.prototype.add = function (type, wrap, loading, fn) {
@@ -399,6 +441,8 @@ ServiceGUI = (function ($) {
     switch (type) {
       case 'cs-time-window-change':
         this.reEvaluateData(params, fn);
+        if (!params.skipOverview)
+          this.overviewer.update(params.range);
         break;
       case 'cs-point-hover':
         this.map.update(params.time);
@@ -479,7 +523,7 @@ ServiceGUI = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'altitude', 'acceleration']
+    var defaultSeries = ['speed', 'altitude', 'acceleration_x']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -593,7 +637,7 @@ ServiceGUI = (function ($) {
                     , index: chart.index + 1
                     , self: self
                     , key: chart.key
-                    , colors: plotColors
+                    , colors: chart.colors_
                     , sensor: chart.sensor
                     , plot: chart.plot
                   });
@@ -683,16 +727,16 @@ ServiceGUI = (function ($) {
               , labels: series.labels
               , xlabel: series.titles.x
               , ylabel: series.titles.y
-              , colors: plotColors
+              //, colors: chart.colors_
             }, true);
           });
-          
+
           // init right clicks
           bindRightClickMenu(self);
         }
-        
+
       , plot: function (desiredSeries, fn) {
-          
+
           // save this scope
           var self = this
             , sensors = box.visibleSensors
@@ -703,7 +747,7 @@ ServiceGUI = (function ($) {
             fn = desiredSeries;
             desiredSeries = defaultSeries;
           }
-          
+
           // create each chart
           for (var s in sensors) {
             if (sensors.hasOwnProperty(s)) {
@@ -714,7 +758,7 @@ ServiceGUI = (function ($) {
                     , points = plot.dataPoints.length !== 0 ? plot.dataPoints : null
                     , colors = []
                   ;
-                  
+
                   // get colors
                   if (points && points[0].length > 2) {
                     for (var c = colorCnt, lenc = plotColors.length; c < lenc; c++) {
@@ -723,7 +767,7 @@ ServiceGUI = (function ($) {
                   } else
                     colors.push(plotColors[colorCnt]);
                   colorCnt++;
-                  
+
                   // make a new dygraph
                   var chart = makeChart({
                       points: points
@@ -735,14 +779,14 @@ ServiceGUI = (function ($) {
                     , sensor: s
                     , plot: plot
                   });
-                  
+
                   // collect it for later
                   charts.push(chart);
                 }
               }
             }
           }
-          
+
           // get widest range
           var maxRange = []
             , maxRangeDiff = 0
@@ -764,47 +808,43 @@ ServiceGUI = (function ($) {
               , dateWindow: maxRange
             }, true);
           }
-          
+
           // init the dropdowns
           $('select').sb({
               fixedWidth: true
             , animDuration: 50
           });
-          
+
           // init color picker
           $('.colors').miniColors({
             change: function(hex, rgb) {
               var $this = $(this)
                 , chart = charts[$this.itemID()]
               ;
-              
+
               // update chart
               chart.updateOptions({
                 colors: [hex]
               }, true);
             }
           });
-          
+
           // color in the squares
           $('.miniColors-trigger').each(function (i) {
             var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];
             $(this).css({ backgroundColor: color });
           });
-          
+
           // callback
           fn();
         }
-        
+
       , snap: function (range, fn) {
-          
-          // if ('object' === typeof range[0]) {
-          //   range[0] = range[0].valueOf();
-          //   range[1] = range[1].valueOf();
-          // }
 
           // notify sandbox
           box.notify('cs-time-window-change', {
             range: range
+          , skipOverview: true
           }, function (redraw) {
 
             // update plots with new data
@@ -901,7 +941,9 @@ ServiceGUI = (function ($) {
       , dots = []
       , scale
       , dragBounds = []
-      , draggedDots = []
+      //, draggedDots = []
+      , visibleDots = []
+      , mappedDot
 
       , updateDots = function () {
           
@@ -954,6 +996,11 @@ ServiceGUI = (function ($) {
       , crisper = function (v) {
           return Math.round(v) + 0.5;
         }
+
+      , setMappedDot = function (dot) {
+          mappedDot = dot;
+          mappedDot.color = green;
+        }
     ;
 
     return {
@@ -986,13 +1033,12 @@ ServiceGUI = (function ($) {
           for (var i = 0, len = box.raw.length; i < len; i++) {
             var dot = new Dot(box.raw[i]._id);
             dot.range = [box.raw[i].bounds.start, box.raw[i].bounds.stop];
-            //dot.range = [new Date(box.raw[i].bounds.start), new Date(box.raw[i].bounds.stop)];
             dot.time = Math.round((box.raw[i].bounds.stop + box.raw[i].bounds.start) / 2);
             dot.screenX = msToPx(dot.time);
             //dot.radius = scale * (box.raw[i].bounds.stop - box.raw[i].bounds.start) / (bounds.stop - bounds.start);
             dots.push(dot);
             if (i === len - 1)
-              dot.color = orange;
+              setMappedDot(dot);
             dot.draw(dotsCtx);
           }
           
@@ -1010,7 +1056,7 @@ ServiceGUI = (function ($) {
               ) {
                 updateDots();
                 var dot = dots[i];
-                dot.color = orange;
+                setMappedDot(dot);
                 renderDots();
                 box.map.showLoading();
                 box.timeseries.snap(dot.range, function () {
@@ -1032,7 +1078,7 @@ ServiceGUI = (function ($) {
             var m_orig = mouse(e, dragCanvas);
             
             // clear dots
-            draggedDots = [];
+            var draggedDots = [];
             
             // bind mouse move
             var movehandle = function (e) {
@@ -1050,6 +1096,7 @@ ServiceGUI = (function ($) {
                 dragBounds[1] = m_orig.x;
               }
               
+              // draw the rectangle
               clearDrag();
               renderDrag();
               
@@ -1093,30 +1140,94 @@ ServiceGUI = (function ($) {
                   range[1] = dot.range[1];
               }
               
+              // last dot will be mapped and colored differently
+              
+              setMappedDot(dot);
+              
               // draw dots
               renderDots();
               
               // update map and plots
               box.map.showLoading();
-              box.timeseries.snap(dot.range, function () {
+              box.timeseries.snap(range, function () {
                 box.map.clear();
                 box.map.refresh(dot.range);
               });
+              
             });
           });
 
         }
-        
-      , update: function (snappedTime) {
+
+      , update: function (windowBounds) {
+
+          // clear visible
+          visibleDots = [];
+
+          // clear all
+          updateDots();
+
+          // find dots
+          for (var i = 0, len = dots.length; i < len; i++) {
+            var dot = dots[i];
+            if (windowBounds[0] < dot.range[1] && 
+                windowBounds[1] > dot.range[0]
+            ) {
+
+                // highlight
+                dot.color = orange;
+                visibleDots.push(dot);
+
+            }
+          }
+
+          // recolor mapped dot
+          mappedDot.color = green;
+
+          // redraw
+          renderDots();
 
         }
-      
+
+      , updateMapped: function (mappedBounds) {
+          
+          // convert bounds to epoch time
+          for (var t = 0, len = mappedBounds.length; t < len; t++)
+            mappedBounds[t] = mappedBounds[t].valueOf();
+          
+          // this is the cycle that is mapped
+          var dot;
+          
+          // clear all
+          updateDots();
+
+          // recolor visible dots
+          for (var i = 0, len = visibleDots.length; i < len; i++)
+            visibleDots[i].color = orange;
+
+          // find the mapped one
+          for (var i = 0, len = dots.length; i < len; i++) {
+            if (mappedBounds[0] < dots[i].time && 
+                mappedBounds[1] > dots[i].time
+            ) {
+
+              // color this one green
+              setMappedDot(dots[i]);
+
+            }
+          }
+
+          // redraw
+          renderDots();
+
+        }
+
       , resize: function (wl, hl, wr, hr) {
 
         }
-        
+
       , clear: function () {
-          
+
         }
     };
   };
@@ -1127,6 +1238,7 @@ ServiceGUI = (function ($) {
         id: id
       , range: null
       , time: null
+      , mapped: false
       , screenX: null
       , screenY: 10
       , color: '#ffffff'
@@ -1224,7 +1336,6 @@ ServiceGUI = (function ($) {
           
           // clear for new map
           refreshVars();
-          hideInfo();
           
           // poly bounds
           var minlat = 90
@@ -1416,7 +1527,8 @@ ServiceGUI = (function ($) {
           infoP.html(distanceTxt + '<br/>' + timeTxt).show();
           
           // offset time p
-          timeP.css({ top: parseInt(timeP.css('top')) + infoP.height() + 12 });
+          if (timeP.css('top') === infoP.css('top'))
+            timeP.css({ top: parseInt(timeP.css('top')) + infoP.height() + 12 });
         }
       , hideInfo = function () {
           $('.map-info', wrap.parent()).hide();
@@ -1453,6 +1565,10 @@ ServiceGUI = (function ($) {
                   loading.show();
                   this.clear();
                   this.refresh([starts[i], ends[i]]);
+                  
+                  // highlight proper dot in overviewer
+                  box.overviewer.updateMapped([starts[i], ends[i]]);
+                  
                 }
                 break;
               }
@@ -1468,14 +1584,10 @@ ServiceGUI = (function ($) {
       
       , showLoading: function () {
           loading.show();
+          hideInfo();
         }
       
       , refresh: function (bounds) {
-          
-          // if ('number' === typeof bounds[0]) {
-          //   bounds[0] = new Date(bounds[0]);
-          //   bounds[1] = new Date(bounds[1]);
-          // }
           
           // set new bounds
           timeBounds = bounds;
@@ -2097,7 +2209,7 @@ ServiceGUI = (function ($) {
 
 
           // TMP -- open the first vehicle pane
-          // $($('a.expander')[1]).click();
+          $($('a.expander')[0]).click();
         }
       }
   }
