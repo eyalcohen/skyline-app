@@ -172,7 +172,7 @@ function getCycle(id, next) {
       ;
       for (var i = 0; i < len; i++) {
         // if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
-        if (data.events[i].header.type !== 'ANNOTATION') {
+        if (data.events[i].header.type !== 'ANNOTATION' && data.events[i].header.source !== 'SENSOR_COMPASS') {
           events.push(data.events[i]);
         }
       }
