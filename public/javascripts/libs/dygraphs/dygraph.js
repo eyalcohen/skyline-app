@@ -236,8 +236,10 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.of = attrs.of;
   this.starts = attrs.starts;
   this.key = attrs.key;
+  this.key2 = attrs.key2;
   this.channels = attrs.channels;
   this.sensor = attrs.sensor;
+  this.sensor2 = attrs.sensor2;
   this.plot = attrs.plot
   this.skipCallback = null;
 
@@ -703,6 +705,11 @@ Dygraph.prototype.createInterface_ = function() {
     this.graphDiv.appendChild(this.barDiv);
   }
   
+  
+  
+  
+  
+  
   // series div (holds selectbox and color picker)
   this.seriesDiv = document.createElement("div");
   this.seriesDiv.className = "dygraph-series-box " + "color-" + this.attr_('colors')[0];
@@ -720,14 +727,20 @@ Dygraph.prototype.createInterface_ = function() {
   this.selectDiv.className = "dygraph-select";
   this.selectDiv.id = "selector-" + this.index;
   var select = document.createElement("select");
-  select.className = "round_sb";
+  select.className = "round_sb select1";
+  
+  // var o = document.createElement("option");
+  // o.value = "choose";
+  // o.text = "-- select --";
+  // o.className = "none";
+  // select.appendChild(o);
   
   for (var i in this.channels) {
     if (this.channels.hasOwnProperty(i)) {
       for (var j = 0, len = this.channels[i].length; j < len; j++) {
         var o = document.createElement("option");
         o.value = this.channels[i][j];
-        o.text = Dygraph.toSelectCase(this.channels[i][j]); // this.channels[i][j].substr(0, 1).toUpperCase() + this.channels[i][j].substr(1);
+        o.text = Dygraph.toSelectCase(this.channels[i][j]);
         o.className = i;
         if (this.channels[i][j] === this.key) {
           o.selected = "selected";
@@ -741,6 +754,64 @@ Dygraph.prototype.createInterface_ = function() {
   this.seriesDiv.appendChild(this.selectDiv);
 
 
+
+
+
+
+  // series div (holds selectbox and color picker)
+  this.seriesDiv2 = document.createElement("div");
+  this.seriesDiv2.className = "dygraph-series-box " + "color-#ffffff";
+  this.seriesDiv2.style.top = "50px";
+  this.graphDiv.appendChild(this.seriesDiv2);
+  
+  // add color picker
+  this.colorInput2 = document.createElement("input");
+  this.colorInput2.type = "hidden";
+  this.colorInput2.className = "colors";
+  this.colorInput2.id = "picker2-" + this.index;
+  this.seriesDiv2.appendChild(this.colorInput2);
+
+  // add another selectbox
+  this.selectDiv2 = document.createElement("div");
+  this.selectDiv2.className = "dygraph-select";
+  this.selectDiv2.id = "selector2-" + this.index;
+  var select2 = document.createElement("select");
+  select2.className = "round_sb select2";
+  
+  var o = document.createElement("option");
+  o.value = "choose";
+  o.text = "-- select --";
+  o.className = "none";
+  select2.appendChild(o);
+  
+  for (var i in this.channels) {
+    if (this.channels.hasOwnProperty(i)) {
+      for (var j = 0, len = this.channels[i].length; j < len; j++) {
+        var o = document.createElement("option");
+        o.value = this.channels[i][j];
+        o.text = Dygraph.toSelectCase(this.channels[i][j]);
+        o.className = i;
+        if (this.channels[i][j] === this.key2) {
+          o.selected = "selected";
+        }
+        select2.appendChild(o);
+      }
+    }
+  }
+  
+  this.selectDiv2.appendChild(select2);
+  this.seriesDiv2.appendChild(this.selectDiv2);
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   // [swp]
@@ -4026,12 +4097,20 @@ Dygraph.prototype.updateOptions = function(attrs, skipCallback) {
     this.key = attrs.key;
   }
   
+  if ('key2' in attrs) {
+    this.key2 = attrs.key2;
+  }
+  
   if ('channels' in attrs) {
     this.channels = attrs.channels;
   }
   
   if ('sensor' in attrs) {
     this.sensor = attrs.sensor;
+  }
+  
+  if ('sensor2' in attrs) {
+    this.sensor2 = attrs.sensor2;
   }
   
   if ('plot' in attrs) {

@@ -323,6 +323,7 @@ jQuery.extend( jQuery.easing,
 // that file so they can be tested in isolation.
 //
 function downV3(event, g, context) {
+  g.canvas_.style.cursor = "url(/graphics/openhand_8_8.bmp) 8 8, auto";
   context.initializeMouseDown(event, g, context);
   if (event.altKey || event.shiftKey) {
     Dygraph.startZoom(event, g, context);
@@ -336,6 +337,7 @@ function downV3(event, g, context) {
 
 function moveV3(event, g, context) {
   if (context.isPanning) {
+    g.canvas_.style.cursor = "url(/graphics/closedhand_8_8.bmp) 8 8, auto";
     // for (var i = 0, len = g.siblings.length; i < len; i++) {
     //   Dygraph.movePan(event, g.siblings[i], context);
     // }
@@ -345,10 +347,13 @@ function moveV3(event, g, context) {
     //   Dygraph.moveZoom(event, g.siblings[i], context, g);
     // }
     Dygraph.moveZoom(event, g, context);
+  } else {
+    g.canvas_.style.cursor = "url(/graphics/openhand_8_8.bmp) 8 8, auto";
   }
 }
 
 function upV3(event, g, context) {
+  g.canvas_.style.cursor = "url(/graphics/openhand_8_8.bmp) 8 8, auto";
   if (context.isPanning) {
     Dygraph.endPan(event, g, context);
   } else if (context.isZooming) {

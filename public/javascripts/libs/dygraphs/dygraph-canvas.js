@@ -579,8 +579,8 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         label2.style.left = "";
         label2.style.right = "3px";
         label2.style.textAlign = "right";
-        this.container.appendChild(label2);
-        this.ylabels.push(label2);
+        //this.container.appendChild(label2);
+        //this.ylabels.push(label2);
       }
 
       // The lowest tick on the y-axis often overlaps with the leftmost

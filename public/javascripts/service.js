@@ -204,29 +204,29 @@ ServiceGUI = (function ($) {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Latitude (˚)' }
-                  , labels: [ 'time', '˚' ]
+                  , titles: { x: 'Time', y: 'Latitude (deg)' }
+                  , labels: [ 'time', '(lat)' ]
                 }
               , longitude: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Longitude (˚)' }
-                  , labels: ['time', '˚' ]
+                  , titles: { x: 'Time', y: 'Longitude (deg)' }
+                  , labels: ['time', '(lng)' ]
                 }
               , altitude: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Altitude (m)' }
-                  , labels: ['time', 'm' ]
+                  , labels: ['time', '(alt)' ]
                 }
               , speed: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Speed (m/s)' }
-                  , labels: ['time', 'm/s' ]
+                  , labels: ['time', '(spd)' ]
                 }
             }
         }
@@ -258,21 +258,21 @@ ServiceGUI = (function ($) {
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Acceleration X (m/s^2)' }
-                  , labels: ['time', 'm/s^2']
+                  , labels: ['time', '(acx)']
                 }
               , acceleration_y: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Acceleration Y (m/s^2)' }
-                  , labels: ['time', 'm/s^2']
+                  , labels: ['time', '(acy)']
                 }
               , acceleration_z: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Acceleration Z (m/s^2)' }
-                  , labels: ['time', 'm/s^2']
+                  , labels: ['time', '(acz)']
                 }
             }
         }
@@ -285,21 +285,21 @@ ServiceGUI = (function ($) {
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Heading X (deg)' }
-                  , labels: ['time', 'deg']
+                  , labels: ['time', '(cpx)']
                 }
               , compass_y: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Heading Y (deg)' }
-                  , labels: ['time', 'deg']
+                  , labels: ['time', '(cpy)']
                 }
               , compass_x: {
                     dataPoints: []
                   , cycleStartTimes: []
                   , cycleEndTimes: []
                   , titles: { x: 'Time', y: 'Heading Z (deg)' }
-                  , labels: ['time', 'deg']
+                  , labels: ['time', '(cpz)']
                 }
             }
         }
@@ -345,7 +345,8 @@ ServiceGUI = (function ($) {
           if (data[source].key in event) {
             var key = event[data[source].key]
               , lenk = key.length
-              , time = new Date(parseInt(event.header.startTime))
+              // , time = new Date(parseInt(event.header.startTime))
+              , time = parseInt(event.header.startTime)
               , src = event.header.source
             ;
             if (lenk) {
@@ -530,7 +531,7 @@ ServiceGUI = (function ($) {
       , overviewHeight = $('.overviewer', wrap).height() + 5
 
       , makeChart = function (params) {
-        
+
           var chart = new Dygraph(wrap[0], params.points, {
               width: wrap.width()
             , height: (wrap.height() - (5 * (params.of - 1)) - overviewHeight) / params.of
@@ -624,7 +625,7 @@ ServiceGUI = (function ($) {
         }
         
       , bindRightClickMenu = function (self) {
-          $('canvas').not('.overviewer-cnavas').contextMenu('context-menu-1', { 
+          $('canvas').not('.overviewer-canvas').contextMenu('context-menu-1', { 
               'Insert Plot Below...': {
                 click: function (el) {
                   var i = el.itemID()
@@ -716,19 +717,128 @@ ServiceGUI = (function ($) {
               , key = $this.val()
               , sensor = $(':selected', $this).attr('class')
               , series = box.visibleSensors[sensor].series[key]
+              , $sibling = $this.hasClass('select1') ?
+                  $('select', $this[0].parentNode.parentNode.nextElementSibling) :
+                  $('select', $this[0].parentNode.parentNode.previousElementSibling)
+              , siblingKey = $sibling.val()
             ;
 
-            // update chart
-            chart.updateOptions({
-                file: series.dataPoints
-              , starts: series.cycleStartTimes
-              , sensor: sensor
-              , key: key
-              , labels: series.labels
-              , xlabel: series.titles.x
-              , ylabel: series.titles.y
-              //, colors: chart.colors_
-            }, true);
+            if (siblingKey !== 'choose') {
+
+              var siblingSensor = $(':selected', $sibling).attr('class')
+                , siblingSeries = box.visibleSensors[siblingSensor].series[siblingKey]
+              ;
+
+              var combinedDataSet = []
+                , times = []
+                , seriesOne
+                , seriesTwo
+                , setOne
+                , setTwo
+                , keyOne
+                , keyTwo
+                , sensorOne
+                , sensorTwo
+                , setOneObj = {}
+                , setTwoObj = {}
+              ;
+              
+              if ($this.hasClass('select1')) {
+                seriesOne = series;
+                seriesTwo = siblingSeries;
+                setOne = series.dataPoints;
+                setTwo = siblingSeries.dataPoints;
+                keyOne = key;
+                keyTwo = siblingKey;
+                sensorOne = sensor;
+                sensorTwo = siblingSensor;
+              } else {
+                seriesOne = series;
+                seriesTwo = siblingSeries;
+                setOne = siblingSeries.dataPoints;
+                setTwo = series.dataPoints;
+                keyOne = siblingKey;
+                keyTwo = key;
+                sensorOne = siblingSensor;
+                sensorTwo = sensor;
+              }
+
+              // create list of all times
+              for (var i = 0, len = Math.max(setOne.length, setTwo.length); i < len; i++) {
+                var t1 = setOne[i][0] || null
+                  , t2 = setTwo[i][0] || null
+                ;
+                if (t1)
+                  times.push(t1);
+                if (t2 && t2 !== t1)
+                  times.push(t2);
+              }
+
+              // ensure proper order
+              times.sort(function (a, b) {
+                return a - b;
+              });
+
+              // create objects from sets (for searching)
+              for (var i = 0, len = setOne.length; i < len; i++)
+                setOneObj[setOne[i][0]] = setOne[i][1];
+              for (var i = 0, len = setTwo.length; i < len; i++)
+                setTwoObj[setTwo[i][0]] = setTwo[i][1];
+
+              // build combines data
+              for (var i = 0, len = times.length; i < len; i++) {
+                var t = times[i]
+                  , p = [t]
+                ;
+                if (setOneObj[t])
+                  p.push(setOneObj[t]);
+                else
+                  p.push(NaN);
+                if (setTwoObj[t])
+                  p.push(setTwoObj[t]);
+                else
+                  p.push(NaN);
+
+                combinedDataSet.push(p);
+              }
+              
+              var secondAxisLabel = seriesTwo.labels[1];
+              console.log(seriesOne.labels[1], seriesTwo.labels[1]);
+              
+              
+              // update chart
+              chart.updateOptions({
+                  file: combinedDataSet
+                , starts: seriesOne.cycleStartTimes.concat(seriesTwo.cycleStartTimes)
+                , sensor: sensorOne
+                , sensor2: sensorTwo
+                , key: key
+                , key2: keyTwo
+                , labels: [seriesOne.labels[0], seriesOne.labels[1], seriesTwo.labels[1]]
+                , xlabel: series.titles.x
+                , ylabel: series.titles.y
+                , secondAxisLabel: {
+                    axis: {
+                      
+                    }
+                  }
+              }, true);
+              
+            } else {
+
+              // update chart
+              chart.updateOptions({
+                  file: series.dataPoints
+                , starts: series.cycleStartTimes
+                , sensor: sensor
+                , key: key
+                , labels: series.labels
+                , xlabel: series.titles.x
+                , ylabel: series.titles.y
+              }, true);
+
+            }
+              
           });
 
           // init right clicks
@@ -941,17 +1051,10 @@ ServiceGUI = (function ($) {
       , dots = []
       , scale
       , dragBounds = []
-      //, draggedDots = []
       , visibleDots = []
       , mappedDot
 
       , updateDots = function () {
-          
-          // get width again
-          width = wrap.width();
-          
-          // redo scale
-          scale = width / (bounds.stop - bounds.start);
           
           // clear canvas
           dotsCtx.clearRect(0, 0, width, height);
@@ -1223,7 +1326,21 @@ ServiceGUI = (function ($) {
         }
 
       , resize: function (wl, hl, wr, hr) {
-
+          
+          // get width again
+          width = wrap.width();
+          
+          // redo scale
+          scale = width / (bounds.stop - bounds.start);
+          
+          // size canvases
+          dotsCanvas.attr('width', width);
+          dragCanvas.attr('width', width);
+          
+          // redraw
+          updateDots();
+          renderDots();
+          
         }
 
       , clear: function () {

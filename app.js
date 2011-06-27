@@ -625,6 +625,18 @@ app.put('/cycle', function (req, res) {
         // get the cycle's vehicle
         findVehicleByIntId(cycle.vehicleId, function (veh) {
           if (veh) {
+            
+            // save the cycle locally for now
+            var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' + (new Date()).valueOf() + '.js';
+            fs.mkdir(__dirname + '/cycles', '0755', function (err) {
+              fs.writeFile(__dirname + '/cycles/' + fileName, JSON.stringify(cycle), function (err) {
+                  if (err) {
+                    sys.puts(err);
+                  } else {
+                    sys.puts('Saved to: ' + __dirname + '/cycles/' + fileName);
+                  }
+              });
+            });
 
             // loop over each cycle in event
             cycle.events.forEach(function (event) {
