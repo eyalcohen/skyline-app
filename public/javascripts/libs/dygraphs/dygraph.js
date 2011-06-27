@@ -240,7 +240,8 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.channels = attrs.channels;
   this.sensor = attrs.sensor;
   this.sensor2 = attrs.sensor2;
-  this.plot = attrs.plot
+  this.plot = attrs.plot;
+  this.ylabel2 = attrs.ylabel2;
   this.skipCallback = null;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
@@ -3206,9 +3207,12 @@ Dygraph.prototype.computeYAxes_ = function() {
   }
 
   // Go through once and add all the axes.
-  for (var seriesName in series) {
-    if (!series.hasOwnProperty(seriesName)) continue;
+  var seriesNames = Object.keys(series);
+  for (var i = 0, len = seriesNames.length; i < len; i++) {
+    var seriesName = seriesNames[i];
     var axis = this.attr_("axis", seriesName);
+    if (i > 0)
+      axis = {};
     if (axis == null) {
       this.seriesToAxisMap_[seriesName] = 0;
       continue;
@@ -3226,6 +3230,29 @@ Dygraph.prototype.computeYAxes_ = function() {
       this.seriesToAxisMap_[seriesName] = yAxisId;
     }
   }
+  
+  // for (var seriesName in series) {
+  //   if (!series.hasOwnProperty(seriesName)) continue;
+  //   var axis = this.attr_("axis", seriesName);
+  //   if (seriesName == '(alt)')
+  //     axis = {};
+  //   if (axis == null) {
+  //     this.seriesToAxisMap_[seriesName] = 0;
+  //     continue;
+  //   }
+  //   if (typeof(axis) == 'object') {
+  //     // Add a new axis, making a copy of its per-axis options.
+  //     var opts = {};
+  //     Dygraph.update(opts, this.axes_[0]);
+  //     Dygraph.update(opts, { valueRange: null });  // shouldn't inherit this.
+  //     var yAxisId = this.axes_.length;
+  //     opts.yAxisId = yAxisId;
+  //     opts.g = this;
+  //     Dygraph.update(opts, axis);
+  //     this.axes_.push(opts);
+  //     this.seriesToAxisMap_[seriesName] = yAxisId;
+  //   }
+  // }
 
   // Go through one more time and assign series to an axis defined by another
   // series, e.g. { 'Y1: { axis: {} }, 'Y2': { axis: 'Y1' } }
@@ -4115,6 +4142,10 @@ Dygraph.prototype.updateOptions = function(attrs, skipCallback) {
   
   if ('plot' in attrs) {
     this.plot = attrs.plot;
+  }
+  
+  if ('ylabel2' in attrs) {
+    this.ylabel2 = attrs.ylabel2;
   }
   
 

@@ -337,7 +337,7 @@ DygraphCanvasRenderer = function(dygraph, element, elementContext, layout,
   // Shrink the drawing area to accomodate additional y-axes.
   if (this.dygraph_.numAxes() == 2) {
     // TODO(danvk): per-axis setting.
-    this.area.w -= (this.options.yAxisLabelWidth + 2 * this.options.axisTickSize);
+    //this.area.w -= (this.options.yAxisLabelWidth + 2 * this.options.axisTickSize);
   } else if (this.dygraph_.numAxes() > 2) {
     this.dygraph_.error("Only two y-axes are supported at this time. (Trying " +
                         "to use " + this.dygraph_.numAxes() + ")");
@@ -536,7 +536,7 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
 
   if (this.options.drawYAxis) {
     if (this.layout.yticks && this.layout.yticks.length > 0) {
-      for (var i = 0; i < this.layout.yticks.length; i++) {
+      for (var i = 0, len = this.layout.yticks.length; i < len; i++) {
         var tick = this.layout.yticks[i];
         if (typeof(tick) == "function") return;
         var x = this.area.x;
@@ -575,23 +575,39 @@ DygraphCanvasRenderer.prototype._renderAxis = function() {
         this.container.appendChild(label);
         this.ylabels.push(label);
         
-        var label2 = label.cloneNode(true);
-        label2.style.left = "";
-        label2.style.right = "3px";
-        label2.style.textAlign = "right";
-        //this.container.appendChild(label2);
-        //this.ylabels.push(label2);
+        if (!this.dygraph_.ylabel2) {
+          var label2 = label.cloneNode(true);
+          label2.style.left = "";
+          label2.style.right = "3px";
+          label2.style.textAlign = "right";
+          this.container.appendChild(label2);
+          this.ylabels.push(label2);
+        } else {
+          if (i > (len / 2) - 1) {
+            label.style.left = "";
+            label.style.right = "3px";
+            label.style.textAlign = "right";
+          }
+        }
+        
+      }
+      
+      var bottomTicks = [];
+      if (!this.dygraph_.ylabel2) {
+        bottomTicks = [this.ylabels[0], this.ylabels[1]];
+      } else {
+        bottomTicks = [this.ylabels[0], this.ylabels[this.ylabels.length / 2]];
       }
 
       // The lowest tick on the y-axis often overlaps with the leftmost
       // tick on the x-axis. Shift the bottom tick up a little bit to
       // compensate if necessary.
-      for (var k=0; k < 2; k++) {
-        var bottomTick = this.ylabels[k];
+      for (var k = 0; k < bottomTicks.length; k++) {
+        var bottomTick = bottomTicks[k];
         var fontSize = this.options.axisLabelFontSize;
         var bottom = parseInt(bottomTick.style.top) + fontSize;
         if (bottom > this.height - fontSize) {
-          bottomTick.style.top = parseInt(this.ylabels[k].style.top) - 12 + "px"; //(parseInt(bottomTick.style.top) -
+          bottomTick.style.top = parseInt(bottomTick.style.top) - 12 + "px"; //(parseInt(bottomTick.style.top) -
               //fontSize / 2) + "px";
         }
       }
@@ -767,6 +783,60 @@ DygraphCanvasRenderer.prototype._renderChartLabels = function() {
     this.container.appendChild(div);
     this.chartLabels.ylabel = div;
   }
+  
+  if (this.attr_('ylabel2')) {
+    var box = {
+      right: 0,
+      top: this.area.y,
+      width: this.attr_('yLabelWidth'),
+      height: this.area.h
+    };
+    // TODO(danvk): is this outer div actually necessary?
+    var div = document.createElement("div");
+    div.style.position = 'absolute';
+    div.style.right = box.right + 40 + 'px';
+    div.style.top = box.top + 'px';
+    div.style.width = box.width + 'px';
+    div.style.height = box.height + 'px';
+    div.style.fontSize = (this.attr_('yLabelWidth') - 2) + 'px';
+
+    var inner_div = document.createElement("div");
+    inner_div.style.position = 'absolute';
+    inner_div.style.width = box.height + 'px';
+    inner_div.style.height = box.width + 'px';
+    inner_div.style.top = (box.height / 2 - box.width / 2) + 'px';
+    inner_div.style.right = (box.width / 2 - box.height / 2) + 'px';
+    inner_div.style.textAlign = 'center';
+
+    // CSS rotation is an HTML5 feature which is not standardized. Hence every
+    // browser has its own name for the CSS style.
+    inner_div.style.transform = 'rotate(-90deg)';        // HTML5
+    inner_div.style.WebkitTransform = 'rotate(-90deg)';  // Safari/Chrome
+    inner_div.style.MozTransform = 'rotate(-90deg)';     // Firefox
+    inner_div.style.OTransform = 'rotate(-90deg)';       // Opera
+    inner_div.style.msTransform = 'rotate(-90deg)';      // IE9
+
+    if (typeof(document.documentMode) !== 'undefined' &&
+        document.documentMode < 9) {
+      // We're dealing w/ an old version of IE, so we have to rotate the text
+      // using a BasicImage transform. This uses a different origin of rotation
+      // than HTML5 rotation (top left of div vs. its center).
+      inner_div.style.filter =
+       'progid:DXImageTransform.Microsoft.BasicImage(rotation=3)';
+      inner_div.style.right = '0px';
+      inner_div.style.top = '0px';
+    }
+
+    var class_div = document.createElement("div");
+    class_div.className = 'dygraph-label dygraph-ylabel';
+    class_div.innerHTML = this.attr_('ylabel2');
+
+    inner_div.appendChild(class_div);
+    div.appendChild(inner_div);
+    this.container.appendChild(div);
+    this.chartLabels.ylabel2 = div;
+  }
+  
 };
 
 

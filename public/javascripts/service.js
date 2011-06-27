@@ -524,7 +524,7 @@ ServiceGUI = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'altitude', 'acceleration_x']
+    var defaultSeries = ['speed'] //['speed', 'altitude', 'acceleration_x']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -753,8 +753,8 @@ ServiceGUI = (function ($) {
                 sensorOne = sensor;
                 sensorTwo = siblingSensor;
               } else {
-                seriesOne = series;
-                seriesTwo = siblingSeries;
+                seriesOne = siblingSeries;
+                seriesTwo = series;
                 setOne = siblingSeries.dataPoints;
                 setTwo = series.dataPoints;
                 keyOne = siblingKey;
@@ -802,10 +802,6 @@ ServiceGUI = (function ($) {
                 combinedDataSet.push(p);
               }
               
-              var secondAxisLabel = seriesTwo.labels[1];
-              console.log(seriesOne.labels[1], seriesTwo.labels[1]);
-              
-              
               // update chart
               chart.updateOptions({
                   file: combinedDataSet
@@ -815,13 +811,9 @@ ServiceGUI = (function ($) {
                 , key: key
                 , key2: keyTwo
                 , labels: [seriesOne.labels[0], seriesOne.labels[1], seriesTwo.labels[1]]
-                , xlabel: series.titles.x
-                , ylabel: series.titles.y
-                , secondAxisLabel: {
-                    axis: {
-                      
-                    }
-                  }
+                , xlabel: seriesOne.titles.x
+                , ylabel: seriesOne.titles.y
+                , ylabel2: seriesTwo.titles.y
               }, true);
               
             } else {
@@ -835,6 +827,7 @@ ServiceGUI = (function ($) {
                 , labels: series.labels
                 , xlabel: series.titles.x
                 , ylabel: series.titles.y
+                , ylabel2: null
               }, true);
 
             }
