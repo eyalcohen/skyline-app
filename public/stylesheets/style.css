@@ -1182,7 +1182,7 @@ div.dygraph-label {
 div.dygraph-series-box {
   position: absolute;
   top: 20px;
-  right: 40px;
+  right: 80px;
 /*  width: 105px;*/
   z-index: 10001;
   

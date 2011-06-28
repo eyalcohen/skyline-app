@@ -524,7 +524,7 @@ ServiceGUI = (function ($) {
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed'] //['speed', 'altitude', 'acceleration_x']
+    var defaultSeries = ['speed', 'altitude']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -544,7 +544,9 @@ ServiceGUI = (function ($) {
             , fillGraph: true
             , fillAlpha: 0.05
             , gridLineColor: 'rgba(255,255,255,0.25)'
-            , colors: params.colors
+            // , colors: params.colors
+            , colorOne: orange
+            , colorTwo: '#ffffff'
             , strokeWidth: 0.5
             , labels: params.plot.labels
             , axisLineColor: 'rgba(0,0,0,0)'
@@ -555,7 +557,7 @@ ServiceGUI = (function ($) {
             , stepPlot: true
             , starts: params.plot.cycleStartTimes
             , plot: params.plot
-          
+
             , interactionModel : {
                   mousedown: downV3
                 , mousemove: moveV3
@@ -565,43 +567,55 @@ ServiceGUI = (function ($) {
                 , mousewheel: scrollV3
                 , DOMMouseScroll: scrollV3
               }
-          
+
             , highlightCallback: function(e, x, pts, row) {
-              
+
                 // notify sandbox
                 box.notify('cs-point-hover', {
                   time: new Date(x)
                 });
               }
-          
+
             , drawCallback: function (me, initial) {
                 if (initial) return;
-                
+
                 // get new date window
                 var range = me.xAxisRange()
                   , yrange = me.yAxisRange()
                 ;
-                
+
                 // notify sandbox
                 box.notify('cs-time-window-change', {
                   range: range
                 }, function (redraw) {
-                  
+
                   if (charts.length < me.of || blockRedraw)
                     return;
-                    
+
                   blockRedraw = true;
-                  
+
                   if (redraw) {
                     for (var i = 0, len = charts.length; i < len; i++) {
                       var sen = box.visibleSensors[charts[i].sensor]
                         , ser = sen.series[charts[i].key]
                       ;
-                      charts[i].updateOptions({
-                          file: ser.dataPoints
-                        , starts: ser.cycleStartTimes
-                        , dateWindow: range
-                      }, true);
+                      if (charts[i].key2) {
+                        var sen2 = box.visibleSensors[charts[i].sensor2]
+                          , ser2 = sen2.series[charts[i].key2]
+                        ;
+                        var combinedDataSet = combineSeries(ser.dataPoints, ser2.dataPoints);
+                        charts[i].updateOptions({
+                            file: combinedDataSet
+                          , starts: ser.cycleStartTimes.concat(ser2.cycleStartTimes)
+                          , dateWindow: range
+                        }, true);                  
+                      } else {
+                        charts[i].updateOptions({
+                            file: ser.dataPoints
+                          , starts: ser.cycleStartTimes
+                          , dateWindow: range
+                        }, true);
+                      }
                     }
                     hideLoading();
                   } else {
@@ -613,34 +627,34 @@ ServiceGUI = (function ($) {
                       }, true);
                     }
                   }
-                  
+
                   blockRedraw = false;
-                
+
                 });
               }
           });
-          
+
           return chart;
-        
+
         }
-        
+
       , bindRightClickMenu = function (self) {
           $('canvas').not('.overviewer-canvas').contextMenu('context-menu-1', { 
               'Insert Plot Below...': {
                 click: function (el) {
                   var i = el.itemID()
-                    , chart = charts[i];
-                  
+                    , chart = charts[i]
+                  ;
+
                   // make a new dygraph
                   var newChart = makeChart({
-                      points: chart.file_
+                      points: box.visibleSensors.SENSOR_GPS.series.speed.dataPoints
                     , of: chart.of + 1
                     , index: chart.index + 1
                     , self: self
-                    , key: chart.key
-                    , colors: chart.colors_
-                    , sensor: chart.sensor
-                    , plot: chart.plot
+                    , key: 'speed'
+                    , sensor: 'SENSOR_GPS'
+                    , plot: box.visibleSensors.SENSOR_GPS.series.speed
                   });
                   
                   // collect it for later
@@ -688,12 +702,61 @@ ServiceGUI = (function ($) {
             }
           );
         }
-        
+
       , showLoading = function () {
           $('.loading-more', wrap).show()
         }
+
       , hideLoading = function () {
           $('.loading-more', wrap).hide();
+        }
+
+      , combineSeries = function (s1, s2) {
+          var combined = []
+            , times = []
+            , s1o = {}
+            , s2o = {}
+          ;
+          // create list of all times
+          for (var i = 0, len = Math.max(s1.length, s2.length); i < len; i++) {
+            var t1 = s1[i][0] || null
+              , t2 = s2[i][0] || null
+            ;
+            if (t1)
+              times.push(t1);
+            if (t2 && t2 !== t1)
+              times.push(t2);
+          }
+
+          // ensure proper order
+          times.sort(function (a, b) { return a - b; });
+
+          // create objects from sets (for searching)
+          for (var i = 0, len = s1.length; i < len; i++)
+            s1o[s1[i][0]] = s1[i][1];
+          for (var i = 0, len = s2.length; i < len; i++)
+            s2o[s2[i][0]] = s2[i][1];
+
+          // build combines data
+          for (var i = 0, len = times.length; i < len; i++) {
+            var t = times[i]
+              , p = [t]
+            ;
+            if (s1o[t])
+              p.push(s1o[t]);
+            else
+              p.push(NaN);
+            if (s2o[t])
+              p.push(s2o[t]);
+            else
+              p.push(NaN);
+
+            combined.push(p);
+          }
+          
+          // return the combined dataset
+          return combined;
+
         }
     ;
 
@@ -712,26 +775,33 @@ ServiceGUI = (function ($) {
           // channel selects
           var self = this;
           $('select').live('change', function () {
-            var $this = $(this)
-              , chart = charts[$this.parent().itemID()]
+            var $this
+              , clear
+            ;
+            if ($(this).val() !== 'choose') {
+              $this = $(this);
+            } else {
+              clear = true;
+              $this = $('select', this.parentNode.parentNode.previousElementSibling);
+            }
+
+            var chart = charts[$this.parent().itemID()]
               , key = $this.val()
               , sensor = $(':selected', $this).attr('class')
               , series = box.visibleSensors[sensor].series[key]
               , $sibling = $this.hasClass('select1') ?
-                  $('select', $this[0].parentNode.parentNode.nextElementSibling) :
-                  $('select', $this[0].parentNode.parentNode.previousElementSibling)
+                  $('select', this.parentNode.parentNode.nextElementSibling) :
+                  $('select', this.parentNode.parentNode.previousElementSibling)
               , siblingKey = $sibling.val()
             ;
 
-            if (siblingKey !== 'choose') {
+            if (siblingKey !== 'choose' && !clear) {
 
               var siblingSensor = $(':selected', $sibling).attr('class')
                 , siblingSeries = box.visibleSensors[siblingSensor].series[siblingKey]
               ;
 
-              var combinedDataSet = []
-                , times = []
-                , seriesOne
+              var seriesOne
                 , seriesTwo
                 , setOne
                 , setTwo
@@ -739,10 +809,8 @@ ServiceGUI = (function ($) {
                 , keyTwo
                 , sensorOne
                 , sensorTwo
-                , setOneObj = {}
-                , setTwoObj = {}
               ;
-              
+
               if ($this.hasClass('select1')) {
                 seriesOne = series;
                 seriesTwo = siblingSeries;
@@ -764,57 +832,33 @@ ServiceGUI = (function ($) {
               }
 
               // create list of all times
-              for (var i = 0, len = Math.max(setOne.length, setTwo.length); i < len; i++) {
-                var t1 = setOne[i][0] || null
-                  , t2 = setTwo[i][0] || null
-                ;
-                if (t1)
-                  times.push(t1);
-                if (t2 && t2 !== t1)
-                  times.push(t2);
-              }
+              var combinedDataSet = combineSeries(setOne, setTwo);
 
-              // ensure proper order
-              times.sort(function (a, b) {
-                return a - b;
-              });
-
-              // create objects from sets (for searching)
-              for (var i = 0, len = setOne.length; i < len; i++)
-                setOneObj[setOne[i][0]] = setOne[i][1];
-              for (var i = 0, len = setTwo.length; i < len; i++)
-                setTwoObj[setTwo[i][0]] = setTwo[i][1];
-
-              // build combines data
-              for (var i = 0, len = times.length; i < len; i++) {
-                var t = times[i]
-                  , p = [t]
-                ;
-                if (setOneObj[t])
-                  p.push(setOneObj[t]);
-                else
-                  p.push(NaN);
-                if (setTwoObj[t])
-                  p.push(setTwoObj[t]);
-                else
-                  p.push(NaN);
-
-                combinedDataSet.push(p);
-              }
-              
               // update chart
               chart.updateOptions({
                   file: combinedDataSet
                 , starts: seriesOne.cycleStartTimes.concat(seriesTwo.cycleStartTimes)
                 , sensor: sensorOne
                 , sensor2: sensorTwo
-                , key: key
+                , key: keyOne
                 , key2: keyTwo
                 , labels: [seriesOne.labels[0], seriesOne.labels[1], seriesTwo.labels[1]]
                 , xlabel: seriesOne.titles.x
                 , ylabel: seriesOne.titles.y
                 , ylabel2: seriesTwo.titles.y
               }, true);
+              
+              // ensure no double options
+              var children = $sibling.children();
+              children.each(function (j) {
+                var opt = $(children[j]);
+                if (opt.val() === $this.val()) {
+                  opt.attr('disabled', 'disabled');
+                } else {
+                  opt.removeAttr('disabled');
+                }
+              });
+              $('select').sb('refresh');
               
             } else {
 
@@ -823,7 +867,9 @@ ServiceGUI = (function ($) {
                   file: series.dataPoints
                 , starts: series.cycleStartTimes
                 , sensor: sensor
+                , sensor2: null
                 , key: key
+                , key2: null
                 , labels: series.labels
                 , xlabel: series.titles.x
                 , ylabel: series.titles.y
@@ -918,17 +964,32 @@ ServiceGUI = (function ($) {
             , animDuration: 50
           });
 
+          // add class names to color picker
+          $('.colors').each(function (i) {
+            if (i % 2 == 0)
+              $(this).addClass('for-plot-one');
+            else
+               $(this).addClass('for-plot-two');
+          });
+
           // init color picker
           $('.colors').miniColors({
             change: function(hex, rgb) {
               var $this = $(this)
                 , chart = charts[$this.itemID()]
+                , colorOne
               ;
 
               // update chart
-              chart.updateOptions({
-                colors: [hex]
-              }, true);
+              if ($this.hasClass('for-plot-one')) {
+                chart.updateOptions({
+                    colorOne: hex
+                }, true);
+              } else {
+                chart.updateOptions({
+                    colorTwo: hex
+                }, true);
+              }
             }
           });
 
@@ -956,11 +1017,23 @@ ServiceGUI = (function ($) {
                 var sen = box.visibleSensors[charts[i].sensor]
                   , ser = sen.series[charts[i].key]
                 ;
-                charts[i].updateOptions({
-                    file: ser.dataPoints
-                  , starts: ser.cycleStartTimes
-                  , dateWindow: range
-                }, true);
+                if (charts[i].key2) {
+                  var sen2 = box.visibleSensors[charts[i].sensor2]
+                    , ser2 = sen2.series[charts[i].key2]
+                  ;
+                  var combinedDataSet = combineSeries(ser.dataPoints, ser2.dataPoints);
+                  charts[i].updateOptions({
+                      file: combinedDataSet
+                    , starts: ser.cycleStartTimes.concat(ser2.cycleStartTimes)
+                    , dateWindow: range
+                  }, true);                  
+                } else {
+                  charts[i].updateOptions({
+                      file: ser.dataPoints
+                    , starts: ser.cycleStartTimes
+                    , dateWindow: range
+                  }, true);
+                }
               }
             }
             
@@ -986,19 +1059,35 @@ ServiceGUI = (function ($) {
             , animDuration: 50
           });
           
+          // add class names to color picker
+          $('.colors').each(function (i) {
+            if (i % 2 == 0)
+              $(this).addClass('for-plot-one');
+            else
+               $(this).addClass('for-plot-two');
+          });
+
           // init color picker
           $('.colors').miniColors({
             change: function(hex, rgb) {
               var $this = $(this)
                 , chart = charts[$this.itemID()]
+                , colorOne
               ;
-              
+
               // update chart
-              chart.updateOptions({
-                colors: [hex]
-              }, true);
+              if ($this.hasClass('for-plot-one')) {
+                chart.updateOptions({
+                    colorOne: hex
+                }, true);
+              } else {
+                chart.updateOptions({
+                    colorTwo: hex
+                }, true);
+              }
             }
           });
+          
           // color in the squares
           $('.miniColors-trigger').each(function (i) {
             var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];

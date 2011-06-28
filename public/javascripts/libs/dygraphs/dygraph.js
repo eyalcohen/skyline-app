@@ -242,6 +242,8 @@ Dygraph.prototype.__init__ = function(div, file, attrs) {
   this.sensor2 = attrs.sensor2;
   this.plot = attrs.plot;
   this.ylabel2 = attrs.ylabel2;
+  this.colorOne = attrs.colorOne;
+  this.colorTwo = attrs.colorTwo;
   this.skipCallback = null;
 
   // Clear the div. This ensure that, if multiple dygraphs are passed the same
@@ -713,7 +715,7 @@ Dygraph.prototype.createInterface_ = function() {
   
   // series div (holds selectbox and color picker)
   this.seriesDiv = document.createElement("div");
-  this.seriesDiv.className = "dygraph-series-box " + "color-" + this.attr_('colors')[0];
+  this.seriesDiv.className = "dygraph-series-box " + "color-" + this.attr_('colorOne');
   this.graphDiv.appendChild(this.seriesDiv);
   
   // add color picker
@@ -794,6 +796,9 @@ Dygraph.prototype.createInterface_ = function() {
         o.className = i;
         if (this.channels[i][j] === this.key2) {
           o.selected = "selected";
+        }
+        if (this.channels[i][j] === this.key) {
+          o.disabled = "disabled";
         }
         select2.appendChild(o);
       }
@@ -2010,7 +2015,7 @@ Dygraph.prototype.updateSelection_ = function(event) {
       // draw time box
       // TODO: make this not crappy
       var tp;
-      if (fromMap && this.index === 0) {
+      //if (fromMap && this.index === 0) {
         // tp = [
         //   { x: crisper(75 + 5), y: crisper(60 - 6 - 17) },
         //   { x: crisper(75 + 5 + timeWidth), y: crisper(60 - 6 - 17) },
@@ -2018,45 +2023,64 @@ Dygraph.prototype.updateSelection_ = function(event) {
         //   { x: crisper(75 + 5), y: crisper(60 - 6) }
         // ];
         // allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
-      } else if (!fromMap) {
-        if (my < 40 && this.index === 0) {
+      //} else { //if (!fromMap) {
+        // if (my < 40 && this.index === 0) {          
+        //   if (canvasx + 5 + timeWidth + 20 > this.width_) {
+        //     tp = [
+        //       { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
+        //       { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4 + 17) },
+        //       { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4) },
+        //       { x: crisper(canvasx - 5), y: crisper(my + 4) }
+        //     ];
+        //     allText.push([ time, tp[1].x + 5, tp[3].y + 11 ]);
+        //   } else {
+        //     tp = [
+        //       { x: crisper(canvasx + 5), y: crisper(my + 4 + 17) },
+        //       { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4 + 17) },
+        //       { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4) },
+        //       { x: crisper(canvasx + 5), y: crisper(my + 4) }
+        //     ];
+        //     allText.push([ time, tp[3].x + 5, tp[3].y + 11 ]);
+        //   }
+        // } else {
+        //   if (canvasx + 5 + timeWidth + 20 > this.width_) {
+        //     tp = [
+        //       { x: crisper(canvasx - 5), y: crisper(my - 6 - 17) },
+        //       { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6 - 17) },
+        //       { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6) },
+        //       { x: crisper(canvasx - 5), y: crisper(my - 6) }
+        //     ];
+        //     allText.push([ time, tp[1].x + 5, tp[3].y - 6 ]);
+        //   } else {
+        //     tp = [
+        //       { x: crisper(canvasx + 5), y: crisper(my - 6 - 17) },
+        //       { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6 - 17) },
+        //       { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6) },
+        //       { x: crisper(canvasx + 5), y: crisper(my - 6) }
+        //     ];
+        //     allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
+        //   }
+        // }
+        if (this.index === 0 & !fromMap) {
           if (canvasx + 5 + timeWidth + 20 > this.width_) {
             tp = [
-              { x: crisper(canvasx - 5), y: crisper(my + 4 + 17) },
-              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4 + 17) },
-              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my + 4) },
-              { x: crisper(canvasx - 5), y: crisper(my + 4) }
+              { x: crisper(canvasx - 5), y: crisper(15 + 4 + 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(15 + 4 + 17) },
+              { x: crisper(canvasx - 5 - timeWidth), y: crisper(15 + 4) },
+              { x: crisper(canvasx - 5), y: crisper(15 + 4) }
             ];
             allText.push([ time, tp[1].x + 5, tp[3].y + 11 ]);
           } else {
             tp = [
-              { x: crisper(canvasx + 5), y: crisper(my + 4 + 17) },
-              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4 + 17) },
-              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my + 4) },
-              { x: crisper(canvasx + 5), y: crisper(my + 4) }
+              { x: crisper(canvasx + 5), y: crisper(15 + 4 + 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(15 + 4 + 17) },
+              { x: crisper(canvasx + 5 + timeWidth), y: crisper(15 + 4) },
+              { x: crisper(canvasx + 5), y: crisper(15 + 4) }
             ];
             allText.push([ time, tp[3].x + 5, tp[3].y + 11 ]);
           }
-        } else {
-          if (canvasx + 5 + timeWidth + 20 > this.width_) {
-            tp = [
-              { x: crisper(canvasx - 5), y: crisper(my - 6 - 17) },
-              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6 - 17) },
-              { x: crisper(canvasx - 5 - timeWidth), y: crisper(my - 6) },
-              { x: crisper(canvasx - 5), y: crisper(my - 6) }
-            ];
-            allText.push([ time, tp[1].x + 5, tp[3].y - 6 ]);
-          } else {
-            tp = [
-              { x: crisper(canvasx + 5), y: crisper(my - 6 - 17) },
-              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6 - 17) },
-              { x: crisper(canvasx + 5 + timeWidth), y: crisper(my - 6) },
-              { x: crisper(canvasx + 5), y: crisper(my - 6) }
-            ];
-            allText.push([ time, tp[3].x + 5, tp[3].y - 6 ]);
-          }
         }
-      }
+      //}
       if (tp)
         this.previousRects_.push(tp);
       
@@ -2067,7 +2091,8 @@ Dygraph.prototype.updateSelection_ = function(event) {
         
         var circleSize = this.attr_('highlightCircleSize', pt.name);
         ctx.beginPath();
-        ctx.fillStyle = this.plotter_.colors[pt.name];
+        //ctx.fillStyle = this.plotter_.colors[pt.name];
+        ctx.fillStyle = '#ffffff';
         ctx.arc(canvasx, pt.canvasy, circleSize, 0, 2 * Math.PI, false);
         ctx.fill();
         
@@ -4146,6 +4171,14 @@ Dygraph.prototype.updateOptions = function(attrs, skipCallback) {
   
   if ('ylabel2' in attrs) {
     this.ylabel2 = attrs.ylabel2;
+  }
+  
+  if ('colorOne' in attrs) {
+    this.colorOne = attrs.colorOne;
+  }
+  
+  if ('colorTwo' in attrs) {
+    this.colorTwo = attrs.colorTwo;
   }
   
 

@@ -985,7 +985,7 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
       var axis = this.layout.options.yAxes[
         this.layout.options.seriesToAxisMap[setName]];
       var color = this.colors[setName];
-
+      
       // setup graphics context
       ctx.save();
       var prevX = NaN;
@@ -1044,7 +1044,8 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
     // process sets in reverse order (needed for stacked graphs)
     for (var i = setCount - 1; i >= 0; i--) {
       var setName = setNames[i];
-      var color = this.colors[setName];
+      //var color = this.colors[setName];
+      var color = i == 0 ? this.attr_("colorOne") : this.attr_("colorTwo");
       var axis = this.layout.options.yAxes[
         this.layout.options.seriesToAxisMap[setName]];
       var axisY = 1.0 + axis.minyval * axis.yscale;
@@ -1109,7 +1110,8 @@ DygraphCanvasRenderer.prototype._renderLineChart = function() {
 
   for (var i = 0; i < setCount; i++) {
     var setName = setNames[i];
-    var color = this.colors[setName];
+    // var color = this.colors[setName];
+    var color = i == 0 ? this.attr_("colorOne") : this.attr_("colorTwo");
     var strokeWidth = this.dygraph_.attr_("strokeWidth", setName);
 
     // setup graphics context
