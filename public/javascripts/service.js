@@ -588,10 +588,10 @@ ServiceGUI = (function ($) {
                 box.notify('cs-time-window-change', {
                   range: range
                 }, function (redraw) {
-
+                  
                   if (charts.length < me.of || blockRedraw)
                     return;
-
+                  
                   blockRedraw = true;
 
                   if (redraw) {
@@ -1326,7 +1326,6 @@ ServiceGUI = (function ($) {
               }
               
               // last dot will be mapped and colored differently
-              
               setMappedDot(dot);
               
               // draw dots
@@ -1420,7 +1419,7 @@ ServiceGUI = (function ($) {
           dragCanvas.attr('width', width);
           
           // redraw
-          updateDots();
+          dotsCtx.clearRect(0, 0, width, height);
           renderDots();
           
         }
@@ -2408,7 +2407,7 @@ ServiceGUI = (function ($) {
 
 
           // TMP -- open the first vehicle pane
-          // $($('a.expander')[0]).click();
+          $($('a.expander')[0]).click();
         }
       }
   }

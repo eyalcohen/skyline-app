@@ -343,10 +343,10 @@ function moveV3(event, g, context) {
     // }
     Dygraph.movePan(event, g, context);
   } else if (context.isZooming) {
-    // for (var i = 0, len = g.siblings.length; i < len; i++) {
-    //   Dygraph.moveZoom(event, g.siblings[i], context, g);
-    // }
-    Dygraph.moveZoom(event, g, context);
+    for (var i = 0, len = g.siblings.length; i < len; i++) {
+      Dygraph.moveZoom(event, g.siblings[i], context, g);
+    }
+    //Dygraph.moveZoom(event, g, context);
   } else {
     g.canvas_.style.cursor = "url(/graphics/openhand_8_8.bmp) 8 8, auto";
   }

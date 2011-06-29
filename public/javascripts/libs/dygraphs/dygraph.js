@@ -1347,7 +1347,11 @@ Dygraph.moveZoom = function(event, g, context, src) {
   context.dragDirection = (xDelta < yDelta / 2) ? Dygraph.VERTICAL : Dygraph.HORIZONTAL;
 
   if (context.dragDirection === Dygraph.VERTICAL && g !== src) return;
+  //if (context.dragDirection === Dygraph.VERTICAL) return;
 
+  if (g === src)
+    g.skipCallback = null;
+  
   g.drawZoomRect_(
       context.dragDirection,
       context.dragStartX,
@@ -3185,7 +3189,7 @@ Dygraph.prototype.drawGraph_ = function() {
       this.clearSelection();
     }
   }
-
+  
   if (this.attr_("drawCallback") !== null && !this.skipCallback) {
     this.attr_("drawCallback")(this, is_initial_draw);
     this.skipCallback = null;
