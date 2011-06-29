@@ -6,6 +6,7 @@
 var express = require('express')
   , mongoose = require('mongoose')
   , jade = require('jade')
+  , mongodb = require('mongodb')
   , MongoStore = require('connect-mongodb')
   , gzip = require('connect-gzip')
   , fs = require('fs')
@@ -229,13 +230,20 @@ app.configure(function () {
   app.use(express.bodyParser());
   express.bodyParser.parse['application/octet-stream'] = Buffer;
   app.use(express.cookieParser());
+  var sessionServerConfig = new mongodb.ReplSetServers(
+      app.set('sessions-port').map(function (port) {
+          debugger;
+          return new mongodb.Server(app.set('sessions-host'), port);
+      }),
+      { rs_name: 'cyclers' });
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
     secret: 'topsecretmission',
     store: new MongoStore({
-      host: app.set('sessions-host'),
-      port: app.set('sessions-port'),
+      server_config: sessionServerConfig,
       dbname: 'service-sessions'
+    }, function (err) {
+      if (err) util.log('Error creating MongoStore: ' + err);
     })
   }));
   app.use(express.logger({ format: '\x1b[1m:method\x1b[0m \x1b[33m:url\x1b[0m :response-time ms' }))
