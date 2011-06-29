@@ -544,7 +544,6 @@ ServiceGUI = (function ($) {
             , fillGraph: true
             , fillAlpha: 0.05
             , gridLineColor: 'rgba(255,255,255,0.25)'
-            // , colors: params.colors
             , colorOne: orange
             , colorTwo: '#ffffff'
             , strokeWidth: 0.5
@@ -717,10 +716,11 @@ ServiceGUI = (function ($) {
             , s1o = {}
             , s2o = {}
           ;
+          
           // create list of all times
           for (var i = 0, len = Math.max(s1.length, s2.length); i < len; i++) {
-            var t1 = s1[i][0] || null
-              , t2 = s2[i][0] || null
+            var t1 = s1[i] ? s1[i][0] : null
+              , t2 = s2[i] ? s2[i][0] : null
             ;
             if (t1)
               times.push(t1);
@@ -739,17 +739,32 @@ ServiceGUI = (function ($) {
 
           // build combines data
           for (var i = 0, len = times.length; i < len; i++) {
+            
+            // get times
             var t = times[i]
+              , tl = times[i - 1]
               , p = [t]
             ;
-            if (s1o[t])
+            
+            // get one value
+            if (s1o[t]) {
               p.push(s1o[t]);
-            else
+            } else if (s1o[tl]) {
+              s1o[t] = s1o[tl];
+              p.push(s1o[tl]);
+            } else {
               p.push(NaN);
-            if (s2o[t])
+            }
+            
+            // get second value
+            if (s2o[t]) {
               p.push(s2o[t]);
-            else
+            } else if (s2o[tl]) {
+              s2o[t] = s2o[tl];
+              p.push(s2o[tl]);
+            } else {
               p.push(NaN);
+            }
 
             combined.push(p);
           }
