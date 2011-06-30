@@ -137,6 +137,7 @@ function defineModels(mongoose, fn) {
 
   EventBucket = new Schema({
       bounds : {}
+    , valid  : Boolean
     , events : Array
   });
 

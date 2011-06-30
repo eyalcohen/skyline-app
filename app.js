@@ -144,12 +144,18 @@ function findVehicleCycles(id, from, to, next) {
   }
   from = from === 0 ? id : new EventID({ id: id.vehicleId, time: (new Date(from)).getTime() });
   to = new EventID({ id: id.vehicleId, time: to });
-  EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: [ '_id', 'bounds' ] }, function (err, cursor) {
+  EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: [ '_id', 'bounds', 'valid' ] }, function (err, cursor) {
     cursor.toArray(function (err, bucks) {
       if (err || !bucks || bucks.length === 0) {
         next([]);
       } else {
-        next(bucks);
+        var goodBucks = [];
+        for (var i = 0, len = bucks.length; i < len; i++) {
+          if (bucks[i].valid) {
+            goodBucks.push(bucks[i]);
+          }
+        }
+        next(goodBucks);
       }
     });
   });
