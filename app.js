@@ -236,13 +236,12 @@ app.configure(function () {
           return new mongodb.Server(app.set('sessions-host'), port);
       }),
       { rs_name: 'cyclers' });
+  var sessionServerDb = new mongodb.Db(
+      'service-sessions', sessionServerConfig, { native_parser: false });
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
     secret: 'topsecretmission',
-    store: new MongoStore({
-      server_config: sessionServerConfig,
-      dbname: 'service-sessions'
-    }, function (err) {
+    store: new MongoStore({ db: sessionServerDb, }, function (err) {
       if (err) util.log('Error creating MongoStore: ' + err);
     })
   }));
