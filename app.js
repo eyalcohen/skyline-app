@@ -199,8 +199,8 @@ var app = module.exports = express.createServer();
 
 app.configure('development', function () {
   app.set('db-uri', 'mongodb://localhost:27017/service-development,mongodb://localhost:27018,mongodb://localhost:27019');
-  app.set('sessions-host', 'localhost');
-  app.set('sessions-port', [27017, 27018, 27019]);
+  app.set('sessions-hosts', ['localhost']);
+  app.set('sessions-ports', [27017, 27018, 27019]);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
@@ -208,16 +208,16 @@ app.configure('development', function () {
 
 app.configure('test', function () {
   app.set('db-uri', 'mongodb://localhost:27017/service-test,mongodb://localhost:27018,mongodb://localhost:27019');
-  app.set('sessions-host', 'localhost');
-  app.set('sessions-port', [27017, 27018, 27019]);
+  app.set('sessions-hosts', ['localhost']);
+  app.set('sessions-ports', [27017, 27018, 27019]);
   Notify.active = false;
 });
 
 
 app.configure('production', function () {
-  app.set('db-uri', 'mongodb://50.19.108.253:27017/service-production,mongodb://50.19.106.243:27017,mongodb://50.19.106.238:27017');
-  app.set('sessions-host', ['50.19.108.253','50.19.106.243','50.19.106.238']);
-  app.set('sessions-port', 27017);
+  app.set('db-uri', 'mongodb://10.201.227.195:27017/service-production,mongodb://10.211.174.11:27017,mongodb://10.207.62.61:27017');
+  app.set('sessions-hosts', ['10.201.227.195','10.211.174.11','10.207.62.61']);
+  app.set('sessions-ports', [27017]);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = true;
 });
@@ -236,12 +236,15 @@ app.configure(function () {
   app.use(express.bodyParser());
   express.bodyParser.parse['application/octet-stream'] = Buffer;
   app.use(express.cookieParser());
-  var sessionServerConfig = new mongodb.ReplSetServers(
-      app.set('sessions-port').map(function (port) {
-          debugger;
-          return new mongodb.Server(app.set('sessions-host'), port);
-      }),
-      { rs_name: 'cyclers' });
+
+  var sessionServers = []
+  app.set('sessions-hosts').forEach(function (host) {
+    app.set('sessions-ports').forEach(function (port) {
+      sessionServers.push(new mongodb.Server(host, port));
+    })
+  });
+  var sessionServerConfig =
+      new mongodb.ReplSetServers(sessionServers, { rs_name: 'cyclers' });
   var sessionServerDb = new mongodb.Db(
       'service-sessions', sessionServerConfig, { native_parser: false });
   app.use(express.session({
