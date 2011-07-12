@@ -789,7 +789,7 @@ ServiceGUI = (function ($) {
 
           // channel selects
           var self = this;
-          $('select').live('change', function () {
+          $('select', wrap).live('change', function () {
             var $this
               , clear
             ;
@@ -873,7 +873,7 @@ ServiceGUI = (function ($) {
                   opt.removeAttr('disabled');
                 }
               });
-              $('select').sb('refresh');
+              $('select', wrap).sb('refresh');
               
             } else {
 
@@ -974,7 +974,7 @@ ServiceGUI = (function ($) {
           }
 
           // init the dropdowns
-          $('select').sb({
+          $('select', wrap).sb({
               fixedWidth: true
             , animDuration: 50
           });
@@ -1069,7 +1069,7 @@ ServiceGUI = (function ($) {
           }
           
           // init the dropdowns
-          $('select').sb({
+          $('select', wrap).sb({
               fixedWidth: true
             , animDuration: 50
           });
