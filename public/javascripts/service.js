@@ -638,7 +638,7 @@ ServiceGUI = (function ($) {
         }
 
       , bindRightClickMenu = function (self) {
-          $('canvas').not('.overviewer-canvas').contextMenu('context-menu-1', { 
+          $('canvas', wrap).not('.overviewer-canvas').contextMenu('context-menu-1', { 
               'Insert Plot Below...': {
                 click: function (el) {
                   var i = el.itemID()
@@ -980,7 +980,7 @@ ServiceGUI = (function ($) {
           });
 
           // add class names to color picker
-          $('.colors').each(function (i) {
+          $('.colors', wrap).each(function (i) {
             if (i % 2 == 0)
               $(this).addClass('for-plot-one');
             else
@@ -988,7 +988,7 @@ ServiceGUI = (function ($) {
           });
 
           // init color picker
-          $('.colors').miniColors({
+          $('.colors', wrap).miniColors({
             change: function(hex, rgb) {
               var $this = $(this)
                 , chart = charts[$this.itemID()]
@@ -1009,7 +1009,7 @@ ServiceGUI = (function ($) {
           });
 
           // color in the squares
-          $('.miniColors-trigger').each(function (i) {
+          $('.miniColors-trigger', wrap).each(function (i) {
             var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];
             $(this).css({ backgroundColor: color });
           });
@@ -1075,7 +1075,7 @@ ServiceGUI = (function ($) {
           });
           
           // add class names to color picker
-          $('.colors').each(function (i) {
+          $('.colors', wrap).each(function (i) {
             if (i % 2 == 0)
               $(this).addClass('for-plot-one');
             else
@@ -1083,7 +1083,7 @@ ServiceGUI = (function ($) {
           });
 
           // init color picker
-          $('.colors').miniColors({
+          $('.colors', wrap).miniColors({
             change: function(hex, rgb) {
               var $this = $(this)
                 , chart = charts[$this.itemID()]
@@ -1104,7 +1104,7 @@ ServiceGUI = (function ($) {
           });
           
           // color in the squares
-          $('.miniColors-trigger').each(function (i) {
+          $('.miniColors-trigger', wrap).each(function (i) {
             var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];
             $(this).css({ backgroundColor: color });
           });
@@ -1138,7 +1138,7 @@ ServiceGUI = (function ($) {
   var Overviewer = function (box, wrap) {
     var width = wrap.width()
       , height = wrap.height()
-      , slider = $('.overviewer-slider')
+      , slider = $('.overviewer-slider', wrap)
       , dotsCanvas = $('<canvas class="overviewer-canvas" width="' + width + '" height="' + height + '"></canvas>')
       , dragCanvas = $('<canvas class="overviewer-canvas" width="' + width + '" height="' + height + '"></canvas>')
       , dotsCtx = dotsCanvas[0].getContext('2d')
