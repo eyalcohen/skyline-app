@@ -22,7 +22,7 @@ var express = require('express')
   , EventBucket
   , LoginToken
   , ProtobufSchema = require('protobuf_for_node').Schema
-  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/henson/common/src/main/protobuf/Events.desc'))
+  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/common/src/main/protobuf/Events.desc'))
   , EventWebUpload = Event['event.EventWebUpload']
   , Notify = require('./notify')
 ;
