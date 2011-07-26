@@ -1,3 +1,7 @@
 public/javascripts/libs/dygraphs/
 backups/
 cycles/
+*.log
+.monitor
+*-old.*
+*-old[0-9].*
