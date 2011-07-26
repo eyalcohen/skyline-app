@@ -4,7 +4,7 @@
 
 var log = require('console').log;
 var debug = require('util').debug;
-var mongodb = require('mongodb').native();
+var mongodb = require('mongodb');
 var Step = require('step');
 var util = require('util');
 var _ = require('underscore');
