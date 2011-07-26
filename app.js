@@ -5,27 +5,27 @@
 
 var express = require('express')
   , mongoose = require('mongoose')
+  , ObjectID = require('mongoose/lib/mongoose/types/objectid')
   , jade = require('jade')
   , mongodb = require('mongodb')
   , MongoStore = require('connect-mongodb')
   , gzip = require('connect-gzip')
+  , dnode = require('dnode')
   , fs = require('fs')
   , sys = require('sys')
   , path = require('path')
   , csv = require('csv')
   , util = require('util')
+  , _ = require('underscore')
   , EventID = require('./customids').EventID
   , models = require('./models')
-  , db
-  , User
-  , Vehicle
-  , EventBucket
-  , LoginToken
   , ProtobufSchema = require('protobuf_for_node').Schema
   , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/common/src/main/protobuf/Events.desc'))
   , EventWebUpload = Event['event.EventWebUpload']
   , Notify = require('./notify')
 ;
+
+var db, User, Vehicle, EventBucket, LoginToken;
 
 
 /////////////// Helpers
@@ -304,6 +304,7 @@ app.param('vid', function (req, res, next, id) {
   Vehicle.findById(id, function (err, veh) {
     if (!err && veh) {
       req.vehicle = veh;
+      util.log('vid ' + id + ' -> ' + util.inspect(veh));
       next();
     } else {
       res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
@@ -361,6 +362,7 @@ app.get('/', loadUser, function (req, res) {
               return b.lastSeen - a.lastSeen;
             });
             if (vehicles.length > 0) {
+              // TODO: include a session cookie to prevent known-id attacks.
               res.render('index', {
                   data: vehicles
                 , user: req.currentUser
@@ -406,10 +408,9 @@ app.get('/login', function (req, res) {
 
 // Get one vehicle route
 
-app.get('/v/:vid', function (req, res) {
-
+var getVehicleRoute = function(vehicleId, cb) {
   // get all vehicle events (handle only)
-  findVehicleCycles(req.vehicle._id, function (bucks) {
+  findVehicleCycles(vehicleId, function (bucks) {
     if (bucks.length > 0) {
 
       // get only the latest cycle's data
@@ -432,22 +433,24 @@ app.get('/v/:vid', function (req, res) {
               if (buckIndex !== -1) {
                 fillEvents();
               } else {
-                res.send({ status: 'fail', data: { code: 'NO_CYCLE_EVENTS' } });
+                cb('NO_CYCLE_EVENTS', null);
               }
             } else {
               bucks[buckIndex] = cyc;
-              res.send({ status: 'success', data: { vehicle: req.vehicle, bucks: bucks } });
+              // HACK: remove mongoose crud that confuses dnode.
+              bucks = JSON.parse(JSON.stringify(bucks));
+              cb(null, bucks);
             }
           } else {
-            res.send({ status: 'fail', data: { code: 'NO_CYCLE_EVENTS' } });
+            cb('NO_CYCLE_EVENTS', null);
           }
         });
       })();
     } else {
-      res.send({ status: 'fail', data: { code: 'NO_VEHICLE_CYCLES' } });
+      cb('NO_VEHICLE_CYCLES', null);
     }
   });
-});
+}
 
 
 // Get requested cycles and their events
@@ -725,10 +728,42 @@ app.put('/cycle', function (req, res) {
 });
 
 
+////////////// DNode Methods
+
+
+function verifySession(sessionInfo, cb) {
+  if (!_.isObject(sessionInfo)) {
+    cb(new Error('Missing sessionInfo.'));
+    return false;
+  }
+  if (!_.isString(sessionInfo.userEmail)) {
+    cb(new Error('Session missing email.'));
+    return false;
+  }
+  if (!_.isString(sessionInfo.userId)) {
+    cb(new Error('Session missing userId.'));
+    return false;
+  }
+  // TODO: verify that this is a valid and logged-in session.
+  return true;
+}
+
+
+var dnodeMethods = {
+  getVehicleRoute: function(sessionInfo, vehicleId, cb) {
+    if (!verifySession(sessionInfo, cb)) return;
+    if (typeof vehicleId === 'string')
+      vehicleId = ObjectID(vehicleId);
+    getVehicleRoute(vehicleId, cb);
+  },
+};
+
+
 ////////////// Listen on 8080 (maps to 80 on EC2)
 
 
 if (!module.parent) {
   app.listen(8080);
+  dnode(dnodeMethods).listen(app);
   util.log("Express server listening on port " + app.address().port);
 }

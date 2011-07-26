@@ -1,4 +1,7 @@
 
+// Establish dnode connection.
+var dnodeRemote;
+DNode.connect(function(remote) { dnodeRemote = remote; });
 
 ServiceGUI = (function ($) {
 
@@ -421,9 +424,12 @@ ServiceGUI = (function ($) {
   Sandbox.prototype.add = function (type, wrap, loading, fn) {
     switch (type) {
       case 'Map':
-        this.map = new Map(this, wrap, loading);
-        this.widgets.push(this.map);
-        this.map.init(fn);
+        // Don't attempt to add map if Maps API didn't load.
+        if (typeof google !== 'undefined' && google.maps) {
+          this.map = new Map(this, wrap, loading);
+          this.widgets.push(this.map);
+          this.map.init(fn);
+        }
         break;
       case 'TimeSeries':
         this.timeseries = new TimeSeries(this, wrap, loading);
@@ -446,7 +452,8 @@ ServiceGUI = (function ($) {
           this.overviewer.update(params.range);
         break;
       case 'cs-point-hover':
-        this.map.update(params.time);
+        if (this.map)
+          this.map.update(params.time);
         break;
       case 'cs-map-cursormove':
         this.timeseries.update(params);
@@ -2355,9 +2362,17 @@ ServiceGUI = (function ($) {
               arrow.addClass('open');
               deetsHolder.show();
               deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
-                $.get('/v/' + $this.itemID(), { id: $this.itemID() }, function (serv) {
-                  if (serv.status == 'success') {
-                    var sandbox = new Sandbox(serv.data.bucks, function () {
+
+                if (!dnodeRemote)
+                  handleRoute('NO_DNODE_CONNECTION');
+                else
+                  dnodeRemote.getVehicleRoute(ServiceGUI.sessionInfo,
+                                              $this.itemID(), handleRoute);
+
+                function handleRoute(err, bucks) {
+                  if (!err) {
+                    try {
+                    var sandbox = new Sandbox(bucks, function () {
                       this.add('Map', $('.map', deetsKid), $('.map-loading', deetsKid), function (empty) {
                         if (empty)
                           $('.map-loading span', deetsKid).text('No map data.');
@@ -2376,12 +2391,14 @@ ServiceGUI = (function ($) {
                       // add sandbox to details div
                       deetsKid.data({ sandbox: this });
                     });
+                    } catch (err) { alert(err.stack); }
                   } else {
-                    console.log(serv.data.code);
+                    console.log(err);
                     $('.map-loading span', deetsKid).text('No map data.');
                     $('.series-loading span', deetsKid).text('No time series data.');
                   }
-                });
+                }
+
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');
             } else {

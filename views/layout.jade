@@ -30,7 +30,14 @@ html(lang="en")
 
     //script(src="/javascripts/libs/dygraph-combined.js")
     script(src="/javascripts/plugins.js")
+    script(src="/dnode.js")
     script(src="/javascripts/service.js")
+    - if (typeof user != 'undefined')
+      script
+        ServiceGUI.sessionInfo = {
+          userEmail: '#{user.email}',
+          userId: '#{user._id}',
+        };
     /if lt IE 7
       script(src="/javascripts/libs/dd_belatedpng.js")
       script
