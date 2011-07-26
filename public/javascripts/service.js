@@ -304,10 +304,10 @@ ServiceGUI = (function ($) {
             }
         }
     };
-    
+
     // currently available channels
     this.availableChannels = {};
-    
+
     // start with latest cycle only
     this.visibleCycles = [data[data.length - 1]._id];
     this.parseVisibleCycles();
@@ -351,7 +351,7 @@ ServiceGUI = (function ($) {
             ;
             if (lenk) {
               // is array
-              var names = data[source].names;              
+              var names = data[source].names;
               for (var n = 0, lenn = names.length; n < lenn; n++) {
                 var series = data[source].series[names[n]]
                   , point = [time, key[n]]
@@ -364,7 +364,7 @@ ServiceGUI = (function ($) {
                 // update last
                 series.cycleEndTimes[i] = time;
               }
-              
+
               // var name = data[source].name
               //   , series = data[source].series[name]
               //   , point = []
@@ -399,7 +399,7 @@ ServiceGUI = (function ($) {
         }
       }
     }
-    
+
     // update available channels
     this.availableChannels = {};
     for (var sensor in data)
@@ -465,7 +465,7 @@ ServiceGUI = (function ($) {
       , visibleAndEmpty = []
       , redraw = false
     ;
-    
+
     // check window bounds
     for (var i = 0, leni = self.raw.length; i < leni; i++) {
       var index;
@@ -476,8 +476,8 @@ ServiceGUI = (function ($) {
           visibleAndEmpty.push(self.raw[i]._id);
           self.visibleCycles.push(self.raw[i]._id);
         }
-      } 
-      
+      }
+
       if ((self.raw[i].bounds.start > max || self.raw[i].bounds.stop < min) &&
         (index = self.visibleCycles.indexOf(self.raw[i]._id)) !== -1 &&
         self.visibleCycles.length > 1
@@ -490,10 +490,10 @@ ServiceGUI = (function ($) {
 
     // get new data
     if (visibleAndEmpty.length > 0) {
-      
+
       // show loading for this chart
       this.timeseries.showLoading();
-      
+
       // call server
       $.get('/cycles', { cycles: visibleAndEmpty }, function (serv) {
         if (serv.status == 'success') {
@@ -587,10 +587,10 @@ ServiceGUI = (function ($) {
                 box.notify('cs-time-window-change', {
                   range: range
                 }, function (redraw) {
-                  
+
                   if (charts.length < me.of || blockRedraw)
                     return;
-                  
+
                   blockRedraw = true;
 
                   if (redraw) {
@@ -607,7 +607,7 @@ ServiceGUI = (function ($) {
                             file: combinedDataSet
                           , starts: ser.cycleStartTimes.concat(ser2.cycleStartTimes)
                           , dateWindow: range
-                        }, true);                  
+                        }, true);
                       } else {
                         charts[i].updateOptions({
                             file: ser.dataPoints
@@ -638,7 +638,7 @@ ServiceGUI = (function ($) {
         }
 
       , bindRightClickMenu = function (self) {
-          $('canvas', wrap).not('.overviewer-canvas').contextMenu('context-menu-1', { 
+          $('canvas', wrap).not('.overviewer-canvas').contextMenu('context-menu-1', {
               'Insert Plot Below...': {
                 click: function (el) {
                   var i = el.itemID()
@@ -655,10 +655,10 @@ ServiceGUI = (function ($) {
                     , sensor: 'SENSOR_GPS'
                     , plot: box.visibleSensors.SENSOR_GPS.series.speed
                   });
-                  
+
                   // collect it for later
                   charts.splice(i, 0, newChart);
-                  
+
                   // update other charts
                   for (var j = 0, len = charts.length; j < len; j++) {
                     charts[j].updateOptions({
@@ -667,7 +667,7 @@ ServiceGUI = (function ($) {
                       , siblings: charts
                     }, true);
                   }
-                  
+
                   // resize container
                   self.resize();
                 }
@@ -675,13 +675,13 @@ ServiceGUI = (function ($) {
               , 'Delete': {
                 click: function (el) {
                   var i = el.itemID();
-                  
+
                   // kill it
                   charts[i].destroy();
-                  
+
                   // remove index in list
                   charts.splice(i, 1);
-                  
+
                   // update other charts
                   for (var j = 0, len = charts.length; j < len; j++) {
                     charts[j].updateOptions({
@@ -689,7 +689,7 @@ ServiceGUI = (function ($) {
                       , index: j
                     }, true);
                   }
-                  
+
                   // resize container
                   self.resize();
                 }
@@ -716,7 +716,7 @@ ServiceGUI = (function ($) {
             , s1o = {}
             , s2o = {}
           ;
-          
+
           // create list of all times
           for (var i = 0, len = Math.max(s1.length, s2.length); i < len; i++) {
             var t1 = s1[i] ? s1[i][0] : null
@@ -739,13 +739,13 @@ ServiceGUI = (function ($) {
 
           // build combines data
           for (var i = 0, len = times.length; i < len; i++) {
-            
+
             // get times
             var t = times[i]
               , tl = times[i - 1]
               , p = [t]
             ;
-            
+
             // get one value
             if (s1o[t]) {
               p.push(s1o[t]);
@@ -755,7 +755,7 @@ ServiceGUI = (function ($) {
             } else {
               p.push(NaN);
             }
-            
+
             // get second value
             if (s2o[t]) {
               p.push(s2o[t]);
@@ -768,7 +768,7 @@ ServiceGUI = (function ($) {
 
             combined.push(p);
           }
-          
+
           // return the combined dataset
           return combined;
 
@@ -776,7 +776,7 @@ ServiceGUI = (function ($) {
     ;
 
     return {
-      
+
         init: function (fn) {
           // check data existence
           if (!box.visibleSensors) {
@@ -862,7 +862,7 @@ ServiceGUI = (function ($) {
                 , ylabel: seriesOne.titles.y
                 , ylabel2: seriesTwo.titles.y
               }, true);
-              
+
               // ensure no double options
               var children = $sibling.children();
               children.each(function (j) {
@@ -874,7 +874,7 @@ ServiceGUI = (function ($) {
                 }
               });
               $('select', wrap).sb('refresh');
-              
+
             } else {
 
               // update chart
@@ -892,7 +892,7 @@ ServiceGUI = (function ($) {
               }, true);
 
             }
-              
+
           });
 
           // init right clicks
@@ -1041,7 +1041,7 @@ ServiceGUI = (function ($) {
                       file: combinedDataSet
                     , starts: ser.cycleStartTimes.concat(ser2.cycleStartTimes)
                     , dateWindow: range
-                  }, true);                  
+                  }, true);
                 } else {
                   charts[i].updateOptions({
                       file: ser.dataPoints
@@ -1051,15 +1051,15 @@ ServiceGUI = (function ($) {
                 }
               }
             }
-            
+
             hideLoading();
             fn();
           });
         }
-        
+
       , resize: function (wl, hl, wr, hr) {
           var self = this;
-        
+
           if (!wr)
             wr = wrap.width();
           if (!hr)
@@ -1067,13 +1067,13 @@ ServiceGUI = (function ($) {
           for (var i = 0, len = charts.length; i < len; i++) {
             charts[i].resize(wr, (hr - (5 * (len - 1)) - overviewHeight) / len);
           }
-          
+
           // init the dropdowns
           $('select', wrap).sb({
               fixedWidth: true
             , animDuration: 50
           });
-          
+
           // add class names to color picker
           $('.colors', wrap).each(function (i) {
             if (i % 2 == 0)
@@ -1102,13 +1102,13 @@ ServiceGUI = (function ($) {
               }
             }
           });
-          
+
           // color in the squares
           $('.miniColors-trigger', wrap).each(function (i) {
             var color = $(this.parentNode).attr('class').split(' ')[1].split('-')[1];
             $(this).css({ backgroundColor: color });
           });
-          
+
           // init right clicks
           bindRightClickMenu(self);
         }
@@ -1152,7 +1152,7 @@ ServiceGUI = (function ($) {
       , mappedDot
 
       , updateDots = function () {
-          
+
           // clear canvas
           dotsCtx.clearRect(0, 0, width, height);
 
@@ -1163,13 +1163,13 @@ ServiceGUI = (function ($) {
             dot.screenX = msToPx(dot.time);
           }
         }
-      
+
       , renderDots = function () {
           for (var i = 0, len = dots.length; i < len; i++) {
             dots[i].draw(dotsCtx);
           }
         }
-        
+
       , clearDrag = function () {
 
           // clear canvas
@@ -1177,7 +1177,7 @@ ServiceGUI = (function ($) {
         }
 
       , renderDrag = function () {
-          
+
           // draw select box
           dragCtx.fillRect(dragBounds[0], 0, dragBounds[1] - dragBounds[0], height);
         }
@@ -1221,14 +1221,14 @@ ServiceGUI = (function ($) {
 
           // padding will be 2% or total time shown
           padding = 0.02 * (bounds.stop - bounds.start);
-          
+
           // include padding
           bounds.start -= padding;
           bounds.stop += padding;
-          
+
           // determine ms / px
           scale = width / (bounds.stop - bounds.start);
-          
+
           // plot cylces
           for (var i = 0, len = box.raw.length; i < len; i++) {
             var dot = new Dot(box.raw[i]._id);
@@ -1241,7 +1241,7 @@ ServiceGUI = (function ($) {
               setMappedDot(dot);
             dot.draw(dotsCtx);
           }
-          
+
           wrap.live('click', function (e) {
 
             // get mouse position
@@ -1249,7 +1249,7 @@ ServiceGUI = (function ($) {
 
             // find nearby dots
             for (var i = 0, len = dots.length; i < len; i++) {
-              if (m.x <= dots[i].screenX + dots[i].radius && 
+              if (m.x <= dots[i].screenX + dots[i].radius &&
                 m.x >= dots[i].screenX - dots[i].radius &&
                 m.y <= dots[i].screenY + dots[i].radius &&
                 m.y >= dots[i].screenY - dots[i].radius
@@ -1264,28 +1264,28 @@ ServiceGUI = (function ($) {
                   box.map.refresh(dot.range);
                 });
                 break;
-              } 
+              }
             }
-            
+
           });
-          
+
           dragCtx.fillStyle = '#ffffff';
           dragCtx.globalAlpha = 0.2;
-          
+
           wrap.live('mousedown', function (e) {
 
             // get mouse position
             var m_orig = mouse(e, dragCanvas);
-            
+
             // clear dots
             var draggedDots = [];
-            
+
             // bind mouse move
             var movehandle = function (e) {
-              
+
               // get mouse position
               var m = mouse(e, dragCanvas);
-              
+
               if (m.x === m_orig.x)
                 return;
               else if (m.x > m_orig.x) {
@@ -1295,40 +1295,40 @@ ServiceGUI = (function ($) {
                 dragBounds[0] = m.x;
                 dragBounds[1] = m_orig.x;
               }
-              
+
               // draw the rectangle
               clearDrag();
               renderDrag();
-              
+
               // find nearby dots
               for (var i = 0, len = dots.length; i < len; i++) {
-                if (dragBounds[0] <= dots[i].screenX - dots[i].radius && 
+                if (dragBounds[0] <= dots[i].screenX - dots[i].radius &&
                   dragBounds[1] >= dots[i].screenX + dots[i].radius
                 ) {
                   if (draggedDots.indexOf(dots[i]) === -1)
                     draggedDots.push(dots[i]);
-                } 
+                }
               }
-              
+
             };
             $(document).bind('mousemove', movehandle);
 
             // bind mouse up
             $(document).bind('mouseup', function () {
-              
+
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
-              
+
               // erase select box
               clearDrag();
-              
+
               // check if got any dots
               if (draggedDots.length === 0)
                 return;
-              
+
               // clear dots
               updateDots();
-              
+
               // find selected dot range
               var range = [bounds.stop, bounds.start];
               for (var i = 0, len = draggedDots.length; i < len; i++) {
@@ -1339,20 +1339,20 @@ ServiceGUI = (function ($) {
                 if (dot.range[1] > range[1])
                   range[1] = dot.range[1];
               }
-              
+
               // last dot will be mapped and colored differently
               setMappedDot(dot);
-              
+
               // draw dots
               renderDots();
-              
+
               // update map and plots
               box.map.showLoading();
               box.timeseries.snap(range, function () {
                 box.map.clear();
                 box.map.refresh(dot.range);
               });
-              
+
             });
           });
 
@@ -1369,7 +1369,7 @@ ServiceGUI = (function ($) {
           // find dots
           for (var i = 0, len = dots.length; i < len; i++) {
             var dot = dots[i];
-            if (windowBounds[0] < dot.range[1] && 
+            if (windowBounds[0] < dot.range[1] &&
                 windowBounds[1] > dot.range[0]
             ) {
 
@@ -1389,14 +1389,14 @@ ServiceGUI = (function ($) {
         }
 
       , updateMapped: function (mappedBounds) {
-          
+
           // convert bounds to epoch time
           for (var t = 0, len = mappedBounds.length; t < len; t++)
             mappedBounds[t] = mappedBounds[t].valueOf();
-          
+
           // this is the cycle that is mapped
           var dot;
-          
+
           // clear all
           updateDots();
 
@@ -1406,7 +1406,7 @@ ServiceGUI = (function ($) {
 
           // find the mapped one
           for (var i = 0, len = dots.length; i < len; i++) {
-            if (mappedBounds[0] < dots[i].time && 
+            if (mappedBounds[0] < dots[i].time &&
                 mappedBounds[1] > dots[i].time
             ) {
 
@@ -1422,21 +1422,21 @@ ServiceGUI = (function ($) {
         }
 
       , resize: function (wl, hl, wr, hr) {
-          
+
           // get width again
           width = wrap.width();
-          
+
           // redo scale
           scale = width / (bounds.stop - bounds.start);
-          
+
           // size canvases
           dotsCanvas.attr('width', width);
           dragCanvas.attr('width', width);
-          
+
           // redraw
           dotsCtx.clearRect(0, 0, width, height);
           renderDots();
-          
+
         }
 
       , clear: function () {
@@ -1531,7 +1531,7 @@ ServiceGUI = (function ($) {
         }
 
       , plot = function (fn) {
-          
+
           // inits
           var src = box.visibleSensors.SENSOR_GPS.series
             , len = src.latitude.dataPoints.length
@@ -1546,17 +1546,17 @@ ServiceGUI = (function ($) {
           // init data points time boundary
           if (!timeBounds)
             timeBounds = [src.latitude.cycleStartTimes[0], src.latitude.cycleEndTimes[0]];
-          
+
           // clear for new map
           refreshVars();
-          
+
           // poly bounds
           var minlat = 90
             , maxlat = -90
             , minlawn = 180
             , maxlawn = -180
           ;
-          
+
           // built poly
           for (var i = 0; i < len; i++) {
             var time = src.latitude.dataPoints[i][0];
@@ -1580,7 +1580,7 @@ ServiceGUI = (function ($) {
               gpsPoints[time.valueOf()] = ll;
             }
           }
-          
+
           // make array of times
           times = Object.keys(gpsPoints);
 
@@ -1651,24 +1651,24 @@ ServiceGUI = (function ($) {
           // center and zoom
           map.setCenter(mapBounds.getCenter());
           map.fitBounds(mapBounds);
-          
+
           // enter map
           enterHandle = google.maps.event.addListener(map, 'mouseover', function (e) {
 
             // show time
             $('.map-time', wrap.parent()).show();
           });
-          
+
           // clear plot when leave map
           leaveHandle = google.maps.event.addListener(map, 'mouseout', function (e) {
 
             // notify sandbox
             box.notify('cs-map-cursorout');
-            
+
             // hide time
             $('.map-time', wrap.parent()).hide();
           });
-          
+
           // move cursor on mouse hover
           dragHandle = google.maps.event.addListener(map, 'mousemove', function (e) {
 
@@ -1677,10 +1677,10 @@ ServiceGUI = (function ($) {
               , snapTo
               , keys = Object.keys(e.latLng)
             ;
-            
+
             // find closest point
             times.forEach(function (t) {
-              
+
               // compute distances
               var deltaLat = Math.abs(gpsPoints[t][keys[0]] - e.latLng[keys[0]])
                 , deltaLawn = Math.abs(gpsPoints[t][keys[1]] - e.latLng[keys[1]])
@@ -1692,9 +1692,9 @@ ServiceGUI = (function ($) {
                 minDist = dist;
                 snapTo = { time: parseInt(t), latLng: gpsPoints[t] };
               }
-              
+
             });
-            
+
             // move the cursor
             if (snapTo) {
               cursor.setPosition(snapTo.latLng);
@@ -1702,7 +1702,7 @@ ServiceGUI = (function ($) {
               // notify sandbox
               box.notify('cs-map-cursormove', snapTo.time);
             }
-            
+
             // update time
             var timeTxt = (new Date(snapTo.time)).toLocaleString();
             var gmti = timeTxt.indexOf(' GMT');
@@ -1710,7 +1710,7 @@ ServiceGUI = (function ($) {
               timeTxt = timeTxt.substr(0, gmti);
             $('.map-time', wrap.parent()).text(timeTxt);
           });
-          
+
           // ready
           loadedHandle = google.maps.event.addListener(map, 'tilesloaded', function () {
             if (firstRun) {
@@ -1728,17 +1728,17 @@ ServiceGUI = (function ($) {
       , toMiles = function (m) {
           return m / 1609.344;
         }
-        
+
       , showInfo = function () {
           var distanceTxt = 'Distance traveled: ' + addCommas(distance.toFixed(2)) + ' m'
             , timeTxt = 'Cycle duration: ' + addCommas(((parseInt(times[times.length - 1]) - parseInt(times[0])) / 1000 / 60).toFixed(2)) + ' min'
             , infoP = $('.map-info', wrap.parent())
             , timeP = $('.map-time', wrap.parent())
           ;
-          
+
           // set text
           infoP.html(distanceTxt + '<br/>' + timeTxt).show();
-          
+
           // offset time p
           if (timeP.css('top') === infoP.css('top'))
             timeP.css({ top: parseInt(timeP.css('top')) + infoP.height() + 12 });
@@ -1759,49 +1759,49 @@ ServiceGUI = (function ($) {
           // fade in
           wrap.fadeIn(2000);
         }
-        
+
       , update: function (snappedTime) {
-          
+
           // check bounds
           if (snappedTime < timeBounds[0] || snappedTime > timeBounds[1]) {
 
             // get time bounds for all cycles
             var starts = box.visibleSensors.SENSOR_GPS.series.latitude.cycleStartTimes
               , ends = box.visibleSensors.SENSOR_GPS.series.latitude.cycleEndTimes
-            
+
             // find the cycle we want
             for (var i = 0, len = starts.length; i < len; i++) {
               if (snappedTime >= starts[i] && snappedTime <= ends[i]) {
                 if (timeBounds[0] !== starts[i] && timeBounds[1] !== ends[i]) {
-                  
+
                   // refresh map with new time bounds
                   loading.show();
                   this.clear();
                   this.refresh([starts[i], ends[i]]);
-                  
+
                   // highlight proper dot in overviewer
                   box.overviewer.updateMapped([starts[i], ends[i]]);
-                  
+
                 }
                 break;
               }
             }
           } else {
-            
+
             // move cursor
             var ts = snappedTime.valueOf();
             if (ts in gpsPoints)
               cursor.setPosition(gpsPoints[ts]);
           }
         }
-      
+
       , showLoading: function () {
           loading.show();
           hideInfo();
         }
-      
+
       , refresh: function (bounds) {
-          
+
           // set new bounds
           timeBounds = bounds;
 
@@ -1810,7 +1810,7 @@ ServiceGUI = (function ($) {
             loading.hide();
           });
         }
-        
+
       , resize: function (wl, hl, wr, hr) {
           if (!map)
             return;
@@ -1824,9 +1824,9 @@ ServiceGUI = (function ($) {
           mapWidth = wrap.width();
           mapHeight = wrap.height();
         }
-        
+
       , wipe: function () {
-        
+
           // remove polygons
           poly.setMap(null);
           for (var k = 0, len = dots.length; k < len; k++)
@@ -1834,7 +1834,7 @@ ServiceGUI = (function ($) {
           for (var k = 0, len = cellDots.length; k < len; k++)
             cellDots[k].setMap(null);
         }
-        
+
       , clear: function () {
           if (!map)
             return;
@@ -1885,7 +1885,7 @@ ServiceGUI = (function ($) {
           }
           return r;
         }
-        
+
         // Array Remove - By John Resig (MIT Licensed)
         Array.prototype.remove = function(from, to) {
           var rest = this.slice((to || from) + 1 || this.length);
@@ -1957,7 +1957,7 @@ ServiceGUI = (function ($) {
 
 
         if (window.location.pathname === '/login') {
-          
+
           // future info map
           addLandingMap();
         } else {
@@ -1966,8 +1966,8 @@ ServiceGUI = (function ($) {
           var tabs = $('.tab');
           tabs.each(function (i) {
             $this = $(this);
-            var z = $this.hasClass('tab-active') ? 
-              10001 + tabs.length - i : 
+            var z = $this.hasClass('tab-active') ?
+              10001 + tabs.length - i :
               tabs.length - i
             ;
             $this.css({ zIndex: z });
@@ -1978,10 +1978,10 @@ ServiceGUI = (function ($) {
             var $this = $(this);
             $this.text(addCommas($this.text()));
           });
-          
+
           // fit layout
           sizeDetailPanes();
-          
+
           // get relative comment times
           setInterval(updateTimes, 5000); updateTimes();
         }
@@ -2261,22 +2261,22 @@ ServiceGUI = (function ($) {
 
             // bind mouse move
             var movehandle = function (e) {
-              
+
               // get mouse position
               var m = mouse(e);
-              
+
               // determine new values
               var ph = pan_h_orig + (m.y - mouse_orig.y);
-              
+
               // check bounds
               if (ph < 100 || ph > 800) return false;
-              
+
               // set height
               pan.height(ph);
-              
+
               // move handles
               handle.css({ top: ph / 2 - handle.height() });
-              
+
               // widgets
               for (var w=0; w < widgets.length; w++)
                 widgets[w].resize(null, ph - 18, null, ph - 18)
@@ -2285,7 +2285,7 @@ ServiceGUI = (function ($) {
 
             // bind mouse up
             $(document).bind('mouseup', function () {
-              
+
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
             });
@@ -2304,24 +2304,24 @@ ServiceGUI = (function ($) {
               , pan_right_w_orig = pan_right.width()
               , mouse_orig = mouse(e)
             ;
-            
+
             // bind mouse move
             var movehandle = function (e) {
-              
+
               // get mouse position
               var m = mouse(e);
-              
+
               // determine new values
               var plw = pan_left_w_orig + (m.x - mouse_orig.x)
                 , prw = pan_right_w_orig - (m.x - mouse_orig.x)
-              
+
               // check bounds
               if (plw < 200 || prw < 200) return false;
-              
+
               // set widths
               pan_left.width(plw);
               pan_right.width(prw);
-              
+
               // widgets
               for (var w=0; w < widgets.length; w++)
                 widgets[w].resize(plw, null, prw, null)
@@ -2330,19 +2330,19 @@ ServiceGUI = (function ($) {
 
             // bind mouse up
             $(document).bind('mouseup', function () {
-              
+
               // remove all
               $(this).unbind('mousemove', movehandle).unbind('mouseup', arguments.callee);
             });
           });
-          
+
           // no image dragging
           $('img.resize-x, img.resize-y, img.resize-slider').live('mousedown', function (e) {
             if (e.preventDefault) e.preventDefault();
           });
 
 
-          // initial vehicle cycle query 
+          // initial vehicle cycle query
           $('a.expander').live('click', function () {
             var $this = $(this)
               , arrow = $('img', $this)
@@ -2372,7 +2372,7 @@ ServiceGUI = (function ($) {
                         }
                       });
                       this.add('Overviewer', $('.overviewer', deetsKid), null, function () {});
-                      
+
                       // add sandbox to details div
                       deetsKid.data({ sandbox: this });
                     });

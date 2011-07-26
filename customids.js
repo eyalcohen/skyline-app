@@ -72,7 +72,7 @@ ObjectID.get_inc16 = function() {
 
 // accurate up to number of ms
 ObjectID.prototype.__defineGetter__("time", function() {
-  return (BinaryParser.decodeInt(this.id.substring(4,8), 32, true, true) * 1000) + 
+  return (BinaryParser.decodeInt(this.id.substring(4,8), 32, true, true) * 1000) +
     (BinaryParser.decodeInt(this.id.substring(8,10), 16, true, true));
 });
 

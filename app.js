@@ -61,7 +61,7 @@ function loadUser(req, res, next) {
 
 function authenticateFromLoginToken(req, res, next) {
   var cookie = JSON.parse(req.cookies.logintoken);
-  LoginToken.findOne({ 
+  LoginToken.findOne({
       email: cookie.email
     , series: cookie.series
     , token: cookie.token }, (function (err, token) {
@@ -278,7 +278,7 @@ models.defineModels(mongoose, function () {
  */
 
 
-app.param('email', function (req, res, next, email) {  
+app.param('email', function (req, res, next, email) {
   User.findOne({ email: email }, function (err, usr) {
     if (usr) {
       var pass = req.query.password || req.body.password;
@@ -407,11 +407,11 @@ app.get('/login', function (req, res) {
 // Get one vehicle route
 
 app.get('/v/:vid', function (req, res) {
-  
+
   // get all vehicle events (handle only)
   findVehicleCycles(req.vehicle._id, function (bucks) {
     if (bucks.length > 0) {
-      
+
       // get only the latest cycle's data
       var events = []
         , buckIndex = bucks.length - 1
@@ -618,13 +618,13 @@ app.get('/summary/:email/:vintid', function (req, res) {
 // Handle cycle events request
 
 app.put('/cycle', function (req, res) {
-  
+
   // check that body was encoded properly
   if (!(req.body instanceof Buffer)) {
     res.send({ status: 'fail', data: { code: 'BAD_PROTOBUF_FORMAT' } });
     return;
   }
-  
+
   // parse to JSON
   var cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'))
     , num = cycle.events.length
@@ -641,7 +641,7 @@ app.put('/cycle', function (req, res) {
         // get the cycle's vehicle
         findVehicleByIntId(cycle.vehicleId, function (veh) {
           if (veh) {
-            
+
             // save the cycle locally for now
             var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' + (new Date()).valueOf() + '.js';
             fs.mkdir(__dirname + '/cycles', '0755', function (err) {
@@ -676,7 +676,7 @@ app.put('/cycle', function (req, res) {
                 }
                 if (event.events[i].header.type === 'DRIVE_SESSION') {
                   driveHeader = event.events[i].header;
-                }                
+                }
                 if (event.events[i].header.type !== 'ANNOTATION' && event.events[i].header.source !== 'SENSOR_COMPASS') {
                   events.push(event.events[i]);
                 }
