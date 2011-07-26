@@ -1,7 +1,23 @@
 
 // Establish dnode connection.
+// TODO: make this more elegant?
+
 var dnodeRemote;
-DNode.connect(function(remote) { dnodeRemote = remote; });
+var dnodeOnConnect = [];
+DNode.connect(function(remote) {
+  dnodeRemote = remote;
+  dnodeOnConnect.forEach(function(args) { dnodeInvoke.apply(null, args); });
+  dnodeOnConnect = null;
+});
+
+function dnodeInvoke() {
+  if (dnodeRemote) {
+    dnodeRemote[arguments[0]].apply(dnodeRemote,
+                                    Array.prototype.slice.call(arguments, 1));
+  } else {
+    dnodeOnConnect.push(arguments);
+  }
+};
 
 ServiceGUI = (function ($) {
 
@@ -2363,11 +2379,8 @@ ServiceGUI = (function ($) {
               deetsHolder.show();
               deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
 
-                if (!dnodeRemote)
-                  handleRoute('NO_DNODE_CONNECTION');
-                else
-                  dnodeRemote.getVehicleRoute(ServiceGUI.sessionInfo,
-                                              $this.itemID(), handleRoute);
+                dnodeInvoke('getVehicleRoute', ServiceGUI.sessionInfo,
+                            $this.itemID(), handleRoute);
 
                 function handleRoute(err, bucks) {
                   if (!err) {
