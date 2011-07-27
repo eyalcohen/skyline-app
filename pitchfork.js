@@ -10,6 +10,7 @@ var util = require('util');
 var _ = require('underscore');
 
 var SampleDb = require('./sample_db.js').SampleDb;
+var compatibility = require('./compatibility.js');
 
 var argv = require('optimist')
     .default('srcDb', 'mongo://localhost:27017/service-development')
@@ -29,7 +30,6 @@ function errCheck(err, op) {
 // Connect to source DB, eventbuckets collection.
 mongodb.connect(argv.srcDb, {
                   server: { poolSize: 4 },
-                  db: { native_parser: false },
                 }, function(err, srcDb) {
 errCheck(err, 'connect('+argv.srcDb+')');
 srcDb.collection(argv.srcCollection, function(err, srcCollection) {
@@ -38,7 +38,6 @@ errCheck(err, 'srcDb.collection('+argv.srcCollection+')');
 // Connect to dest DB, samples collection.
 mongodb.connect(argv.destDb, {
                   server: { poolSize: 4 },
-                  db: { native_parser: false },
                 }, function(err, destDb) {
 errCheck(err, 'connect('+argv.destDb+')');
 new SampleDb(destDb, { ensureIndexes: argv.ensureIndexes },
@@ -74,106 +73,14 @@ if (!doc) {
 }
 
 // Process a drive cycle.
-try {
-  log('Processing a drive cycle', doc._id, 'with',
-      doc.events.length, 'events...');
-
-  var vehicleId =
-      mongodb.BinaryParser.decodeInt(doc._id.id.substring(4,8), 32, true, true) * 1000 +
-      mongodb.BinaryParser.decodeInt(doc._id.id.substring(8,10), 16, true, true);
-  log('Vehicle id is', vehicleId);
-
-  // If not marked valid, ignore.
-  if (!doc.valid) {
-    processDoc();
-    return;
+compatibility.insertEventsProto(sampleDb, doc, {}, function(err) {
+  if (err) {
+    debug('Error processing event:\n' + err.stack);
+    process.exit(1);
   }
-
-  // Sort into different sample types.
-  var sampleSets = {};
-  _.each(doc.events, function(event) {
-    function addSample(name, value) {
-      if (_.isUndefined(value))
-        return;
-      var s = sampleSets[name];
-      if (!s)
-        s = sampleSets[name] = [];
-      var header = event.header;
-      // Arrgh, stopTime seems to be useless - sometimes it's before startTime.
-      s.push({
-        beg: header.startTime.toNumber() * 1000,
-        // end: header.stopTime.toNumber() * 1000,
-        val: value,
-      });
-    }
-
-    if (event.header.type == 'LOCATION' &&
-        event.header.source == 'SENSOR_GPS') {
-      addSample('gps.speed_m_s', event.location.speed);
-      addSample('gps.latitude_deg', event.location.latitude);
-      addSample('gps.longitude_deg', event.location.longitude);
-      addSample('gps.altitude_m', event.location.altitude);
-      addSample('gps.accuracy_m', event.location.accuracy);
-      addSample('gps.bearing_deg', event.location.bearing);
-    } else if (event.header.type == 'SENSOR_DATA' &&
-               event.header.source == 'SENSOR_ACCEL') {
-      addSample('accel.x_m_s2', event.sensor[0]);
-      addSample('accel.y_m_s2', event.sensor[1]);
-      addSample('accel.z_m_s2', event.sensor[2]);
-    }
-  });
-
-  // Hack: Henson seems to always send stopTime == startTime, so synthesize
-  // reasonable durations.
-  _.each(_.values(sampleSets), function(s) {
-    SampleDb.sortSamplesByTime(s);  // Sometimes Henson data is out of order. !!!
-    var total = 0;
-    s.forEach(function(sample, index) {
-      var nextSample = s[index + 1];
-      if (nextSample) {
-        if (!sample.end)
-          sample.end = nextSample.beg;
-        total += sample.end - sample.beg;
-      } else {
-        // Store average duration in last sample, so it has something.
-        if (!sample.end && index)
-          sample.end = sample.beg + Math.ceil(total / index);
-      }
-    });
-  });
-
-  // Write data to dest DB.
-  var cycleStart = Number.MAX_VALUE, cycleEnd = Number.MIN_VALUE;
-  var sampleCount = 0
-  _.each(_.keys(sampleSets), function(channelName) {
-    sampleSets[channelName].forEach(function(sample) {
-      sampleDb.insertSample(vehicleId, channelName,
-                            sample.beg, sample.end, sample.val);
-      cycleStart = Math.min(cycleStart, sample.beg);
-      cycleEnd = Math.max(cycleEnd, sample.end);
-      ++sampleCount;
-    });
-  });
-  printBufferSize();
-
-  // Add drive cycle event to dest DB.
-  sampleDb.insertSample(vehicleId, '_cycle', cycleStart, cycleEnd, {
-                          sampleCount: sampleCount,
-                        });
-
-  //process.stdout.write(util.inspect(doc, false, 100));
-  /*
-  var repl = require('repl').start();
-  repl.context.doc = doc;
-  repl.context.sampleSets = sampleSets;
-  */
-} catch (err) {
-  debug('Error processing event:\n' + err.stack);
-  process.exit(1);
-}
-
-// On to next drive cycle.
-process.nextTick(processDoc);
+  // On to next drive cycle.
+  process.nextTick(processDoc);
+});
 
 })}
 
