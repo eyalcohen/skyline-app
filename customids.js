@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-var BinaryParser = require('mongoose/support/node-mongodb-native/lib/mongodb').BinaryParser
+var BinaryParser = require('mongodb').BinaryParser
   , ObjectID = require('mongoose/lib/mongoose/types/objectid')
 ;
 
