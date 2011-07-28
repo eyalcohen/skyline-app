@@ -7,14 +7,19 @@ var Step = require('step');
 
 var SampleDb = require('./sample_db.js').SampleDb;
 
+var vehicleIdFromObjectId = exports.vehicleIdFromObjectId = function(objectId) {
+  var BP = mongodb.BinaryParser, rawId = objectId.id;
+  var vehicleId = BP.decodeInt(rawId.substring(4,8), 32, true, true) * 1000 +
+      BP.decodeInt(rawId.substring(8,10), 16, true, true);
+  return vehicleId;
+}
+
 exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
   try {
     options = options || {};
     var insertsPerTick = options.insertsPerTick || 100;
 
-    var BP = mongodb.BinaryParser, rawId = eventsProto._id.id;
-    var vehicleId = BP.decodeInt(rawId.substring(4,8), 32, true, true) * 1000 +
-        BP.decodeInt(rawId.substring(8,10), 16, true, true);
+    var vehicleId = vehicleIdFromObjectId(eventsProto._id);
     debug('Processing a drive cycle ' + eventsProto._id + ' with ' +
           eventsProto.events.length + ' events + vehicle id ' +
           vehicleId + '...');
