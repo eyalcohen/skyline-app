@@ -138,7 +138,7 @@ SampleDb.prototype.fetchRealSamples =
         if (level >= minLevel) {
           var bucketSize = bucketSizes(levelIndex);
           var query = { veh: vehicleId, chn: channelName };
-          if (!_.isUndefined(beginTime)) {
+          if (beginTime != null) {
             query.buk = { $gte: Math.floor(beginTime / bucketSize),
                           $lt: Math.ceil(endTime / bucketSize) };
           }
@@ -157,7 +157,7 @@ SampleDb.prototype.fetchRealSamples =
               nextStep(err);
             } else {
               // Ignore samples which don't overlap our time range.
-              if (_.isUndefined(beginTime) ||
+              if (beginTime != null ||
                   (beginTime < sample.end && sample.beg < endTime))
                 samples.push(sample);
               cursor.nextObject(processNext);
@@ -169,7 +169,7 @@ SampleDb.prototype.fetchRealSamples =
 
     function(err) {
       if (err) { cb(err); return; }
-      cb(err, samples);  // TODO: something better.
+      cb(err, samples);  // TODO: something better?
     }
   );
 }
@@ -182,7 +182,7 @@ SampleDb.prototype.fetchSyntheticSamples =
   // Get overlapping synthetic samples with appropriate duration.
   var samples = [];
   var query = { veh: vehicleId, chn: channelName };
-  if (!_.isUndefined(beginTime)) {
+  if (beginTime != null) {
     query.buk = { $gte: Math.floor(beginTime / synDuration),
                   $lt: Math.ceil(endTime / synDuration) };
   }

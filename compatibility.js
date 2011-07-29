@@ -43,8 +43,8 @@ exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
         var header = event.header;
         // Arrgh, stopTime seems to be useless - sometimes it's before startTime.
         s.push({
-          beg: header.startTime.toNumber() * 1000,
-          // end: header.stopTime.toNumber() * 1000,
+          beg: header.startTime * 1000,
+          // end: header.stopTime * 1000,
           val: value,
         });
       }

@@ -13,8 +13,8 @@ var SampleDb = require('./sample_db.js').SampleDb;
 var compatibility = require('./compatibility.js');
 
 var argv = require('optimist')
-    .default('srcDb', 'mongo://localhost:27017/service-development')
-    .default('destDb', 'mongo://localhost:27017/service-samples')
+    .default('srcDb', 'mongo://:27017,:27018,:27109/service-development')
+    .default('destDb', 'mongo://:27017,:27018,:27109/service-samples')
     .boolean('ensureIndexes')
     .default('ensureIndexes', true)
     .argv;
@@ -53,11 +53,9 @@ function stepErr(op) {
   };
 }
 
-debug('entering step!');
 Step(
 
   function getUserCollections() {
-    debug('getUserCollections');
     srcDb.collection('users', this.parallel());
     destDb.collection('users', this.parallel());
   },
