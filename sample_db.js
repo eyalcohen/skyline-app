@@ -157,7 +157,7 @@ SampleDb.prototype.fetchRealSamples =
               nextStep(err);
             } else {
               // Ignore samples which don't overlap our time range.
-              if (beginTime != null ||
+              if (beginTime == null ||
                   (beginTime < sample.end && sample.beg < endTime))
                 samples.push(sample);
               cursor.nextObject(processNext);
@@ -209,6 +209,12 @@ SampleDb.prototype.fetchSyntheticSamples =
 
 SampleDb.prototype.fetchMergedSamples =
     function(vehicleId, channelName, beginTime, endTime, minDuration, cb) {
+  // Special case.
+  if (minDuration == 0) {
+    return this.fetchRealSamples(
+        vehicleId, channelName, beginTime, endTime, 0, cb);
+  }
+
   var self = this;
   var synDuration = getSyntheticDuration(minDuration);
 

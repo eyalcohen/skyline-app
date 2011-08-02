@@ -12,8 +12,12 @@ DNode.connect(function(remote) {
 
 function dnodeInvoke() {
   if (dnodeRemote) {
-    dnodeRemote[arguments[0]].apply(dnodeRemote,
-                                    Array.prototype.slice.call(arguments, 1));
+    var f = dnodeRemote[arguments[0]];
+    if (f) {
+      f.apply(dnodeRemote, Array.prototype.slice.call(arguments, 1));
+    } else {
+      throw new Error('No dnode method ' + arguments[0]);
+    }
   } else {
     dnodeOnConnect.push(arguments);
   }
@@ -161,8 +165,8 @@ ServiceGUI = (function ($) {
 
     , relativeTime = function (ts) {
         ts = parseInt(ts);
-        var parsed_date = new Date(ts)
-          , relative_to = (arguments.length > 1) ? arguments[1] : new Date()
+        var parsed_date = new Date(ts / 1000)
+          , relative_to = (arguments.length > 1) ? arguments[1] / 1000 : new Date()
           , delta = parseInt((relative_to.getTime() - parsed_date) / 1000)
         ;
         if (delta < 5)
@@ -191,7 +195,7 @@ ServiceGUI = (function ($) {
         else if (delta < (10 * 24 * 60 * 60))
           return (parseInt(delta / 86400)).toString() + ' days ago';
         else
-          return new Date(ts).toLocaleDateString();
+          return new Date(ts / 1000).toLocaleDateString();
       }
 
     , updateTimes = function () {
@@ -204,237 +208,87 @@ ServiceGUI = (function ($) {
       }
   ;
 
-  var Sandbox = function (data, fn) {
-    // convert bounds to int
-    for (var i = 0, len = data.length; i < len; i++) {
-      data[i].bounds.start = parseInt(data[i].bounds.start);
-      data[i].bounds.stop = parseInt(data[i].bounds.stop);
-    }
-    // save raw data
-    this.raw = data;
+  var Sandbox = function (vehicleId, cycles, fn) {
+    this.vehicleId = vehicleId;
+    this.cycles = cycles;
     // plotter and map ref holder
     this.widgets = [];
-    // valid series
-    this.validSensors = {
-        SENSOR_GPS: {
-            key: 'location'
-          , series: {
-                latitude: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Latitude (deg)' }
-                  , labels: [ 'time', '(lat)' ]
-                }
-              , longitude: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Longitude (deg)' }
-                  , labels: ['time', '(lng)' ]
-                }
-              , altitude: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Altitude (m)' }
-                  , labels: ['time', '(alt)' ]
-                }
-              , speed: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Speed (m/s)' }
-                  , labels: ['time', '(spd)' ]
-                }
-            }
-        }
-      // , SENSOR_CELLPOS: {
-      //     key: 'location'
-      //   , series: {
-      //         latitude: {
-      //             dataPoints: []
-      //           , cycleStartTimes: []
-      //           , cycleEndTimes: []
-      //           , titles: { x: 'Time', y: 'Latitude (˚)' }
-      //           , labels: [ 'time', '˚' ]
-      //         }
-      //       , longitude: {
-      //             dataPoints: []
-      //           , cycleStartTimes: []
-      //           , cycleEndTimes: []
-      //           , titles: { x: 'Time', y: 'Longitude (˚)' }
-      //           , labels: ['time', '˚' ]
-      //         }
-      //     }
-      // }
-      , SENSOR_ACCEL: {
-            key: 'sensor'
-          , names: ['acceleration_x', 'acceleration_y', 'acceleration_z']
-          , series: {
-                acceleration_x: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Acceleration X (m/s^2)' }
-                  , labels: ['time', '(acx)']
-                }
-              , acceleration_y: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Acceleration Y (m/s^2)' }
-                  , labels: ['time', '(acy)']
-                }
-              , acceleration_z: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Acceleration Z (m/s^2)' }
-                  , labels: ['time', '(acz)']
-                }
-            }
-        }
-      , SENSOR_COMPASS: {
-            key: 'sensor'
-          , names: ['compass_x', 'compass_y', 'compass_z']
-          , series: {
-                compass_x: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Heading X (deg)' }
-                  , labels: ['time', '(cpx)']
-                }
-              , compass_y: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Heading Y (deg)' }
-                  , labels: ['time', '(cpy)']
-                }
-              , compass_x: {
-                    dataPoints: []
-                  , cycleStartTimes: []
-                  , cycleEndTimes: []
-                  , titles: { x: 'Time', y: 'Heading Z (deg)' }
-                  , labels: ['time', '(cpz)']
-                }
-            }
-        }
+    // TODO: fetch this from server
+    this.schema = {
+      'gps.speed_m_s': {
+        title: 'GPS Speed',
+        label: 'spd',
+        unit: 'm/s',
+      },
+      'gps.latitude_deg': {
+        title: 'GPS Latitude',
+        label: 'lat',
+        unit: '°',
+      },
+      'gps.longitude_deg': {
+        title: 'GPS Longitude',
+        label: 'lng',
+        unit: '°',
+      },
+      'gps.altitude_m': {
+        title: 'GPS Altitude',
+        label: 'alt',
+        unit: 'm',
+      },
+      'accel.x_m_s2': {
+        title: 'Acceleration X',
+        label: 'acx',
+        unit: 'm/s^2',
+      },
+      'accel.y_m_s2': {
+        title: 'Acceleration Y',
+        label: 'acy',
+        unit: 'm/s^2',
+      },
+      'accel.z_m_s2': {
+        title: 'Acceleration Z',
+        label: 'acz',
+        unit: 'm/s^2',
+      },
+      'compass.x_deg': {
+        title: 'Heading X',
+        label: 'cpx',
+        unit: '°',
+      },
+      'compass.y_deg': {
+        title: 'Heading Y',
+        label: 'cpy',
+        unit: '°',
+      },
+      'compass.z_deg': {
+        title: 'Heading Z',
+        label: 'cpz',
+        unit: '°',
+      },
     };
 
-    // currently available channels
-    this.availableChannels = {};
+    this.availableChannels = [];  // currently available channels
+    this.fetchedRange = null;  // Time range which has been fetched.  (For now, just one.)
+    this.fetchedChannels = Object.keys(this.schema);
 
     // start with latest cycle only
-    this.visibleCycles = [data[data.length - 1]._id];
-    this.parseVisibleCycles();
-
-    // callback
-    fn.call(this);
+    var lastCycle = cycles[cycles.length - 1];
+    var self = this;
+    this.reEvaluateData({range: [lastCycle.beg / 1000, lastCycle.end / 1000]},
+                        function() {
+      fn.call(self);
+    });
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
-
-    // only select valid key types
-    var data = $.extend(true, {}, this.validSensors)
-      , sensors = Object.keys(this.validSensors)
-      , cycles = []
-    ;
-
-    // get data from ids
-    for (var i = 0, leni = this.raw.length; i < leni; i++) {
-      for (var j = 0, lenj = this.visibleCycles.length; j < lenj; j++) {
-        if (this.raw[i]._id === this.visibleCycles[j]) {
-          cycles.push(this.raw[i]);
-        }
-      }
-    }
-
-    // parse data
-    for (var i = 0, leni = cycles.length; i < leni; i++) {
-      if (!cycles[i].events)
-        continue;
-      for (var j = 0, lenj = cycles[i].events.length; j < lenj; j++) {
-        var event = cycles[i].events[j]
-          , source = event.header.source
-        ;
-        if (source in data) {
-          if (data[source].key in event) {
-            var key = event[data[source].key]
-              , lenk = key.length
-              // , time = new Date(parseInt(event.header.startTime))
-              , time = parseInt(event.header.startTime)
-              , src = event.header.source
-            ;
-            if (lenk) {
-              // is array
-              var names = data[source].names;
-              for (var n = 0, lenn = names.length; n < lenn; n++) {
-                var series = data[source].series[names[n]]
-                  , point = [time, key[n]]
-                ;
-                // add to series
-                series.dataPoints.push(point);
-                // check if first
-                if (series.cycleStartTimes.length === i)
-                  series.cycleStartTimes.push(time);
-                // update last
-                series.cycleEndTimes[i] = time;
-              }
-
-              // var name = data[source].name
-              //   , series = data[source].series[name]
-              //   , point = []
-              // ;
-              // point.push(time);
-              // for (var k = 0; k < lenk; k++)
-              //   point.push(key[k]);
-              // // add to series
-              // series.dataPoints.push(point);
-              // // check if first
-              // if (series.cycleStartTimes.length === i)
-              //   series.cycleStartTimes.push(time);
-              // // update last
-              // series.cycleEndTimes[i] = time;
-            } else {
-              // is object
-              for (var k in key) {
-                var series = data[source].series[k];
-                if (key.hasOwnProperty(k) && series) {
-                  var point = [time, key[k]];
-                  // add to series
-                  series.dataPoints.push(point);
-                  // check if first
-                  if (series.cycleStartTimes.length === i)
-                    series.cycleStartTimes.push(time);
-                  // update last
-                  series.cycleEndTimes[i] = time;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    var self = this;
 
     // update available channels
-    this.availableChannels = {};
-    for (var sensor in data)
-      if (data.hasOwnProperty(sensor)) {
-        this.availableChannels[sensor] = [];
-        for (var s in data[sensor].series)
-          if (data[sensor].series.hasOwnProperty(s))
-            if (data[sensor].series[s].dataPoints.length > 0)
-              this.availableChannels[sensor].push(s);
+    self.availableChannels = Object.keys(this.schema).filter(
+      function(channelName) {
+        return null != self.sampleSet[channelName];
       }
-
-    // done
-    this.visibleSensors = data;
-
-    // log for now
-    // console.log(data);
+    );
   };
 
   Sandbox.prototype.add = function (type, wrap, loading, fn) {
@@ -482,72 +336,47 @@ ServiceGUI = (function ($) {
 
   Sandbox.prototype.reEvaluateData = function (params, fn) {
 
-    var self = this
-      , min = params.range[0]
-      , max = params.range[1]
-      , visibleAndEmpty = []
-      , redraw = false
-    ;
+    var self = this;
+    var beginTime = params.range[0] * 1000, endTime = params.range[1] * 1000;
 
-    // check window bounds
-    for (var i = 0, leni = self.raw.length; i < leni; i++) {
-      var index;
-      if ((self.raw[i].bounds.start >= min && self.raw[i].bounds.start <= max) ||
-          (self.raw[i].bounds.stop >= min && self.raw[i].bounds.stop <= max)
-      ) {
-        if (self.visibleCycles.indexOf(self.raw[i]._id) === -1) {
-          visibleAndEmpty.push(self.raw[i]._id);
-          self.visibleCycles.push(self.raw[i]._id);
-        }
-      }
-
-      if ((self.raw[i].bounds.start > max || self.raw[i].bounds.stop < min) &&
-        (index = self.visibleCycles.indexOf(self.raw[i]._id)) !== -1 &&
-        self.visibleCycles.length > 1
-      ) {
-        delete self.raw[i].events;
-        self.visibleCycles.splice(index, 1);
-        redraw = true;
-      }
-    }
-
-    // get new data
-    if (visibleAndEmpty.length > 0) {
+    // reload if new bounds exceed what's loaded
+    var reload = !self.fetchedRange ||
+        beginTime < self.fetchedRange[0] || endTime > self.fetchedRange[1];
+    if (reload) {
 
       // show loading for this chart
-      this.timeseries.showLoading();
+      if (this.timeseries)
+        this.timeseries.showLoading();
+
+      // HACK: Expand range by 2x to avoid excessive reloading.
+      var deltaTime = endTime - beginTime;
+      beginTime = beginTime - deltaTime / 2;
+      endTime = endTime + deltaTime / 2;
 
       // call server
-      $.get('/cycles', { cycles: visibleAndEmpty }, function (serv) {
-        if (serv.status == 'success') {
-          for (var i = 0, len = self.raw.length; i < len; i++) {
-            if (self.raw[i]._id in serv.data.events) {
-              if (serv.data.events[self.raw[i]._id]) {
-                self.raw[i].events = serv.data.events[self.raw[i]._id];
-              } else {
-                var rem = self.visibleCycles.indexOf(self.raw[i]._id);
-                self.visibleCycles.splice(rem, 1);
-                self.raw[i] = null;
-              }
-            }
+      dnodeInvoke('getVehicleData', ServiceGUI.sessionInfo,
+                  self.vehicleId, self.fetchedChannels, beginTime, endTime, {},
+                  function(err, sampleSet) {
+        try {
+          if (!err) {
+            self.fetchedRange = [beginTime, endTime];
+            self.sampleSet = sampleSet;
+            self.parseVisibleCycles();
+            fn(true);
+          } else {
+            console.log(err.stack);
+            fn(false);
           }
-          self.raw = self.raw.filter(function (e) { return e; });
-          self.parseVisibleCycles();
-          fn(true);
-        } else {
-          console.log(serv.data.code);
-          fn(false);
+        } catch (err) {
+          alert(err.stack);
         }
       });
-    } else if (redraw) {
-      self.parseVisibleCycles();
-      fn(true);
     } else
       fn(false);
   };
 
   var TimeSeries = function (box, wrap) {
-    var defaultSeries = ['speed', 'altitude']
+    var defaultSeries = ['gps.speed_m_s', 'gps.altitude_m']
       , charts = []
       , plotColors = [orange, blue, green, red, yellow, purple]
       , blockRedraw = false
@@ -570,15 +399,15 @@ ServiceGUI = (function ($) {
             , colorOne: orange
             , colorTwo: '#ffffff'
             , strokeWidth: 0.5
-            , labels: params.plot.labels
+            , labels: ['time'].concat(params.labels)
             , axisLineColor: 'rgba(0,0,0,0)'
             , axisLabelColor: '#808080'
             , axisLabelFontSize: 9
-            , xlabel: params.plot.titles.x
-            , ylabel: params.plot.titles.y
+            , xlabel: 'Time'
+            , ylabel: params.titles
             , stepPlot: true
-            , starts: params.plot.cycleStartTimes
-            , plot: params.plot
+            , starts: []  // TODO: this will make all cycles connected
+            , dateWindow: params.dateWindow
 
             , interactionModel : {
                   mousedown: downV3
@@ -617,28 +446,7 @@ ServiceGUI = (function ($) {
                   blockRedraw = true;
 
                   if (redraw) {
-                    for (var i = 0, len = charts.length; i < len; i++) {
-                      var sen = box.visibleSensors[charts[i].sensor]
-                        , ser = sen.series[charts[i].key]
-                      ;
-                      if (charts[i].key2) {
-                        var sen2 = box.visibleSensors[charts[i].sensor2]
-                          , ser2 = sen2.series[charts[i].key2]
-                        ;
-                        var combinedDataSet = combineSeries(ser.dataPoints, ser2.dataPoints);
-                        charts[i].updateOptions({
-                            file: combinedDataSet
-                          , starts: ser.cycleStartTimes.concat(ser2.cycleStartTimes)
-                          , dateWindow: range
-                        }, true);
-                      } else {
-                        charts[i].updateOptions({
-                            file: ser.dataPoints
-                          , starts: ser.cycleStartTimes
-                          , dateWindow: range
-                        }, true);
-                      }
-                    }
+                    updateData(range);
                     hideLoading();
                   } else {
                     for (var i = 0, len = charts.length; i < len; i++) {
@@ -669,14 +477,18 @@ ServiceGUI = (function ($) {
                   ;
 
                   // make a new dygraph
+                  var channelName = Object.keys(box.schema)[0];
+                  var chanSchema = box.schema[channelName];
+                  var colors = plotColors[0];
                   var newChart = makeChart({
-                      points: box.visibleSensors.SENSOR_GPS.series.speed.dataPoints
+                      points: getSamples(channelName)
                     , of: chart.of + 1
                     , index: chart.index + 1
                     , self: self
-                    , key: 'speed'
-                    , sensor: 'SENSOR_GPS'
-                    , plot: box.visibleSensors.SENSOR_GPS.series.speed
+                    , key: channelName
+                    , sensor: channelName
+                    , labels: [ chanSchema.label ]
+                    , titles: [ chanSchema.title + ' (' + chanSchema.unit + ')' ]
                   });
 
                   // collect it for later
@@ -796,19 +608,55 @@ ServiceGUI = (function ($) {
           return combined;
 
         }
+
+      , updateData = function(newRange) {
+          // update plots with new data
+          for (var i = 0, len = charts.length; i < len; i++) {
+            var sen = charts[i].sensor, ser = getSamples(sen);
+            var chanSchema = box.schema[sen];
+            var newOptions;
+            if (charts[i].sensor2) {
+              var sen2 = charts[i].sensor2, ser2 = getSamples(sen2);
+              var combinedDataSet = combineSeries(ser, ser2);
+              var chanSchema2 = box.schema[sen2];
+              newOptions = {
+                file: combinedDataSet,
+                labels: [ 'time', chanSchema.label, chanSchema2.label ],
+                ylabel: chanSchema.title + ' (' + chanSchema.unit + ')',
+                ylabel2: chanSchema2.title + ' (' + chanSchema2.unit + ')',
+              };
+            } else {
+              newOptions = {
+                file: ser,
+                labels: [ 'time', chanSchema.label ],
+                ylabel: chanSchema.title + ' (' + chanSchema.unit + ')',
+                ylabel2: null,
+              };
+            }
+            if (newRange)
+              newOptions.dateWindow = newRange;
+            charts[i].updateOptions(newOptions, true);
+          }
+        }
+
+      , getSamples = function(channelName) {
+        var samples = box.sampleSet[channelName];
+        if (!samples)
+          return null;
+        return samples.map(function(sample) {
+          return [sample.beg / 1000, sample.val];
+        });
+      }
     ;
 
     return {
 
         init: function (fn) {
-          // check data existence
-          if (!box.visibleSensors) {
-            fn(true);
-            return;
-          }
-
-          // plot it
+          // plot data
           this.plot(fn);
+
+          // HACK: fix size.
+          this.resize();
 
           // channel selects
           var self = this;
@@ -824,67 +672,28 @@ ServiceGUI = (function ($) {
             }
 
             var chart = charts[$this.parent().itemID()]
-              , key = $this.val()
-              , sensor = $(':selected', $this).attr('class')
-              , series = box.visibleSensors[sensor].series[key]
+              , sensor = $this.val()
               , $sibling = $this.hasClass('select1') ?
                   $('select', this.parentNode.parentNode.nextElementSibling) :
                   $('select', this.parentNode.parentNode.previousElementSibling)
-              , siblingKey = $sibling.val()
+              , siblingSensor = $sibling.val()
             ;
 
-            if (siblingKey !== 'choose' && !clear) {
+            if (siblingSensor !== 'choose' && !clear) {
 
-              var siblingSensor = $(':selected', $sibling).attr('class')
-                , siblingSeries = box.visibleSensors[siblingSensor].series[siblingKey]
-              ;
-
-              var seriesOne
-                , seriesTwo
-                , setOne
-                , setTwo
-                , keyOne
-                , keyTwo
-                , sensorOne
-                , sensorTwo
-              ;
+              var sensorOne, sensorTwo;
 
               if ($this.hasClass('select1')) {
-                seriesOne = series;
-                seriesTwo = siblingSeries;
-                setOne = series.dataPoints;
-                setTwo = siblingSeries.dataPoints;
-                keyOne = key;
-                keyTwo = siblingKey;
                 sensorOne = sensor;
                 sensorTwo = siblingSensor;
               } else {
-                seriesOne = siblingSeries;
-                seriesTwo = series;
-                setOne = siblingSeries.dataPoints;
-                setTwo = series.dataPoints;
-                keyOne = siblingKey;
-                keyTwo = key;
                 sensorOne = siblingSensor;
                 sensorTwo = sensor;
               }
 
-              // create list of all times
-              var combinedDataSet = combineSeries(setOne, setTwo);
-
-              // update chart
-              chart.updateOptions({
-                  file: combinedDataSet
-                , starts: seriesOne.cycleStartTimes.concat(seriesTwo.cycleStartTimes)
-                , sensor: sensorOne
-                , sensor2: sensorTwo
-                , key: keyOne
-                , key2: keyTwo
-                , labels: [seriesOne.labels[0], seriesOne.labels[1], seriesTwo.labels[1]]
-                , xlabel: seriesOne.titles.x
-                , ylabel: seriesOne.titles.y
-                , ylabel2: seriesTwo.titles.y
-              }, true);
+              // update chart options
+              chart.updateOptions({ sensor: sensorOne, sensor2: sensorTwo },
+                                  true);
 
               // ensure no double options
               var children = $sibling.children();
@@ -900,21 +709,14 @@ ServiceGUI = (function ($) {
 
             } else {
 
-              // update chart
-              chart.updateOptions({
-                  file: series.dataPoints
-                , starts: series.cycleStartTimes
-                , sensor: sensor
-                , sensor2: null
-                , key: key
-                , key2: null
-                , labels: series.labels
-                , xlabel: series.titles.x
-                , ylabel: series.titles.y
-                , ylabel2: null
-              }, true);
+              // update chart options
+              chart.updateOptions({ sensor: sensor, sensor2: null },
+                                  true);
 
             }
+
+            // update chart data given current sensors
+            updateData();
 
           });
 
@@ -927,8 +729,6 @@ ServiceGUI = (function ($) {
           // save this scope
           var self = this
             , sensors = box.visibleSensors
-            , numColors = plotColors.length
-            , colorCnt = 0
           ;
           if (!fn) {
             fn = desiredSeries;
@@ -936,65 +736,35 @@ ServiceGUI = (function ($) {
           }
 
           // create each chart
-          for (var s in sensors) {
-            if (sensors.hasOwnProperty(s)) {
-              var series = sensors[s].series;
-              for (var i = 0, len = desiredSeries.length; i < len; i++) {
-                if (desiredSeries[i] in series) {
-                  var plot = series[desiredSeries[i]]
-                    , points = plot.dataPoints.length !== 0 ? plot.dataPoints : null
-                    , colors = []
-                  ;
+          var lastCycle = box.cycles[box.cycles.length - 1];
+          var range = [lastCycle.beg / 1000, lastCycle.end / 1000];
+          desiredSeries.forEach(function(channelName, i) {
+            var channelName = desiredSeries[i];
+            var colors = plotColors[0];
 
-                  // get colors
-                  if (points && points[0].length > 2) {
-                    for (var c = colorCnt, lenc = plotColors.length; c < lenc; c++) {
-                      colors.push(plotColors[c]);
-                    }
-                  } else
-                    colors.push(plotColors[colorCnt]);
-                  colorCnt++;
+            // make a new dygraph
+            var chanSchema = box.schema[channelName];
+            var chart = makeChart({
+                points: getSamples(channelName),
+                of: desiredSeries.length,
+                index: i,
+                self: self,
+                key: channelName,
+                colors: colors,
+                sensor: channelName,
+                labels: [ chanSchema.label ],
+                titles: [ chanSchema.title + ' (' + chanSchema.unit + ')' ],
+                dateWindow: range,
+            });
 
-                  // make a new dygraph
-                  var chart = makeChart({
-                      points: points
-                    , of: len
-                    , index: i
-                    , self: self
-                    , key: desiredSeries[i]
-                    , colors: colors
-                    , sensor: s
-                    , plot: plot
-                  });
+            // collect it for later
+            charts.push(chart);
+          });
 
-                  // collect it for later
-                  charts.push(chart);
-                }
-              }
-            }
-          }
-
-          // get widest range
-          var maxRange = []
-            , maxRangeDiff = 0
-          ;
-          for (var i = 0, len = charts.length; i < len; i++) {
-            var r = charts[i].xAxisRange()
-              , d = r[1] - r[0]
-            ;
-            if (d > maxRangeDiff) {
-              maxRangeDiff = d;
-              maxRange = r;
-            }
-          }
-
-          // add siblings ref and snap to widest range
-          for (var i = 0; i < len; i++) {
-            charts[i].updateOptions({
-                siblings: charts
-              , dateWindow: maxRange
-            }, true);
-          }
+          // add siblings ref
+          charts.forEach(function(chart) {
+            chart.updateOptions({ siblings: charts }, true);
+          });
 
           // init the dropdowns
           $('select', wrap).sb({
@@ -1051,28 +821,7 @@ ServiceGUI = (function ($) {
 
             // update plots with new data
             if (redraw) {
-              for (var i = 0, len = charts.length; i < len; i++) {
-                var sen = box.visibleSensors[charts[i].sensor]
-                  , ser = sen.series[charts[i].key]
-                ;
-                if (charts[i].key2) {
-                  var sen2 = box.visibleSensors[charts[i].sensor2]
-                    , ser2 = sen2.series[charts[i].key2]
-                  ;
-                  var combinedDataSet = combineSeries(ser.dataPoints, ser2.dataPoints);
-                  charts[i].updateOptions({
-                      file: combinedDataSet
-                    , starts: ser.cycleStartTimes.concat(ser2.cycleStartTimes)
-                    , dateWindow: range
-                  }, true);
-                } else {
-                  charts[i].updateOptions({
-                      file: ser.dataPoints
-                    , starts: ser.cycleStartTimes
-                    , dateWindow: range
-                  }, true);
-                }
-              }
+              updateData(range);
             }
 
             hideLoading();
@@ -1239,8 +988,8 @@ ServiceGUI = (function ($) {
           };
 
           // get global bounds for all events
-          bounds.start = box.raw[0].bounds.start;
-          bounds.stop = box.raw[box.raw.length - 1].bounds.stop;
+          bounds.start = box.cycles[0].beg / 1000;
+          bounds.stop = box.cycles[box.cycles.length - 1].end / 1000;
 
           // padding will be 2% or total time shown
           padding = 0.02 * (bounds.stop - bounds.start);
@@ -1252,18 +1001,18 @@ ServiceGUI = (function ($) {
           // determine ms / px
           scale = width / (bounds.stop - bounds.start);
 
-          // plot cylces
-          for (var i = 0, len = box.raw.length; i < len; i++) {
-            var dot = new Dot(box.raw[i]._id);
-            dot.range = [box.raw[i].bounds.start, box.raw[i].bounds.stop];
-            dot.time = Math.round((box.raw[i].bounds.stop + box.raw[i].bounds.start) / 2);
+          // plot cycles
+          box.cycles.forEach(function(cycle, i) {
+            var dot = new Dot();
+            dot.range = [cycle.beg / 1000, cycle.end / 1000];
+            dot.time = Math.round((cycle.beg + cycle.end) / 2) / 1000;
             dot.screenX = msToPx(dot.time);
             //dot.radius = scale * (box.raw[i].bounds.stop - box.raw[i].bounds.start) / (bounds.stop - bounds.start);
             dots.push(dot);
-            if (i === len - 1)
+            if (i === box.cycles.length - 1)
               setMappedDot(dot);
             dot.draw(dotsCtx);
-          }
+          });
 
           wrap.live('click', function (e) {
 
@@ -1281,10 +1030,13 @@ ServiceGUI = (function ($) {
                 var dot = dots[i];
                 setMappedDot(dot);
                 renderDots();
-                box.map.showLoading();
+                if (box.map)
+                  box.map.showLoading();
                 box.timeseries.snap(dot.range, function () {
-                  box.map.clear();
-                  box.map.refresh(dot.range);
+                  if (box.map) {
+                    box.map.clear();
+                    box.map.refresh(dot.range);
+                  }
                 });
                 break;
               }
@@ -1370,10 +1122,13 @@ ServiceGUI = (function ($) {
               renderDots();
 
               // update map and plots
-              box.map.showLoading();
+              if (box.map)
+                box.map.showLoading();
               box.timeseries.snap(range, function () {
-                box.map.clear();
-                box.map.refresh(dot.range);
+                if (box.map) {
+                  box.map.clear();
+                  box.map.refresh(dot.range);
+                }
               });
 
             });
@@ -1393,13 +1148,10 @@ ServiceGUI = (function ($) {
           for (var i = 0, len = dots.length; i < len; i++) {
             var dot = dots[i];
             if (windowBounds[0] < dot.range[1] &&
-                windowBounds[1] > dot.range[0]
-            ) {
-
-                // highlight
-                dot.color = orange;
-                visibleDots.push(dot);
-
+                windowBounds[1] > dot.range[0]) {
+              // highlight
+              dot.color = orange;
+              visibleDots.push(dot);
             }
           }
 
@@ -1408,7 +1160,6 @@ ServiceGUI = (function ($) {
 
           // redraw
           renderDots();
-
         }
 
       , updateMapped: function (mappedBounds) {
@@ -1430,18 +1181,14 @@ ServiceGUI = (function ($) {
           // find the mapped one
           for (var i = 0, len = dots.length; i < len; i++) {
             if (mappedBounds[0] < dots[i].time &&
-                mappedBounds[1] > dots[i].time
-            ) {
-
+                mappedBounds[1] > dots[i].time) {
               // color this one green
               setMappedDot(dots[i]);
-
             }
           }
 
           // redraw
           renderDots();
-
         }
 
       , resize: function (wl, hl, wr, hr) {
@@ -1469,10 +1216,9 @@ ServiceGUI = (function ($) {
   };
 
 
-  var Dot = function (id) {
+  var Dot = function () {
     return {
-        id: id
-      , range: null
+        range: null
       , time: null
       , mapped: false
       , screenX: null
@@ -1556,19 +1302,25 @@ ServiceGUI = (function ($) {
       , plot = function (fn) {
 
           // inits
-          var src = box.visibleSensors.SENSOR_GPS.series
-            , len = src.latitude.dataPoints.length
-          ;
-
-          // exit if nothing to do
-          if (src.latitude.dataPoints.length === 0) {
+          var src = box.sampleSet;
+          if (!src) {
             fn(true);
             return;
           }
-
+          var latData = src['gps.latitude_deg'],
+              lngData = src['gps.longitude_deg'],
+              len = latData && lngData && Math.min(latData.length, lngData.length);
+          if (!len) {
+            fn(true);
+            return;
+          }
+          if (lngData.length != latData.length)
+            console.log("Latitude and longitude counts don't match!");
           // init data points time boundary
-          if (!timeBounds)
-            timeBounds = [src.latitude.cycleStartTimes[0], src.latitude.cycleEndTimes[0]];
+          if (!timeBounds) {
+            var lastCycle = box.cycles[box.cycles.length - 1];
+            timeBounds = [lastCycle.beg, lastCycle.end];
+          }
 
           // clear for new map
           refreshVars();
@@ -1576,26 +1328,29 @@ ServiceGUI = (function ($) {
           // poly bounds
           var minlat = 90
             , maxlat = -90
-            , minlawn = 180
-            , maxlawn = -180
+            , minlng = 180
+            , maxlng = -180
           ;
 
           // built poly
+          // TODO: don't rely on lat & lng arrays being synchronized!
           for (var i = 0; i < len; i++) {
-            var time = src.latitude.dataPoints[i][0];
+            var time = latData[i].beg;
+            if (lngData[i].beg != time)
+              console.log("Latitude and longitude times don't match!");
             if (time >= timeBounds[0] && time <= timeBounds[1]) {
-              var lat = src.latitude.dataPoints[i][1]
-                , lawn = src.longitude.dataPoints[i][1]
+              var lat = latData[i].val
+                , lng = lngData[i].val
               ;
               if (lat < minlat)
                 minlat = lat;
               if (lat > maxlat)
                 maxlat = lat;
-              if (lawn < minlawn)
-                minlawn = lawn;
-              if (lawn > maxlawn)
-                maxlawn = lawn;
-              var ll = new google.maps.LatLng(lat, lawn);
+              if (lng < minlng)
+                minlng = lng;
+              if (lng > maxlng)
+                maxlng = lng;
+              var ll = new google.maps.LatLng(lat, lng);
               var d = new google.maps.Circle(dotStyle);
               d.setCenter(ll);
               dots.push(d);
@@ -1611,8 +1366,8 @@ ServiceGUI = (function ($) {
           distance = google.maps.geometry.spherical.computeLength(poly.getPath());
 
           // make map bounds
-          var sw = new google.maps.LatLng(minlat, minlawn)
-            , ne = new google.maps.LatLng(maxlat, maxlawn)
+          var sw = new google.maps.LatLng(minlat, minlng)
+            , ne = new google.maps.LatLng(maxlat, maxlng)
             , mapBounds = new google.maps.LatLngBounds(sw, ne)
           ;
 
@@ -1727,7 +1482,7 @@ ServiceGUI = (function ($) {
             }
 
             // update time
-            var timeTxt = (new Date(snapTo.time)).toLocaleString();
+            var timeTxt = (new Date(snapTo.time / 1000)).toLocaleString();
             var gmti = timeTxt.indexOf(' GMT');
             if (gmti !== -1)
               timeTxt = timeTxt.substr(0, gmti);
@@ -1754,7 +1509,7 @@ ServiceGUI = (function ($) {
 
       , showInfo = function () {
           var distanceTxt = 'Distance traveled: ' + addCommas(distance.toFixed(2)) + ' m'
-            , timeTxt = 'Cycle duration: ' + addCommas(((parseInt(times[times.length - 1]) - parseInt(times[0])) / 1000 / 60).toFixed(2)) + ' min'
+            , timeTxt = 'Cycle duration: ' + addCommas(((parseInt(times[times.length - 1]) - parseInt(times[0])) / 1000000 / 60).toFixed(2)) + ' min'
             , infoP = $('.map-info', wrap.parent())
             , timeP = $('.map-time', wrap.parent())
           ;
@@ -1788,22 +1543,19 @@ ServiceGUI = (function ($) {
           // check bounds
           if (snappedTime < timeBounds[0] || snappedTime > timeBounds[1]) {
 
-            // get time bounds for all cycles
-            var starts = box.visibleSensors.SENSOR_GPS.series.latitude.cycleStartTimes
-              , ends = box.visibleSensors.SENSOR_GPS.series.latitude.cycleEndTimes
-
             // find the cycle we want
-            for (var i = 0, len = starts.length; i < len; i++) {
-              if (snappedTime >= starts[i] && snappedTime <= ends[i]) {
-                if (timeBounds[0] !== starts[i] && timeBounds[1] !== ends[i]) {
+            for (var i = 0, len = box.cycles.length; i < len; i++) {
+              var beg = box.cycles[i].beg, end = box.cycles[i].end;
+              if (snappedTime >= beg && end) {
+                if (timeBounds[0] !== beg && timeBounds[1] !== end) {
 
                   // refresh map with new time bounds
                   loading.show();
                   this.clear();
-                  this.refresh([starts[i], ends[i]]);
+                  this.refresh([beg, end]);
 
                   // highlight proper dot in overviewer
-                  box.overviewer.updateMapped([starts[i], ends[i]]);
+                  box.overviewer.updateMapped([beg, end]);
 
                 }
                 break;
@@ -1826,7 +1578,7 @@ ServiceGUI = (function ($) {
       , refresh: function (bounds) {
 
           // set new bounds
-          timeBounds = bounds;
+          timeBounds = [ bounds[0] * 1000, bounds[1] * 1000 ];
 
           // draw new map
           plot(function () {
@@ -2379,13 +2131,12 @@ ServiceGUI = (function ($) {
               deetsHolder.show();
               deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
 
-                dnodeInvoke('getVehicleRoute', ServiceGUI.sessionInfo,
-                            $this.itemID(), handleRoute);
-
-                function handleRoute(err, bucks) {
+                var vehicleId = parseInt($this.itemID());
+                dnodeInvoke('getVehicleCycles', ServiceGUI.sessionInfo,
+                            vehicleId, function(err, cycles) {
                   if (!err) {
                     try {
-                    var sandbox = new Sandbox(bucks, function () {
+                    var sandbox = new Sandbox(vehicleId, cycles, function () {
                       this.add('Map', $('.map', deetsKid), $('.map-loading', deetsKid), function (empty) {
                         if (empty)
                           $('.map-loading span', deetsKid).text('No map data.');
@@ -2410,7 +2161,7 @@ ServiceGUI = (function ($) {
                     $('.map-loading span', deetsKid).text('No map data.');
                     $('.series-loading span', deetsKid).text('No time series data.');
                   }
-                }
+                });
 
               });
               handle.animate({ top: (expandDetailsTo / 2) - handle.height() }, 150, 'easeOutExpo');

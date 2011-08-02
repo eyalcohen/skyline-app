@@ -738,20 +738,17 @@ Dygraph.prototype.createInterface_ = function() {
   // o.className = "none";
   // select.appendChild(o);
   
-  for (var i in this.channels) {
-    if (this.channels.hasOwnProperty(i)) {
-      for (var j = 0, len = this.channels[i].length; j < len; j++) {
-        var o = document.createElement("option");
-        o.value = this.channels[i][j];
-        o.text = Dygraph.toSelectCase(this.channels[i][j]);
-        o.className = i;
-        if (this.channels[i][j] === this.key) {
-          o.selected = "selected";
-        }
-        select.appendChild(o);
-      }
+  var self = this;
+  this.channels.forEach(function(channelName, i) {
+    var o = document.createElement("option");
+    o.value = channelName;
+    o.text = channelName;
+    o.className = 0;  // Use different numbers for dividers.
+    if (channelName === self.key) {
+      o.selected = "selected";
     }
-  }
+    select.appendChild(o);
+  });
 
   this.selectDiv.appendChild(select);
   this.seriesDiv.appendChild(this.selectDiv);
@@ -787,23 +784,19 @@ Dygraph.prototype.createInterface_ = function() {
   o.className = "none";
   select2.appendChild(o);
   
-  for (var i in this.channels) {
-    if (this.channels.hasOwnProperty(i)) {
-      for (var j = 0, len = this.channels[i].length; j < len; j++) {
-        var o = document.createElement("option");
-        o.value = this.channels[i][j];
-        o.text = Dygraph.toSelectCase(this.channels[i][j]);
-        o.className = i;
-        if (this.channels[i][j] === this.key2) {
-          o.selected = "selected";
-        }
-        if (this.channels[i][j] === this.key) {
-          o.disabled = "disabled";
-        }
-        select2.appendChild(o);
-      }
+  this.channels.forEach(function(channelName, i) {
+    var o = document.createElement("option");
+    o.value = channelName;
+    o.text = channelName;
+    o.className = 0;  // Use different numbers for dividers.
+    if (channelName === self.key2) {
+      o.selected = "selected";
     }
-  }
+    if (channelName === self.key) {
+      o.disabled = "disabled";
+    }
+    select2.appendChild(o);
+  });
   
   this.selectDiv2.appendChild(select2);
   this.seriesDiv2.appendChild(this.selectDiv2);

@@ -6,7 +6,6 @@
 var crypto = require('crypto')
   , User
   , Vehicle
-  , EventBucket
   , LoginToken
 ;
 
@@ -122,23 +121,12 @@ function defineModels(mongoose, fn) {
 
 
   Vehicle = new Schema({
-      make    : String
+      _id     : Number
+    , make    : String
     , model   : String
     , year    : { type: String, index: true }
     , user_id : ObjectId
     , created : { type: Date, default: Date.now }
-  });
-
-
-  /**
-    * Model: EventBucket
-    */
-
-
-  EventBucket = new Schema({
-      bounds : {}
-    , valid  : Boolean
-    , events : Array
   });
 
 
@@ -182,7 +170,6 @@ function defineModels(mongoose, fn) {
 
   mongoose.model('User', User);
   mongoose.model('Vehicle', Vehicle);
-  mongoose.model('EventBucket', EventBucket);
   mongoose.model('LoginToken', LoginToken);
 
   fn();

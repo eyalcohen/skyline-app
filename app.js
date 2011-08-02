@@ -15,17 +15,19 @@ var express = require('express')
   , sys = require('sys')
   , path = require('path')
   , csv = require('csv')
-  , util = require('util')
+  , util = require('util'), debug = util.debug, inspect = util.inspect
   , _ = require('underscore')
+  , Step = require('step')
   , EventID = require('./customids').EventID
   , models = require('./models')
   , ProtobufSchema = require('protobuf_for_node').Schema
   , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/common/src/main/protobuf/Events.desc'))
   , EventWebUpload = Event['event.EventWebUpload']
   , Notify = require('./notify')
+  , SampleDb = require('./sample_db.js').SampleDb;
 ;
 
-var db, User, Vehicle, EventBucket, LoginToken;
+var db, User, Vehicle, LoginToken;
 
 
 /////////////// Helpers
@@ -35,8 +37,8 @@ var db, User, Vehicle, EventBucket, LoginToken;
  * Loads current session user.
  */
 
-
 function loadUser(req, res, next) {
+  debugger;
   if (req.session.user_id) {
     User.findById(req.session.user_id, function (err, usr) {
       if (usr) {
@@ -57,7 +59,6 @@ function loadUser(req, res, next) {
 /**
  * Logs in with a cookie.
  */
-
 
 function authenticateFromLoginToken(req, res, next) {
   var cookie = JSON.parse(req.cookies.logintoken);
@@ -90,7 +91,6 @@ function authenticateFromLoginToken(req, res, next) {
  * Gets all vehicles owned by user or all if user is null.
  */
 
-
 function findVehiclesByUser(user, next) {
   var filter;
   if (!user) {
@@ -112,82 +112,14 @@ function findVehiclesByUser(user, next) {
 
 /**
  * Finds a single vehicle by integer id
- * which is the first 4 bytes of _id
  */
-
 
 function findVehicleByIntId(id, next) {
   if ('string' === typeof id) {
     id = parseInt(id);
   }
-  var to = new EventID({ id: id, time: (new Date()).getTime() })
-    , from = new EventID(to.toHexString().substr(0,8) + '0000000000000000')
-  ;
-  Vehicle.collection.findOne({ _id: { $gt: from, $lt: to } }, function (err, veh) {
+  Vehicle.collection.findOne({ _id: id }, function (err, veh) {
     next(veh);
-  });
-}
-
-
-/**
- * Gets all vehicle cycles but does not populate events.
- */
-
-
-function findVehicleCycles(id, from, to, next) {
-  if ('function' === typeof from) {
-    next = from;
-    from = 0;
-    to = (new Date()).getTime();
-  } else if ('function' === typeof to) {
-    next = to;
-    to = (new Date()).getTime();
-  }
-  from = from === 0 ? id : new EventID({ id: id.vehicleId, time: (new Date(from)).getTime() });
-  to = new EventID({ id: id.vehicleId, time: to });
-  EventBucket.collection.find({ _id: { $gt: from, $lt: to } }, { sort: '_id', fields: [ '_id', 'bounds', 'valid' ] }, function (err, cursor) {
-    cursor.toArray(function (err, bucks) {
-      if (err || !bucks || bucks.length === 0) {
-        next([]);
-      } else {
-        var goodBucks = [];
-        for (var i = 0, len = bucks.length; i < len; i++) {
-          if (bucks[i].valid) {
-            goodBucks.push(bucks[i]);
-          }
-        }
-        next(goodBucks);
-      }
-    });
-  });
-}
-
-
-/**
- * Gets a single cycle including all events.
- */
-
-
-function getCycle(id, next) {
-  EventBucket.findById(id, function (err, data) {
-    if (!err && data) {
-      var events = []
-        , len = data.events.length
-        , every = len > 1000 ? Math.round(len / 2000) : 1
-        , start_orig = parseInt(data.bounds.start)
-        , stop_orig = parseInt(data.bounds.stop)
-      ;
-      for (var i = 0; i < len; i++) {
-        // if (data.events[i].header.type !== 'ANNOTATION' && i % every === 0) {
-        if (data.events[i].header.type !== 'ANNOTATION' && data.events[i].header.source !== 'SENSOR_COMPASS') {
-          events.push(data.events[i]);
-        }
-      }
-      data.events = events;
-      next(data);
-    } else {
-      next(null);
-    }
   });
 }
 
@@ -198,26 +130,18 @@ var app = module.exports = express.createServer();
 
 
 app.configure('development', function () {
-  app.set('db-uri', 'mongodb://localhost:27017/service-development,mongodb://localhost:27018,mongodb://localhost:27019');
-  app.set('sessions-hosts', ['localhost']);
-  app.set('sessions-ports', [27017, 27018, 27019]);
+  app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples,mongodb://localhost:27018,mongodb://localhost:27019');
+  app.set('db-uri-mongodb', 'mongodb://:27017,:27018,:27019/service-samples');
+  app.set('db-uri-sessions', 'mongodb://:27017/service-sessions');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
 
 
-app.configure('test', function () {
-  app.set('db-uri', 'mongodb://localhost:27017/service-test,mongodb://localhost:27018,mongodb://localhost:27019');
-  app.set('sessions-hosts', ['localhost']);
-  app.set('sessions-ports', [27017, 27018, 27019]);
-  Notify.active = false;
-});
-
-
 app.configure('production', function () {
-  app.set('db-uri', 'mongodb://10.201.227.195:27017/service-production,mongodb://10.211.174.11:27017,mongodb://10.207.62.61:27017');
-  app.set('sessions-hosts', ['10.201.227.195','10.211.174.11','10.207.62.61']);
-  app.set('sessions-ports', [27017]);
+  app.set('db-uri-mongoose', 'mongodb://10.201.227.195:27017/service-production,mongodb://10.211.174.11:27017,mongodb://10.207.62.61:27017');
+  app.set('db-uri-mongodb', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-production');
+  app.set('db-uri-sessions', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-sessions');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = true;
 });
@@ -237,16 +161,8 @@ app.configure(function () {
   express.bodyParser.parse['application/octet-stream'] = Buffer;
   app.use(express.cookieParser());
 
-  var sessionServers = []
-  app.set('sessions-hosts').forEach(function (host) {
-    app.set('sessions-ports').forEach(function (port) {
-      sessionServers.push(new mongodb.Server(host, port));
-    })
-  });
-  var sessionServerConfig =
-      new mongodb.ReplSetServers(sessionServers, { rs_name: 'cyclers' });
-  var sessionServerDb = new mongodb.Db(
-      'service-sessions', sessionServerConfig, { native_parser: false });
+  var sessionServerDb =
+      mongodb.connect(app.set('db-uri-sessions'), { noOpen: true }, function() {});
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
     secret: 'topsecretmission',
@@ -264,9 +180,8 @@ app.configure(function () {
 models.defineModels(mongoose, function () {
   app.User = User = mongoose.model('User');
   app.Vehicle = Vehicle = mongoose.model('Vehicle');
-  app.EventBucket = EventBucket = mongoose.model('EventBucket');
   app.LoginToken = LoginToken = mongoose.model('LoginToken');
-  db = mongoose.connectSet(app.set('db-uri'));
+  db = mongoose.connectSet(app.set('db-uri-mongoose'));
 });
 
 
@@ -276,7 +191,6 @@ models.defineModels(mongoose, function () {
 /**
  * Loads user by email request param.
  */
-
 
 app.param('email', function (req, res, next, email) {
   User.findOne({ email: email }, function (err, usr) {
@@ -299,7 +213,6 @@ app.param('email', function (req, res, next, email) {
  * Load vehicle by vehicleId request param.
  */
 
-
 app.param('vid', function (req, res, next, id) {
   Vehicle.findById(id, function (err, veh) {
     if (!err && veh) {
@@ -316,7 +229,6 @@ app.param('vid', function (req, res, next, id) {
 /**
  * Load vehicle by vehicleId in integer form request param.
  */
-
 
 app.param('vintid', function (req, res, next, id) {
   findVehicleByIntId(id, function (veh) {
@@ -343,43 +255,49 @@ app.get('/', loadUser, function (req, res) {
   } else {
     filterUser = req.currentUser;
   }
-  findVehiclesByUser(filterUser, function (vehs) {
-    var vehicles = []
-      , num = vehs.length
-      , cnt = 0
-    ;
-    if (num > 0) {
-      vehs.forEach(function (v) {
-        findVehicleCycles(v._id, function (bucks) {
-          var numBucks = bucks.length;
-          if (numBucks > 0) {
-            v.lastSeen = parseInt(bucks[numBucks - 1].bounds.stop);
-            vehicles.push(v);
-          }
-          cnt++;
-          if (cnt === num) {
-            vehicles.sort(function (a, b) {
-              return b.lastSeen - a.lastSeen;
-            });
-            if (vehicles.length > 0) {
-              // TODO: include a session cookie to prevent known-id attacks.
-              res.render('index', {
-                  data: vehicles
-                , user: req.currentUser
-              });
-            } else {
-              res.render('empty', {
-                user: req.currentUser
-              });
-            }
-          }
+  findVehiclesByUser(filterUser, function (vehicles) {
+    debug('vehicles: ' + inspect(vehicles));
+    Step(
+      // Add lastSeen to all vehicles in parallel.
+      function() {
+        var parallel = this.parallel;
+        vehicles.forEach(function (v) {
+          var next = parallel();
+          sampleDb.fetchRealSamples(v._id, '_cycle', null, null, 0,
+                                    function(err, cycles) {
+            SampleDb.sortSamplesByTime(cycles);
+            debug('vehicle ' + v._id + ' cycles: ' + inspect(cycles));
+            if (cycles && cycles.length > 0)
+              v.lastSeen = cycles[cycles.length - 1].end;
+            next();
+          });
         });
-      });
-    } else {
-      res.render('empty', {
-        user: req.currentUser
-      });
-    }
+        parallel()(); // In case there are no vehicles.
+      }, function(err) {
+        if (err) { this(err); return; }
+
+        // Only keep vehicles which have drive cycles.
+        vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
+        debug('vehicles filtered: ' + inspect(vehicles));
+
+        // Sort by lastSeen.
+        vehicles.sort(function (a, b) {
+          return b.lastSeen - a.lastSeen;
+        });
+
+        if (vehicles.length > 0) {
+          // TODO: include a session cookie to prevent known-id attacks.
+          res.render('index', {
+              data: vehicles
+            , user: req.currentUser
+          });
+        } else {
+          res.render('empty', {
+            user: req.currentUser
+          });
+        }
+      }
+    );
   });
 });
 
@@ -406,86 +324,52 @@ app.get('/login', function (req, res) {
 });
 
 
-// Get one vehicle route
+// Get one vehicle data over some time span
 
-var getVehicleRoute = function(vehicleId, cb) {
-  // get all vehicle events (handle only)
-  findVehicleCycles(vehicleId, function (bucks) {
-    if (bucks.length > 0) {
+var getVehicleData = function(vehicleId, channels, beginTime, endTime, options,
+                              cb) {
+  if (_.isString(channels))
+    channels = [channels];
+  var minDuration = options.minDuration || 0;
 
-      // get only the latest cycle's data
-      var events = []
-        , buckIndex = bucks.length - 1
-      ;
-      (function fillEvents() {
-        getCycle(bucks[buckIndex]._id, function (cyc) {
-          if (cyc) {
-            // TMP: use SENSOR_GPS latitude to determine of this cycle is "valid"
-            var validCnt = 0;
-            for (var i = 0, len = cyc.events.length; i < len; i++) {
-              if (cyc.events[i].header.source === 'SENSOR_GPS' && 'location' in cyc.events[i]) {
-                validCnt++;
-              }
-            }
-            if (validCnt < 20) {
-              bucks.pop();
-              buckIndex--;
-              if (buckIndex !== -1) {
-                fillEvents();
-              } else {
-                cb('NO_CYCLE_EVENTS', null);
-              }
-            } else {
-              bucks[buckIndex] = cyc;
-              // HACK: remove mongoose crud that confuses dnode.
-              bucks = JSON.parse(JSON.stringify(bucks));
-              cb(null, bucks);
-            }
-          } else {
-            cb('NO_CYCLE_EVENTS', null);
+  var sampleSet = {};
+  debug('getVehicleData(' + vehicleId + ', ' + inspect(channels) + ', ' + beginTime + ', ' + endTime + '...)');
+  Step(
+    function fetch() {
+      var parallel = this.parallel;
+      channels.forEach(function(channelName) {
+        var next = parallel();
+        debug('fetching ' + channelName);
+        sampleDb.fetchMergedSamples(vehicleId, channelName, beginTime, endTime,
+                                    minDuration, function(err, samples) {
+          if (err)
+            log('IGNORING ERROR fetching data for vehicle ' + vehicleId +
+                ', channel ' + channelName + ': ' + err.stack);
+          if (samples) {
+            SampleDb.sortSamplesByTime(samples);
+            sampleSet[channelName] = samples;
+            debug('channel ' + channelName + ': ' + samples.length + ' samples');
           }
+          next();
         });
-      })();
-    } else {
-      cb('NO_VEHICLE_CYCLES', null);
+      });
+      parallel()(); // In case there are no channels.
+    },
+    function ret(err) {
+      cb(err, sampleSet);
     }
-  });
+  );
 }
 
-
-// Get requested cycles and their events
-
-app.get('/cycles', function (req, res) {
-  if (req.body && req.body.cycles) {
-    var cycleIds = req.body.cycles
-      , num = cycleIds.length
-      , cnt = 0
-      , events = {}
-    ;
-    cycleIds.forEach(function (id) {
-      getCycle(id, function (cyc) {
-        if (cyc) {
-          // TMP: use SENSOR_GPS latitude to determine of this cycle is "valid"
-          var validCnt = 0;
-          for (var i = 0, len = cyc.events.length; i < len; i++) {
-            if (cyc.events[i].header.source === 'SENSOR_GPS' && 'location' in cyc.events[i]) {
-              validCnt++;
-            }
-          }
-          events[cyc._id] = validCnt < 20 ? null : cyc.events;
-          cnt++;
-          if (num === cnt) {
-            res.send({ status: 'success', data: { events: events } });
-          }
-        } else {
-          res.send({ status: 'fail', data: { code: 'NO_VEHICLE_CYCLES' } });
-        }
-      });
-    });
-  } else {
-    res.send({ status: 'fail', data: { code: 'NO_CYCLES_REQUESTED' } });
-  }
-});
+var getVehicleCycles = function(vehicleId, cb) {
+  // get all vehicle cycles
+  sampleDb.fetchRealSamples(vehicleId, '_cycle', null, null, 0,
+                            function(err, cycles) {
+    debug('getVehicleCycles(' + vehicleId + '): ' + inspect(cycles));
+    SampleDb.sortSamplesByTime(cycles);
+    cb(err, cycles);
+  });
+}
 
 
 // Login - add user to session
@@ -580,7 +464,7 @@ app.post('/usercreate/:newemail', function (req, res) {
 
 app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
   var v = new Vehicle({
-      _id: new EventID()
+      _id: parseInt(Math.random() * 0xffffffff)  // TODO: collisions
     , make: req.params.make
     , model: req.params.model
     , year: req.params.year
@@ -588,7 +472,7 @@ app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
   });
   v.save(function (err) {
     if (!err) {
-      res.send({ status: 'success', data: { vehicleId: v._id.vehicleId } });
+      res.send({ status: 'success', data: { vehicleId: v._id } });
     } else {
       res.send({ status: 'error', message: err });
     }
@@ -700,7 +584,7 @@ app.put('/cycle', function (req, res) {
                     start: driveHeader.startTime
                   , stop: driveHeader.stopTime
                 };
-                event._id = new EventID({ id: veh._id.vehicleId, time: driveHeader.startTime });
+                event._id = new EventID({ id: veh._id, time: driveHeader.startTime });
                 var bucket = new EventBucket(event);
                 bucket.save(function (err) {
                   cnt++;
@@ -750,20 +634,49 @@ function verifySession(sessionInfo, cb) {
 
 
 var dnodeMethods = {
-  getVehicleRoute: function(sessionInfo, vehicleId, cb) {
-    if (!verifySession(sessionInfo, cb)) return;
-    if (typeof vehicleId === 'string')
-      vehicleId = ObjectID(vehicleId);
-    getVehicleRoute(vehicleId, cb);
+  getVehicleCycles: function(sessionInfo, vehicleId, cb) {
+    if (!verifySession(sessionInfo, cb))
+      cb(new Error('Could not verify session'));
+    else
+      getVehicleCycles(vehicleId, cb);
+  },
+  getVehicleData: function(sessionInfo,
+                           vehicleId, channels, beginTime, endTime, options,
+                           cb) {
+    if (!verifySession(sessionInfo, cb))
+      cb(new Error('Could not verify session'));
+    else
+      getVehicleData(vehicleId, channels, beginTime, endTime, options, cb);
   },
 };
 
 
-////////////// Listen on 8080 (maps to 80 on EC2)
+////////////// Initialize and Listen on 8080 (maps to 80 on EC2)
 
+var sampleDb;
 
 if (!module.parent) {
-  app.listen(8080);
-  dnode(dnodeMethods).listen(app);
-  util.log("Express server listening on port " + app.address().port);
+  Step(
+    // Connect to SampleDb:
+    function() {
+      mongodb.connect(app.set('db-uri-mongodb'),
+                      { server: { poolSize: 4 } },
+                      this);
+    }, function(err, db) {
+      if (err) { this(err); return; }
+      new SampleDb(db, {}, this);
+    }, function(err, newSampleDb) {
+      if (err) { this(err); return; }
+      sampleDb = newSampleDb;
+      this();
+    },
+
+    // Listen:
+    function(err) {
+      if (err) { this(err); return; }
+      app.listen(8080);
+      dnode(dnodeMethods).listen(app);
+      util.log("Express server listening on port " + app.address().port);
+    }
+  );
 }
