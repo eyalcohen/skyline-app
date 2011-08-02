@@ -7,19 +7,13 @@ var Step = require('step');
 
 var SampleDb = require('./sample_db.js').SampleDb;
 
-var vehicleIdFromObjectId = exports.vehicleIdFromObjectId = function(objectId) {
-  var BP = mongodb.BinaryParser, rawId = objectId.id;
-  var vehicleId = BP.decodeInt(rawId.substring(4,8), 32, true, true) * 1000 +
-      BP.decodeInt(rawId.substring(8,10), 16, true, true);
-  return vehicleId;
-}
-
 exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
   try {
     options = options || {};
     var insertsPerTick = options.insertsPerTick || 100;
 
-    var vehicleId = vehicleIdFromObjectId(eventsProto._id);
+    var BP = mongodb.BinaryParser, rawId = eventsProto._id.id;
+    var vehicleId = BP.decodeInt(rawId.substring(0,4), 32, true, true);
     debug('Processing a drive cycle ' + eventsProto._id + ' with ' +
           eventsProto.events.length + ' events + vehicle id ' +
           vehicleId + '...');
@@ -62,6 +56,11 @@ exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
         addSample('accel.x_m_s2', event.sensor[0]);
         addSample('accel.y_m_s2', event.sensor[1]);
         addSample('accel.z_m_s2', event.sensor[2]);
+      } else if (event.header.type == 'SENSOR_DATA' &&
+                 event.header.source == 'SENSOR_COMPASS') {
+        addSample('compass.x_deg', event.sensor[0]);
+        addSample('compass.y_deg', event.sensor[1]);
+        addSample('compass.z_deg', event.sensor[2]);
       } else if (event.header.type == 'CAN_EVENT' &&
                  event.header.source == 'CAN_SOURCE') {
         var val;

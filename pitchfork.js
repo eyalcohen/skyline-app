@@ -85,7 +85,8 @@ Step(
         next(err);
       } else {
         // Use 32-bit ids.
-        veh._id = compatibility.vehicleIdFromObjectId(veh._id);
+        var BP = mongodb.BinaryParser, rawId = veh._id.id;
+        veh._id = BP.decodeInt(rawId.substring(0,4), 32, false, true);
         destVehiclesCollection.insert(veh);
       }
     });
