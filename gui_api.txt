@@ -1,0 +1,129 @@
+This documents the DNode API used to communicate with the Web App.
+
+DNode methods:
+
+General parameters:
+  sessionInfo: session information as supplied in web page and stored in
+      ServiceGUI.sessionInfo.  Used to confirm valid user session.
+  vehicleId: 32-bit integer vehicle ID.
+  channels: a channel name string, or an array of channel name strings.
+  cb: a callback.
+  err: first argument of a callback; instance of Error, or null.
+  time: all times are in microseconds since the epoch.
+
+Structure of samples:
+  All samples:
+    beg: begin time,
+    end: end time,
+  General numeric channel:
+    val: number,
+  Merged numeric samples (only returned when minDuration > 0):
+    val: number,
+    min: optional minimum value, if getMinMax is true,
+    max: optional maximum value, if getMinMax is true,
+  _cycle samples:
+    val: {
+      sampleCount: number of samples in cycle,
+      TODO: activity level
+    },
+  _schema samples:
+    val: {
+      channelName: channel name, e.g. "frontWheel.speed_m_s^2",
+      humanName: human-readable channel name, e.g. "Front wheel speed",
+      units: string describing units, e.g. "m/s^2",
+      description: long human-readable description,
+    },
+
+getSamples - Fetch samples.
+getSamples(sessionInfo, vehicleId, channels, options, cb)
+  options: {
+    beginTime, endTime: samples overlapping this time range will be fetched.
+        If either is null, that end of the range is considered unbounded.
+    minDuration: if > 0, only real samples of this duration or longer will
+        be returned, with synthetic samples used to fill in.  Defaults to 0.
+    getMinMax: if true, min and max values are returned for synthetic samples.
+  }
+  cb: callback function
+=> cb(err, sampleSet)
+  sampleSet: {
+    <channelName>: [
+      { beg: begin time,
+        end: end time,
+        val: number,
+        min: optional minimum,
+        max: optional maximum,
+      },
+    ], ...
+  }
+
+subscribeSamples - Asyncronously wait for new data to appear on the
+provided channel.  When new data appears, the provided newSamplesCb is called.
+TODO: rate-limiting?
+subscribeSamples(sessionInfo, vehicleId, channel, beginTime, options,
+                 handleCb, newSamplesCb)
+  beginTime: monitor for new data starting at this time.  Whenever new data
+      for a given channel appears overlapping [beginTime, inf), it is passed to
+      newSamplesCb, and monitoring for that channel restarts at the end time of
+      the new data.
+  options: same as getSamples.
+  handleCb: this function is called immediately with a handle which can be
+      later used to cancel the subscription.
+  newSamplesCb: this function is called every time new data is available.
+=> handleCb(err, handle)
+  handle: a token which can be passed to cancelSubscribeSamples.
+=> newSamplesCb(err, samples)
+  samples: array of new samples.
+
+cancelSubscribeSamples - Cancel a data subscription.
+cancelSubscribeSamples(handle)
+  handle: a handle passed to subscribeSamples->handleCb.
+
+TODO:
+  getVehicles(sessionInfo, cb): get all vehicles accessible to current user.
+
+
+Design principles:
+  - Due to incrementally adding to drive cycles, schema, etc, there may be
+    samples which are wholly contained by equivalent samples.  The smaller
+    samples are redundant, and should be ignored.
+  - Records are never deleted/modified unless they are redundant.
+  - Drive cycles are only expanded when new data has arrived.
+    (Hmm, can Henson ensure that data is uploaded in this kind of monotonic way?
+    Probably not...)
+
+
+Intended client operation, no subscription:
+  - On page load, sessionInfo is populated in page, and vehicle list is
+    populated in page.  (Could be fetched...)
+  - For each vehicle, maintain a cache, keyed on (channelName + minDuration +
+    timeRange), of data fetched.  Whenever requesting new data, fetch missing
+    bits from server and return it from the cache.  Need interval arithmetic
+    for tracking cache contents...  (Alternately - cache buckets?)
+  - On vehicle expansion, call getSamples(..., '_cycles') to get all drive
+    cycles.  Update the timeline to view the latest cycle.
+  - When timeline time range is updated, and we have no schema info cached:
+    Fetch schema info with getSamples(..., timeBegin, timeEnd, '_schema').
+    Use schema to populate channel menus.  Pick starting channels to display.
+  - When displaying a channel, fetch channel data from cache.  Based on zoom
+    level, pick a minDuration from SampleDb.syntheticDurations which results in
+    a reasonable number of pixels per sample.  Request samples on the given
+    channel with that minDuration.
+  - When zooming, whenever we need a different minDuration, request data at that
+    resolution.
+
+  TODO:
+    - When panning, visible schema changes.  Tricky.
+    - When doing dynamic updates, how do we handle cache invalidation & new
+      data?
+
+With subscription:
+  - Modify cache to track active channels:
+    - '_cycles' for all time.
+    - '_schema' (for simplicity, for all time, could be more efficient to just do it for viewed regions?)
+    - Channels which are currently viewed, at current minBucket.
+  - When '_cycles' changes, notify Overviewer.
+  - When '_schema' changes, notify Timelines.  Be careful to only update menus
+    when something truly changes?
+  - When a channel changes, notify affected Timelines.  If new data is visible,
+    display it.  If new data crosses right edge of graph, scroll (or zoom?)
+    graph to make new data visible.
