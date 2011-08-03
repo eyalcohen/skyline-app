@@ -4,7 +4,8 @@
 
 var dnodeRemote;
 var dnodeOnConnect = [];
-DNode.connect(function(remote) {
+DNode.connect({ reconnect: 500,  // Attempt to reconnect every 500ms.
+              }, function(remote) {
   dnodeRemote = remote;
   dnodeOnConnect.forEach(function(args) { dnodeInvoke.apply(null, args); });
   dnodeOnConnect = null;
