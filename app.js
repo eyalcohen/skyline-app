@@ -331,6 +331,7 @@ var getVehicleData = function(vehicleId, channels, beginTime, endTime, options,
   if (_.isString(channels))
     channels = [channels];
   var minDuration = options.minDuration || 0;
+  var getMinMax = options.getMinMax;
 
   var sampleSet = {};
   debug('getVehicleData(' + vehicleId + ', ' + inspect(channels) + ', ' + beginTime + ', ' + endTime + '...)');
@@ -341,7 +342,8 @@ var getVehicleData = function(vehicleId, channels, beginTime, endTime, options,
         var next = parallel();
         debug('fetching ' + channelName);
         sampleDb.fetchMergedSamples(vehicleId, channelName, beginTime, endTime,
-                                    minDuration, function(err, samples) {
+                                    minDuration, { getMinMax: getMinMax },
+                                    function(err, samples) {
           if (err)
             log('IGNORING ERROR fetching data for vehicle ' + vehicleId +
                 ', channel ' + channelName + ': ' + err.stack);

@@ -176,8 +176,14 @@ SampleDb.prototype.fetchRealSamples =
 
 
 SampleDb.prototype.fetchSyntheticSamples =
-    function(vehicleId, channelName, beginTime, endTime, synDuration, cb) {
+    function(vehicleId, channelName, beginTime, endTime, synDuration, options,
+             cb) {
   var self = this;
+  if (!cb) {
+    cb = options;
+    options = {};
+  }
+  var getMinMax = options.getMinMax;
 
   // Get overlapping synthetic samples with appropriate duration.
   var samples = [];
@@ -186,15 +192,17 @@ SampleDb.prototype.fetchSyntheticSamples =
     query.buk = { $gte: Math.floor(beginTime / synDuration),
                   $lt: Math.ceil(endTime / synDuration) };
   }
-  var cursor = self.syntheticCollections[synDuration].find(
-    query, {  // Fields:
-      _id: 0,  // No need for _id.
-      buk: 1,
-      sum: 1,
-      ovr: 1,
-      // min, max
-    }
-  );
+  var fields = {
+    _id: 0,  // No need for _id.
+    buk: 1,
+    sum: 1,
+    ovr: 1,
+  };
+  if (getMinMax) {
+    fields.min = 1;
+    fields.max = 1;
+  }
+  var cursor = self.syntheticCollections[synDuration].find(query, fields);
   cursor.nextObject(processNext);
   function processNext(err, sample) {
     if (err || !sample) {
@@ -208,14 +216,21 @@ SampleDb.prototype.fetchSyntheticSamples =
 
 
 SampleDb.prototype.fetchMergedSamples =
-    function(vehicleId, channelName, beginTime, endTime, minDuration, cb) {
+    function(vehicleId, channelName, beginTime, endTime, minDuration, options,
+             cb) {
+  var self = this;
+  if (!cb) {
+    cb = options;
+    options = {};
+  }
+  var getMinMax = options.getMinMax;
+
   // Special case.
   if (minDuration == 0) {
     return this.fetchRealSamples(
         vehicleId, channelName, beginTime, endTime, 0, cb);
   }
 
-  var self = this;
   var synDuration = getSyntheticDuration(minDuration);
 
   Step(
@@ -232,7 +247,8 @@ SampleDb.prototype.fetchMergedSamples =
 
       // Get overlapping synthetic samples with appropriate duration.
       self.fetchSyntheticSamples(vehicleId, channelName, beginTime, endTime,
-                                 synDuration, this.parallel());
+                                 synDuration, { getMinMax: getMinMax },
+                                 this.parallel());
     },
 
     // Merge real and synthetic samples.
@@ -243,9 +259,16 @@ SampleDb.prototype.fetchMergedSamples =
       var synBegin = Math.floor(beginTime / synDuration);
       var synEnd = Math.ceil(endTime / synDuration);
       var synAverages = new Array(synEnd - synBegin);
+      var synMin = getMinMax && new Array(synEnd - synBegin);
+      var synMax = getMinMax && new Array(synEnd - synBegin);
       synSamples.forEach(function(s) {
+        var i = s.buk - synBegin;
         if (s.ovr)
-          synAverages[s.buk - synBegin] = s.sum / s.ovr;
+          synAverages[i] = s.sum / s.ovr;
+        if (getMinMax) {
+          synMin[i] = s.min;
+          synMax[i] = s.max;
+        }
       });
 
       // For each gap in real data, add synthetic data if available.
@@ -261,14 +284,20 @@ SampleDb.prototype.fetchMergedSamples =
         var bukBegin = Math.floor(gapBegin / synDuration);
         var bukEnd = Math.ceil(gapEnd / synDuration);
         for (var buk = bukBegin; buk < bukEnd; ++buk) {
-          var avg = synAverages[buk - synBegin];
+          var i = s.buk - synBegin;
+          var avg = synAverages[i];
           if (!_.isUndefined(avg)) {
             var beg = buk * synDuration;
-            gapSamples.push({
+            var s = {
               beg: Math.max(gapBegin, beg),
               end: Math.min(gapEnd, beg + synDuration),
               val: avg,
-            });
+            };
+            if (getMinMax && !_.isUndefined(synMin[i]))
+              s.min = synMin[i];
+            if (getMinMax && !_.isUndefined(synMax[i]))
+              s.max = synMax[i];
+            gapSamples.push(s);
           }
         }
       });
