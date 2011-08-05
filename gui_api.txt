@@ -15,71 +15,65 @@ Structure of samples:
   All samples:
     beg: begin time,
     end: end time,
+    val: value,
   General numeric channel:
     val: number,
   Merged numeric samples (only returned when minDuration > 0):
     val: number,
     min: optional minimum value, if getMinMax is true,
     max: optional maximum value, if getMinMax is true,
-  _cycle samples:
+  Schema samples:
+    chn: '_schema'
     val: {
-      sampleCount: number of samples in cycle,
-      TODO: activity level
-    },
-  _schema samples:
-    val: {
-      channelName: channel name, e.g. "frontWheel.speed_m_s^2",
-      humanName: human-readable channel name, e.g. "Front wheel speed",
-      units: string describing units, e.g. "m/s^2",
-      description: long human-readable description,
-    },
+      channelName: channel name, e.g. "frontWheel.speed_m_s^2".
+      humanName: human-readable channel name, e.g. "Front wheel speed" (optional).
+      units: string describing units, e.g. "m/s^2" (optional).
+      description: long human-readable description (optional).
+      type: the type of the channel, one of: 'float', 'int', 'enum', 'object'.
+      enumVals: if type == 'enum', a list of possible values for the enum.
+      merge: true if samples which abut or overlap and have the same val
+          should be merged into a single sample.
+    }
+  Wake level:
+    chn: '_wake'
+    val: an integer, where >= 1 indicates that the system is in an active
+        state where the user is likely to be interested in the data.  For
+        example, for an electric motorcycle, we might use:
+          0: key is off, bike is sleeping.  Data is infrequent and less
+             likely to interesting to a person.
+          1: key is on, throttle is not live.
+          2: throttle is live, bike has not moved since key turned on.
+          3: throttle is live and bike has moved.
 
-getSamples - Fetch samples.
-getSamples(sessionInfo, vehicleId, channels, options, cb)
+fetchSamples - Fetch samples.
+fetchSamples(sessionInfo, vehicleId, channelName, options, cb)
   options: {
     beginTime, endTime: samples overlapping this time range will be fetched.
         If either is null, that end of the range is considered unbounded.
     minDuration: if > 0, only real samples of this duration or longer will
         be returned, with synthetic samples used to fill in.  Defaults to 0.
     getMinMax: if true, min and max values are returned for synthetic samples.
+    subscribe: pass a string value to start subscribing to this channel.
+        Whenever new samples are available within the provided time range on
+        this channel, the callback will be called with the new samples.
   }
   cb: callback function
-=> cb(err, sampleSet)
-  sampleSet: {
-    <channelName>: [
-      { beg: begin time,
-        end: end time,
-        val: number,
-        min: optional minimum,
-        max: optional maximum,
-      },
-    ], ...
-  }
+=> cb(err, samples)
+  samples: [
+    { beg: begin time,
+      end: end time,
+      val: value,
+      min: optional minimum,
+      max: optional maximum,
+    }, ...
+  ]
 
-subscribeSamples - Asyncronously wait for new data to appear on the
-provided channel.  When new data appears, the provided newSamplesCb is called.
-TODO: rate-limiting?
-subscribeSamples(sessionInfo, vehicleId, channel, beginTime, options,
-                 handleCb, newSamplesCb)
-  beginTime: monitor for new data starting at this time.  Whenever new data
-      for a given channel appears overlapping [beginTime, inf), it is passed to
-      newSamplesCb, and monitoring for that channel restarts at the end time of
-      the new data.
-  options: same as getSamples.
-  handleCb: this function is called immediately with a handle which can be
-      later used to cancel the subscription.
-  newSamplesCb: this function is called every time new data is available.
-=> handleCb(err, handle)
-  handle: a token which can be passed to cancelSubscribeSamples.
-=> newSamplesCb(err, samples)
-  samples: array of new samples.
-
-cancelSubscribeSamples - Cancel a data subscription.
+cancelSubscribeSamples - Cancel a subscription.
 cancelSubscribeSamples(handle)
-  handle: a handle passed to subscribeSamples->handleCb.
+  handle: the string passed to fetchSamples.options.subscribe.
 
 TODO:
-  getVehicles(sessionInfo, cb): get all vehicles accessible to current user.
+  getVehicles(sessionInfo, cb): get all vehicles accessible to current user?
 
 
 Design principles:
