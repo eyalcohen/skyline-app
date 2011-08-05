@@ -139,3 +139,19 @@ Step(
 );
 
 })})});
+
+
+// Timing with insertSample:
+// ./pitchfork.js --destDb=mongo://:27017,:27018,:27109/test-samples  186.99s user 9.95s system 57% cpu 5:43.95 total
+
+// insertSamples, no min/max:
+// execInGroups(4):
+// ./pitchfork.js --destDb=mongo://:27017,:27018,:27109/test-samples  23.77s user 2.08s system 28% cpu 1:29.52 total
+// execInGroups(16):
+// ./pitchfork.js --destDb=mongo://:27017,:27018,:27109/test-samples  24.51s user 2.27s system 23% cpu 1:52.59 total
+// execInGroups(4), unsafe:
+// ./pitchfork.js --destDb=mongo://:27017,:27018,:27109/test-samples  25.44s user 2.27s system 26% cpu 1:42.98 total
+
+// insertSamples, with min/max:
+// execInGroups(4):
+// ./pitchfork.js --destDb=mongo://:27017,:27018,:27109/test-samples  52.03s user 4.52s system 23% cpu 4:01.13 total

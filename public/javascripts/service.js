@@ -269,6 +269,7 @@ ServiceGUI = (function ($) {
     };
 
     this.availableChannels = [];  // currently available channels
+    this.sampleSet = {};
     this.fetchedRange = null;  // Time range which has been fetched.  (For now, just one.)
     this.fetchedChannels = Object.keys(this.schema);
 
@@ -287,7 +288,8 @@ ServiceGUI = (function ($) {
     // update available channels
     self.availableChannels = Object.keys(this.schema).filter(
       function(channelName) {
-        return null != self.sampleSet[channelName];
+        return null != self.sampleSet[channelName] &&
+            self.sampleSet[channelName].length > 0;
       }
     );
   };
@@ -355,22 +357,22 @@ ServiceGUI = (function ($) {
       endTime = endTime + deltaTime / 2;
 
       // call server
-      dnodeInvoke('getVehicleData', ServiceGUI.sessionInfo,
-                  self.vehicleId, self.fetchedChannels, beginTime, endTime, {},
-                  function(err, sampleSet) {
-        try {
-          if (!err) {
-            self.fetchedRange = [beginTime, endTime];
-            self.sampleSet = sampleSet;
+      self.fetchedRange = [beginTime, endTime];
+      var callsPending = self.fetchedChannels.length;
+      self.fetchedChannels.forEach(function(channelName) {
+        dnodeInvoke('fetchSamples', ServiceGUI.sessionInfo,
+                    self.vehicleId, channelName,
+                    { beginTime: beginTime, endTime: endTime },
+                    function(err, samples) {
+          if (samples)
+            self.sampleSet[channelName] = samples;
+          if (err)
+            console.log(err.stack);
+          if (--callsPending == 0) {
             self.parseVisibleCycles();
             fn(true);
-          } else {
-            console.log(err.stack);
-            fn(false);
           }
-        } catch (err) {
-          alert(err.stack);
-        }
+        });
       });
     } else
       fn(false);
@@ -2133,8 +2135,8 @@ ServiceGUI = (function ($) {
               deets.animate({ height: expandDetailsTo }, 150, 'easeOutExpo', function () {
 
                 var vehicleId = parseInt($this.itemID());
-                dnodeInvoke('getVehicleCycles', ServiceGUI.sessionInfo,
-                            vehicleId, function(err, cycles) {
+                dnodeInvoke('fetchSamples', ServiceGUI.sessionInfo,
+                            vehicleId, '_wake', {}, function(err, cycles) {
                   if (!err) {
                     try {
                     var sandbox = new Sandbox(vehicleId, cycles, function () {

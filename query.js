@@ -3,10 +3,9 @@
 // Query from sample DB.
 
 var log = require('console').log;
-var debug = require('util').debug;
 var mongodb = require('mongodb');
 var Step = require('step');
-var util = require('util');
+var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
 
 var SampleDb = require('./sample_db.js').SampleDb, toNumber = SampleDb.toNumber;
@@ -46,9 +45,7 @@ Step(
       var next = parallel();
 
       if (argv.real) {
-        sampleDb.fetchRealSamples(argv.vehicleId, channelName,
-                                  argv.beginTime, argv.endTime,
-                                  argv.minDuration || 0,
+        sampleDb.fetchRealSamples(argv.vehicleId, channelName, _.clone(argv),
                                   function(err, realSamples) {
           if (err) { next(err); return; }
           try {
@@ -58,19 +55,25 @@ Step(
         });
 
       } else if (argv.synthetic) {
-        var synDuration = SampleDb.getSyntheticDuration(argv.minDuration || 0);
+        if (argv.synDuration == null) {
+          argv.synDuration =
+              SampleDb.getSyntheticDuration(argv.minDuration || 0);
+        }
         sampleDb.fetchSyntheticSamples(argv.vehicleId, channelName,
-                                       argv.beginTime, argv.endTime,
-                                       synDuration, function(err, synSamples) {
+                                       _.clone(argv), function(err, synSamples) {
           if (err) { next(err); return; }
           try {
             log('\nChannel ' + channelName + ':');
-            log('  Synthetic samples, duration ' + synDuration + ':');
+            log('  Synthetic samples, duration ' + argv.synDuration + ':');
             synSamples.forEach(function(s) {
               log('    ' + toNumber(s.buk) + ': ' +
                   toNumber(s.sum) + ' / ' +
                   toNumber(s.ovr) + ' == ' +
-                  (toNumber(s.sum) / toNumber(s.ovr)));
+                  (toNumber(s.sum) / toNumber(s.ovr)) +
+                  (_.isUndefined(s.min) ? '' :
+                      ' (' + s.min + '...' + s.max + ')') +
+                  (_.isUndefined(s.stddev) ? '' :
+                      ' (' + s.stddev + ')'));
             });
           } catch (err) { next(err); return; }
           next();
@@ -82,9 +85,7 @@ Step(
           next();
           return;
         }
-        sampleDb.fetchMergedSamples(argv.vehicleId, channelName,
-                                    argv.beginTime, argv.endTime,
-                                    argv.minDuration || 0,
+        sampleDb.fetchMergedSamples(argv.vehicleId, channelName, _.clone(argv),
                                     function(err, mergedSamples) {
           if (err) { next(err); return; }
           try {
@@ -110,6 +111,7 @@ Step(
           var end = toNumber(s.end);
           log('    ' + beg + ' .. ' + end + ' (' + (end - beg) + '): ' +
               util.inspect(s.val) +
+              (_.isUndefined(s.min) ? '' : ' (' + s.min + '...' + s.max + ')') +
               (_.isUndefined(s.stddev) ? '' : ' (' + s.stddev + ')'));
           var nextSample = samps[i+1];
           var nextBeg = nextSample && toNumber(nextSample.beg);

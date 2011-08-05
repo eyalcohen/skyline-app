@@ -256,17 +256,14 @@ app.get('/', loadUser, function (req, res) {
     filterUser = req.currentUser;
   }
   findVehiclesByUser(filterUser, function (vehicles) {
-    debug('vehicles: ' + inspect(vehicles));
     Step(
       // Add lastSeen to all vehicles in parallel.
       function() {
         var parallel = this.parallel;
         vehicles.forEach(function (v) {
           var next = parallel();
-          sampleDb.fetchRealSamples(v._id, '_cycle', null, null, 0,
-                                    function(err, cycles) {
+          sampleDb.fetchRealSamples(v._id, '_wake', {}, function(err, cycles) {
             SampleDb.sortSamplesByTime(cycles);
-            debug('vehicle ' + v._id + ' cycles: ' + inspect(cycles));
             if (cycles && cycles.length > 0)
               v.lastSeen = cycles[cycles.length - 1].end;
             next();
@@ -278,7 +275,6 @@ app.get('/', loadUser, function (req, res) {
 
         // Only keep vehicles which have drive cycles.
         vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
-        debug('vehicles filtered: ' + inspect(vehicles));
 
         // Sort by lastSeen.
         vehicles.sort(function (a, b) {
@@ -326,50 +322,16 @@ app.get('/login', function (req, res) {
 
 // Get one vehicle data over some time span
 
-var getVehicleData = function(vehicleId, channels, beginTime, endTime, options,
-                              cb) {
-  if (_.isString(channels))
-    channels = [channels];
-  var minDuration = options.minDuration || 0;
-  var getMinMax = options.getMinMax;
-
-  var sampleSet = {};
-  debug('getVehicleData(' + vehicleId + ', ' + inspect(channels) + ', ' + beginTime + ', ' + endTime + '...)');
-  Step(
-    function fetch() {
-      var parallel = this.parallel;
-      channels.forEach(function(channelName) {
-        var next = parallel();
-        debug('fetching ' + channelName);
-        sampleDb.fetchMergedSamples(vehicleId, channelName, beginTime, endTime,
-                                    minDuration, { getMinMax: getMinMax },
-                                    function(err, samples) {
-          if (err)
-            log('IGNORING ERROR fetching data for vehicle ' + vehicleId +
-                ', channel ' + channelName + ': ' + err.stack);
-          if (samples) {
-            SampleDb.sortSamplesByTime(samples);
-            sampleSet[channelName] = samples;
-            debug('channel ' + channelName + ': ' + samples.length + ' samples');
-          }
-          next();
-        });
-      });
-      parallel()(); // In case there are no channels.
-    },
-    function ret(err) {
-      cb(err, sampleSet);
-    }
-  );
-}
-
-var getVehicleCycles = function(vehicleId, cb) {
-  // get all vehicle cycles
-  sampleDb.fetchRealSamples(vehicleId, '_cycle', null, null, 0,
-                            function(err, cycles) {
-    debug('getVehicleCycles(' + vehicleId + '): ' + inspect(cycles));
-    SampleDb.sortSamplesByTime(cycles);
-    cb(err, cycles);
+var fetchSamples = function(vehicleId, channelName, options, cb) {
+  // TODO: subscribe.
+  sampleDb.fetchMergedSamples(vehicleId, channelName, options,
+                              function(err, samples) {
+    debug('fetchSamples(' + vehicleId + ', "' + channelName + '", ' +
+          inspect(options) + ', ...) -> ' +
+          (err ? 'Error: inspect(err)' : samples.length + ' samples'));
+    if (samples)
+      SampleDb.sortSamplesByTime(samples);
+    cb(err, samples);
   });
 }
 
@@ -636,19 +598,11 @@ function verifySession(sessionInfo, cb) {
 
 
 var dnodeMethods = {
-  getVehicleCycles: function(sessionInfo, vehicleId, cb) {
+  fetchSamples: function(sessionInfo, vehicleId, channelName, options, cb) {
     if (!verifySession(sessionInfo, cb))
       cb(new Error('Could not verify session'));
     else
-      getVehicleCycles(vehicleId, cb);
-  },
-  getVehicleData: function(sessionInfo,
-                           vehicleId, channels, beginTime, endTime, options,
-                           cb) {
-    if (!verifySession(sessionInfo, cb))
-      cb(new Error('Could not verify session'));
-    else
-      getVehicleData(vehicleId, channels, beginTime, endTime, options, cb);
+      fetchSamples(vehicleId, channelName, options, cb);
   },
 };
 

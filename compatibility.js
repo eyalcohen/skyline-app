@@ -7,6 +7,69 @@ var Step = require('step');
 
 var SampleDb = require('./sample_db.js').SampleDb;
 
+var standardSchema = exports.standardSchema = {
+  'gps.speed_m_s': {
+    channelName: 'gps.speed_m_s',
+    humanName: 'GPS Speed',
+    units: 'm/s',
+    type: 'float',
+  },
+  'gps.latitude_deg': {
+    channelName: 'gps.latitude_deg',
+    humanName: 'GPS Latitude',
+    units: '°',
+    type: 'float',
+  },
+  'gps.longitude_deg': {
+    channelName: 'gps.longitude_deg',
+    humanName: 'GPS Longitude',
+    units: '°',
+    type: 'float',
+  },
+  'gps.altitude_m': {
+    channelName: 'gps.altitude_m',
+    humanName: 'GPS Altitude',
+    units: 'm',
+    type: 'float',
+  },
+  'accel.x_m_s2': {
+    channelName: 'accel.x_m_s2',
+    humanName: 'Acceleration X',
+    units: 'm/s^2',
+    type: 'float',
+  },
+  'accel.y_m_s2': {
+    channelName: 'accel.y_m_s2',
+    humanName: 'Acceleration Y',
+    units: 'm/s^2',
+    type: 'float',
+  },
+  'accel.z_m_s2': {
+    channelName: 'accel.z_m_s2',
+    humanName: 'Acceleration Z',
+    units: 'm/s^2',
+    type: 'float',
+  },
+  'compass.x_deg': {
+    channelName: 'compass.x_deg',
+    humanName: 'Heading X',
+    units: '°',
+    type: 'float',
+  },
+  'compass.y_deg': {
+    channelName: 'compass.y_deg',
+    humanName: 'Heading Y',
+    units: '°',
+    type: 'float',
+  },
+  'compass.z_deg': {
+    channelName: 'compass.z_deg',
+    humanName: 'Heading Z',
+    units: '°',
+    type: 'float',
+  },
+};
+
 exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
   try {
     options = options || {};
@@ -75,11 +138,11 @@ exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
 
     // Hack: Henson seems to always send stopTime == startTime, so synthesize
     // reasonable durations.
-    _.each(_.values(sampleSets), function(s) {
-      SampleDb.sortSamplesByTime(s);  // Sometimes Henson data is out of order. !!!
+    _.each(_.values(sampleSets), function(samples) {
+      SampleDb.sortSamplesByTime(samples);  // Sometimes Henson data is out of order. !!!
       var total = 0;
-      s.forEach(function(sample, index) {
-        var nextSample = s[index + 1];
+      samples.forEach(function(sample, index) {
+        var nextSample = samples[index + 1];
         if (nextSample) {
           if (!sample.end)
             sample.end = nextSample.beg;
@@ -92,55 +155,28 @@ exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
       });
     });
 
-    // Write data to dest DB, in chunks.
+    // Add _schema samples.
+    var schemaSamples = [];
     var cycleStart = Number.MAX_VALUE, cycleEnd = Number.MIN_VALUE;
-    var sampleCount = 0
-
-    var insertsSoFar = 0;
-    function processKeys(sampleKeys, cb) {
-      if (sampleKeys.length) {
-        var channelName = sampleKeys[0];
-        processSamples(channelName, sampleSets[channelName], 0, function(err) {
-          if (err)
-            cb(err);
-          else
-            processKeys(sampleKeys.slice(1), cb);
-        });
-      } else {
-        cb(null);
+    Object.keys(sampleSets).forEach(function(channelName) {
+      var samples = sampleSets[channelName];
+      var beg = samples[0].beg, end = samples[samples.length - 1].end;
+      cycleStart = Math.min(cycleStart, beg);
+      cycleEnd = Math.max(cycleEnd, end);
+      var schemaVal = standardSchema[channelName];
+      if (!schemaVal) {
+        log('No schema available for channel ' + channelName + '!');
+        return;
       }
-    }
-
-    function processSamples(channelName, samples, sampleIndex, cb) {
-      if (sampleIndex < samples.length) {
-        var sample = samples[sampleIndex];
-        sampleDb.insertSample(vehicleId, channelName,
-                              sample.beg, sample.end, sample.val);
-        cycleStart = Math.min(cycleStart, sample.beg);
-        cycleEnd = Math.max(cycleEnd, sample.end);
-        ++sampleCount;
-        function next() {
-          processSamples(channelName, samples, sampleIndex + 1, cb);
-        }
-        if (++insertsSoFar >= insertsPerTick) {
-          insertsSoFar = 0;
-          process.nextTick(next);
-        } else {
-          next();
-        }
-      } else {
-        cb(null);
-      }
-    }
-
-    // Process all samples, then add drive cycle event to dest DB.
-    processKeys(_.keys(sampleSets), function(err) {
-      debug('Inserting drive cycle, times ' + cycleStart + '..' + cycleEnd +
-            ', count ' + sampleCount + '.');
-      sampleDb.insertSample(vehicleId, '_cycle', cycleStart, cycleEnd,
-                            { sampleCount: sampleCount });
-      cb(err);
+      schemaSamples.push({ beg: beg, end: end, val: schemaVal });
     });
+    sampleSets['_schema'] = schemaSamples;
+
+    // Add wake level sample.
+    sampleSets['_wake'] = [{ beg: cycleStart, end: cycleEnd, val: 3 }];
+
+    // Write samples to dest DB.
+    sampleDb.insertSamples(vehicleId, sampleSets, cb);
   } catch (err) {
     cb(err);
   }
