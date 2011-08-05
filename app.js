@@ -22,6 +22,7 @@ var express = require('express')
   , models = require('./models')
   , ProtobufSchema = require('protobuf_for_node').Schema
   , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/common/src/main/protobuf/Events.desc'))
+  , WebUploadSamples = Event['event.WebUploadSamples']
   , EventWebUpload = Event['event.EventWebUpload']
   , Notify = require('./notify')
   , SampleDb = require('./sample_db.js').SampleDb;
@@ -466,7 +467,133 @@ app.get('/summary/:email/:vintid', function (req, res) {
 });
 
 
-// Handle cycle events request
+// Handle sample upload request
+
+app.put('/samples', function (req, res) {
+
+  // check that body was encoded properly
+  if (!(req.body instanceof Buffer)) {
+    res.send({ status: 'fail', data: { code: 'BAD_PROTOBUF_FORMAT' } });
+    return;
+  }
+
+  // parse to JSON
+  var uploadSamples = WebUploadSamples.parse(new Buffer(req.rawBody, 'binary'));
+
+  var usr, veh, fname;
+  Step(
+    // get the cycle's user and authenticate
+    function getUser() {
+      User.findOne({ email: cycle.userId }, this);
+    }, function(err, usr_) {
+      usr = usr_;
+      if (!usr)
+        res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
+      else if (!usr.authenticate(cycle.password))
+        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
+      else
+        this();
+    },
+
+    // get the cycle's vehicle
+    function getVehicle() {
+      findVehicleByIntId(cycle.vehicleId, this);
+    }, function(veh_) {
+      veh = veh_;
+      if (!veh)
+        res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
+      else
+        this();
+    },
+
+    // save the cycle locally for now
+    function() {
+      var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
+          (new Date()).valueOf() + '.js';
+      fs.mkdir(__dirname + '/uploads', '0755', function (err) {
+        fs.writeFile(__dirname + '/uploads/' + fileName,
+                     JSON.stringify(uploadSamples), function (err) {
+          if (err)
+            util.log(err);
+          else
+            util.log('Saved to: ' + __dirname + '/uploads/' + fileName);
+        });
+      });
+      this();
+    },
+
+    // Store the data in the database.
+    function() {
+      // Process samples.
+      var sampleSet = {};
+      var begin = 0, duration = 0;
+      var firstError;
+      uploadSamples.sample.forEach(function(upSample) {
+        begin += upSample.beginDelta;  // Delta decode.
+        duration += upSample.durationDelta;  // Delta decode.
+        var val = upSample.valueFloat;
+        if (val == null) val = upSample.valueInt;
+        if (val == null) val = upSample.valueString;
+        if (val == null) val = _.toArray(upSample.valueBytes);  // raw -> Buffer
+        if (val == null) {
+          firstError = firstError || ('SAMPLE_NO_VALUE');
+          return;
+        }
+        var sample = { beg: begin, end: begin + duration, val: val };
+        var schema = uploadSamples.schema[upSample.schemaIndex];
+        if (!schema) {
+          firstError = firstError || ('SAMPLE_NO_SCHEMA_FOUND');
+          return;
+        }
+        if (!sampleSet[schema.channelName])
+          sampleSet[schema.channelName] = [sample];
+        else
+          sampleSet[schema.channelName].push(sample);
+      });
+
+      // Add schema samples.
+      uploadSamples.schema.forEach(function(upSchema) {
+        var samples = sampleSet[upSchema.channelName];
+        // Ignore unused schemas.
+        if (!samples)
+          return;
+        var schemaSample = {
+          beg: _.min(samples, function(sample) { return sample.beg; }).beg,
+          end: _.max(samples, function(sample) { return sample.end; }).end,
+          type: upSchema.type.toLowerCase(),
+        };
+        [ 'channelName', 'humanName', 'description', 'units', 'enumVals',
+          'merge' ].forEach( function(p) {
+          if (upSchema[p])
+            schemaSample[p] = upSchema[p];
+        });
+      });
+
+      // Check for errors.
+      if (firstError) {
+        res.send({ status: 'fail', data: { code: firstError } });
+        return;
+      }
+
+      // Insert in database.
+      sampleDb.insertSamples(vehicleId, sampleSet, this);
+    },
+
+    // Any exceptions above end up here.
+    function(err) {
+      if (err) {
+        debug('Error while processing PUT /samples request: ' + err.stack);
+        res.send({ status: 'fail', data: { code: 'INTERNAL_ERROR' } });
+      } else {
+        // Success!
+        res.end();
+      }
+    }
+  );
+});
+
+
+// LEGACY: Handle cycle events request
 
 app.put('/cycle', function (req, res) {
 
@@ -535,28 +662,26 @@ app.put('/cycle', function (req, res) {
 
               // check for drive session header
               if (!driveHeader) {
-                cnt++;
-                if (cnt === num) {
+                if (++cnt === num)
                   res.end();
-                }
+                return;
+              }
 
               // add new cycle
-              } else {
-                event.events = events;
-                event.valid = validCnt > 20;
-                event.bounds = {
-                    start: driveHeader.startTime
-                  , stop: driveHeader.stopTime
-                };
-                event._id = new EventID({ id: veh._id, time: driveHeader.startTime });
-                var bucket = new EventBucket(event);
-                bucket.save(function (err) {
-                  cnt++;
-                  if (cnt === num) {
-                    res.end();
-                  }
-                });
-              }
+              event.events = events;
+              event.valid = validCnt > 20;
+              event.bounds = {
+                  start: driveHeader.startTime
+                , stop: driveHeader.stopTime
+              };
+              event._id = new EventID({ id: veh._id, time: driveHeader.startTime });
+              compatibility.insertEventBucket(sampleDb, event,
+                                              function (err) {
+                if (err)
+                  debug('Error in insertEventBucket: ' + err.stack);
+                if (++cnt === num)
+                  res.end();
+              });
 
             });
 

@@ -29,7 +29,8 @@ Structure of samples:
       humanName: human-readable channel name, e.g. "Front wheel speed" (optional).
       units: string describing units, e.g. "m/s^2" (optional).
       description: long human-readable description (optional).
-      type: the type of the channel, one of: 'float', 'int', 'enum', 'object'.
+      type: the type of the channel, one of:
+          'float', 'int', 'string', 'raw', 'enum', 'object'.
       enumVals: if type == 'enum', a list of possible values for the enum.
       merge: true if samples which abut or overlap and have the same val
           should be merged into a single sample.

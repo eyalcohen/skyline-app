@@ -70,19 +70,16 @@ var standardSchema = exports.standardSchema = {
   },
 };
 
-exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
+exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
   try {
-    options = options || {};
-    var insertsPerTick = options.insertsPerTick || 100;
-
-    var BP = mongodb.BinaryParser, rawId = eventsProto._id.id;
+    var BP = mongodb.BinaryParser, rawId = eventBucket._id.id;
     var vehicleId = BP.decodeInt(rawId.substring(0,4), 32, true, true);
-    debug('Processing a drive cycle ' + eventsProto._id + ' with ' +
-          eventsProto.events.length + ' events + vehicle id ' +
+    debug('Processing a drive cycle ' + eventBucket._id + ' with ' +
+          eventBucket.events.length + ' events + vehicle id ' +
           vehicleId + '...');
 
     // If not marked valid, ignore.
-    if (!eventsProto.valid) {
+    if (!eventBucket.valid) {
       debug('Invalid drive cycle, ignoring...');
       cb(null);
       return;
@@ -90,7 +87,7 @@ exports.insertEventsProto = function(sampleDb, eventsProto, options, cb) {
 
     // Sort into different sample types.
     var sampleSets = {};
-    _.each(eventsProto.events, function(event) {
+    _.each(eventBucket.events, function(event) {
       function addSample(name, value) {
         if (_.isUndefined(value))
           return;

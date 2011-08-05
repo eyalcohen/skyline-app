@@ -111,7 +111,7 @@ Step(
         }
 
         // Process a drive cycle.
-        compatibility.insertEventsProto(sampleDb, doc, {}, function(err) {
+        compatibility.insertEventBucket(sampleDb, doc, function(err) {
           if (err) {
             debug('Error processing event:\n' + err.stack);
             process.exit(1);
