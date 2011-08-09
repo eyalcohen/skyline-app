@@ -133,7 +133,6 @@ var app = module.exports = express.createServer();
 app.configure('development', function () {
   app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples,mongodb://localhost:27018,mongodb://localhost:27019');
   app.set('db-uri-mongodb', 'mongodb://:27017,:27018,:27019/service-samples');
-  app.set('db-uri-sessions', 'mongodb://:27017/service-sessions');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
@@ -142,7 +141,6 @@ app.configure('development', function () {
 app.configure('production', function () {
   app.set('db-uri-mongoose', 'mongodb://10.201.227.195:27017/service-samples,mongodb://10.211.174.11:27017,mongodb://10.207.62.61:27017');
   app.set('db-uri-mongodb', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-samples');
-  app.set('db-uri-sessions', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-sessions');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = true;
 });
@@ -163,7 +161,7 @@ app.configure(function () {
   app.use(express.cookieParser());
 
   var sessionServerDb =
-      mongodb.connect(app.set('db-uri-sessions'), { noOpen: true }, function() {});
+      mongodb.connect(app.set('db-uri-mongodb'), { noOpen: true }, function() {});
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
     secret: 'topsecretmission',
