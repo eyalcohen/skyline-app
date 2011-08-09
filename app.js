@@ -3,30 +3,30 @@
  * Module dependencies.
  */
 
-var express = require('express')
-  , mongoose = require('mongoose')
-  , ObjectID = require('mongoose/lib/mongoose/types/objectid')
-  , jade = require('jade')
-  , mongodb = require('mongodb')
-  , MongoStore = require('connect-mongodb')
-  , gzip = require('connect-gzip')
-  , dnode = require('dnode')
-  , fs = require('fs')
-  , sys = require('sys')
-  , path = require('path')
-  , csv = require('csv')
-  , util = require('util'), debug = util.debug, inspect = util.inspect
-  , _ = require('underscore')
-  , Step = require('step')
-  , EventID = require('./customids').EventID
-  , models = require('./models')
-  , ProtobufSchema = require('protobuf_for_node').Schema
-  , Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/common/src/main/protobuf/Events.desc'))
-  , WebUploadSamples = Event['event.WebUploadSamples']
-  , EventWebUpload = Event['event.EventWebUpload']
-  , Notify = require('./notify')
-  , SampleDb = require('./sample_db.js').SampleDb;
-;
+var express = require('express');
+var mongoose = require('mongoose');
+var ObjectID = require('mongoose/lib/mongoose/types/objectid');
+var jade = require('jade');
+var mongodb = require('mongodb');
+var MongoStore = require('connect-mongodb');
+var gzip = require('connect-gzip');
+var dnode = require('dnode');
+var fs = require('fs');
+var sys = require('sys');
+var path = require('path');
+var csv = require('csv');
+var util = require('util'), debug = util.debug, inspect = util.inspect;
+var _ = require('underscore');
+var Step = require('step');
+var EventID = require('./customids').EventID;
+var models = require('./models');
+var ProtobufSchema = require('protobuf_for_node').Schema;
+var Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/common/src/main/protobuf/Events.desc'));
+var WebUploadSamples = Event['event.WebUploadSamples'];
+var EventWebUpload = Event['event.EventWebUpload'];
+var Notify = require('./notify');
+var SampleDb = require('./sample_db.js').SampleDb;
+var compatibility = require('./compatibility.js');
 
 var db, User, Vehicle, LoginToken;
 
@@ -639,48 +639,10 @@ app.put('/cycle', function (req, res) {
             // loop over each cycle in event
             cycle.events.forEach(function (event) {
 
-              // check for empty events
-              if (!event.events) {
-                res.end();
-                return;
-              }
-
-              // TMP: use SENSOR_GPS to determine of this cycle is "valid"
-              var validCnt = 0
-                , driveHeader
-                , events = []
-              ;
-
-              // count location events and find drive session header
-              for (var i = 0, len = event.events.length; i < len; i++) {
-                if (event.events[i].header.source === 'SENSOR_GPS' && 'location' in event.events[i]) {
-                  validCnt++;
-                }
-                if (event.events[i].header.type === 'DRIVE_SESSION') {
-                  driveHeader = event.events[i].header;
-                }
-                if (event.events[i].header.type !== 'ANNOTATION' && event.events[i].header.source !== 'SENSOR_COMPASS') {
-                  events.push(event.events[i]);
-                }
-              }
-
-              // check for drive session header
-              if (!driveHeader) {
-                if (++cnt === num)
-                  res.end();
-                return;
-              }
-
               // add new cycle
-              event.events = events;
-              event.valid = validCnt > 20;
-              event.bounds = {
-                  start: driveHeader.startTime
-                , stop: driveHeader.stopTime
-              };
-              event._id = new EventID({ id: veh._id, time: driveHeader.startTime });
-              compatibility.insertEventBucket(sampleDb, event,
-                                              function (err) {
+              event.valid = true;
+              event._id = new EventID({ id: veh._id, time: 0 });
+              compatibility.insertEventBucket(sampleDb, event, function (err) {
                 if (err)
                   debug('Error in insertEventBucket: ' + err.stack);
                 if (++cnt === num)

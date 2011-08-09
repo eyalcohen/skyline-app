@@ -69,11 +69,6 @@ Step(
         });
 
       } else /* merged */ {
-        if (_.isUndefined(argv.beginTime) || _.isUndefined(argv.endTime)) {
-          optimist.showHelp();
-          next();
-          return;
-        }
         sampleDb.fetchMergedSamples(argv.vehicleId, channelName, _.clone(argv),
                                     function(err, mergedSamples) {
           if (err) { next(err); return; }

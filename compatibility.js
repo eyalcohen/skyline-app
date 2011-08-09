@@ -129,7 +129,7 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
         else if (_.isNumber(event.can.payloadI))
           val = event.can.payloadI;
         if (!_.isUndefined(val))
-          addSample('can.' + event.can.id, val);
+          addSample('can.' + event.can.id.toString(16), val);
       }
     });
 
@@ -162,8 +162,12 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
       cycleEnd = Math.max(cycleEnd, end);
       var schemaVal = standardSchema[channelName];
       if (!schemaVal) {
-        log('No schema available for channel ' + channelName + '!');
-        return;
+        util.log('No schema available for channel ' + channelName +
+                 ', making one up.');
+        schemaVal = {
+          channelName: channelName,
+          type: 'float',
+        };
       }
       schemaSamples.push({ beg: beg, end: end, val: schemaVal });
     });
