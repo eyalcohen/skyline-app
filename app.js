@@ -263,10 +263,9 @@ app.get('/', loadUser, function (req, res) {
         var parallel = this.parallel;
         vehicles.forEach(function (v) {
           var next = parallel();
-          sampleDb.fetchRealSamples(v._id, '_wake', {}, function(err, cycles) {
-            SampleDb.sortSamplesByTime(cycles);
+          sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
             if (cycles && cycles.length > 0)
-              v.lastSeen = cycles[cycles.length - 1].end;
+              v.lastSeen = _.last(cycles).end;
             next();
           });
         });
@@ -333,8 +332,6 @@ var fetchSamples = function(vehicleId, channelName, options, cb) {
     if (0) debug('fetchSamples(' + vehicleId + ', "' + channelName + '", ' +
           inspect(options) + ', ...) -> ' +
           (err ? 'Error: inspect(err)' : samples.length + ' samples'));
-    if (samples)
-      SampleDb.sortSamplesByTime(samples);
     console.timeEnd(id);
     cb(err, samples);
   });
@@ -601,9 +598,14 @@ app.put('/samples', function (req, res) {
 
 app.put('/cycle', function (req, res) {
 
+  function fail(code) {
+    util.log('PUT /cycle failed: ' + code);
+    res.send({ status: 'fail', data: { code: code } });
+  }
+
   // check that body was encoded properly
   if (!(req.body instanceof Buffer)) {
-    res.send({ status: 'fail', data: { code: 'BAD_PROTOBUF_FORMAT' } });
+    fail('BAD_PROTOBUF_FORMAT');
     return;
   }
 
@@ -615,54 +617,51 @@ app.put('/cycle', function (req, res) {
 
   // get the cycle's user
   User.findOne({ email: cycle.userId }, function (err, usr) {
-    if (usr) {
+    if (!usr) {
+      fail('USER_NOT_FOUND');
+      return;
+    }
 
-      // authenticate user
-      if (usr.authenticate(cycle.password)) {
+    // authenticate user
+    if (!usr.authenticate(cycle.password)) {
+      fail('INCORRECT_PASSWORD');
+      return;
+    }
 
-        // get the cycle's vehicle
-        findVehicleByIntId(cycle.vehicleId, function (veh) {
-          if (veh) {
-
-            // save the cycle locally for now
-            var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' + (new Date()).valueOf() + '.js';
-            fs.mkdir(__dirname + '/cycles', '0755', function (err) {
-              fs.writeFile(__dirname + '/cycles/' + fileName, JSON.stringify(cycle), function (err) {
-                  if (err) {
-                    sys.puts(err);
-                  } else {
-                    sys.puts('Saved to: ' + __dirname + '/cycles/' + fileName);
-                  }
-              });
-            });
-
-            // loop over each cycle in event
-            cycle.events.forEach(function (event) {
-
-              // add new cycle
-              event.valid = true;
-              event._id = new EventID({ id: veh._id, time: 0 });
-              compatibility.insertEventBucket(sampleDb, event, function (err) {
-                if (err)
-                  debug('Error in insertEventBucket: ' + err.stack);
-                if (++cnt === num)
-                  res.end();
-              });
-
-            });
-
-          } else {
-            res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
-          }
-        });
-
-      } else {
-        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
+    // get the cycle's vehicle
+    findVehicleByIntId(cycle.vehicleId, function (veh) {
+      if (!veh) {
+        fail('VEHICLE_NOT_FOUND');
+        return;
       }
 
-    } else {
-      res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
-    }
+      // save the cycle locally for now
+      var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' + (new Date()).valueOf() + '.js';
+      fs.mkdir(__dirname + '/cycles', '0755', function (err) {
+        fs.writeFile(__dirname + '/cycles/' + fileName, JSON.stringify(cycle), function (err) {
+            if (err) {
+              util.log(err);
+            } else {
+              util.log('Saved to: ' + __dirname + '/cycles/' + fileName);
+            }
+        });
+      });
+
+      // loop over each cycle in event
+      cycle.events.forEach(function (event) {
+
+        // add new cycle
+        event.valid = true;
+        event._id = new EventID({ id: veh._id, time: 0 });
+        compatibility.insertEventBucket(sampleDb, event, function (err) {
+          if (err)
+            debug('Error in insertEventBucket: ' + err.stack);
+          if (++cnt === num)
+            res.end();
+        });
+
+      });
+    });
   });
 });
 

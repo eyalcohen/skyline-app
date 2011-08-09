@@ -13,8 +13,7 @@ var SampleDb = require('./sample_db.js').SampleDb, toNumber = SampleDb.toNumber;
 var optimist = require('optimist');
 var argv = optimist
     .default('db', 'mongo://localhost:27017/service-samples')
-    .boolean('real')
-    .boolean('synthetic')
+    .default('type', 'merged')
     .argv;
 
 function errCheck(err, op) {
@@ -42,43 +41,19 @@ Step(
   function() {
     var parallel = this.parallel;
     argv._.forEach(function(channelName) {
-      var next = parallel();
+      var next = argv.subscribe == null ? parallel() : _.identity;
 
-      if (argv.real) {
-        sampleDb.fetchRealSamples(argv.vehicleId, channelName, _.clone(argv),
-                                  function(err, realSamples) {
-          if (err) { next(err); return; }
-          try {
-            printSamples(realSamples, 'Real samples');
-          } catch (err) { next(err); return; }
-          next();
-        });
+      if (argv.synDuration == null)
+        argv.synDuration = SampleDb.getSyntheticDuration(argv.minDuration || 0);
 
-      } else if (argv.synthetic) {
-        if (argv.synDuration == null) {
-          argv.synDuration =
-              SampleDb.getSyntheticDuration(argv.minDuration || 0);
-        }
-        sampleDb.fetchSyntheticSamples(argv.vehicleId, channelName,
-                                       _.clone(argv), function(err, synSamples) {
-          if (err) { next(err); return; }
-          try {
-            printSamples(synSamples, 'Synthetic samples');
-          } catch (err) { next(err); return; }
-          next();
-        });
-
-      } else /* merged */ {
-        sampleDb.fetchMergedSamples(argv.vehicleId, channelName, _.clone(argv),
-                                    function(err, mergedSamples) {
-          if (err) { next(err); return; }
-          try {
-            printSamples(mergedSamples, 'Merged samples');
-          } catch (err) { next(err); return; }
-          next();
-        });
-      }
-
+      sampleDb.fetchSamples(
+          argv.vehicleId, channelName, _.clone(argv), function(err, samples) {
+        if (err) { next(err); return; }
+        try {
+          printSamples(samples, argv.type);
+        } catch (err) { next(err); return; }
+        next();
+      });
 
       function printSamples(samps, desc) {
         log('\nChannel ' + channelName + ':');
@@ -89,7 +64,6 @@ Step(
         } else {
           log('  ' + desc + ':');
         }
-        SampleDb.sortSamplesByTime(samps);
         samps.forEach(function(s, i) {
           var beg = toNumber(s.beg);
           var end = toNumber(s.end);
@@ -108,19 +82,17 @@ Step(
 
     });
     parallel()();
-  },
-  done
+  }, function(err) {
+    if (err)
+      debug('error:\n' + err.stack);
+    if (argv.subscribe == null) {
+      // Flush stdout.
+      process.stdout.once('close', function() {
+        process.exit(0);
+      });
+      process.stdout.destroySoon();
+    }
+  }
 );
-
-function done(err) {
-  if (err)
-    debug('done error:\n' + err.stack);
-
-  // Flush stdout.
-  process.stdout.once('close', function() {
-    process.exit(0);
-  });
-  process.stdout.destroySoon();
-}
 
 })});

@@ -67,7 +67,7 @@ Step(
       if (!user) {
         next(err);
       } else {
-        destUsersCollection.insert(user);
+        destUsersCollection.save(user);
       }
     });
   }, stepErr('convertUsers'),
@@ -87,7 +87,7 @@ Step(
         // Use 32-bit ids.
         var BP = mongodb.BinaryParser, rawId = veh._id.id;
         veh._id = BP.decodeInt(rawId.substring(0,4), 32, false, true);
-        destVehiclesCollection.insert(veh);
+        destVehiclesCollection.save(veh);
       }
     });
   }, stepErr('convertVehicles'),

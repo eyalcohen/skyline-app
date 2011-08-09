@@ -72,15 +72,16 @@ var standardSchema = exports.standardSchema = {
 
 exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
   try {
+    //console.time('makeSamples');
     var BP = mongodb.BinaryParser, rawId = eventBucket._id.id;
     var vehicleId = BP.decodeInt(rawId.substring(0,4), 32, true, true);
-    debug('Processing a drive cycle ' + eventBucket._id + ' with ' +
+    util.log('Processing a drive cycle ' + eventBucket._id + ' with ' +
           eventBucket.events.length + ' events + vehicle id ' +
           vehicleId + '...');
 
     // If not marked valid, ignore.
     if (!eventBucket.valid) {
-      debug('Invalid drive cycle, ignoring...');
+      util.log('Invalid drive cycle, ignoring...');
       cb(null);
       return;
     }
@@ -95,10 +96,9 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
         if (!s)
           s = sampleSets[name] = [];
         var header = event.header;
-        // Arrgh, stopTime seems to be useless - sometimes it's before startTime.
         s.push({
           beg: header.startTime * 1000,
-          // end: header.stopTime * 1000,
+          end: header.stopTime * 1000,
           val: value,
         });
       }
@@ -132,21 +132,23 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
           addSample('can.' + event.can.id.toString(16), val);
       }
     });
+    //console.timeEnd('makeSamples');
 
-    // Hack: Henson seems to always send stopTime == startTime, so synthesize
-    // reasonable durations.
+    //console.time('durations');
+    // HACK: Drive Cycle app seems to always send stopTime == startTime or
+    // other bogus stopTimes, so synthesize reasonable durations.
     _.each(_.values(sampleSets), function(samples) {
-      SampleDb.sortSamplesByTime(samples);  // Sometimes Henson data is out of order. !!!
+      // Sometimes Henson data is out of order. !!!
+      SampleDb.sortSamplesByTime(samples);
       var total = 0;
       samples.forEach(function(sample, index) {
         var nextSample = samples[index + 1];
         if (nextSample) {
-          if (!sample.end)
-            sample.end = nextSample.beg;
+          sample.end = nextSample.beg;
           total += sample.end - sample.beg;
         } else {
           // Store average duration in last sample, so it has something.
-          if (!sample.end && index)
+          if (index)
             sample.end = sample.beg + Math.ceil(total / index);
         }
       });
@@ -157,7 +159,7 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
     var cycleStart = Number.MAX_VALUE, cycleEnd = Number.MIN_VALUE;
     Object.keys(sampleSets).forEach(function(channelName) {
       var samples = sampleSets[channelName];
-      var beg = samples[0].beg, end = samples[samples.length - 1].end;
+      var beg = _.first(samples).beg, end = _.last(samples).end;
       cycleStart = Math.min(cycleStart, beg);
       cycleEnd = Math.max(cycleEnd, end);
       var schemaVal = standardSchema[channelName];
@@ -170,11 +172,14 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
         };
       }
       schemaSamples.push({ beg: beg, end: end, val: schemaVal });
+      util.log('compatibility.insertEventBucket: schema ' + channelName + ': ' +
+               beg + '..' + end);
     });
     sampleSets['_schema'] = schemaSamples;
 
     // Add wake level sample.
     sampleSets['_wake'] = [{ beg: cycleStart, end: cycleEnd, val: 3 }];
+    //console.timeEnd('durations');
 
     // Write samples to dest DB.
     sampleDb.insertSamples(vehicleId, sampleSets, cb);

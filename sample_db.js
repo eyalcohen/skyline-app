@@ -43,7 +43,7 @@ var Step = require('step');
 var SampleDb = exports.SampleDb = function(db, options, cb) {
   var self = this;
   self.db = db;
-  self.sampleCollections = {};
+  self.realCollections = {};
   self.syntheticCollections = {};
 
   Step(
@@ -52,14 +52,14 @@ var SampleDb = exports.SampleDb = function(db, options, cb) {
       var genNext = this.group();
       _.each(bucketThresholds, function(level) {
         var next = genNext();
-        db.collection('slice_' + level, function(err, collection) {
-          self.sampleCollections[level] = collection;
+        db.collection('real_' + level, function(err, collection) {
+          self.realCollections[level] = collection;
           next(err);
         });
       });
       _.each(syntheticDurations, function(duration) {
         var next = genNext();
-        db.collection('synthetic_' + duration, function(err, collection) {
+        db.collection('syn_' + duration, function(err, collection) {
           self.syntheticCollections[duration] = collection;
           next(err);
         });
@@ -71,7 +71,7 @@ var SampleDb = exports.SampleDb = function(db, options, cb) {
         this(err);
       } else {
         var parallel = this.parallel;
-        _.each(_.values(self.sampleCollections), function(collection) {
+        _.each(_.values(self.realCollections), function(collection) {
           collection.ensureIndex(
               {  // Index terms.
                 veh: 1,  // Vehicle id.
@@ -170,6 +170,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
   var self = this;
   var toExec = [];
 
+  //console.time('insertSamples');
   // Collect all _schema samples, mapped by channel name.
   // TODO: this assumes that each channel has no more than one schema in a
   // call to insertSamples.
@@ -196,7 +197,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
       if (topLevel) {
         topLevelReal.push(sample);
       } else {
-        var realKey = levelIndex + '-' + levelIndex.minBucket;
+        var realKey = levelIndex + '-' + levelInfo.minBucket;
         var samples = real[realKey];
         if (!samples)
           samples = real[realKey] = [];
@@ -204,7 +205,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
       }
 
       // Update synthetic samples.
-      if (_.isNumber(sample.val)) {
+      if (_.isNumber(sample.val) && sample.end > sample.beg) {
         forSyntheticSamples(sample.beg, sample.end,
                             function(synBucket, synDuration, overlap) {
           var index = synBucket % syntheticSamplesPerRow;
@@ -232,6 +233,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
 
     // TODO: merge mergeable samples?
 
+    var insertRealPending = 0, insertSynPending = 0;
     // Insert bucketed real samples into DB.
     _.values(real).forEach(function(bucketSamples) {
       var levelInfo = getLevelInfo(bucketSamples[0].beg, bucketSamples[0].end);
@@ -243,9 +245,11 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
         end: deltaEncodeInPlace(_.pluck(bucketSamples, 'end')),
         val: _.pluck(bucketSamples, 'val'),
       };
+      ++insertRealPending;
       toExec.push(function(cb) {
-        self.sampleCollections[levelInfo.level].insert
-            (sample, { safe: true }, cb);
+        self.realCollections[levelInfo.level].insert(
+            sample, { safe: true }, cb);
+        //console.timeEnd('insertReal');
       });
     });
 
@@ -263,9 +267,11 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
         end: topLevelSample.end,
         val: topLevelSample.val,
       };
+      ++insertRealPending;
       toExec.push(function(cb) {
-        self.sampleCollections[levelInfo.level].insert(
+        self.realCollections[levelInfo.level].insert(
             sample, { safe: true }, cb);
+        //console.timeEnd('insertReal');
       });
     });
 
@@ -282,6 +288,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
         chn: channelName,
         buk: synRow,
       };
+      ++insertSynPending;
       toExec.push(function(cb) {
         Step(
           function findAndEnsureExists() {
@@ -327,16 +334,17 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
                                         function(err, o) {
               if (o) {
                 // Update succeeded!
+                //console.timeEnd('insertSyn');
                 cb();
               } else {
                 // If o is null, then the sample was modified by somebody else
                 // before we managed to update, so try again.
                 console.log('Update race in insertSamples.tryUpdateMinMax, retrying.');
-                if (0) debug('db.synthetic_' + synDuration + '.findAndModify({' +
+                if (0) debug('db.syn_' + synDuration + '.findAndModify({' +
                       'query: ' + inspect(original) + 
                       ', update: ' + inspect(modified) +
                       ' }) => (' + err + ', ' + o + ')');
-                if (0) debug('db.synthetic_' + synDuration + '.findOne(' +
+                if (0) debug('db.syn_' + synDuration + '.findOne(' +
                       inspect(query) + ', ...)');
                 synCollection.findOne(query, tryUpdateMinMax);
               }
@@ -346,10 +354,13 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
       });
     });
   });
+  //console.timeEnd('insertSamples');
+  //console.time('insertReal');
+  //console.time('insertSyn');
 
   // Execute all queued up operations 10 at a time, to avoid blocking for an
   // excessive amount of time talking to the DB.
-  execInGroups(4, toExec, cb);
+  execInGroups(10, toExec, cb);
   // chain(toExec, cb);
 }
 
@@ -404,7 +415,8 @@ SampleDb.prototype.fetchRealSamples =
               query.buk.$lt = Math.ceil(endQueryTime / bucketSize);
             }
           }
-          var cursor = self.sampleCollections[level].find(
+          //debug('level: ' + level + ', query: ' + JSON.stringify(query));
+          var cursor = self.realCollections[level].find(
             query, {  // Fields:
               _id: 0,  // No need for _id.
               beg: 1,
@@ -418,6 +430,7 @@ SampleDb.prototype.fetchRealSamples =
             if (err || !rawSample) {
               nextStep(err);
             } else {
+              //debug('level: ' + level + ', rawSample: ' + rawSample.val);
               expandRealSample(rawSample, function(sample) {
                 // Ignore samples which don't overlap our time range.
                 if ((beginTime == null || beginTime < sample.end) &&
@@ -434,6 +447,7 @@ SampleDb.prototype.fetchRealSamples =
 
     function(err) {
       if (err) { cb(err); return; }
+      sortSamplesByTime(samples);  // Could do merge sort...
       cb(err, samples);
     }
   );
@@ -540,9 +554,14 @@ SampleDb.prototype.fetchMergedSamples =
     function(err, realSamples, synSamples) {
       if (err) { cb(err); return; }
 
+      if (!synSamples || synSamples.length == 0) {
+        this(null, realSamples);
+        return;
+      }
+
       // Compute synthetic averages by bucket.
-      var synBegin = Math.floor(options.beginTime / synDuration);
-      var synEnd = Math.ceil(options.endTime / synDuration);
+      var synBegin = Math.floor(_.first(synSamples).beg / synDuration);
+      var synEnd = Math.ceil(_.last(synSamples).end / synDuration);
       var synAverages = new Array(synEnd - synBegin);
       var synMin = getMinMax && new Array(synEnd - synBegin);
       var synMax = getMinMax && new Array(synEnd - synBegin);
@@ -556,7 +575,6 @@ SampleDb.prototype.fetchMergedSamples =
       });
 
       // For each gap in real data, add synthetic data if available.
-      sortSamplesByTime(realSamples);  // Make gap finding work.
       var gapSamples = [];
       // Use beginning and end of synthetic range, so that we don't chop up
       // synthetic samples at beginning & end.
@@ -588,11 +606,71 @@ SampleDb.prototype.fetchMergedSamples =
         }
       });
       Array.prototype.push.apply(realSamples, gapSamples);
+      sortSamplesByTime(realSamples);  // Could do merge sort...
       this(null, realSamples);
     },
 
     cb
   );
+}
+
+
+SampleDb.prototype.fetchSamples =
+    function(vehicleId, channelName, options, cb) {
+  var self = this;
+  _.defaults(options, {
+    type: 'merged',  // or 'real' or synthetic
+    beginTime: null, endTime: null,
+    minDuration: 0,
+    getMinMax: false,
+    subscribe: null,  // pass polling interval in seconds to subscribe.
+  });
+
+  function fetchInternal(cb) {
+    if (options.type == 'synthetic')
+      self.fetchSyntheticSamples(vehicleId, channelName, options, cb);
+    else if (options.type == 'real' || !options.minDuration)
+      self.fetchRealSamples(vehicleId, channelName, options, cb);
+    else
+      self.fetchMergedSamples(vehicleId, channelName, options, cb);
+  };
+
+  if (options.subscribe != null) {
+    var realEndTime = options.endTime;
+    var subscriptionToken = {
+      timeoutId: setTimeout(checkForSamples, 0),
+      cancel: false,
+    };
+    function checkForSamples() {
+      subscriptionToken.timeoutId = null;
+      if (subscriptionToken.cancel) return;
+      fetchInternal(function(err, samples) {
+        if (err) { cb(err); return; }
+        if (subscriptionToken.cancel) return;
+        if (samples && samples.length) {
+          cb(err, samples);
+          // Update beginTime to exclude the samples we just got.
+          options.beginTime = _.last(samples).end;
+          if (options.endTime != null && options.beginTime >= options.endTime)
+            // Nothing more to fetch.
+            return;
+        }
+        // Wait for more samples.
+        subscriptionToken.timeoutId = setTimeout(checkForSamples,
+                                                 options.subscribe * 100);
+      });
+    };
+    return subscriptionToken;
+  } else {
+    fetchInternal(cb);
+  }
+}
+
+
+SampleDb.prototype.cancelSubscription = function(subscriptionToken) {
+  subscriptionToken.cancel = true;
+  if (subscriptionToken.timeoutId != null)
+    clearTimeout(subscriptionToken.timeoutId);
 }
 
 
