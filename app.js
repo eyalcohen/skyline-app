@@ -140,8 +140,8 @@ app.configure('development', function () {
 
 
 app.configure('production', function () {
-  app.set('db-uri-mongoose', 'mongodb://10.201.227.195:27017/service-production,mongodb://10.211.174.11:27017,mongodb://10.207.62.61:27017');
-  app.set('db-uri-mongodb', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-production');
+  app.set('db-uri-mongoose', 'mongodb://10.201.227.195:27017/service-samples,mongodb://10.211.174.11:27017,mongodb://10.207.62.61:27017');
+  app.set('db-uri-mongodb', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-samples');
   app.set('db-uri-sessions', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-sessions');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = true;
