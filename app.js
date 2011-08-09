@@ -320,24 +320,6 @@ app.get('/login', function (req, res) {
 });
 
 
-// Get one vehicle data over some time span
-
-var fetchSamples = function(vehicleId, channelName, options, cb) {
-  var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ' +
-      _.uniqueId();
-  console.time(id);
-  // TODO: subscribe.
-  sampleDb.fetchMergedSamples(vehicleId, channelName, options,
-                              function(err, samples) {
-    if (0) debug('fetchSamples(' + vehicleId + ', "' + channelName + '", ' +
-          inspect(options) + ', ...) -> ' +
-          (err ? 'Error: inspect(err)' : samples.length + ' samples'));
-    console.timeEnd(id);
-    cb(err, samples);
-  });
-}
-
-
 // Login - add user to session
 
 app.post('/sessions', function (req, res) {
@@ -687,13 +669,53 @@ function verifySession(sessionInfo, cb) {
 }
 
 
-var dnodeMethods = {
-  fetchSamples: function(sessionInfo, vehicleId, channelName, options, cb) {
-    if (!verifySession(sessionInfo, cb))
+// Every time a client connects via dnode, this function will be called, and
+// the object it returns will be transferred to the client.
+var createDnodeConnection = function(remote, conn) {
+  var subscriptions = { };
+
+  //// Methods accessible to remote side: ////
+
+  function fetchSamples(sessionInfo, vehicleId, channelName, options, cb) {
+    if (!verifySession(sessionInfo, cb)) {
       cb(new Error('Could not verify session'));
-    else
-      fetchSamples(vehicleId, channelName, options, cb);
-  },
+      return;
+    }
+
+    var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
+    console.time(id);
+    function next(err, samples) {
+      console.timeEnd(id);
+      if (err)
+        console.log('Error in ' + id + ': ' + err.stack);
+      cb(err, samples);
+    };
+    if (options.subscribe != null) {
+      var handle = options.subscribe;
+      options.subscribe = 0.25;  // Polling interval, seconds.
+      cancelSubscribeSamples(handle);
+      subscriptions[handle] =
+          sampleDb.fetchMergedSamples(vehicleId, channelName, options, next);
+    } else {
+      sampleDb.fetchMergedSamples(vehicleId, channelName, options, next);
+    }
+  }
+
+  function cancelSubscribeSamples(handle) {
+    if (handle != null && subscriptions[handle]) {
+      sampleDb.cancelSubscription(subscriptions[handle]);
+      delete subscriptions[handle];
+    }
+  }
+
+  conn.on('end', function() {
+    _.keys(subscriptions).forEach(cancelSubscribeSamples);
+  });
+
+  return {
+    fetchSamples: fetchSamples,
+    cancelSubscribeSamples: cancelSubscribeSamples,
+  };
 };
 
 
@@ -721,7 +743,7 @@ if (!module.parent) {
     function(err) {
       if (err) { this(err); return; }
       app.listen(8080);
-      dnode(dnodeMethods).listen(app);
+      dnode(createDnodeConnection).listen(app);
       util.log("Express server listening on port " + app.address().port);
     }
   );
