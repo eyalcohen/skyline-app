@@ -324,14 +324,18 @@ app.get('/login', function (req, res) {
 // Get one vehicle data over some time span
 
 var fetchSamples = function(vehicleId, channelName, options, cb) {
+  var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ' +
+      _.uniqueId();
+  console.time(id);
   // TODO: subscribe.
   sampleDb.fetchMergedSamples(vehicleId, channelName, options,
                               function(err, samples) {
-    debug('fetchSamples(' + vehicleId + ', "' + channelName + '", ' +
+    if (0) debug('fetchSamples(' + vehicleId + ', "' + channelName + '", ' +
           inspect(options) + ', ...) -> ' +
           (err ? 'Error: inspect(err)' : samples.length + ' samples'));
     if (samples)
       SampleDb.sortSamplesByTime(samples);
+    console.timeEnd(id);
     cb(err, samples);
   });
 }

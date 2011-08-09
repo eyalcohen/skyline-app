@@ -63,18 +63,7 @@ Step(
                                        _.clone(argv), function(err, synSamples) {
           if (err) { next(err); return; }
           try {
-            log('\nChannel ' + channelName + ':');
-            log('  Synthetic samples, duration ' + argv.synDuration + ':');
-            synSamples.forEach(function(s) {
-              log('    ' + toNumber(s.buk) + ': ' +
-                  toNumber(s.sum) + ' / ' +
-                  toNumber(s.ovr) + ' == ' +
-                  (toNumber(s.sum) / toNumber(s.ovr)) +
-                  (_.isUndefined(s.min) ? '' :
-                      ' (' + s.min + '...' + s.max + ')') +
-                  (_.isUndefined(s.stddev) ? '' :
-                      ' (' + s.stddev + ')'));
-            });
+            printSamples(synSamples, 'Synthetic samples');
           } catch (err) { next(err); return; }
           next();
         });

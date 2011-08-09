@@ -161,6 +161,8 @@ function chain(functions, cb) {
 }
 
 
+function def0(val) { return (val == null) ? 0 : val; }
+
 /**
  * Insert a set of samples into the DB.
  */
@@ -205,22 +207,25 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
       if (_.isNumber(sample.val)) {
         forSyntheticSamples(sample.beg, sample.end,
                             function(synBucket, synDuration, overlap) {
-          var synKey = synDuration + '-' + synBucket;
-          var synSample = syn[synKey];
+          var index = synBucket % syntheticSamplesPerRow;
+          var synRow = (synBucket - index) / syntheticSamplesPerRow;
+          var synKey = synDuration + '-' + synRow;
           var val = sample.val;
+          var synSample = syn[synKey];
           if (!synSample) {
             synSample = syn[synKey] = {
-              sum: val * overlap,
-              ovr: overlap,
-              min: val,
-              max: val,
+              sum: new Array(syntheticSamplesPerRow),
+              ovr: new Array(syntheticSamplesPerRow),
+              min: new Array(syntheticSamplesPerRow),
+              max: new Array(syntheticSamplesPerRow),
             };
-          } else {
-            synSample.sum += val * overlap;
-            synSample.ovr += overlap;
-            if (val < synSample.min) synSample.min = val;
-            if (val > synSample.max) synSample.max = val;
           }
+          synSample.sum[index] = def0(synSample.sum[index]) + val * overlap;
+          synSample.ovr[index] = def0(synSample.ovr[index]) + overlap;
+          if (synSample.min[index] == null || val < synSample.min[index])
+            synSample.min[index] = val;
+          if (synSample.max[index] == null || val > synSample.max[index])
+            synSample.max[index] = val;
         });
       }
     });
@@ -268,58 +273,58 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
     Object.keys(syn).forEach(function(key) {
       var synSample = syn[key];
       var s = key.split('-');
-      var synDuration = Number(s[0]), synBucket = Number(s[1]);
+      var synDuration = Number(s[0]), synRow = Number(s[1]);
 
-      // Tricky cleverness to atomically and safely update min and max.
+      // Ensure synthetic row exists before attempting to modify it.
       var synCollection = self.syntheticCollections[synDuration];
       var query = {
         veh: vehicleId,
         chn: channelName,
-        buk: synBucket,
+        buk: synRow,
       };
       toExec.push(function(cb) {
         Step(
-          function updateAverage() {
+          function findAndEnsureExists() {
             synCollection.findAndModify(
                 query,
                 [], // Sort.
                 { // Update:
-                  $inc: {
-                    sum: synSample.sum,
-                    ovr: synSample.ovr,
+                  $pushAll: {
+                    sum: [],
+                    ovr: [],
+                    min: [],
+                    max: [],
                   },
-                  // Unfortunately, mongodb has no $min or $max operators.
                 }, { // Options:
                   upsert: true, // Insert if not found.
                   new: true, // Return modified object.
                 },
                 this);
-          }, function tryUpdateMinMax(err, original) {
+          }, function tryUpdate(err, original) {
             if (!original) {
               debug('IMPOSSIBLE: insertSamples.tryUpdateMinMax got null!');
-              debug('db.synthetic_' + synDuration + '.findAndModify({' +
-                    'query: ' + inspect(query) + 
-                    ', update: ' + inspect( { // Update:
-                        $inc: {
-                          sum: synSample.sum,
-                          ovr: synSample.ovr,
-                        },
-                        // Unfortunately, mongodb has no $min or $max operators.
-                      }) +
-                    ', upsert: true, new: true })');
               process.exit(1);
               return;
             }
-            if (original.min == null)
-              original.min = null;
-            if (original.max == null)
-              original.max = null;
             var modified = _.clone(original);
-            if (modified.min == null || synSample.min < modified.min)
-              modified.min = synSample.min;
-            if (modified.max == null || synSample.max > modified.max)
-              modified.max = synSample.max;
-            synCollection.findAndModify(original, [], modified, function(err, o){
+            modified.sum = _.clone(original.sum);
+            modified.ovr = _.clone(original.ovr);
+            modified.min = _.clone(original.min);
+            modified.max = _.clone(original.max);
+            for (var i = 0; i < syntheticSamplesPerRow; ++i) {
+              if (synSample.sum[i] != null) {
+                modified.sum[i] = def0(modified.sum[i]) + synSample.sum[i];
+                modified.ovr[i] = def0(modified.ovr[i]) + synSample.ovr[i];
+                if (modified.min[i] == null ||
+                    synSample.min[i] < modified.min[i])
+                  modified.min[i] = synSample.min[i];
+                if (modified.max[i] == null ||
+                    synSample.max[i] > modified.max[i])
+                  modified.max[i] = synSample.max[i];
+              }
+            }
+            synCollection.findAndModify(original, [], modified,
+                                        function(err, o) {
               if (o) {
                 // Update succeeded!
                 cb();
@@ -349,7 +354,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
 }
 
 
-function expandSample(sample, f) {
+function expandRealSample(sample, f) {
   if (_.isArray(sample.val)) {
     var beg = 0, end = 0; // Delta decoding ad-hoc for speed.
     for (var i = 0, len = sample.val.length; i < len; ++i) {
@@ -413,7 +418,7 @@ SampleDb.prototype.fetchRealSamples =
             if (err || !rawSample) {
               nextStep(err);
             } else {
-              expandSample(rawSample, function(sample) {
+              expandRealSample(rawSample, function(sample) {
                 // Ignore samples which don't overlap our time range.
                 if ((beginTime == null || beginTime < sample.end) &&
                     (endTime == null || sample.beg < endTime)) {
@@ -449,16 +454,14 @@ SampleDb.prototype.fetchSyntheticSamples =
   // Get overlapping synthetic samples with appropriate duration.
   var samples = [];
   var query = { veh: vehicleId, chn: channelName };
-  if (beginTime != null) {
-    query.buk = { $gte: Math.floor(beginTime / synDuration),
-                  $lt: Math.ceil(endTime / synDuration) };
-  }
   if (beginTime != null || endTime != null) {
     query.buk = { };
     if (beginTime != null)
-      query.buk.$gte = Math.floor(beginTime / synDuration);
+      query.buk.$gte =
+          Math.floor(beginTime / synDuration / syntheticSamplesPerRow);
     if (endTime != null)
-      query.buk.$lt = Math.ceil(endTime / synDuration);
+      query.buk.$lt =
+          Math.ceil(endTime / synDuration / syntheticSamplesPerRow);
   }
   var fields = {
     _id: 0,  // No need for _id.
@@ -472,11 +475,27 @@ SampleDb.prototype.fetchSyntheticSamples =
   }
   var cursor = self.syntheticCollections[synDuration].find(query, fields);
   cursor.nextObject(processNext);
-  function processNext(err, sample) {
-    if (err || !sample) {
+  function processNext(err, synSample) {
+    if (err || !synSample) {
       cb(err, samples);
     } else {
-      samples.push(sample);
+      var synBegin = synSample.buk * synDuration * syntheticSamplesPerRow;
+      for (var i = 0; i < syntheticSamplesPerRow; ++i) {
+        var sum = synSample.sum[i], ovr = synSample.ovr[i];
+        if (sum != null && ovr != null) {
+          var beg = synBegin + i * synDuration, end = beg + synDuration;
+          // Ignore samples which don't overlap our time range.
+          if ((beginTime == null || beginTime < end) &&
+              (endTime == null || beg < endTime)) {
+            var sample = { beg: beg, end: end, val: sum / ovr };
+            if (options.getMinMax) {
+              sample.min = synSample.min[i];
+              sample.max = synSample.max[i];
+            }
+            samples.push(sample);
+          }
+        }
+      }
       cursor.nextObject(processNext);
     }
   }
@@ -528,9 +547,8 @@ SampleDb.prototype.fetchMergedSamples =
       var synMin = getMinMax && new Array(synEnd - synBegin);
       var synMax = getMinMax && new Array(synEnd - synBegin);
       synSamples.forEach(function(s) {
-        var i = s.buk - synBegin;
-        if (s.ovr)
-          synAverages[i] = s.sum / s.ovr;
+        var i = s.beg / synDuration - synBegin;
+        synAverages[i] = s.val;
         if (getMinMax) {
           synMin[i] = s.min;
           synMax[i] = s.max;
@@ -615,6 +633,9 @@ var syntheticDurations = SampleDb.syntheticDurations = [
   1 * h,
   1 * d,
 ];
+
+// Number of synthetic buckets per db row.
+var syntheticSamplesPerRow = SampleDb.syntheticSamplesPerRow = 50;
 
 // The size of the buckets in each bucket level.
 var bucketSizes = SampleDb.bucketSizes = bucketThresholds.map(function(t, i) {
