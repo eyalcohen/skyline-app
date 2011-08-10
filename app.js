@@ -506,13 +506,13 @@ app.put('/samples', function (req, res) {
     function() {
       var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
           (new Date()).valueOf() + '.js';
-      fs.mkdir(__dirname + '/uploads', '0755', function (err) {
-        fs.writeFile(__dirname + '/uploads/' + fileName,
+      fs.mkdir(__dirname + '/samples', '0755', function (err) {
+        fs.writeFile(__dirname + '/samples/' + fileName,
                      JSON.stringify(uploadSamples), function (err) {
           if (err)
             util.log(err);
           else
-            util.log('Saved to: ' + __dirname + '/uploads/' + fileName);
+            util.log('Saved to: ' + __dirname + '/samples/' + fileName);
         });
       });
       this();
@@ -524,27 +524,30 @@ app.put('/samples', function (req, res) {
       var sampleSet = {};
       var begin = 0, duration = 0;
       var firstError;
-      uploadSamples.sample.forEach(function(upSample) {
-        begin += upSample.beginDelta;  // Delta decode.
-        duration += upSample.durationDelta;  // Delta decode.
-        var val = upSample.valueFloat;
-        if (val == null) val = upSample.valueInt;
-        if (val == null) val = upSample.valueString;
-        if (val == null) val = _.toArray(upSample.valueBytes);  // raw -> Buffer
-        if (val == null) {
-          firstError = firstError || ('SAMPLE_NO_VALUE');
-          return;
-        }
-        var sample = { beg: begin, end: begin + duration, val: val };
-        var schema = uploadSamples.schema[upSample.schemaIndex];
-        if (!schema) {
-          firstError = firstError || ('SAMPLE_NO_SCHEMA_FOUND');
-          return;
-        }
-        if (!sampleSet[schema.channelName])
-          sampleSet[schema.channelName] = [sample];
-        else
-          sampleSet[schema.channelName].push(sample);
+      uploadSamples.sampleStream.forEach(function(sampleStream) {
+        sampleStream.sample.forEach(function(upSample) {
+          begin += upSample.beginDelta;  // Delta decode.
+          duration += upSample.durationDelta;  // Delta decode.
+          var val = upSample.valueFloat;
+          if (val == null) val = upSample.valueInt;
+          if (val == null) val = upSample.valueString;
+          if (val == null) val = upSample.valueBool;
+          if (val == null) val = _.toArray(upSample.valueBytes);  // raw->Buffer
+          if (val == null) {
+            firstError = firstError || ('SAMPLE_NO_VALUE');
+            return;
+          }
+          var sample = { beg: begin, end: begin + duration, val: val };
+          var schema = uploadSamples.schema[upSample.schemaIndex];
+          if (!schema) {
+            firstError = firstError || ('SAMPLE_NO_SCHEMA_FOUND');
+            return;
+          }
+          if (!sampleSet[schema.channelName])
+            sampleSet[schema.channelName] = [sample];
+          else
+            sampleSet[schema.channelName].push(sample);
+        });
       });
 
       // Add schema samples.
@@ -714,9 +717,9 @@ var createDnodeConnection = function(remote, conn) {
       options.subscribe = 0.25;  // Polling interval, seconds.
       cancelSubscribeSamples(handle);
       subscriptions[handle] =
-          sampleDb.fetchMergedSamples(vehicleId, channelName, options, next);
+          sampleDb.fetchSamples(vehicleId, channelName, options, next);
     } else {
-      sampleDb.fetchMergedSamples(vehicleId, channelName, options, next);
+      sampleDb.fetchSamples(vehicleId, channelName, options, next);
     }
   }
 
