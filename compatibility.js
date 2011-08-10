@@ -8,6 +8,13 @@ var Step = require('step');
 var SampleDb = require('./sample_db.js').SampleDb;
 
 var standardSchema = exports.standardSchema = {
+  '_wake': {
+    channelName: '_wake',
+    humanName: 'Vehicle Drive Level',
+    units: '3: driving',
+    type: 'int',
+    merge: true,
+  },
   'gps.speed_m_s': {
     channelName: 'gps.speed_m_s',
     humanName: 'GPS Speed',
@@ -30,6 +37,18 @@ var standardSchema = exports.standardSchema = {
     channelName: 'gps.altitude_m',
     humanName: 'GPS Altitude',
     units: 'm',
+    type: 'float',
+  },
+  'cellPos.latitude_deg': {
+    channelName: 'cellPos.latitude_deg',
+    humanName: 'Cell Tower Latitude',
+    units: '°',
+    type: 'float',
+  },
+  'cellPos.longitude_deg': {
+    channelName: 'cellPos.longitude_deg',
+    humanName: 'Cell Tower Longitude',
+    units: '°',
     type: 'float',
   },
   'accel.x_m_s2': {
@@ -79,15 +98,18 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
           eventBucket.events.length + ' events + vehicle id ' +
           vehicleId + '...');
 
-    // If not marked valid, ignore.
-    if (!eventBucket.valid) {
-      util.log('Invalid drive cycle, ignoring...');
-      cb(null);
-      return;
-    }
-
     // Sort into different sample types.
     var sampleSets = {};
+    var gotWake = false;
+    if (eventBucket.bounds != null &&
+        eventBucket.bounds.start != null && eventBucket.bounds.stop != null) {
+      sampleSets['_wake'] = [{
+        beg: eventBucket.bounds.start * 1000,
+        end: eventBucket.bounds.stop * 1000,
+        val: 3
+      }];
+      gotWake = true;
+    }
     _.each(eventBucket.events, function(event) {
       function addSample(name, value) {
         if (_.isUndefined(value))
@@ -102,15 +124,20 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
           val: value,
         });
       }
+      function addLocationSample(prefix) {
+        addSample(prefix + '.speed_m_s', event.location.speed);
+        addSample(prefix + '.latitude_deg', event.location.latitude);
+        addSample(prefix + '.longitude_deg', event.location.longitude);
+        addSample(prefix + '.altitude_m', event.location.altitude);
+        addSample(prefix + '.accuracy_m', event.location.accuracy);
+        addSample(prefix + '.bearing_deg', event.location.bearing);
+      }
 
-      if (event.header.type == 'LOCATION' &&
-          event.header.source == 'SENSOR_GPS') {
-        addSample('gps.speed_m_s', event.location.speed);
-        addSample('gps.latitude_deg', event.location.latitude);
-        addSample('gps.longitude_deg', event.location.longitude);
-        addSample('gps.altitude_m', event.location.altitude);
-        addSample('gps.accuracy_m', event.location.accuracy);
-        addSample('gps.bearing_deg', event.location.bearing);
+      if (event.header.type == 'LOCATION') {
+        if (event.header.source == 'SENSOR_GPS')
+          addLocationSample('gps');
+        if (event.header.source == 'SENSOR_CELLPOS')
+          addLocationSample('cellPos');
       } else if (event.header.type == 'SENSOR_DATA' &&
                  event.header.source == 'SENSOR_ACCEL') {
         addSample('accel.x_m_s2', event.sensor[0]);
@@ -130,6 +157,8 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
           val = event.can.payloadI;
         if (!_.isUndefined(val))
           addSample('can.' + event.can.id.toString(16), val);
+      } else if (event.header.type == 'DRIVE_SESSION' && !gotWake) {
+        addSample('_wake', 3);
       }
     });
     //console.timeEnd('makeSamples');
@@ -137,9 +166,13 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
     //console.time('durations');
     // HACK: Drive Cycle app seems to always send stopTime == startTime or
     // other bogus stopTimes, so synthesize reasonable durations.
-    _.each(_.values(sampleSets), function(samples) {
+    var latestEnd = Number.MIN_VALUE;
+    _.each(_.keys(sampleSets), function(channelName) {
+      var samples = sampleSets[channelName];
       // Sometimes Henson data is out of order. !!!
       SampleDb.sortSamplesByTime(samples);
+      if (channelName == '_wake')
+        return;
       var total = 0;
       samples.forEach(function(sample, index) {
         var nextSample = samples[index + 1];
@@ -150,18 +183,27 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
           // Store average duration in last sample, so it has something.
           if (index)
             sample.end = sample.beg + Math.ceil(total / index);
+          else
+            sample.end = sample.beg + 1000;
         }
+        latestEnd = Math.max(latestEnd, sample.end);
       });
+    });
+
+    // HACK: some DRIVE_SESSION events are lacking a stopTime.
+    // If so, synthesize a stopTime.
+    (sampleSets['_wake'] || []).forEach(function(sample) {
+      if (sample.end == null || _.isNaN(sample.end)) {
+        sample.end = latestEnd;
+        console.log('DRIVE_SESSION missing stopTime - using last time, drive cycle is ' + (Math.round((sample.end - sample.beg) / 1000000 / 60 / 60 * 100) / 100) + ' hours');
+      }
     });
 
     // Add _schema samples.
     var schemaSamples = [];
-    var cycleStart = Number.MAX_VALUE, cycleEnd = Number.MIN_VALUE;
     Object.keys(sampleSets).forEach(function(channelName) {
       var samples = sampleSets[channelName];
       var beg = _.first(samples).beg, end = _.last(samples).end;
-      cycleStart = Math.min(cycleStart, beg);
-      cycleEnd = Math.max(cycleEnd, end);
       var schemaVal = standardSchema[channelName];
       if (!schemaVal) {
         util.log('No schema available for channel ' + channelName +
@@ -176,9 +218,6 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
                beg + '..' + end);
     });
     sampleSets['_schema'] = schemaSamples;
-
-    // Add wake level sample.
-    sampleSets['_wake'] = [{ beg: cycleStart, end: cycleEnd, val: 3 }];
     //console.timeEnd('durations');
 
     // Write samples to dest DB.

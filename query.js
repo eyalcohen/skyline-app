@@ -8,7 +8,7 @@ var Step = require('step');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
 
-var SampleDb = require('./sample_db.js').SampleDb, toNumber = SampleDb.toNumber;
+var SampleDb = require('./sample_db.js').SampleDb;
 
 var optimist = require('optimist');
 var argv = optimist
@@ -65,18 +65,16 @@ Step(
           log('  ' + desc + ':');
         }
         samps.forEach(function(s, i) {
-          var beg = toNumber(s.beg);
-          var end = toNumber(s.end);
-          log('    ' + beg + ' .. ' + end + ' (' + (end - beg) + '): ' +
+          log('    ' + s.beg + ' .. ' + s.end + ' (' + (s.end - s.beg) + '): ' +
               util.inspect(s.val) +
               (_.isUndefined(s.min) ? '' : ' (' + s.min + '...' + s.max + ')') +
               (_.isUndefined(s.stddev) ? '' : ' (' + s.stddev + ')'));
           var nextSample = samps[i+1];
-          var nextBeg = nextSample && toNumber(nextSample.beg);
-          if (nextBeg && nextBeg < end)
-            log('    !!! overlap (' + (end - nextBeg) + ') !!!');
-          if (nextBeg && nextBeg > end)
-            log('    !!! gap (' + (nextBeg - end) + ') !!!');
+          var nextBeg = nextSample && nextSample.beg;
+          if (nextBeg && nextBeg < s.end)
+            log('    !!! overlap (' + (s.end - nextBeg) + ') !!!');
+          if (nextBeg && nextBeg > s.end)
+            log('    !!! gap (' + (nextBeg - s.end) + ') !!!');
         });
       }
 

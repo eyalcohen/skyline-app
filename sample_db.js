@@ -365,16 +365,54 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
 }
 
 
+/**
+ * Delete a sample from the database.
+ * This should only be done to redundant samples (ones which are subsumed by
+ * a sample with an identical value).
+ */
+SampleDb.prototype.deleteRedundantRealSample =
+    function(vehicleId, channelName, sample, cb) {
+  var levelInfo = getLevelInfo(sample.beg, sample.end);
+  var query = {
+    veh: vehicleId,
+    chn: channelName,
+    buk: levelInfo.minBucket,
+  };
+  var collection = this.realCollections[levelInfo.level];
+  cursorIterate(collection.find(query), function(rawSample) {
+    expandRealSample(rawSample, function(s, i) {
+      if (s.beg == sample.beg && s.end == sample.end && s.val == sample.val) {
+        // Found it!  Delete!
+        if (i == null || rawSample.val.length == 1) {
+          // This sample is the only one in this row - delete row.
+          collection.remove({ _id: rawSample._id });
+        } else {
+          // Null out value.
+          var unset = { };
+          unset['val.' + i] = 1;
+          collection.update({ _id: rawSample._id }, { $unset: unset });
+          // TODO: we could use findAndModify to re-write the sample without
+          // this value, but it's not clear that this would be worthwhile.
+        }
+      }
+    });
+  }, cb);
+}
+
+
 function expandRealSample(sample, f) {
   if (_.isArray(sample.val)) {
     var beg = 0, end = 0; // Delta decoding ad-hoc for speed.
     for (var i = 0, len = sample.val.length; i < len; ++i) {
       beg += sample.beg[i];
       end += sample.end[i];
-      f({ beg: beg, end: end, val: sample.val[i] });
+      var val = sample.val[i];
+      if (val != null)
+        f({ beg: beg, end: end, val: val }, i);
     }
   } else {
-    f(sample);
+    if (sample.val != null)
+      f(sample);
   }
 }
 
@@ -416,31 +454,21 @@ SampleDb.prototype.fetchRealSamples =
             }
           }
           //debug('level: ' + level + ', query: ' + JSON.stringify(query));
-          var cursor = self.realCollections[level].find(
-            query, {  // Fields:
-              _id: 0,  // No need for _id.
-              beg: 1,
-              end: 1,
-              val: 1,
-            }
-          );
-          var nextStep = parallel();
-          cursor.nextObject(processNext);
-          function processNext(err, rawSample) {
-            if (err || !rawSample) {
-              nextStep(err);
-            } else {
-              //debug('level: ' + level + ', rawSample: ' + rawSample.val);
-              expandRealSample(rawSample, function(sample) {
-                // Ignore samples which don't overlap our time range.
-                if ((beginTime == null || beginTime < sample.end) &&
-                    (endTime == null || sample.beg < endTime)) {
-                  samples.push(sample);
-                }
-              });
-              cursor.nextObject(processNext);
-            }
-          }
+          var fields = {
+            _id: 0,  // No need for _id.
+            beg: 1, end: 1, val: 1,
+          };
+          cursorIterate(self.realCollections[level].find(query, fields),
+                        function(rawSample) {
+            //debug('level: ' + level + ', rawSample: ' + rawSample.val);
+            expandRealSample(rawSample, function(sample) {
+              // Ignore samples which don't overlap our time range.
+              if ((beginTime == null || beginTime < sample.end) &&
+                  (endTime == null || sample.beg < endTime)) {
+                samples.push(sample);
+              }
+            });
+          }, parallel());
         }
       });
     },
@@ -456,7 +484,6 @@ SampleDb.prototype.fetchRealSamples =
 
 SampleDb.prototype.fetchSyntheticSamples =
     function(vehicleId, channelName, options, cb) {
-  var self = this;
   _.defaults(options, {
     beginTime: null, endTime: null,
     synDuration: 0,
@@ -487,32 +514,26 @@ SampleDb.prototype.fetchSyntheticSamples =
     fields.min = 1;
     fields.max = 1;
   }
-  var cursor = self.syntheticCollections[synDuration].find(query, fields);
-  cursor.nextObject(processNext);
-  function processNext(err, synSample) {
-    if (err || !synSample) {
-      cb(err, samples);
-    } else {
-      var synBegin = synSample.buk * synDuration * syntheticSamplesPerRow;
-      for (var i = 0; i < syntheticSamplesPerRow; ++i) {
-        var sum = synSample.sum[i], ovr = synSample.ovr[i];
-        if (sum != null && ovr != null) {
-          var beg = synBegin + i * synDuration, end = beg + synDuration;
-          // Ignore samples which don't overlap our time range.
-          if ((beginTime == null || beginTime < end) &&
-              (endTime == null || beg < endTime)) {
-            var sample = { beg: beg, end: end, val: sum / ovr };
-            if (options.getMinMax) {
-              sample.min = synSample.min[i];
-              sample.max = synSample.max[i];
-            }
-            samples.push(sample);
+  cursorIterate(this.syntheticCollections[synDuration].find(query, fields),
+                function(synSample) {
+    var synBegin = synSample.buk * synDuration * syntheticSamplesPerRow;
+    for (var i = 0; i < syntheticSamplesPerRow; ++i) {
+      var sum = synSample.sum[i], ovr = synSample.ovr[i];
+      if (sum != null && ovr != null) {
+        var beg = synBegin + i * synDuration, end = beg + synDuration;
+        // Ignore samples which don't overlap our time range.
+        if ((beginTime == null || beginTime < end) &&
+            (endTime == null || beg < endTime)) {
+          var sample = { beg: beg, end: end, val: sum / ovr };
+          if (options.getMinMax) {
+            sample.min = synSample.min[i];
+            sample.max = synSample.max[i];
           }
+          samples.push(sample);
         }
       }
-      cursor.nextObject(processNext);
     }
-  }
+  }, cb);
 }
 
 
@@ -934,3 +955,16 @@ var resample = SampleDb.resample =
   // Return, without any empty entries.
   return _.reject(result, _.isUndefined);
 };
+
+
+var cursorIterate = function(cursor, rowCb, doneCb) {
+  cursor.nextObject(processNext);
+  function processNext(err, row) {
+    if (err || !row) {
+      doneCb(err);
+    } else {
+      rowCb(row);
+      cursor.nextObject(processNext);
+    }
+  }
+}

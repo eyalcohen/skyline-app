@@ -39,7 +39,6 @@ var db, User, Vehicle, LoginToken;
  */
 
 function loadUser(req, res, next) {
-  debugger;
   if (req.session.user_id) {
     User.findById(req.session.user_id, function (err, usr) {
       if (usr) {
@@ -448,18 +447,34 @@ app.get('/summary/:email/:vintid', function (req, res) {
 });
 
 
+function requestMimeType(req) {
+  return (req.headers['content-type'] || '').split(';')[0];
+}
+
+
 // Handle sample upload request
 
 app.put('/samples', function (req, res) {
 
-  // check that body was encoded properly
-  if (!(req.body instanceof Buffer)) {
-    res.send({ status: 'fail', data: { code: 'BAD_PROTOBUF_FORMAT' } });
-    return;
+  function fail(code) {
+    util.log('PUT /samples failed: ' + code);
+    res.send({ status: 'fail', data: { code: code } });
   }
 
-  // parse to JSON
-  var uploadSamples = WebUploadSamples.parse(new Buffer(req.rawBody, 'binary'));
+  // Parse to JSON.
+  var uploadSamples, mimeType = requestMimeType(req);
+  if (mimeType == 'application/octet-stream') {
+    if (!(req.body instanceof Buffer)) {
+      fail('BAD_PROTOBUF_FORMAT');
+      return;
+    }
+    uploadSamples = WebUploadSamples.parse(new Buffer(req.rawBody, 'binary'));
+  } else if (mimeType == 'application/json') {
+    uploadSamples = req.body;
+  } else {
+    fail('BAD_ENCODING:' + mimeType);
+    return;
+  }
 
   var usr, veh, fname;
   Step(
@@ -469,9 +484,9 @@ app.put('/samples', function (req, res) {
     }, function(err, usr_) {
       usr = usr_;
       if (!usr)
-        res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
+        fail('USER_NOT_FOUND');
       else if (!usr.authenticate(cycle.password))
-        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
+        fail('INCORRECT_PASSWORD');
       else
         this();
     },
@@ -482,7 +497,7 @@ app.put('/samples', function (req, res) {
     }, function(veh_) {
       veh = veh_;
       if (!veh)
-        res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
+        fail('VEHICLE_NOT_FOUND');
       else
         this();
     },
@@ -533,26 +548,24 @@ app.put('/samples', function (req, res) {
       });
 
       // Add schema samples.
-      uploadSamples.schema.forEach(function(upSchema) {
+      var schemaSamples = [];
+      uploadSamples.schema.forEach(function(schema) {
         var samples = sampleSet[upSchema.channelName];
         // Ignore unused schemas.
         if (!samples)
           return;
-        var schemaSample = {
-          beg: _.min(samples, function(sample) { return sample.beg; }).beg,
-          end: _.max(samples, function(sample) { return sample.end; }).end,
-          type: upSchema.type.toLowerCase(),
-        };
-        [ 'channelName', 'humanName', 'description', 'units', 'enumVals',
-          'merge' ].forEach( function(p) {
-          if (upSchema[p])
-            schemaSample[p] = upSchema[p];
-        });
+        schema.beg =
+            _.min(samples, function(sample) { return sample.beg; }).beg;
+        schema.end =
+            _.max(samples, function(sample) { return sample.end; }).end;
+        schema.type = schema.type.toLowerCase();
+        schemaSamples.push(schema);
       });
+      sampleSet._schema = schemaSamples;
 
       // Check for errors.
       if (firstError) {
-        res.send({ status: 'fail', data: { code: firstError } });
+        fail(firstError);
         return;
       }
 
@@ -563,8 +576,8 @@ app.put('/samples', function (req, res) {
     // Any exceptions above end up here.
     function(err) {
       if (err) {
-        debug('Error while processing PUT /samples request: ' + err.stack);
-        res.send({ status: 'fail', data: { code: 'INTERNAL_ERROR' } });
+        util.log('Error while processing PUT /samples request: ' + err.stack);
+        fail('INTERNAL_ERROR');
       } else {
         // Success!
         res.end();
@@ -583,17 +596,22 @@ app.put('/cycle', function (req, res) {
     res.send({ status: 'fail', data: { code: code } });
   }
 
-  // check that body was encoded properly
-  if (!(req.body instanceof Buffer)) {
-    fail('BAD_PROTOBUF_FORMAT');
+  // Parse to JSON.
+  var cycle, mimeType = requestMimeType(req);
+  if (mimeType == 'application/octet-stream') {
+    if (!(req.body instanceof Buffer)) {
+      fail('BAD_PROTOBUF_FORMAT');
+      return;
+    }
+    cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'));
+  } else if (mimeType == 'application/json') {
+    cycle = req.body;
+  } else {
+    fail('BAD_ENCODING:' + mimeType);
     return;
   }
 
-  // parse to JSON
-  var cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'))
-    , num = cycle.events.length
-    , cnt = 0
-  ;
+  var num = cycle.events.length, cnt = 0;
 
   // get the cycle's user
   User.findOne({ email: cycle.userId }, function (err, usr) {
@@ -616,9 +634,12 @@ app.put('/cycle', function (req, res) {
       }
 
       // save the cycle locally for now
-      var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' + (new Date()).valueOf() + '.js';
+      var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
+          (new Date()).valueOf() + '.js';
+      var cycleJson = JSON.stringify(cycle);
       fs.mkdir(__dirname + '/cycles', '0755', function (err) {
-        fs.writeFile(__dirname + '/cycles/' + fileName, JSON.stringify(cycle), function (err) {
+        fs.writeFile(__dirname + '/cycles/' + fileName, cycleJson,
+                     function (err) {
             if (err) {
               util.log(err);
             } else {
