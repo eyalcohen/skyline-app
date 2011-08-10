@@ -263,7 +263,7 @@ app.get('/', loadUser, function (req, res) {
           var next = parallel();
           sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
             if (cycles && cycles.length > 0)
-              v.lastSeen = _.last(cycles).end;
+              v.lastSeen = _.max(_.pluck(cycles, 'end'));
             next();
           });
         });
