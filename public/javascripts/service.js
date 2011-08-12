@@ -248,6 +248,38 @@ ServiceGUI = (function ($) {
     this.widgets = [];
     // TODO: fetch this from server
     this.schema = {
+      // kevinh - for testing/demo until the client fetches the schema from
+      // the server
+      'mc/controllerTemperature': {
+        title: 'Motor Temperature',
+        label: 'mDegC',
+        unit: 'C',
+      },
+      'mc/motorSpeed': {
+        title: 'Motor Speed',
+        label: 'mRPM',
+        unit: 'RPM',
+      },
+      'pm/packCurrent100ms': {
+        title: 'Pack Current Draw',
+        label: 'pAmp',
+        unit: 'A',
+      },
+      'pm/lvSystemCurrent100ms': {
+        title: 'LV CurrentDraw',
+        label: 'pLVAmp',
+        unit: 'A',
+      },
+      'pm/packVoltage_V': {
+        title: 'Pack Voltage',
+        label: 'pV',
+        unit: 'V',
+      },
+      'pm/packTemperature': {
+        title: 'Pack Temperature',
+        label: 'bDegC',
+        unit: 'C',
+      },
       'gps.speed_m_s': {
         title: 'GPS Speed',
         label: 'spd',
