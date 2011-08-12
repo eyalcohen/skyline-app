@@ -480,12 +480,12 @@ app.put('/samples', function (req, res) {
   Step(
     // get the cycle's user and authenticate
     function getUser() {
-      User.findOne({ email: cycle.userId }, this);
+      User.findOne({ email: uploadSamples.userId }, this);
     }, function(err, usr_) {
       usr = usr_;
       if (!usr)
         fail('USER_NOT_FOUND');
-      else if (!usr.authenticate(cycle.password))
+      else if (!usr.authenticate(uploadSamples.password))
         fail('INCORRECT_PASSWORD');
       else
         this();
@@ -493,7 +493,7 @@ app.put('/samples', function (req, res) {
 
     // get the cycle's vehicle
     function getVehicle() {
-      findVehicleByIntId(cycle.vehicleId, this);
+      findVehicleByIntId(uploadSamples.vehicleId, this);
     }, function(veh_) {
       veh = veh_;
       if (!veh)
@@ -555,16 +555,17 @@ app.put('/samples', function (req, res) {
       // Add schema samples.
       var schemaSamples = [];
       uploadSamples.schema.forEach(function(schema) {
-        var samples = sampleSet[upSchema.channelName];
+        var samples = sampleSet[schema.channelName];
         // Ignore unused schemas.
         if (!samples)
           return;
-        schema.beg =
+	util.log('channel ' + schema.channelName + ' adding ' + JSON.stringify(samples))
+        var beg =
             _.min(samples, function(sample) { return sample.beg; }).beg;
-        schema.end =
+        var end =
             _.max(samples, function(sample) { return sample.end; }).end;
         schema.type = schema.type.toLowerCase();
-        schemaSamples.push(schema);
+        schemaSamples.push({ beg: beg, end: end, val: schema });
       });
       sampleSet._schema = schemaSamples;
 
@@ -574,8 +575,9 @@ app.put('/samples', function (req, res) {
         return;
       }
 
+      util.log('vehicle id ' + veh._id + ' adding to db ' + JSON.stringify(sampleSet))
       // Insert in database.
-      sampleDb.insertSamples(vehicleId, sampleSet, this);
+      sampleDb.insertSamples(veh._id, sampleSet, this);
     },
 
     // Any exceptions above end up here.
