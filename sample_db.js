@@ -176,6 +176,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
   // call to insertSamples.
   var schemaSet = {};
   (sampleSet['_schema'] || []).forEach(function(sample) {
+    util.log('considering ' + JSON.stringify(sample));
     schemaSet[sample.val.channelName] = sample;
   });
 

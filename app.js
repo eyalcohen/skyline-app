@@ -559,7 +559,6 @@ app.put('/samples', function (req, res) {
         // Ignore unused schemas.
         if (!samples)
           return;
-	util.log('channel ' + schema.channelName + ' adding ' + JSON.stringify(samples))
         var beg =
             _.min(samples, function(sample) { return sample.beg; }).beg;
         var end =
@@ -575,7 +574,6 @@ app.put('/samples', function (req, res) {
         return;
       }
 
-      util.log('vehicle id ' + veh._id + ' adding to db ' + JSON.stringify(sampleSet))
       // Insert in database.
       sampleDb.insertSamples(veh._id, sampleSet, this);
     },
