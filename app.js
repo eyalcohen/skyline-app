@@ -695,7 +695,7 @@ function verifySession(sessionInfo, cb) {
 
 // Every time a client connects via dnode, this function will be called, and
 // the object it returns will be transferred to the client.
-var createDnodeConnection = function(remote, conn) {
+var createDnodeConnection = function (remote, conn) {
   var subscriptions = { };
 
   //// Methods accessible to remote side: ////
@@ -716,6 +716,7 @@ var createDnodeConnection = function(remote, conn) {
     };
     if (options.subscribe != null) {
       var handle = options.subscribe;
+      console.log(handle);
       options.subscribe = 0.25;  // Polling interval, seconds.
       cancelSubscribeSamples(handle);
       subscriptions[handle] =
@@ -732,7 +733,7 @@ var createDnodeConnection = function(remote, conn) {
     }
   }
 
-  conn.on('end', function() {
+  conn.on('end', function () {
     _.keys(subscriptions).forEach(cancelSubscribeSamples);
   });
 
