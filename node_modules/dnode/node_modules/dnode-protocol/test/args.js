@@ -1,5 +1,5 @@
 var assert = require('assert');
-var protocol = require('dnode-protocol');
+var protocol = require('../');
 
 function argv () { return arguments }
 

@@ -1,5 +1,5 @@
 var assert = require('assert');
-var proto = require('dnode-protocol');
+var proto = require('../');
 var Traverse = require('traverse');
 var EventEmitter = require('events').EventEmitter;
 

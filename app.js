@@ -30,6 +30,8 @@ var compatibility = require('./compatibility.js');
 
 var db, User, Vehicle, LoginToken;
 
+var pubsub = require('./minpubsub');
+
 
 /////////////// Helpers
 
@@ -172,6 +174,10 @@ app.configure(function () {
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+  app.use(require('browserify')({
+    ignore: ['sys', 'markdown', 'markdown-js', 'discount'],
+    require : ['dnode', 'backbone', './minpubsub']
+  }));
 });
 
 
@@ -768,7 +774,17 @@ if (!module.parent) {
     function(err) {
       if (err) { this(err); return; }
       app.listen(8080);
-      dnode(createDnodeConnection).listen(app);
+
+      // setInterval(function () {
+      //   var n = Math.floor(Math.random() * 100);
+      //   pubsub.publish('data', [n]);
+      // }, 100);
+
+      // dnode(function (client, conn) {
+      //   this.subscribe = pubsub.subscribe;
+      // }).listen(8080).listen(app);
+
+      dnode(createDnodeConnection).listen(8081).listen(app);
       util.log("Express server listening on port " + app.address().port);
     }
   );
