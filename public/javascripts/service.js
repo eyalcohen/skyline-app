@@ -659,6 +659,7 @@ ServiceGUI = (function ($) {
         },
 
         updateData = function (newRange) {
+          console.log('updating...');
           // update plots with new data
           for (var i = 0, len = charts.length; i < len; i++) {
             var sen = charts[i].sensor, ser = getSamples(sen);
