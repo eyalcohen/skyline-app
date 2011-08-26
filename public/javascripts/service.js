@@ -325,6 +325,7 @@ ServiceGUI = (function ($) {
     // tmp:
     this.hacker = setInterval(function () {
       self.reEvaluateData({ range: [lastCycle.beg / 1000, new Date().getTime()] }, function () {
+        // console.log(self.timeseries);
         self.timeseries.updateData([lastCycle.beg / 1000, new Date().getTime()]);
       }, true);
     }, 1000);
@@ -430,7 +431,7 @@ ServiceGUI = (function ($) {
 
   var TimeSeries = function (box, wrap) {
 
-    var defaultSeries = ['mc/motorSpeed', 'pm/packTemperature'],
+    var defaultSeries = ['pm/packCurrent100ms', 'pm/packTemperature'],
         charts = [],
         plotColors = [orange, blue, green, red, yellow, purple],
         blockRedraw = false,
@@ -699,6 +700,8 @@ ServiceGUI = (function ($) {
         };
 
     return {
+      
+      updateData: updateData,
 
       init: function (fn) {
         // plot data
