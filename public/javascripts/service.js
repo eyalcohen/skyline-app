@@ -319,9 +319,15 @@ ServiceGUI = (function ($) {
     var lastCycle = cycles[cycles.length - 1];
     var self = this;
     this.reEvaluateData({ range: [lastCycle.beg / 1000, lastCycle.end / 1000] }, function () {
-      //console.log(self.sampleSet);
       fn.call(self);
     });
+    
+    // tmp:
+    this.hacker = setInterval(function () {
+      self.reEvaluateData({ range: [lastCycle.beg / 1000, new Date().getTime()] }, function () {
+        console.log(lastCycle.beg / 1000, new Date().getTime());
+      }, true);
+    }, 1000);
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
@@ -379,7 +385,7 @@ ServiceGUI = (function ($) {
     }
   };
 
-  Sandbox.prototype.reEvaluateData = function (params, fn) {
+  Sandbox.prototype.reEvaluateData = function (params, fn, force) {
 
     var self = this;
     var beginTime = params.range[0] * 1000, endTime = params.range[1] * 1000;
@@ -387,11 +393,11 @@ ServiceGUI = (function ($) {
     // reload if new bounds exceed what's loaded
     var reload = !self.fetchedRange ||
         beginTime < self.fetchedRange[0] || endTime > self.fetchedRange[1];
-    if (reload) {
+    if (reload || force) {
 
       // show loading for this chart
-      if (this.timeseries)
-        this.timeseries.showLoading();
+      // if (this.timeseries)
+      //   this.timeseries.showLoading();
 
       // HACK: Expand range by 2x to avoid excessive reloading.
       var deltaTime = endTime - beginTime;
