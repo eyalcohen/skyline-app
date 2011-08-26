@@ -325,7 +325,7 @@ ServiceGUI = (function ($) {
     // tmp:
     this.hacker = setInterval(function () {
       self.reEvaluateData({ range: [lastCycle.beg / 1000, new Date().getTime()] }, function () {
-        console.log(lastCycle.beg / 1000, new Date().getTime());
+        self.timeseries.updateData([lastCycle.beg / 1000, new Date().getTime()]);
       }, true);
     }, 1000);
   };
