@@ -323,12 +323,15 @@ ServiceGUI = (function ($) {
     });
     
     // tmp:
-    this.hacker = setInterval(function () {
-      self.reEvaluateData({ range: [lastCycle.beg / 1000, new Date().getTime()] }, function () {
-        // console.log(self.timeseries);
-        self.timeseries.updateData([lastCycle.beg / 1000, new Date().getTime()]);
-      }, true);
-    }, 1000);
+    function checkForMore() {
+      setTimeout(function () {
+        self.reEvaluateData({ range: [lastCycle.beg / 1000, new Date().getTime()] }, function () {
+          self.timeseries.updateData([lastCycle.beg / 1000, new Date().getTime()]);
+          checkForMore();
+        }, true);
+      }, 10000);
+    }
+    checkForMore();
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
