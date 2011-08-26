@@ -394,15 +394,17 @@ ServiceGUI = (function ($) {
     var reload = !self.fetchedRange ||
         beginTime < self.fetchedRange[0] || endTime > self.fetchedRange[1];
     if (reload || force) {
-
+      console.log('reloading...');
       // show loading for this chart
       // if (this.timeseries)
       //   this.timeseries.showLoading();
 
       // HACK: Expand range by 2x to avoid excessive reloading.
-      var deltaTime = endTime - beginTime;
-      beginTime = beginTime - deltaTime / 2;
-      endTime = endTime + deltaTime / 2;
+      if (!force) {
+        var deltaTime = endTime - beginTime;
+        beginTime = beginTime - deltaTime / 2;
+        endTime = endTime + deltaTime / 2;
+      }
 
       // call server
       self.fetchedRange = [beginTime, endTime];
@@ -428,7 +430,7 @@ ServiceGUI = (function ($) {
 
   var TimeSeries = function (box, wrap) {
 
-    var defaultSeries = ['gps.speed_m_s', 'gps.altitude_m'],
+    var defaultSeries = ['mc/motorSpeed', 'pm/packTemperature'],
         charts = [],
         plotColors = [orange, blue, green, red, yellow, purple],
         blockRedraw = false,
