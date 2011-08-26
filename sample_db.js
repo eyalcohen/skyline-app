@@ -965,7 +965,11 @@ var cursorIterate = function(cursor, rowCb, doneCb) {
       doneCb(err);
     } else {
       rowCb(row);
-      cursor.nextObject(processNext);
+      // HACK: without process.nextTick, I get a stack overflow on very large
+      // results.  Why?
+      process.nextTick(function() {
+	cursor.nextObject(processNext);
+      });
     }
   }
 }
