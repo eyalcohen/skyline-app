@@ -331,7 +331,7 @@ ServiceGUI = (function ($) {
         }, true);
       }, 10000);
     }
-    checkForMore();
+    //checkForMore();
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
