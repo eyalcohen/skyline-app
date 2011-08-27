@@ -710,6 +710,7 @@ var createDnodeConnection = function (remote, conn) {
     console.time(id);
     function next(err, samples) {
       console.timeEnd(id);
+      console.log(id + ' got ' + samples.length + ' samples.');
       if (err)
         console.log('Error in ' + id + ': ' + err.stack);
       cb(err, samples);

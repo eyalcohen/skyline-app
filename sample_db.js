@@ -959,17 +959,8 @@ var resample = SampleDb.resample =
 
 
 var cursorIterate = function(cursor, rowCb, doneCb) {
-  cursor.nextObject(processNext);
-  function processNext(err, row) {
-    if (err || !row) {
-      doneCb(err);
-    } else {
-      rowCb(row);
-      // HACK: without process.nextTick, I get a stack overflow on very large
-      // results.  Why?
-      process.nextTick(function() {
-	cursor.nextObject(processNext);
-      });
-    }
-  }
+  var stream = cursor.streamRecords();
+  stream.on('data', rowCb);
+  stream.on('end', function() { doneCb(null); });
+  stream.on('error', doneCb);
 }
