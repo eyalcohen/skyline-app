@@ -524,9 +524,7 @@ app.put('/samples', function (req, res) {
       var sampleSet = {};
       var firstError;
       uploadSamples.sampleStream.forEach(function(sampleStream) {
-        // kevinh - the delta times start again for each sampleStream
         var begin = 0, duration = 0;
-
         sampleStream.sample.forEach(function(upSample) {
           begin += upSample.beginDelta;  // Delta decode.
           duration += upSample.durationDelta;  // Delta decode.

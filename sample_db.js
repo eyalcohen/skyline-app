@@ -166,9 +166,17 @@ function def0(val) { return (val == null) ? 0 : val; }
 /**
  * Insert a set of samples into the DB.
  */
-SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
+SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
   var self = this;
-  var toExec = [];
+  if (_.isFunction(options) && cb == null) {
+    cb = options;
+    options = {};
+  }
+  _.defaults(options, {
+    merge: true,
+  });
+
+  var toExec = [], toExecAfter = [];
 
   //console.time('insertSamples');
   // Collect all _schema samples, mapped by channel name.
@@ -176,193 +184,252 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
   // call to insertSamples.
   var schemaSet = {};
   (sampleSet['_schema'] || []).forEach(function(sample) {
-    util.log('considering ' + JSON.stringify(sample));
-    schemaSet[sample.val.channelName] = sample;
+    if (!sample.val || !sample.val.channelName) {
+      debug('insertSamples got _schema sample with no channelName: ' +
+            JSON.stringify(sample));
+    } else {
+      schemaSet[sample.val.channelName] = sample;
+    }
   });
+
+  // TODO: merging should play well with synthetic samples!
 
   var channelNames = Object.keys(sampleSet);
-  channelNames.forEach(function(channelName) {
-
-    var chanSchema = schemaSet[channelName] || { val: {} };
-    var type = chanSchema.val.type;
-    var merge = chanSchema.val.merge || false;
-
-    // Organize samples by real[levelIndex+'-'+bucket] = [ samples ].
-    // Create synthetic samples in syn[synDuration+'-'+synBucket] = synSample.
-    var real = {}, syn = {}, topLevelReal = [];
-    sampleSet[channelName].forEach(function(sample) {
-      // Push real sample.
-      var levelInfo = getLevelInfo(sample.beg, sample.end);
-      var levelIndex = levelInfo.levelIndex;
-      var topLevel = levelIndex == bucketThresholds.length - 1;
-      if (topLevel) {
-        topLevelReal.push(sample);
-      } else {
-        var realKey = levelIndex + '-' + levelInfo.minBucket;
-        var samples = real[realKey];
-        if (!samples)
-          samples = real[realKey] = [];
-        samples.push(sample);
-      }
-
-      // Update synthetic samples.
-      if (_.isNumber(sample.val) && sample.end > sample.beg) {
-        forSyntheticSamples(sample.beg, sample.end,
-                            function(synBucket, synDuration, overlap) {
-          var index = synBucket % syntheticSamplesPerRow;
-          var synRow = (synBucket - index) / syntheticSamplesPerRow;
-          var synKey = synDuration + '-' + synRow;
-          var val = sample.val;
-          var synSample = syn[synKey];
-          if (!synSample) {
-            synSample = syn[synKey] = {
-              sum: new Array(syntheticSamplesPerRow),
-              ovr: new Array(syntheticSamplesPerRow),
-              min: new Array(syntheticSamplesPerRow),
-              max: new Array(syntheticSamplesPerRow),
-            };
-          }
-          synSample.sum[index] = def0(synSample.sum[index]) + val * overlap;
-          synSample.ovr[index] = def0(synSample.ovr[index]) + overlap;
-          if (synSample.min[index] == null || val < synSample.min[index])
-            synSample.min[index] = val;
-          if (synSample.max[index] == null || val > synSample.max[index])
-            synSample.max[index] = val;
-        });
-      }
-    });
-
-    // TODO: merge mergeable samples?
-
-    var insertRealPending = 0, insertSynPending = 0;
-    // Insert bucketed real samples into DB.
-    _.values(real).forEach(function(bucketSamples) {
-      var levelInfo = getLevelInfo(bucketSamples[0].beg, bucketSamples[0].end);
-      var sample = {
-        veh: vehicleId,
-        chn: channelName,
-        buk: levelInfo.minBucket,
-        beg: deltaEncodeInPlace(_.pluck(bucketSamples, 'beg')),
-        end: deltaEncodeInPlace(_.pluck(bucketSamples, 'end')),
-        val: _.pluck(bucketSamples, 'val'),
-      };
-      ++insertRealPending;
-      toExec.push(function(cb) {
-        self.realCollections[levelInfo.level].insert(
-            sample, { safe: true }, cb);
-        //console.timeEnd('insertReal');
-      });
-    });
-
-    // Insert top level real samples into DB.
-    topLevelReal.forEach(function(topLevelSample) {
-      var levelInfo = getLevelInfo(topLevelSample.beg, topLevelSample.end);
-      var buckets = levelInfo.minBucket == levelInfo.maxBucket ?
-          levelInfo.minBucket :
-          _.range(levelInfo.minBucket, levelInfo.maxBucket + 1);
-      var sample = {
-        veh: vehicleId,
-        chn: channelName,
-        buk: buckets,
-        beg: topLevelSample.beg,
-        end: topLevelSample.end,
-        val: topLevelSample.val,
-      };
-      ++insertRealPending;
-      toExec.push(function(cb) {
-        self.realCollections[levelInfo.level].insert(
-            sample, { safe: true }, cb);
-        //console.timeEnd('insertReal');
-      });
-    });
-
-    // Insert synthetic samples into DB.
-    Object.keys(syn).forEach(function(key) {
-      var synSample = syn[key];
-      var s = key.split('-');
-      var synDuration = Number(s[0]), synRow = Number(s[1]);
-
-      // Ensure synthetic row exists before attempting to modify it.
-      var synCollection = self.syntheticCollections[synDuration];
-      var query = {
-        veh: vehicleId,
-        chn: channelName,
-        buk: synRow,
-      };
-      ++insertSynPending;
-      toExec.push(function(cb) {
-        Step(
-          function findAndEnsureExists() {
-            synCollection.findAndModify(
-                query,
-                [], // Sort.
-                { // Update:
-                  $pushAll: {
-                    sum: [],
-                    ovr: [],
-                    min: [],
-                    max: [],
-                  },
-                }, { // Options:
-                  upsert: true, // Insert if not found.
-                  new: true, // Return modified object.
-                },
-                this);
-          }, function tryUpdate(err, original) {
-            if (!original) {
-              debug('IMPOSSIBLE: insertSamples.tryUpdateMinMax got null!');
-              process.exit(1);
-              return;
-            }
-            var modified = _.clone(original);
-            modified.sum = _.clone(original.sum);
-            modified.ovr = _.clone(original.ovr);
-            modified.min = _.clone(original.min);
-            modified.max = _.clone(original.max);
-            for (var i = 0; i < syntheticSamplesPerRow; ++i) {
-              if (synSample.sum[i] != null) {
-                modified.sum[i] = def0(modified.sum[i]) + synSample.sum[i];
-                modified.ovr[i] = def0(modified.ovr[i]) + synSample.ovr[i];
-                if (modified.min[i] == null ||
-                    synSample.min[i] < modified.min[i])
-                  modified.min[i] = synSample.min[i];
-                if (modified.max[i] == null ||
-                    synSample.max[i] > modified.max[i])
-                  modified.max[i] = synSample.max[i];
-              }
-            }
-            synCollection.findAndModify(original, [], modified,
-                                        function(err, o) {
-              if (o) {
-                // Update succeeded!
-                //console.timeEnd('insertSyn');
-                cb();
-              } else {
-                // If o is null, then the sample was modified by somebody else
-                // before we managed to update, so try again.
-                console.log('Update race in insertSamples.tryUpdateMinMax, retrying.');
-                if (0) debug('db.syn_' + synDuration + '.findAndModify({' +
-                      'query: ' + inspect(original) + 
-                      ', update: ' + inspect(modified) +
-                      ' }) => (' + err + ', ' + o + ')');
-                if (0) debug('db.syn_' + synDuration + '.findOne(' +
-                      inspect(query) + ', ...)');
-                synCollection.findOne(query, tryUpdateMinMax);
-              }
+  Step(
+    function mergeDbQuery() {
+      // If we're merging, we need to query and figure out what to delete
+      // before figuring out inserts.
+      var parallel = this.parallel;
+      if (options.merge) {
+        channelNames.forEach(function(channelName) {
+          var chanSchema = schemaSet[channelName] || { val: {} };
+          if (chanSchema.val.merge || channelName == '_schema') {
+            var next = parallel();
+            self.queryForMerge(vehicleId, channelName, sampleSet[channelName],
+                               function (err, mergedSamples, redundantSamples) {
+              if (err) { next(err); return; }
+              sampleSet[channelName] = mergedSamples;
+              redundantSamples.forEach(function (redundant) {
+                toExecAfter.push(function(cb) {
+                  self.deleteRedundantRealSample(vehicleId, channelName,
+                                                 redundant, cb);
+                });
+              });
+              next();
             });
           }
-        );
-      });
-    });
-  });
-  //console.timeEnd('insertSamples');
-  //console.time('insertReal');
-  //console.time('insertSyn');
+        });
+      }
+      parallel()();  // Go on to next step now if we forked no work.
+    },
 
-  // Execute all queued up operations 10 at a time, to avoid blocking for an
-  // excessive amount of time talking to the DB.
-  execInGroups(10, toExec, cb);
-  // chain(toExec, cb);
+    function finishInserting(err) {
+      if (err)
+        debug('Error during insertSamples.mergeDbQuery: ' + err.stack);
+
+      channelNames.forEach(function(channelName) {
+        var chanSchema = schemaSet[channelName] || { val: {} };
+        var type = chanSchema.val.type;
+        var merge = chanSchema.val.merge || false;
+
+        // Organize samples by real[levelIndex+'-'+bucket] = [ samples ].
+        // Create synthetic in syn[synDuration+'-'+synBucket] = synSample.
+        var real = {}, syn = {}, topLevelReal = [];
+        sampleSet[channelName].forEach(function(sample) {
+          // Push real sample.
+          var levelInfo = getLevelInfo(sample);
+          var levelIndex = levelInfo.levelIndex;
+          var topLevel = levelIndex == bucketThresholds.length - 1;
+          if (topLevel) {
+            topLevelReal.push(sample);
+          } else {
+            var realKey = levelIndex + '-' + levelInfo.minBucket;
+            var samples = real[realKey];
+            if (!samples)
+              samples = real[realKey] = [];
+            samples.push(sample);
+          }
+
+          // Update synthetic samples.
+          if (_.isNumber(sample.val) && sample.end > sample.beg) {
+            forSyntheticSamples(sample.beg, sample.end,
+                                function(synBucket, synDuration, overlap) {
+              var index = synBucket % syntheticSamplesPerRow;
+              var synRow = (synBucket - index) / syntheticSamplesPerRow;
+              var synKey = synDuration + '-' + synRow;
+              var val = sample.val;
+              var synSample = syn[synKey];
+              if (!synSample) {
+                synSample = syn[synKey] = {
+                  sum: new Array(syntheticSamplesPerRow),
+                  ovr: new Array(syntheticSamplesPerRow),
+                  min: new Array(syntheticSamplesPerRow),
+                  max: new Array(syntheticSamplesPerRow),
+                };
+              }
+              synSample.sum[index] = def0(synSample.sum[index]) + val * overlap;
+              synSample.ovr[index] = def0(synSample.ovr[index]) + overlap;
+              if (synSample.min[index] == null || val < synSample.min[index])
+                synSample.min[index] = val;
+              if (synSample.max[index] == null || val > synSample.max[index])
+                synSample.max[index] = val;
+            });
+          }
+        });
+
+        var insertRealPending = 0, insertSynPending = 0;
+        // Insert bucketed real samples into DB.
+        _.values(real).forEach(function(bucketSamples) {
+          var levelInfo = getLevelInfo(bucketSamples[0]);
+          var sample = {
+            veh: vehicleId,
+            chn: channelName,
+            buk: levelInfo.minBucket,
+            beg: deltaEncodeInPlace(_.pluck(bucketSamples, 'beg')),
+            end: deltaEncodeInPlace(_.pluck(bucketSamples, 'end')),
+            val: _.pluck(bucketSamples, 'val'),
+          };
+          ++insertRealPending;
+          toExec.push(function(cb) {
+            self.realCollections[levelInfo.level].insert(
+                sample, { safe: true }, cb);
+            //console.timeEnd('insertReal');
+          });
+        });
+
+        // Insert top level real samples into DB.
+        topLevelReal.forEach(function(topLevelSample) {
+          var levelInfo = getLevelInfo(topLevelSample);
+          var buckets = levelInfo.minBucket == levelInfo.maxBucket ?
+              levelInfo.minBucket :
+              _.range(levelInfo.minBucket, levelInfo.maxBucket + 1);
+          var sample = {
+            veh: vehicleId,
+            chn: channelName,
+            buk: buckets,
+            beg: topLevelSample.beg,
+            end: topLevelSample.end,
+            val: topLevelSample.val,
+          };
+          ++insertRealPending;
+          toExec.push(function(cb) {
+            self.realCollections[levelInfo.level].insert(
+                sample, { safe: true }, cb);
+            //console.timeEnd('insertReal');
+          });
+        });
+
+        // Insert synthetic samples into DB.
+        Object.keys(syn).forEach(function(key) {
+          var synSample = syn[key];
+          var s = key.split('-');
+          var synDuration = Number(s[0]), synRow = Number(s[1]);
+
+          // Ensure synthetic row exists before attempting to modify it.
+          var synCollection = self.syntheticCollections[synDuration];
+          var query = {
+            veh: vehicleId,
+            chn: channelName,
+            buk: synRow,
+          };
+          ++insertSynPending;
+          toExec.push(function(cb) {
+            Step(
+              function findAndEnsureExists() {
+                synCollection.findAndModify(
+                    query,
+                    [], // Sort.
+                    { // Update:
+                      $pushAll: {
+                        sum: [],
+                        ovr: [],
+                        min: [],
+                        max: [],
+                      },
+                    }, { // Options:
+                      upsert: true, // Insert if not found.
+                      new: true, // Return modified object.
+                    },
+                    this);
+              }, function tryUpdate(err, original) {
+                if (!original) {
+                  debug('IMPOSSIBLE: insertSamples.tryUpdateMinMax got null!');
+                  process.exit(1);
+                  return;
+                }
+                var modified = _.clone(original);
+                modified.sum = _.clone(original.sum);
+                modified.ovr = _.clone(original.ovr);
+                modified.min = _.clone(original.min);
+                modified.max = _.clone(original.max);
+                for (var i = 0; i < syntheticSamplesPerRow; ++i) {
+                  if (synSample.sum[i] != null) {
+                    modified.sum[i] = def0(modified.sum[i]) + synSample.sum[i];
+                    modified.ovr[i] = def0(modified.ovr[i]) + synSample.ovr[i];
+                    if (modified.min[i] == null ||
+                        synSample.min[i] < modified.min[i])
+                      modified.min[i] = synSample.min[i];
+                    if (modified.max[i] == null ||
+                        synSample.max[i] > modified.max[i])
+                      modified.max[i] = synSample.max[i];
+                  }
+                }
+                synCollection.findAndModify(original, [], modified,
+                                            function(err, o) {
+                  if (o) {
+                    // Update succeeded!
+                    //console.timeEnd('insertSyn');
+                    cb();
+                  } else {
+                    // If o is null, then the sample was modified by somebody
+                    // else before we managed to update, so try again.
+                    console.log('Update race in insertSamples.' +
+                                'tryUpdateMinMax, retrying.');
+                    synCollection.findOne(query, tryUpdateMinMax);
+                  }
+                });
+              }
+            );
+          });
+        });
+      });
+      //console.timeEnd('insertSamples');
+      //console.time('insertReal');
+      //console.time('insertSyn');
+
+      // Execute all queued up operations 10 at a time, to avoid blocking for an
+      // excessive amount of time talking to the DB.
+      Array.prototype.push.apply(toExec, toExecAfter);
+      execInGroups(10, toExec, cb);
+      // chain(toExec, cb);
+    }
+  );
+}
+
+
+SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
+                                            cb) {
+  var self = this;
+  var redundant;
+  Step(
+    function() {
+      // Get real samples which might overlap with the samples we're adding.
+      self.fetchSamples(vehicleId, channelName,
+                        { type: 'real',
+                          beginTime: _.first(newSamples).beg - 1,
+                          endTime: _.last(newSamples).end + 1 }, this);
+    }, function(err, dbSamples) {
+      if (err) { cb(err); return; }
+      // Figure out which samples to add to db, and which existing samples to
+      // delete.
+      dbSamples.forEach(function(s) { s.indb = true; });
+      Array.prototype.push.apply(newSamples, dbSamples);
+      sortSamplesByTime(newSamples);
+      redundant = mergeOverlappingSamples2(newSamples);
+      var merged = newSamples.filter(function(s) { return !s.indb; });
+      this(null, merged, redundant);
+    }, cb
+  );
 }
 
 
@@ -373,7 +440,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, cb) {
  */
 SampleDb.prototype.deleteRedundantRealSample =
     function(vehicleId, channelName, sample, cb) {
-  var levelInfo = getLevelInfo(sample.beg, sample.end);
+  var levelInfo = getLevelInfo(sample);
   var query = {
     veh: vehicleId,
     chn: channelName,
@@ -382,7 +449,8 @@ SampleDb.prototype.deleteRedundantRealSample =
   var collection = this.realCollections[levelInfo.level];
   cursorIterate(collection.find(query), function(rawSample) {
     expandRealSample(rawSample, function(s, i) {
-      if (s.beg == sample.beg && s.end == sample.end && s.val == sample.val) {
+      if (s.beg == sample.beg && s.end == sample.end &&
+          _.isEqual(s.val, sample.val)) {
         // Found it!  Delete!
         if (i == null || rawSample.val.length == 1) {
           // This sample is the only one in this row - delete row.
@@ -421,6 +489,10 @@ function expandRealSample(sample, f) {
 SampleDb.prototype.fetchRealSamples =
     function(vehicleId, channelName, options, cb) {
   var self = this;
+  if (_.isFunction(options) && cb == null) {
+    cb = options;
+    options = {};
+  }
   _.defaults(options, {
     beginTime: null, endTime: null,
     minDuration: 0,
@@ -485,6 +557,11 @@ SampleDb.prototype.fetchRealSamples =
 
 SampleDb.prototype.fetchSyntheticSamples =
     function(vehicleId, channelName, options, cb) {
+  var self = this;
+  if (_.isFunction(options) && cb == null) {
+    cb = options;
+    options = {};
+  }
   _.defaults(options, {
     beginTime: null, endTime: null,
     synDuration: 0,
@@ -515,8 +592,11 @@ SampleDb.prototype.fetchSyntheticSamples =
     fields.min = 1;
     fields.max = 1;
   }
-  cursorIterate(this.syntheticCollections[synDuration].find(query, fields),
-                function(synSample) {
+  // Include veh and chn to ensure index-based sorting.
+  var sort = [ 'veh', 'chn', 'buk' ];
+  cursorIterate(
+      self.syntheticCollections[synDuration].find(
+          query, { fields: fields, sort: sort }), function(synSample) {
     var synBegin = synSample.buk * synDuration * syntheticSamplesPerRow;
     for (var i = 0; i < syntheticSamplesPerRow; ++i) {
       var sum = synSample.sum[i], ovr = synSample.ovr[i];
@@ -534,13 +614,17 @@ SampleDb.prototype.fetchSyntheticSamples =
         }
       }
     }
-  }, cb);
+  }, function(err) { cb(err, samples); });
 }
 
 
 SampleDb.prototype.fetchMergedSamples =
     function(vehicleId, channelName, options, cb) {
   var self = this;
+  if (_.isFunction(options) && cb == null) {
+    cb = options;
+    options = {};
+  }
   _.defaults(options, {
     beginTime: null, endTime: null,
     minDuration: 0,
@@ -640,6 +724,10 @@ SampleDb.prototype.fetchMergedSamples =
 SampleDb.prototype.fetchSamples =
     function(vehicleId, channelName, options, cb) {
   var self = this;
+  if (_.isFunction(options) && cb == null) {
+    cb = options;
+    options = {};
+  }
   _.defaults(options, {
     type: 'merged',  // or 'real' or synthetic
     beginTime: null, endTime: null,
@@ -702,7 +790,7 @@ SampleDb.prototype.cancelSubscription = function(subscriptionToken) {
  * to keep both versions up to date.
  * TODO: figure out how to actually share code.
  *
- * @param samples Set of incoming samples, sorted by begin time.
+ * @param samples Set of incoming samples, sorted by begin time.  Modified!
  */
 function mergeOverlappingSamples(samples) {
   // Index of first sample which might overlap current sample.
@@ -711,12 +799,12 @@ function mergeOverlappingSamples(samples) {
   for (var i = 0; i < samples.length; ++i) {
     var s = samples[i];
     // Skip ahead until mightOverlap is a sample which could possibly overlap.
-    while (samples[mightOverlap].end < s.beg)
+    while (mightOverlap < samples.length && samples[mightOverlap].end < s.beg)
       ++mightOverlap;
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
       if (/*t.end >= s.beg &&*/ t.beg <= s.end &&
-          t.val == s.val && t.min == s.min && t.max == s.max) {
+          _.isEqual(t.val, s.val) && t.min == s.min && t.max == s.max) {
         // Samples overlap - merge them.
         t.beg = Math.min(t.beg, s.beg);
         t.end = Math.max(t.end, s.end);
@@ -728,6 +816,73 @@ function mergeOverlappingSamples(samples) {
   }
 }
 SampleDb.mergeOverlappingSamples = mergeOverlappingSamples;
+
+
+/**
+ * Merge samples which are adjacent or overlapping and share a value.
+ *
+ * Cases to get right:
+ *   1. If two DB samples are identical, don't mark either redundant (no unique
+ *      key to delete one).
+ *   2. If a record is identical to or subsumes another record, delete the
+ *      other record.
+ *   3. If two samples can be merged into a larger sample, do so and mark both
+ *      redundant.
+ *
+ * @param samples Array of incoming samples, sorted by begin time.  Modified!
+ *   Samples in DB should have .indb = true.
+ * @return An array of DB samples which were made redundant.  Redundant indb
+ *   samples should be deleted from DB.
+ */
+function mergeOverlappingSamples2(samples) {
+  var redundant = [];
+  // Index of first sample which might overlap current sample.
+  var mightOverlap = 0;
+
+  for (var i = 0; i < samples.length; ++i) {
+    var s = samples[i];
+    // Skip ahead until mightOverlap is a sample which could possibly overlap.
+    while (mightOverlap < samples.length && samples[mightOverlap].end < s.beg)
+      ++mightOverlap;
+    for (var j = mightOverlap; j < i; ++j) {
+      var t = samples[j];
+      if (/*t.end >= s.beg &&*/ t.beg <= s.end &&
+          _.isEqual(t.val, s.val) && t.min == s.min && t.max == s.max) {
+        var identical = s.beg == t.beg && s.end == t.end;
+        // Samples overlap.  Merge them somehow and delete one.
+        if (s.indb && t.indb && identical) {
+          // 1. If two DB samples are identical, don't delete either from DB
+          // (no unique key).
+          samples.splice(i, 1);  // Delete s from samples.
+        } else if (s.beg <= t.beg && s.end >= t.end) {  // s subsumes t.
+          // 2. If a record is identical to or subsumes another record, delete
+          // the other record.
+          if (t.indb) redundant.push(t);
+          samples.splice(j, 1);  // Delete t from samples.
+        } else if (t.beg <= s.beg && t.end >= s.end) {  // t subsumes s.
+          // 2. If a record is identical to or subsumes another record, delete
+          // the other record.
+          if (s.indb) redundant.push(s);
+          samples.splice(i, 1);  // Delete s from samples.
+        } else {
+          if (s.indb) redundant.push(s);
+          if (t.indb) redundant.push(t);
+          var n = samples[j] = {
+            beg: Math.min(t.beg, s.beg),
+            end: Math.max(t.end, s.end),
+            val: t.val,
+          };
+          if (s.min != null) n.min = s.min;
+          if (s.max != null) n.max = s.max;
+          samples.splice(i, 1);  // Delete s from samples.
+        }
+        --i;
+        break;
+      }
+    }
+  }
+  return redundant;
+}
 
 
 //// Constants and utility functions: ////
@@ -804,15 +959,15 @@ var getLevel = SampleDb.getLevel = function(duration) {
   return bucketThresholds[getLevelIndex(duration)];
 };
 
-var getLevelInfo = SampleDb.getLevelInfo = function(beginTime, endTime) {
-  var i = getLevelIndex(endTime - beginTime);
+var getLevelInfo = SampleDb.getLevelInfo = function(sample) {
+  var i = getLevelIndex(sample.end - sample.beg);
   var bucketSize = bucketSizes[i];
   return {
     level: bucketThresholds[i],
     levelIndex: i,
     bucketSize: bucketSize,
-    minBucket: Math.floor(beginTime / bucketSize),
-    maxBucket: Math.ceil(endTime / bucketSize) - 1,
+    minBucket: Math.floor(sample.beg / bucketSize),
+    maxBucket: Math.ceil(sample.end / bucketSize) - 1,
   };
 };
 
