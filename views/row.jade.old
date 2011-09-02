@@ -1,0 +1,32 @@
+- var color = indexInCollection % 2 ? 'dark' : 'light';
+div.tr
+  div.td.expand(class=color)
+    a.expander(href="javascript:;", id="vehicle-" + row.id)
+      img(src="/graphics/arrow.png")
+  div.td.leftest(class=color)
+    =row.year + ' ' + row.make + ' ' + row.model
+  div.td(class=color)
+    =row._id.vehicleId
+  div.td(class=color, data-last-seen=row.lastSeen)
+div.tr.row-details
+  div.td
+    div.details-wrap
+      div.details
+        div.details-left
+          div.details-loader-wrap.map-loading
+            span Loading map data...
+          div.map.map-tmp
+          p.map-info
+          p.map-time
+        div.details-bar-middle
+          img.resize-x(src="/graphics/resize-vertical.png")
+        div.details-right
+          div.dygraph-bar(style="bottom:30px; width:100%; z-index:10001")
+          div.overviewer
+          div.loading-more
+            span Loading...
+          div.details-loader-wrap.series-loading
+            span Loading time series data...
+      div.details-bar-top
+      div.details-bar-bottom
+        img.resize-y(src="/graphics/resize-horizontal.png")

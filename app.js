@@ -31,6 +31,7 @@ var compatibility = require('./compatibility.js');
 var db, User, Vehicle, LoginToken;
 
 var pubsub = require('./minpubsub');
+var jadeify = require('jadeify');
 
 
 /////////////// Helpers
@@ -78,7 +79,10 @@ function authenticateFromLoginToken(req, res, next) {
         req.currentUser = usr;
         token.token = token.randomToken();
         token.save(function () {
-          res.cookie('logintoken', token.cookieValue, { expires: new Date(Date.now() + 2 * 604800000), path: '/' });
+          res.cookie('logintoken', token.cookieValue, {
+              expires: new Date(Date.now() + 2 * 604800000),
+              path: '/'
+          });
           next();
         });
       } else {
@@ -176,8 +180,9 @@ app.configure(function () {
   app.use(express.static(__dirname + '/public'));
   app.use(require('browserify')({
     ignore: ['sys', 'markdown', 'markdown-js', 'discount'],
-    require : ['dnode', 'backbone', './minpubsub']
-  }));
+    require : ['dnode', 'underscore', './minpubsub']
+  }).use(jadeify(__dirname + '/public/javascripts/templates')));
+    // .addEntry(__dirname + '/main.js'));
 });
 
 
@@ -250,55 +255,59 @@ app.param('vintid', function (req, res, next, id) {
 
 // Home
 
-app.get('/', loadUser, function (req, res) {
-  var filterUser;
-  if (req.currentUser.role === 'admin') {
-    filterUser = null;
-  } else if (req.currentUser.role === 'office') {
-    filterUser = ['4ddc6340f978287c5e000003', '4ddc84a0c2e5c2205f000001', '4ddee7a08fa7e041710001cb'];
-  } else {
-    filterUser = req.currentUser;
-  }
-  findVehiclesByUser(filterUser, function (vehicles) {
-    Step(
-      // Add lastSeen to all vehicles in parallel.
-      function() {
-        var parallel = this.parallel;
-        vehicles.forEach(function (v) {
-          var next = parallel();
-          sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
-            if (cycles && cycles.length > 0)
-              v.lastSeen = _.max(_.pluck(cycles, 'end'));
-            next();
-          });
-        });
-        parallel()(); // In case there are no vehicles.
-      }, function(err) {
-        if (err) { this(err); return; }
-
-        // Only keep vehicles which have drive cycles.
-        vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
-
-        // Sort by lastSeen.
-        vehicles.sort(function (a, b) {
-          return b.lastSeen - a.lastSeen;
-        });
-
-        if (vehicles.length > 0) {
-          // TODO: include a session cookie to prevent known-id attacks.
-          res.render('index', {
-              data: vehicles
-            , user: req.currentUser
-          });
-        } else {
-          res.render('empty', {
-            user: req.currentUser
-          });
-        }
-      }
-    );
-  });
+app.get('/', function (req, res) {
+  res.render('index');
 });
+
+// app.get('/', loadUser, function (req, res) {
+//   var filterUser;
+//   if (req.currentUser.role === 'admin') {
+//     filterUser = null;
+//   } else if (req.currentUser.role === 'office') {
+//     filterUser = ['4ddc6340f978287c5e000003', '4ddc84a0c2e5c2205f000001', '4ddee7a08fa7e041710001cb'];
+//   } else {
+//     filterUser = req.currentUser;
+//   }
+//   findVehiclesByUser(filterUser, function (vehicles) {
+//     Step(
+//       // Add lastSeen to all vehicles in parallel.
+//       function() {
+//         var parallel = this.parallel;
+//         vehicles.forEach(function (v) {
+//           var next = parallel();
+//           sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
+//             if (cycles && cycles.length > 0)
+//               v.lastSeen = _.max(_.pluck(cycles, 'end'));
+//             next();
+//           });
+//         });
+//         parallel()(); // In case there are no vehicles.
+//       }, function(err) {
+//         if (err) { this(err); return; }
+// 
+//         // Only keep vehicles which have drive cycles.
+//         vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
+// 
+//         // Sort by lastSeen.
+//         vehicles.sort(function (a, b) {
+//           return b.lastSeen - a.lastSeen;
+//         });
+// 
+//         if (vehicles.length > 0) {
+//           // TODO: include a session cookie to prevent known-id attacks.
+//           res.render('index', {
+//               data: vehicles
+//             , user: req.currentUser
+//           });
+//         } else {
+//           res.render('empty', {
+//             user: req.currentUser
+//           });
+//         }
+//       }
+//     );
+//   });
+// });
 
 
 // Landing page
@@ -681,21 +690,26 @@ app.put('/cycle', function (req, res) {
 ////////////// DNode Methods
 
 
-function verifySession(sessionInfo, cb) {
-  if (!_.isObject(sessionInfo)) {
-    cb(new Error('Missing sessionInfo.'));
-    return false;
+function verifySession(user, cb) {
+  if (!_.isObject(user)) {
+    cb(new Error('Missing session info.'));
+    return;
   }
-  if (!_.isString(sessionInfo.userEmail)) {
+  if (!_.isString(user.email)) {
     cb(new Error('Session missing email.'));
-    return false;
+    return;
   }
-  if (!_.isString(sessionInfo.userId)) {
-    cb(new Error('Session missing userId.'));
-    return false;
+  if (!_.isString(user.id)) {
+    cb(new Error('Session missing id.'));
+    return;
   }
-  // TODO: verify that this is a valid and logged-in session.
-  return true;
+  User.findById(user.id, function (err, usr) {
+    if (err) {
+      cb(new Error('User not authenticated.'));
+    } else {
+      cb(null, usr);
+    }
+  });
 }
 
 
@@ -706,30 +720,120 @@ var createDnodeConnection = function (remote, conn) {
 
   //// Methods accessible to remote side: ////
 
-  function fetchSamples(sessionInfo, vehicleId, channelName, options, cb) {
-    if (!verifySession(sessionInfo, cb)) {
-      cb(new Error('Could not verify session'));
+  function signin(email, password, cb) {
+    if (!email || !password) {
+      cb({
+        code: 'MISSING_FIELD',
+        email: email || '',
+        password: password || '',
+        message: 'Both your email and password are required for login.'
+      });
       return;
     }
+    User.findOne({ email: email }, function (err, usr) {
+      if (usr && usr.authenticate(password)) {
+        usr.meta.logins ++;
+        usr.save(function (err) {
+          if (!err) {
+            cb(null, {
+              email: usr.email,
+              id: usr.id,
+              first: usr.name.first,
+              last: usr.name.last,
+            });
+          } else {
+            cb({
+              message: 'We\'re experiencing an unknown problem but ' +
+                'are looking into it now. Please try again later.'
+            });
+            util.log("Error finding user '" + email + "': " + err);
+          }
+        });
+      } else {
+        cb({
+          code: 'BAD_AUTH',
+          email: email,
+          message: 'That didn\'t work. Your email or password is incorrect.'
+        });
+      }
+    });
+  }
 
-    var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
-    console.time(id);
-    function next(err, samples) {
-      console.timeEnd(id);
-      if (err)
-        console.log('Error in ' + id + ': ' + err.stack);
-      cb(err, samples);
-    };
-    if (options.subscribe != null) {
-      var handle = options.subscribe;
-      console.log(handle);
-      options.subscribe = 0.25;  // Polling interval, seconds.
-      cancelSubscribeSamples(handle);
-      subscriptions[handle] =
+  function fetchVehicles(user, cb) {
+    verifySession(user, function (err, usr) {
+      if (err) {
+        cb(err);
+      } else {
+        
+        
+        var filterUser;
+        if (usr.role === 'admin') {
+          filterUser = null;
+        } else if (usr.role === 'office') {
+          filterUser = ['4ddc6340f978287c5e000003', '4ddc84a0c2e5c2205f000001', '4ddee7a08fa7e041710001cb'];
+        } else {
+          filterUser = usr;
+        }
+        findVehiclesByUser(filterUser, function (vehicles) {
+          Step(
+            // Add lastSeen to all vehicles in parallel.
+            function() {
+              var parallel = this.parallel;
+              vehicles.forEach(function (v) {
+                var next = parallel();
+                sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
+                  if (cycles && cycles.length > 0)
+                    v.lastSeen = _.max(_.pluck(cycles, 'end'));
+                  next();
+                });
+              });
+              parallel()(); // In case there are no vehicles.
+            }, function(err) {
+              if (err) { this(err); return; }
+
+              // Only keep vehicles which have drive cycles.
+              vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
+
+              // Sort by lastSeen.
+              vehicles.sort(function (a, b) {
+                return b.lastSeen - a.lastSeen;
+              });
+              
+              // ??? throws error without JSON.stringify ???
+              cb(null, JSON.stringify(vehicles));
+            }
+          );
+        });
+      }
+    });
+  }
+
+  function fetchSamples(sessionInfo, vehicleId, channelName, options, cb) {
+    verifySession(sessionInfo, function (err, usr) {
+      if (err) {
+        cb(err);
+        return;
+      } else {
+        var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
+        console.time(id);
+        function next(err, samples) {
+          console.timeEnd(id);
+          if (err)
+            console.log('Error in ' + id + ': ' + err.stack);
+          cb(err, samples);
+        };
+        if (options.subscribe != null) {
+          var handle = options.subscribe;
+          console.log(handle);
+          options.subscribe = 0.25;  // Polling interval, seconds.
+          cancelSubscribeSamples(handle);
+          subscriptions[handle] =
+              sampleDb.fetchSamples(vehicleId, channelName, options, next);
+        } else {
           sampleDb.fetchSamples(vehicleId, channelName, options, next);
-    } else {
-      sampleDb.fetchSamples(vehicleId, channelName, options, next);
-    }
+        }
+      }
+    });
   }
 
   function cancelSubscribeSamples(handle) {
@@ -744,11 +848,12 @@ var createDnodeConnection = function (remote, conn) {
   });
 
   return {
+    signin: signin,
+    fetchVehicles: fetchVehicles,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
   };
 };
-
 
 ////////////// Initialize and Listen on 8080 (maps to 80 on EC2)
 
