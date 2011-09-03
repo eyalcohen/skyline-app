@@ -1046,6 +1046,10 @@ var sortSamplesByTime = SampleDb.sortSamplesByTime = function(samples) {
 var resample = SampleDb.resample =
     function(inSamples, beginTime, endTime, sampleSize, options) {
   options = options || {};
+  _.defaults(options, {
+    stddev: false,
+    keepAll: false,
+  });
 
   var sampleCount = Math.ceil((endTime - beginTime) / sampleSize);
   var result = new Array(sampleCount);
@@ -1109,7 +1113,9 @@ var resample = SampleDb.resample =
   });
 
   // Return, without any empty entries.
-  return _.reject(result, _.isUndefined);
+  if (!options.keepAll)
+    result = _.reject(result, _.isUndefined);
+  return result;
 };
 
 

@@ -14,9 +14,10 @@ var dnode = require('dnode');
 var fs = require('fs');
 var sys = require('sys');
 var path = require('path');
-var csv = require('csv');
+var CSV = require('csv');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
+_.mixin(require('underscore.string'));
 var Step = require('step');
 var EventID = require('./customids').EventID;
 var models = require('./models');
@@ -190,8 +191,18 @@ models.defineModels(mongoose, function () {
  * Loads user by email request param.
  */
 
+function errWrap(next, f) {
+  return function() {
+    try {
+      f.apply(this, arguments);
+    } catch (err) {
+      next(err);
+    }
+  }
+}
+
 app.param('email', function (req, res, next, email) {
-  User.findOne({ email: email }, function (err, usr) {
+  User.findOne({ email: email }, errWrap(next, function (err, usr) {
     if (usr) {
       var pass = req.query.password || req.body.password;
       if (usr.authenticate(pass)) {
@@ -203,7 +214,7 @@ app.param('email', function (req, res, next, email) {
     } else {
       res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
     }
-  });
+  }));
 });
 
 
@@ -212,7 +223,7 @@ app.param('email', function (req, res, next, email) {
  */
 
 app.param('vid', function (req, res, next, id) {
-  Vehicle.findById(id, function (err, veh) {
+  Vehicle.findById(id, errWrap(next, function (err, veh) {
     if (!err && veh) {
       req.vehicle = veh;
       util.log('vid ' + id + ' -> ' + util.inspect(veh));
@@ -220,7 +231,7 @@ app.param('vid', function (req, res, next, id) {
     } else {
       res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
     }
-  });
+  }));
 });
 
 
@@ -229,14 +240,14 @@ app.param('vid', function (req, res, next, id) {
  */
 
 app.param('vintid', function (req, res, next, id) {
-  findVehicleByIntId(id, function (veh) {
+  findVehicleByIntId(id, errWrap(next, function (veh) {
     if (veh) {
       req.vehicle = veh;
       next();
     } else {
       res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
     }
-  });
+  }));
 });
 
 
@@ -379,6 +390,96 @@ app.del('/sessions', loadUser, function (req, res) {
 
 
 ////////////// API
+
+
+// Export as CSV for webapp.
+
+app.get('/export/:vintid/data.csv', function(req, res, next) {
+  // TODO: access control.
+
+  // Options:
+  var vehicleId = req.vehicle._id;
+  var channels = req.query.channel || [];
+  var beginTime = parseInt(req.query.beginTime);
+  var endTime = parseInt(req.query.endTime);
+  var resolution = parseInt(req.query.resolution);
+  if (_.isString(channels)) channels = [channels];
+  //if (!channels.length || _.isNaN(beginTime) || _.isNaN(endTime) ||
+      //_.isNaN(resolution) || resolution < 1) {
+  if (!channels.length || _.isNaN(beginTime) || _.isNaN(endTime)) {
+    // TODO: better error
+    next('BAD_PARAM');
+    return;
+  }
+
+  res.contentType('.csv');
+  var csv = CSV().toStream(res, { lineBreaks: 'windows', end: false });
+  var sampleSet = new Array(channels.length);
+  Step(
+    function fetchData() {
+      var parallel = this.parallel;
+      channels.forEach(function(channelName, channelI) {
+        var next = parallel();
+        var fetchOptions = {
+          beginTime: beginTime, endTime: endTime,
+          minDuration: Math.ceil(resolution / 4),
+        };
+        sampleDb.fetchSamples(vehicleId, channelName, fetchOptions,
+                              errWrap(next, function(err, samples) {
+          if (err) { next(err); return; }
+          sampleSet[channelI] = SampleDb.resample(
+              samples, beginTime, endTime, resolution, { keepAll: true });
+          next();
+        }));
+      });
+    },
+
+    function writeData() {
+      // Write header.
+      csv.write([ 'Date', 'Time', 'Delta (s)' ].concat(channels));
+
+      // Write data.
+      var count = _.max(_.pluck(sampleSet, 'length'));
+      for (var i = 0; i < count; ++i) {
+        var beg = beginTime + i * resolution;
+        // TODO: What about time zones?
+        // See zoneinfo npm and
+        //   https://bitbucket.org/pellepim/jstimezonedetect/wiki/Home
+        // TOOD: i18n?
+        var date = new Date(beg / 1000);
+        csv.write([
+          _.sprintf('%d-%02d-%02d', date.getFullYear(), date.getMonth() + 1,
+                    date.getDate()),
+          _.sprintf('%02d:%02d:%02d.%03d', date.getHours(), date.getMinutes(),
+                    date.getSeconds(), date.getMilliseconds()),
+          i * resolution / 1e6,
+        ].concat(sampleSet.map(function(samples) {
+          var s = samples[i];
+          return s == null ? '' : s.val;
+        })));
+      }
+      // Output request info:
+      csv.write([]);  // Blank line.
+      csv.write(['vehicleId:', vehicleId]);
+      csv.write(['channels:', JSON.stringify(channels)]);
+      csv.write([]);  // Blank line.
+      csv.write(['id:', req.vehicle._id]);
+      csv.write(['year:', req.vehicle.year]);
+      csv.write(['make:', req.vehicle.make]);
+      csv.write(['model:', req.vehicle.model]);
+      csv.write(['vehicle id:', req.params.vintid]);
+      _.forEach(req.query, function(value, key) {
+        csv.write([key + ':', JSON.stringify(value)]);
+      });
+
+      csv.write([]);  // Make sure there's a terminating newline.
+      csv.end();
+      res.end();
+    },
+
+    next
+  );
+});
 
 
 // Handle user create request
