@@ -2,6 +2,9 @@
     <!-- All directives for a particular vehicle must be inside a vehicle node, other nodes are ignored -->
     <vehicle id="234142">
         
+        <!-- if present turns on the canstream server inside the vehicle (defaults to off) -->
+        <canstream enabled="true" />
+
         <serverinfo minIntervalOn="10"  minIntervalOff="100" uploadRoot="http://triptrack.ridemission.com/cycle" />
 
         <canfilter iface="can0">
@@ -19,8 +22,9 @@
                 <!-- <sourceref>gpsSource</sourceref> -->
                 <teesink>
                     <printsink/>
-                    <throttledsink interval="300" maxCount="1000">
-                        <throttledsink interval="30" maxCount="100">
+		    <!-- interval is bucket length in msecs, maxCount is max # allower per bucket --> 
+                    <throttledsink interval="60000" maxCount="1000">
+                        <throttledsink interval="1000" maxCount="100">
                             <sinkref>eventSpooler</sinkref>
                         </throttledsink>
                     </throttledsink>
