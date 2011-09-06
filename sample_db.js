@@ -447,25 +447,32 @@ SampleDb.prototype.deleteRedundantRealSample =
     buk: levelInfo.minBucket,
   };
   var collection = this.realCollections[levelInfo.level];
-  cursorIterate(collection.find(query), function(rawSample) {
-    expandRealSample(rawSample, function(s, i) {
-      if (s.beg == sample.beg && s.end == sample.end &&
-          _.isEqual(s.val, sample.val)) {
-        // Found it!  Delete!
-        if (i == null || rawSample.val.length == 1) {
-          // This sample is the only one in this row - delete row.
-          collection.remove({ _id: rawSample._id });
-        } else {
-          // Null out value.
-          var unset = { };
-          unset['val.' + i] = 1;
-          collection.update({ _id: rawSample._id }, { $unset: unset });
-          // TODO: we could use findAndModify to re-write the sample without
-          // this value, but it's not clear that this would be worthwhile.
-        }
-      }
-    });
-  }, cb);
+  Step(
+    function() {
+      var parallel = this.parallel;
+      cursorIterate(collection.find(query), function(rawSample) {
+        expandRealSample(rawSample, function(s, i) {
+          if (s.beg == sample.beg && s.end == sample.end &&
+              _.isEqual(s.val, sample.val)) {
+            // Found it!  Delete!
+            if (i == null || rawSample.val.length == 1) {
+              // This sample is the only one in this row - delete row.
+              collection.remove({ _id: rawSample._id },
+                                { safe: true }, parallel());
+            } else {
+              // Null out value.
+              var unset = { };
+              unset['val.' + i] = 1;
+              collection.update({ _id: rawSample._id }, { $unset: unset },
+                                { safe: true }, parallel());
+              // TODO: we could use findAndModify to re-write the sample without
+              // this value, but it's not clear that this would be worthwhile.
+            }
+          }
+        });
+      }, parallel());
+    }, cb
+  );
 }
 
 
@@ -1033,7 +1040,11 @@ var forSampleGaps = SampleDb.forSampleGaps =
 
 var sortSamplesByTime = SampleDb.sortSamplesByTime = function(samples) {
   samples.sort(function(a, b) {
-    return a.beg - b.beg;  // Compare times.
+    var begDelta = a.beg - b.beg;
+    if (begDelta)
+      return a.beg - b.beg;
+    else
+      return a.end - b.end;
   });
 };
 
@@ -1080,10 +1091,10 @@ var resample = SampleDb.resample =
         end: sampleEnd,
         sum: 0,
         ovr: 0,
-        min: val,
-        max: val,
       };
     } else {
+      if (r.min == null)
+        r.min = r.max = r.sum / r.ovr;
       r.min = Math.min(r.min, val);
       r.max = Math.max(r.max, val);
     }
@@ -1119,6 +1130,113 @@ var resample = SampleDb.resample =
 };
 
 
+/**
+ * Reorganize a sampleSet into a list of samples which occur with the same
+ * begin and end times.
+ *
+ * @param sampleSet Mapping from channel name to sample arrays.  Sample arrays
+ *     must be sorted by time.
+ * @return Array of maps from channel name to samples.
+ */
+var groupSamplesByTime = SampleDb.groupSamplesByTime = function(sampleSet) {
+  var channels = _.keys(sampleSet);
+  var cur = {};
+  channels.forEach(function(channelName) { cur[channelName] = 0; });
+  var result = [];
+  while (true) {
+    // Find the earliest times.
+    var minBeg = null, minEnd = null;
+    channels.forEach(function(channelName) {
+      var s = sampleSet[channelName][cur[channelName]];
+      if (s && (minBeg == null || s.beg < minBeg ||
+                (s.beg == minBeg && s.end < minEnd))) {
+        minBeg = s.beg;
+        minEnd = s.end;
+      }
+    });
+    if (minBeg == null)
+      break;
+
+    // Move samples with same time into result.
+    var sameSamples = {};
+    channels.forEach(function(channelName) {
+      var s = sampleSet[channelName][cur[channelName]];
+      if (s && s.beg == minBeg && s.end == minEnd) {
+        sameSamples[channelName] = s;
+        ++cur[channelName];
+      }
+    });
+    result.push(sameSamples);
+  }
+  return result;
+}
+
+
+/**
+ * Reorganize a sampleSet into a list of samples which occur with the same
+ * begin and end times.
+ *
+ * @param sampleSet Mapping from channel name to sample arrays.  Sample arrays
+ *     must be sorted by time.
+ * @return Array of maps from channel name to samples.
+ */
+var splitSamplesByTime = SampleDb.splitSamplesByTime = function(sampleSet) {
+  var channels = _.keys(sampleSet);
+  var cur = {};
+  channels.forEach(function(channelName) { cur[channelName] = 0; });
+  var now = -Number.MAX_VALUE;
+  var result = [];
+  while (true) {
+    // Skip any empty space.
+    var firstBeg = null;  // Lowest begin time of current samples.
+    channels.forEach(function(channelName) {
+      var s = sampleSet[channelName][cur[channelName]];
+      if (s && (firstBeg == null || s.beg < firstBeg))
+        firstBeg = s.beg;
+    });
+    if (firstBeg == null)
+      break;
+    if (firstBeg > now)
+      now = firstBeg;
+
+    // Find next edge.
+    var nextEdge = null;  // First begin or end after now, of current samples.
+    channels.forEach(function(channelName) {
+      var s = sampleSet[channelName][cur[channelName]];
+      if (!s) return;
+      if (s.beg > now && (nextEdge == null || s.beg < nextEdge))
+        nextEdge = s.beg;
+      if (s.end > now && (nextEdge == null || s.end < nextEdge))
+        nextEdge = s.end;
+    });
+
+    // Move samples with same time into result.
+    var newSample = { beg: now, end: nextEdge, val: {} };
+    channels.forEach(function(channelName) {
+      var s = sampleSet[channelName][cur[channelName]];
+      if (s && s.beg <= now) {
+        newSample.val[channelName] = s;
+        if (s.end <= nextEdge)
+          ++cur[channelName];
+      }
+    });
+    result.push(newSample);
+    now = nextEdge;
+  }
+  return result;
+}
+
+
+/**
+ * Iterate through all values on a cursor, calling a function for each row,
+ * and a different callback when done.  Warning: if the rowCb function is not
+ * syncronous, then there's no guaruntee that all rows have been fully
+ * processed when doneCb is called.
+ *
+ * @param cursor{MongoDb.Cursor} The cursor to iterate.
+ * @param rowCb{function(rowData)} Function called on each row.
+ * @param doneCb{function(err)} Function called on completion.
+ */
 var cursorIterate = function(cursor, rowCb, doneCb) {
   var stream = cursor.streamRecords();
   stream.on('data', rowCb);

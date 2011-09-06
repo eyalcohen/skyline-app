@@ -124,6 +124,78 @@ exports.testMergeOverlappingSamplesNoMerge = function(test) {
   test.done();
 };
 
+exports.testSplitSamplesByTime = function(test) {
+  var beforeSplit = {
+    chan1: [
+      { beg: 0, end: 1, val: 1 },
+      { beg: 10, end: 11, val: 4 },
+      { beg: 20, end: 29, val: 9 },
+      { beg: 30, end: 39, val: 12 },
+      { beg: 40, end: 49, val: 13 },
+    ],
+    chan2: [
+      { beg: 2, end: 4, val: 2 },
+      { beg: 11, end: 12, val: 5 },
+      { beg: 20, end: 26, val: 8 },
+      { beg: 34, end: 39, val: 11 },
+      { beg: 42, end: 47, val: 14 },
+      { beg: 50, end: 55, val: 15 },
+    ],
+    chan3: [
+      { beg: 7, end: 9, val: 3 },
+      { beg: 12, end: 13, val: 6 },
+      { beg: 20, end: 22, val: 7 },
+      { beg: 37, end: 39, val: 10 },
+      { beg: 52, end: 59, val: 16 },
+    ],
+  };
+  var expected = [
+    // Isolated samples.
+    { beg: 0, end: 1, val: { chan1: { beg: 0, end: 1, val: 1 }, } },
+    { beg: 2, end: 4, val: { chan2: { beg: 2, end: 4, val: 2 }, } },
+    { beg: 7, end: 9, val: { chan3: { beg: 7, end: 9, val: 3 }, } },
+    // Adjacent samples.
+    { beg: 10, end: 11, val: { chan1: { beg: 10, end: 11, val: 4 }, } },
+    { beg: 11, end: 12, val: { chan2: { beg: 11, end: 12, val: 5 }, } },
+    { beg: 12, end: 13, val: { chan3: { beg: 12, end: 13, val: 6 }, } },
+    // Same begin.
+    { beg: 20, end: 22, val: {
+        chan1: { beg: 20, end: 29, val: 9 },
+        chan2: { beg: 20, end: 26, val: 8 },
+        chan3: { beg: 20, end: 22, val: 7 }, } },
+    { beg: 22, end: 26, val: {
+        chan1: { beg: 20, end: 29, val: 9 },
+        chan2: { beg: 20, end: 26, val: 8 }, } },
+    { beg: 26, end: 29, val: {
+        chan1: { beg: 20, end: 29, val: 9 }, } },
+    // Same end.
+    { beg: 30, end: 34, val: {
+        chan1: { beg: 30, end: 39, val: 12 }, } },
+    { beg: 34, end: 37, val: {
+        chan1: { beg: 30, end: 39, val: 12 },
+        chan2: { beg: 34, end: 39, val: 11 }, } },
+    { beg: 37, end: 39, val: {
+        chan1: { beg: 30, end: 39, val: 12 },
+        chan2: { beg: 34, end: 39, val: 11 },
+        chan3: { beg: 37, end: 39, val: 10 }, } },
+    // Subsumed.
+    { beg: 40, end: 42, val: { chan1: { beg: 40, end: 49, val: 13 }, } },
+    { beg: 42, end: 47, val: {
+        chan1: { beg: 40, end: 49, val: 13 },
+        chan2: { beg: 42, end: 47, val: 14 }, } },
+    { beg: 47, end: 49, val: { chan1: { beg: 40, end: 49, val: 13 }, } },
+    // Overlapping.
+    { beg: 50, end: 52, val: { chan2: { beg: 50, end: 55, val: 15 }, } },
+    { beg: 52, end: 55, val: {
+        chan2: { beg: 50, end: 55, val: 15 },
+        chan3: { beg: 52, end: 59, val: 16 }, } },
+    { beg: 55, end: 59, val: { chan3: { beg: 52, end: 59, val: 16 }, } },
+  ];
+  var afterSplit = SampleDb.splitSamplesByTime(beforeSplit);
+  test.deepEqual(afterSplit, expected);
+  test.done();
+};
+
 
 //// Test DB functionality ////
 

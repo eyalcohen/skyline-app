@@ -397,79 +397,169 @@ app.del('/sessions', loadUser, function (req, res) {
 app.get('/export/:vintid/data.csv', function(req, res, next) {
   // TODO: access control.
 
-  // Options:
-  var vehicleId = req.vehicle._id;
-  var channels = req.query.channel || [];
-  var beginTime = parseInt(req.query.beginTime);
-  var endTime = parseInt(req.query.endTime);
-  var resolution = parseInt(req.query.resolution);
-  if (_.isString(channels)) channels = [channels];
-  //if (!channels.length || _.isNaN(beginTime) || _.isNaN(endTime) ||
-      //_.isNaN(resolution) || resolution < 1) {
-  if (!channels.length || _.isNaN(beginTime) || _.isNaN(endTime)) {
-    // TODO: better error
-    next('BAD_PARAM');
-    return;
+  function numParam(name, required) {
+    var v = req.query[name];
+    if (!v && required)
+      throw new Error('Parameter ' + name + ' is required.');
+    if (!v) return null;
+    var n = Number(v);
+    if (isNaN(n))
+      throw new Error('Parameter ' + name + ': "' + v + '" is not a number.');
+    return n;
+  }
+
+  // Parameters available in query URL:
+  //   beg=<beginTime>,end=<endTime> Time range to fetch.
+  //   resample=<resolution> Resample data to provided duration.
+  //   minDuration=<duration> Approximate minimum duration to fetch.
+  //   minmax Include minimum and maximum values.
+  //   chan=<name1>,chan=<name2>,... Channels to fetch.
+  // There are a few special channels:
+  //   $beginDate: Begin date, e.g. '2011-09-06'.
+  //   $beginTime: Begin time, e.g. '16:02:23'.
+  //   $beginAbsTime: Begin time in seconds since epoch, e.g. 1309914166.385.
+  //   $beginRelTime: Begin time in seconds since first sample, e.g. 6.385.
+  //   $endDate/$endTime/$endAbsTime/$endRelTime: End time.
+  //   $duration: Duration in seconds, e.g. '0.01234'.
+  // Example: curl 'http://localhost:8080/export/1772440972/data.csv?beg=1309914019674000&end=1309916383000000&chan=$beginDate&chan=$beginTime&chan=$beginAbsTime&chan=$duration&chan=$beginRelTime&chan=$endRelTime&chan=gps.speed_m_s&chan=gps.latitude_deg&chan=gps.longitude_deg&chan=gps.altitude_m&chan=accel.x_m_s2&minDuration=10000000&minmax'
+  try {
+    var vehicleId = req.vehicle._id;
+    var resample = numParam('resample');
+    var beginTime = numParam('beg', resample != null);
+    var endTime = numParam('end', resample != null);
+    var minDuration = numParam('minDuration');
+    if (resample != null && minDuration == null)
+      minDuration = Math.ceil(resample / 4);
+    var getMinMax = 'minmax' in req.query;
+    var channels = req.query.chan || [];
+    if (_.isString(channels)) channels = [channels];
+    if (!channels.length || (resample != null && resample < 1))
+      return next('BAD_PARAM');  // TODO: better error
+  } catch (err) {
+    return next(err.toString());
   }
 
   res.contentType('.csv');
   var csv = CSV().toStream(res, { lineBreaks: 'windows', end: false });
-  var sampleSet = new Array(channels.length);
+  var schema = {};
+  var sampleSet = {};
+  var samplesSplit;
   Step(
     function fetchData() {
       var parallel = this.parallel;
-      channels.forEach(function(channelName, channelI) {
+      // Fetch channels.
+      channels.forEach(function(channelName) {
         var next = parallel();
         var fetchOptions = {
           beginTime: beginTime, endTime: endTime,
-          minDuration: Math.ceil(resolution / 4),
+          minDuration: minDuration, getMinMax: getMinMax
         };
         sampleDb.fetchSamples(vehicleId, channelName, fetchOptions,
                               errWrap(next, function(err, samples) {
           if (err) { next(err); return; }
-          sampleSet[channelI] = SampleDb.resample(
-              samples, beginTime, endTime, resolution, { keepAll: true });
+          if (resample != null)
+            samples = SampleDb.resample(samples, beginTime, endTime, resample);
+          sampleSet[channelName] = samples;
           next();
         }));
       });
+      // Fetch schema.
+      { var next = parallel();
+        var fetchOptions = { beginTime: beginTime, endTime: endTime };
+        sampleDb.fetchSamples(vehicleId, '_schema', fetchOptions,
+                              errWrap(next, function(err, samples) {
+          if (err) { next(err); return; }
+          samples.forEach(function(sample) {
+            schema[sample.val.channelName] = sample;
+          });
+          next();
+        }));
+      }
     },
 
-    function writeData() {
+    function reorganize(err) {
+      if (err)
+        util.log('Error during CSV sample fetch: ' + err + '\n' + err.stack);
+      samplesSplit = SampleDb.splitSamplesByTime(sampleSet);
+      this();
+    },
+
+    function writeData(err) {
+      if (err) return this(err);
+
+      // Write UTF-8 signature, so that Excel imports CSV as UTF-8.
+      // Unfortunately, this doesn't seem to work with all Excel versions.  Boo.
+      res.write(new Buffer([0xEF, 0xBB, 0xBF]));
+
       // Write header.
-      csv.write([ 'Date', 'Time', 'Delta (s)' ].concat(channels));
+      var header = [];
+      var specialRE = /^\$(begin|end)(Date|Time|AbsTime|RelTime)$/;
+      channels.forEach(function(channelName) {
+        var m = channelName.match(specialRE);
+        if (m) {
+          header.push(
+              (m[1] === 'end' ? 'End ' : 'Begin ') +
+              (m[2] === 'Date' ? 'Date' :
+               m[2] === 'Time' ? 'Time' :
+               m[2] === 'AbsTime' ? 'Since 1970 (s)' :
+               m[2] === 'RelTime' ? 'Since Start (s)' : ''));
+        } else if (channelName === '$duration') {
+          header.push('Duration (s)');
+        } else {
+          var channelSchema = schema[channelName];
+          var description = channelName;
+          if (channelSchema && channelSchema.val.humanName)
+            description = channelSchema.val.humanName;
+          if (channelSchema && channelSchema.val.units)
+            description += ' (' + channelSchema.val.units + ')';
+          header.push(description);
+          if (getMinMax) {
+            header.push('min');
+            header.push('max');
+          }
+        }
+      });
+      csv.write(header);
 
       // Write data.
-      var count = _.max(_.pluck(sampleSet, 'length'));
-      for (var i = 0; i < count; ++i) {
-        var beg = beginTime + i * resolution;
+      var firstBeg = null;
+      samplesSplit.forEach(function(sampleGroup) {
+        var beg = sampleGroup.beg, end = sampleGroup.end;
+        if (firstBeg == null) firstBeg = beg;
         // TODO: What about time zones?
         // See zoneinfo npm and
         //   https://bitbucket.org/pellepim/jstimezonedetect/wiki/Home
         // TOOD: i18n?
         var date = new Date(beg / 1000);
-        csv.write([
-          _.sprintf('%d-%02d-%02d', date.getFullYear(), date.getMonth() + 1,
-                    date.getDate()),
-          _.sprintf('%02d:%02d:%02d.%03d', date.getHours(), date.getMinutes(),
-                    date.getSeconds(), date.getMilliseconds()),
-          i * resolution / 1e6,
-        ].concat(sampleSet.map(function(samples) {
-          var s = samples[i];
-          return s == null ? '' : s.val;
-        })));
-      }
-      // Output request info:
-      csv.write([]);  // Blank line.
-      csv.write(['vehicleId:', vehicleId]);
-      csv.write(['channels:', JSON.stringify(channels)]);
-      csv.write([]);  // Blank line.
-      csv.write(['id:', req.vehicle._id]);
-      csv.write(['year:', req.vehicle.year]);
-      csv.write(['make:', req.vehicle.make]);
-      csv.write(['model:', req.vehicle.model]);
-      csv.write(['vehicle id:', req.params.vintid]);
-      _.forEach(req.query, function(value, key) {
-        csv.write([key + ':', JSON.stringify(value)]);
+        var line = [];
+        channels.forEach(function(channelName) {
+          var m = channelName.match(specialRE);
+          if (m) {
+            var t = (m[1] === 'end' ? end : beg), d = new Date(t / 1e3);
+            line.push(
+                m[2] === 'Date' ?
+                    _.sprintf('%d-%02d-%02d',
+                              d.getFullYear(), d.getMonth() + 1, d.getDate()) :
+                m[2] === 'Time' ?
+                    _.sprintf('%02d:%02d:%02d',
+                              d.getHours(), d.getMinutes(), d.getSeconds()) :
+                m[2] === 'AbsTime' ? t / 1e6 :
+                m[2] === 'RelTime' ? (t - firstBeg) / 1e6 : '');
+          } else if (channelName === '$duration') {
+            line.push((end - beg) / 1e6);
+          } else {
+            var s = sampleGroup.val[channelName];
+            var val = (s == null ? '' : s.val);
+            if (!(_.isNumber(val) || _.isString(val)))
+              val = util.inspect(val);
+            line.push(val);
+            if (getMinMax) {
+              line.push(s == null || s.min == null ? '' : s.min);
+              line.push(s == null || s.max == null ? '' : s.max);
+            }
+          }
+        });
+        csv.write(line);
       });
 
       csv.write([]);  // Make sure there's a terminating newline.
