@@ -1,30 +1,29 @@
 /*!
  * Copyright 2011 Mission Motors
- * Author Sander Pick <sander.pick@ridemission.com>
  */
 
-Backbone.sync = function(method, model, success, error) {
-  var collectionName, findFunct, handleResponse, isCollection;
-  isCollection = model.hasChanged != null ? false : true;
-  // collectionName = isCollection ? new model.model().collectionName() : model.collectionName();
-  handleResponse = function(err, obj) {
-    console.log(err, obj);
-    // if (err != null) {
-    //   if (err.message.indexOf("Unauthenticated") !== -1) {
-    //     App.publish("NotAuthenticated");
-    //   }
-    //   return error(err);
-    // }
-    // return success(obj);
+Backbone.sync = function(method, model, options) {
+  var handleResponse = function(err, obj) {
+    if (err) {
+      if (err.message.indexOf("Unauthenticated") !== -1) {
+        App.publish("NotAuthenticated");
+      }
+      return model.loaded(err);
+    }
+    if ('string' === typeof obj) {
+      try {
+        obj = JSON.parse(obj);
+      } catch(e) {}
+    }
+    return model.loaded(null, obj);
   };
   switch (method) {
     case "create":
-      return App.db.insert(App.user.toJSON(), collectionName, model.toJSON(), handleResponse);
+      //
     case "read":
-      // findFunct = isCollection ? App.api.find : App.api.findOne;
-      return App.api.fetchVehicles.call(App.api, App.user, handleResponse);
+      return App.api[model.readFunc].call(App.api, App.user, handleResponse);
     case "update":
-      return App.db.update(App.user.toJSON(), collectionName, model.toJSON(), handleResponse);
+      //
   }
 };
 

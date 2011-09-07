@@ -1,0 +1,42 @@
+.dashboard-item
+  .dashboard-item-header
+    a.dashboard-link.toggler(href="javascript:;", title="shrink")
+      | -
+    h1.dashboard-header
+      | Your Vehicles
+  .dashboard-item-content
+    - if (rows.length === 0) {
+      p(style="padding:10px; color:#808080;")
+        | Loading...
+    - } else {
+      table
+        thead
+          tr
+            th
+              | Make
+            th
+              | Model
+            th
+              | Year
+            th
+              | Owner
+            th
+              | Last Seen
+        tbody
+          - rows.forEach(function (row) {
+            tr(id=row.htmlId, class='row-vehicle')
+              td
+                =row.make
+                span.edit-panel
+                  a.edit-link(href='javascript:;', title='Edit')
+                    | Edit |
+              td
+                =row.model
+              td
+                =row.year
+              td
+                =row.user.email
+              td(data-last-seen=row.lastSeen)
+          - })
+    - }
+

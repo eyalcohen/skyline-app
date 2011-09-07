@@ -1,6 +1,5 @@
 /*!
  * Copyright 2011 Mission Motors
- * Author Sander Pick <sander.pick@ridemission.com>
  */
 
 define(['jquery', 'style', 'async!http://maps.google.com/maps/api/js?'+

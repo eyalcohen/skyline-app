@@ -784,23 +784,40 @@ var createDnodeConnection = function (remote, conn) {
                 sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
                   if (cycles && cycles.length > 0)
                     v.lastSeen = _.max(_.pluck(cycles, 'end'));
-                  next();
+                  User.findById(v.user_id, function (err, usr) {
+                    if (usr)
+                      v.user = usr;
+                    next();
+                  });
                 });
               });
               parallel()(); // In case there are no vehicles.
             }, function(err) {
               if (err) { this(err); return; }
 
+              // SP: ugly - mongoose's weird doc mapping
+              // makes it hard to inject new props, like lastSeen.
+              var vehs = [];
+              for (var i = 0, len = vehicles.length; i < len; i++) {
+                var v = vehicles[i].doc;
+                v.user = vehicles[i].user;
+                v.lastSeen = vehicles[i].lastSeen;
+                if (v.lastSeen)
+                  vehs.push(v);
+              }
+
               // Only keep vehicles which have drive cycles.
-              vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
+              // vehs = vehs.filter(function (v) { 
+              //   return v.lastSeen !== null && v.lastSeen !== undefined;
+              // });
 
               // Sort by lastSeen.
-              vehicles.sort(function (a, b) {
+              vehs.sort(function (a, b) {
                 return b.lastSeen - a.lastSeen;
-              });
-              
+              });              
+
               // ??? throws error without JSON.stringify ???
-              cb(null, JSON.stringify(vehicles));
+              cb(null, JSON.stringify(vehs));
             }
           );
         });

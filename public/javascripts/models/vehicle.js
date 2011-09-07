@@ -5,19 +5,28 @@
 
 define(function () {
   return Backbone.Model.extend({
-    validate: function (attrs) {
-      if (attrs.title) {
-        if (!_.isString(attrs.title) || attrs.title.length === 0 ) {
-          return "Title must be a string with a length";
-        }
-      }
-    },
+    // validate: function (attrs) {
+    //   if (attrs.title) {
+    //     if (!_.isString(attrs.title) || attrs.title.length === 0 ) {
+    //       return "Title must be a string with a length";
+    //     }
+    //   }
+    // },
+
     initialize: function (spec) {
-      // if (!spec || !spec.title || !spec.format) {
-      //   throw "InvalidConstructArgs";
-      // }
+      if ('function' === typeof spec)
+        return;
+
+      if (!spec || !spec.make || !spec.model || !spec.year) {
+        throw "InvalidConstructArgs";
+        return;
+      }
+
       this.set({
-        htmlId: 'vehicle_' + this.cid
+        make: spec.make,
+        model: spec.model,
+        year: spec.year,
+        htmlId: 'vehicle_' + spec._id,
       });
     }
   });

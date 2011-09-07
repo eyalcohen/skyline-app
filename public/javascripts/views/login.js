@@ -1,18 +1,18 @@
 /*!
  * Copyright 2011 Mission Motors
- * Author Sander Pick <sander.pick@ridemission.com>
  */
 
 define(function () {
   return Backbone.View.extend({
     initialize: function (args) {
-      _.bindAll(this, 'render', 'signin');
+      _.bindAll(this, 'render', 'signin', 'destroy');
+      App.subscribe('UserWasAuthenticated', this.destroy);
       return App.subscribe('NotAuthenticated', this.render);
     },
 
     setup: function () {
       this.email = $('input[name="user[email]"]', this.el);
-      this.password = $('input[name="user[password]"]', this.el)
+      this.password = $('input[name="user[password]"]', this.el);
       return this;
     },
 
@@ -32,15 +32,25 @@ define(function () {
         type: 'error',
         missing: []
       });
-      if (this.el.length)
-        this.el.empty();
-      this.el = App.engine('login.jade', opts).appendTo($('#main'));
+      var nofade;
+      if (this.el.length) {
+        this.remove();
+        nofade = true;
+      }
+      this.el = App.engine('login.jade', opts).appendTo(App.regions.main);
+      if (!nofade) {
+        this.el.hide().fadeIn('fast');
+      }
       this.setup();
       this.delegateEvents();
       this.email.val().trim() === '' ?
         this.email.focus() :
         this.password.focus();
       return this;
+    },
+
+    destroy: function () {
+      this.remove();
     },
 
     signin: function (e) {
@@ -67,10 +77,9 @@ define(function () {
           }
           return;
         }
-        App.cache.set('user', user);
-        App.user = App.cache.get('user');
+        App.store.set('user', user);
+        App.user = App.store.get('user');
         return this.el.fadeOut('fast', _.bind(function () {
-          this.remove();
           App.publish('UserWasAuthenticated');
         }, this));
       }, this));

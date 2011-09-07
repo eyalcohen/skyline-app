@@ -1,11 +1,13 @@
 /*!
  * Copyright 2011 Mission Motors
- * Author Sander Pick <sander.pick@ridemission.com>
  */
 
-define(['views/login'], function (lV) {
+define(['views/login', 'views/logout', 'views/vehicles'],
+    function (liV, loV, vV) {
   return {
-    LoginView: lV,
-  }
+    LoginView: liV,
+    LogoutView: loV,
+    VehiclesView: vV,
+  };
 });
 
