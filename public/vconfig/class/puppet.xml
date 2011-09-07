@@ -5,6 +5,10 @@
         <!-- if present turns on the canstream server inside the vehicle (defaults to off) -->
         <canstream enabled="true" />
 
+        <subsystem id="pm">
+            <!-- <loadinfo type="app" version="1.50" minVersion="1.38" recVersion="1.40">http://somesite.com/foo/appload.bin.signed</loadinfo> -->
+        </subsystem>
+
         <serverinfo minIntervalOn="10"  minIntervalOff="100" uploadRoot="http://triptrack.ridemission.com/cycle" />
 
         <canfilter iface="can0">
