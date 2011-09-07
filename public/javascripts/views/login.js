@@ -6,8 +6,8 @@ define(function () {
   return Backbone.View.extend({
     initialize: function (args) {
       _.bindAll(this, 'render', 'signin', 'destroy');
-      App.subscribe('UserWasAuthenticated', this.destroy);
-      return App.subscribe('NotAuthenticated', this.render);
+      return [App.subscribe('UserWasAuthenticated', this.destroy),
+          App.subscribe('NotAuthenticated', this.render)];
     },
 
     setup: function () {
@@ -51,6 +51,7 @@ define(function () {
 
     destroy: function () {
       this.remove();
+      this.el = false;
     },
 
     signin: function (e) {

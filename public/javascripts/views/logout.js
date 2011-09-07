@@ -6,8 +6,8 @@ define(function () {
   return Backbone.View.extend({
     initialize: function (args) {
       _.bindAll(this, 'render', 'signout', 'destroy');
-      App.subscribe('UserWasAuthenticated', this.render);
-      //return App.subscribe('NotAuthenticated', this.destroy);
+      return [App.subscribe('UserWasAuthenticated', this.render),
+          App.subscribe('NotAuthenticated', this.destroy)];
     },
 
     events: {
@@ -15,17 +15,17 @@ define(function () {
     },
 
     render: function () {
-      this.el = App.engine('logout.jade').appendTo(App.regions.header);
+      this.el = App.engine('logout.jade').appendTo(App.regions.menu);
       this.delegateEvents();
       return this;
     },
 
     destroy: function () {
       this.remove();
+      this.el = false;
     },
 
     signout: function (e) {
-      console.log('signout ...');
       App.store.remove('user');
       App.user = null;
       App.publish('NotAuthenticated', [{
@@ -33,14 +33,6 @@ define(function () {
         report: 'You have been logged out.',
         type: 'message',
       }]);
-    },
-
-    checkInput: function (e) {
-      var el = $(e.target);
-      if (el.val().trim() !== '') {
-        el.removeClass('cs-input-alert');
-      }
-      return this;
     },
 
   });

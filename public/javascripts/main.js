@@ -34,6 +34,7 @@ requirejs(['libs/json2',
             header: $('header'),
             main: $('#main'),
             footer: $('footer'),
+            menu: $('nav ul'),
             left: $('.dashboard-left'),
             right: $('.dashboard-right'),
           };

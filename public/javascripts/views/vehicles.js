@@ -25,15 +25,12 @@ define(function () {
       _.defaults(opts, {
         rows: []
       });
-
       if (this.el.length) {
         this.remove();
       }
-
       this.el = App.engine('vehicles.dash.jade', opts).appendTo(App.regions.left);
       this.setup();
       this.delegateEvents();
-
       if (this.firstRender) {
         this.firstRender = false;
         this.el.fadeIn('fast');
@@ -42,10 +39,10 @@ define(function () {
         this.el.show();
         this.content.show('fast');
       }
-
-      if (this.timer)
+      if (this.timer) {
         clearInterval(this.timer);
-      this.timer = setInterval(this.setTime, 5000); 
+      }
+      this.timer = setInterval(this.setTime, 5000);
       this.setTime();
       return this;
     },
