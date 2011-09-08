@@ -6,8 +6,9 @@ define(function () {
   return Backbone.View.extend({
     initialize: function (args) {
       _.bindAll(this, 'render', 'signout', 'destroy');
-      return [App.subscribe('UserWasAuthenticated', this.render),
-          App.subscribe('NotAuthenticated', this.destroy)];
+      App.subscribe('UserWasAuthenticated', this.render);
+      App.subscribe('NotAuthenticated', this.destroy);
+      return this;
     },
 
     events: {
@@ -23,6 +24,7 @@ define(function () {
     destroy: function () {
       this.remove();
       this.el = false;
+      return this;
     },
 
     signout: function (e) {
@@ -33,6 +35,7 @@ define(function () {
         report: 'You have been logged out.',
         type: 'message',
       }]);
+      return this;
     },
 
   });

@@ -7,7 +7,8 @@ define(function () {
     initialize: function (args) {
       this.firstRender = true;
       _.bindAll(this, 'destroy');
-      return App.subscribe('NotAuthenticated', this.destroy);
+      App.subscribe('NotAuthenticated', this.destroy);
+      return this;
     },
 
     setup: function () {
@@ -51,6 +52,7 @@ define(function () {
       if (this.timer)
         clearInterval(this.timer);
       this.remove();
+      return this;
     },
 
     toggle: function (e) {
@@ -64,6 +66,7 @@ define(function () {
         target.text('-');
         target.attr('title', 'shrink');
       }
+      return this;
     },
 
     clickHandler: function (e) {
@@ -98,6 +101,7 @@ define(function () {
       //     App.publish('UserWasAuthenticated');
       //   }, this));
       // }, this));
+      return this;
     },
     
     setTime: function () {
@@ -134,6 +138,7 @@ define(function () {
           return (parseInt(delta / 86400)).toString() + ' days ago';
         else return new Date(ts / 1000).toLocaleDateString();
       }
+      return this;
     },
 
   });

@@ -1,6 +1,5 @@
 /*!
  * Copyright 2011 Mission Motors
- * Author Sander Pick <sander.pick@ridemission.com>
  */
 
 define(['models/vehicle'], function (model) {
@@ -16,11 +15,7 @@ define(['models/vehicle'], function (model) {
           this.view.render({ rows: vehs });
         }
       }, this);
-
-      // App.subscribe('UserWasAuthenticated', App.loadUser);
-      // _.each(this.models, function (m) {
-      //   
-      // }, this);
+      return this;
     },
     
     

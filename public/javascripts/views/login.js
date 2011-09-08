@@ -6,8 +6,9 @@ define(function () {
   return Backbone.View.extend({
     initialize: function (args) {
       _.bindAll(this, 'render', 'signin', 'destroy');
-      return [App.subscribe('UserWasAuthenticated', this.destroy),
-          App.subscribe('NotAuthenticated', this.render)];
+      App.subscribe('UserWasAuthenticated', this.destroy);
+      App.subscribe('NotAuthenticated', this.render);
+      return this;
     },
 
     setup: function () {
@@ -56,7 +57,7 @@ define(function () {
 
     signin: function (e) {
       e.preventDefault();
-      return App.api.signin(this.email.val(),
+      App.api.signin(this.email.val(),
           this.password.val(),
           _.bind(function (err, user) {
         if (err !== null) {
@@ -76,14 +77,15 @@ define(function () {
               }]);
               break;
           }
-          return;
+          return false;
         }
         App.store.set('user', user);
         App.user = App.store.get('user');
-        return this.el.fadeOut('fast', _.bind(function () {
+        this.el.fadeOut('fast', _.bind(function () {
           App.publish('UserWasAuthenticated');
         }, this));
       }, this));
+      return this;
     },
 
     checkInput: function (e) {

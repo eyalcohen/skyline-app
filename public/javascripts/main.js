@@ -15,7 +15,7 @@ requirejs(['libs/json2',
   window.App = {
     debug: true,
     start: function () {
-      return DNode.connect({ reconnect: 500 }, function (remote) {
+      DNode.connect({ disconnect: App.reconnect }, function (remote) {
         // remote.subscribe('data', function (n) {
         //   document.getElementById('output').innerHTML += n + ' ';
         // });
@@ -39,11 +39,10 @@ requirejs(['libs/json2',
             right: $('.dashboard-right'),
           };
 
-          // App.store.remove('user');
           App.user = App.store.get('user') || {};
 
-          requirejs(['collections', 'views', 'backbone-sync'],
-              function (collections, views) {
+          requirejs(['collections', 'views', 'router', 'backbone-sync'],
+              function (collections, views, Router) {
             App.collections = collections;
             App.views = views;
             App.login = new views.LoginView();
@@ -59,18 +58,37 @@ requirejs(['libs/json2',
               App.logout.render();
               App.loadUser();
             }
+            App.router = new Router();
+            Backbone.history.start({
+              pushState: true,
+              silent: true,
+            });
+            // SP: This will set the URL, but we must ensure
+            // the server can provide the same route if 
+            // asked directly.
+            //// App.router.navigate('somewhere');
           });
         } catch (_e) {}
       });
     },
-    end: function () {
-      
+
+    reconnect: function () {
+      console.warn('The server went away. Trying to reconnect ...');
+      var reconnecter = setInterval(function () {
+        DNode.connect({ disconnect: App.reconnect }, function (remote) {
+          App.api = remote;
+          clearInterval(reconnecter);
+          console.warn('Server reconnected.');
+        });
+      }, 500);
     },
+
     loadUser: function () {
       App.vehicleCollection = new App.collections.VehicleCollection();
       App.vehicleCollection.fetch();
     }
+
   };
-  return App.start();
+  App.start();
 });
 
