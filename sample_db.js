@@ -1,6 +1,7 @@
 // Functionality for saving samples to the DB.
 
 var _ = require('underscore');
+_.mixin(require('underscore.string'));
 var util = require('util'), debug = util.debug, inspect = util.inspect;
 var Step = require('step');
 
@@ -790,6 +791,115 @@ SampleDb.prototype.cancelSubscription = function(subscriptionToken) {
     clearTimeout(subscriptionToken.timeoutId);
 }
 
+
+function removeSome(array, test) {
+  var result = [];
+  for (var i = 0; i < array.length; ) {
+    if (test(array[i])) {
+      result.push(array[i]);
+      array.splice(i, 1);  // Remove i.
+    } else {
+      ++i;
+    }
+  }
+  return result;
+}
+
+
+function copyProperties(to, from, props) {
+  for (var i in props) {
+    var p = props[i];
+    if (p in from)
+      to[p] = from[p];
+  }
+}
+
+
+// Remove consecutive duplicate elements from array.
+function deepUnique(array) {
+  return _.reduce(array, function(memo, el, i) {
+    if (0 == i || !_.isEqual(_.last(memo), el))
+      memo.push(el);
+    return memo;
+  }, []);
+};
+
+
+/**
+ * Build a channel description tree from a list of schema samples.
+ *
+ * @result A channel description tree, e.g.:
+ * [
+ *   { shortName: 'gps.',
+ *     humanName: 'GPS data',  // optional
+ *     description: 'GPS data from dash unit.',  // optional
+ *     type: 'category',
+ *     sub: [
+ *       { shortName: 'latitude_deg',
+ *         channelName: 'gps.latitude_deg',
+ *         humanName: 'Latitude',  // optional
+ *         units: '°',  // optional
+ *         type: 'float',  // optional
+ *         valid: [ { beg: 123, end: 678 }, ... ],
+ *       },
+ *       ...
+ *     ],
+ *   },
+ *   { shortName: 'mc/',
+ *     humanName: 'Motor Controller',  // optional
+ *     type: 'category',
+ *     sub: ...
+ *   },
+ * ]
+ */
+var prefixRe = /^([^./]*[./]).+$/;
+SampleDb.buildChannelTree = function(samples) {
+
+  function buildInternal(samples, prefix) {
+    // Remove all samples which start with the given prefix.
+    var sub = removeSome(samples, function(s) {
+      return _.startsWith(s.val.channelName, prefix);
+    });
+    var result = [];
+    while (sub.length > 0) {
+      var s = _.first(sub);
+      var shortName = s.val.channelName.substr(prefix.length);
+      var m = shortName.match(prefixRe);
+      var nextPrefix = m && m[1];
+      var desc;
+      if (!nextPrefix) {
+        // This is a terminal.
+        // Find all samples with the same channelName.
+        var same = removeSome(sub, function(s2) {
+          return s2.val.channelName == s.val.channelName;
+        });
+        s = _.last(same);  // Use the latest.
+        // Copy channelName and such in.
+        desc = { shortName: shortName };
+        _.extend(desc, s.val);
+        // TODO: interval sets to union together ranges?
+        desc.valid = same.map(function(s2) {
+          return { beg: s2.beg, end: s2.end };
+        });
+      } else {
+        // New category.
+        desc = {
+          shortName: nextPrefix,
+          type: 'category',
+          sub: buildInternal(sub, prefix + nextPrefix),
+        };
+        desc.valid = [].concat.apply([], _.pluck(desc.sub, 'valid'));
+        sortSamplesByTime(desc.valid);
+        desc.valid = deepUnique(desc.valid);
+        // TODO: desc.humanName =
+      }
+      result.push(desc);
+    }
+    // TODO: Remove duplicates?
+    return result;
+  }
+  return buildInternal(_.clone(samples), '');
+}
 
 /**
  * Merge samples which are adjacent or overlapping and share a value.

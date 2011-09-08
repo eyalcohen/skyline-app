@@ -35,7 +35,7 @@ function deepCopy(o) {
   } else if (_.isObject(o)) {
     var n = {};
     for (var prop in o)
-      n[prop] = o[prop];
+      n[prop] = deepCopy(o[prop]);
     return n;
   } else
     return o;
@@ -193,6 +193,77 @@ exports.testSplitSamplesByTime = function(test) {
   ];
   var afterSplit = SampleDb.splitSamplesByTime(beforeSplit);
   test.deepEqual(afterSplit, expected);
+  test.done();
+};
+
+
+exports.testBuildChannelTree = function(test) {
+  var schema = [
+    { channelName: 'no_hierarchy', humanName: 'Blah blah', type: 'string' },
+    { channelName: 'gps/speed_m_s', humanName: 'Speed',
+      description: 'GPS: speed in m/s', units: 'm/s', type: 'float' },
+    { channelName: 'foo.bar', humanName: 'i pity the', type: 'enum' },
+    { channelName: 'gps/latitude_deg', humanName: 'GPS Latitude',
+      units: '°', type: 'float' },
+    { channelName: 'gps/satellites.count', humanName: 'Satellite count',
+      type: 'int' },
+  ];
+  var samples = schema.map(function(s) { return { beg: 5, end: 9, val: s }; });
+  var expected = [
+    { shortName: 'no_hierarchy',
+      channelName: 'no_hierarchy',
+      humanName: 'Blah blah',
+      type: 'string' },
+    { shortName: 'gps/',
+      type: 'category',
+      sub: [
+        { shortName: 'speed_m_s',
+          channelName: 'gps/speed_m_s',
+          humanName: 'Speed',
+          description: 'GPS: speed in m/s',
+          units: 'm/s',
+          type: 'float' },
+        { shortName: 'latitude_deg',
+          channelName: 'gps/latitude_deg',
+          humanName: 'GPS Latitude',
+          units: '°',
+          type: 'float' },
+        { shortName: 'satellites.',
+          type: 'category',
+          sub: [
+            { shortName: 'count',
+              channelName: 'gps/satellites.count',
+              humanName: 'Satellite count',
+              type: 'int' } ] } ] },
+    { shortName: 'foo.',
+      type: 'category',
+      sub: [
+        { shortName: 'bar',
+          channelName: 'foo.bar',
+          humanName: 'i pity the',
+          type: 'enum' } ] },
+  ];
+  function setValid(a, valid) {
+    a.forEach(function(d) {
+      d.valid = valid;
+      if ('sub' in d)
+        setValid(d.sub, valid);
+    });
+  };
+  setValid(expected, [ { beg: 5, end: 9 } ]);
+  test.deepEqual(SampleDb.buildChannelTree(samples), expected);
+
+  // Add additional schema elements - we should pick the later versions.
+  var samples2 = _(samples).map(function munge(s) {
+    s = deepCopy(s);
+    s.beg = 1;
+    s.end = 4;
+    s.val.humanName = s.val.humanName + ' old';
+    return s;
+  }).concat(samples);
+  setValid(expected, [ { beg: 1, end: 4 }, { beg: 5, end: 9 } ]);
+  test.deepEqual(SampleDb.buildChannelTree(samples2), expected);
+
   test.done();
 };
 

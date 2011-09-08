@@ -36,6 +36,35 @@ var db, User, Vehicle, LoginToken;
 
 
 /**
+ * Wraps a callback f to simplify error handling.  Specifically, this:
+ *   asyncFunction(..., errWrap(cb, function(arg) {
+ *     ...
+ *     cb(...);
+ *   }));
+ * is equivalent to:
+ *   asyncFunction(..., function(err, arg) {
+ *     if (err) { cb(err); return; }
+ *     try {
+ *       ...
+ *       cb(...);
+ *     } catch (err2) {
+ *       cb(err2);
+ *     }
+ *   }));
+ */
+function errWrap(next, f) {
+  return function(err) {
+    if (err) { next(err); return; }
+    try {
+      f.apply(this, Array.prototype.slice.call(arguments, 1));
+    } catch (err) {
+      next(err);
+    }
+  }
+}
+
+
+/**
  * Loads current session user.
  */
 
@@ -191,18 +220,8 @@ models.defineModels(mongoose, function () {
  * Loads user by email request param.
  */
 
-function errWrap(next, f) {
-  return function() {
-    try {
-      f.apply(this, arguments);
-    } catch (err) {
-      next(err);
-    }
-  }
-}
-
 app.param('email', function (req, res, next, email) {
-  User.findOne({ email: email }, errWrap(next, function (err, usr) {
+  User.findOne({ email: email }, errWrap(next, function (usr) {
     if (usr) {
       var pass = req.query.password || req.body.password;
       if (usr.authenticate(pass)) {
@@ -223,8 +242,8 @@ app.param('email', function (req, res, next, email) {
  */
 
 app.param('vid', function (req, res, next, id) {
-  Vehicle.findById(id, errWrap(next, function (err, veh) {
-    if (!err && veh) {
+  Vehicle.findById(id, errWrap(next, function (veh) {
+    if (veh) {
       req.vehicle = veh;
       util.log('vid ' + id + ' -> ' + util.inspect(veh));
       next();
@@ -240,14 +259,14 @@ app.param('vid', function (req, res, next, id) {
  */
 
 app.param('vintid', function (req, res, next, id) {
-  findVehicleByIntId(id, errWrap(next, function (veh) {
+  findVehicleByIntId(id, function (veh) {
     if (veh) {
       req.vehicle = veh;
       next();
     } else {
       res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
     }
-  }));
+  });
 });
 
 
@@ -455,8 +474,7 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
           minDuration: minDuration, getMinMax: getMinMax
         };
         sampleDb.fetchSamples(vehicleId, channelName, fetchOptions,
-                              errWrap(next, function(err, samples) {
-          if (err) { next(err); return; }
+                              errWrap(next, function(samples) {
           if (resample != null)
             samples = SampleDb.resample(samples, beginTime, endTime, resample);
           sampleSet[channelName] = samples;
@@ -467,8 +485,7 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
       { var next = parallel();
         var fetchOptions = { beginTime: beginTime, endTime: endTime };
         sampleDb.fetchSamples(vehicleId, '_schema', fetchOptions,
-                              errWrap(next, function(err, samples) {
-          if (err) { next(err); return; }
+                              errWrap(next, function(samples) {
           samples.forEach(function(sample) {
             schema[sample.val.channelName] = sample;
           });
@@ -887,8 +904,14 @@ function verifySession(sessionInfo, cb) {
 var createDnodeConnection = function (remote, conn) {
   var subscriptions = { };
 
+  // TODO: have session info passed when creating dnode connection, rather
+  // than in individual methods.
+
   //// Methods accessible to remote side: ////
 
+  // Fetch samples.
+  // TODO: get rid of subscriptions, replace with 'wait until data available'
+  // option.
   function fetchSamples(sessionInfo, vehicleId, channelName, options, cb) {
     if (!verifySession(sessionInfo, cb)) {
       cb(new Error('Could not verify session'));
@@ -914,6 +937,18 @@ var createDnodeConnection = function (remote, conn) {
     } else {
       sampleDb.fetchSamples(vehicleId, channelName, options, next);
     }
+  }
+
+  // Fetch channel tree.
+  // TODO: move this into client code, use _schema subscription instead.
+  function fetchChannelTree(sessionInfo, vehicleId, cb) {
+    if (!verifySession(sessionInfo, cb))
+      return cb(new Error('Could not verify session'));
+
+    sampleDb.fetchSamples(vehicleId, '_schema', {},
+                          errWrap(cb, function(samples) {
+      cb(null, SampleDb.buildChannelTree(samples));
+    }));
   }
 
   function cancelSubscribeSamples(handle) {
