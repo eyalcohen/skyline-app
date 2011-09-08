@@ -8,7 +8,7 @@ define(['jquery', 'style', 'async!http://maps.google.com/maps/api/js?'+
   $(function () {
 
     // save the login form
-    var loginForm = $('#login-form');
+    var loginForm = $('#login-form'),
 
         // login user
         loginButton = $('#login'),
