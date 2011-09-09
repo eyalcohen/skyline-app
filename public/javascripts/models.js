@@ -2,9 +2,14 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['models/vehicle'], function (vM) {
+define(['models/notification',
+    'models/vehicle',
+    'models/map'],
+    function () {
   return {
-    VehicleModel: vM,
+    NotificationModel: arguments[0],
+    VehicleModel: arguments[1],
+    MapModel: arguments[2],
   };
 });
 

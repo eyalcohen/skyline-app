@@ -1,11 +1,3 @@
-/*!
- * Copyright 2011 Mission Motors
- */
-
-/**
- * Map form data to JSON
- */
-
 $.fn.serializeObject = function () {
   var o = {},
       a = this.serializeArray();
@@ -21,3 +13,11 @@ $.fn.serializeObject = function () {
   return o;
 };
 
+$.fn.itemId = function () {
+  try {
+    var items = $(this).attr('id').split('_');
+    return items[items.length - 1];
+  } catch (exception) {
+    return null;
+  }
+};

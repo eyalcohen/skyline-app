@@ -6,7 +6,6 @@ define(['views/dashitem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'click [title="explore"]': 'load',
     },
 
     render: function (opts) {
@@ -18,7 +17,7 @@ define(['views/dashitem'], function (DashItemView) {
       if (this.el.length) {
         this.remove();
       }
-      this.el = App.engine('vehicles.dash.jade', opts).appendTo(App.regions.top);
+      this.el = App.engine('notifications.dash.jade', opts).appendTo(App.regions.top);
       this.setup();
       this.delegateEvents();
       if (this.firstRender) {
@@ -39,9 +38,6 @@ define(['views/dashitem'], function (DashItemView) {
 
     load: function (e) {
       e.preventDefault();
-      this.minimize();
-      var id = this.getId(e);
-      App.publish('VehicleRequested', [id]);
       return this;
     },
 

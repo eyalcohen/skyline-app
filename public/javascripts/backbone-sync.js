@@ -3,26 +3,27 @@
  */
 
 Backbone.sync = function(method, model, options) {
-  var handleResponse = function(err, obj) {
+  var isCollection = model.hasChanged ? false : true,
+  handleResponse = function(err, obj) {
     if (err) {
-      if (err.message.indexOf("Unauthenticated") !== -1) {
-        App.publish("NotAuthenticated");
-      }
-      return model.loaded(err);
-    }
-    if ('string' === typeof obj) {
+      App.publish('NotAuthenticated');
+      options.error(obj);
+    } else if ('string' === typeof obj) {
       try {
         obj = JSON.parse(obj);
       } catch(e) {}
     }
-    return model.loaded(null, obj);
+    options.success(obj);
+    if (isCollection) {
+      model.loaded();
+    }
   };
   switch (method) {
-    case "create":
+    case 'create':
       //
-    case "read":
-      return App.api[model.readFunc].call(App.api, App.user, handleResponse);
-    case "update":
+    case 'read':
+      App.api[model.readFunc].call(App.api, App.user, handleResponse);
+    case 'update':
       //
   }
 };

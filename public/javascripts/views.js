@@ -2,12 +2,18 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/login', 'views/logout', 'views/vehicles'],
-    function (liV, loV, vV) {
+define(['views/login',
+    'views/logout',
+    'views/notifications',
+    'views/vehicles',
+    'views/map'],
+    function () {
   return {
-    LoginView: liV,
-    LogoutView: loV,
-    VehiclesView: vV,
+    LoginView: arguments[0],
+    LogoutView: arguments[1],
+    NotificationsView: arguments[2],
+    VehiclesView: arguments[3],
+    MapView: arguments[4],
   };
 });
 

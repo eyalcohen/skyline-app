@@ -35,14 +35,16 @@ requirejs(['libs/json2',
             main: $('#main'),
             footer: $('footer'),
             menu: $('nav ul'),
+            top: $('.dashboard-top'),
             left: $('.dashboard-left'),
             right: $('.dashboard-right'),
           };
 
           App.user = App.store.get('user') || {};
 
-          requirejs(['collections', 'views', 'router', 'backbone-sync'],
-              function (collections, views, Router) {
+          requirejs(['models', 'collections', 'views', 'router', 'backbone-sync'],
+              function (models, collections, views, Router) {
+            App.models = models;
             App.collections = collections;
             App.views = views;
             App.login = new views.LoginView();
@@ -53,10 +55,10 @@ requirejs(['libs/json2',
                 report: 'Please log in.',
                 type: 'message',
               });
-              App.subscribe('UserWasAuthenticated', App.loadUser);
+              App.subscribe('UserWasAuthenticated', App.buildDash);
             } else {
               App.logout.render();
-              App.loadUser();
+              App.buildDash();
             }
             App.router = new Router();
             Backbone.history.start({
@@ -83,9 +85,12 @@ requirejs(['libs/json2',
       }, 500);
     },
 
-    loadUser: function () {
+    buildDash: function () {
+      App.notificationCollection = new App.collections.NotificationCollection();
+      App.notificationCollection.fetch();
       App.vehicleCollection = new App.collections.VehicleCollection();
       App.vehicleCollection.fetch();
+      App.mapModel = new App.models.MapModel();
     }
 
   };

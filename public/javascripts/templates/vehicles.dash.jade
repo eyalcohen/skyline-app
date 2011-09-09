@@ -2,12 +2,15 @@
   .dashboard-item-header
     a.dashboard-link.toggler(href="javascript:;", title="shrink")
       | -
-    h1.dashboard-header
-      | Your Vehicles
+    h1.dashboard-item-header-txt
+      | Vehicles
   .dashboard-item-content
-    - if (rows.length === 0) {
-      p(style="padding:10px; color:#808080;")
+    - if (loading) {
+      p.dashboard-item-message
         | Loading...
+    - } else if (rows.length === 0) {
+      p.dashboard-item-message
+        | You don't have any vehicles in your system yet.
     - } else {
       table
         thead
@@ -20,15 +23,16 @@
               | Year
             th
               | Owner
-            th
+            th(colspan="2")
               | Last Seen
         tbody
-          - rows.forEach(function (row) {
-            tr(id=row.htmlId, class='row-vehicle')
+          - rows.forEach(function (row, i) {
+          -  row = row.attributes;
+            tr(id=row.htmlId, class=['dark','light'][i%2])
               td
                 =row.make
                 span.edit-panel
-                  a.edit-link(href='javascript:;', title='Edit')
+                  a.edit-link(href="javascript:;", title="Edit")
                     | Edit |
               td
                 =row.model
@@ -36,7 +40,10 @@
                 =row.year
               td
                 =row.user.email
-              td(data-last-seen=row.lastSeen)
+              td(colspan="2", data-time=row.lastSeen)
+                | -
+              td(align="right")
+                input(type="submit", title="explore", value="Explore")
           - })
     - }
 

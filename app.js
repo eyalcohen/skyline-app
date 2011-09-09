@@ -759,6 +759,16 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
+  function fetchNotifications(user, cb) {
+    verifySession(user, function (err, usr) {
+      if (err) {
+        cb(err);
+      } else {
+        cb(null, []);
+      }
+    });
+  }
+
   function fetchVehicles(user, cb) {
     verifySession(user, function (err, usr) {
       if (err) {
@@ -866,6 +876,7 @@ var createDnodeConnection = function (remote, conn) {
 
   return {
     signin: signin,
+    fetchNotifications: fetchNotifications,
     fetchVehicles: fetchVehicles,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
