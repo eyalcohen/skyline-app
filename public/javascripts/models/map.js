@@ -14,13 +14,30 @@ define(function () {
       // });
       return this;
     },
-    
-    load: function (vehicleId) {
-      console.log('sdvdsv');
-      App.api.fetchSamples(App.user, vehicleId, '_schema', {}, function (err, cycles) {
-        console.log(err, cycles);
-      });
-    }
+
+    load: function (vehicleId, timeRange, validChannels) {
+      var canMap = _.indexOf(validChannels, 'gps.latitude_deg') !== -1 &&
+          _.indexOf(validChannels, 'gps.longitude_deg') !== -1;
+      if (canMap) {
+        console.log('I can map this!');
+        App.api.fetchSamples(App.user, vehicleId, ['gps.latitude_deg', 'gps.longitude_deg'], timeRange,
+            function (err, points) {
+          console.log(err, points);
+          if (err) {
+            throw err;
+            return;
+          } else if (!points || points.length === 0) {
+            console.warn('Vehicle with id ' + vehicleId + ' has no mapable'+
+                ' coordinates for the time range requested.');
+            return;
+          } else {
+            console.log(points);
+          }
+        });
+      } else {
+        console.log('I can\'t map this!');
+      }
+    },
     
   });
 });

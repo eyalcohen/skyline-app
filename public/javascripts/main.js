@@ -20,15 +20,13 @@ requirejs(['libs/json2',
         //   document.getElementById('output').innerHTML += n + ' ';
         // });
         try {
-          // server-client resources cooked into the app root
-          var ps = require('./minpubsub');
-
           App.api = remote;
           App.store = store;
           App.engine = require('jadeify');
-          App.publish = ps.publish;
-          App.subscribe = ps.subscribe;
-          App.unsubscribe = ps.unsubscribe;
+          App.publish = require('./minpubsub').publish;
+          App.subscribe = require('./minpubsub').subscribe;
+          App.unsubscribe = require('./minpubsub').unsubscribe;
+          App.shared = require('./shared_utils');
 
           App.regions = {
             header: $('header'),

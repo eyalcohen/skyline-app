@@ -87,7 +87,7 @@ define(function () {
       var str = $(e.target).parent().parent().attr('id');
       try {
         var items = str.split('_');
-        return items[items.length - 1];
+        return parseInt(items[items.length - 1]);
       } catch (exception) {
         return null;
       }

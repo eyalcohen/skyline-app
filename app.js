@@ -179,10 +179,8 @@ app.configure(function () {
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
   app.use(require('browserify')({
-    ignore: ['sys', 'markdown', 'markdown-js', 'discount'],
-    require : ['dnode', 'underscore', './minpubsub']
+    require : ['dnode', 'underscore', './minpubsub', './shared_utils']
   }).use(jadeify(__dirname + '/public/javascripts/templates')));
-    // .addEntry(__dirname + '/main.js'));
 });
 
 
@@ -835,8 +833,8 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
-  function fetchSamples(sessionInfo, vehicleId, channelName, options, cb) {
-    verifySession(sessionInfo, function (err, usr) {
+  function fetchSamples(user, vehicleId, channelName, options, cb) {
+    verifySession(user, function (err, usr) {
       if (err) {
         cb(err);
         return;
