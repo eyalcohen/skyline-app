@@ -319,9 +319,19 @@ ServiceGUI = (function ($) {
     var lastCycle = cycles[cycles.length - 1];
     var self = this;
     this.reEvaluateData({ range: [lastCycle.beg / 1000, lastCycle.end / 1000] }, function () {
-      //console.log(self.sampleSet);
       fn.call(self);
     });
+    
+    // tmp:
+    function checkForMore() {
+      setTimeout(function () {
+        self.reEvaluateData({ range: [lastCycle.beg / 1000, new Date().getTime()] }, function () {
+          self.timeseries.updateData([lastCycle.beg / 1000, new Date().getTime()]);
+          checkForMore();
+        }, true);
+      }, 10000);
+    }
+    //checkForMore();
   };
 
   Sandbox.prototype.parseVisibleCycles = function () {
@@ -379,7 +389,7 @@ ServiceGUI = (function ($) {
     }
   };
 
-  Sandbox.prototype.reEvaluateData = function (params, fn) {
+  Sandbox.prototype.reEvaluateData = function (params, fn, force) {
 
     var self = this;
     var beginTime = params.range[0] * 1000, endTime = params.range[1] * 1000;
@@ -387,16 +397,18 @@ ServiceGUI = (function ($) {
     // reload if new bounds exceed what's loaded
     var reload = !self.fetchedRange ||
         beginTime < self.fetchedRange[0] || endTime > self.fetchedRange[1];
-    if (reload) {
-
+    if (reload || force) {
+      console.log('reloading...');
       // show loading for this chart
-      if (this.timeseries)
-        this.timeseries.showLoading();
+      // if (this.timeseries)
+      //   this.timeseries.showLoading();
 
       // HACK: Expand range by 2x to avoid excessive reloading.
-      var deltaTime = endTime - beginTime;
-      beginTime = beginTime - deltaTime / 2;
-      endTime = endTime + deltaTime / 2;
+      if (!force) {
+        var deltaTime = endTime - beginTime;
+        beginTime = beginTime - deltaTime / 2;
+        endTime = endTime + deltaTime / 2;
+      }
 
       // call server
       self.fetchedRange = [beginTime, endTime];
@@ -422,7 +434,7 @@ ServiceGUI = (function ($) {
 
   var TimeSeries = function (box, wrap) {
 
-    var defaultSeries = ['gps.speed_m_s', 'gps.altitude_m'],
+    var defaultSeries = ['pm/packCurrent100ms', 'pm/packTemperature'],
         charts = [],
         plotColors = [orange, blue, green, red, yellow, purple],
         blockRedraw = false,
@@ -651,6 +663,7 @@ ServiceGUI = (function ($) {
         },
 
         updateData = function (newRange) {
+          console.log('updating...');
           // update plots with new data
           for (var i = 0, len = charts.length; i < len; i++) {
             var sen = charts[i].sensor, ser = getSamples(sen);
@@ -690,6 +703,8 @@ ServiceGUI = (function ($) {
         };
 
     return {
+      
+      updateData: updateData,
 
       init: function (fn) {
         // plot data

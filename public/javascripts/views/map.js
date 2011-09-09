@@ -31,11 +31,9 @@ define(['views/dashitem'], function (DashItemView) {
       return this;
     },
 
-    // load: function (e) {
-    //   e.preventDefault();
-    //   console.log('Loading vehicle ...');
-    //   return this;
-    // },
+    parse: function () {
+      
+    },
 
   });
 });

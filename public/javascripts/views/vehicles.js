@@ -47,7 +47,8 @@ define(['views/dashitem'], function (DashItemView) {
         if (err) {
           throw err;
           return;
-        } else if (!wakePeriods || wakePeriods.length === 0) {
+        }
+        if (!wakePeriods || wakePeriods.length === 0) {
           console.warn('Vehicle with id ' + id + ' has not been seen before.');
           return;
         } else {
@@ -71,7 +72,8 @@ define(['views/dashitem'], function (DashItemView) {
           if (err) {
             throw err;
             return;
-          } else if (!schema || schema.length === 0) {
+          }
+          if (!schema || schema.length === 0) {
             console.warn('Vehicle with id ' + id + ' has no data available.');
             return;
           } else {

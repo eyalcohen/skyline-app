@@ -4,6 +4,7 @@
 
 // include global server-client shared resources
 window._ = require('underscore');
+window.Step = require('step');
 window.DNode = require('dnode');
 
 // include client deps and build app root
