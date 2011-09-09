@@ -14,9 +14,10 @@ var dnode = require('dnode');
 var fs = require('fs');
 var sys = require('sys');
 var path = require('path');
-var csv = require('csv');
+var CSV = require('csv');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
+_.mixin(require('underscore.string'));
 var Step = require('step');
 var EventID = require('./customids').EventID;
 var models = require('./models');
@@ -35,6 +36,35 @@ var jadeify = require('jadeify');
 
 
 /////////////// Helpers
+
+
+/**
+ * Wraps a callback f to simplify error handling.  Specifically, this:
+ *   asyncFunction(..., errWrap(cb, function(arg) {
+ *     ...
+ *     cb(...);
+ *   }));
+ * is equivalent to:
+ *   asyncFunction(..., function(err, arg) {
+ *     if (err) { cb(err); return; }
+ *     try {
+ *       ...
+ *       cb(...);
+ *     } catch (err2) {
+ *       cb(err2);
+ *     }
+ *   }));
+ */
+function errWrap(next, f) {
+  return function(err) {
+    if (err) { next(err); return; }
+    try {
+      f.apply(this, Array.prototype.slice.call(arguments, 1));
+    } catch (err) {
+      next(err);
+    }
+  }
+}
 
 
 /**
@@ -202,7 +232,7 @@ models.defineModels(mongoose, function () {
  */
 
 app.param('email', function (req, res, next, email) {
-  User.findOne({ email: email }, function (err, usr) {
+  User.findOne({ email: email }, errWrap(next, function (usr) {
     if (usr) {
       var pass = req.query.password || req.body.password;
       if (usr.authenticate(pass)) {
@@ -214,7 +244,7 @@ app.param('email', function (req, res, next, email) {
     } else {
       res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
     }
-  });
+  }));
 });
 
 
@@ -223,15 +253,15 @@ app.param('email', function (req, res, next, email) {
  */
 
 app.param('vid', function (req, res, next, id) {
-  Vehicle.findById(id, function (err, veh) {
-    if (!err && veh) {
+  Vehicle.findById(id, errWrap(next, function (veh) {
+    if (veh) {
       req.vehicle = veh;
       util.log('vid ' + id + ' -> ' + util.inspect(veh));
       next();
     } else {
       res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
     }
-  });
+  }));
 });
 
 
@@ -396,6 +426,184 @@ app.del('/sessions', loadUser, function (req, res) {
 ////////////// API
 
 
+// Export as CSV for webapp.
+
+app.get('/export/:vintid/data.csv', function(req, res, next) {
+  // TODO: access control.
+
+  function numParam(name, required) {
+    var v = req.query[name];
+    if (!v && required)
+      throw new Error('Parameter ' + name + ' is required.');
+    if (!v) return null;
+    var n = Number(v);
+    if (isNaN(n))
+      throw new Error('Parameter ' + name + ': "' + v + '" is not a number.');
+    return n;
+  }
+
+  // Parameters available in query URL:
+  //   beg=<beginTime>,end=<endTime> Time range to fetch.
+  //   resample=<resolution> Resample data to provided duration.
+  //   minDuration=<duration> Approximate minimum duration to fetch.
+  //   minmax Include minimum and maximum values.
+  //   chan=<name1>,chan=<name2>,... Channels to fetch.
+  // There are a few special channels:
+  //   $beginDate: Begin date, e.g. '2011-09-06'.
+  //   $beginTime: Begin time, e.g. '16:02:23'.
+  //   $beginAbsTime: Begin time in seconds since epoch, e.g. 1309914166.385.
+  //   $beginRelTime: Begin time in seconds since first sample, e.g. 6.385.
+  //   $endDate/$endTime/$endAbsTime/$endRelTime: End time.
+  //   $duration: Duration in seconds, e.g. '0.01234'.
+  // Example: curl 'http://localhost:8080/export/1772440972/data.csv?beg=1309914019674000&end=1309916383000000&chan=$beginDate&chan=$beginTime&chan=$beginAbsTime&chan=$duration&chan=$beginRelTime&chan=$endRelTime&chan=gps.speed_m_s&chan=gps.latitude_deg&chan=gps.longitude_deg&chan=gps.altitude_m&chan=accel.x_m_s2&minDuration=10000000&minmax'
+  try {
+    var vehicleId = req.vehicle._id;
+    var resample = numParam('resample');
+    var beginTime = numParam('beg', resample != null);
+    var endTime = numParam('end', resample != null);
+    var minDuration = numParam('minDuration');
+    if (resample != null && minDuration == null)
+      minDuration = Math.ceil(resample / 4);
+    var getMinMax = 'minmax' in req.query;
+    var channels = req.query.chan || [];
+    if (_.isString(channels)) channels = [channels];
+    if (!channels.length || (resample != null && resample < 1))
+      return next('BAD_PARAM');  // TODO: better error
+  } catch (err) {
+    return next(err.toString());
+  }
+
+  res.contentType('.csv');
+  var csv = CSV().toStream(res, { lineBreaks: 'windows', end: false });
+  var schema = {};
+  var sampleSet = {};
+  var samplesSplit;
+  Step(
+    function fetchData() {
+      var parallel = this.parallel;
+      // Fetch channels.
+      channels.forEach(function(channelName) {
+        var next = parallel();
+        var fetchOptions = {
+          beginTime: beginTime, endTime: endTime,
+          minDuration: minDuration, getMinMax: getMinMax
+        };
+        sampleDb.fetchSamples(vehicleId, channelName, fetchOptions,
+                              errWrap(next, function(samples) {
+          if (resample != null)
+            samples = SampleDb.resample(samples, beginTime, endTime, resample);
+          sampleSet[channelName] = samples;
+          next();
+        }));
+      });
+      // Fetch schema.
+      { var next = parallel();
+        var fetchOptions = { beginTime: beginTime, endTime: endTime };
+        sampleDb.fetchSamples(vehicleId, '_schema', fetchOptions,
+                              errWrap(next, function(samples) {
+          samples.forEach(function(sample) {
+            schema[sample.val.channelName] = sample;
+          });
+          next();
+        }));
+      }
+    },
+
+    function reorganize(err) {
+      if (err)
+        util.log('Error during CSV sample fetch: ' + err + '\n' + err.stack);
+      samplesSplit = SampleDb.splitSamplesByTime(sampleSet);
+      this();
+    },
+
+    function writeData(err) {
+      if (err) return this(err);
+
+      // Write UTF-8 signature, so that Excel imports CSV as UTF-8.
+      // Unfortunately, this doesn't seem to work with all Excel versions.  Boo.
+      res.write(new Buffer([0xEF, 0xBB, 0xBF]));
+
+      // Write header.
+      var header = [];
+      var specialRE = /^\$(begin|end)(Date|Time|AbsTime|RelTime)$/;
+      channels.forEach(function(channelName) {
+        var m = channelName.match(specialRE);
+        if (m) {
+          header.push(
+              (m[1] === 'end' ? 'End ' : 'Begin ') +
+              (m[2] === 'Date' ? 'Date' :
+               m[2] === 'Time' ? 'Time' :
+               m[2] === 'AbsTime' ? 'Since 1970 (s)' :
+               m[2] === 'RelTime' ? 'Since Start (s)' : ''));
+        } else if (channelName === '$duration') {
+          header.push('Duration (s)');
+        } else {
+          var channelSchema = schema[channelName];
+          var description = channelName;
+          if (channelSchema && channelSchema.val.humanName)
+            description = channelSchema.val.humanName;
+          if (channelSchema && channelSchema.val.units)
+            description += ' (' + channelSchema.val.units + ')';
+          header.push(description);
+          if (getMinMax) {
+            header.push('min');
+            header.push('max');
+          }
+        }
+      });
+      csv.write(header);
+
+      // Write data.
+      var firstBeg = null;
+      samplesSplit.forEach(function(sampleGroup) {
+        var beg = sampleGroup.beg, end = sampleGroup.end;
+        if (firstBeg == null) firstBeg = beg;
+        // TODO: What about time zones?
+        // See zoneinfo npm and
+        //   https://bitbucket.org/pellepim/jstimezonedetect/wiki/Home
+        // TOOD: i18n?
+        var date = new Date(beg / 1000);
+        var line = [];
+        channels.forEach(function(channelName) {
+          var m = channelName.match(specialRE);
+          if (m) {
+            var t = (m[1] === 'end' ? end : beg), d = new Date(t / 1e3);
+            line.push(
+                m[2] === 'Date' ?
+                    _.sprintf('%d-%02d-%02d',
+                              d.getFullYear(), d.getMonth() + 1, d.getDate()) :
+                m[2] === 'Time' ?
+                    _.sprintf('%02d:%02d:%02d',
+                              d.getHours(), d.getMinutes(), d.getSeconds()) :
+                m[2] === 'AbsTime' ? t / 1e6 :
+                m[2] === 'RelTime' ? (t - firstBeg) / 1e6 : '');
+          } else if (channelName === '$duration') {
+            line.push((end - beg) / 1e6);
+          } else {
+            var s = sampleGroup.val[channelName];
+            var val = (s == null ? '' : s.val);
+            if (!(_.isNumber(val) || _.isString(val)))
+              val = util.inspect(val);
+            line.push(val);
+            if (getMinMax) {
+              line.push(s == null || s.min == null ? '' : s.min);
+              line.push(s == null || s.max == null ? '' : s.max);
+            }
+          }
+        });
+        csv.write(line);
+      });
+
+      csv.write([]);  // Make sure there's a terminating newline.
+      csv.end();
+      res.end();
+    },
+
+    next
+  );
+});
+
+
 // Handle user create request
 
 app.post('/usercreate/:newemail', function (req, res) {
@@ -539,9 +747,7 @@ app.put('/samples', function (req, res) {
       var sampleSet = {};
       var firstError;
       uploadSamples.sampleStream.forEach(function(sampleStream) {
-        // kevinh - the delta times start again for each sampleStream
         var begin = 0, duration = 0;
-
         sampleStream.sample.forEach(function(upSample) {
           begin += upSample.beginDelta;  // Delta decode.
           duration += upSample.durationDelta;  // Delta decode.
@@ -774,8 +980,6 @@ var createDnodeConnection = function (remote, conn) {
       if (err) {
         cb(err);
       } else {
-        
-        
         var filterUser;
         if (usr.role === 'admin') {
           filterUser = null;
@@ -835,32 +1039,46 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
+  // Fetch samples.
+  // TODO: get rid of subscriptions, replace with 'wait until data available'
+  // option.
   function fetchSamples(sessionInfo, vehicleId, channelName, options, cb) {
-    verifySession(sessionInfo, function (err, usr) {
-      if (err) {
-        cb(err);
-        return;
-      } else {
-        var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
-        console.time(id);
-        function next(err, samples) {
-          console.timeEnd(id);
-          if (err)
-            console.log('Error in ' + id + ': ' + err.stack);
-          cb(err, samples);
-        };
-        if (options.subscribe != null) {
-          var handle = options.subscribe;
-          console.log(handle);
-          options.subscribe = 0.25;  // Polling interval, seconds.
-          cancelSubscribeSamples(handle);
-          subscriptions[handle] =
-              sampleDb.fetchSamples(vehicleId, channelName, options, next);
-        } else {
+    if (!verifySession(sessionInfo, cb)) {
+      cb(new Error('Could not verify session'));
+      return;
+    }
+
+    var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
+    console.time(id);
+    function next(err, samples) {
+      console.timeEnd(id);
+      console.log(id + ' got ' + samples.length + ' samples.');
+      if (err)
+        console.log('Error in ' + id + ': ' + err.stack);
+      cb(err, samples);
+    };
+    if (options.subscribe != null) {
+      var handle = options.subscribe;
+      console.log(handle);
+      options.subscribe = 0.25;  // Polling interval, seconds.
+      cancelSubscribeSamples(handle);
+      subscriptions[handle] =
           sampleDb.fetchSamples(vehicleId, channelName, options, next);
-        }
-      }
-    });
+    } else {
+      sampleDb.fetchSamples(vehicleId, channelName, options, next);
+    }
+  }
+
+  // Fetch channel tree.
+  // TODO: move this into client code, use _schema subscription instead.
+  function fetchChannelTree(sessionInfo, vehicleId, cb) {
+    if (!verifySession(sessionInfo, cb))
+      return cb(new Error('Could not verify session'));
+
+    sampleDb.fetchSamples(vehicleId, '_schema', {},
+                          errWrap(cb, function(samples) {
+      cb(null, SampleDb.buildChannelTree(samples));
+    }));
   }
 
   function cancelSubscribeSamples(handle) {
@@ -880,6 +1098,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchVehicles: fetchVehicles,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
+    fetchChannelTree: fetchChannelTree,
   };
 };
 

@@ -1,0 +1,61 @@
+<config generation="234">
+    <!-- All directives for a particular vehicle must be inside a vehicle node, other nodes are ignored -->
+    <vehicle id="234142">
+        
+        <!-- if present turns on the canstream server inside the vehicle (defaults to off) -->
+        <canstream enabled="true" />
+
+        <subsystem id="pm">
+            <!-- <loadinfo type="app" version="1.50" minVersion="1.38" recVersion="1.40">http://somesite.com/foo/appload.bin.signed</loadinfo> -->
+        </subsystem>
+
+        <serverinfo minIntervalOn="10"  minIntervalOff="100" uploadRoot="http://triptrack.ridemission.com/cycle" />
+
+        <canfilter iface="can0">
+            <canid channel="2" operation="getShort" param="pm/fault.faultEncoded"/>
+            <canid param="pm.*/.*"/>
+            <canid param="mc.*/.*"/>
+            <canid param="bms.*/fault.*"/>
+            <canid channel="2" operation="getShort" param="21/43" isRequest="true"/>
+            <canid mask="0x1fffffff" compare="0x123323" extended="true"/>
+            <canid mask="0x1ff" compare="0x123" extended="false"/>
+        </canfilter>
+        <tree>
+            <pipe>
+                <sourceref>can0Source</sourceref>
+                <!-- <sourceref>gpsSource</sourceref> -->
+                <teesink>
+                    <printsink/>
+		    <!-- interval is bucket length in msecs, maxCount is max # allower per bucket --> 
+                    <throttledsink interval="60000" maxCount="1000">
+                        <throttledsink interval="1000" maxCount="100">
+                            <sinkref>eventSpooler</sinkref>
+                        </throttledsink>
+                    </throttledsink>
+                    <!-- Declare a MC fault if the MC broadcasts a fieldCurrent between 100 and 200 -->
+                    <andfiltersink>
+                        <filters>
+                            <canid param="mc/fieldCurrent" operation="getShort" isRequest="false"/>
+                            <cangt>100</cangt>
+                            <canlt>200</canlt>
+                        </filters>
+                        <onPass>
+                            <!-- If anything makes it to this sink we will trigger-->
+                            <triggersink name="mcFault" message="MC fault occurred"/>
+                        </onPass>
+                    </andfiltersink>
+                    <!-- Log recent (and some future) unfiltered PM/MC traffic if a mcFault occurs -->
+                    <orfiltersink>
+                        <filters>
+                            <canid param="mc/.*"/>
+                            <canid param="pm/.*"/>
+                        </filters>
+                        <onPass>
+                            <analyzersink triggerSink="mcFault" maxCount="5000" delay="100"/>
+                        </onPass>
+                    </orfiltersink>
+                </teesink>
+            </pipe>
+        </tree>
+    </vehicle>
+</config>

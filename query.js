@@ -82,7 +82,7 @@ Step(
     parallel()();
   }, function(err) {
     if (err)
-      debug('error:\n' + err.stack);
+      debug('error: ' + err + '\n' + err.stack);
     if (argv.subscribe == null) {
       // Flush stdout.
       process.stdout.once('close', function() {
