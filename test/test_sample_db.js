@@ -132,6 +132,7 @@ exports.testSplitSamplesByTime = function(test) {
       { beg: 20, end: 29, val: 9 },
       { beg: 30, end: 39, val: 12 },
       { beg: 40, end: 49, val: 13 },
+      { beg: 60, end: 69, val: 17 },
     ],
     chan2: [
       { beg: 2, end: 4, val: 2 },
@@ -140,6 +141,7 @@ exports.testSplitSamplesByTime = function(test) {
       { beg: 34, end: 39, val: 11 },
       { beg: 42, end: 47, val: 14 },
       { beg: 50, end: 55, val: 15 },
+      { beg: 62, end: 62, val: 18 },
     ],
     chan3: [
       { beg: 7, end: 9, val: 3 },
@@ -147,6 +149,7 @@ exports.testSplitSamplesByTime = function(test) {
       { beg: 20, end: 22, val: 7 },
       { beg: 37, end: 39, val: 10 },
       { beg: 52, end: 59, val: 16 },
+      { beg: 64, end: 50, val: 19 },
     ],
   };
   var expected = [
@@ -190,9 +193,33 @@ exports.testSplitSamplesByTime = function(test) {
         chan2: { beg: 50, end: 55, val: 15 },
         chan3: { beg: 52, end: 59, val: 16 }, } },
     { beg: 55, end: 59, val: { chan3: { beg: 52, end: 59, val: 16 }, } },
+    // Zero-duration.
+    { beg: 60, end: 62, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
+    { beg: 62, end: 62, val: {
+        chan1: { beg: 60, end: 69, val: 17 },
+        chan2: { beg: 62, end: 62, val: 18 } } },
+    { beg: 62, end: 64, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
+    { beg: 64, end: 64, val: {
+        chan1: { beg: 60, end: 69, val: 17 },
+        chan3: { beg: 64, end: 50, val: 19 } } },
+    { beg: 64, end: 69, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
   ];
   var afterSplit = SampleDb.splitSamplesByTime(beforeSplit);
   test.deepEqual(afterSplit, expected);
+
+  var before2 = {
+    lat: [{beg:1314376952845000,end:1314376952845000,val:37.773921966552734}],
+    lng: [{beg:1314376952851000,end:1314376952851000,val:-122.4073715209961}],
+  };
+  var expected2 = [
+    { beg:1314376952845000,end:1314376952845000, val:
+      {lat:{beg:1314376952845000,end:1314376952845000,val:37.773921966552734}}
+    },
+    { beg:1314376952851000,end:1314376952851000, val:
+      {lng:{beg:1314376952851000,end:1314376952851000,val:-122.4073715209961}}
+    },
+  ];
+  test.deepEqual(SampleDb.splitSamplesByTime(before2), expected2);
   test.done();
 };
 

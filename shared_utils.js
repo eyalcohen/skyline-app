@@ -74,6 +74,9 @@ exports.splitSamplesByTime = function(sampleSet) {
         nextEdge = s.beg;
       if (s.end > now && (nextEdge == null || s.end < nextEdge))
         nextEdge = s.end;
+      // Special case for zero-duration samples.
+      if (s.end <= s.beg && s.beg == now)
+        nextEdge = now;
     });
 
     // Move samples with same time into result.
