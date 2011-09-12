@@ -30,7 +30,7 @@ define(function () {
             }
             var points = [];
             var split = App.shared.splitSamplesByTime({ lat: latPnts, lng: lngPnts });
-            split.forEach(function(p) {
+            split.forEach(function (p) {
               if ('lat' in p.val && 'lng' in p.val)
                 points.push({ beg: p.beg, end: p.end,
                                    lat: p.val.lat.val, lng: p.val.lng.val });
