@@ -39,7 +39,7 @@ define(['views/dashitem'], function (DashItemView) {
 
     load: function (e) {
       e.preventDefault();
-      // this.minimize();
+      this.minimize();
       var id = this.getId(e);
 
       App.api.fetchSamples(App.user, id, '_wake', {},
@@ -54,6 +54,7 @@ define(['views/dashitem'], function (DashItemView) {
         } else {
           App.shared.mergeOverlappingSamples(wakePeriods);
         }
+
         var len = wakePeriods.length, i = 1;
         do {
           var range = {
@@ -78,14 +79,9 @@ define(['views/dashitem'], function (DashItemView) {
             return;
           } else {
             var names = _.pluck(_.pluck(schema, 'val'), 'channelName');
-            
             App.publish('VehicleRequested', [id, range, names]);
-
           }
-
         });
-
-
       });
       // 
       return this;

@@ -8,11 +8,12 @@ window.Step = require('step');
 window.DNode = require('dnode');
 
 // include client deps and build app root
-requirejs(['libs/json2',
+requirejs(['jquery',
+    'libs/json2',
     'libs/modernizr-1.7.min',
     'libs/backbone-min',
     'libs/store.min'],
-    function () {
+    function ($) {
   window.App = {
     debug: true,
     start: function () {
@@ -41,7 +42,8 @@ requirejs(['libs/json2',
 
           App.user = App.store.get('user') || {};
 
-          requirejs(['models', 'collections', 'views', 'router', 'backbone-sync'],
+          requirejs(['models', 'collections', 'views',
+              'router', 'backbone-sync'],
               function (models, collections, views, Router) {
             App.models = models;
             App.collections = collections;
@@ -85,11 +87,14 @@ requirejs(['libs/json2',
     },
 
     buildDash: function () {
-      App.notificationCollection = new App.collections.NotificationCollection();
+      App.notificationCollection =
+          new App.collections.NotificationCollection();
       App.notificationCollection.fetch();
-      App.vehicleCollection = new App.collections.VehicleCollection();
+      App.vehicleCollection =
+          new App.collections.VehicleCollection();
       App.vehicleCollection.fetch();
       App.mapModel = new App.models.MapModel();
+      App.graphModel = new App.models.GraphModel();
     }
 
   };

@@ -6,7 +6,8 @@ define(['views/login',
     'views/logout',
     'views/notifications',
     'views/vehicles',
-    'views/map'],
+    'views/map',
+    'views/graph'],
     function () {
   return {
     LoginView: arguments[0],
@@ -14,6 +15,7 @@ define(['views/login',
     NotificationsView: arguments[2],
     VehiclesView: arguments[3],
     MapView: arguments[4],
+    GraphView: arguments[5],
   };
 });
 

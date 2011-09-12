@@ -608,8 +608,8 @@ a.dashboard-link:active {
 }
 
 .dashboard-top { /*float:left;*/ width:100%; padding:0; /*min-width:500px;*/ }
-.dashboard-left { float:left; width:49.5%; padding:0 0.5% 0 0; min-width:500px; }
-.dashboard-right { float:left; width:49.5%; padding:0 0 0 0.5%; min-width:500px; }
+.dashboard-left { float:left; width:29.5%; padding:0 0.5% 0 0; /*min-width:500px;*/ }
+.dashboard-right { float:left; width:69.5%; padding:0 0 0 0.5%; /*min-width:500px;*/ }
 
 .dashboard-bar-left { float:left; width:26.5%; padding:0 0.5% 0 0; min-width:280px; }
 .dashboard-main { float:left; width:72.5%; padding:0 0 0 0.5%; min-width:500px; }
@@ -997,7 +997,7 @@ div.details-bar-middle {
 
 .map {
   width: 100%;
-  height: 100%;
+  height: 400px;
   background: #b3b3b3 !important;
 }
 
@@ -1065,6 +1065,13 @@ div.details-bar-middle {
 .map-time {
   top: 20px;
   left: 20px;
+}
+
+
+.graph {
+  width: 100%;
+  height: 400px;
+  /*background: #b3b3b3 !important;*/
 }
 
 img.resize-x {

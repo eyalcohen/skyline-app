@@ -9,7 +9,7 @@ define({
   red: '#fe110e',
   yellow: '#befe11',
   purple: '#5a1ada',
-  mapStylez: [
+  stylez: [
     {
       featureType: 'administrative',
       elementType: 'all',
@@ -41,7 +41,7 @@ define({
       stylers: [ { saturation: -100 } ]
     },
   ],
-  mapStyledOptions: {
+  styledOptions: {
     name: 'GrayScale',
   },
 });

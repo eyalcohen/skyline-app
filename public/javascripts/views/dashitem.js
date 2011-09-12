@@ -2,7 +2,7 @@
  * Copyright 2011 Mission Motors
  */
 
-define(function () {
+define(['jquery'], function ($) {
   return Backbone.View.extend({
     initialize: function (args) {
       this.firstRender = true;
