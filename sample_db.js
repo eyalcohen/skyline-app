@@ -835,6 +835,7 @@ function deepUnique(array) {
  *     humanName: 'GPS data',  // optional
  *     description: 'GPS data from dash unit.',  // optional
  *     type: 'category',
+ *     valid: [ { beg: 123, end: 678 }, ... ],
  *     sub: [
  *       { shortName: 'latitude_deg',
  *         channelName: 'gps.latitude_deg',
@@ -849,6 +850,7 @@ function deepUnique(array) {
  *   { shortName: 'mc/',
  *     humanName: 'Motor Controller',  // optional
  *     type: 'category',
+ *     valid: [ { beg: 123, end: 678 }, ... ],
  *     sub: ...
  *   },
  * ]
@@ -904,13 +906,10 @@ SampleDb.buildChannelTree = function(samples) {
 
 /**
  * Merge samples which are adjacent or overlapping and share a value.
- * WARNING: this function is duplicated in sample_db.js and service.js - be sure
- * to keep both versions up to date.
- * TODO: figure out how to actually share code.
  *
+ * mergeOverlappingSamples = function(samples);
  * @param samples Set of incoming samples, sorted by begin time.  Modified!
  */
-
 SampleDb.mergeOverlappingSamples = shared.mergeOverlappingSamples;
 
 /**
@@ -1264,55 +1263,12 @@ var groupSamplesByTime = SampleDb.groupSamplesByTime = function(sampleSet) {
  * Reorganize a sampleSet into a list of samples which occur with the same
  * begin and end times.
  *
+ * splitSamplesByTime = function(sampleSet);
  * @param sampleSet Mapping from channel name to sample arrays.  Sample arrays
  *     must be sorted by time.
  * @return Array of maps from channel name to samples.
  */
-var splitSamplesByTime = SampleDb.splitSamplesByTime = function(sampleSet) {
-  var channels = _.keys(sampleSet);
-  var cur = {};
-  channels.forEach(function(channelName) { cur[channelName] = 0; });
-  var now = -Number.MAX_VALUE;
-  var result = [];
-  while (true) {
-    // Skip any empty space.
-    var firstBeg = null;  // Lowest begin time of current samples.
-    channels.forEach(function(channelName) {
-      var s = sampleSet[channelName][cur[channelName]];
-      if (s && (firstBeg == null || s.beg < firstBeg))
-        firstBeg = s.beg;
-    });
-    if (firstBeg == null)
-      break;
-    if (firstBeg > now)
-      now = firstBeg;
-
-    // Find next edge.
-    var nextEdge = null;  // First begin or end after now, of current samples.
-    channels.forEach(function(channelName) {
-      var s = sampleSet[channelName][cur[channelName]];
-      if (!s) return;
-      if (s.beg > now && (nextEdge == null || s.beg < nextEdge))
-        nextEdge = s.beg;
-      if (s.end > now && (nextEdge == null || s.end < nextEdge))
-        nextEdge = s.end;
-    });
-
-    // Move samples with same time into result.
-    var newSample = { beg: now, end: nextEdge, val: {} };
-    channels.forEach(function(channelName) {
-      var s = sampleSet[channelName][cur[channelName]];
-      if (s && s.beg <= now) {
-        newSample.val[channelName] = s;
-        if (s.end <= nextEdge)
-          ++cur[channelName];
-      }
-    });
-    result.push(newSample);
-    now = nextEdge;
-  }
-  return result;
-}
+SampleDb.splitSamplesByTime = shared.splitSamplesByTime;
 
 
 /**

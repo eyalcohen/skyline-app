@@ -28,7 +28,6 @@ define(function () {
           if (!channel || channel.length === 0) {
             console.warn('Vehicle with id ' + vehicleId + ' has no graphable'+
                 ' data for the time range requested.');
-            return;
           } else {
             var data = [];
             _.each(channel, function (pnt) {
@@ -40,11 +39,10 @@ define(function () {
             });
 
             self.view.render();
-
-            return self;
           }
         }
       );
+      return this;
     },
 
   });

@@ -13,6 +13,7 @@ define(function () {
     },
 
     load: function (vehicleId, timeRange, validChannels) {
+      var self = this;
       var canMap = _.indexOf(validChannels, 'gps.latitude_deg') !== -1 &&
           _.indexOf(validChannels, 'gps.longitude_deg') !== -1;
       if (canMap) {
@@ -27,27 +28,16 @@ define(function () {
               throw err;
               return;
             }
-            if (latPnts.length !== lngPnts.length) {
-              console.warn("Latitude and longitude counts don't match!");
-              return;
-            }
-            // SP: Join lat and lng points using the time
-            // span from the lat point. This makes the
-            // assumption that the array elements for lat and lng
-            // returned by fetchSamples line up in time.
-            _.each(latPnts, function (p, i) {
-              p.lat = p.val;
-              p.lng = lngPnts[i].val
-              delete p.val;
-              points.push(p);
-              this.parallel()();
-            }, this);
-          },
-          function (err) {
-            if (!points || points.length === 0) {
+            var points = [];
+            var split = App.shared.splitSamplesByTime({ lat: latPnts, lng: lngPnts });
+            split.forEach(function(p) {
+              if ('lat' in p.val && 'lng' in p.val)
+                points.push({ beg: p.beg, end: p.end,
+                                   lat: p.val.lat.val, lng: p.val.lng.val });
+            });
+            if (points.length === 0) {
               console.warn('Vehicle with id ' + vehicleId + ' has no mapable'+
                   ' coordinates for the time range requested.');
-              return;
             } else {
               self.set({
                 points: points
