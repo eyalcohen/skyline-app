@@ -39,13 +39,13 @@ requirejs(['libs/json2',
             App.views = views;
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
+            App.subscribe('UserWasAuthenticated', renderLoggedIn);
             function renderLoggedOut() {
               App.login.render({
                 first: true,
                 report: 'Please log in.',
                 type: 'message',
               });
-              App.subscribe('UserWasAuthenticated', renderLoggedIn);
             }
             function renderLoggedIn() {
               App.logout.render();

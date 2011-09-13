@@ -938,19 +938,20 @@ function dnodeLogMiddleware(remote, client) {
     var f = self[fname];
     if (!_.isFunction(f)) return;
     self[fname] = function() {
+      var fnamePretty = '\x1b[1mdnode\x1b[0m \x1b[33m' + fname + '\x1b[0m';
       var funcArgs = _.toArray(arguments);
       var start = Date.now();
       var callback = funcArgs[funcArgs.length - 1];
       if (_.isFunction(callback)) {
         var waiting = setInterval(function() {
-          console.log('dnode \x1b[33m' + fname + '\x1b[0m(\x1b[4m' +
+          console.log(fnamePretty + '(\x1b[4m' +
                       shortInpsect(funcArgs, 40) + '\x1b[0m): ' +
                       'no callback after ' +
                       (Date.now() - start) + ' ms!!!');
         }, 1000);
         funcArgs[funcArgs.length - 1] = function() {
           clearInterval(waiting);
-          console.log('dnode \x1b[33m' + fname + '\x1b[0m(\x1b[4m' +
+          console.log(fnamePretty + '(\x1b[4m' +
                       shortInpsect(funcArgs, 40) + '\x1b[0m) -> (\x1b[4m' +
                       shortInpsect(arguments, 40) + '\x1b[0m) ' +
                       (Date.now() - start) + ' ms');
@@ -960,7 +961,7 @@ function dnodeLogMiddleware(remote, client) {
       } else {
         var start = Date.now();
         f.apply(this, funcArgs);
-        console.log('dnode \x1b[33m' + fname + '\x1b[0m(\x1b[4m' +
+        console.log(fnamePretty + '(\x1b[4m' +
                     shortInpsect(funcArgs, 40) + '\x1b[0m) ' +
                     (Date.now() - start) + ' ms');
       }
