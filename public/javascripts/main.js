@@ -16,7 +16,7 @@ requirejs(['libs/json2',
   window.App = {
     debug: true,
     start: function () {
-      DNode.connect({ disconnect: App.reconnect }, function (remote) {
+      DNode().connect({ disconnect: App.reconnect }, function (remote) {
         // remote.subscribe('data', function (n) {
         //   document.getElementById('output').innerHTML += n + ' ';
         // });
@@ -39,16 +39,24 @@ requirejs(['libs/json2',
             App.views = views;
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
-            App.subscribe('UserWasAuthenticated', App.buildDash);
-            if (_.isEmpty(App.user)) {
+            function renderLoggedOut() {
               App.login.render({
                 first: true,
                 report: 'Please log in.',
                 type: 'message',
               });
-            } else {
+              App.subscribe('UserWasAuthenticated', renderLoggedIn);
+            }
+            function renderLoggedIn() {
               App.logout.render();
               App.buildDash();
+            }
+            if (_.isEmpty(App.user)) {
+              renderLoggedOut();
+            } else {
+              App.api.authenticate(App.user, function handleAuthResult(err) {
+                if (err) renderLoggedOut(); else renderLoggedIn();
+              });
             }
             App.router = new Router();
             Backbone.history.start({
@@ -60,16 +68,21 @@ requirejs(['libs/json2',
             // asked directly.
             //// App.router.navigate('somewhere');
           });
-        } catch (_e) {}
+        } catch (err) {
+          console.error('Error in App.start: ' + err + '\n' + err.stack);
+        }
       });
     },
 
     reconnect: function () {
       console.warn('The server went away. Trying to reconnect ...');
-      var reconnecter = setInterval(function () {
+      if (App.reconnecter)
+        clearInterval(App.reconnecter);
+      App.reconnecter = setInterval(function () {
         DNode.connect({ disconnect: App.reconnect }, function (remote) {
           App.api = remote;
-          clearInterval(reconnecter);
+          clearInterval(App.reconnecter);
+          App.reconnecter = null;
           console.warn('Server reconnected.');
         });
       }, 500);

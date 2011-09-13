@@ -311,15 +311,15 @@ app.get('/', function (req, res) {
 //         parallel()(); // In case there are no vehicles.
 //       }, function(err) {
 //         if (err) { this(err); return; }
-// 
+//
 //         // Only keep vehicles which have drive cycles.
 //         vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
-// 
+//
 //         // Sort by lastSeen.
 //         vehicles.sort(function (a, b) {
 //           return b.lastSeen - a.lastSeen;
 //         });
-// 
+//
 //         if (vehicles.length > 0) {
 //           // TODO: include a session cookie to prevent known-id attacks.
 //           res.render('index', {
@@ -916,10 +916,64 @@ function verifySession(user, cb) {
 }
 
 
+function shortInpsect(argList, maxChars) {
+  var s = _.map(argList, function(arg) {
+    if (_.isUndefined(arg))
+      return 'undefined';
+    else if (_.isFunction(arg))
+      return '[Function]';
+    else
+      return JSON.stringify(arg);
+  }).join(', ');
+  if (s.length > maxChars) {
+    s = s.substr(0, maxChars - 3);
+    s += '...';
+  }
+  return s;
+}
+
+function dnodeLogMiddleware(remote, client) {
+  var self = this;
+  Object.keys(self).forEach(function(fname) {
+    var f = self[fname];
+    if (!_.isFunction(f)) return;
+    self[fname] = function() {
+      var funcArgs = _.toArray(arguments);
+      var start = Date.now();
+      var callback = funcArgs[funcArgs.length - 1];
+      if (_.isFunction(callback)) {
+        var waiting = setInterval(function() {
+          console.log('dnode \x1b[33m' + fname + '\x1b[0m(\x1b[4m' +
+                      shortInpsect(funcArgs, 40) + '\x1b[0m): ' +
+                      'no callback after ' +
+                      (Date.now() - start) + ' ms!!!');
+        }, 1000);
+        funcArgs[funcArgs.length - 1] = function() {
+          clearInterval(waiting);
+          console.log('dnode \x1b[33m' + fname + '\x1b[0m(\x1b[4m' +
+                      shortInpsect(funcArgs, 40) + '\x1b[0m) -> (\x1b[4m' +
+                      shortInpsect(arguments, 40) + '\x1b[0m) ' +
+                      (Date.now() - start) + ' ms');
+          callback.apply(this, arguments);
+        };
+        f.apply(this, funcArgs);
+      } else {
+        var start = Date.now();
+        f.apply(this, funcArgs);
+        console.log('dnode \x1b[33m' + fname + '\x1b[0m(\x1b[4m' +
+                    shortInpsect(funcArgs, 40) + '\x1b[0m) ' +
+                    (Date.now() - start) + ' ms');
+      }
+    };
+  });
+}
+
+
 // Every time a client connects via dnode, this function will be called, and
 // the object it returns will be transferred to the client.
 var createDnodeConnection = function (remote, conn) {
   var subscriptions = { };
+  var user = null;  // Set once user is authenticated.
 
   //// Methods accessible to remote side: ////
 
@@ -938,6 +992,7 @@ var createDnodeConnection = function (remote, conn) {
         usr.meta.logins ++;
         usr.save(function (err) {
           if (!err) {
+            user = usr;
             cb(null, {
               email: usr.email,
               id: usr.id,
@@ -962,98 +1017,96 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
-  function fetchNotifications(user, cb) {
-    verifySession(user, function (err, usr) {
-      if (err) {
-        cb(err);
+  function authenticate(clientUser, cb) {
+    verifySession(clientUser, function (err, usr) {
+      user = usr;
+      cb(err);
+    });
+  }
+
+  function checkAuth(cb) {
+    if (!user)
+      cb(new Error('Not authenticated!'));
+    return user;
+  }
+
+  function fetchNotifications(cb) {
+    if (!checkAuth(cb)) return;
+    cb(null, []);
+  }
+
+  function fetchVehicles(cb) {
+    if (!checkAuth(cb)) return;
+    var filterUser;
+    if (user.role === 'admin') {
+      filterUser = null;
+    } else if (user.role === 'office') {
+      filterUser = ['4ddc6340f978287c5e000003',
+          '4ddc84a0c2e5c2205f000001',
+          '4ddee7a08fa7e041710001cb'];
+    } else {
+      filterUser = user;
+    }
+    findVehiclesByUser(filterUser, function (vehicles) {
+      Step(
+        // Add lastSeen to all vehicles in parallel.
+        function() {
+          var parallel = this.parallel;
+          vehicles.forEach(function (v) {
+            var next = parallel();
+            sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
+              if (cycles && cycles.length > 0)
+                v.lastSeen = _.max(_.pluck(cycles, 'end'));
+              User.findById(v.user_id, function (err, usr) {
+                if (usr)
+                  v.user = usr;
+                next();
+              });
+            });
+          });
+          parallel()(); // In case there are no vehicles.
+        }, function(err) {
+          if (err) { this(err); return; }
+
+          // SP: ugly - mongoose's weird doc mapping
+          // makes it hard to inject new props, like lastSeen.
+          var vehs = [];
+          for (var i = 0, len = vehicles.length; i < len; i++) {
+            var v = vehicles[i].doc;
+            v.user = vehicles[i].user;
+            v.lastSeen = vehicles[i].lastSeen;
+            if (!v.lastSeen)
+              v.lastSeen = 0;
+            vehs.push(v);
+          }
+
+          // Only keep vehicles which have drive cycles.
+          // vehs = vehs.filter(function (v) { 
+          //   return v.lastSeen !== null && v.lastSeen !== undefined;
+          // });
+
+          // Sort by lastSeen.
+          vehs.sort(function (a, b) {
+            return b.lastSeen - a.lastSeen;
+          });              
+
+          vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
+          // HACK: mongoose litters its results with __proto__ fields and
+          // _id with types that confuse dnode.  Go through JSON to get
+          // plain old data.
+          cb(null, JSON.parse(JSON.stringify(vehs)));
+        }
+      );
+    });
+  }
+
+  function fetchUsers(cb) {
+    if (!checkAuth(cb)) return;
+    User.find().sort('created', -1).run(function (err, usrs) {
+      if (!err) {
+        cb(null, JSON.parse(JSON.stringify(usrs)));
       } else {
         cb(null, []);
-      }
-    });
-  }
-
-  function fetchVehicles(user, cb) {
-    verifySession(user, function (err, usr) {
-      if (err) {
-        cb(err);
-      } else {
-        var filterUser;
-        if (usr.role === 'admin') {
-          filterUser = null;
-        } else if (usr.role === 'office') {
-          filterUser = ['4ddc6340f978287c5e000003',
-              '4ddc84a0c2e5c2205f000001',
-              '4ddee7a08fa7e041710001cb'];
-        } else {
-          filterUser = usr;
-        }
-        findVehiclesByUser(filterUser, function (vehicles) {
-          Step(
-            // Add lastSeen to all vehicles in parallel.
-            function() {
-              var parallel = this.parallel;
-              vehicles.forEach(function (v) {
-                var next = parallel();
-                sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
-                  if (cycles && cycles.length > 0)
-                    v.lastSeen = _.max(_.pluck(cycles, 'end'));
-                  User.findById(v.user_id, function (err, usr) {
-                    if (usr)
-                      v.user = usr;
-                    next();
-                  });
-                });
-              });
-              parallel()(); // In case there are no vehicles.
-            }, function(err) {
-              if (err) { this(err); return; }
-
-              // SP: ugly - mongoose's weird doc mapping
-              // makes it hard to inject new props, like lastSeen.
-              var vehs = [];
-              for (var i = 0, len = vehicles.length; i < len; i++) {
-                var v = vehicles[i].doc;
-                v.user = vehicles[i].user;
-                v.lastSeen = vehicles[i].lastSeen;
-                if (!v.lastSeen)
-                  v.lastSeen = 0;
-                vehs.push(v);
-              }
-
-              // Only keep vehicles which have drive cycles.
-              // vehs = vehs.filter(function (v) { 
-              //   return v.lastSeen !== null && v.lastSeen !== undefined;
-              // });
-
-              // Sort by lastSeen.
-              vehs.sort(function (a, b) {
-                return b.lastSeen - a.lastSeen;
-              });
-
-              vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
-              // HACK: mongoose litters its results with __proto__ fields and
-              // _id with types that confuse dnode.  Go through JSON to get
-              // plain old data.
-              cb(null, JSON.parse(JSON.stringify(vehs)));
-            }
-          );
-        });
-      }
-    });
-  }
-
-  function fetchUsers(user, cb) {
-    verifySession(user, function (err, usr) {
-      if (err) {
-        cb(err);
-      } else {
-        User.find().sort('created', -1).run(function (err, usrs) {
-          if (!err) {
-            cb(null, JSON.parse(JSON.stringify(usrs)));
-          } else {
-            cb(null, []);
-          }
-        });
       }
     });
   }
@@ -1062,56 +1115,46 @@ var createDnodeConnection = function (remote, conn) {
   // Fetch samples.
   // TODO: get rid of subscriptions, replace with 'wait until data available'
   // option.
-  function fetchSamples(user, vehicleId, channelName, options, cb) {
-    verifySession(user, function (err, usr) {
-      if (err) {
-        cb(err);
-        return;
-      } else {
-        var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
-        console.time(id);
-        function next(err, samples) {
-          console.timeEnd(id);
-          console.log(id + ' got ' + samples.length + ' samples.');
-          if (err)
-            console.log('Error in ' + id + ': ' + err.stack);
-          cb(err, samples);
-        };
-        if (options.subscribe != null) {
-          var handle = options.subscribe;
-          console.log(handle);
-          options.subscribe = 0.25;  // Polling interval, seconds.
-          cancelSubscribeSamples(handle);
-          subscriptions[handle] =
-              sampleDb.fetchSamples(vehicleId, channelName, options, next);
-        } else {
+  function fetchSamples(vehicleId, channelName, options, cb) {
+    if (!checkAuth(cb)) return;
+    var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
+    console.time(id);
+    function next(err, samples) {
+      console.timeEnd(id);
+      console.log(id + ' got ' + samples.length + ' samples.');
+      if (err)
+        console.log('Error in ' + id + ': ' + err.stack);
+      cb(err, samples);
+    };
+    if (options.subscribe != null) {
+      var handle = options.subscribe;
+      console.log(handle);
+      options.subscribe = 0.25;  // Polling interval, seconds.
+      cancelSubscribeSamples(handle);
+      subscriptions[handle] =
           sampleDb.fetchSamples(vehicleId, channelName, options, next);
-        }
-      }
-    });
+    } else {
+      sampleDb.fetchSamples(vehicleId, channelName, options, next);
+    }
   }
 
-  // Fetch channel tree.
-  // TODO: move this into client code, use _schema subscription instead.
-  function fetchChannelTree(user, vehicleId, cb) {
-    verifySession(user, function (err, usr) {
-      if (err) {
-        cb(err);
-        return;
-      } else {
-        sampleDb.fetchSamples(vehicleId, '_schema', {},
-                              errWrap(cb, function(samples) {
-          cb(null, SampleDb.buildChannelTree(samples));
-        }));
-      }
-    });
-  }
-
-  function cancelSubscribeSamples(handle) {
+  function cancelSubscribeSamples(handle, cb) {
+    // No need to check auth.
     if (handle != null && subscriptions[handle]) {
       sampleDb.cancelSubscription(subscriptions[handle]);
       delete subscriptions[handle];
     }
+    if (cb) cb();
+  }
+
+  // Fetch channel tree.
+  // TODO: move this into client code, use _schema subscription instead.
+  function fetchChannelTree(vehicleId, cb) {
+    if (!checkAuth(cb)) return;
+    sampleDb.fetchSamples(vehicleId, '_schema', {},
+                          errWrap(cb, function(samples) {
+      cb(null, SampleDb.buildChannelTree(samples));
+    }));
   }
 
   conn.on('end', function () {
@@ -1120,6 +1163,7 @@ var createDnodeConnection = function (remote, conn) {
 
   return {
     signin: signin,
+    authenticate: authenticate,
     fetchNotifications: fetchNotifications,
     fetchVehicles: fetchVehicles,
     fetchUsers: fetchUsers,
@@ -1163,7 +1207,7 @@ if (!module.parent) {
       //   this.subscribe = pubsub.subscribe;
       // }).listen(8080).listen(app);
 
-      dnode(createDnodeConnection).listen(8081).listen(app);
+      dnode(createDnodeConnection).use(dnodeLogMiddleware).listen(8081).listen(app);
       util.log("Express server listening on port " + app.address().port);
     }
   );

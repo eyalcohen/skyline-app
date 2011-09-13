@@ -43,7 +43,7 @@ define(['views/dashitem'], function (DashItemView) {
       var id = this.getId(e);
       var title = $(e.target).parent().parent().attr('data-title');
 
-      App.api.fetchSamples(App.user, id, '_wake', {},
+      App.api.fetchSamples(id, '_wake', {},
           function (err, wakePeriods) {
         if (err) {
           throw err;
@@ -69,7 +69,7 @@ define(['views/dashitem'], function (DashItemView) {
           }
         } while (range.endTime - range.beginTime <= 0);
 
-        App.api.fetchSamples(App.user, id, '_schema', range,
+        App.api.fetchSamples(id, '_schema', range,
             function (err, schema) {
           if (err) {
             throw err;

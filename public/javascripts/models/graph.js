@@ -18,14 +18,14 @@ define(function () {
 
     load: function (vehicleId, timeRange, validChannels) {
       var points = [], self = this;
-      App.api.fetchSamples(App.user, vehicleId, 'pm/packCurrent100ms', timeRange,
+      App.api.fetchSamples(vehicleId, 'accel.x_m_s2', timeRange,
           function (err, channel) {
         if (err) {
           throw err;
           return;
         }
         if (!channel || channel.length === 0) {
-          console.warn('Vehicle with id ' + vehicleId + ' has no graphable'+
+          console.warn('Vehicle with id ' + vehicleId + ' has no graphable' +
               ' data for the time range requested.');
         } else {
           var data = [];
