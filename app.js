@@ -126,7 +126,7 @@ function authenticateFromLoginToken(req, res, next) {
  * Gets all vehicles owned by user or all if user is null.
  */
 
-function findVehiclesByUser(user, next, limit) {
+function findVehiclesByUser(user, next) {
   var filter;
   if (!user) {
     filter = {};
@@ -135,7 +135,7 @@ function findVehiclesByUser(user, next, limit) {
   } else {
     filter = { user_id: user._id };
   }
-  Vehicle.find(filter).limit(limit).sort('created', -1).run(function (err, vehs) {
+  Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
     if (!err) {
       next(vehs);
     } else {
@@ -1029,14 +1029,15 @@ var createDnodeConnection = function (remote, conn) {
               vehs.sort(function (a, b) {
                 return b.lastSeen - a.lastSeen;
               });
-              
-              vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
 
-              // ??? throws error without JSON.stringify ???
-              cb(null, JSON.stringify(vehs));
+              vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
+              // HACK: mongoose litters its results with __proto__ fields and
+              // _id with types that confuse dnode.  Go through JSON to get
+              // plain old data.
+              cb(null, JSON.parse(JSON.stringify(vehs)));
             }
           );
-        }, 100);
+        });
       }
     });
   }
@@ -1056,6 +1057,7 @@ var createDnodeConnection = function (remote, conn) {
       }
     });
   }
+
 
   // Fetch samples.
   // TODO: get rid of subscriptions, replace with 'wait until data available'
