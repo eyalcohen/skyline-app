@@ -16,7 +16,9 @@ define(['jquery'], function ($) {
     },
 
     render: function () {
-      this.el = App.engine('logout.jade', { email: App.user.email }).appendTo(App.regions.menu);
+      this.el = App.engine('logout.jade', {
+        email: App.user.email,
+      }).appendTo(App.regions.menu);
       this.delegateEvents();
       return this;
     },

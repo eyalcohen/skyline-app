@@ -82,10 +82,6 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     $('.tabs, .folder').hide();
   });
 
-  // App.subscribe('UserWasAuthenticated', function () {
-  //   $('.tabs, .folder').show();
-  // });
-
   App.subscribe('VehicleRequested', openTab);
 
   function flipTabSides(ctx) {
@@ -102,7 +98,7 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     var targetClass = 'target-' + makeid();
     var target = $('<div class="tab-target '+ targetClass +'">');
     var tabs = $('.tab-dynamic');
-    var nextTo = $(tabs.children().get(tabs.length - 1));
+    var nextTo = $(tabs.get(tabs.length - 1));
     var left = nextTo.offset().left + nextTo.width();
     var tab = App.engine('tab.jade', {
       title: vehicleTitle,
@@ -124,13 +120,6 @@ requirejs(['jquery', 'jquery-plugins'], function () {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
   }
-
-
-  //TMP
-  // $('[data-tab-target="preferences"]').click(function (e) {
-  //   new App.collections.UserCollection().fetch();
-  // });
-
 
 });
 

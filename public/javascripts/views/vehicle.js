@@ -21,6 +21,9 @@ define(['jquery'], function ($) {
         notifications: new App.collections.NotificationCollection({
             parent: '.' + this.options.parent + ' div .dashboard-top',
         }),
+        tree: new App.models.TreeModel({
+          parent: '.' + this.options.parent + ' div .dashboard-right',
+        }),
         map: new App.models.MapModel({
           parent: '.' + this.options.parent + ' div .dashboard-left',
         }),
@@ -28,9 +31,12 @@ define(['jquery'], function ($) {
           parent: '.' + this.options.parent + ' div .dashboard-right',
         }),
       };
-      this.items.notifications.fetch();
-      this.items.map.load.apply(this, opts);
-      this.items.graph.load.apply(this, opts);
+      _.each(this.items, function (item) {
+        if (item instanceof Backbone.Collection)
+          item.fetch();
+        else if (item instanceof Backbone.Model)
+          item.load.apply(this, opts);
+      });
       return this;
     },
 
