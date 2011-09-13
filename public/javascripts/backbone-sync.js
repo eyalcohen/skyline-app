@@ -8,10 +8,7 @@ Backbone.sync = function(method, model, options) {
     if (err) {
       App.publish('NotAuthenticated');
       options.error(obj);
-    } else if ('string' === typeof obj) {
-      try {
-        obj = JSON.parse(obj);
-      } catch(e) {}
+      return;
     }
     options.success(obj);
     if (isCollection) {
