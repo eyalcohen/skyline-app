@@ -4,15 +4,15 @@
 
 define(function () {
   return Backbone.Model.extend({
-    initialize: function (spec) {
-      if ('function' === typeof spec)
+    initialize: function (args) {
+      if ('function' === typeof args)
         return false;
-      // if (!spec || !spec.make || !spec.model || !spec.year) {
+      // if (!args || !args.make || !args.model || !args.year) {
       //   throw new Error('InvalidConstructArgs');
       //   return;
       // }
       this.set({
-        htmlId: 'notification_' + spec._id,
+        htmlId: 'notification_' + args._id,
       });
       return this;
     }

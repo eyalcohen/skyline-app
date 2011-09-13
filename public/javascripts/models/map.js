@@ -4,11 +4,15 @@
 
 define(function () {
   return Backbone.Model.extend({
-    initialize: function (spec) {      
-      this.view = new App.views.MapView({ model: this });
-      this.view.render({ empty: true });
+    initialize: function (args) {
+      if (!args) args = {};
+      this.view = new App.views.MapView({
+        model: this,
+        parent: args.parent,
+      });
+      this.view.render({ loading: true });
       _.bindAll(this, 'load');
-      App.subscribe('VehicleRequested', this.load);
+      // App.subscribe('VehicleRequested', this.load);
       return this;
     },
 
@@ -38,6 +42,7 @@ define(function () {
             if (points.length === 0) {
               console.warn('Vehicle with id ' + vehicleId + ' has no mapable'+
                   ' coordinates for the time range requested.');
+              self.view.render({ empty: true });
             } else {
               self.set({
                 points: points
@@ -48,6 +53,7 @@ define(function () {
         );
       } else {
         console.warn('I can\'t map this!');
+        this.view.render({ empty: true });
       }
       return this;
     },

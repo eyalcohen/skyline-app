@@ -4,11 +4,15 @@
 
 define(function () {
   return Backbone.Model.extend({
-    initialize: function (spec) {      
-      this.view = new App.views.GraphView({ model: this });
-      this.view.render({ empty: true });
+    initialize: function (args) {
+      if (!args) args = {};
+      this.view = new App.views.GraphView({
+        model: this,
+        parent: args.parent,
+      });
+      this.view.render({ loading: true });
       _.bindAll(this, 'load');
-      App.subscribe('VehicleRequested', this.load);
+      // App.subscribe('VehicleRequested', this.load);
       return this;
     },
 

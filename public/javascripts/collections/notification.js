@@ -7,8 +7,12 @@ define(['models/notification'], function (model) {
     model: model,
     readFunc: 'fetchNotifications',
 
-    initialize: function () {
-      this.view = new App.views.NotificationsView({ collection: this });
+    initialize: function (args) {
+      if (!args) args = {};
+      this.view = new App.views.NotificationsView({
+        collection: this,
+        parent: args.parent,
+      });
       this.view.render({ loading: true });
       this.loaded = _.bind(function () {
         this.view.render();

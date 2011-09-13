@@ -1015,9 +1015,9 @@ var createDnodeConnection = function (remote, conn) {
                 var v = vehicles[i].doc;
                 v.user = vehicles[i].user;
                 v.lastSeen = vehicles[i].lastSeen;
-                if (!v.lastSeen)
-                  v.lastSeen = 0;
-                vehs.push(v);
+                if (v.lastSeen)
+                  //v.lastSeen = 0;
+                  vehs.push(v);
               }
 
               // Only keep vehicles which have drive cycles.
@@ -1028,13 +1028,31 @@ var createDnodeConnection = function (remote, conn) {
               // Sort by lastSeen.
               vehs.sort(function (a, b) {
                 return b.lastSeen - a.lastSeen;
-              });              
+              });
+              
+              vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
 
               // ??? throws error without JSON.stringify ???
               cb(null, JSON.stringify(vehs));
             }
           );
-        }, 20);
+        }, 100);
+      }
+    });
+  }
+
+  function fetchUsers(user, cb) {
+    verifySession(user, function (err, usr) {
+      if (err) {
+        cb(err);
+      } else {
+        User.find().sort('created', -1).run(function (err, usrs) {
+          if (!err) {
+            cb(null, JSON.stringify(usrs));
+          } else {
+            cb(null, []);
+          }
+        });
       }
     });
   }
@@ -1102,6 +1120,7 @@ var createDnodeConnection = function (remote, conn) {
     signin: signin,
     fetchNotifications: fetchNotifications,
     fetchVehicles: fetchVehicles,
+    fetchUsers: fetchUsers,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
     fetchChannelTree: fetchChannelTree,

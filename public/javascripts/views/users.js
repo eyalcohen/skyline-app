@@ -2,8 +2,7 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem', 'plot_booter'], 
-    function (DashItemView) {
+define(['views/dashitem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -13,13 +12,12 @@ define(['views/dashitem', 'plot_booter'],
       opts = opts || {};
       _.defaults(opts, {
         loading: false,
-        empty: false,
+        rows: this.collection.models,
       });
       if (this.el.length) {
         this.remove();
       }
-      var parent = this.options.parent || App.regions.left;
-      this.el = App.engine('graph.dash.jade', opts).appendTo(parent);
+      this.el = App.engine('users.dash.jade', opts).appendTo($('.preferences .dashboard-top'));
       this.setup();
       this.delegateEvents();
       if (this.firstRender) {
@@ -29,33 +27,15 @@ define(['views/dashitem', 'plot_booter'],
         this.content.hide();
         this.el.show();
         this.content.show('fast');
-        if (!opts.loading && !opts.empty)
-          this.draw();
       }
       return this;
     },
 
-    draw: function () {
-      $.plot($('.graph', this.content),
-          [this.model.attributes.data], {
-        xaxis: {
-          mode: 'time'
-          // min: (new Date(1990, 1, 1)).getTime(),
-          // max: (new Date(2000, 1, 1)).getTime(),
-        },
-      });
-
+    load: function (e) {
+      // 
       return this;
     },
 
   });
 });
-
-
-
-
-
-
-
-
 

@@ -28,7 +28,7 @@
         tbody
           - rows.forEach(function (row, i) {
           -  row = row.attributes;
-            tr(id=row.htmlId, class=['dark','light'][i%2])
+            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.make+"/"+row.model+"/"+row.year)
               td
                 =row.make
                 span.edit-panel

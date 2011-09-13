@@ -5,12 +5,12 @@
 define(function () {
   return Backbone.Model.extend({
     initialize: function (args) {
-      if (!args || !args.make || !args.model || !args.year) {
+      if (!args || !args.email || !args.name.first || !args.name.last) {
         throw new Error('InvalidConstructArgs');
         return;
       }
       this.set({
-        htmlId: 'vehicle_' + args._id,
+        htmlId: 'user_' + args._id,
       });
       return this;
     }

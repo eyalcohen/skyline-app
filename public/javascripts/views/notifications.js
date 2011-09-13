@@ -17,7 +17,8 @@ define(['views/dashitem'], function (DashItemView) {
       if (this.el.length) {
         this.remove();
       }
-      this.el = App.engine('notifications.dash.jade', opts).appendTo(App.regions.left);
+      var parent = this.options.parent || App.regions.left;
+      this.el = App.engine('notifications.dash.jade', opts).appendTo(parent);
       this.setup();
       this.delegateEvents();
       if (this.firstRender) {

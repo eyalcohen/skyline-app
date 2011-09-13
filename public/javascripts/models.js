@@ -5,13 +5,15 @@
 define(['models/notification',
     'models/vehicle',
     'models/map',
-    'models/graph'],
+    'models/graph',
+    'models/user'],
     function () {
   return {
     NotificationModel: arguments[0],
     VehicleModel: arguments[1],
     MapModel: arguments[2],
     GraphModel: arguments[3],
+    UserModel: arguments[4],
   };
 });
 

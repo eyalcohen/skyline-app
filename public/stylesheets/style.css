@@ -96,7 +96,7 @@ body {
   /*font-family: Verdana, Arial, Helvetica, sans-serif;*/
   color: black;
   overflow-x: hidden;
-  overflow-y: hidden;
+  /*overflow-y: hidden;*/
 }
 
 a {
@@ -707,6 +707,7 @@ a.edit-link:hover, a.trash-link:hover, a.view-link:hover, a.clone-link:hover { c
 
 .tabs {
   position: relative;
+  display:none;
 }
 
 .tab-bar {
@@ -752,6 +753,19 @@ a.edit-link:hover, a.trash-link:hover, a.view-link:hover, a.clone-link:hover { c
 
 .tab a:hover {
   /*color: white;*/
+}
+
+
+a.tab-closer {
+  font-size: 11px;
+  color: gray;
+  position: absolute;
+  right: 16px;
+  top: 17px;
+}
+
+a.tab-closer:hover {
+ color:black; 
 }
 
 .tab-side {
@@ -806,6 +820,7 @@ a.edit-link:hover, a.trash-link:hover, a.view-link:hover, a.clone-link:hover { c
 .folder {
   width: 97%;
   padding: 20px;
+  display:none;
 /*  background: #222;
   background-image: -moz-linear-gradient(
     0 0,

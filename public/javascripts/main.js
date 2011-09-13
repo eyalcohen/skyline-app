@@ -76,12 +76,18 @@ requirejs(['libs/json2',
     },
 
     buildDash: function () {
+      $('.tabs, .folder').show();
       App.notificationCollection =
           new App.collections.NotificationCollection();
       App.notificationCollection.fetch();
       App.vehicleCollection =
           new App.collections.VehicleCollection();
       App.vehicleCollection.fetch();
+      
+      // TODO: check if user is ADMIN first!
+      App.userCollection =
+          new App.collections.UserCollection().fetch();
+      
       // App.mapModel = new App.models.MapModel();
       // App.graphModel = new App.models.GraphModel();
       

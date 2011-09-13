@@ -19,7 +19,8 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
       if (this.el.length) {
         this.remove();
       }
-      this.el = App.engine('map.dash.jade', opts).appendTo(App.regions.left);
+      var parent = this.options.parent || App.regions.left;
+      this.el = App.engine('map.dash.jade', opts).appendTo(parent);
       this.setup();
       this.delegateEvents();
       if (this.firstRender) {
@@ -29,7 +30,8 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
         this.content.hide();
         this.el.show();
         this.content.show('fast');
-        this.draw();
+        if (!opts.loading && !opts.empty)
+          this.draw();
       }
       return this;
     },

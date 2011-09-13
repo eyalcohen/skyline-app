@@ -39,8 +39,9 @@ define(['views/dashitem'], function (DashItemView) {
 
     load: function (e) {
       e.preventDefault();
-      this.minimize();
+      // this.minimize();
       var id = this.getId(e);
+      var title = $(e.target).parent().parent().attr('data-title');
 
       App.api.fetchSamples(App.user, id, '_wake', {},
           function (err, wakePeriods) {
@@ -79,7 +80,7 @@ define(['views/dashitem'], function (DashItemView) {
             return;
           } else {
             var names = _.pluck(_.pluck(schema, 'val'), 'channelName');
-            App.publish('VehicleRequested', [id, range, names]);
+            App.publish('VehicleRequested', [id, range, names, title]);
           }
         });
       });
