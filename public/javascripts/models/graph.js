@@ -14,7 +14,8 @@ define(function () {
 
     load: function (vehicleId, timeRange, validChannels) {
       var points = [], self = this;
-      App.api.fetchSamples(App.user, vehicleId, 'pm/packCurrent100ms', timeRange, function (err, channel) {
+      App.api.fetchSamples(App.user, vehicleId, 'pm/packCurrent100ms', timeRange,
+          function (err, channel) {
         if (err) {
           throw err;
           return;

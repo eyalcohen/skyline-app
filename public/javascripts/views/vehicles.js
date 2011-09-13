@@ -6,7 +6,7 @@ define(['views/dashitem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'click [title="explore"]': 'load',
+      'click [title="go"]': 'load',
     },
 
     render: function (opts) {
@@ -18,7 +18,7 @@ define(['views/dashitem'], function (DashItemView) {
       if (this.el.length) {
         this.remove();
       }
-      this.el = App.engine('vehicles.dash.jade', opts).appendTo(App.regions.top);
+      this.el = App.engine('vehicles.dash.jade', opts).appendTo(App.regions.right);
       this.setup();
       this.delegateEvents();
       if (this.firstRender) {

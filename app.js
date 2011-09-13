@@ -126,7 +126,7 @@ function authenticateFromLoginToken(req, res, next) {
  * Gets all vehicles owned by user or all if user is null.
  */
 
-function findVehiclesByUser(user, next) {
+function findVehiclesByUser(user, next, limit) {
   var filter;
   if (!user) {
     filter = {};
@@ -135,7 +135,7 @@ function findVehiclesByUser(user, next) {
   } else {
     filter = { user_id: user._id };
   }
-  Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
+  Vehicle.find(filter).limit(limit).sort('created', -1).run(function (err, vehs) {
     if (!err) {
       next(vehs);
     } else {
@@ -1015,8 +1015,9 @@ var createDnodeConnection = function (remote, conn) {
                 var v = vehicles[i].doc;
                 v.user = vehicles[i].user;
                 v.lastSeen = vehicles[i].lastSeen;
-                if (v.lastSeen)
-                  vehs.push(v);
+                if (!v.lastSeen)
+                  v.lastSeen = 0;
+                vehs.push(v);
               }
 
               // Only keep vehicles which have drive cycles.
@@ -1033,7 +1034,7 @@ var createDnodeConnection = function (remote, conn) {
               cb(null, JSON.stringify(vehs));
             }
           );
-        });
+        }, 20);
       }
     });
   }

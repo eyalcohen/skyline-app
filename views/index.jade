@@ -1,12 +1,37 @@
 #container
   header
     a(href="http://ridemission.com/", target="_blank")
-      img#logo(src="/graphics/logo-small.png", alt="Mission Motors")
+      img#logo(src="/graphics/logo-text.png", alt="Mission Motors")
+      span(style="color:#80FF00; font-weight:bold; font-size:10px;")
+        |  : Cell 2 Server
     nav
       ul
   #main(role="main")
-    .dashboard-top
-    .dashboard-left
-    .dashboard-right
+    div.tabs
+      div.tab.tab-active(style="left: 30px;", data-tab-target="dashboard")
+        a(href="javascript:;")
+          div.tab-side
+            img(src="/graphics/tab-left-side.png", alt="/graphics/tab-left-side-inactive.png")
+          div.tab-content Dashboard
+          div.tab-side
+            img(src="/graphics/tab-right-side.png", alt="/graphics/tab-right-side-inactive.png")
+      div.tab(style="right: 30px;", data-tab-target="preferences")
+        a(href="javascript:;")
+          div.tab-side
+            img(src="/graphics/tab-left-side-inactive.png", alt="/graphics/tab-left-side.png")
+          div.tab-content.tab-content-inactive Admin
+          div.tab-side
+            img(src="/graphics/tab-right-side-inactive.png", alt="/graphics/tab-right-side.png")
+      div.tab-bar
+        div.tab-bar-top
+        div.tab-bar-bottom
+    div.folder
+      div.preferences.tab-target
+        | Nothing to see here yet.
+      div.dashboard.tab-target
+        .dashboard-top
+        .dashboard-left
+        .dashboard-right
   footer
 
+  

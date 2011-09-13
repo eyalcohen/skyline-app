@@ -43,7 +43,11 @@
               td(colspan="2", data-time=row.lastSeen)
                 | -
               td(align="right")
-                input(type="submit", title="explore", value="Explore")
+                - if (row.lastSeen !== 0) {
+                  input(type="submit", title="go", value="Go")
+                - } else {
+                  | &nbsp;
+                - }
           - })
     - }
 

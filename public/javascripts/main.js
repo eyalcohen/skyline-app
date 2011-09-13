@@ -8,12 +8,11 @@ window.Step = require('step');
 window.DNode = require('dnode');
 
 // include client deps and build app root
-requirejs(['jquery',
-    'libs/json2',
+requirejs(['libs/json2',
     'libs/modernizr-1.7.min',
     'libs/backbone-min',
     'libs/store.min'],
-    function ($) {
+    function () {
   window.App = {
     debug: true,
     start: function () {
@@ -30,33 +29,23 @@ requirejs(['jquery',
           App.unsubscribe = require('./minpubsub').unsubscribe;
           App.shared = require('./shared_utils');
 
-          App.regions = {
-            header: $('header'),
-            main: $('#main'),
-            footer: $('footer'),
-            menu: $('nav ul'),
-            top: $('.dashboard-top'),
-            left: $('.dashboard-left'),
-            right: $('.dashboard-right'),
-          };
-
           App.user = App.store.get('user') || {};
 
           requirejs(['models', 'collections', 'views',
-              'router', 'backbone-sync'],
+              'router', 'backbone-sync', 'interface'],
               function (models, collections, views, Router) {
             App.models = models;
             App.collections = collections;
             App.views = views;
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
+            App.subscribe('UserWasAuthenticated', App.buildDash);
             if (_.isEmpty(App.user)) {
               App.login.render({
                 first: true,
                 report: 'Please log in.',
                 type: 'message',
               });
-              App.subscribe('UserWasAuthenticated', App.buildDash);
             } else {
               App.logout.render();
               App.buildDash();
@@ -93,11 +82,16 @@ requirejs(['jquery',
       App.vehicleCollection =
           new App.collections.VehicleCollection();
       App.vehicleCollection.fetch();
-      App.mapModel = new App.models.MapModel();
-      App.graphModel = new App.models.GraphModel();
+      // App.mapModel = new App.models.MapModel();
+      // App.graphModel = new App.models.GraphModel();
+      
+      // App.api.fetchChannelTree(App.user, 1088675181,
+      //     function (err, tree) {
+      //   console.log(tree);
+      // });
     }
 
   };
-  App.start();
+  requirejs.ready(App.start());
 });
 

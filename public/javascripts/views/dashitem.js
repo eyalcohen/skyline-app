@@ -51,7 +51,10 @@ define(['jquery'], function ($) {
         var time = $(this);
         if (!time.data('ts'))
           time.data('ts', time.attr('data-time'));
-        time.text(getRelativeTime(time.data('ts')));
+        if (time.data('ts') !== '0')
+          time.text(getRelativeTime(time.data('ts')));
+        else
+          time.text('Never');
       });
 
       function getRelativeTime (ts) {
