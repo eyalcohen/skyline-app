@@ -1015,9 +1015,9 @@ var createDnodeConnection = function (remote, conn) {
                 var v = vehicles[i].doc;
                 v.user = vehicles[i].user;
                 v.lastSeen = vehicles[i].lastSeen;
-                if (v.lastSeen)
-                  //v.lastSeen = 0;
-                  vehs.push(v);
+                if (!v.lastSeen)
+                  v.lastSeen = 0;
+                vehs.push(v);
               }
 
               // Only keep vehicles which have drive cycles.
@@ -1049,7 +1049,7 @@ var createDnodeConnection = function (remote, conn) {
       } else {
         User.find().sort('created', -1).run(function (err, usrs) {
           if (!err) {
-            cb(null, JSON.stringify(usrs));
+            cb(null, JSON.parse(JSON.stringify(usrs)));
           } else {
             cb(null, []);
           }
