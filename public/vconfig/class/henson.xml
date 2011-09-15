@@ -2,7 +2,18 @@
     <!-- All directives for a particular vehicle must be inside a vehicle node, other nodes are ignored -->
     <vehicle id="234142">
         
-        <serverinfo minIntervalOn="10"  minIntervalOff="100" uploadRoot="http://triptrack.ridemission.com/cycle" />
+        <!-- if present turns on the canstream server inside the vehicle (defaults to off) -->
+        <canstream enabled="true" />
+        
+        <!-- specifies (in seconds) the minimum latency for fetching or 
+	     uploading files to/from the server.
+             minIntervalOn is used when the vehicle is running, 
+	     minIntervalOff is used when asleep.
+
+             uploadRoot is where we should squirt our collected data
+        -->
+        <serverinfo type="upload" minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/samples" />
+        <serverinfo type="download" minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/vconfig" />
 
         <canfilter iface="can0">
             <canid channel="2" operation="getShort" param="pm/fault.faultEncoded"/>
@@ -16,7 +27,7 @@
         <tree>
             <pipe>
                 <sourceref>can0Source</sourceref>
-                <!-- <sourceref>gpsSource</sourceref> -->
+                <sourceref>gpsSource</sourceref> 
                 <teesink>
                     <printsink/>
                     <throttledsink interval="300" maxCount="1000">
@@ -28,8 +39,8 @@
                     <andfiltersink>
                         <filters>
                             <canid param="mc/fieldCurrent" operation="getShort" isRequest="false"/>
-                            <cangt>100</cangt>
-                            <canlt>200</canlt>
+                            <gt>100</gt>
+                            <lt>200</lt>
                         </filters>
                         <onPass>
                             <!-- If anything makes it to this sink we will trigger-->
