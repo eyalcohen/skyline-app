@@ -2,7 +2,7 @@
  * Copyright 2011 Mission Motors
  */
 
-requirejs(['jquery', 'jquery-plugins'], function () {
+requirejs(['jquery'], function () {
 
   App.regions = {
     header: $('header'),
@@ -15,10 +15,9 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     right: $('.dashboard .dashboard-right'),
   };
   
-  $(window).resize($.debounce(250, function (e) {
+  $(window).resize(_.debounce(function (e) {
     App.publish('WindowResize');
-    var win = $(this);
-  }));
+  }, 100));
 
   // TABS
   var tabs = $('.tab');
@@ -54,6 +53,8 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     }
     $('.tab-target').hide();
     target.show();
+    
+    App.publish('WindowResize');
   });
 
   $('.tab-closer').live('click', function (e) {
@@ -120,6 +121,8 @@ requirejs(['jquery', 'jquery-plugins'], function () {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
     return text;
   }
+
+
 
 });
 

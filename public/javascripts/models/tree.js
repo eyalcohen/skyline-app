@@ -6,10 +6,8 @@ define(function () {
   return Backbone.Model.extend({
     initialize: function (args) {
       if (!args) args = {};
-      this.view = new App.views.TreeView({
-        model: this,
-        parent: args.parent,
-      });
+      _.extend(args, { model: this });
+      this.view = new App.views.TreeView(args);
       this.view.render({ loading: true });
       _.bindAll(this, 'load');
       // App.subscribe('VehicleRequested', this.load);
@@ -28,11 +26,11 @@ define(function () {
           console.warn('Vehicle with id ' + vehicleId + ' has no'+
               ' data for the time range requested.');
         } else {
-          // console.log(tree);
-          // self.set({
-          //   data: data
-          // });
-          // self.view.render();
+          console.log(tree);
+          self.set({
+            data: tree
+          });
+          self.view.render();
         }
       });
       return this;

@@ -2,23 +2,50 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['jquery'], function ($) {
+define(['libs/jquery.mousewheel',
+    'libs/mwheelIntent',
+    'libs/jquery.jscrollpane.min',
+    'jquery-plugins'], function () {
   return Backbone.View.extend({
     initialize: function (args) {
       this.firstRender = true;
-      _.bindAll(this, 'destroy');
+      this.animate = false;
+      _.bindAll(this, 'render', 'resize', 'destroy');
+      App.subscribe('WindowResize', this.resize);
       App.subscribe('NotAuthenticated', this.destroy);
       return this;
     },
 
     setup: function () {
       this.toggler = $('.toggler', this.el);
+      this.scroller = $('.scrollable', this.el);
       this.content = $('.dashboard-item-content', this.el);
+      $('.scroll-pane-arrows').jScrollPane({
+        showArrows: true,
+        horizontalGutter: 10
+      });
       return this;
     },
 
     events: {
       'click a.toggler': 'toggle',
+    },
+
+    render: function () {
+      this.setup();
+      this.delegateEvents();
+      if (this.firstRender) {
+        this.firstRender = false;
+        this.el.fadeIn('fast');
+        this.offset = this.options.target ? 
+            $('.' + this.options.target).offset() :
+            this.el.offset();
+      } else {
+        this.content.hide();
+        this.el.show();
+        this.resize();
+        this.content.show('fast', _.bind(this.addScroll, this));
+      }
     },
 
     destroy: function () {
@@ -31,7 +58,7 @@ define(['jquery'], function ($) {
     toggle: function (e) {
       var target = $(e.target);
       this.content.is(':visible') ?
-        this.minimize(target):
+        this.minimize(target) :
         this.maximize(target);
       return this;
     },
@@ -39,11 +66,44 @@ define(['jquery'], function ($) {
     minimize: function () {
       this.content.hide('fast');
       this.toggler.text('+').attr('title', 'expand');
+      this.trigger('toggled', 'close');
     },
 
     maximize: function () {
       this.content.show('fast');
       this.toggler.text('-').attr('title', 'shrink');
+      this.trigger('toggled', 'open');
+    },
+
+    resize: function () {
+      var win = $(window);
+      if (this.offset.top === 0)
+        this.offset = this.options.target ?
+            $('.' + this.options.target).offset() :
+            this.el.offset();
+      if (this.options.height !== null && this.options.height !== undefined) {
+        if (this.options.animate && this.options.height !== 0)
+          this.content.animate({ height: (win.height() - this.offset.top - 68)
+              * this.options.height / 100 }, 'fast');
+        else {
+          this.content.css({ height: (win.height() - this.offset.top - 68)
+              * this.options.height / 100 });
+          this.options.animate = true;
+        }
+      } else {
+        this.content.height(win.height() - this.offset.top - 40);
+      }
+      this.addScroll();
+    },
+
+    addScroll: function () {
+      // HACK: for some reason the notifications view shows
+      // height of 1px after reopening.
+      if (this.content.children().height() > this.content.height()
+          && this.content.height() !== 1)
+        this.content.addClass('scrollable');
+      else if(this.content.hasClass('scrollable'))
+        this.content.removeClass('scrollable');
     },
 
     setTime: function () {

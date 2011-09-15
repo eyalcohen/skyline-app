@@ -1,11 +1,13 @@
 #container
   header
-    a(href="http://ridemission.com/", target="_blank")
-      img#logo(src="/graphics/logo-text.png", alt="Mission Motors")
-      span(style="color:#80FF00; font-weight:bold; font-size:10px;")
-        |  : Cell 2 Server
-    nav
-      ul
+    div
+      a(href="http://ridemission.com/", target="_blank")
+        img#logo(src="/graphics/logo-text.png", alt="Mission Motors")
+        span(style="color:#80FF00; font-weight:bold; font-size:10px;")
+          |  : Cell 2 Server
+    div
+      nav
+        ul
   #main(role="main")
     div.tabs
       div.tabs-dynamic
@@ -29,12 +31,14 @@
     div.folder
       div.preferences.tab-target
         .dashboard-top
-        .dashboard-left
-        .dashboard-right
+        .flex
+          .dashboard-left
+          .dashboard-right
       div.dashboard.tab-target
         .dashboard-top
-        .dashboard-left
-        .dashboard-right
+        .flex
+          .dashboard-left
+          .dashboard-right
   footer
 
   

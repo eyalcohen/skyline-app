@@ -13,21 +13,14 @@ define(['views/dashitem'], function (DashItemView) {
       _.defaults(opts, {
         loading: false,
         rows: this.collection.models,
+        shrinkable: false,
       });
       if (this.el.length) {
         this.remove();
       }
-      this.el = App.engine('users.dash.jade', opts).appendTo($('.preferences .dashboard-top'));
-      this.setup();
-      this.delegateEvents();
-      if (this.firstRender) {
-        this.firstRender = false;
-        this.el.fadeIn('fast');
-      } else {
-        this.content.hide();
-        this.el.show();
-        this.content.show('fast');
-      }
+      this.el = App.engine('users.dash.jade', opts)
+          .appendTo($('.preferences .dashboard-top'));
+      this._super('render');
       return this;
     },
 

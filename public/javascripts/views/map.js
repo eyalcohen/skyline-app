@@ -15,23 +15,16 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
       _.defaults(opts, {
         loading: false,
         empty: false,
+        shrinkable: false,
       });
       if (this.el.length) {
         this.remove();
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('map.dash.jade', opts).appendTo(parent);
-      this.setup();
-      this.delegateEvents();
-      if (this.firstRender) {
-        this.firstRender = false;
-        this.el.fadeIn('fast');
-      } else {
-        this.content.hide();
-        this.el.show();
-        this.content.show('fast');
-        if (!opts.loading && !opts.empty)
-          this.draw();
+      this._super('render');
+      if (!this.firstRender && !opts.loading && !opts.empty) {
+        this.draw();
       }
       return this;
     },
@@ -82,7 +75,7 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
           start,
           end,
           cursor,
-          firstRun = true,
+          // firstRun = true,
           loadedHandle,
           dragHandle,
           leaveHandle;
@@ -234,17 +227,27 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
       // ready
       loadedHandle = google.maps.event.addListener(
             map, 'tilesloaded', function () {
-        if (firstRun) {
-          firstRun = false;
+        // if (firstRun) {
+          // firstRun = false;
           google.maps.event.trigger(map, 'resize');
           map.setCenter(mapBounds.getCenter());
           map.fitBounds(mapBounds);
           //wrap.removeClass('map-tmp');
           //showInfo();
-        }
+        // }
       });
 
+      this.map = map;
+      this.mapBounds = mapBounds;
       return this;
+    },
+
+    resize: function () {
+      this._super('resize');
+      if (this.map) {
+        google.maps.event.trigger(this.map, 'resize');
+        this.map.fitBounds(this.mapBounds);
+      }
     },
 
   });

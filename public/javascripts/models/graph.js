@@ -6,10 +6,8 @@ define(function () {
   return Backbone.Model.extend({
     initialize: function (args) {
       if (!args) args = {};
-      this.view = new App.views.GraphView({
-        model: this,
-        parent: args.parent,
-      });
+      _.extend(args, { model: this });
+      this.view = new App.views.GraphView(args);
       this.view.render({ loading: true });
       _.bindAll(this, 'load');
       // App.subscribe('VehicleRequested', this.load);
@@ -27,16 +25,15 @@ define(function () {
         if (!channel || channel.length === 0) {
           console.warn('Vehicle with id ' + vehicleId + ' has no graphable'+
               ' data for the time range requested.');
+          self.view.render({ empty: true });
         } else {
           var data = [];
           _.each(channel, function (pnt) {
             data.push([pnt.beg, pnt.val]);
           });
-
           self.set({
             data: data
           });
-
           self.view.render();
         }
       });

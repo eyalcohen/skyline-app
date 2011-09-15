@@ -14,21 +14,13 @@ define(['views/dashitem'], function (DashItemView) {
       _.defaults(opts, {
         loading: false,
         rows: this.collection.models,
+        shrinkable: false,
       });
       if (this.el.length) {
         this.remove();
       }
       this.el = App.engine('vehicles.dash.jade', opts).appendTo(App.regions.right);
-      this.setup();
-      this.delegateEvents();
-      if (this.firstRender) {
-        this.firstRender = false;
-        this.el.fadeIn('fast');
-      } else {
-        this.content.hide();
-        this.el.show();
-        this.content.show('fast');
-      }
+      this._super('render');
       if (this.timer) {
         clearInterval(this.timer);
       }
@@ -39,7 +31,6 @@ define(['views/dashitem'], function (DashItemView) {
 
     load: function (e) {
       e.preventDefault();
-      // this.minimize();
       var id = this.getId(e);
       var title = $(e.target).parent().parent().attr('data-title');
 

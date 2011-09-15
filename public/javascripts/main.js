@@ -32,7 +32,7 @@ requirejs(['libs/json2',
           App.user = App.store.get('user') || {};
 
           requirejs(['models', 'collections', 'views',
-              'router', 'backbone-sync', 'interface'],
+              'router', 'backbone-sync', 'backbone-super', 'interface'],
               function (models, collections, views, Router) {
             App.models = models;
             App.collections = collections;
