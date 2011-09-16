@@ -16,8 +16,7 @@ define(function () {
 
     load: function (vehicleId) {
       var self = this;
-      App.api.fetchChannelTree(App.user, vehicleId,
-          function (err, data) {
+      App.api.fetchChannelTree(vehicleId, function (err, data) {
         if (err) {
           throw err;
           return;
