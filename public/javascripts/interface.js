@@ -2,7 +2,7 @@
  * Copyright 2011 Mission Motors
  */
 
-requirejs(['jquery', 'jquery-plugins'], function () {
+requirejs(['jquery'], function () {
 
   App.regions = {
     header: $('header'),
@@ -15,10 +15,9 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     right: $('.dashboard .dashboard-right'),
   };
   
-  $(window).resize($.debounce(250, function (e) {
+  $(window).resize(_.debounce(function (e) {
     App.publish('WindowResize');
-    var win = $(this);
-  }));
+  }, 100));
 
   // TABS
   var tabs = $('.tab');
@@ -54,6 +53,8 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     }
     $('.tab-target').hide();
     target.show();
+    
+    App.publish('WindowResize');
   });
 
   $('.tab-closer').live('click', function (e) {
@@ -82,10 +83,6 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     $('.tabs, .folder').hide();
   });
 
-  // App.subscribe('UserWasAuthenticated', function () {
-  //   $('.tabs, .folder').show();
-  // });
-
   App.subscribe('VehicleRequested', openTab);
 
   function flipTabSides(ctx) {
@@ -102,7 +99,7 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     var targetClass = 'target-' + makeid();
     var target = $('<div class="tab-target '+ targetClass +'">');
     var tabs = $('.tab-dynamic');
-    var nextTo = $(tabs.children().get(tabs.length - 1));
+    var nextTo = $(tabs.get(tabs.length - 1));
     var left = nextTo.offset().left + nextTo.width();
     var tab = App.engine('tab.jade', {
       title: vehicleTitle,
@@ -125,11 +122,6 @@ requirejs(['jquery', 'jquery-plugins'], function () {
     return text;
   }
 
-
-  //TMP
-  // $('[data-tab-target="preferences"]').click(function (e) {
-  //   new App.collections.UserCollection().fetch();
-  // });
 
 
 });

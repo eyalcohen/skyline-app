@@ -6,10 +6,8 @@ define(function () {
   return Backbone.Model.extend({
     initialize: function (args) {
       if (!args) args = {};
-      this.view = new App.views.MapView({
-        model: this,
-        parent: args.parent,
-      });
+      _.extend(args, { model: this });
+      this.view = new App.views.MapView(args);
       this.view.render({ loading: true });
       _.bindAll(this, 'load');
       // App.subscribe('VehicleRequested', this.load);

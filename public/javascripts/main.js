@@ -32,7 +32,7 @@ requirejs(['libs/json2',
           App.user = App.store.get('user') || {};
 
           requirejs(['models', 'collections', 'views',
-              'router', 'backbone-sync', 'interface'],
+              'router', 'backbone-sync', 'backbone-super', 'interface'],
               function (models, collections, views, Router) {
             App.models = models;
             App.collections = collections;
@@ -96,18 +96,9 @@ requirejs(['libs/json2',
       App.vehicleCollection =
           new App.collections.VehicleCollection();
       App.vehicleCollection.fetch();
-      
       // TODO: check if user is ADMIN first!
       App.userCollection =
           new App.collections.UserCollection().fetch();
-      
-      // App.mapModel = new App.models.MapModel();
-      // App.graphModel = new App.models.GraphModel();
-      
-      // App.api.fetchChannelTree(App.user, 1088675181,
-      //     function (err, tree) {
-      //   console.log(tree);
-      // });
     }
 
   };

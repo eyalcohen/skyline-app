@@ -9,7 +9,8 @@ define(['views/login',
     'views/map',
     'views/graph',
     'views/vehicle',
-    'views/users'],
+    'views/users',
+    'views/tree'],
     function () {
   return {
     LoginView: arguments[0],
@@ -20,6 +21,7 @@ define(['views/login',
     GraphView: arguments[5],
     VehicleView: arguments[6],
     UsersView: arguments[7],
+    TreeView: arguments[8],
   };
 });
 

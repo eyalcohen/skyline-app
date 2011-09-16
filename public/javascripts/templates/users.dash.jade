@@ -1,7 +1,9 @@
 .dashboard-item
   .dashboard-item-header
-    a.dashboard-link.toggler(href="javascript:;", title="shrink")
-      | -
+    - if (shrinkable) {
+      a.dashboard-link.toggler(href="javascript:;", title="shrink")
+        | -
+    - }
     h1.dashboard-item-header-txt
       | Users
   .dashboard-item-content

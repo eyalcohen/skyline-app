@@ -1112,7 +1112,6 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
-
   // Fetch samples.
   // TODO: get rid of subscriptions, replace with 'wait until data available'
   // option.

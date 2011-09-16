@@ -12,6 +12,7 @@ define(['views/dashitem'], function (DashItemView) {
       opts = opts || {};
       _.defaults(opts, {
         loading: false,
+        shrinkable: this.options.shrinkable,
         rows: this.collection.models,
       });
       if (this.el.length) {
@@ -19,16 +20,7 @@ define(['views/dashitem'], function (DashItemView) {
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('notifications.dash.jade', opts).appendTo(parent);
-      this.setup();
-      this.delegateEvents();
-      if (this.firstRender) {
-        this.firstRender = false;
-        this.el.fadeIn('fast');
-      } else {
-        this.content.hide();
-        this.el.show();
-        this.content.show('fast');
-      }
+      this._super('render');
       if (this.timer) {
         clearInterval(this.timer);
       }
