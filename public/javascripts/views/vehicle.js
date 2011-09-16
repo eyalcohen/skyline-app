@@ -21,28 +21,28 @@ define(['jquery'], function ($) {
       this.items = {
         notifications: new App.collections.NotificationCollection({
           title: 'Notifications',
-          parent: '.' + this.options.parent + ' div .dashboard-top',
+          parent: '.' + this.options.parent + ' div .dashboard-left',
           target: this.options.parent,
-          height: 20,
-          shrinkable: true,
-        }),
-        tree: new App.models.TreeModel({
-          title: 'Available Channels',
-          parent: '.' + this.options.parent + ' div .dashboard-right-side',
-          target: this.options.parent,
-          height: 80,
+          height: 30,
+          // shrinkable: true,
         }),
         map: new App.models.MapModel({
           title: 'Map',
+          parent: '.' + this.options.parent + ' div .dashboard-right',
+          target: this.options.parent,
+          height: 30,
+        }),
+        tree: new App.models.TreeModel({
+          title: 'Available Channels',
           parent: '.' + this.options.parent + ' div .dashboard-left-side',
           target: this.options.parent,
-          height: 80,
+          height: 70,
         }),
         graph: new App.models.GraphModel({
           title: 'Graph',
-          parent: '.' + this.options.parent + ' div .dashboard-middle',
+          parent: '.' + this.options.parent + ' div .dashboard-right-wide',
           target: this.options.parent,
-          height: 80,
+          height: 70,
         }),
       };
       _.each(this.items, function (item) {
@@ -60,18 +60,18 @@ define(['jquery'], function ($) {
     },
 
     arrange: function (state) {
-      if (state === 'close') {
-        this.items.notifications.view.options.height = 0;
-        this.items.tree.view.options.height = 100;
-        this.items.map.view.options.height = 100;
-        this.items.graph.view.options.height = 100;
-      } else {
-        this.items.notifications.view.options.height = 20;
-        this.items.tree.view.options.height = 80;
-        this.items.map.view.options.height = 80;
-        this.items.graph.view.options.height = 80;
-      }
-      App.publish('WindowResize');
+      // if (state === 'close') {
+      //   this.items.notifications.view.options.height = 0;
+      //   this.items.map.view.options.height = 100;
+      //   this.items.tree.view.options.height = 100;
+      //   this.items.graph.view.options.height = 100;
+      // } else {
+      //   this.items.notifications.view.options.height = 20;
+      //   this.items.tree.view.options.height = 80;
+      //   this.items.map.view.options.height = 80;
+      //   this.items.graph.view.options.height = 80;
+      // }
+      // App.publish('WindowResize');
     },
 
     destroy: function () {

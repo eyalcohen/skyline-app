@@ -17,18 +17,17 @@ define(function () {
     load: function (vehicleId) {
       var self = this;
       App.api.fetchChannelTree(App.user, vehicleId,
-          function (err, tree) {
+          function (err, data) {
         if (err) {
           throw err;
           return;
         }
-        if (!tree || tree.length === 0) {
+        if (!data || data.length === 0) {
           console.warn('Vehicle with id ' + vehicleId + ' has no'+
               ' data for the time range requested.');
         } else {
-          console.log(tree);
           self.set({
-            data: tree
+            data: data
           });
           self.view.render();
         }

@@ -135,11 +135,11 @@ header > div:nth-child(1) {
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
   box-flex: 1;
-  margin: 0 0 0 15px;
+  margin: 0 0 0 10px;
 }
 
 header > div:nth-child(2) {
-  margin: 0 15px 0 0;
+  margin: 0 10px 0 0;
 }
 
 footer {}
@@ -638,6 +638,7 @@ span.landing-copy {
   box-orient: horizontal;
   -moz-box-orient: horizontal;
   width: 100%;
+  margin: 0 0 10px 0;
 }
 
 .flex > div {
@@ -670,9 +671,9 @@ span.landing-copy {
   padding: 0 0 0 5px;
   width: 15%;
 }
-.dashboard-middle {
-  padding: 0 5px;
-  width: 45%;
+.dashboard-right-wide {
+  padding: 0 0 0 5px;
+  width: 80%;
 }
 
 
