@@ -39,23 +39,18 @@ requirejs(['libs/json2',
             App.views = views;
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
-            App.subscribe('UserWasAuthenticated', renderLoggedIn);
-            function renderLoggedOut() {
-              App.login.render({
-                first: true,
-                report: 'Please log in.',
-                type: 'message',
-              });
-            }
-            function renderLoggedIn() {
-              App.logout.render();
-              App.buildDash();
-            }
+            App.subscribe('UserWasAuthenticated', App.buildDash);
+            var loginOpts = {
+              first: true,
+              report: 'Please log in.',
+              type: 'message',
+            };
             if (_.isEmpty(App.user)) {
-              renderLoggedOut();
+              App.publish('NotAuthenticated', [loginOpts]);
             } else {
               App.api.authenticate(App.user, function handleAuthResult(err) {
-                if (err) renderLoggedOut(); else renderLoggedIn();
+                if (err) App.publish('NotAuthenticated', [loginOpts]);
+                else App.publish('UserWasAuthenticated');
               });
             }
             App.router = new Router();

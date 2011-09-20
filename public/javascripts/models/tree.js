@@ -53,7 +53,7 @@ define(function (fn) {
             } while (range.endTime - range.beginTime <= 0);
           }
           App.publish('MapRequested-' + self.attributes.vehicleId, [range]);
-          App.publish('ChannelRequested-' + self.attributes.vehicleId, ['gps.latitude_deg', range]);
+          App.publish('ChannelRequested-' + self.attributes.vehicleId, ['gps.speed_m_s', range]);
         }
       });
       return this;

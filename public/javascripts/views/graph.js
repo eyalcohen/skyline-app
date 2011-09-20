@@ -9,7 +9,7 @@ define(['views/dashitem', 'plot_booter'],
       'click .toggler': 'toggle',
     },
 
-    render: function (opts) {
+    render: function (opts, fn) {
       opts = opts || {};
       _.defaults(opts, {
         waiting: false,
@@ -22,18 +22,39 @@ define(['views/dashitem', 'plot_booter'],
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('graph.dash.jade', opts).appendTo(parent);
-      this._super('render');
-      if (!this.firstRender && !opts.loading 
-            && !opts.waiting && !opts.empty) {
-        this.draw();
-      }
-      return this;
+      this._super('render', _.bind(function () {
+        if (!this.firstRender && !opts.loading 
+              && !opts.waiting && !opts.empty) {
+          if (fn) fn();
+        }
+      }, this));
     },
 
     draw: function () {
-      $.plot($('.graph > div', this.content),
-          [this.model.attributes.data], {
-        xaxes: [{
+      var self = this, series = [], yaxes = [];
+      _.each(self.model.attributes.data, function (ser, i) {
+        series.push({
+          // color: color or number,
+          data: ser,
+          label: self.model.attributes.labels[i],
+          // lines: specific lines options,
+          // bars: specific bars options,
+          // points: specific points options,
+          xaxis: 1,
+          yaxis: i+1,
+          clickable: true,
+          hoverable: true,
+          // shadowSize: number,
+        });
+        yaxes.push({
+          position: ['left','right'][i%2],
+        });
+      });
+      console.log(series, yaxes);
+      var plot =
+          $.plot($('.graph > div', this.content),
+          series, {
+        xaxis: {
           mode: 'time',
           position: 'bottom',
           tickLength: 5,
@@ -41,21 +62,22 @@ define(['views/dashitem', 'plot_booter'],
           // panRange: [-10, 10],
           // min: (new Date(1990, 1, 1)).getTime(),
           // max: (new Date(2000, 1, 1)).getTime(),
-        }],
-        yaxes: [{
-          position: 'left',
+        },
+        yaxis: {
           tickLength: 5,
           // zoomRange: [0.1, 10],
           // panRange: [-10, 10],
           // min: 20,
-        }],
+        },
+        xaxes: [{}],
+        yaxes: yaxes,
         series: {
           lines: {
             show: true,
             lineWidth: 1,
             fill: 0.2,
             // fillColor: null or color/gradient
-            steps: true,
+            // steps: true,
           },
           points: {
             // show: true
@@ -94,6 +116,8 @@ define(['views/dashitem', 'plot_booter'],
           interactive: true,
         },
       });
+
+      $('.graph', this.content).data({plot: plot});
 
       // helper for returning the weekends in a period
       function weekendAreas(axes) {

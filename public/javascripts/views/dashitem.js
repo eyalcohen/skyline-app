@@ -25,7 +25,7 @@ define(['jquery',
       return this;
     },
 
-    render: function () {
+    render: function (cb) {
       this.setup();
       this.delegateEvents();
       if (this.firstRender) {
@@ -38,7 +38,7 @@ define(['jquery',
         this.content.hide();
         this.el.show();
         this.resize();
-        this.content.show('fast', _.bind(this.addScroll, this));
+        this.content.show('fast', _.bind(this.addScroll, this, cb));
       }
     },
 
@@ -92,7 +92,7 @@ define(['jquery',
       this.addScroll();
     },
 
-    addScroll: function () {
+    addScroll: function (cb) {
       // // HACK: for some reason the notifications view shows
       // // height of 1px after reopening.
       // if (this.content.children().height() > this.content.height()
@@ -107,6 +107,7 @@ define(['jquery',
           verticalGutter: 2,
         });
       }
+      if(cb) cb();
     },
 
     setTime: function () {

@@ -23,11 +23,12 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('map.dash.jade', opts).appendTo(parent);
-      this._super('render');
-      if (!this.firstRender && !opts.loading 
-            && !opts.waiting && !opts.empty) {
-        this.draw();
-      }
+      this._super('render', _.bind(function () {
+        if (!this.firstRender && !opts.loading 
+              && !opts.waiting && !opts.empty) {
+          this.draw();
+        }
+      }, this));
       return this;
     },
 

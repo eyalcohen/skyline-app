@@ -72,10 +72,10 @@ define(['views/dashitem',
         },
         ui: {
           select_multiple_modifier: 'alt',
-          // initially_select: ['_wake'],
+          initially_select: ['gps-speed'],
         },
         checkbox: {
-
+          override_ui: false,
         },
         types : {
           types : {
@@ -98,8 +98,30 @@ define(['views/dashitem',
         themes: {
           theme: 'apple',
         },
-        plugins: [ 'themes', 'json_data', 'ui', 'checkbox',
-            'types', 'search', 'contextmenu' ],
+        dnd : {
+          drop_finish : function (data) { 
+            var channelName = data.o.data('channelName'),
+                axis = $('.graph').data('plot').getAxes().xaxis,
+                range = { beginTime: axis.min, endTime: axis.max };
+            App.publish('ChannelRequested-' +
+                self.model.attributes.vehicleId, [channelName, range]);
+          },
+          drag_check : function (data) {
+            if(data.r.attr("id") == "phtml_1") {
+              return false;
+            }
+            return { 
+              after : false, 
+              before : false, 
+              inside : true 
+            };
+          },
+          drag_finish : function (data) { 
+            console.log("DRAG OK"); 
+          }
+        },
+        plugins: ['themes', 'json_data', 'ui', 'checkbox',
+            'types', 'search', 'contextmenu', 'dnd'],
       }).bind('select_node.jstree',
           function (e, data) {
         console.log(e, data);
@@ -111,9 +133,9 @@ define(['views/dashitem',
         console.warn('Found ' + data.rslt.nodes.length +
             ' nodes matching "' + data.rslt.str + '".');
         self.resize();
-      });
-      
-      //.jstree('check_node', $('#_wake'));
+      }).bind('move_node.jstree', function (e, data) {
+        //
+      }).jstree('check_node', $('#gps-speed'));
       return this;
     },
 
