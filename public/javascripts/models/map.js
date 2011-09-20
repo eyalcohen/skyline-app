@@ -21,9 +21,9 @@ define(function () {
         var points = [], self = this;
         Step(
           function () {
-            App.api.fetchSamples(App.user, self.attributes.vehicleId,
+            App.api.fetchSamples(self.attributes.vehicleId, 
                   'gps.latitude_deg', timeRange, this.parallel());
-            App.api.fetchSamples(App.user, self.attributes.vehicleId,
+            App.api.fetchSamples(self.attributes.vehicleId, 
                   'gps.longitude_deg', timeRange, this.parallel());
           },
           function (err, latPnts, lngPnts) {
@@ -39,7 +39,7 @@ define(function () {
                                    lat: p.val.lat.val, lng: p.val.lng.val });
             });
             if (points.length === 0) {
-              console.warn('Vehicle with id ' + vehicleId + ' has no mapable'+
+              console.warn('Vehicle with id ' + vehicleId + ' has no mappable' +
                   ' coordinates for the time range requested.');
               self.view.render({ empty: true });
             } else {

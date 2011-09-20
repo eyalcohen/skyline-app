@@ -17,7 +17,8 @@ define(function () {
     fetch: function (channelName, timeRange) {
       this.view.render({ loading: true });
       var points = [], self = this;
-      App.api.fetchSamples(App.user, self.attributes.vehicleId, channelName, timeRange,
+
+      App.api.fetchSamples(self.attributes.vehicleId, channelName, timeRange,
           function (err, channel) {
         if (err) {
           throw err;

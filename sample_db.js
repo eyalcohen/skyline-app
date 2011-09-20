@@ -39,6 +39,22 @@ var shared = require('./shared_utils');
  *           1: key is on, throttle is not live.
  *           2: throttle is live, bike has not moved since key turned on.
  *           3: throttle is live and bike has moved.
+ *   Notifications:
+ *     chn: '_error', '_warning', '_charge', '_drive'?
+ *     beg, end: time range to which notification applies - can be
+ *         zero-duration for errors and warnings.
+ *     val: {
+ *       humanName: human-readable short description,
+ *           e.g. "Motor Controller Overcurrent Fault".
+ *       description: optional longer description of notification.
+ *       channels: optional list of channels related to this
+ *           notification (e.g. [ 'mc/fault.activeFaults[hard]' ]).
+ *       ... notification-specific data?:
+ *         charge: kWh added, charger type, outlet type, latlng?
+ *         drive: kWh delta, distance travelled
+ *         error, warning: channels containing relevant further data
+ *     }
+ *   TODO: Are _wake and _drive redundant?  Who creates these things?
  */
 
 

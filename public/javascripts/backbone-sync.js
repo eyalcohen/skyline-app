@@ -19,7 +19,7 @@ Backbone.sync = function(method, model, options) {
     case 'create':
       //
     case 'read':
-      App.api[model.readFunc].call(App.api, App.user, handleResponse);
+      App.api[model.readFunc].call(App.api, handleResponse);
     case 'update':
       //
   }
