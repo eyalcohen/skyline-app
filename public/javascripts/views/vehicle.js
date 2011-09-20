@@ -15,47 +15,53 @@ define(['jquery'], function ($) {
       // 'click .toggler': 'arrange',
     },
 
-    render: function (opts) {
+    render: function (vehicleId, vehicleTitle) {
       var self = this;
       this.el = App.engine('vehicle.jade').appendTo('.' + this.options.parent);
       this.items = {
         notifications: new App.collections.NotificationCollection({
+          vehicleId: vehicleId,
           title: 'Notifications',
           parent: '.' + this.options.parent + ' div .dashboard-left',
           target: this.options.parent,
           height: 30,
           // shrinkable: true,
         }),
-        map: new App.models.MapModel({
-          title: 'Map',
-          parent: '.' + this.options.parent + ' div .dashboard-right',
-          target: this.options.parent,
-          height: 30,
-        }),
         tree: new App.models.TreeModel({
+          vehicleId: vehicleId,
           title: 'Available Channels',
           parent: '.' + this.options.parent + ' div .dashboard-left-side',
           target: this.options.parent,
           height: 70,
         }),
+        map: new App.models.MapModel({
+          vehicleId: vehicleId,
+          title: 'Map',
+          parent: '.' + this.options.parent + ' div .dashboard-right',
+          target: this.options.parent,
+          height: 30,
+        }),
         graph: new App.models.GraphModel({
+          vehicleId: vehicleId,
           title: 'Graph',
           parent: '.' + this.options.parent + ' div .dashboard-right-wide',
           target: this.options.parent,
           height: 70,
         }),
       };
-      _.each(this.items, function (item) {
-        if (item instanceof Backbone.Collection) {
-          item.fetch();
-          _.extend(item, Backbone.Events);
-          item.view.bind('toggled', function (state) {
-            self.arrange(state);
-          });
-        }
-        else if (item instanceof Backbone.Model)
-          item.load.apply(this, opts);
-      });
+      this.items.notifications.fetch();
+      this.items.tree.fetch();
+      // _.each(this.items, function (item) {
+      //   if (item instanceof Backbone.Collection) {
+      //     item.fetch();
+      //     _.extend(item, Backbone.Events);
+      //     item.view.bind('toggled', function (state) {
+      //       self.arrange(state);
+      //     });
+      //   }
+      //   // else if (item instanceof Backbone.Model)
+      //   //   item.load.apply(this, opts);
+      // });
       return this;
     },
 

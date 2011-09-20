@@ -6,7 +6,7 @@
     - }
     h1.dashboard-item-header-txt
       | Vehicles
-  .dashboard-item-content
+  .dashboard-item-content.scrollable
     - if (loading) {
       p.dashboard-item-message
         | Loading...
@@ -50,7 +50,7 @@
                 | -
               td(align="right")
                 - if (row.lastSeen !== 0) {
-                  input(type="submit", title="go", value="Go")
+                  input(type="submit", title="Explore vehicle data.", value="Open")
                 - } else {
                   | &nbsp;
                 - }

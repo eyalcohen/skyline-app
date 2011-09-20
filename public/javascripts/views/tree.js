@@ -2,11 +2,13 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem', 'libs/jstree/jquery.jstree'],
+define(['views/dashitem',
+    'libs/jstree/jquery.jstree'],
     function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
+      'keyup .dashboard-search': 'search',
     },
 
     render: function (opts) {
@@ -30,7 +32,7 @@ define(['views/dashitem', 'libs/jstree/jquery.jstree'],
 
     draw: function () {
       var self = this, data = this.model.attributes.data;
-      this.content.jstree({ 
+      $('.tree', this.content).jstree({
         json_data: {
           data: function (n, cb) {
             fillInternal(data, true);
@@ -42,17 +44,23 @@ define(['views/dashitem', 'libs/jstree/jquery.jstree'],
                 fillInternal(child);
               });
               if (top) return;
-              var title;
-              if (!node.parent ||
-                  node.parent.shortName.indexOf('/') !== -1)
-                title = node.shortName;
-              title = title || node.humanName || node.shortName;
+              var title = !node.parent ||
+                  node.parent.shortName.indexOf('/') !== -1 ?
+                node.shortName :
+                node.humanName || node.shortName,
+                  metadata = {};
+              _.each(node, function (val, key) {
+                if (_.isString(val)) {
+                  metadata[key] = val;
+                  delete node[key];
+                }
+              });
               _.extend(node, {
-                data: {
-                  title: title,
-                },
+                data: { title: title },
+                metadata: metadata,
                 attr: {
                   rel: (children.length > 0 ? 'root' : ''),
+                  id: title.replace(' ', '-').toLowerCase(),
                 },
                 children: children,
               });
@@ -64,6 +72,10 @@ define(['views/dashitem', 'libs/jstree/jquery.jstree'],
         },
         ui: {
           select_multiple_modifier: 'alt',
+          // initially_select: ['_wake'],
+        },
+        checkbox: {
+
         },
         types : {
           types : {
@@ -79,10 +91,15 @@ define(['views/dashitem', 'libs/jstree/jquery.jstree'],
             }
           }
         },
+        search: {
+          case_insensitive: true,
+          show_only_matches: true,
+        },
         themes: {
           theme: 'apple',
         },
-        plugins: [ 'themes', 'json_data', 'ui', 'checkbox', 'types', 'search' ],
+        plugins: [ 'themes', 'json_data', 'ui', 'checkbox',
+            'types', 'search', 'contextmenu' ],
       }).bind('select_node.jstree',
           function (e, data) {
         console.log(e, data);
@@ -90,36 +107,21 @@ define(['views/dashitem', 'libs/jstree/jquery.jstree'],
           'create_node.jstree delete_node.jstree',
           function (e, data) {
         self.resize();
+      }).bind('search.jstree', function (e, data) {
+        console.warn('Found ' + data.rslt.nodes.length +
+            ' nodes matching "' + data.rslt.str + '".');
+        self.resize();
       });
       
+      //.jstree('check_node', $('#_wake'));
       return this;
+    },
+
+    search: function (e) {
+      var txt = $(e.target).val().trim();
+      $('.tree', this.content).jstree('search', txt);
     },
 
   });
 });
-
-
-/*
-
-[
-  { 
-    data: 'A node', 
-    metadata: { id : 23 },
-    children: [ 'Child 1', 'A Child 2' ]
-  },
-  {
-    attr: { 'id' : 'li.node.id1' }, 
-    data: { 
-      title: 'Long format demo', 
-      attr: { 'href' : '#' } 
-    } 
-  }
-]
-
-*/
-
-
-
-
-
 

@@ -8,22 +8,23 @@ define(function () {
       if (!args) args = {};
       _.extend(args, { model: this });
       this.view = new App.views.MapView(args);
-      this.view.render({ loading: true });
-      _.bindAll(this, 'load');
-      // App.subscribe('VehicleRequested', this.load);
+      this.view.render({ waiting: true });
+      _.bindAll(this, 'fetch');
+      App.subscribe('MapRequested-' + args.vehicleId, this.fetch);
       return this;
     },
 
-    load: function (vehicleId, timeRange, validChannels) {
-      var self = this;
-      var canMap = _.indexOf(validChannels, 'gps.latitude_deg') !== -1 &&
-          _.indexOf(validChannels, 'gps.longitude_deg') !== -1;
+    fetch: function (timeRange) {
+      this.view.render({ loading: true });
+      var self = this, canMap = timeRange.endTime - timeRange.beginTime > 0;
       if (canMap) {
         var points = [], self = this;
         Step(
           function () {
-            App.api.fetchSamples(App.user, vehicleId, 'gps.latitude_deg', timeRange, this.parallel());
-            App.api.fetchSamples(App.user, vehicleId, 'gps.longitude_deg', timeRange, this.parallel());
+            App.api.fetchSamples(App.user, self.attributes.vehicleId,
+                  'gps.latitude_deg', timeRange, this.parallel());
+            App.api.fetchSamples(App.user, self.attributes.vehicleId,
+                  'gps.longitude_deg', timeRange, this.parallel());
           },
           function (err, latPnts, lngPnts) {
             if (err) {

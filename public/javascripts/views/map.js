@@ -13,6 +13,7 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
     render: function (opts) {
       opts = opts || {};
       _.defaults(opts, {
+        waiting: false,
         loading: false,
         empty: false,
         shrinkable: false,
@@ -23,7 +24,8 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('map.dash.jade', opts).appendTo(parent);
       this._super('render');
-      if (!this.firstRender && !opts.loading && !opts.empty) {
+      if (!this.firstRender && !opts.loading 
+            && !opts.waiting && !opts.empty) {
         this.draw();
       }
       return this;

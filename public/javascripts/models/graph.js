@@ -8,23 +8,24 @@ define(function () {
       if (!args) args = {};
       _.extend(args, { model: this });
       this.view = new App.views.GraphView(args);
-      this.view.render({ loading: true });
-      _.bindAll(this, 'load');
-      // App.subscribe('VehicleRequested', this.load);
+      this.view.render({ waiting: true });
+      _.bindAll(this, 'fetch');
+      App.subscribe('ChannelRequested-' + args.vehicleId, this.fetch);
       return this;
     },
 
-    load: function (vehicleId, timeRange, validChannels) {
+    fetch: function (channelName, timeRange) {
+      this.view.render({ loading: true });
       var points = [], self = this;
-      App.api.fetchSamples(App.user, vehicleId, 'pm/packCurrent100ms', timeRange,
+      App.api.fetchSamples(App.user, self.attributes.vehicleId, channelName, timeRange,
           function (err, channel) {
         if (err) {
           throw err;
           return;
         }
         if (!channel || channel.length === 0) {
-          console.warn('Vehicle with id ' + vehicleId + ' has no graphable'+
-              ' data for the time range requested.');
+          console.warn('Vehicle with id ' + self.attributes.vehicleId + ' has no '+
+              channelName + ' data for the time range requested.');
           self.view.render({ empty: true });
         } else {
           var data = [];

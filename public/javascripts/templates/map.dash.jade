@@ -7,7 +7,10 @@
     h1.dashboard-item-header-txt
       | Map
   .dashboard-item-content
-    - if (loading) {
+    - if (waiting) {
+      p.dashboard-item-message
+        | Waiting...
+    - } else if (loading) {
       p.dashboard-item-message
         | Loading...
     - } else if (empty) {

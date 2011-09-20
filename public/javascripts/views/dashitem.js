@@ -2,11 +2,13 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['libs/jquery.mousewheel',
+define(['jquery',
+    'libs/jquery.mousewheel',
     'libs/mwheelIntent',
-    'libs/jquery.jscrollpane.min',
-    'jquery-plugins'], function () {
+    'libs/jquery.jscrollpane'],
+    function ($) {
   return Backbone.View.extend({
+
     initialize: function (args) {
       this.firstRender = true;
       this.animate = false;
@@ -20,15 +22,7 @@ define(['libs/jquery.mousewheel',
       this.toggler = $('.toggler', this.el);
       this.scroller = $('.scrollable', this.el);
       this.content = $('.dashboard-item-content', this.el);
-      $('.scroll-pane-arrows').jScrollPane({
-        showArrows: true,
-        horizontalGutter: 10
-      });
       return this;
-    },
-
-    events: {
-      'click a.toggler': 'toggle',
     },
 
     render: function () {
@@ -37,7 +31,7 @@ define(['libs/jquery.mousewheel',
       if (this.firstRender) {
         this.firstRender = false;
         this.el.fadeIn('fast');
-        this.offset = this.options.target ? 
+        this.offset = this.options.target ?
             $('.' + this.options.target).offset() :
             this.el.offset();
       } else {
@@ -75,6 +69,8 @@ define(['libs/jquery.mousewheel',
       this.trigger('toggled', 'open');
     },
 
+    search: function (e) {console.log(e);},
+
     resize: function () {
       var win = $(window);
       if (this.offset.top === 0)
@@ -97,13 +93,20 @@ define(['libs/jquery.mousewheel',
     },
 
     addScroll: function () {
-      // HACK: for some reason the notifications view shows
-      // height of 1px after reopening.
-      if (this.content.children().height() > this.content.height()
-          && this.content.height() !== 1)
-        this.content.addClass('scrollable');
-      else if(this.content.hasClass('scrollable'))
-        this.content.removeClass('scrollable');
+      // // HACK: for some reason the notifications view shows
+      // // height of 1px after reopening.
+      // if (this.content.children().height() > this.content.height()
+      //     && this.content.height() !== 1) {
+      //   this.content.addClass('scrollable');
+      // }
+      // else if(this.content.hasClass('scrollable')) {
+      //   this.content.removeClass('scrollable');
+      // }
+      if (this.content.hasClass('scrollable')) {
+        this.content.jScrollPane({
+          verticalGutter: 2,
+        });
+      }
     },
 
     setTime: function () {

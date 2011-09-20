@@ -25,7 +25,7 @@ footer, header, hgroup, menu, nav, section {
 blockquote, q { quotes: none; }
 blockquote:before, blockquote:after,
 q:before, q:after { content: ''; content: none; }
-ins { background-color: #ff9; color: #000; text-decoration: none; }
+ins { /*background-color: #ff9;*/ color: #000; text-decoration: none; }
 mark { background-color: #ff9; color: #000; font-style: italic; font-weight: bold; }
 del { text-decoration: line-through; }
 abbr[title], dfn[title] { border-bottom: 1px dotted; cursor: help; }
@@ -530,7 +530,7 @@ label {
   color: gray;
 }
 
-input:not([type=submit]) {
+input:not([type=submit,type=search]) {
   background: #FBFBFB;
   font-size: 24px;
   margin: 2px 6px 16px 0;
@@ -676,8 +676,21 @@ span.landing-copy {
   width: 80%;
 }
 
-
-
+input.dashboard-search {
+  display: inline;
+  color: #333;
+  float: right;
+  margin: 0px 2px 0 0;
+  font-size: 9px;
+  -webkit-border-radius: 3px;
+  border: 1px inset;
+  background: rgba(255,255,255,0.6);
+  
+}
+input.dashboard-search:focus {
+  color: black;
+  background: rgba(255,255,255,0.9);
+}
 
 .dashboard-wrap { width:100%; min-width:1065px; }
 
@@ -736,9 +749,18 @@ h1.dashboard-item-header-txt {
 
 .dashboard-item-content {}
 
-.scrollable {
+.dashboard-item-content:focus {
+  outline:none;
+}
+
+.dashboard-item-content::-moz-focus-inner {
+  border: none;
+}
+
+/*.scrollable {
   overflow-y: scroll;
 }
+*/
 
 p.dashboard-item-message {
   padding:10px; color:#666;
@@ -753,6 +775,10 @@ tr.dark { background: #F6FBFC; }
 
 th { padding:5px 10px; vertical-align:top; font-weight:normal; white-space: nowrap; }
 td { padding:5px 10px; border-top:1px solid #aaa; vertical-align:top; }
+th[align=right],
+td[align=right] {
+  padding-right: 20px;
+}
 
 thead {
   text-align: left;
@@ -1191,6 +1217,27 @@ div.details-bar-middle {
   height: 100%;
   /*background: #b3b3b3 !important;*/
 }
+
+.graph {
+/*  padding: 10px;*/
+}
+
+.graph > div {
+  width: 100%;
+  height: 100%;
+}
+
+.tree a {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.tree a::-moz-selection,
+.tree ins::-moz-selection,
+.tree a::selection,
+.tree ins::selection { background:transparent; color:black; }
 
 img.resize-x {
   position: relative;
