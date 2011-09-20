@@ -1120,11 +1120,7 @@ var createDnodeConnection = function (remote, conn) {
     var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
     console.time(id);
     function next(err, samples) {
-      console.timeEnd(id);
-      console.log(id + ' got ' + samples.length + ' samples.');
-      if (err)
-        console.log('Error in ' + id + ': ' + err.stack);
-      cb(err, samples);
+      cb(err, JSON.parse(JSON.stringify(samples)));
     };
     if (options.subscribe != null) {
       var handle = options.subscribe;

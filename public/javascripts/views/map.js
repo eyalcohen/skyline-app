@@ -2,9 +2,18 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js?'+
-    'libraries=geometry&sensor=false!callback'], 
-    function (DashItemView, style) {
+var mapsLoadNotifier = _.clone(Backbone.Events);
+requirejs(['async!http://maps.google.com/maps/api/js?' +
+              'libraries=geometry&sensor=false!callback'],
+          function() {
+  console.log('Loaded Google Maps!');
+  var notifier = mapsLoadNotifier;
+  mapsLoadNotifier = null;
+  notifier.trigger('load');
+});
+
+define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
+  console.log('Entered views/map.js');
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -33,6 +42,12 @@ define(['views/dashitem', 'map_style', 'async!http://maps.google.com/maps/api/js
     },
 
     draw: function () {
+      if (mapsLoadNotifier) {
+        // Maps is not yet loaded - delay drawing until it's available.
+        mapsLoadNotifier.bind('load', _.bind(draw, this));
+        return;
+      }
+
       var points = this.model.attributes.points,
           gpsPoints = {},
           cellPoints = {},
