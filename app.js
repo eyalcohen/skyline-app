@@ -1182,7 +1182,7 @@ if (!module.parent) {
                       this);
     }, function(err, db) {
       if (err) { this(err); return; }
-      new SampleDb(db, {}, this);
+      new SampleDb(db, { ensureIndexes: true }, this);
     }, function(err, newSampleDb) {
       if (err) { this(err); return; }
       sampleDb = newSampleDb;
