@@ -13,7 +13,9 @@ var SampleDb = require('./sample_db.js').SampleDb;
 var optimist = require('optimist');
 var argv = optimist
     .default('db', 'mongo://localhost:27017/service-samples')
+    .demand('vehicleId')
     .default('type', 'merged')
+    .boolean('json')
     .argv;
 
 function errCheck(err, op) {
@@ -40,6 +42,8 @@ if (!argv._.length)
 Step(
   function() {
     var parallel = this.parallel;
+    if (argv.json)
+      log('{');
     argv._.forEach(function(channelName) {
       var next = argv.subscribe == null ? parallel() : _.identity;
 
@@ -56,31 +60,44 @@ Step(
       });
 
       function printSamples(samps, desc) {
-        log('\nChannel ' + channelName + ':');
+        if (argv.json)
+          log('  "' + channelName + '": [');
+        else
+          log('\nChannel ' + channelName + ':');
         if (argv.resample) {
           samps = SampleDb.resample(samps, argv.beginTime, argv.endTime,
                                     argv.resample, { stddev: argv.stddev });
-          log('  ' + desc + ', resampled to ' + argv.resample + ':');
+          if (!argv.json)
+            log('  ' + desc + ', resampled to ' + argv.resample + ':');
         } else {
-          log('  ' + desc + ':');
+          if (!argv.json)
+            log('  ' + desc + ':');
         }
         samps.forEach(function(s, i) {
-          log('    ' + s.beg + ' .. ' + s.end + ' (' + (s.end - s.beg) + '): ' +
-              util.inspect(s.val) +
-              (_.isUndefined(s.min) ? '' : ' (' + s.min + '...' + s.max + ')') +
-              (_.isUndefined(s.stddev) ? '' : ' (' + s.stddev + ')'));
-          var nextSample = samps[i+1];
-          var nextBeg = nextSample && nextSample.beg;
-          if (nextBeg && nextBeg < s.end)
-            log('    !!! overlap (' + (s.end - nextBeg) + ') !!!');
-          if (nextBeg && nextBeg > s.end)
-            log('    !!! gap (' + (nextBeg - s.end) + ') !!!');
+          if (argv.json) {
+            log('    ' + JSON.stringify(s) + ',');
+          } else {
+            log('    ' + s.beg + ' .. ' + s.end + ' (' + (s.end - s.beg) +
+                '): ' + util.inspect(s.val) +
+                (_.isUndefined(s.min) ? '' : ' (' + s.min + '...' + s.max +
+                ')') + (_.isUndefined(s.stddev) ? '' : ' (' + s.stddev + ')'));
+            var nextSample = samps[i+1];
+            var nextBeg = nextSample && nextSample.beg;
+            if (nextBeg && nextBeg < s.end)
+              log('    !!! overlap (' + (s.end - nextBeg) + ') !!!');
+            if (nextBeg && nextBeg > s.end)
+              log('    !!! gap (' + (nextBeg - s.end) + ') !!!');
+          }
         });
+        if (argv.json)
+          log('  ],');
       }
 
     });
     parallel()();
   }, function(err) {
+    if (argv.json)
+      log('}');
     if (err)
       debug('error: ' + err + '\n' + err.stack);
     if (argv.subscribe == null) {
