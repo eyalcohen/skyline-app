@@ -443,7 +443,10 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
       // Figure out which samples to add to db, and which existing samples to
       // delete.
       dbSamples.forEach(function(s) { s.indb = true; });
-      Array.prototype.push.apply(newSamples, dbSamples);
+      // Note: the following looks efficient, but when dbSamples is really big,
+      // it blows the call stack.  Doh!
+      //Array.prototype.push.apply(newSamples, dbSamples);
+      newSamples = newSamples.concat(dbSamples);
       sortSamplesByTime(newSamples);
       redundant = mergeOverlappingSamples2(newSamples);
       var merged = newSamples.filter(function(s) { return !s.indb; });
