@@ -696,8 +696,11 @@ app.put('/samples', function (req, res) {
     return;
   }
 
-  var usr, veh, fname;
+  var usr, veh, fname, vehicleId = uploadSamples.vehicleId;
+  var sampleSet = {};
+  var firstError;
   Step(
+    /*
     // get the cycle's user and authenticate
     function getUser() {
       User.findOne({ email: uploadSamples.userId }, this);
@@ -713,7 +716,7 @@ app.put('/samples', function (req, res) {
 
     // get the cycle's vehicle
     function getVehicle() {
-      findVehicleByIntId(uploadSamples.vehicleId, this);
+      findVehicleByIntId(vehicleId, this);
     }, function(veh_) {
       veh = veh_;
       if (!veh)
@@ -721,14 +724,17 @@ app.put('/samples', function (req, res) {
       else
         this();
     },
+    */
 
     // save the cycle locally for now
-    function() {
+    function(err) {
+      veh = { year: 2011, make: 'foo', model: 'bar' };
+      if (err) return this(err);
       var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
           (new Date()).valueOf() + '.js';
       fs.mkdir(__dirname + '/samples', '0755', function (err) {
         fs.writeFile(__dirname + '/samples/' + fileName,
-                     JSON.stringify(uploadSamples), function (err) {
+                     JSON.stringify(uploadSamples, null, '  '), function (err) {
           if (err)
             util.log(err);
           else
@@ -739,10 +745,9 @@ app.put('/samples', function (req, res) {
     },
 
     // Store the data in the database.
-    function() {
+    function(err) {
+      if (err) return this(err);
       // Process samples.
-      var sampleSet = {};
-      var firstError;
       uploadSamples.sampleStream.forEach(function(sampleStream) {
         var begin = 0, duration = 0;
         sampleStream.sample.forEach(function(upSample) {
@@ -770,6 +775,13 @@ app.put('/samples', function (req, res) {
         });
       });
 
+      // HACK: Heuristically add durations to zero-duration samples.
+      addDurationHeuristicHack(vehicleId, sampleSet, this);
+    },
+
+    function(err) {
+      if (err) return this(err);
+
       // Add schema samples.
       var schemaSamples = [];
       uploadSamples.schema.forEach(function(schema) {
@@ -793,7 +805,7 @@ app.put('/samples', function (req, res) {
       }
 
       // Insert in database.
-      sampleDb.insertSamples(veh._id, sampleSet, this);
+      sampleDb.insertSamples(vehicleId, sampleSet, this);
     },
 
     // Any exceptions above end up here.
@@ -888,6 +900,58 @@ app.put('/cycle', function (req, res) {
     });
   });
 });
+
+function addDurationHeuristicHack(vehicleId, sampleSet, cb) {
+  // This is a hack to add duration to samples which are of zero duration.
+  // The algorithm is: for each zero-duration sample, set the begin time to the
+  // end of the previous sample, unless that duration exceeds maxDuration.
+  // Note that if the first sample of each channel has no duration, we have to
+  // query the DB for the previous sample!
+  var maxDuration = 10 * SampleDb.s;
+  var prevSampleSet = {};
+  Step(
+    function() {
+      // For any channel we might need to synthesize an initial begin, get
+      // potentially overlapping data.
+      var parallel = this.parallel;
+      _.each(sampleSet, function(samples, channelName) {
+        var first = _.first(samples);
+        if (first && first.beg == first.end) {
+          var next = parallel();
+          options = { type: 'real',
+                      beginTime: first.beg - maxDuration, endTime: first.beg };
+          sampleDb.fetchSamples(vehicleId, channelName, options,
+                                function(err, samples) {
+            prevSampleSet[channelName] = samples;
+            if (err)
+              util.log('Error in addDurationHeuristicHack while fetching: ' +
+                       err.stack);
+            next();
+          });
+        }
+      });
+      parallel()();
+    },
+    function(err) {
+      if (err) return this(err);
+      _.each(sampleSet, function(samples, channelName) {
+        var prevEnd = -Number.MAX_VALUE;
+        if (prevSampleSet[channelName] && _.last(prevSampleSet[channelName]))
+          prevEnd = _.last(prevSampleSet[channelName]).end;
+        samples.forEach(function(s) {
+          if (s.end <= s.beg) {
+            // Synthesize a duration for this sample.
+            var dur = Math.max(Math.min(maxDuration, s.beg - prevEnd), 0);
+            s.beg -= dur;
+          }
+          prevEnd = s.end;
+        });
+      });
+      this(null);
+    },
+    cb
+  );
+}
 
 
 ////////////// DNode Methods
