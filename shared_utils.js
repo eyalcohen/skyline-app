@@ -4,8 +4,54 @@
  * This code is loaded both in the web app and in the server.
  */
 
+var _ = require('underscore');
 
-// Requirements:
+
+//// Constants and utility functions: ////
+
+
+// Time constants.
+var us = exports.us = 1;
+var ms = exports.ms = 1000 * us;
+var s = exports.s = 1000 * ms;
+var m = exports.m = 60 * s;
+var h = exports.h = 60 * m;
+var d = exports.d = 24 * h;
+
+// The smallest duration which fits in each bucket, in us.
+exports.bucketThresholds = [
+  0 * us,
+  500 * us,
+  5 * ms,
+  50 * ms,
+  500 * ms,
+  5 * s,
+  30 * s,
+  5 * m,
+  30 * m,
+  5 * h,
+];
+
+exports.syntheticDurations = [
+  100 * us,
+  1 * ms,
+  10 * ms,
+  100 * ms,
+  1 * s,
+  10 * s,
+  1 * m,
+  10 * m,
+  1 * h,
+  1 * d,
+];
+
+// Number of synthetic buckets per db row.
+exports.syntheticSamplesPerRow = 50;
+
+// The size of the buckets in each bucket level.
+exports.bucketSizes = exports.bucketThresholds.map(function(t, i) {
+  return (i > 0) ? t * 100 : 500 * us;  // Special case for first level.
+});
 
 
 /**
@@ -93,4 +139,32 @@ exports.splitSamplesByTime = function(sampleSet) {
     now = nextEdge;
   }
   return result;
+}
+
+
+/**
+ * Trim a sample list to fit entirely within a given time range.
+ * @param samples The sample list to trim.  Must be sorted, and non-overlapping.
+ * @param beg,end Time range to trim to.
+ * @return The subset of the samples which fit between beg and end, with
+ *    samples which overlap beg/end trimmed to length.
+ */
+exports.trimSamples = function(samples, beg, end) {
+  var len = samples.length;
+  for (var first = 0; first < len; ++first)
+    if (samples[first].end > beg || samples[first].beg == beg) break;
+  for (var last = len - 1; last >= first; --last)
+    if (samples[last].beg < end || samples[last].end == end) break;
+  var r = samples.slice(first, last + 1);
+  var first = r[0];
+  if (first && first.beg < beg) {
+    first = r[0] = _.clone(first);
+    first.beg = beg;
+  }
+  var last = _.last(r);
+  if (last && last.end > end) {
+    last = r[r.length - 1] = _.clone(last);
+    last.end = end;
+  }
+  return r;
 }

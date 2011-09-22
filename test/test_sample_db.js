@@ -295,6 +295,45 @@ exports.testBuildChannelTree = function(test) {
 };
 
 
+exports.testTrimSamples = function(test) {
+  test.deepEqual(SampleDb.trimSamples([], 100, 200), []);
+  var samples = [
+    { beg: 100, end: 120, val: 0 },
+    { beg: 120, end: 125, val: 1 },
+    { beg: 130, end: 130, val: 2 },
+    { beg: 130, end: 140, val: 3 },
+    { beg: 150, end: 180, val: 4 },
+  ];
+  test.deepEqual(SampleDb.trimSamples(samples, 0, 500), samples);
+  test.deepEqual(SampleDb.trimSamples(samples, 100, 180), samples);
+  test.deepEqual(SampleDb.trimSamples(samples, 128, 180), samples.slice(2));
+  test.deepEqual(SampleDb.trimSamples(samples, 100, 128), samples.slice(0, 2));
+  test.deepEqual(SampleDb.trimSamples(samples, 110, 170),
+                 [ { beg: 110, end: 120, val: 0 },
+                   { beg: 120, end: 125, val: 1 },
+                   { beg: 130, end: 130, val: 2 },
+                   { beg: 130, end: 140, val: 3 },
+                   { beg: 150, end: 170, val: 4 } ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 122, 135),
+                 [ { beg: 122, end: 125, val: 1 },
+                   { beg: 130, end: 130, val: 2 },
+                   { beg: 130, end: 135, val: 3 } ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 130, 135),
+                 [ { beg: 130, end: 130, val: 2 },
+                   { beg: 130, end: 135, val: 3 } ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 122, 130),
+                 [ { beg: 122, end: 125, val: 1 },
+                   { beg: 130, end: 130, val: 2 } ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 130, 130),
+                 [ { beg: 130, end: 130, val: 2 } ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 0, 50), [ ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 0, 100), [ ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 180, 300), [ ]);
+  test.deepEqual(SampleDb.trimSamples(samples, 200, 300), [ ]);
+  test.done();
+};
+
+
 //// Test DB functionality ////
 
 var db, sampleDb;

@@ -196,6 +196,8 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
 
   var toExec = [], toExecAfter = [];
 
+  // TODO: verify that sampleSet is well-formed!
+
   //console.time('insertSamples');
   // Collect all _schema samples, mapped by channel name.
   // TODO: this assumes that each channel has no more than one schema in a
@@ -255,7 +257,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
         var real = {}, syn = {}, topLevelReal = [];
         sampleSet[channelName].forEach(function(sample) {
           // Push real sample.
-          var levelInfo = getLevelInfo(sample);
+          var levelInfo = SampleDb.getLevelInfo(sample);
           var levelIndex = levelInfo.levelIndex;
           var topLevel = levelIndex == bucketThresholds.length - 1;
           if (topLevel) {
@@ -270,8 +272,8 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
 
           // Update synthetic samples.
           if (_.isNumber(sample.val) && sample.end > sample.beg) {
-            forSyntheticSamples(sample.beg, sample.end,
-                                function(synBucket, synDuration, overlap) {
+            SampleDb.forSyntheticSamples(sample.beg, sample.end,
+                function(synBucket, synDuration, overlap) {
               var index = synBucket % syntheticSamplesPerRow;
               var synRow = (synBucket - index) / syntheticSamplesPerRow;
               var synKey = synDuration + '-' + synRow;
@@ -298,7 +300,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
         var insertRealPending = 0, insertSynPending = 0;
         // Insert bucketed real samples into DB.
         _.values(real).forEach(function(bucketSamples) {
-          var levelInfo = getLevelInfo(bucketSamples[0]);
+          var levelInfo = SampleDb.getLevelInfo(bucketSamples[0]);
           var sample = {
             veh: vehicleId,
             chn: channelName,
@@ -317,7 +319,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
 
         // Insert top level real samples into DB.
         topLevelReal.forEach(function(topLevelSample) {
-          var levelInfo = getLevelInfo(topLevelSample);
+          var levelInfo = SampleDb.getLevelInfo(topLevelSample);
           var buckets = levelInfo.minBucket == levelInfo.maxBucket ?
               levelInfo.minBucket :
               _.range(levelInfo.minBucket, levelInfo.maxBucket + 1);
@@ -441,7 +443,10 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
       // Figure out which samples to add to db, and which existing samples to
       // delete.
       dbSamples.forEach(function(s) { s.indb = true; });
-      Array.prototype.push.apply(newSamples, dbSamples);
+      // Note: the following looks efficient, but when dbSamples is really big,
+      // it blows the call stack.  Doh!
+      //Array.prototype.push.apply(newSamples, dbSamples);
+      newSamples = newSamples.concat(dbSamples);
       sortSamplesByTime(newSamples);
       redundant = mergeOverlappingSamples2(newSamples);
       var merged = newSamples.filter(function(s) { return !s.indb; });
@@ -458,7 +463,7 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
  */
 SampleDb.prototype.deleteRedundantRealSample =
     function(vehicleId, channelName, sample, cb) {
-  var levelInfo = getLevelInfo(sample);
+  var levelInfo = SampleDb.getLevelInfo(sample);
   var query = {
     veh: vehicleId,
     chn: channelName,
@@ -523,7 +528,7 @@ SampleDb.prototype.fetchRealSamples =
     minDuration: 0,
   });
   var beginTime = options.beginTime, endTime = options.endTime;
-  var minLevel = getLevel(options.minDuration);
+  var minLevel = SampleDb.getLevel(options.minDuration);
 
   var samples = [];
   Step(
@@ -534,7 +539,7 @@ SampleDb.prototype.fetchRealSamples =
       // Get overlapping real samples.
       bucketThresholds.forEach(function(level, levelIndex) {
         if (level >= minLevel) {
-          var bucketSize = bucketSizes[levelIndex];
+          var bucketSize = SampleDb.bucketSizes[levelIndex];
           var query = { veh: vehicleId, chn: channelName };
           if (beginTime != null || endTime != null) {
             query.buk = { };
@@ -663,7 +668,7 @@ SampleDb.prototype.fetchMergedSamples =
   }
 
   var synDuration = options.synDuration =
-      getSyntheticDuration(options.minDuration);
+      SampleDb.getSyntheticDuration(options.minDuration);
   // Note: we must get samples which are longer than synDuration, since
   // those are all samples which didn't contribute to the synthetic
   // samples.  However, in the case that minDuration is less than the
@@ -709,8 +714,9 @@ SampleDb.prototype.fetchMergedSamples =
       var gapSamples = [];
       // Use beginning and end of synthetic range, so that we don't chop up
       // synthetic samples at beginning & end.
-      forSampleGaps(realSamples, synBegin * synDuration, synEnd * synDuration,
-                    function(gapBegin, gapEnd) {
+      SampleDb.forSampleGaps(
+          realSamples, synBegin * synDuration, synEnd * synDuration,
+          function(gapBegin, gapEnd) {
         // NOTE: this gets very slow if we're querying over a large time range,
         // even if there's little synthetic data.  Fortunately, the web front
         // end should only request a reasonable number of samples.  If we
@@ -998,48 +1004,12 @@ function mergeOverlappingSamples2(samples) {
 //// Constants and utility functions: ////
 
 
-// Time constants.
-var us = SampleDb.us = 1;
-var ms = SampleDb.ms = 1000 * us;
-var s = SampleDb.s = 1000 * ms;
-var m = SampleDb.m = 60 * s;
-var h = SampleDb.h = 60 * m;
-var d = SampleDb.d = 24 * h;
+_.extend(SampleDb, shared);  // Merge in all functionality from shared_utils.js.
 
-// The smallest duration which fits in each bucket, in us.
-var bucketThresholds = SampleDb.bucketThresholds = [
-  0 * us,
-  500 * us,
-  5 * ms,
-  50 * ms,
-  500 * ms,
-  5 * s,
-  30 * s,
-  5 * m,
-  30 * m,
-  5 * h,
-];
-
-var syntheticDurations = SampleDb.syntheticDurations = [
-  100 * us,
-  1 * ms,
-  10 * ms,
-  100 * ms,
-  1 * s,
-  10 * s,
-  1 * m,
-  10 * m,
-  1 * h,
-  1 * d,
-];
-
-// Number of synthetic buckets per db row.
-var syntheticSamplesPerRow = SampleDb.syntheticSamplesPerRow = 50;
-
-// The size of the buckets in each bucket level.
-var bucketSizes = SampleDb.bucketSizes = bucketThresholds.map(function(t, i) {
-  return (i > 0) ? t * 100 : 500 * us;  // Special case for first level.
-});
+// These are used a lot, copy them locally for convenience.
+var bucketThresholds = SampleDb.bucketThresholds;
+var syntheticDurations = SampleDb.syntheticDurations;
+var syntheticSamplesPerRow = SampleDb.syntheticSamplesPerRow;
 
 
 /**
@@ -1059,19 +1029,19 @@ function lastMatch(v, test) {
 /**
  * Get the level for a given duration.
  */
-var getLevelIndex = SampleDb.getLevelIndex = function(duration) {
+SampleDb.getLevelIndex = function(duration) {
   return lastMatch(bucketThresholds, function(minDuration) {
     return duration >= minDuration;
   });
 };
 
-var getLevel = SampleDb.getLevel = function(duration) {
-  return bucketThresholds[getLevelIndex(duration)];
+SampleDb.getLevel = function(duration) {
+  return bucketThresholds[SampleDb.getLevelIndex(duration)];
 };
 
-var getLevelInfo = SampleDb.getLevelInfo = function(sample) {
-  var i = getLevelIndex(sample.end - sample.beg);
-  var bucketSize = bucketSizes[i];
+SampleDb.getLevelInfo = function(sample) {
+  var i = SampleDb.getLevelIndex(sample.end - sample.beg);
+  var bucketSize = SampleDb.bucketSizes[i];
   return {
     level: bucketThresholds[i],
     levelIndex: i,
@@ -1085,7 +1055,7 @@ var getLevelInfo = SampleDb.getLevelInfo = function(sample) {
 /**
  * Get the level for a given duration.
  */
-var getSyntheticDuration = SampleDb.getSyntheticDuration = function(duration) {
+SampleDb.getSyntheticDuration = function(duration) {
   var i = lastMatch(syntheticDurations, function(synDuration) {
     return duration >= synDuration;
   });
@@ -1099,8 +1069,7 @@ var getSyntheticDuration = SampleDb.getSyntheticDuration = function(duration) {
  * @param cb{Function}<br>
  *   cb(begin, duration, overlap)
  */
-var forSyntheticSamples = SampleDb.forSyntheticSamples =
-    function(beginTime, endTime, cb) {
+SampleDb.forSyntheticSamples = function(beginTime, endTime, cb) {
   var duration = endTime - beginTime;
   syntheticDurations.forEach(function(synDuration) {
     if (duration < synDuration) {
@@ -1120,8 +1089,7 @@ var forSyntheticSamples = SampleDb.forSyntheticSamples =
 };
 
 
-var forSampleGaps = SampleDb.forSampleGaps =
-    function(samples, beginTime, endTime, cb) {
+SampleDb.forSampleGaps = function(samples, beginTime, endTime, cb) {
   // Samples must be sorted!
   var l = samples.length;
   function space(beg, end) {
@@ -1157,24 +1125,23 @@ var sortSamplesByTime = SampleDb.sortSamplesByTime = function(samples) {
  * @param options
  * @returns A new SampleSeries with the synthetic data.
  */
-var resample = SampleDb.resample =
-    function(inSamples, beginTime, endTime, sampleSize, options) {
+SampleDb.resample = function(inSamples, beg, end, sampleSize, options) {
   options = options || {};
   _.defaults(options, {
     stddev: false,
     keepAll: false,
   });
 
-  var sampleCount = Math.ceil((endTime - beginTime) / sampleSize);
+  var sampleCount = Math.ceil((end - beg) / sampleSize);
   var result = new Array(sampleCount);
 
   function forEachSampleOverlap(cb) {
     inSamples.forEach(function(s) {
-      var begin = Math.max(0, Math.floor((s.beg - beginTime) / sampleSize));
+      var begin = Math.max(0, Math.floor((s.beg - beg) / sampleSize));
       var end = Math.min(sampleCount,
-                         Math.ceil((s.end - beginTime) / sampleSize));
+                         Math.ceil((s.end - beg) / sampleSize));
       for (var i = begin; i < end; ++i) {
-        var sampleStart = beginTime + i * sampleSize;
+        var sampleStart = beg + i * sampleSize;
         var sampleEnd = sampleStart + sampleSize;
         var overlap =
             Math.min(sampleEnd, s.end) - Math.max(sampleStart, s.beg);
