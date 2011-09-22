@@ -17,26 +17,36 @@
       table
         thead
           tr
+            th(colspan="2")
+              | Type
+            - if (!single) {
             th
-              | ?
+              | Vehicle
+            - }
             th
-              | ?
+              | Info
             th
-              | ?
+              | Occurred
             th
-              | ?
+              | Duration
         tbody
-          - rows.forEach(function (row) {
+          - rows.forEach(function (row, i) {
           -  row = row.attributes;
             tr(id=row.htmlId, class=['dark','light'][i%2])
+              td(width="16")
+                img(src=row.icon)
+              td(style="font-weight:bold;")
+                =row.desc
+              - if (!single) {
               td
-                | ?
-              td
-                | ?
-              td
-                | ?
-              td
-                | ?
+                =row.vehicle.make + '/' + row.vehicle.model + '/' + row.vehicle.year
+              - }
+              td(style="font-style:italic;")
+                =row.note
+              td(data-time=row.beg)
+                | -
+              td(data-duration=(row.end-row.beg))
+                | -
           - })
     - }
 

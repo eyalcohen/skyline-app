@@ -11,10 +11,11 @@ define(['models/notification'], function (model) {
       if (!args) args = {};
       this.readOpts = { vehicleId: args.vehicleId };
       _.extend(args, { collection: this });
-      this.view = new App.views.NotificationsView(args);
-      this.view.render({ loading: true, single: args.single });
+      this.view = new App.views.NavigatorView(args);
+      this.view.render({ loading: true });
       this.loaded = _.bind(function () {
-        this.view.render({ single: args.single });
+        var empty = this.models.length === 0;
+        this.view.render({ empty: empty });
       }, this);
       return this;
     },

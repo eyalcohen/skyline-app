@@ -6,13 +6,13 @@ var mapsLoadNotifier = _.clone(Backbone.Events);
 requirejs(['async!http://maps.google.com/maps/api/js?' +
               'libraries=geometry&sensor=false!callback'],
           function() {
-  console.log('Loaded Google Maps!');
   var notifier = mapsLoadNotifier;
   mapsLoadNotifier = null;
   notifier.trigger('load');
 });
 
 define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
+  console.log('Entered views/map.js');
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -139,14 +139,14 @@ define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
         cellDots[k].setMap(map);
 
       // cursor
-      cursor = new google.maps.Marker({
-        map: map,
-        animation: google.maps.Animation.DROP,
-        position: poly.getPath().getAt(0),
-        icon: 'http://google-maps-icons.googlecode.com/files/car.png',
-        zIndex: 1000001,
-        clickable: false,
-      });
+      // cursor = new google.maps.Marker({
+      //   map: map,
+      //   animation: google.maps.Animation.DROP,
+      //   position: poly.getPath().getAt(0),
+      //   icon: 'http://google-maps-icons.googlecode.com/files/car.png',
+      //   zIndex: 1000001,
+      //   clickable: false,
+      // });
 
       // endpoints
       var imageA = new google.maps.MarkerImage('/graphics/black_MarkerA.png',
@@ -248,9 +248,9 @@ define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
             map, 'tilesloaded', function () {
         // if (firstRun) {
           // firstRun = false;
-          google.maps.event.trigger(map, 'resize');
-          map.setCenter(mapBounds.getCenter());
-          map.fitBounds(mapBounds);
+          //google.maps.event.trigger(map, 'resize');
+          //map.setCenter(mapBounds.getCenter());
+          //map.fitBounds(mapBounds);
           //wrap.removeClass('map-tmp');
           //showInfo();
         // }
@@ -265,7 +265,8 @@ define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
       this._super('resize');
       if (this.map) {
         google.maps.event.trigger(this.map, 'resize');
-        this.map.fitBounds(this.mapBounds);
+        // this.map.fitBounds(this.mapBounds);
+        // this.map.setCenter(mapBounds.getCenter());
       }
     },
 

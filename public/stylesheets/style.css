@@ -658,11 +658,11 @@ span.landing-copy {
 }
 .dashboard-left {
   padding:0 5px 0 0;
-  width:30%;
+  width:40%;
 }
 .dashboard-right {
   padding:0 0 0 5px;
-  width:70%;
+  width:60%;
 }
 .dashboard-left-side {
   padding: 0 5px 0 0;
@@ -751,7 +751,9 @@ h1.dashboard-item-header-txt {
   text-shadow:0 1px 1px white; -moz-text-shadow:0 1px 1px white; -khtml-text-shadow:0 1px 1px white; -webkit-text-shadow:0 1px 1px white;
 }
 
-.dashboard-item-content {}
+.dashboard-item-content {
+  min-height: 34px;
+}
 
 .dashboard-item-content:focus {
   outline:none;
@@ -1217,13 +1219,13 @@ div.details-bar-middle {
   left: 20px;
 }
 
-.graph, .tree {
+.tree, .navigator {
   width: 100%;
   height: 100%;
   /*background: #b3b3b3 !important;*/
 }
 
-.graph {
+.graph, .navigator {
   width: 100%;
   height: 100%;
 
@@ -1242,15 +1244,25 @@ div.details-bar-middle {
   box-pack: center;
   box-align: center;
 
-/*  padding: 10px;*/
+  overflow: hidden;
 }
 
 .graph > div {
   width: 98%;
-  height: 103%;
-  top: -15px;
+  height: 95%;
+  top: 0;
 }
 
+.navigator > div {
+  width: 103%;
+  height: 63px;
+  top: -8px;
+  left: -16px;
+}
+
+.icon {
+  position: absolute;
+}
 
 .legend > table {
   width: 15%;

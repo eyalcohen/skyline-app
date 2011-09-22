@@ -32,7 +32,10 @@ define(['views/dashitem',
 
     draw: function () {
       var self = this, data = this.model.attributes.data;
-      $('.tree', this.content).jstree({
+      $('.tree', this.content).bind('loaded.jstree', 
+          function (e, data) {
+        //
+      }).jstree({
         json_data: {
           data: function (n, cb) {
             fillInternal(data, true);
@@ -55,6 +58,7 @@ define(['views/dashitem',
                   delete node[key];
                 }
               });
+              metadata.title = title;
               _.extend(node, {
                 data: { title: title },
                 metadata: metadata,
@@ -75,7 +79,7 @@ define(['views/dashitem',
           initially_select: ['gps-speed'],
         },
         checkbox: {
-          override_ui: false,
+          override_ui: true,
         },
         types : {
           types : {
@@ -100,11 +104,11 @@ define(['views/dashitem',
         },
         dnd : {
           drop_finish : function (data) { 
-            var channelName = data.o.data('channelName'),
+            var channel = data.o.data(),
                 axis = $('.graph').data('plot').getAxes().xaxis,
-                range = { beginTime: axis.min, endTime: axis.max };
+                range = { beginTime: axis.min * 1000, endTime: axis.max * 1000 };
             App.publish('ChannelRequested-' +
-                self.model.attributes.vehicleId, [channelName, range]);
+                self.model.attributes.vehicleId, [channel, range]);
           },
           drag_check : function (data) {
             if(data.r.attr("id") == "phtml_1") {
@@ -120,11 +124,11 @@ define(['views/dashitem',
             console.log("DRAG OK"); 
           }
         },
-        plugins: ['themes', 'json_data', 'ui', 'checkbox',
-            'types', 'search', 'contextmenu', 'dnd'],
+        plugins: ['themes', 'json_data', 'ui', //'checkbox',
+            'types', 'search', /*'contextmenu',*/ 'dnd'],
       }).bind('select_node.jstree',
           function (e, data) {
-        console.log(e, data);
+        // console.log(e, data);
       }).bind('open_node.jstree close_node.jstree '+
           'create_node.jstree delete_node.jstree',
           function (e, data) {
@@ -135,7 +139,16 @@ define(['views/dashitem',
         self.resize();
       }).bind('move_node.jstree', function (e, data) {
         //
-      }).jstree('check_node', $('#gps-speed'));
+      })/*.bind('before.jstree', function (e, data) {
+        if(data.func === 'check_node') {
+          // $("#log2").html(data.args[0].attr("id"));
+          e.stopImmediatePropagation();
+          return false;
+        }
+      })*///.jstree('check_node', $('#gps-speed'));
+      
+      
+      
       return this;
     },
 

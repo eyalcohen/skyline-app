@@ -16,13 +16,10 @@ define(function (fn) {
       self.view.render({ loading: true });
       App.api.fetchChannelTree(self.attributes.vehicleId,
           function (err, data) {
-        if (err) {
-          throw err;
-          return;
-        }
+        if (err) { throw err; return; }
         if (!data || data.length === 0) {
-          console.warn('Vehicle with id ' + self.attributes.vehicleId + ' has'+
-              ' never been seen before!');
+          console.warn('Vehicle with id ' + self.attributes.vehicleId +
+              ' has never been seen before!');
         } else {
           self.set({
             data: data,
@@ -39,21 +36,30 @@ define(function (fn) {
               });
             }
           });
-          
+
           var len = latRanges.length, i = 1,
-              range = { beginTime: 0, endTime: 0 };
+              range = {};
           if (len > 0) {
             do {
               range.beginTime = latRanges[len - i].beg;
               range.endTime = latRanges[len - i].end;
               i++;
               if (i > len) {
+                range = {};
                 break;
               }
             } while (range.endTime - range.beginTime <= 0);
           }
+
           App.publish('MapRequested-' + self.attributes.vehicleId, [range]);
-          App.publish('ChannelRequested-' + self.attributes.vehicleId, ['gps.speed_m_s', range]);
+          App.publish('ChannelRequested-' + self.attributes.vehicleId, [{
+            channelName: 'gps.speed_m_s',
+            humanName: 'GPS Speed',
+            shortName: 'speed_m_s',
+            type: 'float',
+            units: 'm/s',
+            title: 'GPS Speed',
+          }, range]);
         }
       });
       return this;

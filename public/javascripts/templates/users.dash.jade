@@ -26,11 +26,11 @@
         tbody
           - rows.forEach(function (row, i) {
             tr(id=row.htmlId, class=['dark','light'][i%2])
-              td
+              td(style="font-weight:bold;")
                 =row.first
-              td
+              td(style="font-weight:bold;")
                 =row.last
-              td(align="right")
+              td(align="right", style="font-style:italic;")
                 =row.email
           - })
     - }

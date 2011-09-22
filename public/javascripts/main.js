@@ -78,7 +78,14 @@ requirejs(['libs/json2',
           App.api = remote;
           clearInterval(App.reconnecter);
           App.reconnecter = null;
-          console.warn('Server reconnected.');
+          App.api.authenticate(App.user, function (err) {
+            if (err) {
+              App.publish('NotAuthenticated', [loginOpts]);
+              console.warn('Server reconnected. User NOT authorized!');
+            } else {
+              console.warn('Server reconnected. User authorized!');
+            }
+          });
         });
       }, 500);
     },
