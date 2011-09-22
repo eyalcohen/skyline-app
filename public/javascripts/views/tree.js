@@ -102,7 +102,7 @@ define(['views/dashitem',
           drop_finish : function (data) { 
             var channelName = data.o.data('channelName'),
                 axis = $('.graph').data('plot').getAxes().xaxis,
-                range = { beginTime: axis.min, endTime: axis.max };
+                range = { beginTime: axis.min * 1000, endTime: axis.max * 1000 };
             App.publish('ChannelRequested-' +
                 self.model.attributes.vehicleId, [channelName, range]);
           },

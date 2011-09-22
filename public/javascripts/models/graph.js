@@ -19,6 +19,7 @@ define(function () {
     },
 
     fetch: function (channelName, timeRange) {
+      console.log(timeRange);
       var clear = this.get('data').length === 0;
       if (clear)
         this.view.render({ loading: true });
@@ -37,10 +38,11 @@ define(function () {
         } else {
           var data = [];
           _.each(channel, function (pnt) {
-            data.push([pnt.beg, pnt.val]);
+            data.push([pnt.beg / 1000, pnt.val]);
             if (pnt.end !== pnt.beg)
-              data.push([pnt.end, pnt.val]);
+              data.push([pnt.end / 1000, pnt.val]);
           });
+          App.shared.mergeOverlappingSamples(data);
           self.get('data').push(data);
           self.get('labels').push(channelName);
           if (clear) {

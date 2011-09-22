@@ -25,6 +25,7 @@ define(['jquery'], function ($) {
           parent: '.' + this.options.parent + ' div .dashboard-left',
           target: this.options.parent,
           height: 30,
+          bottomPad: 0,
           // shrinkable: true,
         }),
         tree: new App.models.TreeModel({
@@ -33,6 +34,15 @@ define(['jquery'], function ($) {
           parent: '.' + this.options.parent + ' div .dashboard-left-side',
           target: this.options.parent,
           height: 70,
+          bottomPad: 0,
+        }),
+        navigator: new App.models.NavigatorModel({
+          vehicleId: vehicleId,
+          title: 'Navigator',
+          parent: '.' + this.options.parent + ' div .dashboard-right-wide .bottom',
+          target: this.options.parent,
+          height: 10,
+          bottomPad: 0,
         }),
         map: new App.models.MapModel({
           vehicleId: vehicleId,
@@ -40,17 +50,20 @@ define(['jquery'], function ($) {
           parent: '.' + this.options.parent + ' div .dashboard-right',
           target: this.options.parent,
           height: 30,
+          bottomPad: 0,
         }),
         graph: new App.models.GraphModel({
           vehicleId: vehicleId,
           title: 'Graph',
-          parent: '.' + this.options.parent + ' div .dashboard-right-wide',
+          parent: '.' + this.options.parent + ' div .dashboard-right-wide .top',
           target: this.options.parent,
-          height: 70,
+          height: 60,
+          bottomPad: 28,
         }),
       };
       this.items.notifications.fetch();
       this.items.tree.fetch();
+      this.items.navigator.fetch();
       // _.each(this.items, function (item) {
       //   if (item instanceof Backbone.Collection) {
       //     item.fetch();

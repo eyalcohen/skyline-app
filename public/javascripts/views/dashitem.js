@@ -5,7 +5,8 @@
 define(['jquery',
     'libs/jquery.mousewheel',
     'libs/mwheelIntent',
-    'libs/jquery.jscrollpane'],
+    'libs/jquery.jscrollpane',
+    'jquery-extensions'],
     function ($) {
   return Backbone.View.extend({
 
@@ -79,7 +80,7 @@ define(['jquery',
             this.el.offset();
       if (this.options.height !== null && this.options.height !== undefined) {
         var dest = { height: (win.height() - this.offset.top - 68)
-            * this.options.height / 100 };
+            * this.options.height / 100 - this.options.bottomPad };
         if (this.options.animate && this.options.height !== 0) {
           this.content.animate(dest, 'fast');
         } else {
@@ -158,6 +159,14 @@ define(['jquery',
       } catch (exception) {
         return null;
       }
+    },
+
+    insertAt: function (parent, child, i) {
+      if (i === 0) {
+        child.prependTo(parent);
+        return;
+      }
+      $('div:nth-child(' + i + ')', parent).before(child);
     },
 
   });

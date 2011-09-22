@@ -6,14 +6,12 @@ var mapsLoadNotifier = _.clone(Backbone.Events);
 requirejs(['async!http://maps.google.com/maps/api/js?' +
               'libraries=geometry&sensor=false!callback'],
           function() {
-  console.log('Loaded Google Maps!');
   var notifier = mapsLoadNotifier;
   mapsLoadNotifier = null;
   notifier.trigger('load');
 });
 
 define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
-  console.log('Entered views/map.js');
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',

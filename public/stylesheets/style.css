@@ -751,7 +751,9 @@ h1.dashboard-item-header-txt {
   text-shadow:0 1px 1px white; -moz-text-shadow:0 1px 1px white; -khtml-text-shadow:0 1px 1px white; -webkit-text-shadow:0 1px 1px white;
 }
 
-.dashboard-item-content {}
+.dashboard-item-content {
+  min-height: 34px;
+}
 
 .dashboard-item-content:focus {
   outline:none;
@@ -1217,13 +1219,13 @@ div.details-bar-middle {
   left: 20px;
 }
 
-.graph, .tree {
+.tree, .navigator {
   width: 100%;
   height: 100%;
   /*background: #b3b3b3 !important;*/
 }
 
-.graph {
+.graph, .navigator {
   width: 100%;
   height: 100%;
 
@@ -1242,7 +1244,7 @@ div.details-bar-middle {
   box-pack: center;
   box-align: center;
 
-/*  padding: 10px;*/
+  overflow: hidden;
 }
 
 .graph > div {
@@ -1251,6 +1253,16 @@ div.details-bar-middle {
   top: -15px;
 }
 
+.navigator > div {
+  width: 105%;
+  height: 135%;
+  top: -8px;
+  left: -16px;
+}
+
+.icon {
+  position: absolute;
+}
 
 .legend > table {
   width: 15%;

@@ -50,7 +50,6 @@ define(['views/dashitem', 'plot_booter'],
           position: ['left','right'][i%2],
         });
       });
-      console.log(series, yaxes);
       var plot =
           $.plot($('.graph > div', this.content),
           series, {
@@ -130,8 +129,6 @@ define(['views/dashitem', 'plot_booter'],
         d.setUTCHours(0);
         var i = d.getTime();
         do {
-          // when we don't set yaxis, the rectangle automatically
-          // extends to infinity upwards and downwards
           markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
           i += 7 * 24 * 60 * 60 * 1000;
         } while (i < axes.xaxis.max);

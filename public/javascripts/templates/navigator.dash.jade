@@ -1,0 +1,23 @@
+.dashboard-item
+  .dashboard-item-header
+    - if (shrinkable) {
+      a.dashboard-link.toggler(href="javascript:;", title="shrink")
+        | -
+    - }
+    h1.dashboard-item-header-txt
+      | Navigator
+  .dashboard-item-content
+    - if (waiting) {
+      p.dashboard-item-message
+        | Waiting...
+    - } else if (loading) {
+      p.dashboard-item-message
+        | Loading...
+    - } else if (empty) {
+      p.dashboard-item-message
+        | Nothing to graph.
+    - } else {
+      .navigator
+        div
+    - }
+
