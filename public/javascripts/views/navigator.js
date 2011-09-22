@@ -31,14 +31,14 @@ define(['views/dashitem', 'plot_booter'],
     },
 
     draw: function () {
-      var self = this, data = self.collection.models;
+      var self = this, data = _.pluck(self.collection.models, 'attributes');
           bounds = [], shapes = [],
           holder = $('.navigator > div', this.content);
-      bounds: [
+      bounds = [
         _.min(_.pluck(data, 'beg')) / 1000,
         _.max(_.pluck(data, 'end')) / 1000
       ];
-      _.each(data, function (pnt, i) {
+      _.each(data, function (pnt) {
         // left edge of box
         shapes.push({
           xaxis: {
@@ -56,14 +56,17 @@ define(['views/dashitem', 'plot_booter'],
           color: '#eee',
         });
       });
+      var pad = 60 * 60 * 1000;
       var plot = $.plot(holder,
           [[bounds[0], 0], [bounds[1], 1]], {
         xaxis: {
-          show: false,
+          // show: false,
           mode: 'time',
           tickLength: 0,
-          zoomRange: [1, bounds[1] - bounds[0]],
-          panRange: [bounds[0], bounds[1]],
+          min: bounds[0] - pad,
+          max: bounds[1] + pad,
+          zoomRange: [1, (bounds[1] + pad) - (bounds[0] - pad)],
+          panRange: [bounds[0] - pad, bounds[1] + pad],
         },
         yaxis: { 
           show: false,
@@ -77,7 +80,7 @@ define(['views/dashitem', 'plot_booter'],
         grid: {
           // show: true,
           // aboveData: boolean,
-          // color: color,
+          color: '#ff0000',
           // backgroundColor: null,
           // labelMargin: 50,
           // axisMargin: 20,
@@ -107,7 +110,7 @@ define(['views/dashitem', 'plot_booter'],
         _.each(data, function (pnt) {
           var off = p.pointOffset({ x: pnt.beg / 1000, y: 0.22 });
           var icon = $('<img>')
-              .attr({ src: 'graphics/warning.png' })
+              .attr({ src: pnt.icon })
               .css({
                 left: off.left - 8 + 'px',
                 top: off.top + 'px',
@@ -115,8 +118,18 @@ define(['views/dashitem', 'plot_booter'],
               .addClass('icon')
               .appendTo(holder);
         });
-        $('img', holder).bind('mousedown', function (e) {
+        // TODO: only zooms in when hovering img and wheeling
+        $('img', holder).bind('mousedown, DOMMouseScroll, '+
+            'mousewheel', function (e) {
           if (e.preventDefault) e.preventDefault();
+          var $this = $(this);
+          $this.hide();
+          var receiver = document.elementFromPoint(e.clientX,e.clientY);
+          if (receiver.nodeType == 3) { // Opera
+            receiver = receiver.parentNode;
+          }
+          $(receiver).trigger(e);
+          $this.show();
         });
       }
       

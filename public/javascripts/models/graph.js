@@ -12,49 +12,59 @@ define(function () {
       this.set({ 
         data: [],
         labels: [],
+        colors: [],
       });
+      this.colorCnt = 0;
       _.bindAll(this, 'fetch');
       App.subscribe('ChannelRequested-' + args.vehicleId, this.fetch);
       return this;
     },
 
-    fetch: function (channelName, timeRange) {
+    fetch: function (channel, timeRange) {
       var clear = this.get('data').length === 0;
       if (clear)
         this.view.render({ loading: true });
       var points = [], self = this;
-      App.api.fetchSamples(self.attributes.vehicleId, channelName, timeRange,
-          function (err, channel) {
+      App.api.fetchSamples(self.attributes.vehicleId, channel.channelName, timeRange,
+          function (err, channelData) {
         if (err) {
           throw err;
           return;
         }
-        if (!channel || channel.length === 0) {
+        if (!channelData || channelData.length === 0) {
           console.warn('Vehicle with id ' + self.attributes.vehicleId + ' has no '+
-              channelName + ' data for the time range requested.');
+              channel.channelName + ' data for the time range requested.');
           if (clear)
             self.view.render({ empty: true });
         } else {
           var data = [];
-          _.each(channel, function (pnt) {
+          _.each(channelData, function (pnt) {
             data.push([pnt.beg / 1000, pnt.val]);
             if (pnt.end !== pnt.beg)
               data.push([pnt.end / 1000, pnt.val]);
           });
           App.shared.mergeOverlappingSamples(data);
           self.get('data').push(data);
-          self.get('labels').push(channelName);
+          var label = channel.units ?
+              channel.title + ' (' + channel.units + ')' :
+              channel.title;
+          self.get('labels').push(label);
+          self.get('colors').push(self.colorCnt);
+          if (self.get('data').length > 2) {
+            self.get('data').shift();
+            self.get('labels').shift();
+            self.get('colors').shift();
+          }
           if (clear) {
             self.view.render({}, function () {
-              self.view.draw({
-                label: channelName,
-              });
+              self.view.draw();
             });
           } else {
-            self.view.draw({
-              label: channelName,
-            });
+            self.view.draw();
           }
+          self.colorCnt++;
+          if (self.colorCnt > 4)
+            self.colorCnt = 0;
         }
       });
 

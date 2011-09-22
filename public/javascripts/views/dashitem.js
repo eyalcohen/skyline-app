@@ -79,8 +79,10 @@ define(['jquery',
             $('.' + this.options.target).offset() :
             this.el.offset();
       if (this.options.height !== null && this.options.height !== undefined) {
-        var dest = { height: (win.height() - this.offset.top - 68)
-            * this.options.height / 100 - this.options.bottomPad };
+        var dest = 'string' === typeof this.options.height ?
+            { height: parseInt(this.options.height) } :
+            { height: (win.height() - this.offset.top - 68)
+                * this.options.height / 100 - this.options.bottomPad };
         if (this.options.animate && this.options.height !== 0) {
           this.content.animate(dest, 'fast');
         } else {

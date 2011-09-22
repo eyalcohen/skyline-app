@@ -1032,57 +1032,75 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   // TMP: use subscriptions from client end
-  function fetchNotifications(cb) {
+  function fetchNotifications(cb, opts) {
     if (!checkAuth(cb)) return;
-    var filterUser, notifications = [];
-    if (user.role === 'admin') {
-      filterUser = null;
-    } else if (user.role === 'office') {
-      filterUser = ['4ddc6340f978287c5e000003',
-          '4ddc84a0c2e5c2205f000001',
-          '4ddee7a08fa7e041710001cb'];
-    } else {
-      filterUser = user;
+    function callback() {
+      notifications.sort(function (a, b) {
+        return b.beg - a.beg;
+      });
+      cb(null, JSON.parse(JSON.stringify(notifications)));
     }
-    findVehiclesByUser(filterUser, function (vehicles) { //1088675181
+    var notifications = [];
+    if (opts && opts.vehicleId) {
       Step(
         function () {
-          var parallel = this.parallel;
-          vehicles.forEach(function (v) {
-            var next = parallel();
-            Step(
-              function () {
-                sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
-                sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
-                sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
-                sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
-              },
-              function (err, drives, charges, errors, warnings) {
-                if (err) {
-                  cb(err);
-                  return;
-                }
-                drives.forEach(function (not) { not.type = '_drive'; not.vehicle = v; });
-                charges.forEach(function (not) { not.type = '_charge'; not.vehicle = v; });
-                errors.forEach(function (not) { not.type = '_error'; not.vehicle = v; });
-                warnings.forEach(function (not) { not.type = '_warning'; not.vehicle = v; });
-                notifications = notifications.concat(drives, charges, errors, warnings);
-                next();
-              }
-            );
-          });
-          parallel()(); // In case there are no vehicles.
+          sampleDb.fetchSamples(opts.vehicleId, '_drive', {}, this.parallel());
+          sampleDb.fetchSamples(opts.vehicleId, '_charge', {}, this.parallel());
+          sampleDb.fetchSamples(opts.vehicleId, '_error', {}, this.parallel());
+          sampleDb.fetchSamples(opts.vehicleId, '_warning', {}, this.parallel());
         },
-        function (err) {
-          console.log('********');
-          if (err) {
-            cb(err);
-            return;
-          }
-          cb(null, JSON.parse(JSON.stringify(notifications)));
+        function (err, drives, charges, errors, warnings) {
+          if (err) { cb(err); return; }
+          drives.forEach(function (not) { not.type = '_drive'; });
+          charges.forEach(function (not) { not.type = '_charge'; });
+          errors.forEach(function (not) { not.type = '_error'; });
+          warnings.forEach(function (not) { not.type = '_warning'; });
+          notifications = notifications.concat(drives, charges, errors, warnings);
+          callback();
         }
       );
-    });
+    } else {
+      var filterUser;
+      if (user.role === 'admin') {
+        filterUser = null;
+      } else if (user.role === 'office') {
+        filterUser = ['4ddc6340f978287c5e000003',
+            '4ddc84a0c2e5c2205f000001',
+            '4ddee7a08fa7e041710001cb'];
+      } else { filterUser = user; }
+      findVehiclesByUser(filterUser, function (vehicles) { //1088675181
+        Step(
+          function () {
+            var parallel = this.parallel;
+            vehicles.forEach(function (v) {
+              var next = parallel();
+              Step(
+                function () {
+                  sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
+                  sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
+                  sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
+                  sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
+                },
+                function (err, drives, charges, errors, warnings) {
+                  if (err) { cb(err); return; }
+                  drives.forEach(function (not) { not.type = '_drive'; not.vehicle = v; });
+                  charges.forEach(function (not) { not.type = '_charge'; not.vehicle = v; });
+                  errors.forEach(function (not) { not.type = '_error'; not.vehicle = v; });
+                  warnings.forEach(function (not) { not.type = '_warning'; not.vehicle = v; });
+                  notifications = notifications.concat(drives, charges, errors, warnings);
+                  next();
+                }
+              );
+            });
+            parallel()(); // In case there are no vehicles.
+          },
+          function (err) {
+            if (err) { cb(err); return; }
+            callback();
+          }
+        );
+      });
+    }
   }
 
   function fetchVehicles(cb) {

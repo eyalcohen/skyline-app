@@ -136,14 +136,14 @@ define(['views/dashitem', 'map_style'], function (DashItemView, style) {
         cellDots[k].setMap(map);
 
       // cursor
-      cursor = new google.maps.Marker({
-        map: map,
-        animation: google.maps.Animation.DROP,
-        position: poly.getPath().getAt(0),
-        icon: 'http://google-maps-icons.googlecode.com/files/car.png',
-        zIndex: 1000001,
-        clickable: false,
-      });
+      // cursor = new google.maps.Marker({
+      //   map: map,
+      //   animation: google.maps.Animation.DROP,
+      //   position: poly.getPath().getAt(0),
+      //   icon: 'http://google-maps-icons.googlecode.com/files/car.png',
+      //   zIndex: 1000001,
+      //   clickable: false,
+      // });
 
       // endpoints
       var imageA = new google.maps.MarkerImage('/graphics/black_MarkerA.png',

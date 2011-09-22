@@ -9,11 +9,13 @@ define(['models/notification'], function (model) {
 
     initialize: function (args) {
       if (!args) args = {};
+      this.readOpts = { vehicleId: args.vehicleId };
       _.extend(args, { collection: this });
       this.view = new App.views.NavigatorView(args);
       this.view.render({ loading: true });
       this.loaded = _.bind(function () {
-        this.view.render();
+        var empty = this.models.length === 0;
+        this.view.render({ empty: empty });
       }, this);
       return this;
     },

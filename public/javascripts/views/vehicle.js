@@ -42,8 +42,9 @@ define(['jquery'], function ($) {
           title: 'Navigator',
           parent: '.' + this.options.parent + ' div .dashboard-right-wide .bottom',
           target: this.options.parent,
-          height: 10,
+          height: '40px',
           bottomPad: 0,
+          single: true,
         }),
         map: new App.models.MapModel({
           vehicleId: vehicleId,
@@ -58,8 +59,8 @@ define(['jquery'], function ($) {
           title: 'Graph',
           parent: '.' + this.options.parent + ' div .dashboard-right-wide .top',
           target: this.options.parent,
-          height: 60,
-          bottomPad: 28,
+          height: 70,
+          bottomPad: 70,
         }),
       };
       this.items.notifications.fetch();

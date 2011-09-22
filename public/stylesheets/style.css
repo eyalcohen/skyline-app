@@ -1249,13 +1249,13 @@ div.details-bar-middle {
 
 .graph > div {
   width: 98%;
-  height: 103%;
-  top: -15px;
+  height: 95%;
+  top: 0;
 }
 
 .navigator > div {
-  width: 105%;
-  height: 135%;
+  width: 103%;
+  height: 63px;
   top: -8px;
   left: -16px;
 }

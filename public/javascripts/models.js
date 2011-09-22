@@ -8,7 +8,7 @@ define(['models/notification',
     'models/graph',
     'models/user',
     'models/tree',
-    'models/navigator'],
+    /* 'models/navigator' */],
     function () {
   return {
     NotificationModel: arguments[0],
@@ -17,7 +17,7 @@ define(['models/notification',
     GraphModel: arguments[3],
     UserModel: arguments[4],
     TreeModel: arguments[5],
-    NavigatorModel: arguments[6],
+    // NavigatorModel: arguments[6],
   };
 });
 

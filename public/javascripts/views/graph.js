@@ -5,6 +5,12 @@
 define(['views/dashitem', 'plot_booter'], 
     function (DashItemView) {
   return DashItemView.extend({
+    // initialize: function (args) {
+    //   this._super('initialize');
+    //   this.colorCnt = 1;
+    //   return this;
+    // },
+
     events: {
       'click .toggler': 'toggle',
     },
@@ -31,10 +37,13 @@ define(['views/dashitem', 'plot_booter'],
     },
 
     draw: function () {
-      var self = this, series = [], yaxes = [];
-      _.each(self.model.attributes.data, function (ser, i) {
+      var self = this, series = [], yaxes = [],
+          data = self.model.attributes.data;
+      // var tmp = ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"];
+      var tmp = ["#aa8b2e", "#657d8f", "#cb4b4b", "#4da74d", "#9440ed"];
+      _.each(data, function (ser, i) {
         series.push({
-          // color: color or number,
+          color: self.model.attributes.colors[i],
           data: ser,
           label: self.model.attributes.labels[i],
           // lines: specific lines options,
@@ -48,6 +57,7 @@ define(['views/dashitem', 'plot_booter'],
         });
         yaxes.push({
           position: ['left','right'][i%2],
+          color: tmp[self.model.attributes.colors[i]],
         });
       });
       var plot =
@@ -64,9 +74,10 @@ define(['views/dashitem', 'plot_booter'],
         },
         yaxis: {
           tickLength: 5,
-          // zoomRange: [0.1, 10],
-          // panRange: [-10, 10],
-          // min: 20,
+          reserveSpace: 100,
+          labelWidth: 30,
+          zoomRange: false,
+          panRange: false,
         },
         xaxes: [{}],
         yaxes: yaxes,
@@ -79,7 +90,7 @@ define(['views/dashitem', 'plot_booter'],
             // steps: true,
           },
           points: {
-            // show: true
+            show: true
             // radius: number
             // symbol: "circle" or function
           },
@@ -91,16 +102,16 @@ define(['views/dashitem', 'plot_booter'],
           shadowSize: 1,
         },
         grid: {
-          show: true,
+          // show: true,
           // aboveData: boolean,
-          // color: color,
-          backgroundColor: null,
+          // color: '#00ff00',
+          // backgroundColor: null,
           // labelMargin: 50,
           // axisMargin: 20,
           markings: weekendAreas,
-          borderWidth: 1,
-          borderColor: '#CCC',
-          minBorderMargin: 30,
+          borderWidth: 0.5,
+          borderColor: '#ccc',
+          // minBorderMargin: 30,
           clickable: true,
           hoverable: true,
           autoHighlight: true,
@@ -115,7 +126,6 @@ define(['views/dashitem', 'plot_booter'],
           interactive: true,
         },
       });
-
       $('.graph', this.content).data({plot: plot});
 
       // helper for returning the weekends in a period
@@ -141,12 +151,4 @@ define(['views/dashitem', 'plot_booter'],
 
   });
 });
-
-
-
-
-
-
-
-
 
