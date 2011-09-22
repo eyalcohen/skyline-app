@@ -45,7 +45,7 @@ define(['views/dashitem', 'plot_booter'],
             from: pnt.beg / 1000,
             to: pnt.beg / 1000,
           },
-          color: '#aaa',
+          color: '#999',
         });
         // box
         shapes.push({
@@ -53,7 +53,7 @@ define(['views/dashitem', 'plot_booter'],
             from: pnt.beg / 1000,
             to: pnt.end / 1000,
           },
-          color: '#eee',
+          color: pnt.color,
         });
       });
       var pad = 60 * 60 * 1000;
