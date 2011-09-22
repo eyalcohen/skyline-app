@@ -7,6 +7,7 @@ var mongodb = require('mongodb');
 var Step = require('step');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
+_.mixin(require('underscore.string'));
 
 var SampleDb = require('./sample_db.js').SampleDb;
 
@@ -77,7 +78,13 @@ Step(
           if (argv.json) {
             log('    ' + JSON.stringify(s) + ',');
           } else {
-            log('    ' + s.beg + ' .. ' + s.end + ' (' + (s.end - s.beg) +
+            var d = new Date(s.beg / 1000);
+            log('    ' +
+                _.sprintf('%d-%02d-%02d ',
+                          d.getFullYear(), d.getMonth() + 1, d.getDate()) +
+                _.sprintf('%02d:%02d:%02d ',
+                          d.getHours(), d.getMinutes(), d.getSeconds()) +
+                s.beg + ' .. ' + s.end + ' (' + (s.end - s.beg) +
                 '): ' + util.inspect(s.val) +
                 (_.isUndefined(s.min) ? '' : ' (' + s.min + '...' + s.max +
                 ')') + (_.isUndefined(s.stddev) ? '' : ' (' + s.stddev + ')'));
