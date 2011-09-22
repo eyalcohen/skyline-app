@@ -10,10 +10,10 @@ define(['models/notification'], function (model) {
     initialize: function (args) {
       if (!args) args = {};
       _.extend(args, { collection: this });
-      this.view = new App.views.NotificationsView(args);
-      this.view.render({ loading: true, single: args.single });
+      this.view = new App.views.NavigatorView(args);
+      this.view.render({ loading: true });
       this.loaded = _.bind(function () {
-        this.view.render({ single: args.single });
+        this.view.render();
       }, this);
       return this;
     },

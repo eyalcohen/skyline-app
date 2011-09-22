@@ -31,16 +31,16 @@
           - rows.forEach(function (row, i) {
           -  row = row.attributes;
             tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.make+"/"+row.model+"/"+row.year)
-              td
+              td(style="font-weight:bold;")
                 =row.make
                 span.edit-panel
                   a.edit-link(href="javascript:;", title="Edit")
                     | Edit |
-              td
+              td(style="font-weight:bold;")
                 =row.model
-              td
+              td(style="font-weight:bold;")
                 =row.year
-              td
+              td(style="font-style:italic;")
                 - if (row.user) {
                   =row.user.email
                 - } else {

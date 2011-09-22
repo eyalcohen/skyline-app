@@ -9,7 +9,7 @@ define(['views/dashitem', 'plot_booter'],
       'click .toggler': 'toggle',
     },
 
-    render: function (opts, fn) {
+    render: function (opts) {
       opts = opts || {};
       _.defaults(opts, {
         waiting: false,
@@ -25,17 +25,19 @@ define(['views/dashitem', 'plot_booter'],
       this._super('render', _.bind(function () {
         if (!this.firstRender && !opts.loading 
               && !opts.waiting && !opts.empty) {
-          if (fn) fn();
+          this.draw();
         }
       }, this));
     },
 
     draw: function () {
-      var self = this, data = self.model.get('data'),
-          bounds = self.model.get('bounds'), shapes = [],
+      var self = this, data = self.collection.models;
+          bounds = [], shapes = [],
           holder = $('.navigator > div', this.content);
-      console.log(data);
-      return;
+      bounds: [
+        _.min(_.pluck(data, 'beg')) / 1000,
+        _.max(_.pluck(data, 'end')) / 1000
+      ];
       _.each(data, function (pnt, i) {
         // left edge of box
         shapes.push({
@@ -60,12 +62,8 @@ define(['views/dashitem', 'plot_booter'],
           show: false,
           mode: 'time',
           tickLength: 0,
-          min: self.model.get('timeRange').beginTime,
-          max: self.model.get('timeRange').endTime,
-          zoomRange: [1, self.model.get('timeRange').endTime - 
-              self.model.get('timeRange').beginTime],
-          panRange: [self.model.get('timeRange').beginTime,
-              self.model.get('timeRange').endTime],
+          zoomRange: [1, bounds[1] - bounds[0]],
+          panRange: [bounds[0], bounds[1]],
         },
         yaxis: { 
           show: false,

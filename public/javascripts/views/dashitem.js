@@ -70,7 +70,7 @@ define(['jquery',
       this.trigger('toggled', 'open');
     },
 
-    search: function (e) {console.log(e);},
+    search: function (e) {},
 
     resize: function () {
       var win = $(window);
@@ -149,6 +149,27 @@ define(['jquery',
         else return new Date(ts / 1000).toLocaleDateString();
       }
       return this;
+    },
+
+    setDuration: function () {
+      $('[data-duration]', this.el).each(function (i) {
+        var $this = $(this);
+        $this.text(getDuration($this.attr('data-duration')));
+      });
+
+      function getDuration(delta) {
+        delta = parseFloat(delta) / 1000;
+        if (delta === 0)
+          return 'n / a';
+        else if (delta < 60)
+          return delta + ' seconds';
+        else if (delta < (45 * 60)) 
+          return (delta / 60).toFixed(1) + ' minutes';
+        else if (delta < (24 * 60 * 60))
+          return (delta / 3600).toFixed(1) + ' hours';
+        else
+          return (delta / 86400).toFixed(1) + ' days';
+      }
     },
 
     getId: function (e) {

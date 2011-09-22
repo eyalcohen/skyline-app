@@ -11,7 +11,7 @@ requirejs(['async!http://maps.google.com/maps/api/js?' +
   notifier.trigger('load');
 });
 
-define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
+define(['views/dashitem', 'map_style'], function (DashItemView, style) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -245,9 +245,9 @@ define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
             map, 'tilesloaded', function () {
         // if (firstRun) {
           // firstRun = false;
-          google.maps.event.trigger(map, 'resize');
-          map.setCenter(mapBounds.getCenter());
-          map.fitBounds(mapBounds);
+          //google.maps.event.trigger(map, 'resize');
+          //map.setCenter(mapBounds.getCenter());
+          //map.fitBounds(mapBounds);
           //wrap.removeClass('map-tmp');
           //showInfo();
         // }
@@ -262,7 +262,8 @@ define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
       this._super('resize');
       if (this.map) {
         google.maps.event.trigger(this.map, 'resize');
-        this.map.fitBounds(this.mapBounds);
+        // this.map.fitBounds(this.mapBounds);
+        // this.map.setCenter(mapBounds.getCenter());
       }
     },
 

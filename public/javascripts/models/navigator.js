@@ -24,14 +24,14 @@ define(function () {
         this.view.render({ loading: true });
       }
       if (!timeRange) {
-        var now = new Date().getTime();
-        timeRange = {
-          beginTime: null,//now - self.get('timeLength'),
-          endTime: now,
-        };
+        // var now = new Date().getTime();
+        // timeRange = {
+        //   beginTime: now - self.get('timeLength'),
+        //   endTime: now,
+        // };
+        timeRange = {};
       }
       self.set({ timeRange: timeRange });
-      return;
       Step(
         function () {
           App.api.fetchSamples(self.attributes.vehicleId, 

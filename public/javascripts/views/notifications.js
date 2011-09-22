@@ -12,6 +12,7 @@ define(['views/dashitem'], function (DashItemView) {
       opts = opts || {};
       _.defaults(opts, {
         loading: false,
+        single: false,
         shrinkable: this.options.shrinkable,
         rows: this.collection.models,
       });
@@ -26,11 +27,7 @@ define(['views/dashitem'], function (DashItemView) {
       }
       this.timer = setInterval(this.setTime, 5000);
       this.setTime();
-      return this;
-    },
-
-    load: function (e) {
-      e.preventDefault();
+      this.setDuration();
       return this;
     },
 

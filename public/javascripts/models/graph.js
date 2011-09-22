@@ -19,7 +19,6 @@ define(function () {
     },
 
     fetch: function (channelName, timeRange) {
-      console.log(timeRange);
       var clear = this.get('data').length === 0;
       if (clear)
         this.view.render({ loading: true });

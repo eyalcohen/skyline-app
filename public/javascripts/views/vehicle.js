@@ -26,6 +26,7 @@ define(['jquery'], function ($) {
           target: this.options.parent,
           height: 30,
           bottomPad: 0,
+          single: true,
           // shrinkable: true,
         }),
         tree: new App.models.TreeModel({
@@ -36,7 +37,7 @@ define(['jquery'], function ($) {
           height: 70,
           bottomPad: 0,
         }),
-        navigator: new App.models.NavigatorModel({
+        navigator: new App.collections.NavigatorCollection({
           vehicleId: vehicleId,
           title: 'Navigator',
           parent: '.' + this.options.parent + ' div .dashboard-right-wide .bottom',

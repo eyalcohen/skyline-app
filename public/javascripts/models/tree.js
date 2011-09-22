@@ -16,7 +16,6 @@ define(function (fn) {
       self.view.render({ loading: true });
       App.api.fetchChannelTree(self.attributes.vehicleId,
           function (err, data) {
-        console.log(data);
         if (err) {
           throw err;
           return;
@@ -54,7 +53,7 @@ define(function (fn) {
               }
             } while (range.endTime - range.beginTime <= 0);
           }
-          console.log(range);
+
           App.publish('MapRequested-' + self.attributes.vehicleId, [range]);
           App.publish('ChannelRequested-' + self.attributes.vehicleId, ['gps.speed_m_s', range]);
         }
