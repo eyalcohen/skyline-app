@@ -779,8 +779,7 @@ ServiceGUI = (function ($) {
       plot: function (desiredSeries, fn) {
 
         // save this scope
-        var self = this,
-            sensors = box.visibleSensors;
+        var self = this;
 
         if (!fn) {
           fn = desiredSeries;
@@ -792,6 +791,8 @@ ServiceGUI = (function ($) {
         var range = [lastCycle.beg / 1000, lastCycle.end / 1000];
         desiredSeries.forEach(function(channelName, i) {
           var channelName = desiredSeries[i];
+          if (-1 == box.availableChannels.indexOf(channelName))
+            channelName = box.availableChannels[i];
           var colors = plotColors[0];
 
           // make a new dygraph
