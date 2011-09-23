@@ -60,10 +60,10 @@ define(function () {
           }
           if (clear) {
             self.view.render({}, function () {
-              self.view.draw();
+              self.view.draw({ range: timeRange });
             });
           } else {
-            self.view.draw();
+            self.view.draw({ range: timeRange });
           }
           self.colorCnt++;
           if (self.colorCnt > 4)

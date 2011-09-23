@@ -103,14 +103,15 @@ define(['views/dashitem',
           theme: 'apple',
         },
         dnd : {
+          drop_check: function () {
+            return true;
+          },
           drop_finish : function (data) { 
             var channel = data.o.data(),
                 axis = $('.graph').data('plot').getAxes().xaxis,
                 range = { beginTime: axis.min * 1000, endTime: axis.max * 1000 };
-            console.log(axis);
             App.publish('ChannelRequested-' +
                 self.model.attributes.vehicleId, [channel, range]);
-            console.log(range);
           },
           drag_check : function (data) {
             if(data.r.attr("id") == "phtml_1") {
@@ -123,7 +124,7 @@ define(['views/dashitem',
             };
           },
           drag_finish : function (data) { 
-            console.log("DRAG OK"); 
+            // 
           }
         },
         plugins: ['themes', 'json_data', 'ui', //'checkbox',

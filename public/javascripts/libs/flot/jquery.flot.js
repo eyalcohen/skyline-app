@@ -51,7 +51,8 @@
                     position: "ne", // position of default legend container within plot
                     margin: 5, // distance from grid edge to default legend container within plot
                     backgroundColor: null, // null means auto-detect
-                    backgroundOpacity: 0.85 // set to 0 to avoid background
+                    backgroundOpacity: 0.85, // set to 0 to avoid background
+                    oneperyaxis: false // set to true to have multiple legends snapped close to there axis
                 },
                 xaxis: {
                     show: null, // null = auto-detect, true = always, false = never
@@ -1081,8 +1082,15 @@
             $.each(axes, function (_, axis) {
                 setTransformationHelpers(axis);
             });
-            
-            insertLegend();
+
+            if (!options.legend.oneperyaxis) {
+                insertLegend();
+            } else {
+                placeholder.find(".legend").remove();
+                for (var i = 0; i < series.length; ++i) {
+                    insertLegend(series[i]);
+                }
+            }
         }
         
         function setRange(axis) {
@@ -2215,20 +2223,42 @@
             return c.toString();
         }
         
-        function insertLegend() {
-            placeholder.find(".legend").remove();
+        function insertLegend(ser) {
+            if (!ser)
+              placeholder.find(".legend").remove();
 
             if (!options.legend.show)
                 return;
             
             var fragments = [], rowStarted = false,
                 lf = options.legend.labelFormatter, s, label;
-            for (var i = 0; i < series.length; ++i) {
-                s = series[i];
+            if (!ser) {
+                for (var i = 0; i < series.length; ++i) {
+                    s = series[i];
+                    label = s.label;
+                    if (!label)
+                        continue;
+                
+                    if (i % options.legend.noColumns == 0) {
+                        if (rowStarted)
+                            fragments.push('</tr>');
+                        fragments.push('<tr>');
+                        rowStarted = true;
+                    }
+
+                    if (lf)
+                        label = lf(label, s);
+                
+                    fragments.push(
+                        '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:4px;height:0;border:5px solid ' + s.color + ';overflow:hidden"></div></div></td>' +
+                        '<td class="legendLabel">' + label + '</td>');
+                }
+            } else {
+                s = ser;
                 label = s.label;
                 if (!label)
-                    continue;
-                
+                    return;
+            
                 if (i % options.legend.noColumns == 0) {
                     if (rowStarted)
                         fragments.push('</tr>');
@@ -2238,7 +2268,7 @@
 
                 if (lf)
                     label = lf(label, s);
-                
+            
                 fragments.push(
                     '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:4px;height:0;border:5px solid ' + s.color + ';overflow:hidden"></div></div></td>' +
                     '<td class="legendLabel">' + label + '</td>');
@@ -2262,10 +2292,14 @@
                     pos += 'top:' + (m[1] + plotOffset.top) + 'px;';
                 else if (p.charAt(0) == "s")
                     pos += 'bottom:' + (m[1] + plotOffset.bottom) + 'px;';
-                if (p.charAt(1) == "e")
-                    pos += 'right:' + (m[0] + plotOffset.right) + 'px;';
-                else if (p.charAt(1) == "w")
-                    pos += 'left:' + (m[0] + plotOffset.left) + 'px;';
+                if (!ser) {
+                    if (p.charAt(1) == "e")
+                        pos += 'right:' + (m[0] + plotOffset.right) + 'px;';
+                    else if (p.charAt(1) == "w")
+                        pos += 'left:' + (m[0] + plotOffset.left) + 'px;';
+                } else {
+                  pos += ser.yaxis.position + ':' + (m[0] + plotOffset[ser.yaxis.position]) + 'px;';
+                }
                 var legend = $('<div class="legend">' + table.replace('style="', 'style="position:absolute;' + pos +';') + '</div>').appendTo(placeholder);
                 if (options.legend.backgroundOpacity != 0.0) {
                     // put in the transparent background

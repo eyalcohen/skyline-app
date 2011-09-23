@@ -36,10 +36,9 @@ define(['views/dashitem', 'plot_booter'],
       }, this));
     },
 
-    draw: function () {
+    draw: function (opts) {
       var self = this, series = [], yaxes = [],
           data = self.model.attributes.data;
-      // var tmp = ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"];
       var tmp = ["#aa8b2e", "#657d8f", "#cb4b4b", "#4da74d", "#9440ed"];
       _.each(data, function (ser, i) {
         series.push({
@@ -72,8 +71,8 @@ define(['views/dashitem', 'plot_booter'],
           // tickLength: 5,
           // zoomRange: [0.1, 10],
           // panRange: [-10, 10],
-          // min: (new Date(1990, 1, 1)).getTime(),
-          // max: (new Date(2000, 1, 1)).getTime(),
+          min: opts.range.beginTime / 1000 || null,
+          max: opts.range.endTime / 1000 || null,
         },
         yaxis: {
           // tickLength: 5,
@@ -95,7 +94,7 @@ define(['views/dashitem', 'plot_booter'],
             // steps: true,
           },
           points: {
-            show: true
+            // show: true
             // radius: number
             // symbol: "circle" or function
           },
@@ -131,6 +130,9 @@ define(['views/dashitem', 'plot_booter'],
         pan: {
           interactive: true,
           frameRate: 60,
+        },
+        legend: {
+          oneperyaxis: true,
         },
       });
       $('.graph', this.content).data({plot: plot});
