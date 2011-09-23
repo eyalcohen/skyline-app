@@ -39,7 +39,7 @@ define(function () {
                                    lat: p.val.lat.val, lng: p.val.lng.val });
             });
             if (points.length === 0) {
-              console.warn('Vehicle with id ' + vehicleId + ' has no mappable' +
+              console.warn('Vehicle with id ' + self.attributes.vehicleId + ' has no mappable' +
                   ' coordinates for the time range requested.');
               self.view.render({ empty: true });
             } else {

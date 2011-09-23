@@ -12,6 +12,7 @@ define(function () {
       this.set({ 
         data: [],
         labels: [],
+        units: [],
         colors: [],
       });
       this.colorCnt = 0;
@@ -49,10 +50,12 @@ define(function () {
               channel.title + ' (' + channel.units + ')' :
               channel.title;
           self.get('labels').push(label);
+          self.get('units').push(channel.units || '');
           self.get('colors').push(self.colorCnt);
           if (self.get('data').length > 2) {
             self.get('data').shift();
             self.get('labels').shift();
+            self.get('units').shift();
             self.get('colors').shift();
           }
           if (clear) {

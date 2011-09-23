@@ -57,7 +57,10 @@ define(['views/dashitem', 'plot_booter'],
         });
         yaxes.push({
           position: ['left','right'][i%2],
-          color: tmp[self.model.attributes.colors[i]],
+          // color: tmp[self.model.attributes.colors[i]],
+          tickFormatter: function (v) {
+            return v + ' ' + self.model.get('units')[i];
+          },
         });
       });
       var plot =
@@ -66,18 +69,20 @@ define(['views/dashitem', 'plot_booter'],
         xaxis: {
           mode: 'time',
           position: 'bottom',
-          tickLength: 5,
+          // tickLength: 5,
           // zoomRange: [0.1, 10],
           // panRange: [-10, 10],
           // min: (new Date(1990, 1, 1)).getTime(),
           // max: (new Date(2000, 1, 1)).getTime(),
         },
         yaxis: {
-          tickLength: 5,
-          reserveSpace: 100,
+          // tickLength: 5,
+          reserveSpace: 40,
           labelWidth: 30,
           zoomRange: false,
           panRange: false,
+          labelWidth: 40,
+          // alignTicksWithAxis: 1,
         },
         xaxes: [{}],
         yaxes: yaxes,
@@ -117,13 +122,15 @@ define(['views/dashitem', 'plot_booter'],
           autoHighlight: true,
           // mouseActiveRadius: number
         },
-        crosshair: { mode: 'xy' },
+        // crosshair: { mode: 'xy' },
         // selection: { mode: "xy" },
         zoom: {
           interactive: true,
+          amount: 1.1,
         },
         pan: {
           interactive: true,
+          frameRate: 60,
         },
       });
       $('.graph', this.content).data({plot: plot});

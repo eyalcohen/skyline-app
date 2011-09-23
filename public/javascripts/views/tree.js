@@ -107,8 +107,10 @@ define(['views/dashitem',
             var channel = data.o.data(),
                 axis = $('.graph').data('plot').getAxes().xaxis,
                 range = { beginTime: axis.min * 1000, endTime: axis.max * 1000 };
+            console.log(axis);
             App.publish('ChannelRequested-' +
                 self.model.attributes.vehicleId, [channel, range]);
+            console.log(range);
           },
           drag_check : function (data) {
             if(data.r.attr("id") == "phtml_1") {

@@ -101,7 +101,7 @@ define(['views/dashitem', 'plot_booter'],
           interactive: true,
         },
         hooks: {
-          draw: [_.debounce(addIcons, 20)],
+          draw: [addIcons],
         },
       });
 
