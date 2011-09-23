@@ -998,6 +998,7 @@ function shortInpsect(argList, maxChars) {
 
 function dnodeLogMiddleware(remote, client) {
   var self = this;
+  var maxArgsChars = 60;
   Object.keys(self).forEach(function(fname) {
     var f = self[fname];
     if (!_.isFunction(f)) return;
@@ -1009,15 +1010,16 @@ function dnodeLogMiddleware(remote, client) {
       if (_.isFunction(callback)) {
         var waiting = setInterval(function() {
           console.log(fnamePretty + '(\x1b[4m' +
-                      shortInpsect(funcArgs, 40) + '\x1b[0m): ' +
+                      shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m): ' +
                       'no callback after ' +
                       (Date.now() - start) + ' ms!!!');
         }, 1000);
         funcArgs[funcArgs.length - 1] = function() {
           clearInterval(waiting);
           console.log(fnamePretty + '(\x1b[4m' +
-                      shortInpsect(funcArgs, 40) + '\x1b[0m) -> (\x1b[4m' +
-                      shortInpsect(arguments, 40) + '\x1b[0m) ' +
+                      shortInpsect(funcArgs, maxArgsChars) +
+                      '\x1b[0m) -> (\x1b[4m' +
+                      shortInpsect(arguments, maxArgsChars) + '\x1b[0m) ' +
                       (Date.now() - start) + ' ms');
           callback.apply(this, arguments);
         };
@@ -1026,7 +1028,7 @@ function dnodeLogMiddleware(remote, client) {
         var start = Date.now();
         f.apply(this, funcArgs);
         console.log(fnamePretty + '(\x1b[4m' +
-                    shortInpsect(funcArgs, 40) + '\x1b[0m) ' +
+                    shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m) ' +
                     (Date.now() - start) + ' ms');
       }
     };

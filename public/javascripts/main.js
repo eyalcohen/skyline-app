@@ -31,12 +31,13 @@ requirejs(['libs/json2',
 
           App.user = App.store.get('user') || {};
 
-          requirejs(['models', 'collections', 'views',
+          requirejs(['models', 'collections', 'views', 'sample-cache',
               'router', 'backbone-sync', 'backbone-super', 'interface'],
-              function (models, collections, views, Router) {
+              function (models, collections, views, SampleCache, Router) {
             App.models = models;
             App.collections = collections;
             App.views = views;
+            App.sampleCache = new SampleCache();
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
             App.subscribe('UserWasAuthenticated', App.buildDash);
