@@ -11,7 +11,7 @@ requirejs(['async!http://maps.google.com/maps/api/js?' +
   notifier.trigger('load');
 });
 
-define(['views/dashitem', 'map_style'], function (DashItemView, style) {
+define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -42,9 +42,11 @@ define(['views/dashitem', 'map_style'], function (DashItemView, style) {
     draw: function () {
       if (mapsLoadNotifier) {
         // Maps is not yet loaded - delay drawing until it's available.
-        mapsLoadNotifier.bind('load', _.bind(draw, this));
+        console.log('Deferring map draw.');
+        mapsLoadNotifier.bind('load', _.bind(this.draw, this));
         return;
       }
+      console.log('Drawing map.');
 
       var points = this.model.attributes.points,
           gpsPoints = {},

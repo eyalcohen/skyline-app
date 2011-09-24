@@ -1083,13 +1083,19 @@
                 setTransformationHelpers(axis);
             });
 
+            placeholder.find(".legend").remove();
             if (!options.legend.oneperyaxis) {
                 insertLegend();
             } else {
-                placeholder.find(".legend").remove();
-                for (var i = 0; i < series.length; ++i) {
-                    insertLegend(series[i]);
-                }
+              var leftGrp = [], rightGrp = [];
+              for (var i = 0; i < series.length; ++i) {
+                  if (series[i].yaxis.position == 'left')
+                    leftGrp.push(series[i]);
+                  else
+                    rightGrp.push(series[i]);
+              }
+              insertLegend(leftGrp);
+              insertLegend(rightGrp);
             }
         }
         
@@ -2223,42 +2229,22 @@
             return c.toString();
         }
         
-        function insertLegend(ser) {
-            if (!ser)
-              placeholder.find(".legend").remove();
+        function insertLegend(legSeries) {
+            // placeholder.find(".legend").remove();
+
+            if (!legSeries) legSeries = series;
 
             if (!options.legend.show)
                 return;
             
             var fragments = [], rowStarted = false,
                 lf = options.legend.labelFormatter, s, label;
-            if (!ser) {
-                for (var i = 0; i < series.length; ++i) {
-                    s = series[i];
-                    label = s.label;
-                    if (!label)
-                        continue;
-                
-                    if (i % options.legend.noColumns == 0) {
-                        if (rowStarted)
-                            fragments.push('</tr>');
-                        fragments.push('<tr>');
-                        rowStarted = true;
-                    }
-
-                    if (lf)
-                        label = lf(label, s);
-                
-                    fragments.push(
-                        '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:4px;height:0;border:5px solid ' + s.color + ';overflow:hidden"></div></div></td>' +
-                        '<td class="legendLabel">' + label + '</td>');
-                }
-            } else {
-                s = ser;
+            for (var i = 0; i < legSeries.length; ++i) {
+                s = legSeries[i];
                 label = s.label;
                 if (!label)
                     return;
-            
+
                 if (i % options.legend.noColumns == 0) {
                     if (rowStarted)
                         fragments.push('</tr>');
@@ -2268,7 +2254,7 @@
 
                 if (lf)
                     label = lf(label, s);
-            
+
                 fragments.push(
                     '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:4px;height:0;border:5px solid ' + s.color + ';overflow:hidden"></div></div></td>' +
                     '<td class="legendLabel">' + label + '</td>');
@@ -2292,13 +2278,13 @@
                     pos += 'top:' + (m[1] + plotOffset.top) + 'px;';
                 else if (p.charAt(0) == "s")
                     pos += 'bottom:' + (m[1] + plotOffset.bottom) + 'px;';
-                if (!ser) {
+                if (!options.legend.oneperyaxis) {
                     if (p.charAt(1) == "e")
                         pos += 'right:' + (m[0] + plotOffset.right) + 'px;';
                     else if (p.charAt(1) == "w")
                         pos += 'left:' + (m[0] + plotOffset.left) + 'px;';
                 } else {
-                  pos += ser.yaxis.position + ':' + (m[0] + plotOffset[ser.yaxis.position]) + 'px;';
+                  pos += legSeries[0].yaxis.position + ':' + (m[0] + plotOffset[legSeries[0].yaxis.position]) + 'px;';
                 }
                 var legend = $('<div class="legend">' + table.replace('style="', 'style="position:absolute;' + pos +';') + '</div>').appendTo(placeholder);
                 if (options.legend.backgroundOpacity != 0.0) {

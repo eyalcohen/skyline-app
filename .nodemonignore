@@ -10,6 +10,7 @@
 # *.proto
 # *.cc
 # *.h
+.git
 cycles
 uploads
 #public
