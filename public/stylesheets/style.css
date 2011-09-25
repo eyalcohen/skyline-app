@@ -696,6 +696,18 @@ input.dashboard-search:focus {
   background: rgba(255,255,255,0.9);
 }
 
+input.dashboard-header-button {
+  display: inline;
+  float: right;
+  margin: 0px 2px 0 0;
+  font-size: 9px;
+  -webkit-border-radius: 3px;
+  border: 1px inset;
+  padding: 1px;
+  width: auto;
+  height: auto;
+}
+
 .dashboard-wrap { width:100%; min-width:1065px; }
 
 a.dashboard-link {

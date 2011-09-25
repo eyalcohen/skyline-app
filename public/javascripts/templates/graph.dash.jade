@@ -1,5 +1,6 @@
 .dashboard-item
   .dashboard-item-header
+    input(type="submit", class="dashboard-header-button", title="Export visible data as CSV.", value="Export")
     - if (shrinkable) {
       a.dashboard-link.toggler(href="javascript:;", title="shrink")
         | -

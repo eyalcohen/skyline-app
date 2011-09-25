@@ -2,12 +2,13 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem', 'plot_booter'], 
+define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
     function (DashItemView) {
 
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
+      'click [value="Export"]': 'exportCsv',
     },
 
     render: function (opts, fn) {
@@ -187,14 +188,47 @@ define(['views/dashitem', 'plot_booter'],
       }
     },
 
+    exportCsv: function (e) {
+      var self = this;
+      e.preventDefault();
+      var channels = [
+          { channelName: '$beginDate', title: 'Begin Date' },
+          { channelName: '$beginTime', title: 'Begin Time' },
+          { channelName: '$beginRelTime', title: 'Begin Since Start', units: 's' },
+          { channelName: '$endRelTime', title: 'End Since Start', units: 's' },
+        ].concat(self.model.get('channels'));
+      var d = App.engine('export_csv.dialog.jade',
+                         { channels: channels }).appendTo(self.content);
+      var dialog = $(d).modal({
+        closeHTML: "<a href='#' title='Close' class='modal-close'>x</a>",
+        // position: ["20%",],
+        overlayId: 'confirm-overlay',
+        containerId: 'confirm-container',
+        minHeight: 400,  // TODO: Why doesn't dialog auto-size?
+        onClose: function() { clearInterval(linkUpdater); dialog.close(); },
+      });
+      var linkUpdater = setInterval(updateLink, 100);
+
+      function updateLink() {
+        var link = $('a#download', d);
+        if (!link.length) return;
+        // TODO: use some kind of URL builder to deal with escaping.
+        var viewRange = self.getVisibleTime();
+        var resample = $('[value="resample"]', d)[0].checked;
+        var resampleTime = $('#resample')[0].value;
+        // TODO: calculate how many data points we'll generate with a resample,
+        // and give some kind of warning or something if it's ridiculous.
+        // TODO: make the link force download?
+        $('a#download', d)[0].href = '/export/' +
+            self.model.attributes.vehicleId + '/data.csv' +
+            '?beg=' + Math.floor(viewRange.beg) +
+            '&end=' + Math.ceil(viewRange.end) +
+            (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
+            channels.map(function(c){return '&chan=' + c.channelName}).join('');
+      }
+
+      return self;
+    },
+
   });
 });
-
-
-
-
-
-
-
-
-

@@ -1,0 +1,22 @@
+#confirm
+  .header
+    span Export data as CSV
+  .message
+    p Columns to download:
+      ol
+        // Why doesn't this work: ???
+        // each channelName in channelNames
+        - channels.forEach(function(channel) {
+          li= channel.title
+        - })
+    p
+      input(type="radio", name="sampleType", value="resample", checked="true")
+      | Resample to:
+      input(type="text", value="1.0")#resample
+      | seconds per sample.
+    p
+      input(type="radio", name="sampleType", value="noResample")
+      | Don't resample.
+    a#download(href="#") Click to download
+  .buttons
+    .simplemodal-close Done
