@@ -48,9 +48,9 @@ define(['views/dashitem', 'plot_booter'],
         yaxes: [{}],
         series: {
           lines: {
-            show: true,
-            lineWidth: 1,
-            fill: 0.2,
+            //show: true,
+            //lineWidth: 1,
+            //fill: 0.2,
           },
           points: {},
           bars: {},
@@ -72,7 +72,7 @@ define(['views/dashitem', 'plot_booter'],
         // selection: { mode: "xy" },
         zoom: {
           interactive: true,
-          amount: 1.1,
+          amount: 1.25,
         },
         pan: {
           interactive: true,
@@ -109,18 +109,35 @@ define(['views/dashitem', 'plot_booter'],
       if (!self.plot)
         self.createPlot();
       var attr = self.model.attributes;
-      var modelData = self.model.get('data');
-      var data = self.model.get('channels').map(
-            function (channel) {
-        return modelData[channel.channelName] || [];
-      });
       var opts = self.plot.getOptions();
       var series = [], yaxes = [];
-      _.each(data, function (ser, i) {
+      self.model.get('channels').forEach(function (channel, i) {
+        var data = self.model.get('data')[channel.channelName] || [];
         series.push({
           color: attr.colors[i],
-          data: ser,
+          lines: {
+            show: true,
+            lineWidth: 1,
+            fill: false,
+          },
+          data: data,
           label: attr.labels[i],
+          xaxis: 1,
+          yaxis: i+1,
+        });
+      });
+      self.model.get('channels').forEach(function (channel, i) {
+        var dataMinMax =
+            self.model.get('dataMinMax')[channel.channelName] || [];
+        if (dataMinMax.length == 0) return;
+        series.push({
+          color: attr.colors[i],
+          lines: {
+            show: true,
+            lineWidth: 0,
+            fill: 0.4,
+          },
+          data: dataMinMax,
           xaxis: 1,
           yaxis: i+1,
         });

@@ -15,6 +15,7 @@ define(function () {
         colors: [],
         units: [],
         data: {},  // Map from channelName to data.
+        dataMinMax: {},  // Map from channelName to data.
         beg: null, end: null,  // Viewed time range.
       });
       self.colorCnt = 0;
@@ -43,6 +44,11 @@ define(function () {
       console.log('Updating cache subscription.');
       var viewRange = this.view.getVisibleTime();
       if (!viewRange) return;
+      // When the tab holding the graph is hidden, the graph width becomes
+      // negative!  Some heuristics to avoid fetching unnecessary amounts of
+      // data.
+      if (viewRange.width <= 0) return;
+      viewRange.width = Math.max(viewRange.width, 2000);
       var dur = App.sampleCache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
       App.sampleCache.setClientView(
@@ -74,20 +80,35 @@ define(function () {
 
     updateSampleSet: function(sampleSet) {
       var self = this;
-      var data = {};
+      var data = {}, dataMinMax = {};
       this.attributes.channels.forEach(function(channel) {
         var samples = sampleSet[channel.channelName] || [];
         // App.shared.mergeOverlappingSamples(samples);
         var channelData = data[channel.channelName] = [];
+        var channelMinMaxData = dataMinMax[channel.channelName] = [];
+        var prevEnd = null, prevMinMaxEnd = null;
         _.each(sampleSet[channel.channelName] || [], function (s, i) {
-          if (i > 0 && samples[i-1].end != s.beg)
+          if (prevEnd != s.beg)
             channelData.push(null);
           channelData.push([s.beg / 1000, s.val]);
           if (s.end !== s.beg)
             channelData.push([s.end / 1000, s.val]);
+          prevEnd = s.end;
+
+          if (s.min != null || s.max != null) {
+            if (prevMinMaxEnd != s.beg)
+              channelMinMaxData.push(null);
+            var max = s.max == null ? s.val : s.max;
+            var min = s.min == null ? s.val : s.min;
+            channelMinMaxData.push([s.beg / 1000, max, min]);
+            if (s.end !== s.beg)
+              channelMinMaxData.push([s.end / 1000, max, min]);
+            prevMinMaxEnd = s.end;
+          }
         });
       });
       self.set({ data: data });
+      self.set({ dataMinMax: dataMinMax });
       self.view.draw();
     },
 

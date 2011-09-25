@@ -1089,10 +1089,11 @@
             } else {
               var leftGrp = [], rightGrp = [];
               for (var i = 0; i < series.length; ++i) {
-                  if (series[i].yaxis.position == 'left')
-                    leftGrp.push(series[i]);
-                  else
-                    rightGrp.push(series[i]);
+                  if (series[i].label != null)
+                      if (series[i].yaxis.position == 'left')
+                          leftGrp.push(series[i]);
+                      else
+                          rightGrp.push(series[i]);
               }
               insertLegend(leftGrp);
               insertLegend(rightGrp);
