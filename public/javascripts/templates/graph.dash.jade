@@ -1,6 +1,11 @@
 .dashboard-item
   .dashboard-item-header
-    input(type="submit", class="dashboard-header-button", title="Export visible data as CSV.", value="Export")
+    a.dashboard-link.remove-graph(href="javascript:;", title="Export visible data as CSV.")
+      | -
+    a.dashboard-link.add-graph(href="javascript:;", title="Export visible data as CSV.")
+      | +
+    a.dashboard-link.export(href="javascript:;", title="Export visible data as CSV.")
+      | Export
     - if (shrinkable) {
       a.dashboard-link.toggler(href="javascript:;", title="shrink")
         | -
@@ -18,7 +23,7 @@
       p.dashboard-item-message
         | Nothing to graph.
     - } else {
-      .graph.jstree-drop
+      .graph
         div
     - }
 

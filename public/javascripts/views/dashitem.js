@@ -39,7 +39,8 @@ define(['jquery',
         this.content.hide();
         this.el.show();
         this.resize();
-        this.content.show('fast', _.bind(this.addScroll, this, cb));
+        // this.content.show('fast', _.bind(this.addScroll, this, cb));
+        this.content.fadeIn('slow', _.bind(this.addScroll, this, cb));
       }
     },
 
@@ -96,15 +97,6 @@ define(['jquery',
     },
 
     addScroll: function (cb) {
-      // // HACK: for some reason the notifications view shows
-      // // height of 1px after reopening.
-      // if (this.content.children().height() > this.content.height()
-      //     && this.content.height() !== 1) {
-      //   this.content.addClass('scrollable');
-      // }
-      // else if(this.content.hasClass('scrollable')) {
-      //   this.content.removeClass('scrollable');
-      // }
       if (this.content.hasClass('scrollable')) {
         this.content.jScrollPane({
           verticalGutter: 2,

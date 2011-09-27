@@ -8,7 +8,9 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'click [value="Export"]': 'exportCsv',
+      'click .export': 'exportCsv',
+      'click .add-graph': 'addGraphFromParent',
+      'click .remove-graph': 'removeGraphFromParent',
     },
 
     render: function (opts, fn) {
@@ -29,45 +31,44 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
     },
 
     createPlot: function() {
-      this.render();  // Why is this necessary?
+      var self = this;
+      self.render(); // Why is this necessary?
       // Create empty graph.
-      this.plot = $.plot($('.graph > div', this.content), [], {
+      self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
           position: 'bottom',
           min: (new Date(2011, 1, 1)).getTime(),
           max: (new Date(2012, 1, 1)).getTime(),
+          tickColor: '#ddd',
         },
         yaxis: {
-          reserveSpace: 40,
+          reserveSpace: true,
           labelWidth: 30,
           zoomRange: false,
           panRange: false,
-          // alignTicksWithAxis: 1,
+          tickColor: '#ddd',
         },
-        xaxes: [{}],
-        yaxes: [{}],
+        yaxes: [
+          { position: 'left' },
+          { position: 'right' }
+        ],
         series: {
           lines: {
-            //show: true,
-            //lineWidth: 1,
-            //fill: 0.2,
+            lineWidth: 1,
+            // fill: 0.2,
           },
           points: {},
           bars: {},
           shadowSize: 1,
         },
         grid: {
-          // labelMargin: 50,
-          // axisMargin: 20,
           markings: weekendAreas,
           borderWidth: 0.5,
-          borderColor: '#999',
-          // minBorderMargin: 30,
+          borderColor: '#444',
           clickable: true,
           hoverable: true,
           autoHighlight: true,
-          // mouseActiveRadius: number
         },
         crosshair: { mode: 'xy' },
         // selection: { mode: "xy" },
@@ -83,26 +84,30 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           oneperyaxis: true,
         },
       });
-      this.plot.hooks.draw.push(_.bind(this.plotDrawHook, this));
+      self.plot.hooks.draw.push(_.bind(self.plotDrawHook, self));
 
-      $('.graph', this.content).data({plot: this.plot});
+      $('.graph', self.content).data({
+        plot: self.plot,
+        id: self.options.id,
+      });
 
       // helper for returning the weekends in a period
       function weekendAreas(axes) {
         var markings = [];
         var d = new Date(axes.xaxis.min);
         // go to the first Saturday
-        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+        d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7));
         d.setUTCSeconds(0);
         d.setUTCMinutes(0);
         d.setUTCHours(0);
         var i = d.getTime();
         do {
-          markings.push({ xaxis: { from: i, to: i + 2*24*60*60*1000 } });
+          markings.push({ xaxis: { from: i, to: i + 2*24*60*60*1000 }, color: '#fcfcfc' });
           i += 7 * 24 * 60 * 60 * 1000;
         } while (i < axes.xaxis.max);
         return markings;
       }
+
     },
 
     draw: function () {
@@ -111,28 +116,46 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         self.createPlot();
       var attr = self.model.attributes;
       var opts = self.plot.getOptions();
-      var series = [], yaxes = [];
-      self.model.get('channels').forEach(function (channel, i) {
+      var series = [], numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
+      _.each(self.model.get('channels'), function (channel) {
+        if (!channel.yaxisNum) return;
+        if (channel.yaxisNum === 1)
+          numSeriesLeftAxis++;
+        else
+          numSeriesRightAxis++;
+      });
+      _.each(self.model.get('channels'), function (channel) {
         var data = self.model.get('data')[channel.channelName] || [];
+        if (!channel.yaxisNum) {
+          if (numSeriesLeftAxis > numSeriesRightAxis) {
+            channel.yaxisNum = 2;
+            numSeriesRightAxis++;
+          } else {
+            channel.yaxisNum = 1;
+            numSeriesLeftAxis++;
+          }
+        }
         series.push({
-          color: attr.colors[i],
+          color: channel.colorNum,
           lines: {
             show: true,
             lineWidth: 1,
             fill: false,
           },
           data: data,
-          label: attr.labels[i],
+          label: channel.units ?
+              channel.title + ' (' + channel.units + ')' :
+              channel.title,
           xaxis: 1,
-          yaxis: i+1,
+          yaxis: channel.yaxisNum,
         });
       });
-      self.model.get('channels').forEach(function (channel, i) {
+      _.each(self.model.get('channels'), function (channel) {
         var dataMinMax =
             self.model.get('dataMinMax')[channel.channelName] || [];
         if (dataMinMax.length == 0) return;
         series.push({
-          color: attr.colors[i],
+          color: channel.colorNum,
           lines: {
             show: true,
             lineWidth: 0,
@@ -140,16 +163,10 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           },
           data: dataMinMax,
           xaxis: 1,
-          yaxis: i+1,
+          yaxis: channel.yaxisNum,
         });
       });
       self.plot.setData(series);
-      _.each(self.plot.getYAxes(), function (yaxis, i) {
-        yaxis.options.position = ['left','right'][i%2];
-        yaxis.options.tickFormatter = function (v) {
-          return v + ' ' + attr.units[i];
-        };
-      });
       self.plot.setupGrid();
       self.plot.draw();
     },
@@ -168,6 +185,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         console.log('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
+      this.addYaxesBoundsForDrops();
     },
 
     getVisibleTime: function() {
@@ -185,6 +203,55 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         xopts.max = end;
         this.plot.setupGrid();  // Necessary?
         this.plot.draw();
+      }
+    },
+
+    addYaxesBoundsForDrops: function () {
+      var self = this;
+      $('.axisTarget', self.content).remove();
+      var parentPadding = {
+        lr: Math.ceil((self.content.width() -
+            self.plot.getPlaceholder().width()) / 2),
+        tb: Math.ceil((self.content.height() -
+            self.plot.getPlaceholder().height()) / 2),
+      };
+      _.each(self.plot.getAxes(), function (axis, key) {
+        if (key === 'xaxis') return;
+        var box = getBoundingBoxForAxis(axis);
+        var borderLeft = key === 'yaxis' ?
+            '' : '1px dashed rgba(0, 0, 0, 0.5)';
+        var borderRight = key === 'y2axis' ?
+            '' : '1px dashed rgba(0, 0, 0, 0.5)';
+        $('<div class="axisTarget jstree-drop" style="position:absolute;left:' +
+            box.left + 'px;top:' + box.top + 'px;width:' + box.width +
+            'px;height:' + box.height + 'px"></div>')
+            .data('axis.direction', axis.direction)
+            .data('axis.n', axis.n)
+            .data('dragover', function () { $(this).css({ opacity: 1 }) })
+            .data('dragout', function () { $(this).css({ opacity: 0 }) })
+            .css({
+              backgroundColor: 'rgba(0,0,0,0.1)',
+              'border-left': borderLeft,
+              'border-right': borderRight,
+              opacity: 0,
+            })
+            .appendTo(self.plot.getPlaceholder());
+      });
+      // helper for returning axis bounds
+      function getBoundingBoxForAxis (axis) {
+        var left = axis.box.left,
+            top = -parentPadding.tb,
+            right = left + axis.box.width;
+        var width = right - left,
+            height = self.content.height() + 1;
+        if (axis.position === 'left') {
+          left -= parentPadding.lr + 1;
+          width += parentPadding.lr;
+        } else {
+          width += parentPadding.lr;
+        }
+        return { left: left, top: top,
+              width: width, height: height };
       }
     },
 
@@ -230,5 +297,14 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       return self;
     },
 
+    addGraphFromParent: function (e) {
+      this.trigger('addGraph');
+    },
+
+    removeGraphFromParent: function (e) {
+      this.trigger('removeGraph');
+    },
+
   });
 });
+

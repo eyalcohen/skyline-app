@@ -59,79 +59,71 @@ define(['views/dashitem',
                 }
               });
               metadata.title = title;
+              var id = metadata.channelName, attr = {};
+              if (id)
+                attr.id = id; // title.replace(' ', '-').toLowerCase(),
+              attr.rel = children.length > 0 ? 'root' : '';
               _.extend(node, {
                 data: { title: title },
                 metadata: metadata,
-                attr: {
-                  rel: (children.length > 0 ? 'root' : ''),
-                  id: title.replace(' ', '-').toLowerCase(),
-                },
+                attr: attr,
                 children: children,
               });
             }
           },
         },
-        core: {
-          animation: 0,
-        },
+        core: { animation: 0 },
         ui: {
           select_multiple_modifier: 'alt',
-          initially_select: ['gps-speed'],
+          initially_select: [App.defaultChannel.channelName],
         },
-        checkbox: {
-          override_ui: true,
-        },
+        checkbox: { override_ui: true },
         types : {
           types : {
             root : {
-              icon : { 
-                image : $.jstree._themes + '/apple/drive.png',
-              },
+              icon : { image : $.jstree._themes + '/apple/drive.png' },
             },
             default : {
-              icon : { 
-                image : $.jstree._themes + '/apple/data.png',
-              },
+              icon : { image : $.jstree._themes + '/apple/data.png' }
             }
           }
         },
-        search: {
-          case_insensitive: true,
-          show_only_matches: true,
-        },
-        themes: {
-          theme: 'apple',
-        },
+        search: { case_insensitive: true, show_only_matches: true },
+        themes: { theme: 'apple' },
         dnd : {
-          drop_check: function () {
+          drop_check: function (data) {
+            data.r.data('dragover').call(data.r);
             return true;
           },
-          drop_finish : function (data) { 
-            var channel = data.o.data(),
-                axis = $('.graph').data('plot').getAxes().xaxis,
-                range = { beginTime: axis.min * 1000, endTime: axis.max * 1000 };
+          drop_uncheck: function (data) {
+            data.r.data('dragout').call(data.r);
+            return true;
+          },
+          drop_finish : function (data) {
+            var graphId = data.r.parent().parent().data('id');
+            var channel = data.o.data();
+            channel.yaxisNum = data.r.data('axis.n');
+            if (data.o.hasClass('jstree-unchecked')) {
+              data.o.removeClass('jstree-unchecked')
+              data.o.addClass('jstree-checked');
+            }
             App.publish('ChannelRequested-' +
-                self.model.attributes.vehicleId, [channel, range]);
+                self.model.attributes.vehicleId + '-' +
+                graphId, [channel]);
+            if (data.r.data('dragout'))
+              data.r.data('dragout').call(data.r);
           },
           drag_check : function (data) {
-            if(data.r.attr("id") == "phtml_1") {
-              return false;
-            }
-            return { 
-              after : false, 
-              before : false, 
-              inside : true 
+            return {
+              after : false,
+              before : false,
+              inside : true,
             };
           },
-          drag_finish : function (data) { 
-            // 
-          }
+          drag_finish : function (data) {},
         },
-        plugins: ['themes', 'json_data', 'ui', //'checkbox',
+        plugins: ['themes', 'json_data', 'ui', 'checkbox',
             'types', 'search', /*'contextmenu',*/ 'dnd'],
-      }).bind('select_node.jstree',
-          function (e, data) {
-        // console.log(e, data);
       }).bind('open_node.jstree close_node.jstree '+
           'create_node.jstree delete_node.jstree',
           function (e, data) {
@@ -140,18 +132,35 @@ define(['views/dashitem',
         console.warn('Found ' + data.rslt.nodes.length +
             ' nodes matching "' + data.rslt.str + '".');
         self.resize();
-      }).bind('move_node.jstree', function (e, data) {
-        //
-      })/*.bind('before.jstree', function (e, data) {
-        if(data.func === 'check_node') {
-          // $("#log2").html(data.args[0].attr("id"));
-          e.stopImmediatePropagation();
-          return false;
+      }).bind('click.jstree', function (e) {
+        var target = $(e.target);
+        var node = target.hasClass('jstree-checkbox') ?
+            target.parent().parent() : target.parent();
+        if (!node.attr('id')) {
+          var children = $('li', node);
+          if (node.hasClass('jstree-checked')) {
+            children.each(function (i) {
+              App.publish('ChannelRequested-' + self.model.get('vehicleId'), 
+                  [$(children.get(i)).data()]);
+            });
+          } else if (node.hasClass('jstree-unchecked')) {
+            children.each(function (i) {
+              App.publish('ChannelUnrequested-' + self.model.get('vehicleId'), 
+                  [$(children.get(i)).data()]);
+            });
+          }
+        } else {
+          if (node.hasClass('jstree-checked')) {
+            App.publish('ChannelRequested-' + self.model.get('vehicleId'), 
+                [node.data()]);
+          } else if (node.hasClass('jstree-unchecked')) {
+            App.publish('ChannelUnrequested-' + self.model.get('vehicleId'), 
+                [node.data()]);
+          }
         }
-      })*///.jstree('check_node', $('#gps-speed'));
+      });
       
-      
-      
+
       return this;
     },
 

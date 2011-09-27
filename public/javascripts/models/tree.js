@@ -50,25 +50,8 @@ define(function (fn) {
               }
             } while (range.endTime - range.beginTime <= 0);
           }
-          
-          // if (self.attributes.vehicleId === 1088675181) {
-          //   graphRange = {
-          //     beginTime: new Date().getTime() - 60 * 60 * 24 * 1 * 1000,
-          //     endTime: new Date().getTime() * 1000,
-          //   };
-          // } else {
-          //   graphRange = range;
-          // }
-          
+
           App.publish('MapRequested-' + self.attributes.vehicleId, [range]);
-          App.publish('ChannelRequested-' + self.attributes.vehicleId, [{
-            channelName: 'gps.speed_m_s',
-            humanName: 'GPS Speed',
-            shortName: 'speed_m_s',
-            type: 'float',
-            units: 'm/s',
-            title: 'GPS Speed',
-          }, range]);
         }
       });
       return this;

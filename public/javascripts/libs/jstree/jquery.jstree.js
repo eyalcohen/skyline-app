@@ -2508,6 +2508,7 @@
 					.delegate(s.drop_target, "mouseleave.jstree-" + this.get_index(), $.proxy(function (e) {
 							if(this.data.dnd.active) {
 								$.vakata.dnd.helper.children("ins").attr("class","jstree-invalid");
+								this._get_settings().dnd.drop_uncheck.call(this, { "o" : o, "r" : $(e.target), "e" : e });
 							}
 						}, this))
 					.delegate(s.drop_target, "mouseup.jstree-" + this.get_index(), $.proxy(function (e) {

@@ -94,8 +94,7 @@ requirejs(['jquery'], function () {
       $this.attr({ src: noo, alt: old });
     });
   }
-  
-  // function openTab(vehicleId, timeRange, validChannels, vehicleTitle) {
+
   function openTab(vehicleId, vehicleTitle) {
     var targetClass = 'target-' + makeid();
     var target = $('<div class="tab-target '+ targetClass +'">');
@@ -111,7 +110,11 @@ requirejs(['jquery'], function () {
     target.appendTo('.folder');
     
     // TMP
-    new App.views.VehicleView({ parent: targetClass }).render.apply(this, arguments);
+    new App.views.VehicleView({
+      parent: targetClass,
+      vehicleId: vehicleId,
+      vehicleTitle: vehicleTitle,
+    }).render();
   }
   
   function makeid() {

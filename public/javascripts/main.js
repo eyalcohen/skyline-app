@@ -17,9 +17,6 @@ requirejs(['libs/json2',
     debug: true,
     start: function () {
       DNode().connect({ disconnect: App.reconnect }, function (remote) {
-        // remote.subscribe('data', function (n) {
-        //   document.getElementById('output').innerHTML += n + ' ';
-        // });
         try {
           App.api = remote;
           App.store = store;
@@ -28,7 +25,6 @@ requirejs(['libs/json2',
           App.subscribe = require('./minpubsub').subscribe;
           App.unsubscribe = require('./minpubsub').unsubscribe;
           App.shared = require('./shared_utils');
-
           App.user = App.store.get('user') || {};
 
           requirejs(['models', 'collections', 'views', 'sample-cache',
@@ -38,6 +34,25 @@ requirejs(['libs/json2',
             App.collections = collections;
             App.views = views;
             App.sampleCache = new SampleCache();
+            App.defaultChannel = {
+              channelName: 'gps.speed_m_s',
+              humanName: 'GPS Speed',
+              shortName: 'speed_m_s',
+              type: 'float',
+              units: 'm/s',
+              title: 'GPS Speed',
+            };
+
+            App.router = new Router();
+            Backbone.history.start({
+              pushState: true,
+              silent: true,
+            });
+            // SP: This will set the URL, but we must ensure
+            // the server can provide the same route if 
+            // asked directly.
+            //// App.router.navigate('somewhere');
+
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
             App.subscribe('UserWasAuthenticated', App.buildDash);
@@ -54,15 +69,6 @@ requirejs(['libs/json2',
                 else App.publish('UserWasAuthenticated');
               });
             }
-            App.router = new Router();
-            Backbone.history.start({
-              pushState: true,
-              silent: true,
-            });
-            // SP: This will set the URL, but we must ensure
-            // the server can provide the same route if 
-            // asked directly.
-            //// App.router.navigate('somewhere');
           });
         } catch (err) {
           console.error('Error in App.start: ' + err + '\n' + err.stack);

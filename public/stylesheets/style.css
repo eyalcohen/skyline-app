@@ -696,7 +696,7 @@ input.dashboard-search:focus {
   background: rgba(255,255,255,0.9);
 }
 
-input.dashboard-header-button {
+/*input.dashboard-header-button {
   display: inline;
   float: right;
   margin: 0px 2px 0 0;
@@ -706,20 +706,20 @@ input.dashboard-header-button {
   padding: 1px;
   width: auto;
   height: auto;
-}
+}*/
 
 .dashboard-wrap { width:100%; min-width:1065px; }
 
 a.dashboard-link {
-  font-family: monospace;
+/*  font-family: monospace;*/
   float:right;
   font-weight:bold;
   color:#404040;
-  font-size:14px;
+  font-size:10px;
   text-decoration:none;
   font-style:normal;
-  margin:-1px 0 0 4px;
-  padding:0 10px 0 10px;
+  margin:-1px 0 0;
+  padding:0 5px;
   line-height:17px;
   text-shadow:0 1px 1px white;
   -moz-text-shadow:0 1px 1px white;
@@ -793,7 +793,7 @@ tr.light { background: white; }
 tr.dark { background: #F6FBFC; }
 
 th { padding:5px 10px; vertical-align:top; font-weight:normal; white-space: nowrap; }
-td { padding:5px 10px; border-top:1px solid #aaa; vertical-align:top; }
+td { padding:5px 10px; border-top:1px solid #aaa; vertical-align:top; /*white-space: nowrap;*/ }
 th[align=right],
 td[align=right] {
   padding-right: 20px;
@@ -1289,6 +1289,7 @@ div.details-bar-middle {
   padding: 3px 5px;
   border-top: none;
   text-align: right;
+  font-weight: bold;
 }
 
 .legendColorBox {
