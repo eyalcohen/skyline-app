@@ -17,6 +17,7 @@ var argv = optimist
     .demand('vehicleId')
     .default('type', 'merged')
     .boolean('json')
+    .boolean('getMinMax')
     .argv;
 
 function errCheck(err, op) {

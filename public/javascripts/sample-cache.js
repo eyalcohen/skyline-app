@@ -140,6 +140,9 @@ define(function () {
           minDuration: dur,
           getMinMax: true,
         };
+        // TODO: we could avoid fetching samples sometimes if we determine that
+        // a larger cached bucket already has entirely non-synthetic data for
+        // the given time range.
         App.api.fetchSamples(vehicleId, channelName, options,
                              function(err, samples) {
           if (err) {
@@ -210,11 +213,14 @@ define(function () {
       var entry = this.getCacheEntry(vehicleId, channelName, dur, buck);
       if (entry && entry.samples) {
         buckets.push(entry.samples);
+      /* TODO: this doesn't work, since it will avoid fetching bigger data.
+         We'll need to be much more clever to avoid this problem.
       } else if (prevDur != null && getSmaller) {
         buckets.push(
             this.getBestCachedData(vehicleId, channelName, prevDur,
                                    buck * buckDur, (buck + 1) * buckDur,
                                    false, false));
+      */
       } else if (nextDur != null && getBigger) {
         // TODO: this would be more efficient and correct if we tried to fill
         // entire gaps, rather than a single bucket at a time.
@@ -235,7 +241,7 @@ define(function () {
   var durations = [0].concat(App.shared.syntheticDurations),
       durationsRev = _.clone(durations).reverse();
   function bucketSize(dur) {
-    return dur === 0 ? 500 : dur * App.shared.syntheticSamplesPerRow;
+    return dur === 0 ? 500 : dur * App.shared.syntheticSamplesPerRow * 10;
   }
 
   function def(obj, key) { return (key in obj) ? obj[key] : (obj[key] = {}); }

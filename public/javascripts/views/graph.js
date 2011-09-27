@@ -159,7 +159,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           lines: {
             show: true,
             lineWidth: 0,
-            fill: 0.4,
+            fill: 0.6,
           },
           data: dataMinMax,
           xaxis: 1,
