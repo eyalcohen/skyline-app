@@ -69,7 +69,7 @@ define(['jquery'], function ($) {
       self.hookGraphControls(self.items.graphs[0], 0);
       self.items.notifications.fetch();
       self.items.tree.fetch();
-      self.items.graphs[0].addChannel(App.defaultChannel);
+      self.items.graphs[0].addChannel(_.clone(App.defaultChannel));
       self.items.navigator.fetch();
 
       return self;

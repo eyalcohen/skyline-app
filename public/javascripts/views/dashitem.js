@@ -40,7 +40,9 @@ define(['jquery',
         this.el.show();
         this.resize();
         // this.content.show('fast', _.bind(this.addScroll, this, cb));
-        this.content.fadeIn('slow', _.bind(this.addScroll, this, cb));
+        // this.content.fadeIn('slow', _.bind(this.addScroll, this, cb));
+        this.content.show();
+        this.addScroll(cb);
       }
     },
 

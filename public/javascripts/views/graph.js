@@ -51,7 +51,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         },
         yaxes: [
           { position: 'left' },
-          { position: 'right' }
+          { position: 'right', alignTicksWithAxis: 1 }
         ],
         series: {
           lines: {
@@ -117,6 +117,8 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       var attr = self.model.attributes;
       var opts = self.plot.getOptions();
       var series = [], numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
+      // so many loops, ugh... seems to be only way
+      // to ensure proper axis mapping.
       _.each(self.model.get('channels'), function (channel) {
         if (!channel.yaxisNum) return;
         if (channel.yaxisNum === 1)
@@ -125,7 +127,6 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           numSeriesRightAxis++;
       });
       _.each(self.model.get('channels'), function (channel) {
-        var data = self.model.get('data')[channel.channelName] || [];
         if (!channel.yaxisNum) {
           if (numSeriesLeftAxis > numSeriesRightAxis) {
             channel.yaxisNum = 2;
@@ -135,6 +136,14 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
             numSeriesLeftAxis++;
           }
         }
+      });
+      if (numSeriesLeftAxis === 0 && numSeriesRightAxis !== 0) {
+        _.each(self.model.get('channels'), function (channel) {
+          channel.yaxisNum = 1;
+        });
+      }
+      _.each(self.model.get('channels'), function (channel) {
+        var data = self.model.get('data')[channel.channelName] || [];
         series.push({
           color: channel.colorNum,
           lines: {
