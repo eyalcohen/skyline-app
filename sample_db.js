@@ -543,17 +543,18 @@ SampleDb.prototype.fetchRealSamples =
           var query = { veh: vehicleId, chn: channelName };
           if (beginTime != null || endTime != null) {
             query.buk = { };
-            if (beginTime != null)
-              query.buk.$gte = Math.floor(beginTime / bucketSize);
-            if (endTime != null) {
-              var endQueryTime = endTime;
+            if (beginTime != null) {
+              var begQueryTime = beginTime;
               // Tricky: because buckets are only determined based on the
               // beginning of each sample, we need to expand our query range by
               // the maximum size of a sample at this level, which is the size
               // of the next level.  The exception is the top level.
               if (levelIndex < bucketThresholds.length - 1)
-                endQueryTime += bucketThresholds[levelIndex + 1];
-              query.buk.$lt = Math.ceil(endQueryTime / bucketSize);
+                begQueryTime -= bucketThresholds[levelIndex + 1];
+              query.buk.$gte = Math.floor(begQueryTime / bucketSize);
+            }
+            if (endTime != null) {
+              query.buk.$lt = Math.ceil(endTime / bucketSize);
             }
           }
           //debug('level: ' + level + ', query: ' + JSON.stringify(query));
