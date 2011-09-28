@@ -24,6 +24,7 @@ define(function () {
       App.subscribe('VisibleTimeChange-' + args.vehicleId, self.changeVisibleTime);
       App.subscribe('ChannelRequested-' + args.vehicleId + '-' + args.id, self.addChannel);
       App.subscribe('ChannelUnrequested-' + args.vehicleId, self.removeChannel);
+      self.view.bind('ChannelUnrequested', self.removeChannel);
       App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
       self.view.bind('VisibleTimeChange', function (beg, end) {
         self.updateCacheSubscription();
@@ -77,14 +78,17 @@ define(function () {
 
     removeChannel: function (channel) {
       var self = this;
+      if (!_.isString(channel)) {
+        channel = channel.channelName;
+      }
       var index = _.pluck(self.get('channels'), 'channelName')
-          .indexOf(channel.channelName);
+          .indexOf(channel);
       if (index === -1) return;
-      delete channel.yaxisNum;
       self.get('channels').splice(index, 1);
       console.log('removeChannel(', channel, ')...');
       self.view.draw();
       self.updateCacheSubscription();
+      self.view.trigger('channelRemoved', channel);
     },
 
     updateSampleSet: function (sampleSet) {
@@ -92,7 +96,6 @@ define(function () {
       var data = {}, dataMinMax = {};
       this.attributes.channels.forEach(function(channel) {
         var samples = sampleSet[channel.channelName] || [];
-        // App.shared.mergeOverlappingSamples(samples);
         var channelData = data[channel.channelName] = [];
         var channelMinMaxData = dataMinMax[channel.channelName] = [];
         var prevEnd = null, prevMinMaxEnd = null;

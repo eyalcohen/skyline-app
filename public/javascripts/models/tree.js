@@ -8,6 +8,7 @@ define(function (fn) {
       if (!args) args = {};
       _.extend(args, { model: this });
       this.view = new App.views.TreeView(args);
+      this.view.bind('hideChannel', _.bind(this.view.hideChannel, this.view));
       return this;
     },
 

@@ -65,19 +65,18 @@ define(['jquery'], function ($) {
           id: self.makeid(),
         })],
       };
-
       self.hookGraphControls(self.items.graphs[0], 0);
       self.items.notifications.fetch();
       self.items.tree.fetch();
       self.items.graphs[0].addChannel(_.clone(App.defaultChannel));
       self.items.navigator.fetch();
-
       return self;
     },
 
     hookGraphControls: function (g, i) {
       var self = this;
       _.extend(g, Backbone.Events);
+      g.view.bind('channelRemoved', _.bind(self.checkChannelExistence, self));
       g.view.bind('addGraph', function () {
         self.addGraph(i);
       });
@@ -88,6 +87,7 @@ define(['jquery'], function ($) {
     },
 
     unhookGraphControls: function (g) {
+      g.view.unbind('channelRemoved');
       g.view.unbind('addGraph');
       g.view.unbind('removeGraph');
       return this;
@@ -119,8 +119,7 @@ define(['jquery'], function ($) {
       var self = this;
       // TODO: visually deactivate the (-) button when we
       // don't want the graph removed.
-      if (index === 0 && self.items.graphs.length === 1)
-        return;
+      if (index === 0 && self.items.graphs.length === 1) return;
       self.items.graphs[index].destroy();
       self.items.graphs.splice(index, 1);
       var num = self.items.graphs.length;
@@ -131,6 +130,12 @@ define(['jquery'], function ($) {
         g.view.options.bottomPad = 70 / num + ((num-1) * 7);
       });
       App.publish('WindowResize');
+    },
+
+    checkChannelExistence: function (channelName) {
+      if ($('[data-channel-name="'+channelName+'"]').length === 0) {
+        this.items.tree.view.trigger('hideChannel', channelName);
+      }
     },
 
     arrange: function (state) {

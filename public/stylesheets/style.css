@@ -1292,6 +1292,22 @@ div.details-bar-middle {
   font-weight: bold;
 }
 
+.legendLabel {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+a.label-closer {
+  font-size: 11px;
+  color: gray;
+}
+
+a.label-closer:hover {
+ color:black; 
+}
+
 .legendColorBox {
   width: 18px;
 }

@@ -2527,7 +2527,8 @@
 			drop_finish		: $.noop,
 			drag_target		: ".jstree-draggable",
 			drag_finish		: $.noop,
-			drag_check		: function (data) { return { after : false, before : false, inside : true }; }
+			drag_check		: function (data) { return { after : false, before : false, inside : true }; },
+			ignore_multiple_selection: false,
 		},
 		_fn : {
 			dnd_prepare : function () {
@@ -2668,7 +2669,7 @@
 			},
 			start_drag : function (obj, e) {
 				o = this._get_node(obj);
-				if(this.data.ui && this.is_selected(o)) { o = this._get_node(null, true); }
+				if(this.data.ui && this.is_selected(o) && !this._get_settings().dnd.ignore_multiple_selection) { o = this._get_node(null, true); }
 				var dt = o.length > 1 ? this._get_string("multiple_selection") : this.get_text(o),
 					cnt = this.get_container();
 				if(!this._get_settings().core.html_titles) { dt = dt.replace(/</ig,"&lt;").replace(/>/ig,"&gt;"); }

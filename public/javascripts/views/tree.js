@@ -32,7 +32,7 @@ define(['views/dashitem',
 
     draw: function () {
       var self = this, data = this.model.get('data');
-      $('.tree', this.content).jstree({
+      self.treeHolder = $('.tree', this.content).jstree({
         json_data: {
           data: function (n, cb) {
             fillInternal(data, true);
@@ -104,6 +104,7 @@ define(['views/dashitem',
             };
           },
           drag_finish : function (data) {},
+          ignore_multiple_selection: true,
         },
         plugins: ['themes', 'json_data', 'ui', 'checkbox',
             'types', 'search', /*'contextmenu',*/ 'dnd'],
@@ -121,16 +122,16 @@ define(['views/dashitem',
     },
 
     nodeClickHandler: function (e) {
-      console.log($(e.target));
       var self = this;
       var target = $(e.target);
+      if (target.hasClass('jstree-icon')) return;
       var node = target.hasClass('jstree-checkbox') ?
           target.parent().parent() : target.parent();
       // Just use the first graph. Is there a better option??
       var graphId = $($('.graph',
           $('.' + self.model.get('target'))).get(0)).data('id');
       if (!node.attr('id')) {
-        var children = $('li', node);
+        var children = $('ul > li', node);
         if (node.hasClass('jstree-checked')) {
           children.each(function (i) {
             var channel = _.clone($(children.get(i)).data());
@@ -147,11 +148,11 @@ define(['views/dashitem',
       } else {
         var channel = _.clone(node.data());
         if (node.hasClass('jstree-checked')) {
-          App.publish('ChannelRequested-' + self.model.get('vehicleId') +
-              '-' + graphId, [channel]);
+          App.publish('ChannelRequested-' +
+              self.model.get('vehicleId') + '-' + graphId, [channel]);
         } else if (node.hasClass('jstree-unchecked')) {
-          App.publish('ChannelUnrequested-' + self.model.get('vehicleId'),
-              [channel]);
+          App.publish('ChannelUnrequested-' +
+              self.model.get('vehicleId'), [channel]);
         }
       }
     },
@@ -161,7 +162,7 @@ define(['views/dashitem',
       var graphId = data.r.parent().parent().data('id');
       var yaxisNum = data.r.data('axis.n');
       if (!data.o.attr('id')) {
-        var children = $('li', data.o);
+        var children = $('ul > li', data.o);
         children.each(function (i) {
           var child = $(children.get(i));
           var channel = _.clone(child.data());
@@ -171,24 +172,27 @@ define(['views/dashitem',
               graphId, [channel]);
           if (child.hasClass('jstree-unchecked')) {
             child.removeClass('jstree-unchecked')
-            child.addClass('jstree-checked');
+                .addClass('jstree-checked');
           }
         });
+        if (data.o.hasClass('jstree-unchecked')) {
+          data.o.removeClass('jstree-unchecked')
+              .addClass('jstree-checked');
+        } else if (data.o.hasClass('jstree-undetermined')) {
+          data.o.removeClass('jstree-undetermined')
+            .addClass('jstree-checked');
+        }
       } else {
         var channel = _.clone(data.o.data());
         channel.yaxisNum = data.r.data('axis.n');
         App.publish('ChannelRequested-' +
             self.model.get('vehicleId') + '-' +
             graphId, [channel]);
-        var parentNode = data.o.parent().parent();
-        if (parentNode.hasClass('jstree-unchecked')) {
-          parentNode.removeClass('jstree-unchecked');
-          parentNode.addClass('jstree-undetermined');
+        if (data.o.hasClass('jstree-unchecked')) {
+          data.o.removeClass('jstree-unchecked')
+              .addClass('jstree-checked');
         }
-      }
-      if (data.o.hasClass('jstree-unchecked')) {
-        data.o.removeClass('jstree-unchecked')
-        data.o.addClass('jstree-checked');
+        self.handleParentVisibility(data.o.parent().parent());
       }
       if (data.r.data('dragout'))
         data.r.data('dragout').call(data.r);
@@ -196,7 +200,39 @@ define(['views/dashitem',
 
     search: function (e) {
       var txt = $(e.target).val().trim();
-      $('.tree', this.content).jstree('search', txt);
+      this.treeHolder.jstree('search', txt);
+    },
+
+    hideChannel: function (channelName) {
+      var self = this;
+      var nodes = $('li', this.treeHolder);
+      nodes.each(function (i) {
+        var node = $(nodes.get(i));
+        if (node.attr('id') === channelName
+            && node.hasClass('jstree-checked')) {
+          node.removeClass('jstree-checked')
+              .addClass('jstree-unchecked');
+          self.handleParentVisibility(node.parent().parent());
+        }
+      });
+    },
+
+    handleParentVisibility: function (parentNode) {
+      var children = $('ul > li', parentNode);
+      var hasChecked = false, hasUnchecked = false;
+      children.each(function (j) {
+        var parentChild = $(children.get(j));
+        if (parentChild.hasClass('jstree-checked'))
+          hasChecked = true;
+        else if (parentChild.hasClass('jstree-unchecked'))
+          hasUnchecked = true;
+      });
+      var classToAddToParent = hasChecked && !hasUnchecked ?
+          'jstree-checked' : (hasChecked && hasUnchecked ?
+          'jstree-undetermined' : 'jstree-unchecked');
+      parentNode.removeClass('jstree-checked')
+          .removeClass('jstree-undetermined')
+          .addClass(classToAddToParent);
     },
 
   });

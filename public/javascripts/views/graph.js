@@ -56,7 +56,6 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         series: {
           lines: {
             lineWidth: 1,
-            // fill: 0.2,
           },
           points: {},
           bars: {},
@@ -71,7 +70,6 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           autoHighlight: true,
         },
         crosshair: { mode: 'xy' },
-        // selection: { mode: "xy" },
         zoom: {
           interactive: true,
           amount: 1.25,
@@ -82,6 +80,10 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         },
         legend: {
           oneperyaxis: true,
+          labelFormatter: function(label, series) {
+            return '<span class="jstree-draggable">' + label + '</span>&nbsp;&nbsp;&nbsp;<a href="javascript:;" class="label-closer" '+
+                'data-channel-name="' + series.channel.channelName + '">X</a>';
+          },
         },
       });
       self.plot.hooks.draw.push(_.bind(self.plotDrawHook, self));
@@ -107,7 +109,6 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         } while (i < axes.xaxis.max);
         return markings;
       }
-
     },
 
     draw: function () {
@@ -157,12 +158,13 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
               channel.title,
           xaxis: 1,
           yaxis: channel.yaxisNum,
+          channel: channel,
         });
       });
       _.each(self.model.get('channels'), function (channel) {
         var dataMinMax =
             self.model.get('dataMinMax')[channel.channelName] || [];
-        if (dataMinMax.length == 0) return;
+        if (dataMinMax.length === 0) return;
         series.push({
           color: channel.colorNum,
           lines: {
@@ -178,6 +180,8 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       self.plot.setData(series);
       self.plot.setupGrid();
       self.plot.draw();
+      // hook the series closers in labels.
+      $('.label-closer', self.content).click(_.bind(self.removeChannel, self));
     },
 
     plotDrawHook: function() {
@@ -239,7 +243,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
             .data('dragover', function () { $(this).css({ opacity: 1 }) })
             .data('dragout', function () { $(this).css({ opacity: 0 }) })
             .css({
-              backgroundColor: 'rgba(0,0,0,0.1)',
+              backgroundColor: 'rgba(128,255,255,0.1)',
               'border-left': borderLeft,
               'border-right': borderRight,
               opacity: 0,
@@ -290,13 +294,13 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         if (!link.length) return;
         // TODO: use some kind of URL builder to deal with escaping.
         var viewRange = self.getVisibleTime();
-        var resample = $('[value="resample"]', d)[0].checked;
-        var resampleTime = $('#resample')[0].value;
+        var resample = $('[value="resample"]', d).get(0).checked;
+        var resampleTime = $('#resample').get(0).value;
         // TODO: calculate how many data points we'll generate with a resample,
         // and give some kind of warning or something if it's ridiculous.
         // TODO: make the link force download?
-        $('a#download', d)[0].href = '/export/' +
-            self.model.attributes.vehicleId + '/data.csv' +
+        $('a#download', d).get(0).href = '/export/' +
+            self.model.get('vehicleId') + '/data.csv' +
             '?beg=' + Math.floor(viewRange.beg) +
             '&end=' + Math.ceil(viewRange.end) +
             (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
@@ -304,6 +308,12 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       }
 
       return self;
+    },
+
+    removeChannel: function (e) {
+      var label = $(e.target).attr('data-channel-name');
+      console.log(label);
+      this.trigger('ChannelUnrequested', label);
     },
 
     addGraphFromParent: function (e) {
