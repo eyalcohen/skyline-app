@@ -2532,6 +2532,7 @@
 		},
 		_fn : {
 			dnd_prepare : function () {
+				if (this._get_settings().dnd.external_only) return false;
 				if(!r || !r.length) { return; }
 				this.data.dnd.off = r.offset();
 				if(this._get_settings().core.rtl) {
@@ -2560,6 +2561,7 @@
 				return this.dnd_show();
 			},
 			dnd_show : function () {
+				if (this._get_settings().dnd.external_only) return false;
 				if(!this.data.dnd.prepared) { return; }
 				var o = ["before","inside","after"],
 					r = false,
@@ -2602,10 +2604,12 @@
 				return r;
 			},
 			dnd_open : function () {
+				if (this._get_settings().dnd.external_only) return false;
 				this.data.dnd.to2 = false;
 				this.open_node(r, $.proxy(this.dnd_prepare,this), true);
 			},
 			dnd_finish : function (e) {
+				if (this._get_settings().dnd.external_only) return false;
 				if(this.data.dnd.foreign) {
 					if(this.data.dnd.after || this.data.dnd.before || this.data.dnd.inside) {
 						this._get_settings().dnd.drag_finish.call(this, { "o" : o, "r" : r, "p" : last_pos });
@@ -2621,6 +2625,7 @@
 				if(ml) { ml.hide(); }
 			},
 			dnd_enter : function (obj) {
+				if (this._get_settings().dnd.external_only) return false;
 				if(this.data.dnd.mto) { 
 					clearTimeout(this.data.dnd.mto);
 					this.data.dnd.mto = false;

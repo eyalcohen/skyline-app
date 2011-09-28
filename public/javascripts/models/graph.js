@@ -16,13 +16,13 @@ define(function () {
         beg: null, end: null,  // Viewed time range.
       });
       self.colorCnt = 0;
-      self.clientId = args.vehicleId + '-graph'; // TODO: graph #? -- added this as 'id'.
+      self.clientId = args.vehicleId + '-' + args.id;
       console.log('Graph Model...');
       self.view.render({ });
       _.bindAll(self, 'updateCacheSubscription', 'changeVisibleTime',
                 'addChannel', 'removeChannel', 'updateSampleSet');
       App.subscribe('VisibleTimeChange-' + args.vehicleId, self.changeVisibleTime);
-      App.subscribe('ChannelRequested-' + args.vehicleId + '-' + args.id, self.addChannel);
+      App.subscribe('ChannelRequested-' + self.clientId, self.addChannel);
       App.subscribe('ChannelUnrequested-' + args.vehicleId, self.removeChannel);
       self.view.bind('ChannelUnrequested', self.removeChannel);
       App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
@@ -52,8 +52,8 @@ define(function () {
       var dur = App.sampleCache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
       App.sampleCache.setClientView(
-          this.clientId, this.attributes.vehicleId,
-          _.pluck(this.attributes.channels, 'channelName'),
+          this.clientId, this.get('vehicleId'),
+          _.pluck(this.get('channels'), 'channelName'),
           dur, viewRange.beg, viewRange.end);
     },
 
@@ -94,7 +94,7 @@ define(function () {
     updateSampleSet: function (sampleSet) {
       var self = this;
       var data = {}, dataMinMax = {};
-      this.attributes.channels.forEach(function(channel) {
+      this.get('channels').forEach(function(channel) {
         var samples = sampleSet[channel.channelName] || [];
         var channelData = data[channel.channelName] = [];
         var channelMinMaxData = dataMinMax[channel.channelName] = [];

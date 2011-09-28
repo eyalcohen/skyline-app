@@ -180,8 +180,6 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       self.plot.setData(series);
       self.plot.setupGrid();
       self.plot.draw();
-      // hook the series closers in labels.
-      $('.label-closer', self.content).click(_.bind(self.removeChannel, self));
     },
 
     plotDrawHook: function() {
@@ -199,6 +197,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         this.prevWidth = t.width;
       }
       this.addYaxesBoundsForDrops();
+      $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
     },
 
     getVisibleTime: function() {
