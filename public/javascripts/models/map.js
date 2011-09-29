@@ -3,60 +3,72 @@
  */
 
 define(function () {
+  var latChan = 'gps.latitude_deg', lngChan = 'gps.longitude_deg';
   return Backbone.Model.extend({
     initialize: function (args) {
       if (!args) args = {};
       _.extend(args, { model: this });
       this.view = new App.views.MapView(args);
       this.view.render({ waiting: true });
-      _.bindAll(this, 'fetch');
-      App.subscribe('MapRequested-' + args.vehicleId, this.fetch);
+      _.bindAll(this, 'changeVisibleTime',
+                'updateVisibleSampleSet', 'updateNavigableSampleSet');
+      App.subscribe('VisibleTimeChange-' + args.vehicleId,
+                    this.changeVisibleTime);
+      self.clientIdVisible = args.vehicleId + '-map-visible';
+      App.sampleCache.bind('update-' + this.clientIdVisible,
+                           this.updateVisibleSampleSet);
+      self.clientIdNavigable = args.vehicleId + '-map-navigable';
+      App.sampleCache.bind('update-' + this.clientIdNavigable,
+                           this.updateNavigableSampleSet);
       return this;
     },
 
-    fetch: function (timeRange) {
-      this.view.render({ loading: true });
-      var self = this, canMap = timeRange.endTime - timeRange.beginTime > 0;
-      if (canMap) {
-        var points = [], self = this;
-        Step(
-          function () {
-            App.api.fetchSamples(self.attributes.vehicleId, 
-                  'gps.latitude_deg', timeRange, this.parallel());
-            App.api.fetchSamples(self.attributes.vehicleId, 
-                  'gps.longitude_deg', timeRange, this.parallel());
-          },
-          function (err, latPnts, lngPnts) {
-            if (err) {
-              throw err;
-              return;
-            }
-            var points = [];
-            var split = App.shared.splitSamplesByTime({ lat: latPnts, lng: lngPnts });
-            split.forEach(function (p) {
-              if ('lat' in p.val && 'lng' in p.val)
-                points.push({ beg: p.beg, end: p.end,
-                                   lat: p.val.lat.val, lng: p.val.lng.val });
-            });
-            if (points.length === 0) {
-              console.warn('Vehicle with id ' + self.attributes.vehicleId + ' has no mappable' +
-                  ' coordinates for the time range requested.');
-              self.view.render({ empty: true });
-            } else {
-              self.set({
-                points: points
-              });
-              self.view.render();
-            }
-          }
-        );
-      } else {
-        console.warn('I can\'t map this!');
-        this.view.render({ empty: true });
-      }
-      return this;
+    destroy: function () {
+      App.sampleCache.unbind('update-' + this.clientIdVisible,
+                             this.updateVisibleSampleSet);
+      App.sampleCache.endClient(this.clientIdVisible);
+      App.sampleCache.unbind('update-' + this.clientIdNavigable,
+                             this.updateNavigableSampleSet);
+      App.sampleCache.endClient(this.clientIdVisible);
+      // this.view.destroy();  ???
     },
-    
+
+    changeVisibleTime: function (beg, end) {
+      var maxSamples = 2000;  // Maximum latlngs to target.
+      // TODO: For views which include a lot of time with no gps data, we fetch
+      // very few points.  We could get clever and use the _schema time ranges
+      // for gps data to use the time range which overlaps [beg,end) rather
+      // than (end - beg).
+      var dur = App.sampleCache.getBestDuration(end - beg, maxSamples);
+      App.sampleCache.setClientView(
+          this.clientIdVisible, this.get('vehicleId'),
+          [ latChan, lngChan ], dur, beg, end);
+      // TODO: cell dots?
+    },
+
+    // TODO: changeNavigableTime
+
+    updateVisibleSampleSet: function (sampleSet) {
+      this.set({ pointsVisible: this.sampleSetToPoints(sampleSet) });;
+      this.view.draw({ pointsVisibleChanged: true });
+    },
+
+    updateNavigableSampleSet: function (sampleSet) {
+      this.set({ pointsNavigable: this.sampleSetToPoints(sampleSet) });;
+      this.view.draw({ pointsNavigableChanged: true });
+    },
+
+    sampleSetToPoints: function(sampleSet) {
+      var split = App.shared.splitSamplesByTime(sampleSet);
+      var points = [];
+      split.forEach(function (p) {
+        var lat = p.val[latChan], lng = p.val[lngChan];
+        if (lat != null && lng != null)
+          points.push({ beg: p.beg, end: p.end, lat: lat.val, lng: lng.val });
+      });
+      return points;
+    },
+
   });
 });
 

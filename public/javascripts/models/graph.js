@@ -16,13 +16,14 @@ define(function () {
         beg: null, end: null,  // Viewed time range.
       });
       self.colorCnt = 0;
-      self.clientId = args.vehicleId + '-' + args.id;
-      console.log('Graph Model...');
+      self.clientId = args.vehicleId + '-graph-' + args.id;
       self.view.render({ });
       _.bindAll(self, 'updateCacheSubscription', 'changeVisibleTime',
                 'addChannel', 'removeChannel', 'updateSampleSet');
-      App.subscribe('VisibleTimeChange-' + args.vehicleId, self.changeVisibleTime);
-      App.subscribe('ChannelRequested-' + self.clientId, self.addChannel);
+      App.subscribe('VisibleTimeChange-' + args.vehicleId,
+                    self.changeVisibleTime);
+      App.subscribe('ChannelRequested-' + args.vehicleId + '-' + args.id,
+                    self.addChannel);
       App.subscribe('ChannelUnrequested-' + args.vehicleId, self.removeChannel);
       self.view.bind('ChannelUnrequested', self.removeChannel);
       App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
@@ -41,7 +42,6 @@ define(function () {
     },
 
     updateCacheSubscription: function () {
-      console.log('Updating cache subscription.');
       var viewRange = this.view.getVisibleTime();
       if (!viewRange) return;
       // When the tab holding the graph is hidden, the graph width becomes
@@ -58,7 +58,6 @@ define(function () {
     },
 
     changeVisibleTime: function (beg, end) {
-      console.log('changeVisibleTime.');
       this.view.setVisibleTime(beg, end);
     },
 
@@ -92,7 +91,7 @@ define(function () {
     updateSampleSet: function (sampleSet) {
       var self = this;
       var data = {}, dataMinMax = {};
-      this.get('channels').forEach(function(channel) {
+      self.get('channels').forEach(function(channel) {
         var samples = sampleSet[channel.channelName] || [];
         var channelData = data[channel.channelName] = [];
         var channelMinMaxData = dataMinMax[channel.channelName] = [];

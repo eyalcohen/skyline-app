@@ -234,6 +234,8 @@ define(['jquery'], function ($) {
     },
 
     // TODO: move this somewhere that makes sense.
+    // TODO: use a global counter or something, rather than assuming random
+    // numbers won't collide.
     makeid: function () {
       var text = '';
       var possible = 
