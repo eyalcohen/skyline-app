@@ -99,6 +99,17 @@ define(function () {
   };
 
   /**
+   * Get the best duration to use for an approximate max number of samples to
+   * fetch.
+   */
+  SampleCache.prototype.getBestDuration = function(visibleUs, maxSamples) {
+    var minDuration = Math.min(visibleUs / maxSamples, _.last(durations));
+    return _.first(_.filter(durations, function(v) {
+      return v >= minDuration;
+    }));
+  };
+
+  /**
    * Get the best duration to use for a given number of us/pixel.
    */
   SampleCache.prototype.getBestGraphDuration = function(usPerPixel) {

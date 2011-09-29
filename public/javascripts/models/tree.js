@@ -26,33 +26,6 @@ define(function (fn) {
             data: data,
           });
           self.view.render();
-
-          var latRanges = [];
-          _.each(data, function (d) {
-            if (d.shortName === 'gps.') {
-              _.each(d.sub, function (s) {
-                if (s.channelName === 'gps.latitude_deg') {
-                  latRanges = s.valid;
-                }
-              });
-            }
-          });
-
-          var len = latRanges.length, i = 1,
-              range = {};
-          if (len > 0) {
-            do {
-              range.beginTime = latRanges[len - i].beg;
-              range.endTime = latRanges[len - i].end;
-              i++;
-              if (i > len) {
-                range = {};
-                break;
-              }
-            } while (range.endTime - range.beginTime <= 0);
-          }
-
-          App.publish('MapRequested-' + self.attributes.vehicleId, [range]);
         }
       });
       return this;

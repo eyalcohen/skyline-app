@@ -118,7 +118,6 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       var self = this;
       if (!self.plot)
         self.createPlot();
-      var attr = self.model.attributes;
       var opts = self.plot.getOptions();
       var series = [], numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
       // so many loops, ugh... seems to be only way
@@ -188,7 +187,6 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
     },
 
     plotDrawHook: function() {
-      console.log('plotDrawHook called!');
       var t = this.getVisibleTime();
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
         this.trigger('VisibleTimeChange', t.beg, t.end);
