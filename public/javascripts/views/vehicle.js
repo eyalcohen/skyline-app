@@ -8,12 +8,11 @@ define(['jquery'], function ($) {
       _.bindAll(this, 'render', 'destroy', 'addGraph');
       App.subscribe('NotAuthenticated', this.destroy);
       // App.subscribe(args.parent + '-minimize-top', this.destroy);
-      
       return this;
     },
 
     events: {
-      // 'click .toggler': 'arrange',
+      // 'mousedown .resize-horizontal': 'arrange', // why does this not work??
     },
 
     render: function () {
@@ -70,6 +69,9 @@ define(['jquery'], function ($) {
       self.items.tree.fetch();
       self.items.graphs[0].addChannel(_.clone(App.defaultChannel));
       self.items.navigator.fetch();
+
+      self.hookResizers();
+
       return self;
     },
 
@@ -138,19 +140,48 @@ define(['jquery'], function ($) {
       }
     },
 
-    arrange: function (state) {
-      // if (state === 'close') {
-      //   this.items.notifications.view.options.height = 0;
-      //   this.items.map.view.options.height = 100;
-      //   this.items.tree.view.options.height = 100;
-      //   this.items.graph.view.options.height = 100;
-      // } else {
-      //   this.items.notifications.view.options.height = 20;
-      //   this.items.tree.view.options.height = 80;
-      //   this.items.map.view.options.height = 80;
-      //   this.items.graph.view.options.height = 80;
-      // }
-      // App.publish('WindowResize');
+    hookResizers: function () {
+      $('.resize-horizontal', this.el).bind('mousedown',
+          _.bind(_.debounce(this.arrangeHorizontal, 100), this));
+      $('.resize-vertical', this.el).bind('mousedown',
+          _.bind(_.debounce(this.arrangeVertical, 100), this));
+      App.subscribe('WindowResize', _.bind(function () {
+        var targets = $('.resize-horizontal', this.el);
+        targets.each(function (i) {
+          var target = $(targets[i]);
+          var ref = $(target.siblings().get(0));
+          console.log(parseInt(ref.offset().top));
+          target.css({ top: (ref.height() / 2 - target.height() / 2) +
+              parseInt(ref.offset().top) });
+        });
+      }), this);
+    },
+
+    arrangeHorizontal: function (e) {
+      var target = $(e.target);
+      var left = $(target.siblings().get(0));
+      var right = $(target.siblings().get(1));
+      var left_w_orig = left.width();
+      var right_w_orig = right.width();
+      var mouse_orig = { x: e.pageX, y: e.pageY };
+      var movehandle = function (e) {
+        var m = { x: e.pageX, y: e.pageY };
+        var lw = left_w_orig + (m.x - mouse_orig.x);
+        var rw = right_w_orig - (m.x - mouse_orig.x);
+        if (lw < 200 || rw < 200) return false;
+        left.width(lw);
+        right.width(rw);
+      };
+      $(document).bind('mousemove', movehandle);
+      $(document).bind('mouseup', function (e) {
+        $(this).unbind('mousemove', movehandle)
+            .unbind('mouseup', arguments.callee);
+      });
+      App.publish('WindowResize');
+    },
+
+    arrangeVertical: function (e) {
+      
     },
 
     destroy: function () {

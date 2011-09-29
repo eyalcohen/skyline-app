@@ -213,7 +213,6 @@ define(['views/dashitem',
     },
 
     nodeDraggedExternalHandler: function (data, cb) {
-      var self = this;
       if (data.r.hasClass('axisTarget')) {
         data.r.data('dragover').call(data.r);
         cb(true);

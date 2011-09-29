@@ -648,6 +648,30 @@ span.landing-copy {
   box-flex: 1;
 }
 
+/*.collapser {
+  back
+}*/
+
+.resize-vertical {
+  background: none;
+  width: 29px;
+  height: 1px;
+  position: absolute;
+  border-top: 1px dotted gray;
+  border-bottom: 1px dotted gray;
+  cursor: pointer;
+}
+
+.resize-horizontal {
+  background: none;
+  height: 29px;
+  width: 1px;
+  position: absolute;
+  border-left: 1px dotted gray;
+  border-right: 1px dotted gray;
+  cursor: pointer;
+}
+
 .dashboard-top {
   padding: 0;
   width: 100%; 
@@ -657,23 +681,23 @@ span.landing-copy {
   width: 100%;
 }
 .dashboard-left {
-  padding:0 5px 0 0;
+  padding:0 6px 0 0;
   width:40%;
 }
 .dashboard-right {
-  padding:0 0 0 5px;
+  padding:0 0 0 7px;
   width:60%;
 }
 .dashboard-left-side {
-  padding: 0 5px 0 0;
+  padding: 0 6px 0 0;
   width: 20%;
 }
-.dashboard-right-side {
-  padding: 0 0 0 5px;
+/*.dashboard-right-side {
+  padding: 0 0 0 7px;
   width: 15%;
-}
+}*/
 .dashboard-right-wide {
-  padding: 0 0 0 5px;
+  padding: 0 0 0 7px;
   width: 80%;
 }
 

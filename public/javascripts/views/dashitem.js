@@ -31,11 +31,14 @@ define(['jquery',
       this.delegateEvents();
       if (this.firstRender) {
         this.firstRender = false;
-        this.el.fadeIn('fast');
+        // this.el.fadeIn('fast');
+        this.el.show();
         this.offset = this.options.target ?
             $('.' + this.options.target).offset() :
             this.el.offset();
+        this.resize();
       } else {
+        // this.resize();
         this.content.hide();
         this.el.show();
         this.resize();
@@ -90,7 +93,7 @@ define(['jquery',
           this.content.animate(dest, 'fast');
         } else {
           this.content.css(dest);
-          this.options.animate = true;
+          this.options.animate = false;
         }
       } else {
         this.content.height(win.height() - this.offset.top - 40);
