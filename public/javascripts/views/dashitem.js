@@ -93,7 +93,7 @@ define(['jquery',
           this.content.animate(dest, 'fast');
         } else {
           this.content.css(dest);
-          this.options.animate = false;
+          this.options.animate = false; // keep this off for now...
         }
       } else {
         this.content.height(win.height() - this.offset.top - 40);

@@ -142,17 +142,23 @@ define(['jquery'], function ($) {
 
     hookResizers: function () {
       $('.resize-horizontal', this.el).bind('mousedown',
-          _.bind(_.debounce(this.arrangeHorizontal, 100), this));
+          _.bind(this.arrangeHorizontal, this));
       $('.resize-vertical', this.el).bind('mousedown',
-          _.bind(_.debounce(this.arrangeVertical, 100), this));
-      App.subscribe('WindowResize', _.bind(function () {
-        var targets = $('.resize-horizontal', this.el);
-        targets.each(function (i) {
-          var target = $(targets[i]);
+          _.bind(this.arrangeVertical, this));
+      App.subscribe('WindowResize', _.bind(function (skip) {
+        var hTargets = $('.resize-horizontal', this.el);
+        hTargets.each(function (i) {
+          var target = $(hTargets[i]);
           var ref = $(target.siblings().get(0));
-          console.log(parseInt(ref.offset().top));
           target.css({ top: (ref.height() / 2 - target.height() / 2) +
               parseInt(ref.offset().top) });
+        });        
+        var vTargets = $('.resize-vertical', this.el);
+        vTargets.each(function (i) {
+          var target = $(vTargets[i]);
+          var ref = $(target.siblings().get(0));
+          target.css({ left: (ref.width() / 2 - target.width() / 2) +
+              parseInt(ref.offset().left) });
         });
       }), this);
     },
@@ -164,23 +170,60 @@ define(['jquery'], function ($) {
       var left_w_orig = left.width();
       var right_w_orig = right.width();
       var mouse_orig = { x: e.pageX, y: e.pageY };
-      var movehandle = function (e) {
+      var movehandle = _.debounce(function (e) {
         var m = { x: e.pageX, y: e.pageY };
         var lw = left_w_orig + (m.x - mouse_orig.x);
         var rw = right_w_orig - (m.x - mouse_orig.x);
         if (lw < 200 || rw < 200) return false;
         left.width(lw);
         right.width(rw);
-      };
+        App.publish('WindowResize');
+      }, 20);
       $(document).bind('mousemove', movehandle);
       $(document).bind('mouseup', function (e) {
         $(this).unbind('mousemove', movehandle)
             .unbind('mouseup', arguments.callee);
       });
-      App.publish('WindowResize');
     },
 
     arrangeVertical: function (e) {
+      return;
+      var self = this;
+      var target = $(e.target);
+      var topItems = $('.dashboard-item', target.siblings().get(0));
+      var bottomItems = $('.dashboard-item', target.siblings().get(1));
+      var tops = [], bots = [];
+      _.each(topItems, function (item) {
+        item = $(item);
+        tops.push([item, item.height()]);
+      });
+      _.each(bottomItems, function (item) {
+        item = $(item);
+        tops.push([item, item.height()]);
+      });
+      var mouse_orig = { x: e.pageX, y: e.pageY };
+      var movehandle = _.debounce(function (e) {
+        var m = { x: e.pageX, y: e.pageY };
+        _.each(tops, function (item) {
+          item[0].data('view').options.height = item[1] + (m.y - mouse_orig.y);
+        });
+        _.each(bots, function (item) {
+          item[0].data('view').options.height = item[1] - (m.y - mouse_orig.y);
+        });
+        
+        // var tw = top_h_orig + (m.y - mouse_orig.y);
+        // var bw = bottom_h_orig - (m.y - mouse_orig.y);
+        // if (tw < 20 || bw < 200) return false;
+        
+        App.publish('WindowResize');
+        // top.height(tw);
+        // bottom.height(bw);
+      }, 20);
+      $(document).bind('mousemove', movehandle);
+      $(document).bind('mouseup', function (e) {
+        $(this).unbind('mousemove', movehandle)
+            .unbind('mouseup', arguments.callee);
+      });
       
     },
 

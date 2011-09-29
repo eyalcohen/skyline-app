@@ -628,10 +628,9 @@ span.landing-copy {
   margin: 0 5px 0 0;
 }
 
-
-
-
-.flex {
+.flex,
+.flex-top,
+.flex-bottom {
   display: -webkit-box;
   display: -moz-box;
   display: box;
@@ -640,6 +639,16 @@ span.landing-copy {
   -moz-box-orient: horizontal;
   width: 100%;
   margin: 0 0 10px 0;
+}
+
+.flex-top {
+  margin: 0;
+  padding: 0 0 4px;
+}
+
+.flex-bottom {
+  margin: 0;
+  padding: 7px 0 0;
 }
 
 .flex > div {
@@ -660,6 +669,7 @@ span.landing-copy {
   border-top: 1px dotted gray;
   border-bottom: 1px dotted gray;
   cursor: pointer;
+  display: none;
 }
 
 .resize-horizontal {
@@ -670,6 +680,7 @@ span.landing-copy {
   border-left: 1px dotted gray;
   border-right: 1px dotted gray;
   cursor: pointer;
+  display: none;
 }
 
 .dashboard-top {
