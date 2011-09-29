@@ -291,14 +291,20 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         minHeight: 400,  // TODO: Why doesn't dialog auto-size?
         onClose: function() { clearInterval(linkUpdater); dialog.close(); },
       });
+      $('[value="noResample"]', d).get(0).checked = true;
+      // TODO: rather than this rather horrible technique of updating every
+      // 100ms, bind to the various events that occur when dialog controls
+      // change.
       var linkUpdater = setInterval(updateLink, 100);
 
       function updateLink() {
         var link = $('a#download', d);
-        if (!link.length) return;
+        // if (!link.length) return;
         // TODO: use some kind of URL builder to deal with escaping.
         var viewRange = self.getVisibleTime();
         var resample = $('[value="resample"]', d).get(0).checked;
+        var minmax = $('[name="minmax"]', d).get(0).checked;
+        $('[name="minmax"]', d).get(0).disabled = !resample;
         var resampleTime = $('#resample').get(0).value;
         // TODO: calculate how many data points we'll generate with a resample,
         // and give some kind of warning or something if it's ridiculous.
@@ -308,6 +314,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
             '?beg=' + Math.floor(viewRange.beg) +
             '&end=' + Math.ceil(viewRange.end) +
             (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
+            (resample && minmax ? '&minmax' : '') +
             channels.map(function(c){return '&chan=' + c.channelName}).join('');
       }
 

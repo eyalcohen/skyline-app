@@ -10,10 +10,14 @@
           li= channel.title
         - })
     p
-      input(type="radio", name="sampleType", value="resample", checked="true")
+      input(type="radio", name="sampleType", value="resample")
       | Resample to:
       input(type="text", value="1.0")#resample
       | seconds per sample.
+    // Indent next?
+    p
+      input(type="checkbox", name="minmax", value="minmax")
+      | Include minima and maxima.
     p
       input(type="radio", name="sampleType", value="noResample")
       | Don't resample.
