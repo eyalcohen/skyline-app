@@ -74,19 +74,19 @@ define(['views/dashitem',
           initially_select: [App.defaultChannel.channelName],
         },
         checkbox: { override_ui: true },
-        types : {
-          types : {
-            root : {
-              icon : { image : $.jstree._themes + '/apple/drive.png' },
+        types: {
+          types: {
+            root: {
+              icon: { image: $.jstree._themes + '/apple/drive.png' },
             },
-            default : {
-              icon : { image : $.jstree._themes + '/apple/data.png' }
+            default: {
+              icon: { image: $.jstree._themes + '/apple/data.png' }
             }
           }
         },
         search: { case_insensitive: true, show_only_matches: true },
         themes: { theme: 'apple' },
-        dnd : {
+        dnd: {
           drop_check: function (data) {
             data.r.data('dragover').call(data.r);
             return true;
@@ -95,17 +95,15 @@ define(['views/dashitem',
             data.r.data('dragout').call(data.r);
             return true;
           },
-          drop_finish : _.bind(self.nodeDroppedHandler, self),
-          drag_check : function (data) {
-            return {
-              after : false,
-              before : false,
-              inside : true,
-            };
+          drop_finish: _.bind(self.nodeDroppedHandler, self),
+          drag_check: function (data) {
+            return { after: false, before: false, inside: true };
           },
-          drag_finish : function (data) {},
+          drag_finish: function (data) {},
           ignore_multiple_selection: true,
-          external_only: true,
+          external_drop_only: true,
+          from_external_drop_check: _.bind(self.nodeDroppedExternalHandler, self),
+          from_external_drag_check: _.bind(self.nodeDraggedExternalHandler, self),
         },
         plugins: ['themes', 'json_data', 'ui', 'checkbox',
             'types', 'search', /*'contextmenu',*/ 'dnd'],
@@ -199,9 +197,51 @@ define(['views/dashitem',
         data.r.data('dragout').call(data.r);
     },
 
+    nodeDroppedExternalHandler: function (data) {
+      var self = this;
+      if (data.r.hasClass('axisTarget')) {
+        var graphId = data.r.parent().parent().data('id');
+        var yaxisNum = data.r.data('axis.n');
+        var channel = JSON.parse(data.o.parent().attr('data-channel'));
+        data.o.siblings().click();
+        self.showChannel(channel.channelName);
+        channel.yaxisNum = yaxisNum;
+        App.publish('ChannelRequested-' +
+            self.model.get('vehicleId') + '-' +
+            graphId, [channel]);
+      }
+    },
+
+    nodeDraggedExternalHandler: function (data, cb) {
+      var self = this;
+      if (data.r.hasClass('axisTarget')) {
+        data.r.data('dragover').call(data.r);
+        cb(true);
+        data.r.bind('mouseleave', function (e) {
+          cb(false);
+          data.r.unbind('mouseleave');
+          data.r.data('dragout').call(data.r);
+        });
+      }
+    },
+
     search: function (e) {
       var txt = $(e.target).val().trim();
       this.treeHolder.jstree('search', txt);
+    },
+
+    showChannel: function (channelName) {
+      var self = this;
+      var nodes = $('li', this.treeHolder);
+      nodes.each(function (i) {
+        var node = $(nodes.get(i));
+        if (node.attr('id') === channelName
+            && node.hasClass('jstree-unchecked')) {
+          node.removeClass('jstree-unchecked')
+              .addClass('jstree-checked');
+          self.handleParentVisibility(node.parent().parent());
+        }
+      });
     },
 
     hideChannel: function (channelName) {

@@ -67,7 +67,8 @@ define(function () {
       if (_.pluck(self.get('channels'), 'channelName')
           .indexOf(channel.channelName) !== -1)
         return;
-      channel.colorNum = self.colorCnt;
+      if (channel.colorNum === undefined)
+        channel.colorNum = self.colorCnt;
       self.get('channels').push(channel);
       if (++self.colorCnt > 4)
         self.colorCnt = 0;
@@ -78,11 +79,8 @@ define(function () {
 
     removeChannel: function (channel) {
       var self = this;
-      if (!_.isString(channel)) {
-        channel = channel.channelName;
-      }
       var index = _.pluck(self.get('channels'), 'channelName')
-          .indexOf(channel);
+          .indexOf(channel.channelName);
       if (index === -1) return;
       self.get('channels').splice(index, 1);
       console.log('removeChannel(', channel, ')...');

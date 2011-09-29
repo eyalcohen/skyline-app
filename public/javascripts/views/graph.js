@@ -81,8 +81,11 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         legend: {
           oneperyaxis: true,
           labelFormatter: function(label, series) {
-            return '<span class="jstree-draggable">' + label + '</span>&nbsp;&nbsp;&nbsp;<a href="javascript:;" class="label-closer" '+
-                'data-channel-name="' + series.channel.channelName + '">X</a>';
+            return "<div data-channel='" + JSON.stringify(series.channel) + "' "+
+                'data-channel-name="' + series.channel.channelName + '">'+
+                '<span class="jstree-draggable" style="cursor:pointer">'+
+                label + '</span>&nbsp;&nbsp;&nbsp;<a href="javascript:;"'+
+                'class="label-closer">X</a></div>';
           },
         },
       });
@@ -140,7 +143,9 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       });
       if (numSeriesLeftAxis === 0 && numSeriesRightAxis !== 0) {
         _.each(self.model.get('channels'), function (channel) {
-          channel.yaxisNum = 1;
+          // If left axis is empty, move everyting left.
+          // On second thought, this may not be the desired behavior.
+          // channel.yaxisNum = 1;
         });
       }
       _.each(self.model.get('channels'), function (channel) {
@@ -310,9 +315,8 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
     },
 
     removeChannel: function (e) {
-      var label = $(e.target).attr('data-channel-name');
-      console.log(label);
-      this.trigger('ChannelUnrequested', label);
+      var channel = JSON.parse($(e.target).parent().attr('data-channel'));
+      this.trigger('ChannelUnrequested', channel);
     },
 
     addGraphFromParent: function (e) {

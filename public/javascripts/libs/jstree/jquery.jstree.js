@@ -2191,7 +2191,7 @@
 		helper_top : 10,
 		user_data : {},
 
-		drag_start : function (e, data, html) { 
+		drag_start : function (e, data, html) {
 			if($.vakata.dnd.is_drag) { $.vakata.drag_stop({}); }
 			try {
 				e.currentTarget.unselectable = "on";
@@ -2207,7 +2207,7 @@
 			$(document).bind("mouseup", $.vakata.dnd.drag_stop);
 			return false;
 		},
-		drag : function (e) { 
+		drag : function (e) {
 			if(!$.vakata.dnd.is_down) { return; }
 			if(!$.vakata.dnd.is_drag) {
 				if(Math.abs(e.pageX - $.vakata.dnd.init_x) > 5 || Math.abs(e.pageY - $.vakata.dnd.init_y) > 5) { 
@@ -2218,39 +2218,39 @@
 				else { return; }
 			}
 
-			// maybe use a scrolling parent element instead of document?
-			if(e.type === "mousemove") { // thought of adding scroll in order to move the helper, but mouse poisition is n/a
-				var d = $(document), t = d.scrollTop(), l = d.scrollLeft();
-				if(e.pageY - t < 20) { 
-					if(sti && dir1 === "down") { clearInterval(sti); sti = false; }
-					if(!sti) { dir1 = "up"; sti = setInterval(function () { $(document).scrollTop($(document).scrollTop() - $.vakata.dnd.scroll_spd); }, 150); }
-				}
-				else { 
-					if(sti && dir1 === "up") { clearInterval(sti); sti = false; }
-				}
-				if($(window).height() - (e.pageY - t) < 20) {
-					if(sti && dir1 === "up") { clearInterval(sti); sti = false; }
-					if(!sti) { dir1 = "down"; sti = setInterval(function () { $(document).scrollTop($(document).scrollTop() + $.vakata.dnd.scroll_spd); }, 150); }
-				}
-				else { 
-					if(sti && dir1 === "down") { clearInterval(sti); sti = false; }
-				}
-
-				if(e.pageX - l < 20) {
-					if(sli && dir2 === "right") { clearInterval(sli); sli = false; }
-					if(!sli) { dir2 = "left"; sli = setInterval(function () { $(document).scrollLeft($(document).scrollLeft() - $.vakata.dnd.scroll_spd); }, 150); }
-				}
-				else { 
-					if(sli && dir2 === "left") { clearInterval(sli); sli = false; }
-				}
-				if($(window).width() - (e.pageX - l) < 20) {
-					if(sli && dir2 === "left") { clearInterval(sli); sli = false; }
-					if(!sli) { dir2 = "right"; sli = setInterval(function () { $(document).scrollLeft($(document).scrollLeft() + $.vakata.dnd.scroll_spd); }, 150); }
-				}
-				else { 
-					if(sli && dir2 === "right") { clearInterval(sli); sli = false; }
-				}
-			}
+			// // maybe use a scrolling parent element instead of document?
+			// if(e.type === "mousemove") { // thought of adding scroll in order to move the helper, but mouse poisition is n/a
+			// 	var d = $(document), t = d.scrollTop(), l = d.scrollLeft();
+			// 	if(e.pageY - t < 20) { 
+			// 		if(sti && dir1 === "down") { clearInterval(sti); sti = false; }
+			// 		if(!sti) { dir1 = "up"; sti = setInterval(function () { $(document).scrollTop($(document).scrollTop() - $.vakata.dnd.scroll_spd); }, 150); }
+			// 	}
+			// 	else { 
+			// 		if(sti && dir1 === "up") { clearInterval(sti); sti = false; }
+			// 	}
+			// 	if($(window).height() - (e.pageY - t) < 20) {
+			// 		if(sti && dir1 === "up") { clearInterval(sti); sti = false; }
+			// 		if(!sti) { dir1 = "down"; sti = setInterval(function () { $(document).scrollTop($(document).scrollTop() + $.vakata.dnd.scroll_spd); }, 150); }
+			// 	}
+			// 	else { 
+			// 		if(sti && dir1 === "down") { clearInterval(sti); sti = false; }
+			// 	}
+			// 
+			// 	if(e.pageX - l < 20) {
+			// 		if(sli && dir2 === "right") { clearInterval(sli); sli = false; }
+			// 		if(!sli) { dir2 = "left"; sli = setInterval(function () { $(document).scrollLeft($(document).scrollLeft() - $.vakata.dnd.scroll_spd); }, 150); }
+			// 	}
+			// 	else { 
+			// 		if(sli && dir2 === "left") { clearInterval(sli); sli = false; }
+			// 	}
+			// 	if($(window).width() - (e.pageX - l) < 20) {
+			// 		if(sli && dir2 === "left") { clearInterval(sli); sli = false; }
+			// 		if(!sli) { dir2 = "right"; sli = setInterval(function () { $(document).scrollLeft($(document).scrollLeft() + $.vakata.dnd.scroll_spd); }, 150); }
+			// 	}
+			// 	else { 
+			// 		if(sli && dir2 === "right") { clearInterval(sli); sli = false; }
+			// 	}
+			// }
 
 			$.vakata.dnd.helper.css({ left : (e.pageX + $.vakata.dnd.helper_left) + "px", top : (e.pageY + $.vakata.dnd.helper_top) + "px" });
 			$(document).triggerHandler("drag.vakata", { "event" : e, "data" : $.vakata.dnd.user_data });
@@ -2435,7 +2435,7 @@
 					}, this));
 
 			$(document)
-				.bind("drag_stop.vakata", $.proxy(function () {
+				.bind("drag_stop.vakata", $.proxy(function (e, data) {
 						if(this.data.dnd.to1) { clearTimeout(this.data.dnd.to1); }
 						if(this.data.dnd.to2) { clearTimeout(this.data.dnd.to2); }
 						if(this.data.dnd.i1) { clearInterval(this.data.dnd.i1); }
@@ -2454,6 +2454,21 @@
 						this.data.dnd.foreign	= false;
 						if(m) { m.css({ "top" : "-2000px" }); }
 						if(ml) { ml.css({ "top" : "-2000px" }); }
+						var toExternal = { o: $(data.data.obj), r: $(data.event.target) };
+						if(toExternal.o.hasClass('jstree-draggable')) {
+							this._get_settings().dnd.from_external_drop_check(toExternal);
+						}
+					}, this))
+				.bind("drag.vakata", $.proxy(function (e, data) {
+						if (!data) return;
+						var toExternal = { o: $(data.data.obj), r: $(data.event.target) };
+						this._get_settings().dnd.from_external_drag_check(toExternal, function (ok) {
+							if (ok) {
+								$.vakata.dnd.helper.children("ins").attr("class","jstree-ok");
+							} else {
+								$.vakata.dnd.helper.children("ins").attr("class","jstree-invalid");
+							}
+						});
 					}, this))
 				.bind("drag_start.vakata", $.proxy(function (e, data) {
 						if(data.data.jstree) { 
@@ -2529,10 +2544,13 @@
 			drag_finish		: $.noop,
 			drag_check		: function (data) { return { after : false, before : false, inside : true }; },
 			ignore_multiple_selection: false,
+			external_drop_only: false,
+			from_external_drop_check: function (data) {},
+			from_external_drag_check: function (data) {},
 		},
 		_fn : {
 			dnd_prepare : function () {
-				if (this._get_settings().dnd.external_only) return false;
+				if (this._get_settings().dnd.external_drop_only) return false;
 				if(!r || !r.length) { return; }
 				this.data.dnd.off = r.offset();
 				if(this._get_settings().core.rtl) {
@@ -2561,7 +2579,7 @@
 				return this.dnd_show();
 			},
 			dnd_show : function () {
-				if (this._get_settings().dnd.external_only) return false;
+				if (this._get_settings().dnd.external_drop_only) return false;
 				if(!this.data.dnd.prepared) { return; }
 				var o = ["before","inside","after"],
 					r = false,
@@ -2604,12 +2622,12 @@
 				return r;
 			},
 			dnd_open : function () {
-				if (this._get_settings().dnd.external_only) return false;
+				if (this._get_settings().dnd.external_drop_only) return false;
 				this.data.dnd.to2 = false;
 				this.open_node(r, $.proxy(this.dnd_prepare,this), true);
 			},
 			dnd_finish : function (e) {
-				if (this._get_settings().dnd.external_only) return false;
+				if (this._get_settings().dnd.external_drop_only) return false;
 				if(this.data.dnd.foreign) {
 					if(this.data.dnd.after || this.data.dnd.before || this.data.dnd.inside) {
 						this._get_settings().dnd.drag_finish.call(this, { "o" : o, "r" : r, "p" : last_pos });
@@ -2625,7 +2643,7 @@
 				if(ml) { ml.hide(); }
 			},
 			dnd_enter : function (obj) {
-				if (this._get_settings().dnd.external_only) return false;
+				if (this._get_settings().dnd.external_drop_only) return false;
 				if(this.data.dnd.mto) { 
 					clearTimeout(this.data.dnd.mto);
 					this.data.dnd.mto = false;

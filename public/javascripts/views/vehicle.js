@@ -132,9 +132,9 @@ define(['jquery'], function ($) {
       App.publish('WindowResize');
     },
 
-    checkChannelExistence: function (channelName) {
-      if ($('[data-channel-name="'+channelName+'"]').length === 0) {
-        this.items.tree.view.trigger('hideChannel', channelName);
+    checkChannelExistence: function (channel) {
+      if ($('[data-channel-name="'+channel.channelName+'"]').length === 0) {
+        this.items.tree.view.trigger('hideChannel', channel.channelName);
       }
     },
 
