@@ -695,7 +695,7 @@ SampleDb.prototype.fetchMergedSamples =
         this(null, realSamples);
         return;
       }
-
+      
       // Compute synthetic averages by bucket.
       var synBegin = Math.floor(_.first(synSamples).beg / synDuration);
       var synEnd = Math.ceil(_.last(synSamples).end / synDuration);

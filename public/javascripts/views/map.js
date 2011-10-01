@@ -199,7 +199,7 @@ define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
         this.navigableGeometry = pointsToGeometry(
             this.model.get('pointsNavigable'),
             {  // polyOptions
-              strokeColor: '#000000',
+              strokeColor: '#ff0000',
               strokeOpacity: 0.6,
               strokeWeight: 6,
               clickable: false,

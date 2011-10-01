@@ -10,10 +10,12 @@ define(function () {
       _.extend(args, { model: this });
       this.view = new App.views.MapView(args);
       this.view.render({ waiting: true });
-      _.bindAll(this, 'changeVisibleTime',
+      _.bindAll(this, 'changeVisibleTime', 'changeNavigableTime',
                 'updateVisibleSampleSet', 'updateNavigableSampleSet');
       App.subscribe('VisibleTimeChange-' + args.vehicleId,
                     this.changeVisibleTime);
+      App.subscribe('NavigableTimeChange-' + args.vehicleId,
+                    this.changeNavigableTime);
       self.clientIdVisible = args.vehicleId + '-map-visible';
       App.sampleCache.bind('update-' + this.clientIdVisible,
                            this.updateVisibleSampleSet);
@@ -42,6 +44,20 @@ define(function () {
       var dur = App.sampleCache.getBestDuration(end - beg, maxSamples);
       App.sampleCache.setClientView(
           this.clientIdVisible, this.get('vehicleId'),
+          [ latChan, lngChan ], dur, beg, end);
+      // TODO: cell dots?
+    },
+
+    changeNavigableTime: function (beg, end) {
+      console.log(beg, end);
+      var maxSamples = 2000;  // Maximum latlngs to target.
+      // TODO: For views which include a lot of time with no gps data, we fetch
+      // very few points.  We could get clever and use the _schema time ranges
+      // for gps data to use the time range which overlaps [beg,end) rather
+      // than (end - beg).
+      var dur = App.sampleCache.getBestDuration(end - beg, maxSamples);
+      App.sampleCache.setClientView(
+          this.clientIdNavigable, this.get('vehicleId'),
           [ latChan, lngChan ], dur, beg, end);
       // TODO: cell dots?
     },

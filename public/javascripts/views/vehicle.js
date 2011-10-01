@@ -27,7 +27,6 @@ define(['jquery'], function ($) {
           height: 30,
           bottomPad: 0,
           single: true,
-          // shrinkable: true,
         }),
         tree: new App.models.TreeModel({
           vehicleId: self.options.vehicleId,
@@ -42,7 +41,7 @@ define(['jquery'], function ($) {
           title: 'Navigator',
           parent: '.' + self.options.parent + ' div .dashboard-right-wide .bottom',
           target: self.options.parent,
-          height: '40px',
+          height: '80px',
           bottomPad: 0,
           single: true,
         }),
@@ -60,7 +59,7 @@ define(['jquery'], function ($) {
           parent: '.' + self.options.parent + ' div .dashboard-right-wide .top',
           target: self.options.parent,
           height: 70,
-          bottomPad: 70,
+          bottomPad: 110,
           id: self.makeid(),
         })],
       };

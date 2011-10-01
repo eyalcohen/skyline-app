@@ -642,16 +642,18 @@ span.landing-copy {
 }
 
 .flex-top {
-  margin: 0;
+/*  margin: 0;
   padding: 0 0 4px;
-}
+*/}
 
 .flex-bottom {
-  margin: 0;
+/*  margin: 0;
   padding: 7px 0 0;
-}
+*/}
 
-.flex > div {
+.flex > div,
+.flex-top > div,
+.flex-bottom > div {
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
   box-flex: 1;
@@ -1266,7 +1268,7 @@ div.details-bar-middle {
   left: 20px;
 }
 
-.tree, .navigator {
+.tree {
   width: 100%;
   height: 100%;
   /*background: #b3b3b3 !important;*/
@@ -1295,16 +1297,38 @@ div.details-bar-middle {
 }
 
 .graph > div {
-  width: 98%;
-  height: 95%;
+  width: 100%;
+  height: 100%;
   top: 0;
 }
 
+.navigator-window {
+  position: absolute;
+  width: 1px;
+  height: 80px;
+  background: rgba(237, 194, 64, 0.2);
+  /*border-left: 1px dashed gray;
+  border-right: 1px dashed gray;*/
+  border-radius:5px;
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px;
+  z-index: 10001;
+/*  cursor: pointer;*/
+}
+
+.navigator-window-handle-left,
+.navigator-window-handle-right {
+  background: none;
+  height: 25px;
+  width: 1px;
+  position: absolute;
+  border-left: 1px dotted #666;
+  border-right: 1px dotted #666;
+}
+
 .navigator > div {
-  width: 103%;
-  height: 63px;
-  top: -8px;
-  left: -16px;
+  width: 100%;
+  height: 100%;
 }
 
 .icon {

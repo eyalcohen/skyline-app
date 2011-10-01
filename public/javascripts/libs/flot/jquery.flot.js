@@ -80,7 +80,8 @@
                     minTickSize: null, // number or [number, "unit"]
                     monthNames: null, // list of names of months
                     timeformat: null, // format string to use
-                    twelveHourClock: false // 12 or 24 time in time mode
+                    twelveHourClock: false, // 12 or 24 time in time mode
+                    labelsInside: false,
                 },
                 yaxis: {
                     autoscaleMargin: 0.02,
@@ -945,7 +946,8 @@
                 lh += padding;
                 
                 if (pos == "bottom") {
-                    plotOffset.bottom += lh + axisMargin;
+                    if (!options.grid.fullSize)
+                      plotOffset.bottom += lh + axisMargin;
                     axis.box = { top: canvasHeight - plotOffset.bottom, height: lh };
                 }
                 else {
@@ -1012,6 +1014,8 @@
                 if (axis.reserveSpace)
                     margins[dir] = Math.ceil(Math.max(margins[dir], (dir == "x" ? axis.labelWidth : axis.labelHeight) / 2));
             });
+
+            if (options.grid.fullSize) return;
 
             plotOffset.left = Math.max(margins.x, plotOffset.left);
             plotOffset.right = Math.max(margins.x, plotOffset.right);
@@ -1691,7 +1695,10 @@
             if (bw) {
                 ctx.lineWidth = bw;
                 ctx.strokeStyle = options.grid.borderColor;
-                ctx.strokeRect(-bw/2, -bw/2, plotWidth + bw, plotHeight + bw);
+                if (options.grid.fullSize)
+                  ctx.strokeRect(-bw/2, -bw/2-bw, plotWidth + bw, plotHeight + bw + 10);
+                else
+                  ctx.strokeRect(-bw/2, -bw/2, plotWidth + bw, plotHeight + bw);
             }
 
             ctx.restore();
@@ -1730,13 +1737,23 @@
                         
                         if (axis.direction == "x") {
                             x = plotOffset.left + axis.p2c(tick.v) - line.width/2;
+                            if (x > canvasWidth - plotOffset.right - 10)
+                              x -= f.size;
+                            if (x <= plotOffset.left)
+                              x += f.size;
                             if (axis.position == "bottom")
-                                y = box.top + box.padding;
+                                y = axis.options.labelsInside ?
+                                    box.top - box.padding - f.size :
+                                    box.top + box.padding;
                             else
                                 y = box.top + box.height - box.padding - tick.height;
                         }
                         else {
                             y = plotOffset.top + axis.p2c(tick.v) - tick.height/2;
+                            if (y > canvasHeight - f.size)
+                              y -= f.size;
+                            if (y < f.size)
+                              y += f.size;
                             if (axis.position == "left")
                                 x = box.left + box.width - box.padding - line.width;
                             else

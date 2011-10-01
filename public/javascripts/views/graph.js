@@ -38,13 +38,14 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         xaxis: {
           mode: 'time',
           position: 'bottom',
-          min: (new Date(2011, 1, 1)).getTime(),
-          max: (new Date(2012, 1, 1)).getTime(),
+          min: (new Date(2011, 0, 1)).getTime(),
+          max: (new Date(2012, 0, 1)).getTime(),
           tickColor: '#ddd',
+          labelsInside: true,
         },
         yaxis: {
           reserveSpace: true,
-          labelWidth: 30,
+          labelWidth: 50,
           zoomRange: false,
           panRange: false,
           tickColor: '#ddd',
@@ -54,9 +55,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           { position: 'right', alignTicksWithAxis: 1 }
         ],
         series: {
-          lines: {
-            lineWidth: 1,
-          },
+          lines: { lineWidth: 1 },
           points: {},
           bars: {},
           shadowSize: 1,
@@ -68,6 +67,8 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           clickable: true,
           hoverable: true,
           autoHighlight: true,
+          minBorderMargin: 0,
+          fullSize: true,
         },
         crosshair: { mode: 'xy' },
         zoom: {
@@ -116,8 +117,10 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
 
     draw: function () {
       var self = this;
-      if (!self.plot)
+      if (!self.plot) {
+        self.firstDraw = true;
         self.createPlot();
+      }
       var opts = self.plot.getOptions();
       var series = [], numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
       // so many loops, ugh... seems to be only way
@@ -181,6 +184,29 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           yaxis: channel.yaxisNum,
         });
       });
+      if (self.firstDraw) {
+        var mins = [], maxes = [];
+        _.each(self.model.get('channels'), function (channel) {
+          var data = self.model.get('data')[channel.channelName] || [];
+          var times = [];
+          _.each(data, function (pnt) {
+            if (pnt) times.push(pnt[0]);
+          });
+          mins.push(_.min(times));
+          maxes.push(_.max(times));
+        });
+        var min = _.min(mins);
+        var max = _.max(maxes);
+        if (min && max 
+            && min !== Infinity && max !== Infinity
+            && min !== -Infinity && max !== -Infinity) {
+          _.each(self.plot.getXAxes(), function (axis) {
+            axis.options.min = min;
+            axis.options.max = max;
+          });
+          self.firstDraw = false;
+        }
+      }
       self.plot.setData(series);
       self.plot.setupGrid();
       self.plot.draw();

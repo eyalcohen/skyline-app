@@ -15,7 +15,7 @@ define(['models/notification'], function (model) {
       this.view.render({ loading: true });
       this.loaded = _.bind(function () {
         var empty = this.models.length === 0;
-        this.view.render({ empty: empty });
+        this.view.render({ empty: false });
       }, this);
       return this;
     },
