@@ -123,7 +123,7 @@ define(['jquery',
 
       function getRelativeTime (ts) {
         ts = parseInt(ts);
-        var parsed_date = new Date(ts / 1000),
+        var parsed_date = new Date(ts / 1e3),
             relative_to = (arguments.length > 1) ?
                 arguments[1] / 1000 : new Date(),
             delta = parseInt((relative_to.getTime() - parsed_date) / 1000);
@@ -157,7 +157,7 @@ define(['jquery',
       });
 
       function getDuration(delta) {
-        delta = parseFloat(delta) / 1000;
+        delta = parseFloat(delta) / 1e6;
         if (delta === 0)
           return 'n / a';
         else if (delta < 60)
