@@ -123,7 +123,7 @@ define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
       if (mapsLoadNotifier) {
         // Maps is not yet loaded - delay drawing until it's available.
         console.log('Deferring map draw.');
-        mapsLoadNotifier.bind('load', _.bind(this.draw(options), this));
+        mapsLoadNotifier.bind('load', _.bind(this.draw, this, options));
         return;
       }
 
