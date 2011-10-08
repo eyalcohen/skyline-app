@@ -94,7 +94,7 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
     //console.time('makeSamples');
     var BP = mongodb.BinaryParser, rawId = eventBucket._id.id;
     var vehicleId = BP.decodeInt(rawId.substring(0,4), 32, true, true);
-    util.log('Processing a drive cycle ' + eventBucket._id + ' with ' +
+    debug('Processing a drive cycle ' + eventBucket._id + ' with ' +
           eventBucket.events.length + ' events + vehicle id ' +
           vehicleId + '...');
 
@@ -206,16 +206,16 @@ exports.insertEventBucket = function(sampleDb, eventBucket, cb) {
       var beg = _.first(samples).beg, end = _.last(samples).end;
       var schemaVal = standardSchema[channelName];
       if (!schemaVal) {
-        util.log('No schema available for channel ' + channelName +
-                 ', making one up.');
+        debug('No schema available for channel ' + channelName +
+              ', making one up.');
         schemaVal = {
           channelName: channelName,
           type: 'float',
         };
       }
       schemaSamples.push({ beg: beg, end: end, val: schemaVal });
-      util.log('compatibility.insertEventBucket: schema ' + channelName + ': ' +
-               beg + '..' + end);
+      debug('compatibility.insertEventBucket: schema ' + channelName + ': ' +
+            beg + '..' + end);
     });
     sampleSets['_schema'] = schemaSamples;
     //console.timeEnd('durations');
