@@ -13,20 +13,22 @@ define(['views/folderItem'], function (FolderItemView) {
       this._super('render', opts, template);
       this.vehicleId = opts.vehicleId;
       this.targetClass = opts.targetClass;
+      this.timeRange = opts.timeRange;
       this.treeModel = new App.models.TreeModel({
         vehicleId: this.vehicleId,
         title: 'Available Channels',
-        parent: '.' + this.targetClass + ' div .dashboard-left .bottom',
+        parent: '.' + this.targetClass + ' div .dashboard-left .top',
         target: this.targetClass,
-        height: 60,
+        height: 40,
         bottomPad: 0,
       }).fetch();
       this.graphModels = [new App.models.GraphModel({
         vehicleId: this.vehicleId,
+        timeRange: this.timeRange,
         title: 'Graph',
         parent: '.' + this.targetClass + ' div .dashboard-right .middle',
         target: this.targetClass,
-        height: 60,
+        height: 70,
         bottomPad: 103,
         id: this.makeid(),
       }).addChannel(_.clone(App.defaultChannel))];
@@ -34,26 +36,27 @@ define(['views/folderItem'], function (FolderItemView) {
       this.mapModel = new App.models.MapModel({
         vehicleId: this.vehicleId,
         title: 'Map',
-        parent: '.' + this.targetClass + ' div .dashboard-left .top',
+        parent: '.' + this.targetClass + ' div .dashboard-left .bottom',
         target: this.targetClass,
-        height: 40,
+        height: 60,
         bottomPad: 0,
       });
       this.notificationsCollection =
           new App.collections.NotificationCollection({
         vehicleId: this.vehicleId,
         title: 'Notifications',
-        parent: '.' + this.targetClass + ' div .dashboard-right .top',
+        parent: '.' + this.targetClass + ' div .dashboard-right .bottom',
         target: this.targetClass,
-        height: 40,
+        height: 30,
         bottomPad: 0,
         single: true,
       }).fetch();
       this.navigatorCollection =
           new App.collections.NavigatorCollection({
         vehicleId: this.vehicleId,
+        timeRange: this.timeRange,
         title: 'Navigator',
-        parent: '.' + this.targetClass + ' div .dashboard-right .bottom',
+        parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: '80px',
         bottomPad: 0,
@@ -65,7 +68,8 @@ define(['views/folderItem'], function (FolderItemView) {
     hookGraphControls: function (g, i) {
       var self = this;
       _.extend(g, Backbone.Events);
-      g.view.bind('channelRemoved', _.bind(self.checkChannelExistence, self));
+      g.view.bind('channelRemoved',
+          _.bind(self.checkChannelExistence, self));
       g.view.bind('addGraph', function () {
         self.addGraph(i);
       });

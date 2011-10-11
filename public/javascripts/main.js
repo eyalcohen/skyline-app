@@ -41,12 +41,18 @@ requirejs(['libs/json2',
             App.views = views;
             App.sampleCache = new SampleCache();
             App.defaultChannel = {
-              channelName: 'gps.speed_m_s',
-              humanName: 'GPS Speed',
-              shortName: 'speed_m_s',
+              channelName: 'mc.motorSpeed_RPM',
+              humanName: 'Motor Speed',
+              shortName: 'motorSpeed_RPM',
+              title: 'Motor Speed',
               type: 'float',
-              units: 'm/s',
-              title: 'GPS Speed',
+              units: 'RPM',
+              // channelName: 'gps.speed_m_s',
+              // humanName: 'GPS Speed',
+              // shortName: 'speed_m_s',
+              // type: 'float',
+              // units: 'm/s',
+              // title: 'GPS Speed',
             };
 
             App.router = new Router();

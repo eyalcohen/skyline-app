@@ -1761,7 +1761,7 @@
                               y += f.size;
                             if (axis.position == "left")
                                 x = axis.options.labelsInside ?
-                                    box.left + box.width - box.padding - line.width + f.size * 2.5 :
+                                    box.left + box.width - box.padding - line.width + f.size * 3 :
                                     box.left + box.width - box.padding - line.width;
                             else
                                 x = axis.options.labelsInside ?
@@ -2257,8 +2257,6 @@
         }
         
         function insertLegend(legSeries) {
-            // placeholder.find(".legend").remove();
-
             if (!legSeries) legSeries = series;
 
             if (!options.legend.show)
@@ -2305,15 +2303,24 @@
                     pos += 'top:' + (m[1] + plotOffset.top) + 'px;';
                 else if (p.charAt(0) == "s")
                     pos += 'bottom:' + (m[1] + plotOffset.bottom) + 'px;';
+                var legend = $('<div class="legend">' + table.replace('style="', 'style="position:absolute;' + pos +';') + '</div>').appendTo(placeholder);
                 if (!options.legend.oneperyaxis) {
                     if (p.charAt(1) == "e")
-                        pos += 'right:' + (m[0] + plotOffset.right) + 'px;';
+                        legend.css({ right: m[0] + plotOffset.right + 'px' });
+                        // pos += 'right:' + (m[0] + plotOffset.right) + 'px;';
                     else if (p.charAt(1) == "w")
-                        pos += 'left:' + (m[0] + plotOffset.left) + 'px;';
+                        legend.css({ left: m[0] + plotOffset.left + 'px' });
+                        // pos += 'left:' + (m[0] + plotOffset.left) + 'px;';
                 } else {
-                  pos += legSeries[0].yaxis.position + ':' + (m[0] + plotOffset[legSeries[0].yaxis.position]) + 'px;';
+                  var legendTable = $('table', legend);
+                  // pos += legSeries[0].yaxis.position + ':' + (m[0] + plotOffset[legSeries[0].yaxis.position]) + 'px;';
+                  if (legSeries[0].yaxis.position === 'left')
+                    legendTable.css({ left: m[0] + plotOffset[legSeries[0].yaxis.position] + 'px' });
+                    // pos += 'left:' + (m[0] + plotOffset[legSeries[0].yaxis.position]) + 'px;';
+                  else
+                    legendTable.css({ left: plot.width() - m[0] - plotOffset[legSeries[0].yaxis.position] - legendTable.width() + 'px' });
+                    // pos += 'left:' + (plot.width() - m[0] - plotOffset[legSeries[0].yaxis.position]) + 'px;';
                 }
-                var legend = $('<div class="legend">' + table.replace('style="', 'style="position:absolute;' + pos +';') + '</div>').appendTo(placeholder);
                 if (options.legend.backgroundOpacity != 0.0) {
                     // put in the transparent background
                     // separately to avoid blended labels and
