@@ -89,8 +89,22 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
                 'class="label-closer">X</a></div>';
           },
         },
+        hooks: {
+          draw: [ _.bind(self.plotDrawHook, self) ],
+          bindEvents: [ bindEventsHook ],
+        },
       });
-      self.plot.hooks.draw.push(_.bind(self.plotDrawHook, self));
+
+      function bindEventsHook(plot, eventHolder) {
+        // For debugging, print the cursor position.
+        console.debug('bindEvents');
+        eventHolder.mousemove(function(e) {
+          var visFrac = (e.pageX - plot.offset().left) / plot.width();
+          var t = self.getVisibleTime();
+          if (!t) return;
+          console.log('time: ' + Math.round((t.beg + visFrac * (t.end - t.beg)) * 1e3));
+        });
+      };
 
       $('.graph', self.content).data({
         plot: self.plot,
@@ -214,6 +228,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
 
     plotDrawHook: function() {
       var t = this.getVisibleTime();
+      if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
         this.trigger('VisibleTimeChange', t.beg, t.end);
         console.log('VisibleTimeChange', t.beg, t.end);
