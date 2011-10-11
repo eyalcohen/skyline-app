@@ -26,9 +26,15 @@ requirejs(['libs/json2',
           App.unsubscribe = require('./minpubsub').unsubscribe;
           App.shared = require('./shared_utils');
           App.user = App.store.get('user') || {};
+          App.regions = {
+            header: $('header'),
+            main: $('#main'),
+            footer: $('footer'),
+            menu: $('nav ul'),
+          };
 
           requirejs(['models', 'collections', 'views', 'sample-cache',
-              'router', 'backbone-sync', 'backbone-super', 'interface'],
+              'router', 'backbone-sync', 'backbone-super'],
               function (models, collections, views, SampleCache, Router) {
             App.models = models;
             App.collections = collections;
@@ -87,7 +93,7 @@ requirejs(['libs/json2',
           App.reconnecter = null;
           App.api.authenticate(App.user, function (err) {
             if (err) {
-              App.publish('NotAuthenticated', [loginOpts]);
+              App.publish('NotAuthenticated');
               console.warn('Server reconnected. User NOT authorized!');
             } else {
               console.warn('Server reconnected. User authorized!');
@@ -98,16 +104,18 @@ requirejs(['libs/json2',
     },
 
     buildDash: function () {
-      $('.tabs, .folder').show();
-      App.notificationCollection =
-          new App.collections.NotificationCollection();
-      App.notificationCollection.fetch();
-      App.vehicleCollection =
-          new App.collections.VehicleCollection();
-      App.vehicleCollection.fetch();
-      // TODO: check if user is ADMIN first!
-      App.userCollection =
-          new App.collections.UserCollection().fetch();
+      App.mainView = new App.views.MainView().render();
+      App.dashView = new App.views.DashView().render({
+        title: 'Dashboard',
+        targetClass: 'dashboard',
+        active: true,
+        tabClosable: false,
+        left: 30
+      }, 'dash.jade');
+      // // TODO: check if user is ADMIN first!
+      // App.userCollection =
+      //     new App.collections.UserCollection().fetch();
+      // App.publish('AppReady');
     }
 
   };

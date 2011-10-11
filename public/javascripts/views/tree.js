@@ -2,7 +2,7 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem',
+define(['views/dashItem',
     'libs/jstree/jquery.jstree'],
     function (DashItemView) {
   return DashItemView.extend({

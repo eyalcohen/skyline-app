@@ -2,20 +2,22 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem', 'plot_booter'], 
+define(['views/dashItem', 'plot_booter'], 
     function (DashItemView) {
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize');
-      _.bindAll(this, 'drawWindow', 'moveWindow', 'hoverWindow');
+      _.bindAll(this, 'drawWindow', 'moveWindow',
+          'hoverWindow', 'wheelWindow', 'positionScale', 'hookScale');
       App.subscribe('VisibleTimeChange-' + args.vehicleId, this.drawWindow);
-      App.subscribe('VisibleWidthChange-' + args.vehicleId, this.drawWindow);
+      // App.subscribe('VisibleWidthChange-' + args.vehicleId, this.drawWindow);
     },
     
     events: {
       'click .toggler': 'toggle',
       'mousedown .navigator-window': 'moveWindow',
       'mousemove .navigator-window': 'hoverWindow',
+      'mousewheel .navigator-window': 'wheelWindow',
     },
 
     render: function (opts) {
@@ -69,15 +71,15 @@ define(['views/dashitem', 'plot_booter'],
           [[bounds[0], 0], [bounds[1], 1]], {
         xaxis: {
           mode: 'time',
-          position: 'bottom',
+          position: 'top',
           // min: bounds[0] - pad,
           // max: bounds[1] + pad,
-          min: (new Date(2011, 0, 1)).getTime(),
+          min: (new Date(2010, 11, 1)).getTime(),
           max: (new Date(2012, 0, 1)).getTime(),
           tickColor: '#ddd',
           labelsInside: true,
-          zoomRange: [1, (bounds[1] + pad) - (bounds[0] - pad)],
-          panRange: [bounds[0] - pad, bounds[1] + pad],
+          // zoomRange: [1, (bounds[1] + pad) - (bounds[0] - pad)],
+          // panRange: [bounds[0] - pad, bounds[1] + pad],
         },
         yaxis: { 
           show: false,
@@ -92,19 +94,19 @@ define(['views/dashitem', 'plot_booter'],
         },
         grid: {
           markings: shapes,
-          borderWidth: 0.5,
-          borderColor: '#444',
-          clickable: true,
-          hoverable: true,
-          autoHighlight: true,
+          borderWidth: 0,
           minBorderMargin: 0,
           fullSize: true,
         },
         zoom: {
           interactive: true,
-          amount: 1.25,
+          amount: 1.02,
         },
-        hooks: { draw: [addIcons] },
+        pan: {
+          interactive: true,
+          frameRate: 60,
+        },
+        hooks: { draw: [addIcons, self.drawWindow, self.positionScale] },
       });
 
       function addIcons(p, ctx) {
@@ -136,9 +138,11 @@ define(['views/dashitem', 'plot_booter'],
       }
       $('.navigator', self.content).data({ plot: self.plot });
       self.box = $(self.options.parent + ' .navigator-window');
+      self.hookScale();
       
       App.publish('NavigableTimeChange-' + self.options.vehicleId,
-          [(new Date(2011, 0, 1)).getTime() * 1000, (new Date(2012, 0, 1)).getTime() * 1000]);
+          [(new Date(2011, 0, 1)).getTime() * 1000,
+          (new Date(2012, 0, 1)).getTime() * 1000]);
       
       return self;
     },
@@ -151,12 +155,14 @@ define(['views/dashitem', 'plot_booter'],
       }
       var lh = $(self.options.parent + ' .navigator-window-handle-left');
       var rh = $(self.options.parent + ' .navigator-window-handle-right');
-      min = min / 1000;
-      max = max / 1000;
+      if (_.isNumber(min) && _.isNumber(max)) {
+        self.windowMin = min / 1000;
+        self.windowMax = max / 1000;
+      }
       var off = $(self.options.parent).offset();
       var axis = self.plot.getXAxes()[0];
-      var left = axis.p2c(min);
-      var width = Math.max(axis.p2c(max) - left, 14);
+      var left = axis.p2c(self.windowMin);
+      var width = Math.max(axis.p2c(self.windowMax) - left, 14);
       var top = parseInt(off.top) + 47;
       var display = '';
       if (left < 1) {
@@ -228,6 +234,13 @@ define(['views/dashitem', 'plot_booter'],
         this.box.css({ cursor: 'move' });
     },
 
+    wheelWindow: function (e) {
+      var newTarget = $(this.plot.getCanvas()).siblings().get(0);
+      var delta = (e.wheelDelta / Math.abs(e.wheelDelta)) *
+          ((this.plot.getOptions().zoom.amount - 1) / 10);
+      $(newTarget).trigger(e, [delta]);
+    },
+
     getWindowSide: function (e) {
       var m = { x: e.pageX, y: e.pageY };
       var bl = parseInt(this.box.offset().left);
@@ -238,7 +251,47 @@ define(['views/dashitem', 'plot_booter'],
       else if (br - m.x <= 8)
         return 'right';
       if (!side) return null;
-    }
+    },
+
+    positionScale: function () {
+      var scale = $('.navigator-scale', this.el);
+      var parentOff = this.el.offset();
+      scale.css({
+        left: parseInt(parentOff.left) + 10 + 'px',
+        top: parseInt(parentOff.top) + 69 + 'px',
+      });
+    },
+
+    hookScale: function () {
+      var self = this;
+      var scale = $('.navigator-scale', self.el);
+      var axis = self.plot.getXAxes()[0];
+      $('.day-scale', scale).click(function (e) {
+        zoomToRange(60 * 60 * 24 * 1000);
+      });
+      $('.month-scale', scale).click(function (e) {
+        zoomToRange(60 * 60 * 24 * 7 * 4 * 1000);
+      });
+      $('.year-scale', scale).click(function (e) {
+        zoomToRange(60 * 60 * 24 * 7 * 4 * 52 *1000);
+      });
+      function zoomToRange(range) {
+        var boxLeft = parseInt(self.box.offset().left);
+        var boxRight = boxLeft + self.box.width();
+        var parentOff = parseInt(self.el.offset().left);
+        var center = axis.c2p((boxRight + boxLeft) / 2 - parentOff);
+        var min = center - range / 2;
+        var max = center + range / 2;
+        axis.options.min = min;
+        axis.options.max = max;
+        self.plot.setupGrid();
+        self.plot.draw();
+      };
+    },
+
+    resize: function () {
+      this._super('resize');
+    },
 
   });
 });

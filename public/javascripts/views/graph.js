@@ -2,9 +2,8 @@
  * Copyright 2011 Mission Motors
  */
 
-define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
+define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
     function (DashItemView) {
-
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -24,9 +23,9 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
       if (this.el.length) {
         this.remove();
       }
-      var parent = this.options.parent || App.regions.left;
       this.plot = null;
-      this.el = App.engine('graph.dash.jade', opts).appendTo(parent);
+      this.el = App.engine('graph.dash.jade', opts)
+          .appendTo(this.options.parent);
       this._super('render', fn);
     },
 
@@ -45,10 +44,11 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         },
         yaxis: {
           reserveSpace: true,
-          labelWidth: 50,
+          labelWidth: 0,
           zoomRange: false,
           panRange: false,
           tickColor: '#ddd',
+          labelsInside: true,
         },
         yaxes: [
           { position: 'left' },
@@ -62,7 +62,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
         },
         grid: {
           markings: weekendAreas,
-          borderWidth: 0.5,
+          borderWidth: 0,
           borderColor: '#444',
           clickable: true,
           hoverable: true,
@@ -80,6 +80,7 @@ define([ 'views/dashitem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1' ],
           frameRate: 60,
         },
         legend: {
+          margin: [40, 0],
           oneperyaxis: true,
           labelFormatter: function(label, series) {
             return "<div data-channel='" + JSON.stringify(series.channel) + "' "+

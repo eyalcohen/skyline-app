@@ -952,7 +952,8 @@
                 }
                 else {
                     axis.box = { top: plotOffset.top + axisMargin, height: lh };
-                    plotOffset.top += lh + axisMargin;
+                    if (!options.grid.fullSize)
+                      plotOffset.top += lh + axisMargin;
                 }
             }
             else {
@@ -960,10 +961,12 @@
                 
                 if (pos == "left") {
                     axis.box = { left: plotOffset.left + axisMargin, width: lw };
-                    plotOffset.left += lw + axisMargin;
+                    if (!options.grid.fullSize)
+                      plotOffset.left += lw + axisMargin;
                 }
                 else {
-                    plotOffset.right += lw + axisMargin;
+                    if (!options.grid.fullSize)
+                      plotOffset.right += lw + axisMargin;
                     axis.box = { left: canvasWidth - plotOffset.right, width: lw };
                 }
             }
@@ -1695,9 +1698,9 @@
             if (bw) {
                 ctx.lineWidth = bw;
                 ctx.strokeStyle = options.grid.borderColor;
-                if (options.grid.fullSize)
-                  ctx.strokeRect(-bw/2, -bw/2-bw, plotWidth + bw, plotHeight + bw + 10);
-                else
+                // if (options.grid.fullSize)
+                //   ctx.strokeRect(-bw/2, -bw/2-bw, plotWidth + bw, plotHeight + bw + 10);
+                // else
                   ctx.strokeRect(-bw/2, -bw/2, plotWidth + bw, plotHeight + bw);
             }
 
@@ -1746,7 +1749,9 @@
                                     box.top - box.padding - f.size :
                                     box.top + box.padding;
                             else
-                                y = box.top + box.height - box.padding - tick.height;
+                                y = axis.options.labelsInside ?
+                                    box.top + box.height - box.padding - tick.height + f.size:
+                                    box.top + box.height - box.padding - tick.height;
                         }
                         else {
                             y = plotOffset.top + axis.p2c(tick.v) - tick.height/2;
@@ -1755,9 +1760,13 @@
                             if (y < f.size)
                               y += f.size;
                             if (axis.position == "left")
-                                x = box.left + box.width - box.padding - line.width;
+                                x = axis.options.labelsInside ?
+                                    box.left + box.width - box.padding - line.width + f.size * 2.5 :
+                                    box.left + box.width - box.padding - line.width;
                             else
-                                x = box.left + box.padding;
+                                x = axis.options.labelsInside ?
+                                    box.left + box.padding - f.size * 4:
+                                    box.left + box.padding;
                         }
 
                         // account for middle aligning and line number

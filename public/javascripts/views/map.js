@@ -11,7 +11,7 @@ requirejs(['async!http://maps.google.com/maps/api/js?' +
   notifier.trigger('load');
 });
 
-define([ 'views/dashitem', 'map_style' ], function (DashItemView, style) {
+define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',

@@ -1,13 +1,22 @@
-div
-  .flex-top
-    .dashboard-left
-    //.resize-horizontal
-    .dashboard-right
-  //.resize-vertical
-  .flex-bottom
-    .dashboard-left-side
-    //.resize-horizontal
-    .dashboard-right-wide
+div(class=targetClass)
+  .flex
+    .dashboard-left(style="width:40%")
       .top
+      //.resize-vertical
+      .bottom
+    .resize-horizontal
+      div
+        div
+          | .
+          | .
+          | .
+          | .
+          | .
+          | .
+    .dashboard-right(style="width:60%")
+      .top
+      //.resize-vertical
+      .middle
+      //.resize-vertical
       .bottom
 

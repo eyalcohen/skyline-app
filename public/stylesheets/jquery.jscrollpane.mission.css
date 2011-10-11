@@ -34,12 +34,22 @@
   right: 3px;
 }
 
+.jspHorizontalBar {
+  height: 6px;
+  bottom: 3px;
+}
+
 .jspCap {
   display: block;
 }
 
 .jspVerticalBar .jspCap {
   height: 2px;
+}
+
+.jspHorizontalBar .jspCap {
+  height: 2px;
+  width: 2px;
 }
 
 

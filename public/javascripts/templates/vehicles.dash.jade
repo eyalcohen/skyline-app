@@ -50,7 +50,9 @@
                 | -
               td(align="right")
                 - if (row.lastSeen !== 0) {
-                  input(type="submit", title="Explore vehicle data.", value="Open")
+                  div.open-vehicle(role="button", title="Explore vehicle data.")
+                    div
+                    span Open
                 - } else {
                   | &nbsp;
                 - }

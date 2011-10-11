@@ -2,11 +2,11 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem'], function (DashItemView) {
+define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'click [value="Open"]': 'open',
+      'click .open-vehicle': 'open',
     },
 
     render: function (opts) {
@@ -19,7 +19,8 @@ define(['views/dashitem'], function (DashItemView) {
       if (this.el.length) {
         this.remove();
       }
-      this.el = App.engine('vehicles.dash.jade', opts).appendTo(App.regions.right);
+      this.el = App.engine('vehicles.dash.jade', opts)
+          .appendTo(this.options.parent);
       this._super('render');
       if (this.timer) {
         clearInterval(this.timer);
@@ -30,9 +31,10 @@ define(['views/dashitem'], function (DashItemView) {
     },
 
     open: function (e) {
-      e.preventDefault();
-      var id = this.getId(e);
-      var title = $(e.target).parent().parent().attr('data-title');
+      var parentRow = $(e.target).closest('tr');
+      var items = parentRow.attr('id').split('_');
+      var id = parseInt(items[items.length - 1]);
+      var title = $(e.target).closest('tr').attr('data-title');
       App.publish('VehicleRequested', [id, title]);
       return this;
     },
