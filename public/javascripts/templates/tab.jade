@@ -1,11 +1,15 @@
-div.tab.tab-dynamic(style="left:"+left+"px;", data-tab-target=target, data-tab-index=index)
+- var dynamicClass = dynamic ? 'tab-dynamic' : '';
+div.tab(style="left:"+tabLeft+"px;", data-tab-target=targetClass, data-tab-index=tabIndex, class=dynamicClass)
   a(href="javascript:;")
     div.tab-side
-      img(src="/graphics/tab-left-side-inactive.png", alt="/graphics/tab-left-side.png")
+      img(src="/graphics/tab-left-side-inactive.png", alt="/graphics/tab-left-side-inactive.png")
     div.tab-content.tab-content-inactive
-      =title
+      span
+        =title
     div.tab-side
-      img(src="/graphics/tab-right-side-inactive.png", alt="/graphics/tab-right-side.png")
-  a.tab-closer(href="javascript:;")
-    | X
+      img(src="/graphics/tab-right-side-inactive.png", alt="/graphics/tab-right-side-inactive.png")
+  - if (tabClosable) {
+    a.tab-closer(href="javascript:;")
+      | X
+  - }
 

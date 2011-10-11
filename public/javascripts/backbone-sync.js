@@ -16,12 +16,8 @@ Backbone.sync = function(method, model, options) {
     }
   };
   switch (method) {
-    case 'create':
-      //
     case 'read':
       App.api[model.readFunc].call(App.api, handleResponse, model.readOpts);
-    case 'update':
-      //
   }
 };
 

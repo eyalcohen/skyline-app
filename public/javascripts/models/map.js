@@ -49,7 +49,6 @@ define(function () {
     },
 
     changeNavigableTime: function (beg, end) {
-      console.log(beg, end);
       var maxSamples = 2000;  // Maximum latlngs to target.
       // TODO: For views which include a lot of time with no gps data, we fetch
       // very few points.  We could get clever and use the _schema time ranges

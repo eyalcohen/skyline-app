@@ -432,9 +432,9 @@
 					horizontalTrackWidth -= verticalTrackWidth;
 					paneHeight -= verticalTrackWidth;
 					paneWidth -= horizontalTrackHeight;
-					horizontalTrack.parent().append(
-						$('<div class="jspCorner" />').css('width', horizontalTrackHeight + 'px')
-					);
+          // horizontalTrack.parent().append(
+          //  $('<div class="jspCorner" />').css('width', horizontalTrackHeight + 'px')
+          // );
 					sizeVerticalScrollbar();
 					sizeHorizontalScrollbar();
 				}

@@ -2,7 +2,7 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashitem'], function (DashItemView) {
+define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -19,7 +19,7 @@ define(['views/dashitem'], function (DashItemView) {
         this.remove();
       }
       this.el = App.engine('users.dash.jade', opts)
-          .appendTo($('.preferences .dashboard-top'));
+          .appendTo($('.preferences .dashboard-left'));
       this._super('render');
       return this;
     },

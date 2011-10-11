@@ -7,8 +7,10 @@ define(['models/vehicle'], function (model) {
     model: model,
     readFunc: 'fetchVehicles',
 
-    initialize: function () {
-      this.view = new App.views.VehiclesView({ collection: this });
+    initialize: function (args) {
+      if (!args) args = {};
+      _.extend(args, { collection: this });
+      this.view = new App.views.VehiclesView(args);
       this.view.render({ loading: true });
       this.loaded = _.bind(function () {
         this.view.render();

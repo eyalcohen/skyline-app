@@ -95,8 +95,8 @@ define(['jquery',
           this.content.css(dest);
           this.options.animate = false; // keep this off for now...
         }
-      } else {
-        this.content.height(win.height() - this.offset.top - 40);
+      } else {        
+        this.content.height(win.height() - this.offset.top - 24 - 20);
       }
       this.addScroll();
     },
@@ -105,6 +105,7 @@ define(['jquery',
       if (this.content.hasClass('scrollable')) {
         this.content.jScrollPane({
           verticalGutter: 2,
+          horizontalGutter: 2,
         });
       }
       if(cb) cb();
