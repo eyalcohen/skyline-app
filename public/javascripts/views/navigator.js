@@ -10,7 +10,6 @@ define(['views/dashItem', 'plot_booter'],
       _.bindAll(this, 'drawWindow', 'moveWindow',
           'hoverWindow', 'wheelWindow', 'positionScale', 'hookScale');
       App.subscribe('VisibleTimeChange-' + args.vehicleId, this.drawWindow);
-      // App.subscribe('VisibleWidthChange-' + args.vehicleId, this.drawWindow);
     },
     
     events: {
@@ -74,8 +73,8 @@ define(['views/dashItem', 'plot_booter'],
           position: 'top',
           // min: bounds[0] - pad,
           // max: bounds[1] + pad,
-          min: (new Date(2010, 11, 1)).getTime(),
-          max: (new Date(2012, 0, 1)).getTime(),
+          min: self.options.timeRange[1] - 60*60*24*7*26*1000,
+          max: self.options.timeRange[1] + 60*60*24*7*26*1000,
           tickColor: '#ddd',
           labelsInside: true,
           // zoomRange: [1, (bounds[1] + pad) - (bounds[0] - pad)],
@@ -100,7 +99,7 @@ define(['views/dashItem', 'plot_booter'],
         },
         zoom: {
           interactive: true,
-          amount: 1.02,
+          amount: 1.1,
         },
         pan: {
           interactive: true,
@@ -163,7 +162,8 @@ define(['views/dashItem', 'plot_booter'],
       var axis = self.plot.getXAxes()[0];
       var left = axis.p2c(self.windowMin);
       var width = Math.max(axis.p2c(self.windowMax) - left, 14);
-      var top = parseInt(off.top) + 47;
+      // var top = parseInt(off.top) + 47;
+      var top = 28;
       var display = '';
       if (left < 1) {
         width = width + left;
@@ -178,7 +178,7 @@ define(['views/dashItem', 'plot_booter'],
         if (width > self.el.width() - 1)
           width -= 1;
       }
-      left = Math.floor(left + parseInt(off.left));
+      left = Math.floor(left + 0); // parseInt(off.left));
       width = Math.floor(width);
       self.box.css({
         display: display,
@@ -257,8 +257,8 @@ define(['views/dashItem', 'plot_booter'],
       var scale = $('.navigator-scale', this.el);
       var parentOff = this.el.offset();
       scale.css({
-        left: parseInt(parentOff.left) + 10 + 'px',
-        top: parseInt(parentOff.top) + 69 + 'px',
+        left: 10 + 'px',
+        top: 45 + 'px',
       });
     },
 
@@ -273,7 +273,7 @@ define(['views/dashItem', 'plot_booter'],
         zoomToRange(60 * 60 * 24 * 7 * 4 * 1000);
       });
       $('.year-scale', scale).click(function (e) {
-        zoomToRange(60 * 60 * 24 * 7 * 4 * 52 *1000);
+        zoomToRange(60 * 60 * 24 * 7 * 52 *1000);
       });
       function zoomToRange(range) {
         var boxLeft = parseInt(self.box.offset().left);

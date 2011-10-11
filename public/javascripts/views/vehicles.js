@@ -32,10 +32,13 @@ define(['views/dashItem'], function (DashItemView) {
 
     open: function (e) {
       var parentRow = $(e.target).closest('tr');
+      var lastSeen = parseInt($('[data-time]', parentRow).attr('data-time')) / 1e3;
+      // TMP? go a year back from lastSeen
+      var range = [lastSeen - 60*60*24*7*52*1000, lastSeen];
       var items = parentRow.attr('id').split('_');
       var id = parseInt(items[items.length - 1]);
       var title = $(e.target).closest('tr').attr('data-title');
-      App.publish('VehicleRequested', [id, title]);
+      App.publish('VehicleRequested', [id, title, range]);
       return this;
     },
 

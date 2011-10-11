@@ -27,7 +27,7 @@
               | Info
             th
               | Occurred
-            th
+            th(colspan="2")
               | Duration
         tbody
           - rows.forEach(function (row, i) {
@@ -47,6 +47,10 @@
                 | -
               td(data-duration=(row.end-row.beg))
                 | -
+              td(align="right")
+                div.open-vehicle(role="button", title="Explore event.")
+                  div
+                  span Go
           - })
     - }
 

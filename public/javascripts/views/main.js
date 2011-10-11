@@ -35,12 +35,13 @@ define(['jquery',
       return this;
     },
 
-    load: function (vehicleId, vehicleTitle) {
+    load: function (vehicleId, vehicleTitle, timeRange) {
       var targetClass = 'target-' + this.makeid();
       new App.views.VehicleView().render({
         title: vehicleTitle,
         targetClass: targetClass,
         vehicleId: vehicleId,
+        timeRange: timeRange,
         active: true,
       }, 'vehicle.jade');
     },
