@@ -1,20 +1,19 @@
 #!/usr/bin/env node
 
-// Insert to sample DB.
+// Convert old-style eventbucket data into samples.json.
 
 var vm = require('vm');
 var log = require('console').log;
-var mongodb = require('mongodb');
 var Step = require('step');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
+var mongodb = require('mongodb');
 var _ = require('underscore');
 
-var SampleDb = require('./sample_db.js').SampleDb;
+var printSamples = require('./print_samples.js').printSamples;
+var compatibility = require('../compatibility.js');
 
 var optimist = require('optimist');
 var argv = optimist
-    .default('db', 'mongo://localhost:27017/service-samples')
-    .demand('vehicleId')
     .argv;
 
 function errCheck(err, op) {
@@ -32,15 +31,9 @@ function readEntireStream(stream, cb) {
   stream.resume();
 }
 
+function doWork(work, next)
+{ (function f() { if (!work.length) next(); else (work.shift())(f); })(); }
 
-// Connect to DB.
-mongodb.connect(argv.db, {
-                  server: { poolSize: 4 },
-                  db: { native_parser: false },
-                }, function(err, db) {
-errCheck(err, 'connect('+argv.db+')');
-new SampleDb(db, { ensureIndexes: true }, function (err, sampleDb) {
-errCheck(err, 'new sampleDb');
 
 if (argv._.length)
   optimist.showHelp();
@@ -50,15 +43,29 @@ Step(
   function() {
     readEntireStream(process.stdin, this);
   }, function(stdin) {
-    log('Got ' + stdin.length + ' characters from stdin.');
+    debug('Got ' + stdin.length + ' characters from stdin.');
     //console.log(util.inspect(stdin));
-    var sampleSet = vm.runInNewContext('(\n' + stdin + '\n)', {}, 'stdin');
-    console.time('insertSamples');
-    sampleDb.insertSamples(argv.vehicleId, sampleSet, this);
-    //console.log(util.inspect(sampleSet));
-    //this();
+    var eventBuckets = vm.runInNewContext('(\n' + stdin + '\n)', {}, 'stdin');
+
+    // Dummy sampleDb to capture converted data.
+    var sampleSet = {};
+    var sampleDb = {
+      insertSamples: function(vehicleId, newSampleSet, cb) {
+        _.forEach(newSampleSet, function(samples, channelName) {
+          sampleSet[channelName] =
+              (sampleSet[channelName] || []).concat(samples);
+        });
+      },
+    };
+
+    eventBuckets.forEach(function(eventBucket) {
+      eventBucket._id =
+          mongodb.BSONPure.ObjectID.createFromHexString(eventBucket._id);
+      compatibility.insertEventBucket(sampleDb, eventBucket, errCheck);
+    });
+
+    printSamples(sampleSet, this);
   }, function(err) {
-    console.timeEnd('insertSamples');
     if (err)
       log('error: ' + err + '\n' + err.stack);
     if (argv.subscribe == null) {
@@ -70,5 +77,3 @@ Step(
     }
   }
 );
-
-})});

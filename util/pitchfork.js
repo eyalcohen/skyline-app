@@ -9,8 +9,8 @@ var Step = require('step');
 var util = require('util');
 var _ = require('underscore');
 
-var SampleDb = require('./sample_db.js').SampleDb;
-var compatibility = require('./compatibility.js');
+var SampleDb = require('../sample_db.js').SampleDb;
+var compatibility = require('../compatibility.js');
 
 var argv = require('optimist')
     .default('srcDb', 'mongo://:27017,:27018,:27109/service-development')

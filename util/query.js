@@ -9,7 +9,7 @@ var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 
-var SampleDb = require('./sample_db.js').SampleDb;
+var SampleDb = require('../sample_db.js').SampleDb;
 
 var optimist = require('optimist');
 var argv = optimist
