@@ -16,12 +16,13 @@ define(function () {
                     this.changeVisibleTime);
       App.subscribe('NavigableTimeChange-' + args.vehicleId,
                     this.changeNavigableTime);
-      self.clientIdVisible = args.vehicleId + '-map-visible';
+      this.clientIdVisible = args.vehicleId + '-map-visible';
       App.sampleCache.bind('update-' + this.clientIdVisible,
                            this.updateVisibleSampleSet);
-      self.clientIdNavigable = args.vehicleId + '-map-navigable';
+      this.clientIdNavigable = args.vehicleId + '-map-navigable';
       App.sampleCache.bind('update-' + this.clientIdNavigable,
                            this.updateNavigableSampleSet);
+      this.changeVisibleTime(args.timeRange.min*1e3, args.timeRange.max*1e3);
       return this;
     },
 

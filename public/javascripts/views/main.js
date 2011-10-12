@@ -13,7 +13,6 @@ define(['jquery',
       $(window).resize(_.debounce(function (e) {
         App.publish('WindowResize');
       }, 100));
-      // this.vehicles = [];
       return this;
     },
 

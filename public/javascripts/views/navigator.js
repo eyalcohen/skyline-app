@@ -46,35 +46,43 @@ define(['views/dashItem', 'plot_booter'],
       var bounds = [], shapes = []
       var holder = $('.navigator > div', self.content);
       bounds = [
-        _.min(_.pluck(data, 'beg')) / 1000,
-        _.max(_.pluck(data, 'end')) / 1000
+        _.min(_.pluck(data, 'beg')) / 1e3,
+        _.max(_.pluck(data, 'end')) / 1e3
       ];
       _.each(data, function (pnt) {
         shapes.push({
           xaxis: {
-            from: pnt.beg / 1000,
-            to: pnt.beg / 1000,
+            from: pnt.beg / 1e3,
+            to: pnt.beg / 1e3,
           },
           color: '#999',
         });
         shapes.push({
           xaxis: {
-            from: pnt.beg / 1000,
-            to: pnt.end / 1000,
+            from: pnt.beg / 1e3,
+            to: pnt.end / 1e3,
           },
           color: pnt.color,
         });
       });
-      var pad = 60 * 60 * 1000;
+      var pad = 60 * 60 * 1e3;
+      var min = self.options.timeRange.min;
+      var max = self.options.timeRange.max;
+      if (!self.options.timeRange.snap) {
+        min -= 60*60*24*7*26*1e3; // half year
+        max += 60*60*24*7*26*1e3;
+      } else {
+        var extra = (max - min) * 0.1;
+        min -= extra; // 10%
+        max += extra;
+      }
       self.plot = $.plot(holder,
           [[bounds[0], 0], [bounds[1], 1]], {
         xaxis: {
           mode: 'time',
           position: 'top',
-          // min: bounds[0] - pad,
-          // max: bounds[1] + pad,
-          min: self.options.timeRange[1] - 60*60*24*7*26*1000,
-          max: self.options.timeRange[1] + 60*60*24*7*26*1000,
+          min: min,
+          max: max,
           tickColor: '#ddd',
           labelsInside: true,
           // zoomRange: [1, (bounds[1] + pad) - (bounds[0] - pad)],
@@ -107,11 +115,12 @@ define(['views/dashItem', 'plot_booter'],
         },
         hooks: { draw: [addIcons, self.drawWindow, self.positionScale] },
       });
-
+      self.drawWindow(self.options.timeRange.min*1e3,
+            self.options.timeRange.max*1e3);
       function addIcons(p, ctx) {
         $('.icon', holder).remove();
         _.each(data, function (pnt) {
-          var off = p.pointOffset({ x: pnt.beg / 1000, y: 0.22 });
+          var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
           var icon = $('<img>')
               .attr({ src: pnt.icon })
               .css({
@@ -138,11 +147,11 @@ define(['views/dashItem', 'plot_booter'],
       $('.navigator', self.content).data({ plot: self.plot });
       self.box = $(self.options.parent + ' .navigator-window');
       self.hookScale();
-      
+
       App.publish('NavigableTimeChange-' + self.options.vehicleId,
-          [(new Date(2011, 0, 1)).getTime() * 1000,
-          (new Date(2012, 0, 1)).getTime() * 1000]);
-      
+          [(new Date(2011, 0, 1)).getTime() * 1e3,
+          (new Date(2012, 0, 1)).getTime() * 1e3]);
+
       return self;
     },
 
@@ -155,8 +164,8 @@ define(['views/dashItem', 'plot_booter'],
       var lh = $(self.options.parent + ' .navigator-window-handle-left');
       var rh = $(self.options.parent + ' .navigator-window-handle-right');
       if (_.isNumber(min) && _.isNumber(max)) {
-        self.windowMin = min / 1000;
-        self.windowMax = max / 1000;
+        self.windowMin = min / 1e3;
+        self.windowMax = max / 1e3;
       }
       var off = $(self.options.parent).offset();
       var axis = self.plot.getXAxes()[0];
@@ -178,7 +187,7 @@ define(['views/dashItem', 'plot_booter'],
         if (width > self.el.width() - 1)
           width -= 1;
       }
-      left = Math.floor(left + 0); // parseInt(off.left));
+      left = Math.floor(left);
       width = Math.floor(width);
       self.box.css({
         display: display,
@@ -195,6 +204,7 @@ define(['views/dashItem', 'plot_booter'],
         left: left + width - 5 + 'px',
         top: top + 'px',
       });
+      console.log('done');
     },
 
     moveWindow: function (e) {
@@ -215,7 +225,7 @@ define(['views/dashItem', 'plot_booter'],
             axis.c2p(boxRight + delta - parentOff) :
             axis.c2p(boxRight - parentOff);
         App.publish('VisibleTimeChange-' + self.options.vehicleId,
-            [leftTime * 1000, rightTime * 1000]);
+            [leftTime * 1e3, rightTime * 1e3]);
       }, 0);
       $(document).bind('mouseup', function (e) {
         $(document).unbind('mousemove', movehandle)
@@ -267,13 +277,13 @@ define(['views/dashItem', 'plot_booter'],
       var scale = $('.navigator-scale', self.el);
       var axis = self.plot.getXAxes()[0];
       $('.day-scale', scale).click(function (e) {
-        zoomToRange(60 * 60 * 24 * 1000);
+        zoomToRange(60 * 60 * 24 * 1e3);
       });
       $('.month-scale', scale).click(function (e) {
-        zoomToRange(60 * 60 * 24 * 7 * 4 * 1000);
+        zoomToRange(60 * 60 * 24 * 7 * 4 * 1e3);
       });
       $('.year-scale', scale).click(function (e) {
-        zoomToRange(60 * 60 * 24 * 7 * 52 *1000);
+        zoomToRange(60 * 60 * 24 * 7 * 52 * 1e3);
       });
       function zoomToRange(range) {
         var boxLeft = parseInt(self.box.offset().left);
