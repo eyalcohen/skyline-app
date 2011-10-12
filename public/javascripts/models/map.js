@@ -41,7 +41,24 @@ define(function () {
       // very few points.  We could get clever and use the _schema time ranges
       // for gps data to use the time range which overlaps [beg,end) rather
       // than (end - beg).
-      var dur = App.sampleCache.getBestDuration(end - beg, maxSamples);
+      var validRanges = null;
+      App.publish('FetchChannelInfo-' + this.attributes.vehicleId,
+                  [latChan, function(desc) {
+        if (desc) validRanges = desc.valid;
+      }]);
+      var visibleDuration = 0;
+      (validRanges || []).forEach(function(range) {
+        var delta = Math.min(range.end, end) - Math.max(range.beg, beg);
+        if (delta > 0) visibleDuration += delta;
+      });
+      if (visibleDuration <= 0) visibleDuration = end - beg;
+      // Because the sample cache looks in every bucket in the cache which
+      // might contain data, we start spending a lot of cpu time when we're
+      // looking at a lot of empty space.  For now, enforce a maximum ratio
+      // of visible duration to total duration.
+      visibleDuration = Math.max(visibleDuration, (end - beg) / 50);
+      var dur = App.sampleCache.getBestDuration(visibleDuration, maxSamples);
+      console.log('Visible range ' + (end - beg) + ', visibleDuration ' + visibleDuration + ', dur ' + dur);
       App.sampleCache.setClientView(
           this.clientIdVisible, this.get('vehicleId'),
           [ latChan, lngChan ], dur, beg, end);

@@ -100,6 +100,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
 
       function bindEventsHook(plot, eventHolder) {
         // For debugging, print the cursor position.
+        /*
         console.debug('bindEvents');
         eventHolder.mousemove(function(e) {
           var visFrac = (e.pageX - plot.offset().left) / plot.width();
@@ -107,6 +108,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
           if (!t) return;
           console.log('time: ' + Math.round((t.beg + visFrac * (t.end - t.beg)) * 1e3));
         });
+        */
       };
 
       $('.graph', self.content).data({
@@ -234,13 +236,13 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
         this.trigger('VisibleTimeChange', t.beg, t.end);
-        console.log('VisibleTimeChange', t.beg, t.end);
+        //console.log('VisibleTimeChange', t.beg, t.end);
         this.prevBeg = t.beg;
         this.prevEnd = t.end;
       }
       if (t.width != this.prevWidth) {
         this.trigger('VisibleWidthChange', t.width);
-        console.log('VisibleWidthChange', t.width);
+        //console.log('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
       this.addYaxesBoundsForDrops();

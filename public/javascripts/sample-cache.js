@@ -126,10 +126,11 @@ define(function () {
    * Get a cache entry.  If it doesn't exist, create it.
    */
   SampleCache.prototype.getCacheEntry =
-  function(vehicleId, channelName, dur, buck) {
-    var entry =
-        def(def(def(this.cache, vehicleId + '-' + channelName), dur), buck);
-    entry.last = Date.now();
+  function(vehicleId, channelName, dur, buck, create) {
+    var cacheKey = vehicleId + '-' + channelName;
+    var d = create ? def : ifDef;
+    var entry = d(d(d(this.cache, cacheKey), dur), buck);
+    if (entry) entry.last = Date.now();
     return entry;
   };
 
@@ -141,15 +142,27 @@ define(function () {
     var self = this;
     var buckDur = bucketSize(dur);
     var begBuck = Math.floor(beg / buckDur), endBuck = Math.ceil(end / buckDur);
-    for (var buck = begBuck; buck < endBuck; ++buck) {
-      channels.forEach(function(channelName) {
-        var entry = self.getCacheEntry(vehicleId, channelName, dur, buck);
+    channels.forEach(function(channelName) {
+      // Hack: avoid fetching buckets which have no schema, thus must be empty.
+      var validRanges = [];
+      App.publish('FetchChannelInfo-' + vehicleId,
+                  [channelName, function(desc) {
+        if (desc) validRanges = desc.valid;
+      }]);
+      function forRange(begin, end, f) {
+        for (var i = begin; i < end; ++i) f(i);
+      }
+      forRange(begBuck, endBuck, function(buck) {
+        var buckBeg = buck * buckDur, buckEnd = buckBeg + buckDur;
+        if (!validRanges.some(function(range) {
+                return range.beg < buckEnd && buckBeg < range.end; }))
+          return;
+        var entry = self.getCacheEntry(vehicleId, channelName, dur, buck, true);
         if (entry.samples || entry.pending) return;
         entry.pending = true;
         var options = {
-          beginTime: buck * buckDur, endTime: (buck + 1) * buckDur,
-          minDuration: dur,
-          getMinMax: true,
+          beginTime: buckBeg, endTime: buckEnd,
+          minDuration: dur, getMinMax: true,
         };
         // TODO: we could avoid fetching samples sometimes if we determine that
         // a larger cached bucket already has entirely non-synthetic data for
@@ -169,7 +182,7 @@ define(function () {
                                     options.beginTime, options.endTime);
         });
       });
-    }
+    });
   }
 
   /**
@@ -221,7 +234,7 @@ define(function () {
     var begBuck = Math.floor(beg / buckDur), endBuck = Math.ceil(end / buckDur);
     var buckets = [];
     for (var buck = begBuck; buck < endBuck; ++buck) {
-      var entry = this.getCacheEntry(vehicleId, channelName, dur, buck);
+      var entry = this.getCacheEntry(vehicleId, channelName, dur, buck, false);
       if (entry && entry.samples) {
         buckets.push(entry.samples);
       /* TODO: this doesn't work, since it will avoid fetching bigger data.
@@ -256,6 +269,7 @@ define(function () {
   }
 
   function def(obj, key) { return (key in obj) ? obj[key] : (obj[key] = {}); }
+  function ifDef(obj, key) { return obj && (key in obj) ? obj[key] : null; }
 
   function getNextDur(dur) {
     return _.detect(durations, function(v) { return v > dur });

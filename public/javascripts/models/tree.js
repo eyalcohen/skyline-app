@@ -9,6 +9,11 @@ define(function (fn) {
       _.extend(args, { model: this });
       this.view = new App.views.TreeView(args);
       this.view.bind('hideChannel', _.bind(this.view.hideChannel, this.view));
+      // This is a horribly crufty way to allow fetching the channel tree by
+      // other models...  Perhaps instead we should subscribe to _schema, and
+      // build the channel tree client-side?
+      App.subscribe('FetchChannelInfo-' + args.vehicleId,
+                    _.bind(this.fetchChannelInfo, this));
       return this;
     },
 
@@ -29,6 +34,18 @@ define(function (fn) {
         }
       });
       return this;
+    },
+
+    fetchChannelInfo: function(channel, cb) {
+      var result = null;
+      function f(desc) {
+        if (desc.channelName === channel)
+          result = desc;
+        else
+          (desc.sub || []).forEach(f);
+      };
+      (this.attributes.data || []).forEach(f);
+      cb(result);
     },
 
   });

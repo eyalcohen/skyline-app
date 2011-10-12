@@ -32,6 +32,8 @@ define(['views/dashItem',
 
     draw: function () {
       var self = this, data = this.model.get('data');
+      // Quick and dirty deep-clone.
+      data = JSON.parse(JSON.stringify(data));
       self.treeHolder = $('.tree', this.content).jstree({
         json_data: {
           data: function (n, cb) {
