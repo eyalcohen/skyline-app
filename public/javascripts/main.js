@@ -111,9 +111,10 @@ requirejs(['libs/json2',
 
     buildDash: function () {
       App.mainView = new App.views.MainView().render();
-      App.dashView = new App.views.DashView().render({
-        title: 'Dashboard',
+      App.dashView = new App.views.DashView({
         targetClass: 'dashboard',
+      }).render({
+        title: 'Dashboard',
         active: true,
         tabClosable: false,
         left: 30

@@ -5,6 +5,7 @@
 define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
+      this._super('initialize', args);
       _.bindAll(this, 'render', 'addGraph');
       return this;
     },

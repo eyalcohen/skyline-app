@@ -5,7 +5,8 @@
 define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
-      _.bindAll(this, 'render');
+      this._super('initialize', args);
+      // _.bindAll(this, 'render');
       return this;
     },
 

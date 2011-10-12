@@ -32,6 +32,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
     createPlot: function() {
       var self = this;
       self.render(); // Why is this necessary?
+      // console.log(self.options.timeRange.min, self.options.timeRange.max);
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',

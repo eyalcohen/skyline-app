@@ -36,9 +36,10 @@ define(['jquery',
 
     load: function (vehicleId, vehicleTitle, timeRange) {
       var targetClass = 'target-' + this.makeid();
-      new App.views.VehicleView().render({
-        title: vehicleTitle,
+      new App.views.VehicleView({
         targetClass: targetClass,
+      }).render({
+        title: vehicleTitle,
         vehicleId: vehicleId,
         timeRange: timeRange,
         active: true,

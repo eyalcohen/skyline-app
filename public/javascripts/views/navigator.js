@@ -174,9 +174,9 @@ define(['views/dashItem', 'plot_booter'],
       // var top = parseInt(off.top) + 47;
       var top = 28;
       var display = '';
-      if (left < 1) {
+      if (left < 0) {
         width = width + left;
-        left = 1;
+        left = 0;
         if (width <= 0)
           display = 'none';
       }
@@ -204,7 +204,6 @@ define(['views/dashItem', 'plot_booter'],
         left: left + width - 5 + 'px',
         top: top + 'px',
       });
-      console.log('done');
     },
 
     moveWindow: function (e) {
@@ -277,21 +276,21 @@ define(['views/dashItem', 'plot_booter'],
       var scale = $('.navigator-scale', self.el);
       var axis = self.plot.getXAxes()[0];
       $('.day-scale', scale).click(function (e) {
-        zoomToRange(60 * 60 * 24 * 1e3);
+        zoomToRange(60*60*24*1e3);
       });
       $('.month-scale', scale).click(function (e) {
-        zoomToRange(60 * 60 * 24 * 7 * 4 * 1e3);
+        zoomToRange(60*60*24*7*4*1e3);
       });
       $('.year-scale', scale).click(function (e) {
-        zoomToRange(60 * 60 * 24 * 7 * 52 * 1e3);
+        zoomToRange(60*60*24*7*52*1e3);
       });
       function zoomToRange(range) {
         var boxLeft = parseInt(self.box.offset().left);
         var boxRight = boxLeft + self.box.width();
-        var parentOff = parseInt(self.el.offset().left);
-        var center = axis.c2p((boxRight + boxLeft) / 2 - parentOff);
-        var min = center - range / 2;
-        var max = center + range / 2;
+        var center = axis.c2p(Math.round((boxRight + boxLeft) / 2 -
+            parseInt(self.el.offset().left)));
+        var min = Math.round(center - range / 2);
+        var max = Math.round(center + range / 2);
         axis.options.min = min;
         axis.options.max = max;
         self.plot.setupGrid();

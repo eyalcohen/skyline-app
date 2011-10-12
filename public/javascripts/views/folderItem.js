@@ -10,9 +10,9 @@ define(['jquery',
    function ($) {
   return Backbone.View.extend({
     initialize: function (args) {
-      _.bindAll(this, 'setup', 'render', 'resize', 'destroy', 'show');
+      _.bindAll(this, 'render', 'resize', 'destroy', 'show');
       App.subscribe('NotAuthenticated', 'destroy');
-      // App.subscribe('ShowVehicle-' + args.targetClass, 'show');
+      App.subscribe('ShowFolderItem-' + args.targetClass, this.show);
       return this;
     },
 
@@ -25,7 +25,7 @@ define(['jquery',
       opts = opts || {};
       _.defaults(opts, {
         title: null,
-        targetClass: null,
+        targetClass: this.options.targetClass,
         vehicleId: null,
         tabLeft: left,
         tabIndex: tabs.length,
@@ -47,7 +47,7 @@ define(['jquery',
     },
 
     show: function (e) {
-      if ($(e.target).hasClass('tab-closer')) return;
+      if (e && $(e.target).hasClass('tab-closer')) return;
       $('.tab-active').each(function (i) {
         var $this = $(this);
         $this.removeClass('tab-active');
@@ -60,7 +60,6 @@ define(['jquery',
       flipTabSides(this.tab);
       $('.tab-content', this.tab).removeClass('tab-content-inactive');
       var target = $('.' + this.tab.attr('data-tab-target'));
-      // if (target.is(':visible')) return;
       $('.tab-target').hide();
       target.show();
       App.publish('WindowResize');
@@ -76,18 +75,19 @@ define(['jquery',
     },
 
     destroy: function (e) {
-      var targetClass = this.tab.attr('data-tab-target');
       var targetIndex = this.tab.attr('data-tab-index');
       var tabs = $('.tab-dynamic');
+      console.log(tabs, targetIndex, $(tabs.get(targetIndex-1)));
       if (this.tab.hasClass('tab-active'))
-        $(tabs.get(targetIndex-1)).click();
-      $('.' + targetClass).remove();
+        App.publish('ShowFolderItem-'+
+            $(tabs.get(targetIndex-1)).data('tabTarget'));
       this.tab.remove();
       tabs = $('.tab-dynamic');
       var offset = 30;
       tabs.each(function (t) {
         var tab = $(tabs.get(t));
         tab.css({ left: offset + 'px' });
+        tab.attr('data-tab-index', t);
         offset += tab.width() - 10;
       });
       this.remove();
