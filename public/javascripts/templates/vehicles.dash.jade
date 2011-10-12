@@ -18,11 +18,11 @@
         thead
           tr
             th
+              | Year
+            th
               | Make
             th
               | Model
-            th
-              | Year
             th
               | Owner
             th(colspan="2")
@@ -30,16 +30,16 @@
         tbody
           - rows.forEach(function (row, i) {
           -  row = row.attributes;
-            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.make+"/"+row.model+"/"+row.year)
+            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.year+"/"+row.make+"/"+row.model)
               td(style="font-weight:bold;")
-                =row.make
+                =row.year
                 span.edit-panel
                   a.edit-link(href="javascript:;", title="Edit")
                     | Edit |
               td(style="font-weight:bold;")
-                =row.model
+                =row.make
               td(style="font-weight:bold;")
-                =row.year
+                =row.model
               td(style="font-style:italic;")
                 - if (row.user) {
                   =row.user.email

@@ -11,9 +11,9 @@ define(function () {
       self.view = new App.views.GraphView(args);
       self.set({
         channels: [],
-        data: {},  // Map from channelName to data.
-        dataMinMax: {},  // Map from channelName to data.
-        beg: null, end: null,  // Viewed time range.
+        data: {}, // Map from channelName to data.
+        dataMinMax: {}, // Map from channelName to data.
+        beg: null, end: null, // Viewed time range.
       });
       self.colorCnt = 0;
       self.clientId = args.vehicleId + '-graph-' + args.id;

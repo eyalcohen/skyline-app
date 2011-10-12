@@ -19,7 +19,7 @@
           tr
             th(colspan="2")
               | Type
-            - if (!single) {
+            - if (!singleVehicle) {
             th
               | Vehicle
             - }
@@ -32,15 +32,15 @@
         tbody
           - rows.forEach(function (row, i) {
           -  row = row.attributes;
-          -  var title = row.vehicle ? row.vehicle.make+"/"+row.vehicle.model+"/"+row.vehicle.year : 'inherit'
+          -  var title = row.vehicle ? row.vehicle.year+"/"+row.vehicle.make+"/"+row.vehicle.model : 'inherit'
             tr(id=row.htmlId, class=['dark','light'][i%2], data-title=title)
               td(width="16")
                 img(src=row.icon)
               td(style="font-weight:bold;")
                 =row.desc
-              - if (!single) {
+              - if (!singleVehicle) {
               td
-                =row.vehicle.make + '/' + row.vehicle.model + '/' + row.vehicle.year
+                =row.vehicle.year + '/' + row.vehicle.make + '/' + row.vehicle.model
               - }
               td(style="font-style:italic;")
                 =row.note

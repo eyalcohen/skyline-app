@@ -6,7 +6,7 @@ define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
-      _.bindAll(this, 'render', 'addGraph');
+      _.bindAll(this, 'addGraph');
       return this;
     },
 
@@ -51,7 +51,7 @@ define(['views/folderItem'], function (FolderItemView) {
         target: this.targetClass,
         height: 30,
         bottomPad: 0,
-        single: true,
+        singleVehicle: true,
       }).fetch();
       this.navigatorCollection =
           new App.collections.NavigatorCollection({
@@ -62,7 +62,7 @@ define(['views/folderItem'], function (FolderItemView) {
         target: this.targetClass,
         height: '80px',
         bottomPad: 0,
-        single: true,
+        singleVehicle: true,
       }).fetch();
       return this;
     },

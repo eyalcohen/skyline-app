@@ -13,10 +13,11 @@ define(['views/dashItem'], function (DashItemView) {
       opts = opts || {};
       _.defaults(opts, {
         loading: false,
-        single: false,
+        singleVehicle: false,
         shrinkable: this.options.shrinkable,
         rows: this.collection.models,
       });
+      this.singleVehicle = opts.singleVehicle;
       if (this.el.length) {
         this.remove();
       }
@@ -39,10 +40,18 @@ define(['views/dashItem'], function (DashItemView) {
       var end = parseInt($('[data-time-end]', parentRow)
           .attr('data-time-end')) / 1e3;
       var range = { min: beg, max: end, snap: true};
-      var items = parentRow.attr('id').split('_');
-      var id = parseInt(items[items.length - 1]);
-      var title = $(e.target).closest('tr').attr('data-title');
-      App.publish('VehicleRequested', [id, title, range]);
+      var id, title;
+      if (parentRow.attr('id')) {
+        var items = parentRow.attr('id').split('_');
+        id = parseInt(items[items.length - 1]);
+        title = $(e.target).closest('tr').attr('data-title');
+      } else {
+        id = this.options.vehicleId;
+      }
+      if (this.singleVehicle)
+        App.publish('VisibleTimeChange-' + id, [beg*1e3, end*1e3]);
+      else
+        App.publish('VehicleRequested', [id, title, range]);
       return this;
     },
 
