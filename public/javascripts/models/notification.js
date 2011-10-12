@@ -47,6 +47,11 @@ define(function () {
           });
           break;
       }
+      if (args.vehicle) {
+        this.set({
+          htmlId: 'notification_' + args.vehicle._id,
+        });
+      }
       return this;
     }
   });

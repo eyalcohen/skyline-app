@@ -1102,6 +1102,7 @@ div.preferences {
   position: absolute;
   border-left: 1px dotted #666;
   border-right: 1px dotted #666;
+  z-index: 1;
 }
 
 .navigator > div {

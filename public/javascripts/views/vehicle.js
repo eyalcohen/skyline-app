@@ -35,6 +35,7 @@ define(['views/folderItem'], function (FolderItemView) {
       // this.hookGraphControls(this.graphModels[0], 0);
       this.mapModel = new App.models.MapModel({
         vehicleId: this.vehicleId,
+        timeRange: this.timeRange,
         title: 'Map',
         parent: '.' + this.targetClass + ' div .dashboard-left .bottom',
         target: this.targetClass,
