@@ -51,10 +51,27 @@ define(function () {
       viewRange.width = Math.max(viewRange.width, 2000);
       var dur = App.sampleCache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
+      // Expand effective view range slightly, so that when scrolling we fetch
+      // more data before it's needed.
+      function expandRange(range, factor) {
+        var extend = (range.end - range.beg) * factor;
+        return { beg: range.beg - extend, end: range.end + extend };
+      }
+      viewRange = expandRange(viewRange, 0.2);
+      // When necessary to fetch more data, fetch twice as much as necessary,
+      // so we can scroll and zoom smoothly without excessive redrawing.
+      if (this.prevDur != dur || this.prevRange == null ||
+          this.prevRange.beg > viewRange.beg ||
+          this.prevRange.end < viewRange.end) {
+        // Either duration has changed, or the new view does not overlap the
+        // data we've already fetched.
+        this.prevDur = dur;
+        this.prevRange = expandRange(viewRange, 0.5);
+      }
       App.sampleCache.setClientView(
           this.clientId, this.get('vehicleId'),
           _.pluck(this.get('channels'), 'channelName'),
-          dur, viewRange.beg, viewRange.end);
+          dur, this.prevRange.beg, this.prevRange.end);
     },
 
     changeVisibleTime: function (beg, end) {
@@ -89,6 +106,7 @@ define(function () {
     },
 
     updateSampleSet: function (sampleSet) {
+      var start = Date.now();
       var self = this;
       var data = {}, dataMinMax = {};
       self.get('channels').forEach(function(channel) {
@@ -117,6 +135,7 @@ define(function () {
       });
       self.set({ data: data });
       self.set({ dataMinMax: dataMinMax });
+      console.debug('models/graph.updateSampleSet took ' + (Date.now() - start) + 'ms');
       self.view.draw();
     },
 

@@ -204,7 +204,6 @@ define(['views/dashItem', 'plot_booter'],
         left: left + width - 5 + 'px',
         top: top + 'px',
       });
-      console.log('done');
     },
 
     moveWindow: function (e) {

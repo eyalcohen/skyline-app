@@ -91,6 +91,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         },
         hooks: {
           draw: [ _.bind(self.plotDrawHook, self) ],
+          setupGrid: [ _.bind(self.plotSetupGridHook, self) ],
           bindEvents: [ bindEventsHook ],
         },
       });
@@ -132,6 +133,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
     },
 
     draw: function () {
+      var start = Date.now();
       var self = this;
       if (!self.plot) {
         self.firstDraw = true;
@@ -213,7 +215,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         });
         var min = _.min(mins);
         var max = _.max(maxes);
-        if (min && max 
+        if (min && max
             && min !== Infinity && max !== Infinity
             && min !== -Infinity && max !== -Infinity) {
           _.each(self.plot.getXAxes(), function (axis) {
@@ -224,8 +226,35 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         }
       }
       self.plot.setData(series);
+      console.debug('setData took ' + (Date.now() - start) + 'ms');
       self.plot.setupGrid();
+      console.debug('setupGrid took ' + (Date.now() - start) + 'ms');
       self.plot.draw();
+      console.debug('views/graph.draw took ' + (Date.now() - start) + 'ms');
+    },
+
+    plotSetupGridHook: function() {
+      if (!this.plot) return;
+      var xopts = this.plot.getAxes().xaxis.options;
+      var xmin = xopts.min, xmax = xopts.max;
+      var yAxes = this.plot.getYAxes();
+      // Automatically change Y-axis bounds based on visible data.
+      yAxes.forEach(function(axis) {
+        axis.datamin = Infinity;
+        axis.datamax = -Infinity;
+      });
+      // TODO: this is ugly, and probably slow.
+      this.plot.getData().forEach(function(series) {
+        var max = series.yaxis.datamax, min = series.yaxis.datamin;
+        series.data.forEach(function(p) {
+          if (p && p[0] >= xmin && p[0] <= xmax) {
+            max = Math.max(max, p[1]);
+            min = Math.min(min, p[2] == null ? p[1] : p[2]);
+          }
+        });
+        series.yaxis.datamax = max;
+        series.yaxis.datamin = min;
+      });
     },
 
     plotDrawHook: function() {
@@ -242,8 +271,10 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         //console.log('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
-      this.addYaxesBoundsForDrops();
-      $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
+      if (this.allowYAxis == null) {
+        this.addYaxesBoundsForDrops();
+        $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
+      }
     },
 
     getVisibleTime: function() {

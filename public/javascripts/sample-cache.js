@@ -211,6 +211,7 @@ define(function () {
     var self = this;
     if (client.updateId) return;
     client.updateId = setTimeout(function() {
+      var start = Date.now();
       client.updateId = null;
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
@@ -218,6 +219,7 @@ define(function () {
             client.vehicleId, channelName,
             client.dur, client.beg, client.end, true, true);
       });
+      console.debug('SampleCache.updateClient(' + clientId + ') took ' + (Date.now() - start) + 'ms');
       self.trigger('update-' + clientId, sampleSet);
     }, 50);
   };
