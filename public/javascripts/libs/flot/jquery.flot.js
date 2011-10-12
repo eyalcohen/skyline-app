@@ -154,6 +154,7 @@
             processOptions: [],
             processRawData: [],
             processDatapoints: [],
+            setupGrid: [],
             drawSeries: [],
             draw: [],
             bindEvents: [],
@@ -1032,6 +1033,8 @@
             // init plot offset
             for (var a in plotOffset)
                 plotOffset[a] = showGrid ? options.grid.borderWidth : 0;
+
+            executeHooks(hooks.setupGrid, []);
             
             // init axes
             $.each(axes, function (_, axis) {
