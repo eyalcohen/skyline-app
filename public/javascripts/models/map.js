@@ -52,11 +52,6 @@ define(function () {
         if (delta > 0) visibleDuration += delta;
       });
       if (visibleDuration <= 0) visibleDuration = end - beg;
-      // Because the sample cache looks in every bucket in the cache which
-      // might contain data, we start spending a lot of cpu time when we're
-      // looking at a lot of empty space.  For now, enforce a maximum ratio
-      // of visible duration to total duration.
-      visibleDuration = Math.max(visibleDuration, (end - beg) / 50);
       var dur = App.sampleCache.getBestDuration(visibleDuration, maxSamples);
       App.sampleCache.setClientView(clientId, this.get('vehicleId'),
                                     [ latChan, lngChan ], dur, beg, end);

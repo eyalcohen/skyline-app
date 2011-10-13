@@ -265,10 +265,9 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         this.trigger('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
-      if (this.allowYAxis == null) {
-        this.addYaxesBoundsForDrops();
-        $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
-      }
+      // TODO: do we need to do this on every plot draw?
+      this.addYaxesBoundsForDrops();
+      $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
     },
 
     getVisibleTime: function() {

@@ -7,8 +7,8 @@ define(['views/dashItem', 'plot_booter'],
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize');
-      _.bindAll(this, 'drawWindow', 'moveWindow',
-          'hoverWindow', 'wheelWindow', 'positionScale', 'hookScale');
+      _.bindAll(this, 'drawWindow', 'moveWindow', 'hoverWindow', 'wheelWindow',
+                'positionScale', 'hookScale', 'plotDrawHook');
       App.subscribe('VisibleTimeChange-' + args.vehicleId, this.drawWindow);
     },
     
@@ -113,10 +113,13 @@ define(['views/dashItem', 'plot_booter'],
           interactive: true,
           frameRate: 60,
         },
-        hooks: { draw: [addIcons, self.drawWindow, self.positionScale] },
+        hooks: {
+          draw: [ addIcons, self.drawWindow, self.positionScale,
+                  self.plotDrawHook ] },
       });
       self.drawWindow(self.options.timeRange.min*1e3,
             self.options.timeRange.max*1e3);
+      self.plotDrawHook();
       function addIcons(p, ctx) {
         $('.icon', holder).remove();
         _.each(data, function (pnt) {
@@ -147,10 +150,6 @@ define(['views/dashItem', 'plot_booter'],
       $('.navigator', self.content).data({ plot: self.plot });
       self.box = $(self.options.parent + ' .navigator-window');
       self.hookScale();
-
-      App.publish('NavigableTimeChange-' + self.options.vehicleId,
-          [(new Date(2011, 0, 1)).getTime() * 1e3,
-          (new Date(2012, 0, 1)).getTime() * 1e3]);
 
       return self;
     },
@@ -296,6 +295,25 @@ define(['views/dashItem', 'plot_booter'],
         self.plot.setupGrid();
         self.plot.draw();
       };
+    },
+
+    plotDrawHook: function() {
+      var t = this.getVisibleTime();
+      console.warn('plotDrawHook', t);
+      if (!t) return;
+      if (t.beg != this.prevBeg || t.end != this.prevEnd) {
+        App.publish('NavigableTimeChange-' + this.options.vehicleId,
+                    [t.beg, t.end]);
+        this.prevBeg = t.beg;
+        this.prevEnd = t.end;
+      }
+    },
+
+    getVisibleTime: function() {
+      if (!this.plot) return null;
+      var xopts = this.plot.getAxes().xaxis.options;
+      return { beg: xopts.min * 1000, end: xopts.max * 1000,
+               width: this.plot.width() };
     },
 
     resize: function () {
