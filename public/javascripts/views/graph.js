@@ -98,15 +98,18 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
       });
 
       function bindEventsHook(plot, eventHolder) {
-        // For debugging, print the cursor position.
-        /*
         eventHolder.mousemove(function(e) {
+          // TODO: is there a cleaner way to get time under pointer?
           var visFrac = (e.pageX - plot.offset().left) / plot.width();
           var t = self.getVisibleTime();
           if (!t) return;
-          console.log('time: ' + Math.round((t.beg + visFrac * (t.end - t.beg)) * 1e3));
+          var time = (t.beg + visFrac * (t.end - t.beg));
+          console.log('Hover at: ' + time);
+          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time]);
         });
-        */
+        eventHolder.mouseout(function(e) {
+          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
+        });
       };
 
       $('.graph', self.content).data({
