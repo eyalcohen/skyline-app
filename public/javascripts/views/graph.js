@@ -9,7 +9,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
       'click .toggler': 'toggle',
       'click .export': 'exportCsv',
       'click .add-graph': 'addGraphFromParent',
-      'click .remove-graph': 'removeGraphFromParent',
+      'click .graph-closer': 'removeGraphFromParent',
     },
 
     render: function (opts, fn) {

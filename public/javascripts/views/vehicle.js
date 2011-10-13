@@ -37,7 +37,7 @@ define(['views/folderItem'], function (FolderItemView) {
       this.mapModel = new App.models.MapModel({
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
-        title: 'Map',
+        title: 'Location',
         parent: '.' + this.targetClass + ' div .dashboard-left .bottom',
         target: this.targetClass,
         height: 60,
@@ -46,7 +46,7 @@ define(['views/folderItem'], function (FolderItemView) {
       this.notificationsCollection =
           new App.collections.NotificationCollection({
         vehicleId: this.vehicleId,
-        title: 'Notifications',
+        title: 'Vehicle Events',
         parent: '.' + this.targetClass + ' div .dashboard-right .bottom',
         target: this.targetClass,
         height: 30,
@@ -57,7 +57,7 @@ define(['views/folderItem'], function (FolderItemView) {
           new App.collections.NavigatorCollection({
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
-        title: 'Navigator',
+        title: 'Timeline',
         parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: '80px',

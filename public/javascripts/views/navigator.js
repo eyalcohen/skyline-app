@@ -8,7 +8,7 @@ define(['views/dashItem', 'plot_booter'],
     initialize: function (args) {
       this._super('initialize');
       _.bindAll(this, 'drawWindow', 'moveWindow',
-          'hoverWindow', 'wheelWindow', 'positionScale', 'hookScale');
+          'hoverWindow', 'wheelWindow', 'hookScale');
       App.subscribe('VisibleTimeChange-' + args.vehicleId, this.drawWindow);
     },
     
@@ -22,6 +22,7 @@ define(['views/dashItem', 'plot_booter'],
     render: function (opts) {
       opts = opts || {};
       _.defaults(opts, {
+        title: this.options.title,
         waiting: false,
         loading: false,
         empty: false,
@@ -113,7 +114,7 @@ define(['views/dashItem', 'plot_booter'],
           interactive: true,
           frameRate: 60,
         },
-        hooks: { draw: [addIcons, self.drawWindow, self.positionScale] },
+        hooks: { draw: [addIcons, self.drawWindow] },
       });
       self.drawWindow(self.options.timeRange.min*1e3,
             self.options.timeRange.max*1e3);
@@ -262,26 +263,32 @@ define(['views/dashItem', 'plot_booter'],
       if (!side) return null;
     },
 
-    positionScale: function () {
-      var scale = $('.navigator-scale', this.el);
-      var parentOff = this.el.offset();
-      scale.css({
-        left: 10 + 'px',
-        top: 45 + 'px',
-      });
-    },
+    // positionScale: function () {
+    //   var scale = $('.navigator-scale', this.el);
+    //   var parentOff = this.el.offset();
+    //   scale.css({
+    //     left: 10 + 'px',
+    //     top: 45 + 'px',
+    //   });
+    // },
 
     hookScale: function () {
       var self = this;
-      var scale = $('.navigator-scale', self.el);
+      // var scale = $('.navigator-scale', self.el);
       var axis = self.plot.getXAxes()[0];
-      $('.day-scale', scale).click(function (e) {
+      $('.second-scale', self.el).click(function (e) {
+        zoomToRange(1e3);
+      });
+      $('.hour-scale', self.el).click(function (e) {
+        zoomToRange(60*60*1e3);
+      });
+      $('.day-scale', self.el).click(function (e) {
         zoomToRange(60*60*24*1e3);
       });
-      $('.month-scale', scale).click(function (e) {
+      $('.month-scale', self.el).click(function (e) {
         zoomToRange(60*60*24*7*4*1e3);
       });
-      $('.year-scale', scale).click(function (e) {
+      $('.year-scale', self.el).click(function (e) {
         zoomToRange(60*60*24*7*52*1e3);
       });
       function zoomToRange(range) {

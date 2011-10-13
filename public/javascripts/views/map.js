@@ -20,6 +20,7 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
     render: function (opts) {
       opts = opts || {};
       _.defaults(opts, {
+        title: this.options.title,
         waiting: false,
         loading: false,
         empty: false,

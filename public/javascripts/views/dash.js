@@ -13,12 +13,13 @@ define(['views/folderItem'], function (FolderItemView) {
       this._super('render', opts, template);
       this.notificationCollection =
           new App.collections.NotificationCollection({
-            parent: $('.dashboard-left', this.el)
+            parent: $('.dashboard-left', this.el),
+            title: 'Events',
           });
       this.notificationCollection.fetch();
       this.vehicleCollection =
           new App.collections.VehicleCollection({
-            parent: $('.dashboard-right', this.el)
+            parent: $('.dashboard-right', this.el),
           });
       this.vehicleCollection.fetch();
       return this;

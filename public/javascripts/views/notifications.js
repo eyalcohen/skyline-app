@@ -12,6 +12,7 @@ define(['views/dashItem'], function (DashItemView) {
     render: function (opts) {
       opts = opts || {};
       _.defaults(opts, {
+        title: this.options.title,
         loading: false,
         singleVehicle: false,
         shrinkable: this.options.shrinkable,

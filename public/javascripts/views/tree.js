@@ -14,6 +14,7 @@ define(['views/dashItem',
     render: function (opts) {
       opts = opts || {};
       _.defaults(opts, {
+        title: this.options.title,
         loading: false,
         empty: false,
         shrinkable: false,
