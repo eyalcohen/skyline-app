@@ -115,45 +115,79 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
         // if (firstRun) {
           // firstRun = false;
           //google.maps.event.trigger(map, 'resize');
-          //map.setCenter(mapBounds.getCenter());
-          //map.fitBounds(mapBounds);
+          //if (this.mapBounds) {
+          //  map.setCenter(mapBounds.getCenter());
+          //  map.fitBounds(mapBounds);
+          //}
           //wrap.removeClass('map-tmp');
           //showInfo();
         // }
       });
     },
 
-    draw: function (options) {
+    draw: function () {
+      function subtractPoints(points, removePoints) {
+        // Subtract visible time ranges from navigable data.
+        var rI = 0, remBeg, remEnd;
+        function nextR() {
+          if (rI >= removePoints.length)
+            return remBeg = remEnd = null;
+          remEnd = remBeg = removePoints[rI]
+          var next;
+          while ((next = removePoints[++rI]) && next.beg == remEnd.end) {
+            remEnd = next;
+          }
+        }
+        nextR();
+        var result = [];
+        points.forEach(function(p) {
+          if (remEnd && p.beg >= remEnd.end)
+            nextR();
+          if (!remBeg || remBeg.beg >= p.end) {
+            // Sample does not overlap sample to remove.
+            result.push(p);
+          } else if (remEnd.end < p.end) {
+            // Sample to remove overlaps beginning of this sample.
+            var n = _.clone(remEnd);
+            n.beg = n.end = p.end;
+            result.push(n);
+          } else /* if (r.beg < p.end) */ {
+            // Sample to remove overlaps end of this sample.
+            var n = _.clone(remBeg);
+            n.beg = n.end = p.beg;
+            result.push(n);
+          }
+        });
+        return result;
+      }
+
       if (mapsLoadNotifier) {
         // Maps is not yet loaded - delay drawing until it's available.
         console.log('Deferring map draw.');
-        mapsLoadNotifier.bind('load', _.bind(this.draw, this, options));
+        mapsLoadNotifier.bind('load', _.bind(this.draw, this));
         return;
       }
 
-      options = options || {};
       if (!this.map)
         this.createMap();
       var map = this.map;
-      console.log('Drawing map.');
 
-      function unMap(geometry) {
+      function reMap(geometry, map) {
         if (!geometry) return;
-        function unmap(p) { p.setMap(null); }
-        geometry.polys.forEach(unmap);
-        geometry.dots.forEach(unmap);
+        function f(p) { p.setMap(map); }
+        geometry.polys.forEach(f);
+        geometry.dots.forEach(f);
       };
 
-      var bounds = new google.maps.LatLngBounds();
 
       function pointsToGeometry(points, polyOptions, dotOptions) {
-        var geometry = { polys: [], dots: [] };
+        var bounds = new google.maps.LatLngBounds();
+        var geometry = { polys: [], dots: [], bounds: bounds };
         var pendingPoly = [];
-        console.log('LatLng points: ' + points.length);
         function newPoly() {
           if (pendingPoly.length > 1)
             geometry.polys.push(new google.maps.Polyline(
-                _.extend({ map: map, path: pendingPoly }, polyOptions)));
+                _.extend({ path: pendingPoly }, polyOptions)));
           pendingPoly = [];
         };
         points.forEach(function(p, i) {
@@ -165,60 +199,52 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
           /* The dots are very slow, omit them for now:
           if (dotOptions)
             geometry.dots.push(new google.maps.Circle(
-                _.extend({ map: map, center: ll }, dotOptions)));
+                _.extend({ center: ll }, dotOptions)));
           */
           bounds.extend(ll);
         });
         newPoly();
-        console.log('Poly count: ' + geometry.polys.length);
         return geometry;
       };
 
-      // Create the visisble points geometry.
-      if (options.pointsVisibleChanged) {
-        var oldGeometry = this.visibleGeometry;
-        this.visibleGeometry = pointsToGeometry(this.model.get('pointsVisible'),
-            {  // polyOptions
-              strokeColor: '#0000ff',
-              strokeOpacity: 0.4,
-              strokeWeight: 8,
-              clickable: false,
-              zIndex: 10,
-            }, {  // dotOptions
-              strokeWeight: 0,
-              fillColor: "#ffffff",
-              fillOpacity: 0.5,
-              radius: 10,
-              clickable: false,
-              zIndex: 10,
-            });
-        // UnMap after rendering new line to avoid flickering.
-        unMap(oldGeometry);
-      }
+      // Fetch points, and subtract visible points from navigable.
+      var pointsVisible = this.model.get('pointsVisible') || [];
+      var pointsNavigable = subtractPoints(
+          this.model.get('pointsNavigable') || [], pointsVisible);
+
+      // Create the visible points geometry.
+      var oldGeometry = this.visibleGeometry;
+      this.visibleGeometry = pointsToGeometry(pointsVisible,
+          {  // polyOptions
+            strokeColor: '#0000ff',
+            strokeOpacity: 0.6,
+            strokeWeight: 8,
+            clickable: false,
+            zIndex: 10,
+          }, {  // dotOptions
+            strokeWeight: 0,
+            fillColor: "#ffffff",
+            fillOpacity: 0.5,
+            radius: 10,
+            clickable: false,
+            zIndex: 10,
+          });
+      // UnMap after rendering to avoid flickering.
+      reMap(this.visibleGeometry, map);
+      reMap(oldGeometry, null);
 
       // Create the navigable points geometry.
-      if (options.pointsNavigableChanged) {
-        unMap(this.navigableGeometry);
-        // TODO: remove visible points time range from navigable points?
-        this.navigableGeometry = pointsToGeometry(
-            this.model.get('pointsNavigable'),
-            {  // polyOptions
-              strokeColor: '#000000',
-              strokeOpacity: 0.3,
-              strokeWeight: 6,
-              clickable: false,
-              zIndex: 5,
-            }, null);
-      }
-
-      // TODO: cell dots?
-      // cellDotStyle = {
-      //   strokeWeight: 0,
-      //   fillColor: "#ff00ff",
-      //   fillOpacity: 0.5,
-      //   radius: 50,
-      //   clickable: false,
-      // },
+      var oldGeometry = this.navigableGeometry;
+      this.navigableGeometry = pointsToGeometry(pointsNavigable,
+          {  // polyOptions
+            strokeColor: '#000044',
+            strokeOpacity: 0.5,
+            strokeWeight: 6,
+            clickable: false,
+            zIndex: 5,
+          }, null);
+      reMap(this.navigableGeometry, map);
+      reMap(oldGeometry, null);
 
       // TODO: Create start/end markers from drive cycles.
 
@@ -268,8 +294,10 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
 
       // TODO: should we avoid changing the map bounds if the user has dragged
       // the map?
-      map.fitBounds(bounds);
-      this.mapBounds = bounds;
+      if (!this.visibleGeometry.bounds.isEmpty()) {
+        this.mapBounds = this.visibleGeometry.bounds;
+        map.fitBounds(this.mapBounds);
+      }
       return this;
     },
 
@@ -277,8 +305,10 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
       this._super('resize');
       if (this.map) {
         google.maps.event.trigger(this.map, 'resize');
-        // this.map.fitBounds(this.mapBounds);
-        // this.map.setCenter(mapBounds.getCenter());
+        if (this.mapBounds) {
+          // this.map.fitBounds(this.mapBounds);
+          // this.map.setCenter(this.mapBounds.getCenter());
+        }
       }
     },
 
