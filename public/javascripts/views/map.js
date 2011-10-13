@@ -53,6 +53,14 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
       //     new google.maps.StyledMapType(style.stylez, style.styledOptions));
       map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
 
+      // cursor
+      this.cursor = new google.maps.Marker({
+        map: null,  // Hidden for now.
+        icon: 'http://google-maps-icons.googlecode.com/files/car.png',
+        zIndex: 1000001,
+        clickable: false,
+      });
+
       // enter map
       google.maps.event.addListener(map, 'mouseover', function (e) {
         // show time
@@ -125,7 +133,19 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
       });
     },
 
-    draw: function () {
+    draw: function(options) {
+      if (mapsLoadNotifier) {
+        // Maps is not yet loaded - delay drawing until it's available.
+        console.log('Deferring map draw.');
+        mapsLoadNotifier.bind('load', _.bind(this.draw(options), this));
+        return;
+      }
+
+      if (!this.map)
+        this.createMap();
+      options = options || {};
+      var map = this.map;
+
       function subtractPoints(points, removePoints) {
         // Subtract visible time ranges from navigable data.
         var rI = 0, remBeg, remEnd;
@@ -161,25 +181,6 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
         return result;
       }
 
-      if (mapsLoadNotifier) {
-        // Maps is not yet loaded - delay drawing until it's available.
-        console.log('Deferring map draw.');
-        mapsLoadNotifier.bind('load', _.bind(this.draw, this));
-        return;
-      }
-
-      if (!this.map)
-        this.createMap();
-      var map = this.map;
-
-      function reMap(geometry, map) {
-        if (!geometry) return;
-        function f(p) { p.setMap(map); }
-        geometry.polys.forEach(f);
-        geometry.dots.forEach(f);
-      };
-
-
       function pointsToGeometry(points, polyOptions, dotOptions) {
         var bounds = new google.maps.LatLngBounds();
         var geometry = { polys: [], dots: [], bounds: bounds };
@@ -205,58 +206,71 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
         });
         newPoly();
         return geometry;
-      };
+      }
 
-      // Fetch points, and subtract visible points from navigable.
-      var pointsVisible = this.model.get('pointsVisible') || [];
-      var pointsNavigable = subtractPoints(
-          this.model.get('pointsNavigable') || [], pointsVisible);
+      function reMap(geometry, map) {
+        if (!geometry) return;
+        function f(p) { p.setMap(map); }
+        geometry.polys.forEach(f);
+        geometry.dots.forEach(f);
+      }
 
-      // Create the visible points geometry.
-      var oldGeometry = this.visibleGeometry;
-      this.visibleGeometry = pointsToGeometry(pointsVisible,
-          {  // polyOptions
-            strokeColor: '#0000ff',
-            strokeOpacity: 0.6,
-            strokeWeight: 8,
-            clickable: false,
-            zIndex: 10,
-          }, {  // dotOptions
-            strokeWeight: 0,
-            fillColor: "#ffffff",
-            fillOpacity: 0.5,
-            radius: 10,
-            clickable: false,
-            zIndex: 10,
-          });
-      // UnMap after rendering to avoid flickering.
-      reMap(this.visibleGeometry, map);
-      reMap(oldGeometry, null);
+      if (!options.noPointsChange) {
+        // Fetch points, and subtract visible points from navigable.
+        var pointsVisible = this.model.get('pointsVisible') || [];
+        var pointsNavigable = subtractPoints(
+            this.model.get('pointsNavigable') || [], pointsVisible);
 
-      // Create the navigable points geometry.
-      var oldGeometry = this.navigableGeometry;
-      this.navigableGeometry = pointsToGeometry(pointsNavigable,
-          {  // polyOptions
-            strokeColor: '#000044',
-            strokeOpacity: 0.5,
-            strokeWeight: 6,
-            clickable: false,
-            zIndex: 5,
-          }, null);
-      reMap(this.navigableGeometry, map);
-      reMap(oldGeometry, null);
+        // Create the visible points geometry.
+        var oldGeometry = this.visibleGeometry;
+        this.visibleGeometry = pointsToGeometry(pointsVisible,
+            {  // polyOptions
+              strokeColor: '#0000ff',
+              strokeOpacity: 0.6,
+              strokeWeight: 8,
+              clickable: false,
+              zIndex: 10,
+            }, {  // dotOptions
+              strokeWeight: 0,
+              fillColor: "#ffffff",
+              fillOpacity: 0.5,
+              radius: 10,
+              clickable: false,
+              zIndex: 10,
+            });
+        // UnMap after rendering to avoid flickering.
+        reMap(this.visibleGeometry, map);
+        reMap(oldGeometry, null);
+
+        // Create the navigable points geometry.
+        var oldGeometry = this.navigableGeometry;
+        this.navigableGeometry = pointsToGeometry(pointsNavigable,
+            {  // polyOptions
+              strokeColor: '#000044',
+              strokeOpacity: 0.5,
+              strokeWeight: 6,
+              clickable: false,
+              zIndex: 5,
+            }, null);
+        reMap(this.navigableGeometry, map);
+        reMap(oldGeometry, null);
+      }
+
+      // Update cursor position.
+      var cursorPoint = this.model.get('cursorPoint');
+      if (cursorPoint && cursorPoint.lat != null && cursorPoint.lng != null) {
+        this.cursor.setPosition(
+            new google.maps.LatLng(cursorPoint.lat, cursorPoint.lng));
+        if (!this.cursorVisible)
+          this.cursor.setMap(map);
+        this.cursorVisible = true;
+      } else {
+        if (this.cursorVisible)
+          this.cursor.setMap(null);
+        this.cursorVisible = false;
+      }
 
       // TODO: Create start/end markers from drive cycles.
-
-      // cursor
-      // cursor = new google.maps.Marker({
-      //   map: map,
-      //   animation: google.maps.Animation.DROP,
-      //   position: poly.getPath().getAt(0),
-      //   icon: 'http://google-maps-icons.googlecode.com/files/car.png',
-      //   zIndex: 1000001,
-      //   clickable: false,
-      // });
 
       // endpoints
       // var imageA = new google.maps.MarkerImage('/graphics/black_MarkerA.png',

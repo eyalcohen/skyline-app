@@ -21,6 +21,8 @@ define(function () {
                     this.changeTime.bind(this, this.clientIdNavigable));
       App.sampleCache.bind('update-' + this.clientIdNavigable,
                            this.updateNavigableSampleSet);
+      App.subscribe('MouseHoverTime-' + args.vehicleId,
+                    this.mouseHoverTime.bind(this));
       // this.changeVisibleTime(args.timeRange.min*1e3, args.timeRange.max*1e3);
       return this;
     },
@@ -56,6 +58,23 @@ define(function () {
       App.sampleCache.setClientView(clientId, this.get('vehicleId'),
                                     [ latChan, lngChan ], dur, beg, end);
       // TODO: cell dots?
+    },
+
+    mouseHoverTime: function(time) {
+      var pointsVisible = this.get('pointsVisible') || [];
+      var pointsNavigable = this.get('pointsNavigable') || [];
+      function locForTime(points) {
+        // TODO: binary search for speed.
+        for (var i in points) {
+          var p = points[i];
+          if (p.beg <= time && time < p.end)
+            return p;
+        }
+        return null;
+      }
+      this.set({ cursorPoint:
+          locForTime(pointsVisible) || locForTime(pointsNavigable) });
+      this.view.draw({ noPointsChange: true });
     },
 
     updateVisibleSampleSet: function (sampleSet) {
