@@ -305,7 +305,6 @@ define(['views/dashItem', 'plot_booter'],
 
     plotDrawHook: function() {
       var t = this.getVisibleTime();
-      console.warn('plotDrawHook', t);
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
         App.publish('NavigableTimeChange-' + this.options.vehicleId,

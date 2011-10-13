@@ -60,12 +60,12 @@ define(function () {
 
     updateVisibleSampleSet: function (sampleSet) {
       this.set({ pointsVisible: this.sampleSetToPoints(sampleSet) });;
-      this.view.draw({ pointsVisibleChanged: true });
+      this.view.draw();
     },
 
     updateNavigableSampleSet: function (sampleSet) {
       this.set({ pointsNavigable: this.sampleSetToPoints(sampleSet) });;
-      this.view.draw({ pointsNavigableChanged: true });
+      this.view.draw();
     },
 
     sampleSetToPoints: function(sampleSet) {
