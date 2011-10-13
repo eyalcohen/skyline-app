@@ -91,6 +91,7 @@ define(function () {
       console.log('addChannel(', channel, ')...');
       self.view.draw();
       self.updateCacheSubscription();
+      return self;
     },
 
     removeChannel: function (channel) {
@@ -103,6 +104,7 @@ define(function () {
       self.view.draw();
       self.updateCacheSubscription();
       self.view.trigger('channelRemoved', channel);
+      return self;
     },
 
     updateSampleSet: function (sampleSet) {
