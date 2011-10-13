@@ -100,7 +100,6 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
       function bindEventsHook(plot, eventHolder) {
         // For debugging, print the cursor position.
         /*
-        console.debug('bindEvents');
         eventHolder.mousemove(function(e) {
           var visFrac = (e.pageX - plot.offset().left) / plot.width();
           var t = self.getVisibleTime();
@@ -134,7 +133,6 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
     },
 
     draw: function () {
-      var start = Date.now();
       var self = this;
       if (!self.plot) {
         self.firstDraw = true;
@@ -227,11 +225,8 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         }
       }
       self.plot.setData(series);
-      console.debug('setData took ' + (Date.now() - start) + 'ms');
       self.plot.setupGrid();
-      console.debug('setupGrid took ' + (Date.now() - start) + 'ms');
       self.plot.draw();
-      console.debug('views/graph.draw took ' + (Date.now() - start) + 'ms');
     },
 
     plotSetupGridHook: function() {
@@ -263,19 +258,16 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
         this.trigger('VisibleTimeChange', t.beg, t.end);
-        //console.log('VisibleTimeChange', t.beg, t.end);
         this.prevBeg = t.beg;
         this.prevEnd = t.end;
       }
       if (t.width != this.prevWidth) {
         this.trigger('VisibleWidthChange', t.width);
-        //console.log('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
-      if (this.allowYAxis == null) {
-        this.addYaxesBoundsForDrops();
-        $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
-      }
+      // TODO: do we need to do this on every plot draw?
+      this.addYaxesBoundsForDrops();
+      $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
     },
 
     getVisibleTime: function() {

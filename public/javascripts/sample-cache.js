@@ -134,6 +134,30 @@ define(function () {
     return entry;
   };
 
+  function forValidBucketsInRange(validRanges, begin, end, buckDur, f) {
+    var buck, buckBeg, buckEnd;
+    function setBuck(newBuck) {
+      buck = newBuck;
+      buckEnd = buckDur + (buckBeg = buck * buckDur);
+    }
+    setBuck(begin);
+    if (!validRanges) {
+      for (; buck < end; setBuck(buck + 1))
+        f(buck, buckBeg, buckEnd);
+    } else {
+      for (var rangeI in validRanges) {
+        var range = validRanges[rangeI];
+        if (range.beg >= buckEnd)
+          setBuck(Math.floor(range.beg / buckDur));
+        for (; buckBeg < range.end; setBuck(buck + 1)) {
+          if (buck >= end)
+            return;
+          f(buck, buckBeg, buckEnd);
+        }
+      }
+    }
+  };
+
   /**
    * Fetch any buckets which overlap a given view.
    */
@@ -144,19 +168,12 @@ define(function () {
     var begBuck = Math.floor(beg / buckDur), endBuck = Math.ceil(end / buckDur);
     channels.forEach(function(channelName) {
       // Hack: avoid fetching buckets which have no schema, thus must be empty.
-      var validRanges = [];
-      App.publish('FetchChannelInfo-' + vehicleId,
-                  [channelName, function(desc) {
+      var validRanges = null;
+      App.publish('FetchChannelInfo-' + vehicleId, [channelName, function(desc){
         if (desc) validRanges = desc.valid;
       }]);
-      function forRange(begin, end, f) {
-        for (var i = begin; i < end; ++i) f(i);
-      }
-      forRange(begBuck, endBuck, function(buck) {
-        var buckBeg = buck * buckDur, buckEnd = buckBeg + buckDur;
-        if (!validRanges.some(function(range) {
-                return range.beg < buckEnd && buckBeg < range.end; }))
-          return;
+      forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
+          function(buck, buckBeg, buckEnd) {
         var entry = self.getCacheEntry(vehicleId, channelName, dur, buck, true);
         if (entry.samples || entry.pending) return;
         entry.pending = true;
@@ -215,9 +232,14 @@ define(function () {
       client.updateId = null;
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
+        var validRanges = null;
+        App.publish('FetchChannelInfo-' + client.vehicleId, [channelName,
+                    function(desc) {
+          if (desc) validRanges = desc.valid;
+        }]);
         sampleSet[channelName] = self.getBestCachedData(
             client.vehicleId, channelName,
-            client.dur, client.beg, client.end, true, true);
+            client.dur, client.beg, client.end, validRanges);
       });
       console.debug('SampleCache.updateClient(' + clientId + ') took ' + (Date.now() - start) + 'ms');
       self.trigger('update-' + clientId, sampleSet);
@@ -230,32 +252,25 @@ define(function () {
    * higher-resolution or lower-resolution data.
    */
   SampleCache.prototype.getBestCachedData =
-  function(vehicleId, channelName, dur, beg, end, getBigger, getSmaller) {
+  function(vehicleId, channelName, dur, beg, end, validRanges) {
+    var self = this;
     var buckDur = bucketSize(dur);
     var prevDur = getPrevDur(dur), nextDur = getNextDur(dur);
     var begBuck = Math.floor(beg / buckDur), endBuck = Math.ceil(end / buckDur);
     var buckets = [];
-    for (var buck = begBuck; buck < endBuck; ++buck) {
-      var entry = this.getCacheEntry(vehicleId, channelName, dur, buck, false);
+    forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
+        function(buck, buckBeg, buckEnd) {
+      var entry = self.getCacheEntry(vehicleId, channelName, dur, buck, false);
       if (entry && entry.samples) {
         buckets.push(entry.samples);
-      /* TODO: this doesn't work, since it will avoid fetching bigger data.
-         We'll need to be much more clever to avoid this problem.
-      } else if (prevDur != null && getSmaller) {
-        buckets.push(
-            this.getBestCachedData(vehicleId, channelName, prevDur,
-                                   buck * buckDur, (buck + 1) * buckDur,
-                                   false, false));
-      */
-      } else if (nextDur != null && getBigger) {
+      } else if (nextDur != null) {
         // TODO: this would be more efficient and correct if we tried to fill
         // entire gaps, rather than a single bucket at a time.
         buckets.push(
-            this.getBestCachedData(vehicleId, channelName, nextDur,
-                                   buck * buckDur, (buck + 1) * buckDur,
-                                   true, false));
+            self.getBestCachedData(vehicleId, channelName, nextDur,
+                                   buckBeg, buckEnd, validRanges));
       }
-    }
+    });
     var samples = [].concat.apply([], buckets);
     // Samples which overlap from one bucket into another will end up
     // duplicated.  Remove duplicates.
