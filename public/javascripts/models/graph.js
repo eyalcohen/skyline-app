@@ -106,7 +106,6 @@ define(function () {
     },
 
     updateSampleSet: function (sampleSet) {
-      var start = Date.now();
       var self = this;
       var data = {}, dataMinMax = {};
       self.get('channels').forEach(function(channel) {
@@ -135,7 +134,6 @@ define(function () {
       });
       self.set({ data: data });
       self.set({ dataMinMax: dataMinMax });
-      console.debug('models/graph.updateSampleSet took ' + (Date.now() - start) + 'ms');
       self.view.draw();
     },
 

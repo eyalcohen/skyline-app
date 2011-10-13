@@ -144,7 +144,7 @@ define(function () {
     var begBuck = Math.floor(beg / buckDur), endBuck = Math.ceil(end / buckDur);
     channels.forEach(function(channelName) {
       // Hack: avoid fetching buckets which have no schema, thus must be empty.
-      var validRanges = [];
+      var validRanges = null;
       App.publish('FetchChannelInfo-' + vehicleId,
                   [channelName, function(desc) {
         if (desc) validRanges = desc.valid;
@@ -154,7 +154,8 @@ define(function () {
       }
       forRange(begBuck, endBuck, function(buck) {
         var buckBeg = buck * buckDur, buckEnd = buckBeg + buckDur;
-        if (!validRanges.some(function(range) {
+        if (validRanges &&
+            !validRanges.some(function(range) {
                 return range.beg < buckEnd && buckBeg < range.end; }))
           return;
         var entry = self.getCacheEntry(vehicleId, channelName, dur, buck, true);
