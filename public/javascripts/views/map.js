@@ -38,16 +38,19 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
       this.render(); // Why is this necessary?
       // Create empty map.
       var options = {
-        disableDefaultUI: true,
+        disableDefaultUI: false,
         mapTypeControlOptions: {
-          mapTypeIds: [ google.maps.MapTypeId.ROADMAP, 'greyscale' ],
+          mapTypeIds: [google.maps.MapTypeId.ROADMAP,
+              google.maps.MapTypeId.SATELLITE,
+              google.maps.MapTypeId.HYBRID,
+              google.maps.MapTypeId.TERRAIN],
         },
       };
       var map = this.map =
           new google.maps.Map($('.map', this.content).get(0), options);
-      map.mapTypes.set('grayscale',
-          new google.maps.StyledMapType(style.stylez, style.styledOptions));
-      map.setMapTypeId('grayscale');
+      // map.mapTypes.set('grayscale',
+      //     new google.maps.StyledMapType(style.stylez, style.styledOptions));
+      map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
 
       // enter map
       google.maps.event.addListener(map, 'mouseover', function (e) {

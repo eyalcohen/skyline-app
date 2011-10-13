@@ -26,14 +26,14 @@ define(['views/folderItem'], function (FolderItemView) {
       this.graphModels = [new App.models.GraphModel({
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
-        title: 'Graph',
+        title: 'Graphs',
         parent: '.' + this.targetClass + ' div .dashboard-right .middle',
         target: this.targetClass,
         height: 70,
         bottomPad: 103,
         id: this.makeid(),
       }).addChannel(_.clone(App.defaultChannel))];
-      // this.hookGraphControls(this.graphModels[0], 0);
+      this.hookGraphControls(this.graphModels[0], 0);
       this.mapModel = new App.models.MapModel({
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
@@ -67,16 +67,16 @@ define(['views/folderItem'], function (FolderItemView) {
       return this;
     },
 
-    hookGraphControls: function (g, i) {
+    hookGraphControls: function (graph, index) {
       var self = this;
-      _.extend(g, Backbone.Events);
-      g.view.bind('channelRemoved',
+      _.extend(graph, Backbone.Events);
+      graph.view.bind('channelRemoved',
           _.bind(self.checkChannelExistence, self));
-      g.view.bind('addGraph', function () {
-        self.addGraph(i);
+      graph.view.bind('addGraph', function () {
+        self.addGraph(index);
       });
-      g.view.bind('removeGraph', function () {
-        self.removeGraph(i);
+      graph.view.bind('removeGraph', function () {
+        self.removeGraph(index);
       });
       return self;
     },
@@ -90,19 +90,22 @@ define(['views/folderItem'], function (FolderItemView) {
 
     addGraph: function (index) {
       var self = this;
+      var viewRange = self.graphModels[0].view.getVisibleTime();
+      viewRange.min = viewRange.beg / 1e3;
+      viewRange.max = viewRange.end / 1e3;
       var graph = new App.models.GraphModel({
-        vehicleId: self.options.vehicleId,
-        title: 'Graph',
+        vehicleId: self.vehicleId,
+        timeRange: viewRange,
         parent: '.' + this.targetClass + ' div .dashboard-right .middle',
         target: this.targetClass,
         height: 70,
         bottomPad: 70,
         id: self.makeid(),
       });
-      self.items.graphs.push(graph);
-      var num = self.items.graphs.length;
+      self.graphModels.push(graph);
+      var num = self.graphModels.length;
       self.hookGraphControls(graph, num - 1);
-      _.each(self.items.graphs, function (g, i) {
+      _.each(self.graphModels, function (g, i) {
         g.view.options.height = 70 / num;
         g.view.options.bottomPad = 70 / num + ((num-1) * 7);
       });
@@ -114,11 +117,11 @@ define(['views/folderItem'], function (FolderItemView) {
       var self = this;
       // TODO: visually deactivate the (-) button when we
       // don't want the graph removed.
-      if (index === 0 && self.items.graphs.length === 1) return;
-      self.items.graphs[index].destroy();
-      self.items.graphs.splice(index, 1);
-      var num = self.items.graphs.length;
-      _.each(self.items.graphs, function (g, i) {
+      if (index === 0 && self.graphModels.length === 1) return;
+      self.graphModels[index].destroy();
+      self.graphModels.splice(index, 1);
+      var num = self.graphModels.length;
+      _.each(self.graphModels, function (g, i) {
         self.unhookGraphControls(g);
         self.hookGraphControls(g, i);
         g.view.options.height = 70 / num;
@@ -129,7 +132,7 @@ define(['views/folderItem'], function (FolderItemView) {
 
     checkChannelExistence: function (channel) {
       if ($('[data-channel-name="'+channel.channelName+'"]').length === 0) {
-        this.items.tree.view.trigger('hideChannel', channel.channelName);
+        this.treeModel.view.trigger('hideChannel', channel.channelName);
       }
     },
 

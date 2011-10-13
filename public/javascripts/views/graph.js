@@ -15,6 +15,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
     render: function (opts, fn) {
       opts = opts || {};
       _.defaults(opts, {
+        title: this.options.title,
         waiting: false,
         loading: false,
         empty: false,
@@ -29,7 +30,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
       this._super('render', fn);
     },
 
-    createPlot: function() {
+    createPlot: function () {
       var self = this;
       self.render(); // Why is this necessary?
       self.plot = $.plot($('.graph > div', self.content), [], {
@@ -63,8 +64,8 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
           markings: weekendAreas,
           borderWidth: 0,
           borderColor: '#444',
-          clickable: true,
-          hoverable: true,
+          // clickable: true,
+          // hoverable: true,
           autoHighlight: true,
           minBorderMargin: 0,
           fullSize: true,
