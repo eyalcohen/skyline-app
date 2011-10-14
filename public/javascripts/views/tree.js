@@ -96,7 +96,6 @@ define(['views/dashItem',
             return true;
           },
           drop_uncheck: function (data) {
-            App.isDragging = false;
             data.r.data('dragout').call(data.r);
             return true;
           },
@@ -140,8 +139,6 @@ define(['views/dashItem',
           children.each(function (i) {
             var channel = _.clone($(children.get(i)).data());
             requestedChannels.push(channel);
-            // App.publish('ChannelRequested-' + self.model.get('vehicleId') +
-            //     '-' + graphId, [channel]);
           });
           App.publish('ChannelRequested-' +
               self.model.get('vehicleId') +'-' +
@@ -204,6 +201,7 @@ define(['views/dashItem',
       }
       if (data.r.data('dragout'))
         data.r.data('dragout').call(data.r);
+      App.isDragging = false;
     },
 
     nodeDroppedExternalHandler: function (data) {
@@ -219,9 +217,11 @@ define(['views/dashItem',
             self.model.get('vehicleId') + '-' +
             graphId, [channel]);
       }
+      App.isDragging = false;
     },
 
     nodeDraggedExternalHandler: function (data, cb) {
+      App.isDragging = true;
       if (data.r.hasClass('axisTarget')) {
         data.r.data('dragover').call(data.r);
         cb(true);
