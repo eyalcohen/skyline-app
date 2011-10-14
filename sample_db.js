@@ -26,6 +26,7 @@ var shared = require('./shared_utils');
  *       description: long human-readable description (optional).
  *       type: the type of the channel, one of: 'float', 'int', 'enum', 'object'.
  *       enumVals: if type == 'enum', a list of possible values for the enum.
+ *       order: number - lower numbers appear earlier in channel list.
  *       merge: true if samples which abut or overlap and have the same val
  *           should be merged into a single sample.
  *     }
@@ -564,7 +565,7 @@ SampleDb.prototype.fetchRealSamples =
           };
           cursorIterate(self.realCollections[level].find(query, fields),
                         function(rawSample) {
-            //debug('level: ' + level + ', rawSample: ' + rawSample.val);
+            // debug('level: ' + level + ', rawSample: ' + inspect(rawSample.val));
             expandRealSample(rawSample, function(sample) {
               // Ignore samples which don't overlap our time range.
               if ((beginTime == null || beginTime < sample.end) &&
@@ -924,7 +925,11 @@ SampleDb.buildChannelTree = function(samples) {
     // TODO: Remove duplicates?
     return result;
   }
-  return buildInternal(_.clone(samples), '');
+  samples.sort(function(a, b) {
+    return (a.val.order || 0) - (b.val.order || 0);
+  });
+  var descriptionTree = buildInternal(samples, '');
+  return descriptionTree;
 }
 
 /**
