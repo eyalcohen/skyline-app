@@ -13,12 +13,12 @@ define(function () {
       _.bindAll(this, 'updateVisibleSampleSet', 'updateNavigableSampleSet');
       this.clientIdVisible = args.vehicleId + '-map-visible';
       App.subscribe('VisibleTimeChange-' + args.vehicleId,
-                    this.changeTime.bind(this, this.clientIdVisible));
+                    _.bind(this.changeTime, this, this.clientIdVisible));
       App.sampleCache.bind('update-' + this.clientIdVisible,
                            this.updateVisibleSampleSet);
       this.clientIdNavigable = args.vehicleId + '-map-navigable';
       App.subscribe('NavigableTimeChange-' + args.vehicleId,
-                    this.changeTime.bind(this, this.clientIdNavigable));
+                    _.bind(this.changeTime, this, this.clientIdNavigable));
       App.sampleCache.bind('update-' + this.clientIdNavigable,
                            this.updateNavigableSampleSet);
       App.subscribe('MouseHoverTime-' + args.vehicleId,

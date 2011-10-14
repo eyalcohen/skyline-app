@@ -27,10 +27,10 @@ define(['views/folderItem'], function (FolderItemView) {
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
         title: 'Graphs',
-        parent: '.' + this.targetClass + ' div .dashboard-right .middle',
+        parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: 70,
-        bottomPad: 103,
+        bottomPad: 63,
         id: this.makeid(),
       }).addChannel(_.clone(App.defaultChannel))];
       this.hookGraphControls(this.graphModels[0], 0);
@@ -58,9 +58,9 @@ define(['views/folderItem'], function (FolderItemView) {
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
         title: 'Timeline',
-        parent: '.' + this.targetClass + ' div .dashboard-right .top',
+        parent: '.' + this.targetClass + ' div .dashboard-right .middle',
         target: this.targetClass,
-        height: '80px',
+        height: '40px',
         bottomPad: 0,
         singleVehicle: true,
       }).fetch();
@@ -96,38 +96,46 @@ define(['views/folderItem'], function (FolderItemView) {
       var graph = new App.models.GraphModel({
         vehicleId: self.vehicleId,
         timeRange: viewRange,
-        parent: '.' + this.targetClass + ' div .dashboard-right .middle',
+        parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: 70,
-        bottomPad: 70,
+        bottomPad: 0,
         id: self.makeid(),
       });
       self.graphModels.push(graph);
-      var num = self.graphModels.length;
-      self.hookGraphControls(graph, num - 1);
-      _.each(self.graphModels, function (g, i) {
-        g.view.options.height = 70 / num;
-        g.view.options.bottomPad = 70 / num + ((num-1) * 7);
-      });
+      self.hookGraphControls(graph, self.graphModels.length - 1);
+      self.arrangeGraphs();
       App.publish('WindowResize');
       graph.addChannel(App.defaultChannel);
     },
 
     removeGraph: function (index) {
       var self = this;
-      // TODO: visually deactivate the (-) button when we
-      // don't want the graph removed.
       if (index === 0 && self.graphModels.length === 1) return;
       self.graphModels[index].destroy();
       self.graphModels.splice(index, 1);
-      var num = self.graphModels.length;
       _.each(self.graphModels, function (g, i) {
         self.unhookGraphControls(g);
         self.hookGraphControls(g, i);
-        g.view.options.height = 70 / num;
-        g.view.options.bottomPad = 70 / num + ((num-1) * 7);
       });
+      self.arrangeGraphs();
       App.publish('WindowResize');
+    },
+
+    arrangeGraphs: function () {
+      var num = this.graphModels.length;
+      var graphHeight = Math.floor(70 / num);
+      var heightRem = 70 % num;
+      var graphPad = Math.floor(63 / num);
+      var padRem = 63 % num;
+      _.each(this.graphModels, function (g, i) {
+        g.view.options.height = graphHeight;
+        g.view.options.bottomPad = graphPad;
+        if (i === 0) {
+          g.view.options.height += heightRem;
+          g.view.options.bottomPad += padRem;
+        }
+      });
     },
 
     checkChannelExistence: function (channel) {

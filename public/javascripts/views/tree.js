@@ -91,10 +91,12 @@ define(['views/dashItem',
         themes: { theme: 'apple' },
         dnd: {
           drop_check: function (data) {
+            App.isDragging = true;
             data.r.data('dragover').call(data.r);
             return true;
           },
           drop_uncheck: function (data) {
+            App.isDragging = false;
             data.r.data('dragout').call(data.r);
             return true;
           },
@@ -119,7 +121,6 @@ define(['views/dashItem',
             ' nodes matching "' + data.rslt.str + '".');
         self.resize();
       }).bind('click.jstree', _.bind(self.nodeClickHandler, self));
-
       return self;
     },
 
@@ -134,12 +135,17 @@ define(['views/dashItem',
           $('.' + self.model.get('target'))).get(0)).data('id');
       if (!node.attr('id')) {
         var children = $('ul > li', node);
+        var requestedChannels = [];
         if (node.hasClass('jstree-checked')) {
           children.each(function (i) {
             var channel = _.clone($(children.get(i)).data());
-            App.publish('ChannelRequested-' + self.model.get('vehicleId') +
-                '-' + graphId, [channel]);
+            requestedChannels.push(channel);
+            // App.publish('ChannelRequested-' + self.model.get('vehicleId') +
+            //     '-' + graphId, [channel]);
           });
+          App.publish('ChannelRequested-' +
+              self.model.get('vehicleId') +'-' +
+              graphId, [requestedChannels]);
         } else if (node.hasClass('jstree-unchecked')) {
           children.each(function (i) {
             var channel = _.clone($(children.get(i)).data());
