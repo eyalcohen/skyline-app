@@ -13,7 +13,7 @@ var SampleDb = require('../sample_db.js').SampleDb;
 var optimist = require('optimist');
 var argv = optimist
     .describe('ignore', 'Names of columns to ignore.')
-      .default('ignore', [ 'Seconds', 'Date', 'Time', 'Excel Time' ])
+      .default('ignore', [ 'Seconds', 'Date', 'Time', 'Excel Time', 'xxx' ])
     .describe('date', 'sprintf format string to create Date object.')
       .default('date', 'new Date("%(Date)s %(Time)s UTC")')
       // .default('date', 'new Date(%(Time)s + 7*60*60*1000)')
