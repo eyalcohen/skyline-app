@@ -52,6 +52,8 @@ define(['jquery',
     destroy: function () {
       if (this.timer)
         clearInterval(this.timer);
+      App.unsubscribe('WindowResize', this.resize);
+      App.unsubscribe('NotAuthenticated', this.destroy);
       this.remove();
       return this;
     },
@@ -87,8 +89,8 @@ define(['jquery',
       if (this.options.height !== null && this.options.height !== undefined) {
         var dest = 'string' === typeof this.options.height ?
             { height: parseInt(this.options.height) } :
-            { height: (win.height() - this.offset.top - 61 + 10)
-                * this.options.height / 100 - this.options.bottomPad };
+            { height: Math.floor((win.height() - this.offset.top - 57)
+                * this.options.height / 100 - this.options.bottomPad) };
         if (this.options.animate && this.options.height !== 0) {
           this.content.animate(dest, 'fast');
         } else {
@@ -96,7 +98,7 @@ define(['jquery',
           this.options.animate = false; // keep this off for now...
         }
       } else {        
-        this.content.height(win.height() - this.offset.top - 24 - 20 + 7);
+        this.content.height(win.height() - this.offset.top - 39);
       }
       this.addScroll();
     },

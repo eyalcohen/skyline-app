@@ -170,8 +170,6 @@ define(['views/dashItem', 'plot_booter'],
       var axis = self.plot.getXAxes()[0];
       var left = axis.p2c(self.windowMin);
       var width = Math.max(axis.p2c(self.windowMax) - left, 14);
-      // var top = parseInt(off.top) + 47;
-      var top = 28;
       var display = '';
       if (left < 0) {
         width = width + left;
@@ -196,12 +194,10 @@ define(['views/dashItem', 'plot_booter'],
       lh.css({
         display: display,
         left: left + 2 + 'px',
-        top: top + 'px',
       });
       rh.css({
         display: display,
         left: left + width - 5 + 'px',
-        top: top + 'px',
       });
     },
 

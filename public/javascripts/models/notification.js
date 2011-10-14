@@ -14,7 +14,7 @@ define(function () {
       switch (args.type) {
         case '_drive':
           _.extend(this.attributes, {
-            icon: 'graphics/drive.png',
+            icon: 'graphics/marker.png',
             color: '#9dfbf3',
             desc: 'Cycle',
             note: args.val.drive_km + ' km' + ', '

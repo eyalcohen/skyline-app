@@ -64,8 +64,6 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
           markings: weekendAreas,
           borderWidth: 0,
           borderColor: '#444',
-          // clickable: true,
-          // hoverable: true,
           autoHighlight: true,
           minBorderMargin: 0,
           fullSize: true,
@@ -152,15 +150,17 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         else
           numSeriesRightAxis++;
       });
+      var yAxisNumToUse = numSeriesLeftAxis > numSeriesRightAxis ? 2 : 1;
       _.each(self.model.get('channels'), function (channel) {
         if (!channel.yaxisNum) {
-          if (numSeriesLeftAxis > numSeriesRightAxis) {
-            channel.yaxisNum = 2;
-            numSeriesRightAxis++;
-          } else {
-            channel.yaxisNum = 1;
-            numSeriesLeftAxis++;
-          }
+          // if (numSeriesLeftAxis > numSeriesRightAxis) {
+          //   channel.yaxisNum = 2;
+          //   numSeriesRightAxis++;
+          // } else {
+          //   channel.yaxisNum = 1;
+          //   numSeriesLeftAxis++;
+          // }
+          channel.yaxisNum = yAxisNumToUse;
         }
       });
       if (numSeriesLeftAxis === 0 && numSeriesRightAxis !== 0) {
@@ -307,20 +307,42 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
             '' : '1px dashed rgba(0, 0, 0, 0.5)';
         var borderRight = key === 'y2axis' ?
             '' : '1px dashed rgba(0, 0, 0, 0.5)';
-        $('<div class="axisTarget jstree-drop" style="position:absolute;left:' +
-            box.left + 'px;top:' + box.top + 'px;width:' + box.width +
-            'px;height:' + box.height + 'px"></div>')
-            .data('axis.direction', axis.direction)
-            .data('axis.n', axis.n)
-            .data('dragover', function () { $(this).css({ opacity: 1 }) })
-            .data('dragout', function () { $(this).css({ opacity: 0 }) })
+        $('<div>')
+            .data({
+              'axis.direction': axis.direction,
+              'axis.n': axis.n,
+              dragover: function () { $(this).css({ opacity: 1 }) },
+              dragout: function () { $(this).css({ opacity: 0 }) },
+            })
             .css({
+              position: 'absolute',
+              left: (axis.n - 1) * self.plot.width() / 2,
+              top: box.top,
+              width: self.plot.width() / 2,
+              height: box.height,
               backgroundColor: 'rgba(128,255,255,0.1)',
               'border-left': borderLeft,
               'border-right': borderRight,
               opacity: 0,
             })
-            .appendTo(self.plot.getPlaceholder());
+            .addClass('axisTarget')
+            .addClass('jstree-drop')
+            .appendTo(self.plot.getPlaceholder())
+            .bind('click mousedown mouseup mouseenter mouseleave '+
+                'mousewheel mousemove', function (e) {
+              if (App.isDragging) return;
+              if (e.preventDefault) e.preventDefault();
+              var $this = $(this);
+              $this.hide();
+              var receiver =
+                  document.elementFromPoint(e.clientX,e.clientY);
+              if (receiver.nodeType == 3) // Opera
+                receiver = receiver.parentNode;
+              var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
+                  ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
+              $(receiver).trigger(e, [delta]);
+              $this.show();
+            });
       });
       // helper for returning axis bounds
       function getBoundingBoxForAxis (axis) {

@@ -17,7 +17,7 @@ define(function () {
       });
       self.colorCnt = 0;
       self.clientId = args.vehicleId + '-graph-' + args.id;
-      self.view.render({ });
+      self.view.render();
       _.bindAll(self, 'updateCacheSubscription', 'changeVisibleTime',
                 'addChannel', 'removeChannel', 'updateSampleSet');
       App.subscribe('VisibleTimeChange-' + args.vehicleId,
@@ -36,7 +36,14 @@ define(function () {
     },
 
     destroy: function () {
-      App.sampleCache.unbind('update-' + this.clientId, this.updateSampleSet);
+      App.unsubscribe('VisibleTimeChange-'+
+          this.get('vehicleId'), this.changeVisibleTime);
+      App.unsubscribe('ChannelRequested-'+
+          this.get('vehicleId') + '-' + this.get('id'), this.addChannel);
+      App.unsubscribe('ChannelUnrequested-'+
+          this.get('vehicleId'), this.removeChannel);
+      App.sampleCache.unbind('update-'+
+          this.clientId, this.updateSampleSet);
       App.sampleCache.endClient(this.clientId);
       this.view.destroy();
     },
@@ -78,20 +85,28 @@ define(function () {
       this.view.setVisibleTime(beg, end);
     },
 
-    addChannel: function (channel) {
+    addChannel: function (channels) {
       var self = this;
-      if (_.pluck(self.get('channels'), 'channelName')
-          .indexOf(channel.channelName) !== -1)
-        return;
-      if (channel.colorNum === undefined)
-        channel.colorNum = self.colorCnt;
-      self.get('channels').push(channel);
-      if (++self.colorCnt > 4)
-        self.colorCnt = 0;
-      console.log('addChannel(', channel, ')...');
+      if (_.isArray(channels))
+        _.each(channels, function (c) {
+          addChannelInternal(c);
+        });
+      else
+        addChannelInternal(channels);
       self.view.draw();
       self.updateCacheSubscription();
       return self;
+      function addChannelInternal(channel) {
+        if (_.pluck(self.get('channels'), 'channelName')
+            .indexOf(channel.channelName) !== -1)
+          return;
+        if (channel.colorNum === undefined)
+          channel.colorNum = self.colorCnt;
+        self.get('channels').push(channel);
+        if (++self.colorCnt > 4)
+          self.colorCnt = 0;
+        console.log('addChannel(', channel, ')...');
+      }
     },
 
     removeChannel: function (channel) {

@@ -1,15 +1,15 @@
 .dashboard-item
-  .dashboard-item-header.taller-header
-    div.small-button.year-scale(role="button") 1 year
-    div.small-button.month-scale(role="button") 1 month
-    div.small-button.day-scale(role="button") 1 day
-    div.small-button.hour-scale(role="button") 1 hour
-    div.small-button.second-scale(role="button") 1 second
+  .dashboard-item-header.sub-header.taller-header
+    div.small-button-light.year-scale(role="button") 1 year
+    div.small-button-light.month-scale(role="button") 1 month
+    div.small-button-light.day-scale(role="button") 1 day
+    div.small-button-light.hour-scale(role="button") 1 hour
+    div.small-button-light.second-scale(role="button") 1 second
     - if (shrinkable) {
       a.dashboard-link.toggler(href="javascript:;", title="shrink")
         | -
     - }
-    h1.dashboard-item-header-txt
+    h1.dashboard-item-header-txt(style="color:black;")
       =title
   .dashboard-item-content
     - if (waiting) {
