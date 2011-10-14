@@ -38,7 +38,7 @@ define(function () {
     },
 
     changeTime: function(clientId, beg, end) {
-      var maxSamples = 2000;  // Maximum latlngs to target.
+      var maxSamples = 5000;  // Maximum latlngs to target.
       // TODO: For views which include a lot of time with no gps data, we fetch
       // very few points.  We could get clever and use the _schema time ranges
       // for gps data to use the time range which overlaps [beg,end) rather

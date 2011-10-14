@@ -89,20 +89,25 @@ Step(
     _.forEach(sampleSet, SampleDb.mergeOverlappingSamples);
 
     // Add dummy schema samples.
-    sampleSet['_schema'] = _.map(sampleSet, function(samples, col) {
-      var m = col.match(/^(.*) \(([^()]+)\)$/);
+    var schema = sampleSet['_schema'] = [];
+    var order = 1;
+    columns.forEach(function(channelName) {
+      var samples = sampleSet[channelName];
+      if (!samples) return;
+      var m = channelName.match(/^(.*) \(([^()]+)\)$/);
       var v = {
         beg: _.first(samples).beg,
         end: _.last(samples).end,
         val: {
-          channelName: col,
-          humanName: m ? m[1] : col,
+          channelName: channelName,
+          humanName: m ? m[1] : channelName,
           type: 'float',
           merge: true,
+          order: order++,
         },
       };
       if (m) v.val.units = m[2];
-      return v;
+      schema.push(v);
     });
 
     printSamples(sampleSet, this);
