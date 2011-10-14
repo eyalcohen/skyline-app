@@ -925,7 +925,7 @@ SampleDb.buildChannelTree = function(samples) {
     // TODO: Remove duplicates?
     return result;
   }
-  samples.sort(function(a, b) {
+  _.clone(samples).sort(function(a, b) {
     return (a.val.order || 0) - (b.val.order || 0);
   });
   var descriptionTree = buildInternal(samples, '');
