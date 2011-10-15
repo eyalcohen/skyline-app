@@ -32,14 +32,24 @@ define(['views/dashItem',
     },
 
     draw: function () {
-      var self = this, data = this.model.get('data');
-      // Quick and dirty deep-clone.
-      data = JSON.parse(JSON.stringify(data));
+      var self = this;
+      var data = JSON.parse(JSON.stringify(this.model.get('data')));
+      var initiallySelect;
       self.treeHolder = $('.tree', this.content).jstree({
         json_data: {
           data: function (n, cb) {
             fillInternal(data, true);
             cb(data);
+            // TODO: make this not really ugly.
+            $('ul > li', self.el).each(function (i, node) {
+              var $node = $(node)
+              if ($node.attr('id') === initiallySelect) {
+                $($node.parent().siblings().get(0)).click();
+                $node.removeClass('jstree-unchecked')
+                .addClass('jstree-checked');
+                $node.parent().parent().addClass('jstree-undetermined');
+              }
+            });
             function fillInternal(node, top) {
               var children = top ? node : node.sub || [];
               _.each(children, function (child) {
@@ -59,6 +69,14 @@ define(['views/dashItem',
                 }
               });
               metadata.title = title;
+              if (metadata.channelName === 'mc/motorSpeed'
+                  || metadata.channelName === 'mc.motorSpeed_RPM') {
+                initiallySelect = metadata.channelName;
+                App.store.set('defaultChannel-' + self.model.get('vehicleId'),
+                    metadata);
+                App.publish('ChannelRequested-' +
+                    self.model.get('vehicleId'), [metadata]);
+              }
               var id = metadata.channelName, attr = {};
               if (id) attr.id = id;
               attr.rel = children.length > 0 ? 'root' : '';
@@ -74,7 +92,7 @@ define(['views/dashItem',
         core: { animation: 0 },
         ui: {
           select_multiple_modifier: 'alt',
-          initially_select: [App.defaultChannel.channelName],
+          initially_select: [initiallySelect],
         },
         checkbox: { override_ui: true },
         types: {

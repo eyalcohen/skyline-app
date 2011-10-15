@@ -11,7 +11,8 @@ window.DNode = require('dnode');
 requirejs(['libs/json2',
     'libs/modernizr-1.7.min',
     'libs/backbone-min',
-    'libs/store.min'],
+    'libs/store.min',
+    'libs/spin.min'],
     function () {
   window.App = {
     debug: true,
@@ -40,20 +41,27 @@ requirejs(['libs/json2',
             App.collections = collections;
             App.views = views;
             App.sampleCache = new SampleCache();
-            App.defaultChannel = {
-              channelName: 'mc.motorSpeed_RPM',
-              humanName: 'Motor Speed',
-              shortName: 'motorSpeed_RPM',
-              title: 'Motor Speed',
-              type: 'float',
-              units: 'RPM',
-              // channelName: 'gps.speed_m_s',
-              // humanName: 'GPS Speed',
-              // shortName: 'speed_m_s',
-              // type: 'float',
-              // units: 'm/s',
-              // title: 'GPS Speed',
-            };
+            // App.defaultChannel = {
+            //   channelName: 'mc.motorSpeed_RPM',
+            //   humanName: 'Motor Speed',
+            //   shortName: 'motorSpeed_RPM',
+            //   title: 'Motor Speed',
+            //   type: 'float',
+            //   units: 'RPM',
+            //   
+            //   // channelName: "mc/motorSpeed"
+            //   // humanName: "mc/motorSpeed"
+            //   // shortName: "motorSpeed"
+            //   // title: "motorSpeed"
+            //   // type: "float"
+            //   
+            //   // channelName: 'gps.speed_m_s',
+            //   // humanName: 'GPS Speed',
+            //   // shortName: 'speed_m_s',
+            //   // type: 'float',
+            //   // units: 'm/s',
+            //   // title: 'GPS Speed',
+            // };
 
             App.router = new Router();
             Backbone.history.start({
@@ -127,6 +135,19 @@ requirejs(['libs/json2',
     }
 
   };
-  requirejs.ready(App.start());
+  requirejs.ready(function () {
+    // var opts = {
+    //   lines: 12, // The number of lines to draw
+    //   length: 30, // The length of each line
+    //   width: 4, // The line thickness
+    //   radius: 40, // The radius of the inner circle
+    //   color: '#000', // #rgb or #rrggbb
+    //   speed: 1, // Rounds per second
+    //   trail: 60, // Afterglow percentage
+    //   shadow: false // Whether to render a shadow
+    // };
+    // var spinner = new Spinner(opts).spin($('.folder').get(0));
+    App.start();
+  });
 });
 

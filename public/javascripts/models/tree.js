@@ -20,16 +20,14 @@ define(function (fn) {
     fetch: function () {
       var self = this;
       self.view.render({ loading: true });
-      App.api.fetchChannelTree(self.attributes.vehicleId,
+      App.api.fetchChannelTree(self.get('vehicleId'),
           function (err, data) {
         if (err) { throw err; return; }
         if (!data || data.length === 0) {
-          console.warn('Vehicle with id ' + self.attributes.vehicleId +
+          console.warn('Vehicle with id ' + self.get('vehicleId') +
               ' has never been seen before!');
         } else {
-          self.set({
-            data: data,
-          });
+          self.set({ data: data });
           self.view.render();
         }
       });
@@ -44,7 +42,7 @@ define(function (fn) {
         else
           (desc.sub || []).forEach(f);
       };
-      (this.attributes.data || []).forEach(f);
+      (this.get('data') || []).forEach(f);
       cb(result);
     },
 

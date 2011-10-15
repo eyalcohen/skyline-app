@@ -108,7 +108,7 @@ define(['views/dashItem', 'plot_booter'],
         },
         zoom: {
           interactive: true,
-          amount: 1.1,
+          amount: 1.25,
         },
         pan: {
           interactive: true,
