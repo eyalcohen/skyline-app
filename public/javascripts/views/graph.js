@@ -62,6 +62,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
         },
         grid: {
           markings: weekendAreas,
+          backgroundColor: null,
           borderWidth: 0,
           borderColor: '#444',
           autoHighlight: true,
@@ -138,6 +139,13 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
       if (!self.plot) {
         self.firstDraw = true;
         self.createPlot();
+      }
+      if (self.model.get('channels').length > 0) {
+        var emptyDiv = $('.empty-graph', self.content);
+        if (emptyDiv.length > 0) {
+          emptyDiv.remove();
+          self.plot.getOptions().crosshair.mode = 'xy';
+        }
       }
       var opts = self.plot.getOptions();
       var series = [], numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
@@ -328,6 +336,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
             .addClass('axisTarget')
             .addClass('jstree-drop')
             .appendTo(self.plot.getPlaceholder())
+            // TODO: modularize this cause its useful elsewhere.
             .bind('click mousedown mouseup mouseenter mouseleave '+
                 'mousewheel mousemove', function (e) {
               if (App.isDragging) return;
@@ -414,6 +423,12 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
     removeChannel: function (e) {
       var channel = JSON.parse($(e.target).parent().attr('data-channel'));
       this.trigger('ChannelUnrequested', channel);
+      if (this.model.get('channels').length === 0) {
+        $('<div><span>Drop data channels here to display.</span></div>')
+            .addClass('empty-graph').appendTo(this.content);
+        this.plot.getOptions().crosshair.mode = null;
+        this.plot.triggerRedrawOverlay();
+      }
     },
 
     addGraphFromParent: function (e) {

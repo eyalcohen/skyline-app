@@ -33,7 +33,7 @@ define(['views/folderItem'], function (FolderItemView) {
         bottomPad: 63,
         id: this.makeid(),
         master: true,
-      })];//.addChannel(_.clone(App.defaultChannel))];
+      })];
       this.hookGraphControls(this.graphModels[0], 0);
       this.mapModel = new App.models.MapModel({
         vehicleId: this.vehicleId,
