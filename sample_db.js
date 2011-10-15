@@ -908,6 +908,7 @@ SampleDb.buildChannelTree = function(samples) {
         desc.valid = same.map(function(s2) {
           return { beg: s2.beg, end: s2.end };
         });
+        sortSamplesByTime(desc.valid);
       } else {
         // New category.
         desc = {
@@ -925,10 +926,11 @@ SampleDb.buildChannelTree = function(samples) {
     // TODO: Remove duplicates?
     return result;
   }
-  samples.sort(function(a, b) {
+  var sortedSamples = _.clone(samples);
+  sortedSamples.sort(function(a, b) {
     return (a.val.order || 0) - (b.val.order || 0);
   });
-  var descriptionTree = buildInternal(samples, '');
+  var descriptionTree = buildInternal(sortedSamples, '');
   return descriptionTree;
 }
 
