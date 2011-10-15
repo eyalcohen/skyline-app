@@ -106,7 +106,7 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
           console.log('Hover at: ' + time);
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time]);
         });
-        eventHolder.mouseout(function(e) {
+        eventHolder.mouseleave(function(e) {
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
         });
       };
