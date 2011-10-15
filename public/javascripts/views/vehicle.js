@@ -108,7 +108,8 @@ define(['views/folderItem'], function (FolderItemView) {
       self.hookGraphControls(graph, self.graphModels.length - 1);
       self.arrangeGraphs();
       App.publish('WindowResize');
-      graph.addChannel(App.defaultChannel);
+      var channel = App.store.get('defaultChannel-' + self.vehicleId);
+      graph.addChannel(channel);
     },
 
     removeGraph: function (index) {

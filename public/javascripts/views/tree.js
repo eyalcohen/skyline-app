@@ -72,6 +72,8 @@ define(['views/dashItem',
               if (metadata.channelName === 'mc/motorSpeed'
                   || metadata.channelName === 'mc.motorSpeed_RPM') {
                 initiallySelect = metadata.channelName;
+                App.store.set('defaultChannel-' + self.model.get('vehicleId'),
+                    metadata);
                 App.publish('ChannelRequested-' +
                     self.model.get('vehicleId'), [metadata]);
               }
