@@ -57,6 +57,8 @@ define(function () {
     */
     this.clients = {};
 
+    App.subscribe('DNodeReconnectUserAuthorized',
+                  _.bind(this.dnodeReconnected, this));
   }
   _.extend(SampleCache.prototype, Backbone.Events);
 
@@ -65,7 +67,7 @@ define(function () {
    * Fetches will be triggered as necessary, and an update event triggered.
    */
   SampleCache.prototype.setClientView =
-  function(clientId, vehicleId, channels, dur, beg, end) {
+  function(clientId, vehicleId, channels, dur, beg, end, force) {
     var client = def(this.clients, clientId);
     if (client.vehicleId === vehicleId && client.dur === dur &&
         client.beg === beg && client.end === end &&
@@ -194,7 +196,7 @@ define(function () {
             samples = [];
           }
           entry.samples = samples;
-          entry.pending = false;
+          delete entry.pending;
           self.triggerClientUpdates(vehicleId, channelName, dur,
                                     options.beginTime, options.endTime);
         });
@@ -277,6 +279,32 @@ define(function () {
     // TODO: make a mergeDuplicateSamples for speed?
     App.shared.mergeOverlappingSamples(samples);
     return App.shared.trimSamples(samples, beg, end);
+  }
+
+  SampleCache.prototype.dnodeReconnected = function() {
+    var self = this;
+
+    // Any pending transactions are never going to complete.
+    // Go through the cache, turning off pending.
+    _.forEach(self.cache, function(vehChanEntry) {
+      _.forEach(vehChanEntry, function(durEntry) {
+        _.forEach(durEntry, function(entry) {
+          delete entry.pending;
+        });
+      });
+    });
+
+    // Re-issue fetches for client-visible regions.
+    _.forEach(self.clients, function(client, clientId) {
+      // Pre-fetch samples at next zoom level up.
+      var nextDur = getNextDur(client.dur);
+      if (nextDur)
+        self.fetchNeededBuckets(client.vehicleId, client.channels,
+                                nextDur, client.beg, client.end);
+      // Fetch samples at this zoom level.
+      self.fetchNeededBuckets(client.vehicleId, client.channels,
+                              client.dur, client.beg, client.end);
+    });
   }
 
   var durations = [0].concat(App.shared.syntheticDurations),
