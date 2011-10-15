@@ -32,7 +32,8 @@ define(['views/folderItem'], function (FolderItemView) {
         height: 70,
         bottomPad: 63,
         id: this.makeid(),
-      }).addChannel(_.clone(App.defaultChannel))];
+        master: true,
+      })];//.addChannel(_.clone(App.defaultChannel))];
       this.hookGraphControls(this.graphModels[0], 0);
       this.mapModel = new App.models.MapModel({
         vehicleId: this.vehicleId,
@@ -101,6 +102,7 @@ define(['views/folderItem'], function (FolderItemView) {
         height: 70,
         bottomPad: 0,
         id: self.makeid(),
+        master: false,
       });
       self.graphModels.push(graph);
       self.hookGraphControls(graph, self.graphModels.length - 1);

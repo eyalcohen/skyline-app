@@ -24,6 +24,9 @@ define(function () {
                     self.changeVisibleTime);
       App.subscribe('ChannelRequested-' + args.vehicleId + '-' + args.id,
                     self.addChannel);
+      if (args.master)
+        App.subscribe('ChannelRequested-' + args.vehicleId,
+                      self.addChannel);
       App.subscribe('ChannelUnrequested-' + args.vehicleId, self.removeChannel);
       self.view.bind('ChannelUnrequested', self.removeChannel);
       App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
