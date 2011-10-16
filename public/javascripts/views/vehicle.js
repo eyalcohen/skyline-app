@@ -114,7 +114,6 @@ define(['views/folderItem'], function (FolderItemView) {
 
     removeGraph: function (index) {
       var self = this;
-      if (index === 0 && self.graphModels.length === 1) return;
       self.graphModels[index].destroy();
       self.graphModels.splice(index, 1);
       _.each(self.graphModels, function (g, i) {

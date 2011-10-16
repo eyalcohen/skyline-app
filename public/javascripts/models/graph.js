@@ -56,6 +56,7 @@ define(function () {
       App.sampleCache.unbind('update-'+
           this.clientId, this.updateSampleSet);
       App.sampleCache.endClient(this.clientId);
+      this.view.destroy();
     },
 
     updateCacheSubscription: function () {

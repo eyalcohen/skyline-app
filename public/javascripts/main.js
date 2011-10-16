@@ -106,14 +106,13 @@ requirejs(['libs/json2',
         left: 30
       }, 'dash.jade');
       App.loading.stop();
-      delete App.loading;
       // // TODO: check if user is ADMIN first!
       // App.userCollection =
       //     new App.collections.UserCollection().fetch();
       // App.publish('AppReady');
     },
 
-    loader: function () {
+    Loader: function () {
       var target = document.getElementById('loading');
       return {
         start: function () {
@@ -130,13 +129,14 @@ requirejs(['libs/json2',
             });
           }
           App.spinner.spin(target);
+          $(target).show();
           return this;
         },
         stop: function () {
           if (App.spinner) {
             App.spinner.stop();
           }
-          $(target).remove();
+          $(target).hide();
           return this;
         },
       }
@@ -144,7 +144,7 @@ requirejs(['libs/json2',
 
   };
   requirejs.ready(function () {
-    App.loading = new App.loader().start();
+    App.loading = new App.Loader().start();
     App.start();
   });
 });
