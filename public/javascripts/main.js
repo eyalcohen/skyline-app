@@ -111,6 +111,7 @@ requirejs(['libs/json2',
               console.warn('Server reconnected. User NOT authorized!');
             } else {
               console.warn('Server reconnected. User authorized!');
+              App.publish('DNodeReconnectUserAuthorized');
             }
           });
         });

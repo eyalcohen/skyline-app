@@ -106,7 +106,7 @@ define(function () {
         if (channel.colorNum === undefined)
           channel.colorNum = self.colorCnt;
         self.get('channels').push(channel);
-        if (++self.colorCnt > 4)
+        if (++self.colorCnt > 15)
           self.colorCnt = 0;
         console.log('addChannel(', channel, ')...');
       }

@@ -15,3 +15,5 @@ cycles
 uploads
 #public
 samples
+example-data
+.DS_Store

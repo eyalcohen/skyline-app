@@ -90,6 +90,23 @@ define(['views/dashItem', 'plot_booter',
                 'class="label-closer">X</a></div>';
           },
         },
+        colors: [
+            "#28A128",  // Dark green
+            "#cb4b4b",  // Dark red
+            "#118CED",  // Dark blue
+            "#E8913F",  // Orange
+            "#9440ed",  // Dark purple
+            "#27CDD6",  // Dark cyan
+            "#CFD63E",  // Dark yellow
+            "#8171E3",  // Violet
+            "#CC6ABE",  // Dark magenta
+            "#47A890",  // Dark teal
+            "#7A7A7A",  // Gray
+            "#76D676",  // Light green
+            "#FFA6A6",  // Pink
+            "#96BDFF",  // Light blue
+            "#D373FF",  // Light purple
+            ],
         hooks: {
           draw: [ _.bind(self.plotDrawHook, self) ],
           setupGrid: [ _.bind(self.plotSetupGridHook, self) ],
@@ -107,7 +124,7 @@ define(['views/dashItem', 'plot_booter',
           console.log('Hover at: ' + time);
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time]);
         });
-        eventHolder.mouseout(function(e) {
+        eventHolder.mouseleave(function(e) {
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
         });
       };
