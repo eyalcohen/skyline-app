@@ -2,7 +2,8 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
+define(['views/dashItem', 'plot_booter',
+    'libs/jquery.simplemodal-1.4.1.min'],
     function (DashItemView) {
   return DashItemView.extend({
     events: {
@@ -380,43 +381,70 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
           { channelName: '$beginRelTime', title: 'Begin Since Start', units: 's' },
           { channelName: '$endRelTime', title: 'End Since Start', units: 's' },
         ].concat(self.model.get('channels'));
-      var d = App.engine('export_csv.dialog.jade',
-                         { channels: channels }).appendTo(self.content);
-      var dialog = $(d).modal({
-        closeHTML: "<a href='#' title='Close' class='modal-close'>x</a>",
-        // position: ["20%",],
-        overlayId: 'confirm-overlay',
-        containerId: 'confirm-container',
-        minHeight: 400,  // TODO: Why doesn't dialog auto-size?
-        onClose: function() { clearInterval(linkUpdater); dialog.close(); },
+      App.engine('export_csv.dialog.jade',
+          { channels: channels }).appendTo('body').modal({
+        overlayId: 'osx-overlay',
+        containerId: 'osx-container',
+        closeHTML: null,
+        minHeight: 80,
+        opacity: 65,
+        position: ['0',],
+        overlayClose: true,
+        onOpen: function (d) {
+          var self = this;
+          self.container = d.container[0];
+          d.overlay.fadeIn('fast', function () {
+            $('#osx-modal-content', self.container).show();
+            var title = $('#osx-modal-title', self.container);
+            title.show();
+            d.container.slideDown('fast', function () {
+              setTimeout(function () {
+                var h = $('#osx-modal-data', self.container).height()+
+                    title.height() + 20;
+                d.container.animate({ height: h }, 200,
+                  function () {
+                    $('div.close', self.container).show();
+                    $('#osx-modal-data', self.container).show();
+                  }
+                );
+              }, 300);
+            });
+          });
+        },
+        onClose: function (d) {
+          var self = this;
+          d.container.animate({ top:'-' + (d.container.height() + 20) }, 300,
+            function () { self.close(); }
+          );
+        },
       });
-      $('[value="noResample"]', d).get(0).checked = true;
-      // TODO: rather than this rather horrible technique of updating every
-      // 100ms, bind to the various events that occur when dialog controls
-      // change.
-      var linkUpdater = setInterval(updateLink, 100);
-
-      function updateLink() {
-        var link = $('a#download', d);
-        // if (!link.length) return;
-        // TODO: use some kind of URL builder to deal with escaping.
+      $('[value="noResample"]').attr('checked', true);
+      $('[name="minmax"]').attr('disabled', true);
+      $('[name="sampleType"]').click(function (e) {
+        $('[name="minmax"]').get(0).disabled =
+            $('[value="noResample"]').is(':checked');
+      });
+      $('#download-data').click(function (e) {
         var viewRange = self.getVisibleTime();
-        var resample = $('[value="resample"]', d).get(0).checked;
-        var minmax = $('[name="minmax"]', d).get(0).checked;
-        $('[name="minmax"]', d).get(0).disabled = !resample;
-        var resampleTime = $('#resample').get(0).value;
+        var resample = !$('[value="noResample"]').is(':checked');
+        var minmax = $('[name="minmax"]').is(':checked');
+        var resampleTime = $('#resample').val();
         // TODO: calculate how many data points we'll generate with a resample,
         // and give some kind of warning or something if it's ridiculous.
-        // TODO: make the link force download?
-        $('a#download', d).get(0).href = '/export/' +
+        // TODO: maybe use the new download attribute on an anchor element?
+        // http://html5-demos.appspot.com/static/a.download.html
+        // We should really fetch the data via dnode then force the download
+        // client-side... this way we can should a loading icon while the
+        // user waits for the server to package everything up.
+        var href = '/export/' +
             self.model.get('vehicleId') + '/data.csv' +
             '?beg=' + Math.floor(viewRange.beg) +
             '&end=' + Math.ceil(viewRange.end) +
             (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
             (resample && minmax ? '&minmax' : '') +
             channels.map(function(c){return '&chan=' + c.channelName}).join('');
-      }
-
+        window.location.href = href;
+      });
       return self;
     },
 

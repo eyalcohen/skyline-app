@@ -1,26 +1,29 @@
-#confirm
-  .header
-    span Export data as CSV
-  .message
+#osx-modal-content
+  #osx-modal-title
+    | Export data as CSV
+  .close
+    a.simplemodal-close(href="javascript:;") x
+  #osx-modal-data
     p Columns to download:
       ol
-        // Why doesn't this work: ???
-        // each channelName in channelNames
         - channels.forEach(function(channel) {
           li= channel.title
         - })
     p
-      input(type="radio", name="sampleType", value="resample")
-      | Resample to:
-      input(type="text", value="1.0")#resample
-      | seconds per sample.
-    // Indent next?
+      input(type="radio", name="sampleType", value="resample", checked="checked")
+      label.export-label
+        | Resample to:
+      input#resample.export-input-text(type="text", value="1.0")
+      label.export-label
+        | seconds per sample
     p
       input(type="checkbox", name="minmax", value="minmax")
-      | Include minima and maxima.
+      label.export-label
+        | Include minima and maxima
     p
       input(type="radio", name="sampleType", value="noResample")
-      | Don't resample.
-    a#download(href="#") Click to download
-  .buttons
-    .simplemodal-close Done
+      label.export-label
+        | Don't resample
+    .simplemodal-close(role="button", style="float:right; margin-left: 5px;") Done
+    #download-data(role="button", title="Download data as CSV.", style="float:right;") Download
+

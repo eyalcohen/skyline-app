@@ -369,6 +369,13 @@ label {
   color: gray;
 }
 
+label.export-label {
+  padding: 0;
+  color: black;
+  font-weight: bold;
+  font-size: 10px;
+}
+
 input[type=text],
 input[type=password] {
   background: #FBFBFB;
@@ -379,6 +386,13 @@ input[type=password] {
   height: auto;
   color: #404040;
   border: 1px solid #CCC;
+}
+
+input.export-input-text {
+  display: inline-block;
+  font-size: 12px;
+  width: 36px;
+  margin: 0 5px;
 }
 
 input:not([type=submit]):focus {
@@ -416,6 +430,13 @@ input[type=submit] {
 
   cursor: default;
 }
+
+input[type="checkbox"],
+input[type="radio"] {
+  margin: 0 5px 0 0;
+  vertical-align: middle;
+}
+
 
 div[role=button] > div {
   background: url(/graphics/line-chart.png) no-repeat;
