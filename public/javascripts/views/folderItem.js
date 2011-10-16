@@ -11,7 +11,7 @@ define(['jquery',
   return Backbone.View.extend({
     initialize: function (args) {
       _.bindAll(this, 'render', 'resize', 'destroy', 'show');
-      App.subscribe('NotAuthenticated', 'destroy');
+      App.subscribe('NotAuthenticated', this.destroy);
       App.subscribe('ShowFolderItem-' + args.targetClass, this.show);
       return this;
     },
@@ -39,7 +39,10 @@ define(['jquery',
       this.tab = App.engine('tab.jade', opts)
           .appendTo(opts.tabParent);
       this.tab.click(_.bind(this.show, this));
-      $('.tab-closer', this.tab).click(_.bind(this.destroy, this));
+      var self = this;
+      $('.tab-closer', this.tab).click(function (e) {
+        self.destroy(true);
+      });
       $('.resize-horizontal', this.el)
           .bind('mousedown', _.bind(this.resizeHorizontal, this));
       if (opts.active)
@@ -74,11 +77,12 @@ define(['jquery',
       }
     },
 
-    destroy: function (e) {
+    destroy: function (clicked) {
+      App.unsubscribe('NotAuthenticated', 'destroy');
+      App.unsubscribe('ShowFolderItem-' + this.targetClass, this.show);
       var targetIndex = this.tab.attr('data-tab-index');
       var tabs = $('.tab-dynamic');
-      console.log(tabs, targetIndex, $(tabs.get(targetIndex-1)));
-      if (this.tab.hasClass('tab-active'))
+      if (this.tab.hasClass('tab-active') && clicked)
         App.publish('ShowFolderItem-'+
             $(tabs.get(targetIndex-1)).data('tabTarget'));
       this.tab.remove();

@@ -451,7 +451,7 @@ define(['views/dashItem', 'plot_booter',
         // TODO: maybe use the new download attribute on an anchor element?
         // http://html5-demos.appspot.com/static/a.download.html
         // We should really fetch the data via dnode then force the download
-        // client-side... this way we can should a loading icon while the
+        // client-side... this way we can show a loading icon while the
         // user waits for the server to package everything up.
         var href = '/export/' +
             self.model.get('vehicleId') + '/data.csv' +

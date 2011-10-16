@@ -18,18 +18,21 @@ define(function () {
       self.colorCnt = 0;
       self.clientId = args.vehicleId + '-graph-' + args.id;
       self.view.render();
-      _.bindAll(self, 'updateCacheSubscription', 'changeVisibleTime',
-                'addChannel', 'removeChannel', 'updateSampleSet');
+      _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
+          'addChannel', 'removeChannel', 'updateSampleSet');
+      App.subscribe('HideVehicle-' + args.vehicleId, this.destroy);
       App.subscribe('VisibleTimeChange-' + args.vehicleId,
-                    self.changeVisibleTime);
+          self.changeVisibleTime);
       App.subscribe('ChannelRequested-' + args.vehicleId + '-' + args.id,
-                    self.addChannel);
+          self.addChannel);
       if (args.master)
         App.subscribe('ChannelRequested-' + args.vehicleId,
-                      self.addChannel);
-      App.subscribe('ChannelUnrequested-' + args.vehicleId, self.removeChannel);
+            self.addChannel);
+      App.subscribe('ChannelUnrequested-' + args.vehicleId,
+          self.removeChannel);
+      App.sampleCache.bind('update-' + self.clientId,
+          self.updateSampleSet);
       self.view.bind('ChannelUnrequested', self.removeChannel);
-      App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
       self.view.bind('VisibleTimeChange', function (beg, end) {
         self.updateCacheSubscription();
         App.publish('VisibleTimeChange-' + args.vehicleId, [beg, end]);
@@ -39,16 +42,20 @@ define(function () {
     },
 
     destroy: function () {
+      App.unsubscribe('HideVehicle-' + this.get('vehicleId'),
+          this.destroy);
       App.unsubscribe('VisibleTimeChange-'+
           this.get('vehicleId'), this.changeVisibleTime);
       App.unsubscribe('ChannelRequested-'+
           this.get('vehicleId') + '-' + this.get('id'), this.addChannel);
+      if (this.get('master'))
+        App.unsubscribe('ChannelRequested-' + this.get('vehicleId'),
+            this.addChannel);
       App.unsubscribe('ChannelUnrequested-'+
           this.get('vehicleId'), this.removeChannel);
       App.sampleCache.unbind('update-'+
           this.clientId, this.updateSampleSet);
       App.sampleCache.endClient(this.clientId);
-      this.view.destroy();
     },
 
     updateCacheSubscription: function () {

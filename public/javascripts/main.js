@@ -41,28 +41,6 @@ requirejs(['libs/json2',
             App.collections = collections;
             App.views = views;
             App.sampleCache = new SampleCache();
-            // App.defaultChannel = {
-            //   channelName: 'mc.motorSpeed_RPM',
-            //   humanName: 'Motor Speed',
-            //   shortName: 'motorSpeed_RPM',
-            //   title: 'Motor Speed',
-            //   type: 'float',
-            //   units: 'RPM',
-            //   
-            //   // channelName: "mc/motorSpeed"
-            //   // humanName: "mc/motorSpeed"
-            //   // shortName: "motorSpeed"
-            //   // title: "motorSpeed"
-            //   // type: "float"
-            //   
-            //   // channelName: 'gps.speed_m_s',
-            //   // humanName: 'GPS Speed',
-            //   // shortName: 'speed_m_s',
-            //   // type: 'float',
-            //   // units: 'm/s',
-            //   // title: 'GPS Speed',
-            // };
-
             App.router = new Router();
             Backbone.history.start({
               pushState: true,
@@ -72,20 +50,19 @@ requirejs(['libs/json2',
             // the server can provide the same route if 
             // asked directly.
             //// App.router.navigate('somewhere');
-
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
             App.subscribe('UserWasAuthenticated', App.buildDash);
-            var loginOpts = {
+            App.loginOpts = {
               first: true,
               report: 'Please log in.',
               type: 'message',
             };
             if (_.isEmpty(App.user)) {
-              App.publish('NotAuthenticated', [loginOpts]);
+              App.publish('NotAuthenticated', [App.loginOpts]);
             } else {
               App.api.authenticate(App.user, function handleAuthResult(err) {
-                if (err) App.publish('NotAuthenticated', [loginOpts]);
+                if (err) App.publish('NotAuthenticated', [App.loginOpts]);
                 else App.publish('UserWasAuthenticated');
               });
             }
@@ -107,7 +84,7 @@ requirejs(['libs/json2',
           App.reconnecter = null;
           App.api.authenticate(App.user, function (err) {
             if (err) {
-              App.publish('NotAuthenticated');
+              App.publish('NotAuthenticated', [App.loginOpts]);
               console.warn('Server reconnected. User NOT authorized!');
             } else {
               console.warn('Server reconnected. User authorized!');

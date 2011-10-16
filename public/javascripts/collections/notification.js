@@ -25,7 +25,7 @@ define(['models/notification'], function (model) {
       }, this);
       return this;
     },
-    
+
   });
 });
 

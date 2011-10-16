@@ -7,8 +7,9 @@ define(['views/dashItem', 'plot_booter'],
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize');
-      _.bindAll(this, 'drawWindow', 'moveWindow', 'hoverWindow',
+      _.bindAll(this, 'destroy', 'drawWindow', 'moveWindow', 'hoverWindow',
           'wheelWindow', 'hookScale', 'plotDrawHook');
+      App.subscribe('HideVehicle-' + args.vehicleId, this.destroy);
       App.subscribe('VisibleTimeChange-' + args.vehicleId, this.drawWindow);
     },
     
@@ -317,8 +318,12 @@ define(['views/dashItem', 'plot_booter'],
                width: this.plot.width() };
     },
 
-    resize: function () {
-      this._super('resize');
+    destroy: function () {
+      this._super('destroy');
+      App.unsubscribe('HideVehicle-'+
+          this.options.vehicleId, this.destroy);
+      App.unsubscribe('VisibleTimeChange-'+
+          this.options.vehicleId, this.drawWindow);
     },
 
   });

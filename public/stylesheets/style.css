@@ -429,14 +429,26 @@ input[type=submit] {
   user-select: none;
 
   cursor: default;
+
+  -moz-transition-timing-function: ease-out;
+  -moz-transition-duration: 100ms;
+  -webkit-transition-timing-function: ease-out;
+  -webkit-transition-duration: 100ms;
+  transition-timing-function: ease-out;
+  transition-duration: 100ms;
 }
 
-input[type="checkbox"],
-input[type="radio"] {
-  margin: 0 5px 0 0;
-  vertical-align: middle;
+div[role=button]:hover,
+input[type='submit']:hover {
+  -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
+div[role=button]:active,
+input[type='submit']:active {
+  border:1px solid #98c1e6;
+}
 
 div[role=button] > div {
   background: url(/graphics/line-chart.png) no-repeat;
@@ -445,10 +457,11 @@ div[role=button] > div {
   display: inline-block;
   vertical-align: -7px;
 }
-input[type='submit']:hover {  }
-div[role=button]:active,
-input[type='submit']:active {
-  border:1px solid #98c1e6;
+
+input[type="checkbox"],
+input[type="radio"] {
+  margin: 0 5px 0 0;
+  vertical-align: middle;
 }
 
 input:focus, textarea:focus {

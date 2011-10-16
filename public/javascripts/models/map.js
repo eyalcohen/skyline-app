@@ -10,31 +10,38 @@ define(function () {
       _.extend(args, { model: this });
       this.view = new App.views.MapView(args);
       this.view.render({ waiting: true });
-      _.bindAll(this, 'updateVisibleSampleSet', 'updateNavigableSampleSet');
+      _.bindAll(this, 'destroy', 'mouseHoverTime', 'updateVisibleSampleSet',
+          'updateNavigableSampleSet');
       this.clientIdVisible = args.vehicleId + '-map-visible';
-      App.subscribe('VisibleTimeChange-' + args.vehicleId,
-                    _.bind(this.changeTime, this, this.clientIdVisible));
-      App.sampleCache.bind('update-' + this.clientIdVisible,
-                           this.updateVisibleSampleSet);
       this.clientIdNavigable = args.vehicleId + '-map-navigable';
+      App.subscribe('HideVehicle-' + args.vehicleId, this.destroy);
+      App.subscribe('VisibleTimeChange-' + args.vehicleId,
+          _.bind(this.changeTime, this, this.clientIdVisible));
       App.subscribe('NavigableTimeChange-' + args.vehicleId,
-                    _.bind(this.changeTime, this, this.clientIdNavigable));
-      App.sampleCache.bind('update-' + this.clientIdNavigable,
-                           this.updateNavigableSampleSet);
+          _.bind(this.changeTime, this, this.clientIdNavigable));
       App.subscribe('MouseHoverTime-' + args.vehicleId,
-                    this.mouseHoverTime.bind(this));
-      // this.changeVisibleTime(args.timeRange.min*1e3, args.timeRange.max*1e3);
+          this.mouseHoverTime);
+      App.sampleCache.bind('update-' + this.clientIdVisible,
+          this.updateVisibleSampleSet);
+      App.sampleCache.bind('update-' + this.clientIdNavigable,
+          this.updateNavigableSampleSet);
       return this;
     },
 
     destroy: function () {
+      App.unsubscribe('HideVehicle-' + this.get('vehicleId'), this.destroy);
+      App.unsubscribe('VisibleTimeChange-' + this.get('vehicleId'),
+          this.changeTime);
+      App.unsubscribe('NavigableTimeChange-' + this.get('vehicleId'),
+          this.changeTime);
+      App.unsubscribe('MouseHoverTime-' + this.get('vehicleId'),
+          this.mouseHoverTime);
       App.sampleCache.unbind('update-' + this.clientIdVisible,
-                             this.updateVisibleSampleSet);
+          this.updateVisibleSampleSet);
       App.sampleCache.endClient(this.clientIdVisible);
       App.sampleCache.unbind('update-' + this.clientIdNavigable,
-                             this.updateNavigableSampleSet);
+          this.updateNavigableSampleSet);
       App.sampleCache.endClient(this.clientIdNavigable);
-      // this.view.destroy();  ???
     },
 
     changeTime: function(clientId, beg, end) {

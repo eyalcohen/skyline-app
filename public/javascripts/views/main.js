@@ -30,6 +30,8 @@ define(['jquery',
     },
 
     destroy: function () {
+      App.unsubscribe('NotAuthenticated', this.destroy);
+      App.unsubscribe('VehicleRequested', this.load);
       $('.tabs, .folder').hide();
       return this;
     },

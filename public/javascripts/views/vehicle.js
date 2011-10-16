@@ -153,8 +153,13 @@ define(['views/folderItem'], function (FolderItemView) {
           'abcdefghijklmnopqrstuvwxyz0123456789';
       for( var i=0; i < 5; i++ )
         text += possible.charAt(Math.floor(
-              Math.random() * possible.length));
+            Math.random() * possible.length));
       return text;
+    },
+
+    destroy: function (clicked) {
+      this._super('destroy', clicked);
+      App.publish('HideVehicle-' + this.vehicleId);
     },
 
   });
