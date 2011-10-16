@@ -106,6 +106,7 @@ requirejs(['libs/json2',
         left: 30
       }, 'dash.jade');
       App.loading.stop();
+      delete App.loading;
       // // TODO: check if user is ADMIN first!
       // App.userCollection =
       //     new App.collections.UserCollection().fetch();
@@ -135,6 +136,7 @@ requirejs(['libs/json2',
           if (App.spinner) {
             App.spinner.stop();
           }
+          $(target).remove();
           return this;
         },
       }
