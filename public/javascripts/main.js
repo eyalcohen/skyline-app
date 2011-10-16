@@ -52,7 +52,7 @@ requirejs(['libs/json2',
             //// App.router.navigate('somewhere');
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
-            App.subscribe('UserWasAuthenticated', App.buildDash);
+            App.subscribe('UserWasAuthenticated', App.build);
             App.loginOpts = {
               first: true,
               report: 'Please log in.',
@@ -95,7 +95,7 @@ requirejs(['libs/json2',
       }, 500);
     },
 
-    buildDash: function () {
+    build: function () {
       App.mainView = new App.views.MainView().render();
       App.dashView = new App.views.DashView({
         targetClass: 'dashboard',
@@ -105,25 +105,44 @@ requirejs(['libs/json2',
         tabClosable: false,
         left: 30
       }, 'dash.jade');
+      App.loading.stop();
       // // TODO: check if user is ADMIN first!
       // App.userCollection =
       //     new App.collections.UserCollection().fetch();
       // App.publish('AppReady');
-    }
+    },
+
+    loader: function () {
+      var target = document.getElementById('loading');
+      return {
+        start: function () {
+          if (!App.spinner) {
+            App.spinner = new Spinner({
+              lines: 12,
+              length: 7,
+              width: 4,
+              radius: 40,
+              color: '#333',
+              speed: 1,
+              trail: 60,
+              shadow: false,
+            });
+          }
+          App.spinner.spin(target);
+          return this;
+        },
+        stop: function () {
+          if (App.spinner) {
+            App.spinner.stop();
+          }
+          return this;
+        },
+      }
+    },
 
   };
   requirejs.ready(function () {
-    // var opts = {
-    //   lines: 12, // The number of lines to draw
-    //   length: 30, // The length of each line
-    //   width: 4, // The line thickness
-    //   radius: 40, // The radius of the inner circle
-    //   color: '#000', // #rgb or #rrggbb
-    //   speed: 1, // Rounds per second
-    //   trail: 60, // Afterglow percentage
-    //   shadow: false // Whether to render a shadow
-    // };
-    // var spinner = new Spinner(opts).spin($('.folder').get(0));
+    App.loading = new App.loader().start();
     App.start();
   });
 });

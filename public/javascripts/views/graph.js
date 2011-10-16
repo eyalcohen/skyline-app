@@ -418,12 +418,10 @@ define(['views/dashItem', 'plot_booter',
               setTimeout(function () {
                 var h = $('#osx-modal-data', self.container).height()+
                     title.height() + 20;
-                d.container.animate({ height: h }, 200,
-                  function () {
-                    $('div.close', self.container).show();
-                    $('#osx-modal-data', self.container).show();
-                  }
-                );
+                d.container.animate({ height: h }, 200, function () {
+                  $('div.close', self.container).show();
+                  $('#osx-modal-data', self.container).show();
+                });
               }, 300);
             });
           });
@@ -431,8 +429,10 @@ define(['views/dashItem', 'plot_booter',
         onClose: function (d) {
           var self = this;
           d.container.animate({ top:'-' + (d.container.height() + 20) }, 300,
-            function () { self.close(); }
-          );
+              function () {
+            self.close();
+            $('#osx-modal-content').remove();
+          });
         },
       });
       $('[value="noResample"]').attr('checked', true);
