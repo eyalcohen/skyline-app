@@ -437,10 +437,16 @@ define(['views/dashItem', 'plot_booter',
       });
       $('[value="noResample"]').attr('checked', true);
       $('[name="minmax"]').attr('disabled', true);
-      $('[name="sampleType"]').click(function (e) {
+      $('[name="sampleType"]').click(onSampleTypeClick);
+      function onSampleTypeClick(e) {
         $('[name="minmax"]').get(0).disabled =
             $('[value="noResample"]').is(':checked');
-      });
+      }
+      $('#resample').focus(onResampleTextClick).click(onResampleTextClick);
+      function onResampleTextClick(e) {
+        $('[value="resample"]').click();
+        onSampleTypeClick();
+      }
       $('#download-data').click(function (e) {
         var viewRange = self.getVisibleTime();
         var resample = !$('[value="noResample"]').is(':checked');
