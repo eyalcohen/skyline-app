@@ -105,7 +105,6 @@ define(['views/dashItem', 'plot_booter', 'libs/jquery.simplemodal-1.4.1'],
             "#FFA6A6",  // Pink
             "#96BDFF",  // Light blue
             "#D373FF",  // Light purple
-            "
             ],
         hooks: {
           draw: [ _.bind(self.plotDrawHook, self) ],
