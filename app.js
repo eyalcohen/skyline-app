@@ -520,7 +520,7 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
 
       // Write UTF-8 signature, so that Excel imports CSV as UTF-8.
       // Unfortunately, this doesn't seem to work with all Excel versions.  Boo.
-      res.write(new Buffer([0xEF, 0xBB, 0xBF]));
+      //res.write(new Buffer([0xEF, 0xBB, 0xBF]));
 
       // Write header.
       var header = [];

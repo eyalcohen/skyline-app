@@ -10,19 +10,20 @@
           li= channel.title
         - })
     p
-      input(type="radio", name="sampleType", value="resample", checked="checked")
-      label.export-label
+      input#resampleRadio(type="radio", name="sampleType", value="resample", checked="checked")
+      label.export-label(for="resampleRadio")
         | Resample to:
       input#resample.export-input-text(type="text", value="1.0")
-      label.export-label
+      label.export-label(for="resampleRadio")
         | seconds per sample
-    p
-      input(type="checkbox", name="minmax", value="minmax")
-      label.export-label
+      br
+      | &nbsp;&nbsp;&nbsp;
+      input#minmaxCheckbox(type="checkbox", name="minmax", value="minmax")
+      label.export-label(for="minmaxCheckbox")
         | Include minima and maxima
     p
-      input(type="radio", name="sampleType", value="noResample")
-      label.export-label
+      input#noResampleRadio(type="radio", name="sampleType", value="noResample")
+      label.export-label(for="noResampleRadio")
         | Don't resample
     .simplemodal-close(role="button", style="float:right; margin-left: 5px;") Done
     #download-data(role="button", title="Download data as CSV.", style="float:right;") Download
