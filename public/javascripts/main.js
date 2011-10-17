@@ -52,14 +52,15 @@ requirejs(['libs/json2',
             //// App.router.navigate('somewhere');
             App.login = new views.LoginView();
             App.logout = new views.LogoutView();
-            App.subscribe('UserWasAuthenticated', App.build);
             App.loginOpts = {
               first: true,
               report: 'Please log in.',
               type: 'message',
             };
+            App.subscribe('UserWasAuthenticated', App.build);
             if (_.isEmpty(App.user)) {
               App.publish('NotAuthenticated', [App.loginOpts]);
+              App.loading.stop();
             } else {
               App.api.authenticate(App.user, function handleAuthResult(err) {
                 if (err) App.publish('NotAuthenticated', [App.loginOpts]);
@@ -84,8 +85,8 @@ requirejs(['libs/json2',
           App.reconnecter = null;
           App.api.authenticate(App.user, function (err) {
             if (err) {
-              App.publish('NotAuthenticated', [App.loginOpts]);
               console.warn('Server reconnected. User NOT authorized!');
+              App.publish('NotAuthenticated', [App.loginOpts]);
             } else {
               console.warn('Server reconnected. User authorized!');
               App.publish('DNodeReconnectUserAuthorized');
