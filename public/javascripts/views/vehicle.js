@@ -91,6 +91,7 @@ define(['views/folderItem'], function (FolderItemView) {
       var graph = new App.models.GraphModel({
         vehicleId: self.vehicleId,
         timeRange: viewRange,
+        forceTimeRange: true,
         parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: 70,
