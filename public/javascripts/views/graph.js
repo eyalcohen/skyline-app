@@ -6,6 +6,15 @@ define(['views/dashItem', 'plot_booter',
     'libs/jquery.simplemodal-1.4.1.min'],
     function (DashItemView) {
   return DashItemView.extend({
+    initialize: function (args) {
+      this._super('initialize', args);
+      _.bindAll(this, 'destroy', 'showNotification', 'hideNotification');
+      App.subscribe('PreviewNotification-' + args.vehicleId,
+          this.showNotification);
+      App.subscribe('UnPreviewNotification-' + args.vehicleId,
+          this.hideNotification);
+    },
+
     events: {
       'click .toggler': 'toggle',
       'click .export': 'exportCsv',
@@ -30,6 +39,7 @@ define(['views/dashItem', 'plot_booter',
           .appendTo(this.options.parent);
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
+      this.notificationPreview = $('.notification-preview', this.el);
       this._super('render', fn);
       this.draw();
     },
@@ -138,8 +148,10 @@ define(['views/dashItem', 'plot_booter',
             self.mouseTime.show();
         })
         .mouseleave(function (e) {
-          if (self.model.get('channels').length > 0)
+          if (self.model.get('channels').length > 0) {
+            $('.legendValue', self.el).text('[...]');
             self.mouseTime.hide();
+          }
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
         });
       };
@@ -151,7 +163,6 @@ define(['views/dashItem', 'plot_booter',
       function populateLabels(time) {
         // TODO: clean up labels - pass full html as flot option
         // and remove flot hackery.
-        $('.legendValue', self.el).text('');
         _.each(self.plot.getData(), function (series) {
           if (!series.channel) return;
           var labelSibling = $('.legendLabel > div[data-channel-name="'+
@@ -419,6 +430,31 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
+    showNotification: function (range) {
+      var xaxis = this.plot.getXAxes()[0];
+      var leftSide = xaxis.p2c(range.min);
+      var rightSide = xaxis.p2c(range.max);
+      this.notificationPreview.css({
+        left: leftSide + 'px',
+        width: rightSide - leftSide + 'px',
+      }).show();
+      // this.center((range.min + range.max) / 2);
+    },
+
+    hideNotification: function () {
+      this.notificationPreview.hide();
+    },
+
+    center: function (time) {
+      var currentCenterTime = this.plot.getOptions().xaxis.max -
+          this.plot.getOptions().xaxis.min;
+      var timeShift = time - currentCenterTime;
+      var min = this.plot.getOptions().xaxis.min - timeShift;
+      var max = this.plot.getOptions().xaxis.max - timeShift;
+      App.publish('VisibleTimeChange-' + this.options.vehicleId,
+          [min * 1e3, max * 1e3]);
+    },
+
     exportCsv: function (e) {
       var self = this;
       e.preventDefault();
@@ -514,6 +550,14 @@ define(['views/dashItem', 'plot_booter',
 
     removeGraphFromParent: function (e) {
       this.trigger('removeGraph');
+    },
+
+    destroy: function () {
+      this._super('destroy');
+      App.unsubscribe('PreviewNotification-' + this.options.vehicleId,
+          this.showNotification);
+      App.unsubscribe('UnPreviewNotification-' + this.options.vehicleId,
+          this.hideNotification);
     },
 
   });

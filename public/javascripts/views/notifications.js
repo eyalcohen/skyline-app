@@ -7,6 +7,8 @@ define(['views/dashItem'], function (DashItemView) {
     events: {
       'click .toggler': 'toggle',
       'click .open-vehicle': 'open',
+      'mouseenter tr[data-title]': 'preview',
+      'mouseleave tr[data-title]': 'unpreview',
     },
 
     render: function (opts) {
@@ -53,6 +55,39 @@ define(['views/dashItem'], function (DashItemView) {
         App.publish('VisibleTimeChange-' + id, [beg*1e3, end*1e3]);
       else
         App.publish('VehicleRequested', [id, title, range]);
+      return this;
+    },
+
+    preview: function (e) {
+      if (!this.singleVehicle) return;
+      var parentRow = $(e.target).closest('tr');
+      var beg = parseInt($('[data-time]', parentRow)
+          .attr('data-time')) / 1e3;
+      var end = parseInt($('[data-time-end]', parentRow)
+          .attr('data-time-end')) / 1e3;
+      var range = { min: beg, max: end};
+      var id;
+      if (parentRow.attr('id')) {
+        var items = parentRow.attr('id').split('_');
+        id = parseInt(items[items.length - 1]);
+      } else {
+        id = this.options.vehicleId;
+      }
+      App.publish('PreviewNotification-' + id, [range]);
+      return this;
+    },
+
+    unpreview: function (e) {
+      if (!this.singleVehicle) return;
+      var parentRow = $(e.target).closest('tr');
+      var id;
+      if (parentRow.attr('id')) {
+        var items = parentRow.attr('id').split('_');
+        id = parseInt(items[items.length - 1]);
+      } else {
+        id = this.options.vehicleId;
+      }
+      App.publish('UnPreviewNotification-' + id);
       return this;
     },
 

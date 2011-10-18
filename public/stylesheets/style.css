@@ -1039,6 +1039,15 @@ div.preferences {
   background-image: url(/graphics/graph-closer-hover.png);
 }
 
+.notification-preview {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  background: #fcf181;
+  opacity: 0.5;
+  display: none;
+}
+
 .mouse-time {
   background: none;
   padding: 0 5px;
