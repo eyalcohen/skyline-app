@@ -258,15 +258,6 @@ define(['views/dashItem', 'plot_booter'],
       if (!side) return null;
     },
 
-    // positionScale: function () {
-    //   var scale = $('.navigator-scale', this.el);
-    //   var parentOff = this.el.offset();
-    //   scale.css({
-    //     left: 10 + 'px',
-    //     top: 45 + 'px',
-    //   });
-    // },
-
     hookScale: function () {
       var self = this;
       // var scale = $('.navigator-scale', self.el);

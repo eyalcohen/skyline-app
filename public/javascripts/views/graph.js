@@ -28,6 +28,8 @@ define(['views/dashItem', 'plot_booter',
       this.plot = null;
       this.el = App.engine('graph.dash.jade', opts)
           .appendTo(this.options.parent);
+      this.mouseTime = $('.mouse-time', this.el);
+      this.mouseTimeTxt = $('span', this.mouseTime);
       this._super('render', fn);
     },
 
@@ -66,7 +68,9 @@ define(['views/dashItem', 'plot_booter',
           backgroundColor: null,
           borderWidth: 0,
           borderColor: '#444',
-          autoHighlight: true,
+          clickable: false,
+          hoverable: false,
+          autoHighlight: false,
           minBorderMargin: 0,
           fullSize: true,
         },
@@ -86,7 +90,8 @@ define(['views/dashItem', 'plot_booter',
             return "<div data-channel='" + JSON.stringify(series.channel) + "' "+
                 'data-channel-name="' + series.channel.channelName + '">'+
                 '<span class="jstree-draggable" style="cursor:pointer">'+
-                label + '</span>&nbsp;&nbsp;&nbsp;<a href="javascript:;"'+
+                label + '</span><span class="label-value"></span>'+
+                '&nbsp;&nbsp;&nbsp;<a href="javascript:;"'+
                 'class="label-closer">X</a></div>';
           },
         },
@@ -108,37 +113,79 @@ define(['views/dashItem', 'plot_booter',
             "#D373FF",  // Light purple
             ],
         hooks: {
-          draw: [ _.bind(self.plotDrawHook, self) ],
-          setupGrid: [ _.bind(self.plotSetupGridHook, self) ],
-          bindEvents: [ bindEventsHook ],
+          draw: [_.bind(self.plotDrawHook, self)],
+          setupGrid: [_.bind(self.plotSetupGridHook, self)],
+          bindEvents: [bindEventsHook],
         },
       });
-
-      function bindEventsHook(plot, eventHolder) {
-        eventHolder.mousemove(function(e) {
-          // TODO: is there a cleaner way to get time under pointer?
-          var visFrac = (e.pageX - plot.offset().left) / plot.width();
-          var t = self.getVisibleTime();
-          if (!t) return;
-          var time = (t.beg + visFrac * (t.end - t.beg));
-          console.log('Hover at: ' + time);
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time]);
-        });
-        eventHolder.mouseleave(function(e) {
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
-        });
-      };
 
       $('.graph', self.content).data({
         plot: self.plot,
         id: self.options.id,
       });
 
-      // helper for returning the weekends in a period
+      function bindEventsHook(plot, eventHolder) {
+        eventHolder.mousemove(function (e) {
+          if (self.model.get('channels').length === 0) return;
+          var mouseX = e.pageX - parseInt(plot.offset().left);
+          var xaxis = plot.getXAxes()[0];
+          var time = xaxis.c2p(mouseX);
+          updateMouseTime(time);
+          populateLabels(time);
+          time *= 1e3;
+          console.log('Hover at: ' + time);
+          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time]);
+          // var pageX = pos.pageX - parseInt(plot.offset().left);
+          // var mouseTimeWidth = self.mouseTime.outerWidth();
+          // var left = pageX > plot.width() - mouseTimeWidth ?
+          //     pageX - mouseTimeWidth + 'px' :
+          //     pageX + 'px';
+          // self.mouseTime.css({ left: left });
+        })
+        .mouseenter(function (e) {
+          if (self.model.get('channels').length > 0)
+            self.mouseTime.show();
+        })
+        .mouseleave(function (e) {
+          if (self.model.get('channels').length > 0)
+            self.mouseTime.hide();
+          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
+        });
+      };
+
+      function updateMouseTime(time) {
+        self.mouseTimeTxt.text(new Date(Math.round(time)).toString());
+      }
+      
+      function populateLabels(time) {
+        $('.legendLabel > div > span.label-value', self.el).text('');
+        _.each(self.plot.getData(), function (series) {
+          if (!series.channel) return;
+          var label = $('.legendLabel > div[data-channel-name="'+
+              series.channel.channelName+'"] > span.label-value', self.el);
+          var valueHTML;
+          if (time < series.xaxis.min || time > series.xaxis.max) {
+            valueHTML = '';
+            return;
+          }
+          var deltas = _.map(series.data, function (pnt) {
+            return (pnt === null) ? Infinity : Math.abs(time - pnt[0]);
+          });
+          var minDelta = _.min(deltas);
+          var minIndex = deltas.indexOf(minDelta);
+          if (minIndex !== -1) {
+            var hoveredPnt = series.data[minIndex];
+            valueHTML = '&nbsp;&nbsp;[' + self.addCommas(hoveredPnt[1]) + ']';
+          } else {
+            valueHTML = '[]';
+          }
+          label.html(valueHTML);
+        });
+      }
+
       function weekendAreas(axes) {
         var markings = [];
         var d = new Date(axes.xaxis.min);
-        // go to the first Saturday
         d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7));
         d.setUTCSeconds(0);
         d.setUTCMinutes(0);
@@ -167,8 +214,6 @@ define(['views/dashItem', 'plot_booter',
       }
       var opts = self.plot.getOptions();
       var series = [], numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
-      // so many loops, ugh... seems to be only way
-      // to ensure proper axis mapping.
       _.each(self.model.get('channels'), function (channel) {
         if (!channel.yaxisNum) return;
         if (channel.yaxisNum === 1)
@@ -178,24 +223,9 @@ define(['views/dashItem', 'plot_booter',
       });
       var yAxisNumToUse = numSeriesLeftAxis > numSeriesRightAxis ? 2 : 1;
       _.each(self.model.get('channels'), function (channel) {
-        if (!channel.yaxisNum) {
-          // if (numSeriesLeftAxis > numSeriesRightAxis) {
-          //   channel.yaxisNum = 2;
-          //   numSeriesRightAxis++;
-          // } else {
-          //   channel.yaxisNum = 1;
-          //   numSeriesLeftAxis++;
-          // }
+        if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
-        }
       });
-      if (numSeriesLeftAxis === 0 && numSeriesRightAxis !== 0) {
-        _.each(self.model.get('channels'), function (channel) {
-          // If left axis is empty, move everyting left.
-          // On second thought, this may not be the desired behavior.
-          // channel.yaxisNum = 1;
-        });
-      }
       _.each(self.model.get('channels'), function (channel) {
         var data = self.model.get('data')[channel.channelName] || [];
         series.push({

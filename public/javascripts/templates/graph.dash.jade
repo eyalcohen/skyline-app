@@ -1,10 +1,12 @@
 .dashboard-item
   - if (title) {
     .dashboard-item-header.taller-header
-      div.small-button.add-graph(role="button", title="Add graph pane")
+      .small-button.add-graph(role="button", title="Add graph pane")
         | Add Plot
-      div.small-button.export(role="button", title="Export visible data as CSV")
+      .small-button.export(role="button", title="Export visible data as CSV")
         | Export
+      .mouse-time
+        span
       - if (shrinkable) {
         a.dashboard-link.toggler(href="javascript:;", title="shrink")
           | -

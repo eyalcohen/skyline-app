@@ -1039,6 +1039,20 @@ div.preferences {
   background-image: url(/graphics/graph-closer-hover.png);
 }
 
+.mouse-time {
+  background: none;
+  padding: 0 5px;
+  margin: 2px 0 0;
+  float: right;
+}
+
+.mouse-time > span {
+  color: white;
+  font-size: 9px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
 .navigator {
   background: #f2f2f2;
 }
@@ -1076,9 +1090,17 @@ div.preferences {
 }
 
 .legend > table {
-  width: 15%;
-  background: rgba(0,0,0,0.05);
+  width: 200px;
+  background: rgba(255,255,255,0.9);
   z-index: 10001;
+
+/*border-left: 1px solid #666;
+  border-right: 1px solid #666;
+  border-bottom: 1px solid #666;*/
+
+  -moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
 }
 
 .legend > div {
@@ -1096,8 +1118,13 @@ div.preferences {
   user-select: none;
 }
 
-.legend td span {
+.legendLabel {
+  width: 200px;
+}
+
+.legendLabel span {
   white-space: nowrap;
+  color: #333;
 }
 
 a.label-closer {
@@ -1148,9 +1175,9 @@ a.label-closer:hover {
   width: 175px;
   height: 150px;
   background: rgba(255,255,255,0.4);
-  -moz-box-shadow: 0 0 6px rgba(0, 0, 0, .25);
-  -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, .25);
-  box-shadow: 0 0 6px rgba(0, 0, 0, .25);
+  -moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+  -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
   padding: 5px;
   z-index: 999999;
 }
