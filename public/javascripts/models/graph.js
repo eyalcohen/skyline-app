@@ -20,10 +20,9 @@ define(function () {
       self.clientId = vehicleId + '-graph-' + args.id;
       self.view.render();
       _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
-          'mouseHoverTime', 'addChannel', 'removeChannel', 'updateSampleSet');
+          'addChannel', 'removeChannel', 'updateSampleSet');
       App.subscribe('HideVehicle-' + vehicleId, self.destroy);
       App.subscribe('VisibleTimeChange-' + vehicleId, self.changeVisibleTime);
-      App.subscribe('MouseHoverTime-' + vehicleId, self.mouseHoverTime);
       App.subscribe('ChannelRequested-' + vehicleId + '-' + args.id,
           self.addChannel);
       if (args.master)
@@ -44,7 +43,6 @@ define(function () {
       var self = this, vehicleId = self.get('vehicleId');
       App.unsubscribe('HideVehicle-' + vehicleId, self.destroy);
       App.unsubscribe('VisibleTimeChange-'+ vehicleId, self.changeVisibleTime);
-      App.unsubscribe('MouseHoverTime-' + vehicleId, self.mouseHoverTime);
       App.unsubscribe('ChannelRequested-'+ vehicleId + '-' + self.get('id'),
                       self.addChannel);
       if (self.get('master'))
@@ -90,10 +88,6 @@ define(function () {
 
     changeVisibleTime: function (beg, end) {
       this.view.setVisibleTime(beg, end);
-    },
-
-    mouseHoverTime: function(time) {
-      this.view.updateMouseTime(time);
     },
 
     addChannel: function (channels) {
