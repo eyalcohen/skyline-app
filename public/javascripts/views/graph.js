@@ -236,9 +236,7 @@ define(['views/dashItem', 'plot_booter',
             fill: false,
           },
           data: data,
-          label: channel.units ?
-              channel.title + ' (' + channel.units + ')' :
-              channel.title,
+          label: channel.title,
           xaxis: 1,
           yaxis: channel.yaxisNum,
           channel: channel,

@@ -882,7 +882,7 @@ function deepUnique(array) {
 var prefixRe = /^([^./]*[./]).+$/;
 SampleDb.buildChannelTree = function(samples) {
 
-  function buildInternal(samples, prefix) {
+  function buildInternal(samples, prefix, depth) {
     // Remove all samples which start with the given prefix.
     var sub = removeSome(samples, function(s) {
       return _.startsWith(s.val.channelName, prefix);
@@ -904,6 +904,10 @@ SampleDb.buildChannelTree = function(samples) {
         // Copy channelName and such in.
         desc = { shortName: shortName };
         _.extend(desc, s.val);
+        if (_.isArray(desc.humanName)) {
+          desc.humanName = desc.humanName[depth];
+          if (desc.humanName == null) delete desc.humanName;
+        }
         // TODO: interval sets to union together ranges?
         desc.valid = same.map(function(s2) {
           return { beg: s2.beg, end: s2.end };
@@ -911,15 +915,21 @@ SampleDb.buildChannelTree = function(samples) {
         sortSamplesByTime(desc.valid);
       } else {
         // New category.
+        var humanName = null;
+        var subHumanName = sub[0].val.humanName;
+        debug('depth' + depth + ', sub[0].val.humanName: ' + inspect(subHumanName));
+        if (_.isArray(subHumanName) && depth < subHumanName.length)
+          humanName = subHumanName[depth];
+        debug('humanName: ' + humanName);
         desc = {
           shortName: nextPrefix,
           type: 'category',
-          sub: buildInternal(sub, prefix + nextPrefix),
+          sub: buildInternal(sub, prefix + nextPrefix, depth + 1),
         };
         desc.valid = [].concat.apply([], _.pluck(desc.sub, 'valid'));
         sortSamplesByTime(desc.valid);
         desc.valid = deepUnique(desc.valid);
-        // TODO: desc.humanName =
+        if (humanName) desc.humanName = humanName;
       }
       result.push(desc);
     }
@@ -930,7 +940,7 @@ SampleDb.buildChannelTree = function(samples) {
   sortedSamples.sort(function(a, b) {
     return (a.val.order || 0) - (b.val.order || 0);
   });
-  var descriptionTree = buildInternal(sortedSamples, '');
+  var descriptionTree = buildInternal(sortedSamples, '', 0);
   return descriptionTree;
 }
 

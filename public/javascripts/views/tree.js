@@ -57,11 +57,10 @@ define(['views/dashItem',
                 fillInternal(child);
               });
               if (top) return;
-              var title = !node.parent ||
-                  node.parent.shortName.indexOf('/') !== -1 ?
-                node.shortName :
-                node.humanName || node.shortName,
-                  metadata = {};
+              var title = node.humanName || node.shortName;
+              if (node.units)
+                title += ' (' + node.units + ')';
+              var metadata = {};
               _.each(node, function (val, key) {
                 if (_.isString(val)) {
                   metadata[key] = val;
