@@ -122,7 +122,7 @@ define(['views/dashItem', 'plot_booter'],
             self.options.timeRange.max*1e3);
       self.plotDrawHook();
       function addIcons(p, ctx) {
-        $('.icon', holder).remove();
+        $('.timeline-icon', holder).remove();
         _.each(data, function (pnt) {
           var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
           var icon = $('<img>')
@@ -131,7 +131,7 @@ define(['views/dashItem', 'plot_booter'],
                 left: off.left - 8 + 'px',
                 top: off.top + 'px',
               })
-              .addClass('icon')
+              .addClass('timeline-icon')
               .appendTo(holder);
         });
         // FIXME: only zooms in when hovering img and wheeling

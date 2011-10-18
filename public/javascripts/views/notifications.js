@@ -43,18 +43,11 @@ define(['views/dashItem'], function (DashItemView) {
       var end = parseInt($('[data-time-end]', parentRow)
           .attr('data-time-end')) / 1e3;
       var range = { min: beg, max: end, snap: true};
-      var id, title;
-      if (parentRow.attr('id')) {
-        var items = parentRow.attr('id').split('_');
-        id = parseInt(items[items.length - 1]);
-        title = $(e.target).closest('tr').attr('data-title');
-      } else {
-        id = this.options.vehicleId;
-      }
+      var props = this.getProps(parentRow);
       if (this.singleVehicle)
-        App.publish('VisibleTimeChange-' + id, [beg*1e3, end*1e3]);
+        App.publish('VisibleTimeChange-' + props.id, [beg*1e3, end*1e3]);
       else
-        App.publish('VehicleRequested', [id, title, range]);
+        App.publish('VehicleRequested', [props.id, props.title, range]);
       return this;
     },
 
@@ -66,29 +59,29 @@ define(['views/dashItem'], function (DashItemView) {
       var end = parseInt($('[data-time-end]', parentRow)
           .attr('data-time-end')) / 1e3;
       var range = { min: beg, max: end};
-      var id;
-      if (parentRow.attr('id')) {
-        var items = parentRow.attr('id').split('_');
-        id = parseInt(items[items.length - 1]);
-      } else {
-        id = this.options.vehicleId;
-      }
-      App.publish('PreviewNotification-' + id, [range]);
+      var props = this.getProps(parentRow);
+      App.publish('PreviewNotification-' + props.id, [range]);
       return this;
     },
 
     unpreview: function (e) {
       if (!this.singleVehicle) return;
-      var parentRow = $(e.target).closest('tr');
-      var id;
-      if (parentRow.attr('id')) {
-        var items = parentRow.attr('id').split('_');
+      var props = this.getProps($(e.target).closest('tr'));
+      App.publish('UnPreviewNotification-' + props.id);
+      return this;
+    },
+
+    getProps: function (ctx) {
+      var id, title;
+      if (ctx.attr('id')) {
+        var items = ctx.attr('id').split('_');
         id = parseInt(items[items.length - 1]);
+        title = ctx.attr('data-title');
       } else {
         id = this.options.vehicleId;
+        title = null;
       }
-      App.publish('UnPreviewNotification-' + id);
-      return this;
+      return { id: id, title: title };
     },
 
   });

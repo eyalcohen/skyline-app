@@ -141,7 +141,8 @@ define(['views/dashItem', 'plot_booter',
           updateMouseTime(time);
           populateLabels(time);
           console.log('Hover at: ' + time * 1e3);
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3]);
+          App.publish('MouseHoverTime-' +
+              self.model.get('vehicleId'), [time * 1e3]);
         })
         .mouseenter(function (e) {
           if (self.model.get('channels').length > 0)
@@ -149,7 +150,7 @@ define(['views/dashItem', 'plot_booter',
         })
         .mouseleave(function (e) {
           if (self.model.get('channels').length > 0) {
-            $('.legendValue', self.el).text('[...]');
+            $('.legendValue', self.el).text('');
             self.mouseTime.hide();
           }
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
