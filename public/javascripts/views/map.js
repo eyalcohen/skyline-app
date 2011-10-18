@@ -57,7 +57,7 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
       // cursor
       this.cursor = new google.maps.Marker({
         map: null,  // Hidden for now.
-        icon: 'http://mapicons.nicolasmollet.com/wp-content/uploads/mapicons/shape-default/color-2e2e2e/shapecolor-color/shadow-1/border-dark/symbolstyle-white/symbolshadowstyle-dark/gradient-no/motorcycle.png',
+        icon: '/images/mapCursorMarker.png',
         zIndex: 1000001,
         clickable: false,
       });
