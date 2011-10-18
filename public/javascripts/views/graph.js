@@ -253,7 +253,7 @@ define(['views/dashItem', 'plot_booter',
           yaxis: channel.yaxisNum,
         });
       });
-      if (self.firstDraw) {
+      if (!self.options.forceTimeRange && self.firstDraw) {
         var mins = [], maxes = [];
         _.each(self.model.get('channels'), function (channel) {
           var data = self.model.get('data')[channel.channelName] || [];
