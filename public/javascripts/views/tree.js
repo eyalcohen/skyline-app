@@ -57,11 +57,10 @@ define(['views/dashItem',
                 fillInternal(child);
               });
               if (top) return;
-              var title = !node.parent ||
-                  node.parent.shortName.indexOf('/') !== -1 ?
-                node.shortName :
-                node.humanName || node.shortName,
-                  metadata = {};
+              var title = node.humanName || node.shortName;
+              if (node.units)
+                title += ' (' + node.units + ')';
+              var metadata = {};
               _.each(node, function (val, key) {
                 if (_.isString(val)) {
                   metadata[key] = val;
@@ -228,7 +227,7 @@ define(['views/dashItem',
         var graphId = data.r.parent().parent().data('id');
         var yaxisNum = data.r.data('axis.n');
         var channel = JSON.parse(data.o.parent().attr('data-channel'));
-        data.o.siblings().click();
+        $('.label-closer', data.o.parent().parent().parent()).click();
         self.showChannel(channel.channelName);
         channel.yaxisNum = yaxisNum;
         App.publish('ChannelRequested-' +

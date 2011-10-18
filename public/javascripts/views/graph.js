@@ -31,11 +31,11 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
       this._super('render', fn);
+      this.draw();
     },
 
     createPlot: function () {
       var self = this;
-      self.render(); // Why is this necessary?
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
@@ -87,12 +87,6 @@ define(['views/dashItem', 'plot_booter',
           margin: [40, 0],
           oneperyaxis: true,
           labelFormatter: function(label, series) {
-            // return "<div data-channel='" + JSON.stringify(series.channel) + "' "+
-            //     'data-channel-name="' + series.channel.channelName + '">'+
-            //     '<span class="jstree-draggable" style="cursor:pointer">'+
-            //     label + '</span><span class="label-value"></span>'+
-            //     '&nbsp;&nbsp;&nbsp;<a href="javascript:;"'+
-            //     'class="label-closer">X</a></div>';
             return "<div data-channel='" + JSON.stringify(series.channel) + "' "+
                 'data-channel-name="' + series.channel.channelName + '">'+
                 '<span class="jstree-draggable" style="cursor:pointer">'+
@@ -129,7 +123,7 @@ define(['views/dashItem', 'plot_booter',
       });
 
       function bindEventsHook(plot, eventHolder) {
-        eventHolder.mousemove(function (e) {
+        plot.getPlaceholder().mousemove(function (e) {
           if (self.model.get('channels').length === 0) return;
           var mouseX = e.pageX - parseInt(plot.offset().left);
           var xaxis = plot.getXAxes()[0];
@@ -138,12 +132,6 @@ define(['views/dashItem', 'plot_booter',
           populateLabels(time);
           console.log('Hover at: ' + time * 1e3);
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3]);
-          // var pageX = pos.pageX - parseInt(plot.offset().left);
-          // var mouseTimeWidth = self.mouseTime.outerWidth();
-          // var left = pageX > plot.width() - mouseTimeWidth ?
-          //     pageX - mouseTimeWidth + 'px' :
-          //     pageX + 'px';
-          // self.mouseTime.css({ left: left });
         })
         .mouseenter(function (e) {
           if (self.model.get('channels').length > 0)
@@ -171,15 +159,13 @@ define(['views/dashItem', 'plot_booter',
           var label = $('.legendValue', labelSibling.parent().parent());
           var valueHTML = '[...]';
           if (time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
-            var deltas = _.map(series.data, function (pnt) {
-              return (pnt === null) ? Infinity : Math.abs(time - pnt[0]);
+            var hoveredPnt = _.detect(series.data, function(p, i) {
+              var prev = series.data[i-1];
+              return prev && p && prev[0] <= time && time < p[0] && p;
             });
-            var minDelta = _.min(deltas);
-            var minIndex = deltas.indexOf(minDelta);
-            if (minIndex !== -1) {
-              var hoveredPnt = series.data[minIndex];
-              valueHTML = '[' + parseFloat(self.addCommas(hoveredPnt[1])).toFixed(2) + ']';
-            }
+            if (hoveredPnt)
+              valueHTML = '[' + parseFloat(self.addCommas(
+                    hoveredPnt[1])).toFixed(2) + ']';
           }
           label.html(valueHTML);
         });
@@ -210,7 +196,11 @@ define(['views/dashItem', 'plot_booter',
         self.firstDraw = true;
         self.createPlot();
       }
-      if (self.model.get('channels').length > 0) {
+      if (self.model.get('channels').length === 0) {
+        $('<div><span>Drop data channels here to display.</span></div>')
+            .addClass('empty-graph').appendTo(self.content);
+        self.plot.getOptions().crosshair.mode = null;
+      } else {
         var emptyDiv = $('.empty-graph', self.content);
         if (emptyDiv.length > 0) {
           emptyDiv.remove();
@@ -241,9 +231,7 @@ define(['views/dashItem', 'plot_booter',
             fill: false,
           },
           data: data,
-          label: channel.units ?
-              channel.title + ' (' + channel.units + ')' :
-              channel.title,
+          label: channel.title,
           xaxis: 1,
           yaxis: channel.yaxisNum,
           channel: channel,
@@ -306,12 +294,19 @@ define(['views/dashItem', 'plot_booter',
       // TODO: this is ugly, and probably slow.
       this.plot.getData().forEach(function(series) {
         var max = series.yaxis.datamax, min = series.yaxis.datamin;
+        var prevTime = null;
         series.data.forEach(function(p) {
-          if (p && p[0] >= xmin && p[0] <= xmax) {
+          if (p && prevTime && p[0] >= xmin && prevTime <= xmax) {
             max = Math.max(max, p[1]);
             min = Math.min(min, p[2] == null ? p[1] : p[2]);
           }
+          prevTime = p && p[0];
         });
+        if (!(isFinite(min) && isFinite(max))) {
+          min = 0; max = 1;
+        } else if (min == max) {
+          min -= 0.5; max += 0.5;
+        }
         series.yaxis.datamax = max;
         series.yaxis.datamin = min;
       });
@@ -509,15 +504,8 @@ define(['views/dashItem', 'plot_booter',
     removeChannel: function (e) {
       var labelParent = $(e.target).parent().parent();
       var label = $('.legendLabel > div', labelParent);
-      console.log(label);
       var channel = JSON.parse(label.attr('data-channel'));
       this.trigger('ChannelUnrequested', channel);
-      if (this.model.get('channels').length === 0) {
-        $('<div><span>Drop data channels here to display.</span></div>')
-            .addClass('empty-graph').appendTo(this.content);
-        this.plot.getOptions().crosshair.mode = null;
-        this.plot.triggerRedrawOverlay();
-      }
     },
 
     addGraphFromParent: function (e) {
