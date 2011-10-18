@@ -304,12 +304,19 @@ define(['views/dashItem', 'plot_booter',
       // TODO: this is ugly, and probably slow.
       this.plot.getData().forEach(function(series) {
         var max = series.yaxis.datamax, min = series.yaxis.datamin;
+        var prevTime = null;
         series.data.forEach(function(p) {
-          if (p && p[0] >= xmin && p[0] <= xmax) {
+          if (p && prevTime && p[0] >= xmin && prevTime <= xmax) {
             max = Math.max(max, p[1]);
             min = Math.min(min, p[2] == null ? p[1] : p[2]);
           }
+          prevTime = p && p[0];
         });
+        if (!(isFinite(min) && isFinite(max))) {
+          min = 0; max = 1;
+        } else if (min == max) {
+          min -= 0.5; max += 0.5;
+        }
         series.yaxis.datamax = max;
         series.yaxis.datamin = min;
       });
