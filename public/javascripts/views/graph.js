@@ -31,11 +31,11 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
       this._super('render', fn);
+      this.draw();
     },
 
     createPlot: function () {
       var self = this;
-      self.render(); // Why is this necessary?
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
@@ -205,7 +205,12 @@ define(['views/dashItem', 'plot_booter',
         self.firstDraw = true;
         self.createPlot();
       }
-      if (self.model.get('channels').length > 0) {
+      if (self.model.get('channels').length === 0) {
+        $('<div><span>Drop data channels here to display.</span></div>')
+            .addClass('empty-graph').appendTo(self.content);
+        self.plot.getOptions().crosshair.mode = null;
+        //self.plot.triggerRedrawOverlay();
+      } else {
         var emptyDiv = $('.empty-graph', self.content);
         if (emptyDiv.length > 0) {
           emptyDiv.remove();
@@ -502,12 +507,6 @@ define(['views/dashItem', 'plot_booter',
     removeChannel: function (e) {
       var channel = JSON.parse($(e.target).parent().attr('data-channel'));
       this.trigger('ChannelUnrequested', channel);
-      if (this.model.get('channels').length === 0) {
-        $('<div><span>Drop data channels here to display.</span></div>')
-            .addClass('empty-graph').appendTo(this.content);
-        this.plot.getOptions().crosshair.mode = null;
-        this.plot.triggerRedrawOverlay();
-      }
     },
 
     addGraphFromParent: function (e) {

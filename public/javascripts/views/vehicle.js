@@ -6,7 +6,6 @@ define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
-      _.bindAll(this, 'addGraph');
       return this;
     },
 
@@ -69,17 +68,12 @@ define(['views/folderItem'], function (FolderItemView) {
     },
 
     hookGraphControls: function (graph, index) {
-      var self = this;
       _.extend(graph, Backbone.Events);
       graph.view.bind('channelRemoved',
-          _.bind(self.checkChannelExistence, self));
-      graph.view.bind('addGraph', function () {
-        self.addGraph(index);
-      });
-      graph.view.bind('removeGraph', function () {
-        self.removeGraph(index);
-      });
-      return self;
+          _.bind(this.checkChannelExistence, this));
+      graph.view.bind('addGraph', _.bind(this.addGraph, this, index));
+      graph.view.bind('removeGraph', _.bind(this.removeGraph, this, index));
+      return this;
     },
 
     unhookGraphControls: function (g) {
@@ -108,8 +102,8 @@ define(['views/folderItem'], function (FolderItemView) {
       self.hookGraphControls(graph, self.graphModels.length - 1);
       self.arrangeGraphs();
       App.publish('WindowResize');
-      var channel = App.store.get('defaultChannel-' + self.vehicleId);
-      graph.addChannel(channel);
+      // var channel = App.store.get('defaultChannel-' + self.vehicleId);
+      // graph.addChannel(channel);
     },
 
     removeGraph: function (index) {
