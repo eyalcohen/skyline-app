@@ -116,6 +116,7 @@ define(['views/dashItem', 'plot_booter',
           bindEvents: [bindEventsHook],
         },
       });
+      self.plot.lockCrosshair();  // Disable default crosshair movement.
 
       $('.graph', self.content).data({
         plot: self.plot,
@@ -124,64 +125,18 @@ define(['views/dashItem', 'plot_booter',
 
       function bindEventsHook(plot, eventHolder) {
         plot.getPlaceholder().mousemove(function (e) {
-          if (self.model.get('channels').length === 0) return;
+          // if (self.model.get('channels').length === 0) return;
           var mouseX = e.pageX - parseInt(plot.offset().left);
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouseX);
-          updateMouseTime(time);
-          populateLabels(time);
-          console.log('Hover at: ' + time * 1e3);
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3]);
         })
         .mouseenter(function (e) {
-          if (self.model.get('channels').length > 0)
-            self.mouseTime.show();
         })
         .mouseleave(function (e) {
-          if (self.model.get('channels').length > 0)
-            self.mouseTime.hide();
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
         });
       };
-
-      function updateMouseTime(time) {
-        self.mouseTimeTxt.text(new Date(Math.round(time)).toString());
-      }
-      
-      function populateLabels(time) {
-        // TODO: clean up labels - pass full html as flot option
-        // and remove flot hackery.
-        $('.legendValue', self.el).text('');
-        _.each(self.plot.getData(), function (series) {
-          if (!series.channel) return;
-          var labelSibling = $('.legendLabel > div[data-channel-name="'+
-              series.channel.channelName+'"]', self.el);
-          var label = $('.legendValue', labelSibling.parent().parent());
-          var valueHTML = '';
-          if (time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
-            var hoveredPnt = _.detect(series.data, function(p, i) {
-              var prev = series.data[i-1];
-              return prev && p && prev[0] <= time && time < p[0] && p;
-            });
-            if (hoveredPnt) {
-              var v = hoveredPnt[1];
-              if (Math.abs(Math.round(v)) >= 1e6)
-                v = v.toFixed(0);
-              else {
-                // Limit to 6 digits of precision (converting very small numbers
-                // to e.g. '1.23400e-8'), strip zeros trailing the decimal
-                // point, and strip the decimal point itself if necessary.
-                // JavaScript number formatting sucks!
-                v = v.toPrecision(6).
-                    replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
-                    replace(/\.([Ee][0-9-]*)?$/, '$1');
-              }
-              valueHTML = self.addCommas(v);
-            }
-          }
-          label.html(valueHTML);
-        });
-      }
 
       function weekendAreas(axes) {
         var markings = [];
@@ -357,6 +312,59 @@ define(['views/dashItem', 'plot_booter',
         this.plot.setupGrid();  // Necessary?
         this.plot.draw();
       }
+    },
+
+    updateMouseTime: function(time) {
+      var self = this;
+      if (time != null)
+        time = time / 1e3;
+
+      if (time == null)
+        self.plot.clearCrosshair();
+      else
+        self.plot.setCrosshair({x: time});
+
+      if (time != null) {
+        self.mouseTime.show();
+        // TODO: finer than 1 second granularity.
+        self.mouseTimeTxt.text(new Date(Math.round(time)).toString());
+      } else {
+        self.mouseTime.hide();
+      }
+
+      // TODO: clean up labels - pass full html as flot option
+      // and remove flot hackery.
+      $('.legendValue', self.el).text('');
+      _.each(self.plot.getData(), function (series) {
+        if (!series.channel) return;
+        var labelSibling = $('.legendLabel > div[data-channel-name="'+
+            series.channel.channelName+'"]', self.el);
+        var label = $('.legendValue', labelSibling.parent().parent());
+        var valueHTML = '';
+        if (time != null &&
+            time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
+          var hoveredPnt = _.detect(series.data, function(p, i) {
+            var prev = series.data[i-1];
+            return prev && p && prev[0] <= time && time < p[0] && p;
+          });
+          if (hoveredPnt) {
+            var v = hoveredPnt[1];
+            if (Math.abs(Math.round(v)) >= 1e6)
+              v = v.toFixed(0);
+            else {
+              // Limit to 6 digits of precision (converting very small numbers
+              // to e.g. '1.23400e-8'), strip zeros trailing the decimal
+              // point, and strip the decimal point itself if necessary.
+              // JavaScript number formatting sucks!
+              v = v.toPrecision(6).
+                  replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+                  replace(/\.([Ee][0-9-]*)?$/, '$1');
+            }
+            valueHTML = self.addCommas(v);
+          }
+        }
+        label.html(valueHTML);
+      });
     },
 
     addYaxesBoundsForDrops: function () {
