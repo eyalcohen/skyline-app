@@ -51,12 +51,13 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
           new google.maps.Map($('.map', this.content).get(0), options);
       // map.mapTypes.set('grayscale',
       //     new google.maps.StyledMapType(style.stylez, style.styledOptions));
-      map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+      //map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+      map.setMapTypeId(google.maps.MapTypeId.HYBRID);
 
       // cursor
       this.cursor = new google.maps.Marker({
         map: null,  // Hidden for now.
-        icon: 'http://google-maps-icons.googlecode.com/files/car.png',
+        icon: 'http://mapicons.nicolasmollet.com/wp-content/uploads/mapicons/shape-default/color-2e2e2e/shapecolor-color/shadow-1/border-dark/symbolstyle-white/symbolshadowstyle-dark/gradient-no/motorcycle.png',
         zIndex: 1000001,
         clickable: false,
       });
@@ -308,7 +309,7 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
 
       // TODO: should we avoid changing the map bounds if the user has dragged
       // the map?
-      if (this.visibleGeometry &&
+      if (!options.noPointsChange && this.visibleGeometry &&
             !this.visibleGeometry.bounds.isEmpty()) {
         this.mapBounds = this.visibleGeometry.bounds;
         map.fitBounds(this.mapBounds);
