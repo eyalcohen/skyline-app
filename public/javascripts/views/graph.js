@@ -8,11 +8,22 @@ define(['views/dashItem', 'plot_booter',
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
-      _.bindAll(this, 'destroy', 'showNotification', 'hideNotification');
-      App.subscribe('PreviewNotification-' + args.vehicleId,
-          this.showNotification);
-      App.subscribe('UnPreviewNotification-' + args.vehicleId,
-          this.hideNotification);
+      _.bindAll(this, 'destroy', 'showNotification', 'hideNotification',
+                'mouseHoverTime');
+      var vehicleId = args.vehicleId;
+      App.subscribe('PreviewNotification-' + vehicleId, this.showNotification);
+      App.subscribe('UnPreviewNotification-'+vehicleId, this.hideNotification);
+      App.subscribe('MouseHoverTime-' + vehicleId, this.mouseHoverTime);
+    },
+
+    destroy: function () {
+      this._super('destroy');
+      var vehicleId = this.options.vehicleId;
+      App.unsubscribe('PreviewNotification-' + vehicleId,
+                      this.showNotification);
+      App.unsubscribe('UnPreviewNotification-' + vehicleId,
+                      this.hideNotification);
+      App.unsubscribe('MouseHoverTime-' + vehicleId, this.mouseHoverTime);
     },
 
     events: {
@@ -324,7 +335,7 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    updateMouseTime: function(time) {
+    mouseHoverTime: function(time) {
       var self = this;
       if (time != null)
         time = time / 1e3;
@@ -568,14 +579,6 @@ define(['views/dashItem', 'plot_booter',
 
     removeGraphFromParent: function (e) {
       this.trigger('removeGraph');
-    },
-
-    destroy: function () {
-      this._super('destroy');
-      App.unsubscribe('PreviewNotification-' + this.options.vehicleId,
-          this.showNotification);
-      App.unsubscribe('UnPreviewNotification-' + this.options.vehicleId,
-          this.hideNotification);
     },
 
   });
