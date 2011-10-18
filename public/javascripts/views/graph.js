@@ -157,15 +157,27 @@ define(['views/dashItem', 'plot_booter',
           var labelSibling = $('.legendLabel > div[data-channel-name="'+
               series.channel.channelName+'"]', self.el);
           var label = $('.legendValue', labelSibling.parent().parent());
-          var valueHTML = '[...]';
+          var valueHTML = '';
           if (time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
             var hoveredPnt = _.detect(series.data, function(p, i) {
               var prev = series.data[i-1];
               return prev && p && prev[0] <= time && time < p[0] && p;
             });
-            if (hoveredPnt)
-              valueHTML = '[' + parseFloat(self.addCommas(
-                    hoveredPnt[1])).toFixed(2) + ']';
+            if (hoveredPnt) {
+              var v = hoveredPnt[1];
+              if (Math.abs(Math.round(v)) >= 1e6)
+                v = v.toFixed(0);
+              else {
+                // Limit to 6 digits of precision (converting very small numbers
+                // to e.g. '1.23400e-8'), strip zeros trailing the decimal
+                // point, and strip the decimal point itself if necessary.
+                // JavaScript number formatting sucks!
+                v = v.toPrecision(6).
+                    replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+                    replace(/\.([Ee][0-9-]*)?$/, '$1');
+              }
+              valueHTML = self.addCommas(v);
+            }
           }
           label.html(valueHTML);
         });

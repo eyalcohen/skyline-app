@@ -309,7 +309,7 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
 
       // TODO: should we avoid changing the map bounds if the user has dragged
       // the map?
-      if (this.visibleGeometry &&
+      if (!options.noPointsChange && this.visibleGeometry &&
             !this.visibleGeometry.bounds.isEmpty()) {
         this.mapBounds = this.visibleGeometry.bounds;
         map.fitBounds(this.mapBounds);
