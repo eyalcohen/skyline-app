@@ -16,47 +16,43 @@ define(function () {
         beg: null, end: null, // Viewed time range.
       });
       self.colorCnt = 0;
-      self.clientId = args.vehicleId + '-graph-' + args.id;
+      var vehicleId = args.vehicleId;
+      self.clientId = vehicleId + '-graph-' + args.id;
       self.view.render();
       _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
-          'addChannel', 'removeChannel', 'updateSampleSet');
-      App.subscribe('HideVehicle-' + args.vehicleId, this.destroy);
-      App.subscribe('VisibleTimeChange-' + args.vehicleId,
-          self.changeVisibleTime);
-      App.subscribe('ChannelRequested-' + args.vehicleId + '-' + args.id,
+          'mouseHoverTime', 'addChannel', 'removeChannel', 'updateSampleSet');
+      App.subscribe('HideVehicle-' + vehicleId, self.destroy);
+      App.subscribe('VisibleTimeChange-' + vehicleId, self.changeVisibleTime);
+      App.subscribe('MouseHoverTime-' + vehicleId, self.mouseHoverTime);
+      App.subscribe('ChannelRequested-' + vehicleId + '-' + args.id,
           self.addChannel);
       if (args.master)
-        App.subscribe('ChannelRequested-' + args.vehicleId,
-            self.addChannel);
-      App.subscribe('ChannelUnrequested-' + args.vehicleId,
-          self.removeChannel);
+        App.subscribe('ChannelRequested-' + vehicleId, self.addChannel);
+      App.subscribe('ChannelUnrequested-' + vehicleId, self.removeChannel);
       App.sampleCache.bind('update-' + self.clientId,
           self.updateSampleSet);
       self.view.bind('ChannelUnrequested', self.removeChannel);
       self.view.bind('VisibleTimeChange', function (beg, end) {
         self.updateCacheSubscription();
-        App.publish('VisibleTimeChange-' + args.vehicleId, [beg, end]);
+        App.publish('VisibleTimeChange-' + vehicleId, [beg, end]);
       });
       self.view.bind('VisibleWidthChange', self.updateCacheSubscription);
       return self;
     },
 
     destroy: function () {
-      App.unsubscribe('HideVehicle-' + this.get('vehicleId'),
-          this.destroy);
-      App.unsubscribe('VisibleTimeChange-'+
-          this.get('vehicleId'), this.changeVisibleTime);
-      App.unsubscribe('ChannelRequested-'+
-          this.get('vehicleId') + '-' + this.get('id'), this.addChannel);
-      if (this.get('master'))
-        App.unsubscribe('ChannelRequested-' + this.get('vehicleId'),
-            this.addChannel);
-      App.unsubscribe('ChannelUnrequested-'+
-          this.get('vehicleId'), this.removeChannel);
-      App.sampleCache.unbind('update-'+
-          this.clientId, this.updateSampleSet);
-      App.sampleCache.endClient(this.clientId);
-      this.view.destroy();
+      var self = this, vehicleId = self.get('vehicleId');
+      App.unsubscribe('HideVehicle-' + vehicleId, self.destroy);
+      App.unsubscribe('VisibleTimeChange-'+ vehicleId, self.changeVisibleTime);
+      App.unsubscribe('MouseHoverTime-' + vehicleId, self.mouseHoverTime);
+      App.unsubscribe('ChannelRequested-'+ vehicleId + '-' + self.get('id'),
+                      self.addChannel);
+      if (self.get('master'))
+        App.unsubscribe('ChannelRequested-' + vehicleId, self.addChannel);
+      App.unsubscribe('ChannelUnrequested-' + vehicleId, self.removeChannel);
+      App.sampleCache.unbind('update-' + self.clientId, self.updateSampleSet);
+      App.sampleCache.endClient(self.clientId);
+      self.view.destroy();
     },
 
     updateCacheSubscription: function () {
@@ -94,6 +90,10 @@ define(function () {
 
     changeVisibleTime: function (beg, end) {
       this.view.setVisibleTime(beg, end);
+    },
+
+    mouseHoverTime: function(time) {
+      this.view.updateMouseTime(time);
     },
 
     addChannel: function (channels) {
