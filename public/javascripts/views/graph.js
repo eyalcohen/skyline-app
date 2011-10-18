@@ -146,13 +146,10 @@ define(['views/dashItem', 'plot_booter',
 
       function bindEventsHook(plot, eventHolder) {
         plot.getPlaceholder().mousemove(function (e) {
-          // if (self.model.get('channels').length === 0) return;
           var mouseX = e.pageX - parseInt(plot.offset().left);
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouseX);
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3]);
-        })
-        .mouseenter(function (e) {
         })
         .mouseleave(function (e) {
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
