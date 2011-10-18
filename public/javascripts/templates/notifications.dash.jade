@@ -32,7 +32,7 @@
         tbody
           - rows.forEach(function (row, i) {
           -  row = row.attributes;
-          -  var title = row.vehicle ? row.vehicle.year+"/"+row.vehicle.make+"/"+row.vehicle.model : 'inherit'
+          -  var title = row.vehicle ? row.vehicle.year+" "+row.vehicle.make+" "+row.vehicle.model+(row.vehicle.name?" "+row.vehicle.name:"") : 'inherit'
             tr(id=row.htmlId, class=['dark','light'][i%2], data-title=title)
               td(width="16")
                 img(src=row.icon)
@@ -40,7 +40,7 @@
                 =row.desc
               - if (!singleVehicle) {
               td
-                =row.vehicle.year + '/' + row.vehicle.make + '/' + row.vehicle.model
+                =row.vehicle.year+" "+row.vehicle.make+" "+row.vehicle.model+(row.vehicle.name?" "+row.vehicle.name:"")
               - }
               td(style="font-style:italic;")
                 =row.note
