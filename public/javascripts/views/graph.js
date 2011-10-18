@@ -458,28 +458,27 @@ define(['views/dashItem', 'plot_booter',
 
     showNotification: function (range) {
       var xaxis = this.plot.getXAxes()[0];
-      var leftSide = xaxis.p2c(range.min);
-      var rightSide = xaxis.p2c(range.max);
+      var leftSide = Math.max(xaxis.p2c(range.min), 0);
+      var rightSide = Math.min(xaxis.p2c(range.max), this.plot.width());
       this.notificationPreview.css({
         left: leftSide + 'px',
         width: rightSide - leftSide + 'px',
       }).show();
-      // this.center((range.min + range.max) / 2);
     },
 
     hideNotification: function () {
       this.notificationPreview.hide();
     },
 
-    center: function (time) {
-      var currentCenterTime = this.plot.getOptions().xaxis.max -
-          this.plot.getOptions().xaxis.min;
-      var timeShift = time - currentCenterTime;
-      var min = this.plot.getOptions().xaxis.min - timeShift;
-      var max = this.plot.getOptions().xaxis.max - timeShift;
-      App.publish('VisibleTimeChange-' + this.options.vehicleId,
-          [min * 1e3, max * 1e3]);
-    },
+    // center: function (time) {
+    //   var currentCenterTime = this.plot.getOptions().xaxis.max -
+    //       this.plot.getOptions().xaxis.min;
+    //   var timeShift = time - currentCenterTime;
+    //   var min = this.plot.getOptions().xaxis.min - timeShift;
+    //   var max = this.plot.getOptions().xaxis.max - timeShift;
+    //   App.publish('VisibleTimeChange-' + this.options.vehicleId,
+    //       [min * 1e3, max * 1e3]);
+    // },
 
     exportCsv: function (e) {
       var self = this;
