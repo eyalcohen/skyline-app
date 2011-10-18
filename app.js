@@ -872,6 +872,7 @@ app.put('/cycle', function (req, res) {
 
       // save the cycle locally for now
       var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
+          (veh.name ? veh.name + '.' : '') +
           (new Date()).valueOf() + '.js';
       var cycleJson = JSON.stringify(cycle);
       fs.mkdir(__dirname + '/cycles', '0755', function (err) {

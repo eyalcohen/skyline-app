@@ -124,6 +124,7 @@ function defineModels(mongoose, fn) {
       _id     : Number
     , make    : String
     , model   : String
+    , name    : String
     , year    : { type: String, index: true }
     , user_id : ObjectId
     , created : { type: Date, default: Date.now }
