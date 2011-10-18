@@ -1090,7 +1090,7 @@ div.preferences {
 }
 
 .legend > table {
-  width: 200px;
+  width: auto;
   background: rgba(255,255,255,0.9);
   z-index: 10001;
 
@@ -1119,12 +1119,18 @@ div.preferences {
 }
 
 .legendLabel {
-  width: 200px;
+  /*width: 200px;*/
 }
 
 .legendLabel span {
   white-space: nowrap;
   color: #333;
+}
+
+.legendValue {
+  width: 100px;
+  font-weight: normal !important;
+  color: black;
 }
 
 a.label-closer {
@@ -1138,6 +1144,10 @@ a.label-closer:hover {
 
 .legendColorBox {
   width: 18px;
+}
+
+.axisTarget {
+  cursor: crosshair;
 }
 
 .tree a {

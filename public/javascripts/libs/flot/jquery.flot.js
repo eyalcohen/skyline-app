@@ -2285,7 +2285,9 @@
 
                 fragments.push(
                     '<td class="legendColorBox"><div style="border:1px solid ' + options.legend.labelBoxBorderColor + ';padding:1px"><div style="width:4px;height:0;border:5px solid ' + s.color + ';overflow:hidden"></div></div></td>' +
-                    '<td class="legendLabel">' + label + '</td>');
+                    '<td class="legendLabel">' + label + '</td>'+
+                    '<td class="legendValue">[...]</td>'+
+                    '<td><a href="javascript:;" class="label-closer">X</a></td>');
             }
             if (rowStarted)
                 fragments.push('</tr>');

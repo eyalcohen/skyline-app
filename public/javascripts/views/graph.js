@@ -42,7 +42,7 @@ define(['views/dashItem', 'plot_booter',
           position: 'bottom',
           min: self.options.timeRange.min,
           max: self.options.timeRange.max,
-          tickColor: '#ddd',
+          tickColor: '#f0f0f0',
           labelsInside: true,
         },
         yaxis: {
@@ -50,7 +50,7 @@ define(['views/dashItem', 'plot_booter',
           labelWidth: 0,
           zoomRange: false,
           panRange: false,
-          tickColor: '#ddd',
+          tickColor: '#f0f0f0',
           labelsInside: true,
         },
         yaxes: [
@@ -67,14 +67,14 @@ define(['views/dashItem', 'plot_booter',
           markings: weekendAreas,
           backgroundColor: null,
           borderWidth: 0,
-          borderColor: '#444',
+          borderColor: null,
           clickable: false,
           hoverable: false,
           autoHighlight: false,
           minBorderMargin: 0,
           fullSize: true,
         },
-        crosshair: { mode: 'xy' },
+        crosshair: { mode: 'x' },
         zoom: {
           interactive: true,
           amount: 1.25,
@@ -87,12 +87,16 @@ define(['views/dashItem', 'plot_booter',
           margin: [40, 0],
           oneperyaxis: true,
           labelFormatter: function(label, series) {
+            // return "<div data-channel='" + JSON.stringify(series.channel) + "' "+
+            //     'data-channel-name="' + series.channel.channelName + '">'+
+            //     '<span class="jstree-draggable" style="cursor:pointer">'+
+            //     label + '</span><span class="label-value"></span>'+
+            //     '&nbsp;&nbsp;&nbsp;<a href="javascript:;"'+
+            //     'class="label-closer">X</a></div>';
             return "<div data-channel='" + JSON.stringify(series.channel) + "' "+
                 'data-channel-name="' + series.channel.channelName + '">'+
                 '<span class="jstree-draggable" style="cursor:pointer">'+
-                label + '</span><span class="label-value"></span>'+
-                '&nbsp;&nbsp;&nbsp;<a href="javascript:;"'+
-                'class="label-closer">X</a></div>';
+                label + '</span></div>';
           },
         },
         colors: [
@@ -132,9 +136,8 @@ define(['views/dashItem', 'plot_booter',
           var time = xaxis.c2p(mouseX);
           updateMouseTime(time);
           populateLabels(time);
-          time *= 1e3;
-          console.log('Hover at: ' + time);
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time]);
+          console.log('Hover at: ' + time * 1e3);
+          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3]);
           // var pageX = pos.pageX - parseInt(plot.offset().left);
           // var mouseTimeWidth = self.mouseTime.outerWidth();
           // var left = pageX > plot.width() - mouseTimeWidth ?
@@ -158,26 +161,25 @@ define(['views/dashItem', 'plot_booter',
       }
       
       function populateLabels(time) {
-        $('.legendLabel > div > span.label-value', self.el).text('');
+        // TODO: clean up labels - pass full html as flot option
+        // and remove flot hackery.
+        $('.legendValue', self.el).text('');
         _.each(self.plot.getData(), function (series) {
           if (!series.channel) return;
-          var label = $('.legendLabel > div[data-channel-name="'+
-              series.channel.channelName+'"] > span.label-value', self.el);
-          var valueHTML;
-          if (time < series.xaxis.min || time > series.xaxis.max) {
-            valueHTML = '';
-            return;
-          }
-          var deltas = _.map(series.data, function (pnt) {
-            return (pnt === null) ? Infinity : Math.abs(time - pnt[0]);
-          });
-          var minDelta = _.min(deltas);
-          var minIndex = deltas.indexOf(minDelta);
-          if (minIndex !== -1) {
-            var hoveredPnt = series.data[minIndex];
-            valueHTML = '&nbsp;&nbsp;[' + self.addCommas(hoveredPnt[1]) + ']';
-          } else {
-            valueHTML = '[]';
+          var labelSibling = $('.legendLabel > div[data-channel-name="'+
+              series.channel.channelName+'"]', self.el);
+          var label = $('.legendValue', labelSibling.parent().parent());
+          var valueHTML = '[...]';
+          if (time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
+            var deltas = _.map(series.data, function (pnt) {
+              return (pnt === null) ? Infinity : Math.abs(time - pnt[0]);
+            });
+            var minDelta = _.min(deltas);
+            var minIndex = deltas.indexOf(minDelta);
+            if (minIndex !== -1) {
+              var hoveredPnt = series.data[minIndex];
+              valueHTML = '[' + parseFloat(self.addCommas(hoveredPnt[1])).toFixed(2) + ']';
+            }
           }
           label.html(valueHTML);
         });
@@ -192,7 +194,10 @@ define(['views/dashItem', 'plot_booter',
         d.setUTCHours(0);
         var i = d.getTime();
         do {
-          markings.push({ xaxis: { from: i, to: i + 2*24*60*60*1000 }, color: '#fcfcfc' });
+          markings.push({
+            xaxis: { from: i, to: i + 2*24*60*60*1000 },
+            color: '#fcfcfc',
+          });
           i += 7 * 24 * 60 * 60 * 1000;
         } while (i < axes.xaxis.max);
         return markings;
@@ -209,7 +214,7 @@ define(['views/dashItem', 'plot_booter',
         var emptyDiv = $('.empty-graph', self.content);
         if (emptyDiv.length > 0) {
           emptyDiv.remove();
-          self.plot.getOptions().crosshair.mode = 'xy';
+          self.plot.getOptions().crosshair.mode = 'x';
         }
       }
       var opts = self.plot.getOptions();
@@ -502,7 +507,10 @@ define(['views/dashItem', 'plot_booter',
     },
 
     removeChannel: function (e) {
-      var channel = JSON.parse($(e.target).parent().attr('data-channel'));
+      var labelParent = $(e.target).parent().parent();
+      var label = $('.legendLabel > div', labelParent);
+      console.log(label);
+      var channel = JSON.parse(label.attr('data-channel'));
       this.trigger('ChannelUnrequested', channel);
       if (this.model.get('channels').length === 0) {
         $('<div><span>Drop data channels here to display.</span></div>')
