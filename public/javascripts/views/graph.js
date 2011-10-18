@@ -168,13 +168,11 @@ define(['views/dashItem', 'plot_booter',
             valueHTML = '';
             return;
           }
-          var deltas = _.map(series.data, function (pnt) {
-            return (pnt === null) ? Infinity : Math.abs(time - pnt[0]);
+          var hoveredPnt = _.detect(series.data, function(p, i) {
+            var prev = series.data[i-1];
+            return prev && p && prev[0] <= time && time < p[0] && p;
           });
-          var minDelta = _.min(deltas);
-          var minIndex = deltas.indexOf(minDelta);
-          if (minIndex !== -1) {
-            var hoveredPnt = series.data[minIndex];
+          if (hoveredPnt) {
             valueHTML = '&nbsp;&nbsp;[' + self.addCommas(hoveredPnt[1]) + ']';
           } else {
             valueHTML = '[]';
