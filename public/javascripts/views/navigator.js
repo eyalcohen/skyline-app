@@ -8,7 +8,7 @@ define(['views/dashItem', 'plot_booter'],
     initialize: function (args) {
       this._super('initialize');
       _.bindAll(this, 'destroy', 'drawWindow', 'moveWindow', 'hoverWindow',
-          'wheelWindow', 'hookScale', 'plotDrawHook');
+          'wheelWindow', 'hookScale', 'plotDrawHook', 'preview');
       App.subscribe('HideVehicle-' + args.vehicleId, this.destroy);
       App.subscribe('VisibleTimeChange-' + args.vehicleId, this.drawWindow);
     },
@@ -18,6 +18,7 @@ define(['views/dashItem', 'plot_booter'],
       'mousedown .navigator-window': 'moveWindow',
       'mousemove .navigator-window': 'hoverWindow',
       'mousewheel .navigator-window': 'wheelWindow',
+      'mouseenter .timeline-icon': 'preview',
     },
 
     render: function (opts) {
@@ -134,7 +135,6 @@ define(['views/dashItem', 'plot_booter'],
               .addClass('timeline-icon')
               .appendTo(holder);
         });
-        // FIXME: only zooms in when hovering img and wheeling
         $('img', holder).bind('mousedown, DOMMouseScroll, '+
             'mousewheel', function (e) {
           if (e.preventDefault) e.preventDefault();
@@ -144,7 +144,9 @@ define(['views/dashItem', 'plot_booter'],
           if (receiver.nodeType == 3) { // Opera
             receiver = receiver.parentNode;
           }
-          $(receiver).trigger(e);
+          var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
+              ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
+          $(receiver).trigger(e, [delta]);
           $this.show();
         });
       }
@@ -307,6 +309,10 @@ define(['views/dashItem', 'plot_booter'],
       var xopts = this.plot.getAxes().xaxis.options;
       return { beg: xopts.min * 1000, end: xopts.max * 1000,
                width: this.plot.width() };
+    },
+
+    preview: function (e) {
+      // console.log(e);
     },
 
     destroy: function () {
