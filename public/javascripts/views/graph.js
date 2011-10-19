@@ -51,6 +51,7 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
       this.notificationPreview = $('.notification-preview', this.el);
+      this.minHoverDistance = 10;
       this._super('render', fn);
       this.draw();
     },
@@ -146,10 +147,13 @@ define(['views/dashItem', 'plot_booter',
 
       function bindEventsHook(plot, eventHolder) {
         plot.getPlaceholder().mousemove(function (e) {
-          var mouseX = e.pageX - parseInt(plot.offset().left);
+          var mouse = {
+            x: e.pageX - parseInt(plot.offset().left),
+            y: e.pageY - parseInt(plot.offset().top),
+          };
           var xaxis = plot.getXAxes()[0];
-          var time = xaxis.c2p(mouseX);
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3]);
+          var time = xaxis.c2p(mouse.x);
+          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3, mouse]);
         })
         .mouseleave(function (e) {
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
@@ -307,7 +311,7 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    mouseHoverTime: function(time) {
+    mouseHoverTime: function(time, mouse) {
       var self = this;
       if (time != null)
         time = time / 1e3;
@@ -327,11 +331,18 @@ define(['views/dashItem', 'plot_booter',
 
       // TODO: clean up labels - pass full html as flot option
       // and remove flot hackery.
+      if (self.closestSeriesLabel) {
+        self.closestSeriesLabel.removeClass('label-highlight');
+        self.axisTargets.css({ cursor: 'crosshair' });
+      }
+      self.closestSeriesLabel = null;
+      var minDist = Infinity;
       _.each(self.plot.getData(), function (series) {
         if (!series.channel) return;
         var labelSibling = $('.legendLabel > div[data-channel-name="'+
             series.channel.channelName+'"]', self.el);
-        var label = $('.legendValue', labelSibling.parent().parent());
+        var labelParent = labelSibling.parent().parent();
+        var label = $('.legendValue', labelParent);
         var valueHTML = '';
         if (time != null &&
             time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
@@ -340,6 +351,11 @@ define(['views/dashItem', 'plot_booter',
             return prev && p && prev[0] <= time && time < p[0] && p;
           });
           if (hoveredPnt) {
+            var dy = Math.abs(series.yaxis.p2c(hoveredPnt[1]) - mouse.y);
+            if (dy <= minDist) {
+              minDist = dy;
+              self.closestSeriesLabel = labelParent;
+            }
             var v = hoveredPnt[1];
             if (Math.abs(Math.round(v)) >= 1e6)
               v = v.toFixed(0);
@@ -357,11 +373,17 @@ define(['views/dashItem', 'plot_booter',
         }
         label.html(valueHTML);
       });
+      if (self.closestSeriesLabel &&
+            minDist <= self.minHoverDistance) {
+        self.closestSeriesLabel.addClass('label-highlight');
+        self.axisTargets.css({ cursor: 'pointer' });
+      }
     },
 
     addYaxesBoundsForDrops: function () {
       var self = this;
-      $('.axisTarget', self.content).remove();
+      if (self.axisTargets)
+        self.axisTargets.remove();
       var parentPadding = {
         lr: Math.ceil((self.content.width() -
             self.plot.getPlaceholder().width()) / 2),
@@ -413,6 +435,8 @@ define(['views/dashItem', 'plot_booter',
               $this.show();
             });
       });
+
+      self.axisTargets = $('.axisTarget', self.el);
 
       function getBoundingBoxForAxis (axis) {
         var left = axis.box.left,
