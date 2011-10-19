@@ -44,8 +44,11 @@ define(['views/dashItem'], function (DashItemView) {
           .attr('data-time-end')) / 1e3;
       var range = { min: beg, max: end, snap: true};
       var props = this.getProps(parentRow);
-      if (this.singleVehicle)
+      if (this.singleVehicle) {
+        App.publish('UnPreviewNotification-' + props.id);
         App.publish('VisibleTimeChange-' + props.id, [beg*1e3, end*1e3]);
+        App.publish('PreviewNotification-' + props.id, [range]);
+      }
       else
         App.publish('VehicleRequested', [props.id, props.title, range]);
       return this;

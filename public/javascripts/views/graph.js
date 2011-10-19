@@ -438,7 +438,7 @@ define(['views/dashItem', 'plot_booter',
               $this.show();
             });
       });
-      // helper for returning axis bounds
+
       function getBoundingBoxForAxis (axis) {
         var left = axis.box.left,
             top = -parentPadding.tb,
@@ -460,10 +460,12 @@ define(['views/dashItem', 'plot_booter',
       var xaxis = this.plot.getXAxes()[0];
       var leftSide = Math.max(xaxis.p2c(range.min), 0);
       var rightSide = Math.min(xaxis.p2c(range.max), this.plot.width());
-      this.notificationPreview.css({
-        left: leftSide + 'px',
-        width: rightSide - leftSide + 'px',
-      }).show();
+      if (leftSide < this.plot.width() && rightSide > 0) {
+        this.notificationPreview.css({
+          left: leftSide + 'px',
+          width: rightSide - leftSide + 'px',
+        }).show();
+      }
     },
 
     hideNotification: function () {
