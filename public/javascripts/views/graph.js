@@ -153,7 +153,8 @@ define(['views/dashItem', 'plot_booter',
           };
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouse.x);
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [time * 1e3, mouse]);
+          App.publish('MouseHoverTime-' + self.model.get('vehicleId'),
+                      [time * 1e3, mouse, self]);
         })
         .mouseleave(function (e) {
           App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
@@ -311,7 +312,7 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    mouseHoverTime: function(time, mouse) {
+    mouseHoverTime: function(time, mouse, graph) {
       var self = this;
       if (time != null)
         time = time / 1e3;
@@ -351,10 +352,12 @@ define(['views/dashItem', 'plot_booter',
             return prev && p && prev[0] <= time && time < p[0] && p;
           });
           if (hoveredPnt) {
-            var dy = Math.abs(series.yaxis.p2c(hoveredPnt[1]) - mouse.y);
-            if (dy <= minDist) {
-              minDist = dy;
-              self.closestSeriesLabel = labelParent;
+            if (graph === self) {
+              var dy = Math.abs(series.yaxis.p2c(hoveredPnt[1]) - mouse.y);
+              if (dy <= minDist) {
+                minDist = dy;
+                self.closestSeriesLabel = labelParent;
+              }
             }
             var v = hoveredPnt[1];
             if (Math.abs(Math.round(v)) >= 1e6)
