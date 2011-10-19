@@ -33,14 +33,14 @@ define(['views/dashItem'], function (DashItemView) {
 
     open: function (e) {
       var parentRow = $(e.target).closest('tr');
-      var lastSeen = parseInt($('[data-time]', parentRow)
-          .attr('data-time')) / 1e3;
-      //var range = { min: lastSeen - 60*60*24*7*26*1000, // one year
-            //max: lastSeen + 60*60*24*7*26*1000, snap: false };
-      var range = {
-          min: lastSeen - 1000*60*60*24*3, // 3 days
-          max: lastSeen + 1000*60*60*24*1,
-          snap: true };
+      var lastSeen = parseInt(
+          $('[data-time]', parentRow).attr('data-time'));
+      var lastCycle = JSON.parse(
+          $('[data-cycle]', parentRow).attr('data-cycle'));
+      var range = { min: lastCycle.beg,   // -8 hours
+                    max: lastCycle.end }; // +2 hours
+      //var range = { min: lastSeen - 1e6*60*60*8,   // -8 hours
+                    //max: lastSeen + 1e6*60*60*2 }; // +2 hours
       var items = parentRow.attr('id').split('_');
       var id = parseInt(items[items.length - 1]);
       var title = $(e.target).closest('tr').attr('data-title');

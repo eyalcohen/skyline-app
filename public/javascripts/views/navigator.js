@@ -69,18 +69,11 @@ define(['views/dashItem', 'plot_booter'],
         });
       });
       var pad = 60 * 60 * 1e3;
-      var min = self.options.timeRange.min;
-      var max = self.options.timeRange.max;
-      if (!self.options.timeRange.snap) {
-        min -= 60*60*24*7*26*1e3; // half year
-        max += 60*60*24*7*26*1e3;
-      } else {
-        var extra = (max - min) * 0.1;
-        min -= extra; // 10%
-        max += extra;
-      }
-      self.plot = $.plot(holder,
-          [[bounds[0], 0], [bounds[1], 1]], {
+      var min = self.options.timeRange.min / 1e3;
+      var max = self.options.timeRange.max / 1e3;
+      min -= 1e3*60*60*24*4;  // 4 days
+      max += 1e3*60*60*24*4;  // 4 days
+      self.plot = $.plot(holder, [[bounds[0], 0], [bounds[1], 1]], {
         xaxis: {
           mode: 'time',
           position: 'top',
@@ -119,8 +112,7 @@ define(['views/dashItem', 'plot_booter'],
         hooks: {
           draw: [addIcons, self.drawWindow, self.plotDrawHook] },
       });
-      self.drawWindow(self.options.timeRange.min*1e3,
-            self.options.timeRange.max*1e3);
+      self.drawWindow(self.options.timeRange.min, self.options.timeRange.max);
       self.plotDrawHook();
       function addIcons(p, ctx) {
         $('.timeline-icon', holder).remove();

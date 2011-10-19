@@ -38,15 +38,13 @@ define(['views/dashItem'], function (DashItemView) {
 
     open: function (e) {
       var parentRow = $(e.target).closest('tr');
-      var beg = parseInt($('[data-time]', parentRow)
-          .attr('data-time')) / 1e3;
-      var end = parseInt($('[data-time-end]', parentRow)
-          .attr('data-time-end')) / 1e3;
-      var range = { min: beg, max: end, snap: true};
+      var beg = parseInt($('[data-time]', parentRow).attr('data-time'));
+      var end = parseInt($('[data-time-end]', parentRow).attr('data-time-end'));
+      var range = { min: beg, max: end };
       var props = this.getProps(parentRow);
       if (this.singleVehicle) {
         App.publish('UnPreviewNotification-' + props.id);
-        App.publish('VisibleTimeChange-' + props.id, [beg*1e3, end*1e3]);
+        App.publish('VisibleTimeChange-' + props.id, [beg, end]);
         App.publish('PreviewNotification-' + props.id, [range]);
       }
       else
@@ -57,10 +55,8 @@ define(['views/dashItem'], function (DashItemView) {
     preview: function (e) {
       if (!this.singleVehicle) return;
       var parentRow = $(e.target).closest('tr');
-      var beg = parseInt($('[data-time]', parentRow)
-          .attr('data-time')) / 1e3;
-      var end = parseInt($('[data-time-end]', parentRow)
-          .attr('data-time-end')) / 1e3;
+      var beg = parseInt($('[data-time]', parentRow).attr('data-time'));
+      var end = parseInt($('[data-time-end]', parentRow).attr('data-time-end'));
       var range = { min: beg, max: end};
       var props = this.getProps(parentRow);
       App.publish('PreviewNotification-' + props.id, [range]);

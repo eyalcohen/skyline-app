@@ -50,7 +50,7 @@
                 - } else {
                   | n / a
                 - }
-              td(colspan="2", data-time=row.lastSeen)
+              td(colspan="2", data-time=row.lastSeen, data-cycle=JSON.stringify(row.lastCycle))
                 | -
               td(align="right")
                 - if (row.lastSeen !== 0) {

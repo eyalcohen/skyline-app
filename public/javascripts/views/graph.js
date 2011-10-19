@@ -61,8 +61,8 @@ define(['views/dashItem', 'plot_booter',
         xaxis: {
           mode: 'time',
           position: 'bottom',
-          min: self.options.timeRange.min,
-          max: self.options.timeRange.max,
+          min: self.options.timeRange.min / 1e3,
+          max: self.options.timeRange.max / 1e3,
           tickColor: '#f0f0f0',
           labelsInside: true,
         },
@@ -177,10 +177,8 @@ define(['views/dashItem', 'plot_booter',
 
     draw: function () {
       var self = this;
-      if (!self.plot) {
-        self.firstDraw = true;
+      if (!self.plot)
         self.createPlot();
-      }
       if (self.model.get('channels').length === 0) {
         $('<div><span>Drop data channels here to display.</span></div>')
             .addClass('empty-graph').appendTo(self.content);
@@ -238,29 +236,6 @@ define(['views/dashItem', 'plot_booter',
           yaxis: channel.yaxisNum,
         });
       });
-      if (!self.options.forceTimeRange && self.firstDraw) {
-        var mins = [], maxes = [];
-        _.each(self.model.get('channels'), function (channel) {
-          var data = self.model.get('data')[channel.channelName] || [];
-          var times = [];
-          _.each(data, function (pnt) {
-            if (pnt) times.push(pnt[0]);
-          });
-          mins.push(_.min(times));
-          maxes.push(_.max(times));
-        });
-        var min = _.min(mins);
-        var max = _.max(maxes);
-        if (min && max
-            && min !== Infinity && max !== Infinity
-            && min !== -Infinity && max !== -Infinity) {
-          _.each(self.plot.getXAxes(), function (axis) {
-            axis.options.min = min;
-            axis.options.max = max;
-          });
-          self.firstDraw = false;
-        }
-      }
       self.plot.setData(series);
       self.plot.setupGrid();
       self.plot.draw();
@@ -458,8 +433,8 @@ define(['views/dashItem', 'plot_booter',
 
     showNotification: function (range) {
       var xaxis = this.plot.getXAxes()[0];
-      var leftSide = Math.max(xaxis.p2c(range.min), 0);
-      var rightSide = Math.min(xaxis.p2c(range.max), this.plot.width());
+      var leftSide = Math.max(xaxis.p2c(range.min/1e3), 0);
+      var rightSide = Math.min(xaxis.p2c(range.max/1e3), this.plot.width());
       if (leftSide < this.plot.width() && rightSide > 0) {
         this.notificationPreview.css({
           left: leftSide + 'px',
