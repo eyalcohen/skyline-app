@@ -92,26 +92,21 @@ define(function () {
 
     addChannel: function (channels) {
       var self = this;
-      if (_.isArray(channels))
-        _.each(channels, function (c) {
-          addChannelInternal(c);
-        });
-      else
-        addChannelInternal(channels);
-      self.view.draw();
-      self.updateCacheSubscription();
-      return self;
-      function addChannelInternal(channel) {
+      channels = _.isArray(channels) ? channels : [channels];
+      _.each(channels, function (channel) {
         if (_.pluck(self.get('channels'), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
-        if (channel.colorNum === undefined)
-          channel.colorNum = self.colorCnt;
+        channel = _.clone(channel);
+        var usedColors = _.pluck(self.get('channels'), 'colorNum');
+        for (var c = 0; _.include(usedColors, c); ++c) { }
+        channel.colorNum = c;
         self.get('channels').push(channel);
-        if (++self.colorCnt > 15)
-          self.colorCnt = 0;
         console.log('addChannel(', channel, ')...');
-      }
+      });
+      self.view.draw();
+      self.updateCacheSubscription();
+      return self;
     },
 
     removeChannel: function (channel) {
