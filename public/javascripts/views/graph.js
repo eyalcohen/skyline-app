@@ -210,7 +210,7 @@ define(['views/dashItem', 'plot_booter',
           channel.yaxisNum = yAxisNumToUse;
       });
       _.each(self.model.get('channels'), function (channel) {
-        var data = self.model.get('data')[channel.channelName] || [];
+        var data = self.model.data[channel.channelName] || [];
         series.push({
           color: channel.colorNum,
           lines: {
@@ -227,7 +227,7 @@ define(['views/dashItem', 'plot_booter',
       });
       _.each(self.model.get('channels'), function (channel) {
         var dataMinMax =
-            self.model.get('dataMinMax')[channel.channelName] || [];
+            self.model.dataMinMax[channel.channelName] || [];
         if (dataMinMax.length === 0) return;
         series.push({
           color: channel.colorNum,

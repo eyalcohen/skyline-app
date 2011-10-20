@@ -68,8 +68,8 @@ define(function () {
     },
 
     mouseHoverTime: function(time) {
-      var pointsVisible = this.get('pointsVisible') || [];
-      var pointsNavigable = this.get('pointsNavigable') || [];
+      var pointsVisible = this.pointsVisible || [];
+      var pointsNavigable = this.pointsNavigable || [];
       function locForTime(points) {
         // TODO: binary search for speed.
         for (var i in points) {
@@ -85,12 +85,12 @@ define(function () {
     },
 
     updateVisibleSampleSet: function (sampleSet) {
-      this.set({ pointsVisible: this.sampleSetToPoints(sampleSet) });;
+      this.pointsVisible = this.sampleSetToPoints(sampleSet);
       this.view.draw();
     },
 
     updateNavigableSampleSet: function (sampleSet) {
-      this.set({ pointsNavigable: this.sampleSetToPoints(sampleSet) });;
+      this.pointsNavigable = this.sampleSetToPoints(sampleSet);
       this.view.draw();
     },
 

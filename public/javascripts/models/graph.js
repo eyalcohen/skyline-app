@@ -11,11 +11,13 @@ define(function () {
       self.view = new App.views.GraphView(args);
       self.set({
         channels: [],
-        data: {}, // Map from channelName to data.
-        dataMinMax: {}, // Map from channelName to data.
         beg: null, end: null, // Viewed time range.
       });
-      self.colorCnt = 0;
+      // Note: Backbone's .set method does a deep comparison of the old
+      // data to the new data, which is expensive for large datasets.  Don't
+      // use .set for data or dataMinMax to avoid this overhead.
+      self.data = {};  // Map from channelName to data.
+      self.dataMinMax = {};  // Map from channelName to data.
       var vehicleId = args.vehicleId;
       self.clientId = vehicleId + '-graph-' + args.id;
       _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
@@ -104,7 +106,6 @@ define(function () {
         self.get('channels').push(channel);
         console.log('addChannel(', channel, ')...');
       });
-      self.view.draw();
       self.updateCacheSubscription();
       return self;
     },
@@ -116,7 +117,6 @@ define(function () {
       if (index === -1) return;
       self.get('channels').splice(index, 1);
       console.log('removeChannel(', channel, ')...');
-      self.view.draw();
       self.updateCacheSubscription();
       self.view.trigger('channelRemoved', channel);
       return self;
@@ -149,8 +149,8 @@ define(function () {
           }
         });
       });
-      self.set({ data: data });
-      self.set({ dataMinMax: dataMinMax });
+      self.data = data;
+      self.dataMinMax = dataMinMax;
       self.view.draw();
     },
 

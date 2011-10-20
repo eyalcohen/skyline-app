@@ -218,9 +218,9 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
 
       if (!options.noPointsChange) {
         // Fetch points, and subtract visible points from navigable.
-        var pointsVisible = this.model.get('pointsVisible') || [];
-        var pointsNavigable = subtractPoints(
-            this.model.get('pointsNavigable') || [], pointsVisible);
+        var pointsVisible = this.model.pointsVisible || [];
+        var pointsNavigable =
+            subtractPoints(this.model.pointsNavigable || [], pointsVisible);
 
         // Create the visible points geometry.
         var oldGeometry = this.visibleGeometry;
