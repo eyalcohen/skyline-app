@@ -278,6 +278,9 @@ define(['views/dashItem', 'plot_booter',
     },
 
     plotDrawHook: function() {
+      var lastHover = this.lastHoverTime;
+      if (lastHover)
+        this.mouseHoverTime(lastHover.time, lastHover.mouse, lastHover.graph);
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
@@ -314,6 +317,8 @@ define(['views/dashItem', 'plot_booter',
 
     mouseHoverTime: function(time, mouse, graph) {
       var self = this;
+      self.lastHoverTime = { time: time, mouse: mouse, graph: graph };
+
       if (time != null)
         time = time / 1e3;
 
