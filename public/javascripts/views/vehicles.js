@@ -37,14 +37,12 @@ define(['views/dashItem'], function (DashItemView) {
           $('[data-time]', parentRow).attr('data-time'));
       var lastCycle = JSON.parse(
           $('[data-cycle]', parentRow).attr('data-cycle'));
-      var range = { min: lastCycle.beg,   // -8 hours
-                    max: lastCycle.end }; // +2 hours
-      //var range = { min: lastSeen - 1e6*60*60*8,   // -8 hours
-                    //max: lastSeen + 1e6*60*60*2 }; // +2 hours
+      //var range = { beg: lastCycle.beg - 1e6*60*60*8,   // -8 hours
+                    //end: lastCycle.end + 1e6*60*60*2 }; // +2 hours
       var items = parentRow.attr('id').split('_');
       var id = parseInt(items[items.length - 1]);
       var title = $(e.target).closest('tr').attr('data-title');
-      App.publish('VehicleRequested', [id, title, range]);
+      App.publish('VehicleRequested', [id, title, lastCycle]);
       return this;
     },
 

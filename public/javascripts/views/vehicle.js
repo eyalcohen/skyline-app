@@ -71,7 +71,7 @@ define(['views/folderItem'], function (FolderItemView) {
         singleVehicle: true,
       }).fetch();
       App.publish('VisibleTimeChange-' + this.tabId,
-                  [this.timeRange.min, this.timeRange.max]);
+                  [this.timeRange.beg, this.timeRange.end]);
       return this;
     },
 
@@ -96,7 +96,7 @@ define(['views/folderItem'], function (FolderItemView) {
       var graph = new App.models.GraphModel({
         tabId: this.tabId,
         vehicleId: this.vehicleId,
-        timeRange: { min: viewRange.beg, max: viewRange.end },
+        timeRange: viewRange,
         parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: 70,

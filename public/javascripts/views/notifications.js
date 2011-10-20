@@ -38,16 +38,18 @@ define(['views/dashItem'], function (DashItemView) {
 
     open: function (e) {
       var parentRow = $(e.target).closest('tr');
-      var beg = parseInt($('[data-time]', parentRow).attr('data-time'));
-      var end = parseInt($('[data-time-end]', parentRow).attr('data-time-end'));
-      var range = { min: beg, max: end };
+      var timeRange = {
+        beg: parseInt($('[data-time]', parentRow).attr('data-time')),
+        end: parseInt($('[data-time-end]', parentRow).attr('data-time-end')),
+      };
       var props = this.getProps(parentRow);
       if (this.singleVehicle) {
         App.publish('UnPreviewNotification-' + props.id);
-        App.publish('VisibleTimeChange-' + props.id, [beg, end]);
-        App.publish('PreviewNotification-' + props.id, [range]);
+        App.publish('VisibleTimeChange-' + props.id,
+                    [timeRange.beg, timeRange.end]);
+        App.publish('PreviewNotification-' + props.id, [timeRange]);
       } else
-        App.publish('VehicleRequested', [props.id, props.title, range]);
+        App.publish('VehicleRequested', [props.id, props.title, timeRange]);
       return this;
     },
 

@@ -69,8 +69,8 @@ define(['views/dashItem', 'plot_booter'],
         });
       });
       var pad = 60 * 60 * 1e3;
-      var min = self.options.timeRange.min / 1e3;
-      var max = self.options.timeRange.max / 1e3;
+      var min = self.options.timeRange.beg / 1e3;
+      var max = self.options.timeRange.end / 1e3;
       min -= 1e3*60*60*24*4;  // 4 days
       max += 1e3*60*60*24*4;  // 4 days
       self.plot = $.plot(holder, [[bounds[0], 0], [bounds[1], 1]], {
