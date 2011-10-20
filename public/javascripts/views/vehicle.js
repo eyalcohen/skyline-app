@@ -93,12 +93,10 @@ define(['views/folderItem'], function (FolderItemView) {
 
     addGraph: function (index) {
       var viewRange = this.graphModels[0].view.getVisibleTime();
-      viewRange.min = viewRange.beg / 1e3;
-      viewRange.max = viewRange.end / 1e3;
       var graph = new App.models.GraphModel({
-        tabId: tself.tabId,
+        tabId: this.tabId,
         vehicleId: this.vehicleId,
-        timeRange: viewRange,
+        timeRange: { min: viewRange.beg, max: viewRange.end },
         parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: 70,
