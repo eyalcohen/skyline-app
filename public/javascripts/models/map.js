@@ -12,15 +12,14 @@ define(function () {
       this.view.render({ waiting: true });
       _.bindAll(this, 'destroy', 'mouseHoverTime', 'updateVisibleSampleSet',
           'updateNavigableSampleSet');
-      this.clientIdVisible = args.vehicleId + '-map-visible';
-      this.clientIdNavigable = args.vehicleId + '-map-navigable';
-      App.subscribe('HideVehicle-' + args.vehicleId, this.destroy);
-      App.subscribe('VisibleTimeChange-' + args.vehicleId,
+      this.clientIdVisible = args.tabId + '-map-visible';
+      this.clientIdNavigable = args.tabId + '-map-navigable';
+      App.subscribe('HideVehicle-' + args.tabId, this.destroy);
+      App.subscribe('VisibleTimeChange-' + args.tabId,
           _.bind(this.changeTime, this, this.clientIdVisible));
-      App.subscribe('NavigableTimeChange-' + args.vehicleId,
+      App.subscribe('NavigableTimeChange-' + args.tabId,
           _.bind(this.changeTime, this, this.clientIdNavigable));
-      App.subscribe('MouseHoverTime-' + args.vehicleId,
-          this.mouseHoverTime);
+      App.subscribe('MouseHoverTime-' + args.tabId, this.mouseHoverTime);
       App.sampleCache.bind('update-' + this.clientIdVisible,
           this.updateVisibleSampleSet);
       App.sampleCache.bind('update-' + this.clientIdNavigable,
@@ -29,12 +28,12 @@ define(function () {
     },
 
     destroy: function () {
-      App.unsubscribe('HideVehicle-' + this.get('vehicleId'), this.destroy);
-      App.unsubscribe('VisibleTimeChange-' + this.get('vehicleId'),
+      App.unsubscribe('HideVehicle-' + this.get('tabId'), this.destroy);
+      App.unsubscribe('VisibleTimeChange-' + this.get('tabId'),
           this.changeTime);
-      App.unsubscribe('NavigableTimeChange-' + this.get('vehicleId'),
+      App.unsubscribe('NavigableTimeChange-' + this.get('tabId'),
           this.changeTime);
-      App.unsubscribe('MouseHoverTime-' + this.get('vehicleId'),
+      App.unsubscribe('MouseHoverTime-' + this.get('tabId'),
           this.mouseHoverTime);
       App.sampleCache.unbind('update-' + this.clientIdVisible,
           this.updateVisibleSampleSet);
@@ -51,7 +50,7 @@ define(function () {
       // for gps data to use the time range which overlaps [beg,end) rather
       // than (end - beg).
       var validRanges = null;
-      App.publish('FetchChannelInfo-' + this.attributes.vehicleId,
+      App.publish('FetchChannelInfo-' + this.get('vehicleId'),
                   [latChan, function(desc) {
         if (desc) validRanges = desc.valid;
       }]);

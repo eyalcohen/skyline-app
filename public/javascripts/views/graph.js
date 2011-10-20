@@ -10,20 +10,18 @@ define(['views/dashItem', 'plot_booter',
       this._super('initialize', args);
       _.bindAll(this, 'destroy', 'showNotification', 'hideNotification',
                 'mouseHoverTime');
-      var vehicleId = args.vehicleId;
-      App.subscribe('PreviewNotification-' + vehicleId, this.showNotification);
-      App.subscribe('UnPreviewNotification-'+vehicleId, this.hideNotification);
-      App.subscribe('MouseHoverTime-' + vehicleId, this.mouseHoverTime);
+      var tabId = args.tabId;
+      App.subscribe('PreviewNotification-' + tabId, this.showNotification);
+      App.subscribe('UnPreviewNotification-'+ tabId, this.hideNotification);
+      App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
     },
 
     destroy: function () {
       this._super('destroy');
-      var vehicleId = this.options.vehicleId;
-      App.unsubscribe('PreviewNotification-' + vehicleId,
-                      this.showNotification);
-      App.unsubscribe('UnPreviewNotification-' + vehicleId,
-                      this.hideNotification);
-      App.unsubscribe('MouseHoverTime-' + vehicleId, this.mouseHoverTime);
+      var tabId = this.options.tabId;
+      App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
+      App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
+      App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
     },
 
     events: {
@@ -153,11 +151,11 @@ define(['views/dashItem', 'plot_booter',
           };
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouse.x);
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'),
+          App.publish('MouseHoverTime-' + self.model.get('tabId'),
                       [time * 1e3, mouse, self]);
         })
         .mouseleave(function (e) {
-          App.publish('MouseHoverTime-' + self.model.get('vehicleId'), [null]);
+          App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
         });
       };
 
@@ -485,7 +483,7 @@ define(['views/dashItem', 'plot_booter',
     //   var timeShift = time - currentCenterTime;
     //   var min = this.plot.getOptions().xaxis.min - timeShift;
     //   var max = this.plot.getOptions().xaxis.max - timeShift;
-    //   App.publish('VisibleTimeChange-' + this.options.vehicleId,
+    //   App.publish('VisibleTimeChange-' + this.options.tabId,
     //       [min * 1e3, max * 1e3]);
     // },
 

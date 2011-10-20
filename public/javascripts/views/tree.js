@@ -71,10 +71,10 @@ define(['views/dashItem',
               if (metadata.channelName === 'mc/motorSpeed'
                   || metadata.channelName === 'mc.motorSpeed_RPM') {
                 initiallySelect = metadata.channelName;
-                App.store.set('defaultChannel-' + self.model.get('vehicleId'),
+                App.store.set('defaultChannel-' + self.model.get('tabId'),
                     metadata);
                 App.publish('ChannelRequested-' +
-                    self.model.get('vehicleId'), [metadata]);
+                    self.model.get('tabId'), [metadata]);
               }
               var id = metadata.channelName, attr = {};
               if (id) attr.id = id;
@@ -157,24 +157,23 @@ define(['views/dashItem',
             var channel = _.clone($(children.get(i)).data());
             requestedChannels.push(channel);
           });
-          App.publish('ChannelRequested-' +
-              self.model.get('vehicleId') +'-' +
+          App.publish('ChannelRequested-' + self.model.get('tabId') +'-' +
               graphId, [requestedChannels]);
         } else if (node.hasClass('jstree-unchecked')) {
           children.each(function (i) {
             var channel = _.clone($(children.get(i)).data());
-            App.publish('ChannelUnrequested-' +
-                self.model.get('vehicleId'), [channel]);
+            App.publish('ChannelUnrequested-' + self.model.get('tabId'),
+                        [channel]);
           });
         }
       } else {
         var channel = _.clone(node.data());
         if (node.hasClass('jstree-checked')) {
-          App.publish('ChannelRequested-' +
-              self.model.get('vehicleId') + '-' + graphId, [channel]);
+          App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
+              graphId, [channel]);
         } else if (node.hasClass('jstree-unchecked')) {
-          App.publish('ChannelUnrequested-' +
-              self.model.get('vehicleId'), [channel]);
+          App.publish('ChannelUnrequested-' + self.model.get('tabId'),
+                      [channel]);
         }
       }
     },
@@ -189,8 +188,7 @@ define(['views/dashItem',
           var child = $(children.get(i));
           var channel = _.clone(child.data());
           channel.yaxisNum = yaxisNum;
-          App.publish('ChannelRequested-' +
-              self.model.get('vehicleId') +'-' +
+          App.publish('ChannelRequested-' + self.model.get('tabId') +'-' +
               graphId, [channel]);
           if (child.hasClass('jstree-unchecked')) {
             child.removeClass('jstree-unchecked')
@@ -207,8 +205,7 @@ define(['views/dashItem',
       } else {
         var channel = _.clone(data.o.data());
         channel.yaxisNum = data.r.data('axis.n');
-        App.publish('ChannelRequested-' +
-            self.model.get('vehicleId') + '-' +
+        App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
             graphId, [channel]);
         if (data.o.hasClass('jstree-unchecked')) {
           data.o.removeClass('jstree-unchecked')
@@ -230,8 +227,7 @@ define(['views/dashItem',
         $('.label-closer', data.o.parent().parent().parent()).click();
         self.showChannel(channel.channelName);
         channel.yaxisNum = yaxisNum;
-        App.publish('ChannelRequested-' +
-            self.model.get('vehicleId') + '-' +
+        App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
             graphId, [channel]);
       }
       App.isDragging = false;

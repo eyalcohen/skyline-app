@@ -9,8 +9,8 @@ define(['views/dashItem', 'plot_booter'],
       this._super('initialize');
       _.bindAll(this, 'destroy', 'drawWindow', 'moveWindow', 'hoverWindow',
           'wheelWindow', 'hookScale', 'plotDrawHook', 'preview');
-      App.subscribe('HideVehicle-' + args.vehicleId, this.destroy);
-      App.subscribe('VisibleTimeChange-' + args.vehicleId, this.drawWindow);
+      App.subscribe('HideVehicle-' + args.tabId, this.destroy);
+      App.subscribe('VisibleTimeChange-' + args.tabId, this.drawWindow);
     },
     
     events: {
@@ -213,7 +213,7 @@ define(['views/dashItem', 'plot_booter'],
         var rightTime = !side || side === 'right' ?
             axis.c2p(boxRight + delta - parentOff) :
             axis.c2p(boxRight - parentOff);
-        App.publish('VisibleTimeChange-' + self.options.vehicleId,
+        App.publish('VisibleTimeChange-' + self.options.tabId,
             [leftTime * 1e3, rightTime * 1e3]);
       }, 0);
       $(document).bind('mouseup', function (e) {
@@ -289,7 +289,7 @@ define(['views/dashItem', 'plot_booter'],
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
-        App.publish('NavigableTimeChange-' + this.options.vehicleId,
+        App.publish('NavigableTimeChange-' + this.options.tabId,
                     [t.beg, t.end]);
         this.prevBeg = t.beg;
         this.prevEnd = t.end;
@@ -309,10 +309,8 @@ define(['views/dashItem', 'plot_booter'],
 
     destroy: function () {
       this._super('destroy');
-      App.unsubscribe('HideVehicle-'+
-          this.options.vehicleId, this.destroy);
-      App.unsubscribe('VisibleTimeChange-'+
-          this.options.vehicleId, this.drawWindow);
+      App.unsubscribe('HideVehicle-' + this.options.tabId, this.destroy);
+      App.unsubscribe('VisibleTimeChange-'+this.options.tabId, this.drawWindow);
     },
 
   });

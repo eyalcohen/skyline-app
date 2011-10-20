@@ -46,8 +46,7 @@ define(['views/dashItem'], function (DashItemView) {
         App.publish('UnPreviewNotification-' + props.id);
         App.publish('VisibleTimeChange-' + props.id, [beg, end]);
         App.publish('PreviewNotification-' + props.id, [range]);
-      }
-      else
+      } else
         App.publish('VehicleRequested', [props.id, props.title, range]);
       return this;
     },
@@ -77,7 +76,7 @@ define(['views/dashItem'], function (DashItemView) {
         id = parseInt(items[items.length - 1]);
         title = ctx.attr('data-title');
       } else {
-        id = this.options.vehicleId;
+        id = this.options.tabId;
         title = null;
       }
       return { id: id, title: title };

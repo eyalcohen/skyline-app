@@ -11,10 +11,12 @@ define(['views/folderItem'], function (FolderItemView) {
 
     render: function (opts, template) {
       this._super('render', opts, template);
+      this.tabId = opts.tabId;
       this.vehicleId = opts.vehicleId;
       this.targetClass = opts.targetClass;
       this.timeRange = opts.timeRange;
       this.treeModel = new App.models.TreeModel({
+        tabId: this.tabId,
         vehicleId: this.vehicleId,
         title: 'Available Channels',
         parent: '.' + this.targetClass + ' div .dashboard-left .top',
@@ -23,6 +25,7 @@ define(['views/folderItem'], function (FolderItemView) {
         bottomPad: 0,
       }).fetch();
       this.graphModels = [new App.models.GraphModel({
+        tabId: this.tabId,
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
         title: 'Graphs',
@@ -35,6 +38,7 @@ define(['views/folderItem'], function (FolderItemView) {
       })];
       this.hookGraphControls(this.graphModels[0], 0);
       this.mapModel = new App.models.MapModel({
+        tabId: this.tabId,
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
         title: 'Location',
@@ -45,6 +49,7 @@ define(['views/folderItem'], function (FolderItemView) {
       });
       this.notificationsCollection =
           new App.collections.NotificationCollection({
+        tabId: this.tabId,
         vehicleId: this.vehicleId,
         title: 'Vehicle Events',
         parent: '.' + this.targetClass + ' div .dashboard-right .bottom',
@@ -55,6 +60,7 @@ define(['views/folderItem'], function (FolderItemView) {
       }).fetch();
       this.navigatorCollection =
           new App.collections.NavigatorCollection({
+        tabId: this.tabId,
         vehicleId: this.vehicleId,
         timeRange: this.timeRange,
         title: 'Timeline',
@@ -64,7 +70,7 @@ define(['views/folderItem'], function (FolderItemView) {
         bottomPad: 0,
         singleVehicle: true,
       }).fetch();
-      App.publish('VisibleTimeChange-' + this.vehicleId,
+      App.publish('VisibleTimeChange-' + this.tabId,
                   [this.timeRange.min, this.timeRange.max]);
       return this;
     },
@@ -86,25 +92,25 @@ define(['views/folderItem'], function (FolderItemView) {
     },
 
     addGraph: function (index) {
-      var self = this;
-      var viewRange = self.graphModels[0].view.getVisibleTime();
+      var viewRange = this.graphModels[0].view.getVisibleTime();
       viewRange.min = viewRange.beg / 1e3;
       viewRange.max = viewRange.end / 1e3;
       var graph = new App.models.GraphModel({
-        vehicleId: self.vehicleId,
+        tabId: tself.tabId,
+        vehicleId: this.vehicleId,
         timeRange: viewRange,
         parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: 70,
         bottomPad: 0,
-        id: self.makeid(),
+        id: this.makeid(),
         master: false,
       });
-      self.graphModels.push(graph);
-      self.hookGraphControls(graph, self.graphModels.length - 1);
-      self.arrangeGraphs();
+      this.graphModels.push(graph);
+      this.hookGraphControls(graph, this.graphModels.length - 1);
+      this.arrangeGraphs();
       App.publish('WindowResize');
-      // var channel = App.store.get('defaultChannel-' + self.vehicleId);
+      // var channel = App.store.get('defaultChannel-' + this.tabId);
       // graph.addChannel(channel);
     },
 
@@ -154,7 +160,7 @@ define(['views/folderItem'], function (FolderItemView) {
 
     destroy: function (clicked) {
       this._super('destroy', clicked);
-      App.publish('HideVehicle-' + this.vehicleId);
+      App.publish('HideVehicle-' + this.tabId);
     },
 
   });
