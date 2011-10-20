@@ -64,6 +64,8 @@ define(['views/folderItem'], function (FolderItemView) {
         bottomPad: 0,
         singleVehicle: true,
       }).fetch();
+      App.publish('VisibleTimeChange-' + this.vehicleId,
+                  [this.timeRange.min, this.timeRange.max]);
       return this;
     },
 

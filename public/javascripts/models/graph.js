@@ -18,7 +18,6 @@ define(function () {
       self.colorCnt = 0;
       var vehicleId = args.vehicleId;
       self.clientId = vehicleId + '-graph-' + args.id;
-      self.view.render();
       _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
           'addChannel', 'removeChannel', 'updateSampleSet');
       App.subscribe('HideVehicle-' + vehicleId, self.destroy);
@@ -36,6 +35,7 @@ define(function () {
         App.publish('VisibleTimeChange-' + vehicleId, [beg, end]);
       });
       self.view.bind('VisibleWidthChange', self.updateCacheSubscription);
+      self.view.render();
       return self;
     },
 
