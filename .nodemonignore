@@ -10,5 +10,7 @@
 # *.proto
 # *.cc
 # *.h
+.git
 cycles
 uploads
+samples

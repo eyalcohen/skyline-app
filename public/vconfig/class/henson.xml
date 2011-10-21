@@ -30,8 +30,9 @@
                 <sourceref>gpsSource</sourceref> 
                 <teesink>
                     <printsink/>
-                    <throttledsink interval="300" maxCount="1000">
-                        <throttledsink interval="30" maxCount="100">
+		    <!-- interval is bucket length in msecs, maxCount is max # allower per bucket --> 
+                    <throttledsink interval="60000" maxCount="1000">
+                        <throttledsink interval="1000" maxCount="100">
                             <sinkref>eventSpooler</sinkref>
                         </throttledsink>
                     </throttledsink>
