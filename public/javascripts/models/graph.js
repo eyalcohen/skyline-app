@@ -104,7 +104,6 @@ define(function () {
         for (var c = 0; _.include(usedColors, c); ++c) { }
         channel.colorNum = c;
         self.get('channels').push(channel);
-        console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription();
       return self;

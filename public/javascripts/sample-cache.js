@@ -84,7 +84,7 @@ define(function () {
     client.end = end;
     this.fillPendingRequests();
     // Update now, in case there's something useful in the cache.
-    this.updateClient(clientId, client);
+    this.updateClient(clientId, client, 50);
   };
 
   /**
@@ -114,7 +114,7 @@ define(function () {
    * Get the best duration to use for a given number of us/pixel.
    */
   SampleCache.prototype.getBestGraphDuration = function(usPerPixel) {
-    var maxPixelsPerSample = 7.5;
+    var maxPixelsPerSample = 5.5;
     if (usPerPixel < 0) usPerPixel = 0;
     return _.last(_.filter(durations, function(v) {
       return v <= usPerPixel * maxPixelsPerSample;
@@ -279,7 +279,8 @@ define(function () {
           -1 !== client.channels.indexOf(channelName) &&
           client.dur <= dur &&
           (end > client.beg || beg < client.end)) {
-        this.updateClient(clientId, client);
+        this.updateClient(clientId, client,
+                          this.pendingCacheEntries.length ? 250 : 0);
       }
     }
   };
@@ -289,12 +290,24 @@ define(function () {
    * of chunks of data arrive in quick succession, we delay before issuing the
    * update event, so we can trigger fewer update events.
    */
-  SampleCache.prototype.updateClient = function(clientId, client) {
+  SampleCache.prototype.updateClient = function(clientId, client, timeout) {
     var self = this;
-    if (client.updateId) return;
+    if (client.updateId) {
+      if (client.updateTimeout - Date.now() > timeout) {
+        // The new timeout will expire after the current timeout, so let the
+        // current timeout be.
+        return;
+      } else {
+        // The new timeout will expire before the current timeout, so cancel
+        // the old timeout and take the new one.
+        clearTimeout(client.updateId);
+      }
+    }
+    client.updateTimeout = Date.now() + timeout;
     client.updateId = setTimeout(function() {
       var start = Date.now();
       client.updateId = null;
+      delete client.updateTimeout;
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
         var validRanges = null;
@@ -306,9 +319,8 @@ define(function () {
             client.vehicleId, channelName,
             client.dur, client.beg, client.end, validRanges);
       });
-      console.debug('SampleCache.updateClient(' + clientId + ') took ' + (Date.now() - start) + 'ms');
       self.trigger('update-' + clientId, sampleSet);
-    }, 250);
+    }, timeout);
   };
 
   /**
