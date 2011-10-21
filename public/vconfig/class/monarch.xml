@@ -1,9 +1,10 @@
+<!-- This is the standard config for any Monarch type vehicle -->
 <config generation="234">
     <!-- All directives for a particular vehicle must be inside a vehicle node, other nodes are ignored -->
     <vehicle id="234142">
         
         <!-- if present turns on the canstream server inside the vehicle (defaults to off) -->
-        <canstream enabled="true" />
+        <canstream enabled="false" />
         
         <!-- specifies (in seconds) the minimum latency for fetching or 
 	     uploading files to/from the server.
@@ -14,6 +15,13 @@
         -->
         <serverinfo type="upload" minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/samples" />
         <serverinfo type="download" minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/vconfig" />
+
+	<!-- If url is set, we will launch a web browser session showing that URL (normally used to show a dash) -->
+	<!-- If screenOn is true we will keep the screen from going to sleep when the vehicle is awake (for the dash) -->
+	<gui screenOn="false" url="http://localhost:4403/monarch.html" />
+
+	<!-- if debug is set to true, we will show some basic connectivity/debug info on the 8 vcpcb LEDs -->
+	<vcLeds debug="true" />
 
         <canfilter iface="can0">
             <canid channel="2" operation="getShort" param="pm/fault.faultEncoded"/>
