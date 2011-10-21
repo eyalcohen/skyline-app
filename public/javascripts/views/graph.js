@@ -96,8 +96,7 @@ define(['views/dashItem', 'plot_booter',
         },
         crosshair: { mode: 'x' },
         zoom: {
-          interactive: true,
-          amount: 1.25,
+          interactive: false,  // We implement zooming event handlers ourselves.
         },
         pan: {
           interactive: true,
@@ -156,7 +155,24 @@ define(['views/dashItem', 'plot_booter',
         })
         .mouseleave(function (e) {
           App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
+        })
+        .mousewheel(function (e, delta) {
+          graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
+          return false;
+        })
+        .dblclick(function (e) {
+          graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         });
+
+        function graphZoomClick(e, factor, out) {
+          var c = plot.offset();
+          c.left = e.pageX - c.left;
+          c.top = e.pageY - c.top;
+          if (out)
+            plot.zoomOut({ center: c, amount: factor });
+          else
+            plot.zoom({ center: c, amount: factor });
+        };
       };
 
       function weekendAreas(axes) {
