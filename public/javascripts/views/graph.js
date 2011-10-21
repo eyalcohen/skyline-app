@@ -280,13 +280,15 @@ define(['views/dashItem', 'plot_booter',
           }
           prevTime = p && p[0];
         });
-        if (!(isFinite(min) && isFinite(max))) {
-          min = 0; max = 1;
-        } else if (min == max) {
-          min -= 0.5; max += 0.5;
-        }
         series.yaxis.datamax = max;
         series.yaxis.datamin = min;
+      });
+      yAxes.forEach(function(axis) {
+        if (!(isFinite(axis.datamin) && isFinite(axis.datamax))) {
+          axis.datamin = 0; axis.datamax = 1;
+        } else if (axis.datamin == axis.datamax) {
+          axis.datamin -= 0.5; axis.datamax += 0.5;
+        }
       });
     },
 
