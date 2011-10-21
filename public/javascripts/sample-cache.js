@@ -34,6 +34,7 @@ define(function () {
               <bucket>: {
                   last: 123,  // Date.now() of last access.
                   samples: [ <samples...> ],  // If data has been fetched.
+                  syn: <bool>,  // Does samples contain synthetic data?
               }, ...
             }, ...
             // syntheticDurations[1], ...:
@@ -56,8 +57,8 @@ define(function () {
     */
     this.clients = {};
 
-    // Cache entries of pending server requests.
-    // We'll try to keep maxPendingRequests pending.
+    // Cache entries of pending server requests.  We'll try to keep between
+    // minPendingRequests and maxPendingRequests pending.
     this.pendingCacheEntries = [];
 
     App.subscribe('DNodeReconnectUserAuthorized',
@@ -113,7 +114,7 @@ define(function () {
    * Get the best duration to use for a given number of us/pixel.
    */
   SampleCache.prototype.getBestGraphDuration = function(usPerPixel) {
-    var maxPixelsPerSample = 5;
+    var maxPixelsPerSample = 7.5;
     if (usPerPixel < 0) usPerPixel = 0;
     return _.last(_.filter(durations, function(v) {
       return v <= usPerPixel * maxPixelsPerSample;
@@ -163,7 +164,7 @@ define(function () {
    */
   SampleCache.prototype.fillPendingRequests = function() {
     var self = this;
-    if (self.pendingCacheEntries.length >= maxPendingRequests)
+    if (self.pendingCacheEntries.length >= minPendingRequests)
       return;
 
     // Generate a prioritized list of requests to make.
@@ -212,6 +213,23 @@ define(function () {
       for (var reqI in requests) {
         var req = requests[reqI];
         if (!_.contains(self.pendingCacheEntries, req.entry)) {
+          // Test to see is a larger cache bucket already covers this data.
+          // Possible future optimization: we could have each cache bucket
+          // track time ranges which have non-synthetic data, and look for
+          // coverage at a sub-bucket level.
+          var covered = false;
+          for (var durI = durations.indexOf(req.dur) + 1;
+               durI < durations.length; ++durI) {
+            var biggerDur = durations[durI];
+            var biggerBuck = Math.floor(req.beg / bucketSize(biggerDur));
+            var biggerEntry = self.getCacheEntry(req.veh, req.chan, biggerDur,
+                                                 biggerBuck, false);
+            if (biggerEntry && biggerEntry.syn === false) {
+              covered = true;
+              break;
+            }
+          }
+          if (covered) continue;
           self.issueRequest(req);
           if (self.pendingCacheEntries.length >= maxPendingRequests)
             return;
@@ -237,12 +255,13 @@ define(function () {
             req.chan + '", ' + JSON.stringify(options) +
             ') returned error: ' + err);
         samples = [];
+      } else {
+        req.entry.syn = samples.some(function(s){return 'min' in s});
       }
       req.entry.samples = samples;
       // Delete this entry from the pending request array.
       self.pendingCacheEntries.splice(
           self.pendingCacheEntries.indexOf(req.entry), 1);
-      // TODO: timeout?
       self.fillPendingRequests();
       self.triggerClientUpdates(req.veh, req.chan, req.dur, req.beg, req.end);
     });
@@ -333,7 +352,7 @@ define(function () {
     this.fillPendingRequests();
   }
 
-  var maxPendingRequests = 8;
+  var minPendingRequests = 8, maxPendingRequests = 16;
 
   var durations = [0].concat(App.shared.syntheticDurations),
       durationsRev = _.clone(durations).reverse();
