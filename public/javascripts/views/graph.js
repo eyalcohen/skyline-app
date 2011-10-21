@@ -194,7 +194,7 @@ define(['views/dashItem', 'plot_booter',
         }
       }
       var opts = self.plot.getOptions();
-      var series = [], numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
+      var numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
       _.each(self.model.get('channels'), function (channel) {
         if (!channel.yaxisNum) return;
         if (channel.yaxisNum === 1)
@@ -207,9 +207,10 @@ define(['views/dashItem', 'plot_booter',
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
       });
+      var dataSeries = [], minMaxSeries = [];
       _.each(self.model.get('channels'), function (channel) {
         var data = self.model.data[channel.channelName] || [];
-        series.push({
+        dataSeries.push({
           color: channel.colorNum,
           lines: {
             show: true,
@@ -222,12 +223,10 @@ define(['views/dashItem', 'plot_booter',
           yaxis: channel.yaxisNum,
           channel: channel,
         });
-      });
-      _.each(self.model.get('channels'), function (channel) {
         var dataMinMax =
             self.model.dataMinMax[channel.channelName] || [];
         if (dataMinMax.length === 0) return;
-        series.push({
+        minMaxSeries.push({
           color: channel.colorNum,
           lines: {
             show: true,
@@ -239,7 +238,7 @@ define(['views/dashItem', 'plot_booter',
           yaxis: channel.yaxisNum,
         });
       });
-      self.plot.setData(series);
+      self.plot.setData(minMaxSeries.concat(dataSeries));
       self.plot.setupGrid();
       self.plot.draw();
     },
