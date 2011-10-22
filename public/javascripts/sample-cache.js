@@ -33,6 +33,7 @@ define(function () {
             <dur>: {
               <bucket>: {
                   last: 123,  // Date.now() of last access.
+                  pending: true,  // If a fetch is pending.
                   samples: [ <samples...> ],  // If data has been fetched.
                   syn: <bool>,  // Does samples contain synthetic data?
               }, ...
@@ -42,6 +43,12 @@ define(function () {
         }
     */
     this.cache = {};
+
+    // A measure of the size of the cache.
+    //   Each cache bucket counts for entryCacheCost.
+    //   Each cached sample counts for 1.
+    // We try to keep cacheSize < maxCacheSize.
+    this.cacheSize = 0;
 
     /* Client registry:
       clients = {
@@ -85,7 +92,7 @@ define(function () {
     this.fillPendingRequests();
     // Update now, in case there's something useful in the cache.
     this.updateClient(clientId, client, 50);
-  };
+  }
 
   /**
    * Close a client.
@@ -97,7 +104,7 @@ define(function () {
       client.updateId = null;
     }
     delete this.clients[clientId];
-  };
+  }
 
   /**
    * Get the best duration to use for an approximate max number of samples to
@@ -108,7 +115,7 @@ define(function () {
     return _.first(_.filter(durations, function(v) {
       return v >= minDuration;
     }));
-  };
+  }
 
   /**
    * Get the best duration to use for a given number of us/pixel.
@@ -119,7 +126,7 @@ define(function () {
     return _.last(_.filter(durations, function(v) {
       return v <= usPerPixel * maxPixelsPerSample;
     }));
-  };
+  }
 
   //// Private: ////
 
@@ -130,10 +137,16 @@ define(function () {
   function(vehicleId, channelName, dur, buck, create) {
     var cacheKey = vehicleId + '-' + channelName;
     var d = create ? defObj : ifDef;
-    var entry = d(d(d(this.cache, cacheKey), dur), buck);
-    if (entry) entry.last = Date.now();
+    var durEntry = d(d(this.cache, cacheKey), dur);
+    var entry = durEntry && durEntry[buck];
+    if (entry) {
+      entry.last = Date.now();
+    } else if (create) {
+      entry = durEntry[buck] = { last: Date.now() };
+      this.cacheSize += entryCacheCost;
+    }
     return entry;
-  };
+  }
 
   function forValidBucketsInRange(validRanges, begin, end, buckDur, f) {
     var buck, buckBeg, buckEnd;
@@ -193,13 +206,13 @@ define(function () {
           forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
                                  function(buck, buckBeg, buckEnd) {
             var entry = self.getCacheEntry(client.vehicleId, channelName,
-                                           dur, buck, true);
-            if (entry.samples) return;
+                                           dur, buck, false);
+            if (entry && (entry.samples || entry.pending)) return;
             var priority = basePriority +
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
                 veh: client.vehicleId, chan: channelName, dur: dur,
-                beg: buckBeg, end: buckEnd, entry: entry });
+                buck: buck });
           });
         });
       }
@@ -212,37 +225,40 @@ define(function () {
       var requests = requestsByPriority[priorities[prioI]];
       for (var reqI in requests) {
         var req = requests[reqI];
-        if (!_.contains(self.pendingCacheEntries, req.entry)) {
-          // Test to see is a larger cache bucket already covers this data.
-          // Possible future optimization: we could have each cache bucket
-          // track time ranges which have non-synthetic data, and look for
-          // coverage at a sub-bucket level.
-          var covered = false;
-          for (var durI = durations.indexOf(req.dur) + 1;
-               durI < durations.length; ++durI) {
-            var biggerDur = durations[durI];
-            var biggerBuck = Math.floor(req.beg / bucketSize(biggerDur));
-            var biggerEntry = self.getCacheEntry(req.veh, req.chan, biggerDur,
-                                                 biggerBuck, false);
-            if (biggerEntry && biggerEntry.syn === false) {
-              covered = true;
-              break;
-            }
+        // Test to see is a larger cache bucket already covers this data.
+        // Possible future optimization: we could have each cache bucket
+        // track time ranges which have non-synthetic data, and look for
+        // coverage at a sub-bucket level.
+        var covered = false;
+        var buckBeg = req.buck * bucketSize(req.dur);
+        for (var durI = durations.indexOf(req.dur) + 1;
+             durI < durations.length; ++durI) {
+          var biggerDur = durations[durI];
+          var biggerBuck = Math.floor(buckBeg / bucketSize(biggerDur));
+          var biggerEntry = self.getCacheEntry(req.veh, req.chan, biggerDur,
+                                               biggerBuck, false);
+          if (biggerEntry && biggerEntry.syn === false) {
+            covered = true;
+            break;
           }
-          if (covered) continue;
-          self.issueRequest(req);
-          if (self.pendingCacheEntries.length >= maxPendingRequests)
-            return;
         }
+        if (covered) continue;
+        self.issueRequest(req);
+        if (self.pendingCacheEntries.length >= maxPendingRequests)
+          return;
       }
     }
-  };
+  }
 
   SampleCache.prototype.issueRequest = function(req) {
     var self = this;
-    self.pendingCacheEntries.push(req.entry);
+    var entry = self.getCacheEntry(req.veh, req.chan, req.dur, req.buck, true);
+    entry.pending = true;
+    self.pendingCacheEntries.push(entry);
+    var buckDur = bucketSize(req.dur);
+    var buckBeg = req.buck * buckDur, buckEnd = buckBeg + buckDur;
     var options = {
-      beginTime: req.beg, endTime: req.end,
+      beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
     // TODO: we could avoid fetching samples sometimes if we determine that
@@ -256,16 +272,21 @@ define(function () {
             ') returned error: ' + err);
         samples = [];
       } else {
-        req.entry.syn = samples.some(function(s){return 'min' in s});
+        entry.syn = samples.some(function(s){return 'min' in s});
       }
-      req.entry.samples = samples;
+      if (entry.samples)
+        self.cacheSize -= entry.samples.length;
+      entry.samples = samples;
+      self.cacheSize += samples.length;
       // Delete this entry from the pending request array.
       self.pendingCacheEntries.splice(
-          self.pendingCacheEntries.indexOf(req.entry), 1);
+          self.pendingCacheEntries.indexOf(entry), 1);
+      delete entry.pending;
       self.fillPendingRequests();
-      self.triggerClientUpdates(req.veh, req.chan, req.dur, req.beg, req.end);
+      self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
+      self.cleanCache();
     });
-  };
+  }
 
   /**
    * When a given time range has been updated, trigger updates for any clients
@@ -283,7 +304,7 @@ define(function () {
                           this.pendingCacheEntries.length ? 250 : 0);
       }
     }
-  };
+  }
 
   /**
    * Trigger a client update.  To avoid a lot of redundant work when a number
@@ -320,8 +341,9 @@ define(function () {
             client.dur, client.beg, client.end, validRanges);
       });
       self.trigger('update-' + clientId, sampleSet);
+      console.log('Cache size is ' + self.cacheSize + '.');
     }, timeout);
-  };
+  }
 
   /**
    * Get whatever's present in the cache right now for a client view.
@@ -358,13 +380,69 @@ define(function () {
 
   SampleCache.prototype.dnodeReconnected = function() {
     // Any pending transactions are never going to complete.
+    this.pendingCacheEntries.forEach(function(e) {
+      delete e.pending;
+    });
     this.pendingCacheEntries = [];
 
     // Re-issue fetches for client-visible regions.
     this.fillPendingRequests();
   }
 
+  SampleCache.prototype.cleanCache = function() {
+    var self = this;
+    if (self.cacheSize <= maxCacheSize)
+      return;
+
+    console.log('Cache size is ' + self.cacheSize + ', cleaning cache...');
+    var startTime = Date.now();
+
+    // Create an array of all entries reverse sorted by age.
+    var allEntryBuckets = [];
+    _.each(self.cache, function(vehChanEntry) {
+      _.each(vehChanEntry, function(durEntry) {
+        allEntryBuckets.push(_.values(durEntry));
+      });
+    });
+    var allEntries = Array.prototype.concat.apply([], allEntryBuckets);
+    allEntryBuckets = null;
+    allEntries.sort(function(a,b) {return b.last - a.last});
+
+    // Cull entries.
+    var cacheSize = self.cacheSize;
+    for (var i = allEntries.length - 1;
+         cacheSize > minCacheSize && i >= 1; --i) {
+      var entry = allEntries[i];
+      if (entry.pending) continue;
+      cacheSize -= entryCacheCost;
+      if (entry.samples) cacheSize -= entry.samples.length;
+      delete entry.samples;
+      entry.last = -1;  // Flag for deletion.
+    }
+    self.cacheSize = cacheSize;
+
+    // Delete now-empty entries.
+    _.each(self.cache, function(vehChanEntry, vehChan) {
+      _.each(vehChanEntry, function(durEntry, dur) {
+        _.each(durEntry, function(entry, bucket) {
+          if (entry.last === -1)
+            delete durEntry[bucket];
+        });
+        if (Object.keys(durEntry).length == 0)
+          delete vehChanEntry[dur];
+      });
+      if (Object.keys(vehChanEntry).length == 0)
+        delete self.cache[vehChan];
+    });
+
+    console.log('Cache clean took ' + (Date.now() - startTime) + 'ms, final cache size ' + self.cacheSize);
+  }
+
   var minPendingRequests = 8, maxPendingRequests = 16;
+
+  // At cacheSize = 1000000, the Skyline tab in Chrome uses about 350MB.
+  var minCacheSize = 750000, maxCacheSize = 1000000;
+  var entryCacheCost = 10;
 
   var durations = [0].concat(App.shared.syntheticDurations),
       durationsRev = _.clone(durations).reverse();
