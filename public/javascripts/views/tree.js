@@ -224,6 +224,7 @@ define(['views/dashItem',
         var graphId = data.r.parent().parent().data('id');
         var yaxisNum = data.r.data('axis.n');
         var channel = JSON.parse(data.o.parent().attr('data-channel'));
+        App.forceRedraw = true;
         $('.label-closer', data.o.parent().parent().parent()).click();
         self.showChannel(channel.channelName);
         channel.yaxisNum = yaxisNum;

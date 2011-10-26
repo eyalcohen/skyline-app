@@ -166,6 +166,7 @@
         // public functions
         plot.setData = setData;
         plot.setupGrid = setupGrid;
+        plot.setupLabels = setupLabels;
         plot.draw = draw;
         plot.getPlaceholder = function() { return placeholder; };
         plot.getCanvas = function() { return canvas; };
@@ -217,6 +218,7 @@
         setupCanvases();
         setData(data_);
         setupGrid();
+        setupLabels();
         draw();
         bindEvents();
 
@@ -1093,23 +1095,26 @@
                 setTransformationHelpers(axis);
             });
 
-            placeholder.find(".legend").remove();
-            if (!options.legend.oneperyaxis) {
-                insertLegend();
-            } else {
-              var leftGrp = [], rightGrp = [];
-              for (var i = 0; i < series.length; ++i) {
-                  if (series[i].label != null)
-                      if (series[i].yaxis.position == 'left')
-                          leftGrp.push(series[i]);
-                      else
-                          rightGrp.push(series[i]);
-              }
-              insertLegend(leftGrp);
-              insertLegend(rightGrp);
-            }
         }
-        
+
+        function setupLabels() {
+          placeholder.find(".legend").remove();
+          if (!options.legend.oneperyaxis) {
+              insertLegend();
+          } else {
+            var leftGrp = [], rightGrp = [];
+            for (var i = 0; i < series.length; ++i) {
+                if (series[i].label != null)
+                    if (series[i].yaxis.position == 'left')
+                        leftGrp.push(series[i]);
+                    else
+                        rightGrp.push(series[i]);
+            }
+            insertLegend(leftGrp);
+            insertLegend(rightGrp);
+          }
+        }
+
         function setRange(axis) {
             var opts = axis.options,
                 min = +(opts.min != null ? opts.min : axis.datamin),

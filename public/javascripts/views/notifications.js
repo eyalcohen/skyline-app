@@ -58,9 +58,8 @@ define(['views/dashItem'], function (DashItemView) {
       var parentRow = $(e.target).closest('tr');
       var beg = parseInt($('[data-time]', parentRow).attr('data-time'));
       var end = parseInt($('[data-time-end]', parentRow).attr('data-time-end'));
-      var range = { min: beg, max: end};
       var props = this.getProps(parentRow);
-      App.publish('PreviewNotification-' + props.id, [range]);
+      App.publish('PreviewNotification-' + props.id, [{beg: beg, end: end}]);
       return this;
     },
 

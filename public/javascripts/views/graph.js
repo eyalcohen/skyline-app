@@ -12,7 +12,7 @@ define(['views/dashItem', 'plot_booter',
                 'mouseHoverTime');
       var tabId = args.tabId;
       App.subscribe('PreviewNotification-' + tabId, this.showNotification);
-      App.subscribe('UnPreviewNotification-'+ tabId, this.hideNotification);
+      App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
     },
 
@@ -50,6 +50,7 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTimeTxt = $('span', this.mouseTime);
       this.notificationPreview = $('.notification-preview', this.el);
       this.minHoverDistance = 10;
+      this.highlighting = false;
       this._super('render', fn);
       this.draw();
     },
@@ -201,11 +202,13 @@ define(['views/dashItem', 'plot_booter',
       if (self.model.get('channels').length === 0) {
         $('<div><span>Drop data channels here to display.</span></div>')
             .addClass('empty-graph').appendTo(self.content);
+        $('canvas', self.plot.getPlaceholder()).hide();
         self.plot.getOptions().crosshair.mode = null;
       } else {
         var emptyDiv = $('.empty-graph', self.content);
         if (emptyDiv.length > 0) {
           emptyDiv.remove();
+          $('canvas', self.plot.getPlaceholder()).show();
           self.plot.getOptions().crosshair.mode = 'x';
         }
       }
@@ -226,8 +229,11 @@ define(['views/dashItem', 'plot_booter',
       var dataSeries = [], minMaxSeries = [];
       _.each(self.model.get('channels'), function (channel) {
         var data = self.model.data[channel.channelName] || [];
+        var color = !self.hightlighting || 
+            self.hightlighting === channel.channelName ?
+          channel.colorNum : '#f0f0f0';
         dataSeries.push({
-          color: channel.colorNum,
+          color: color,
           lines: {
             show: true,
             lineWidth: 1,
@@ -243,7 +249,7 @@ define(['views/dashItem', 'plot_booter',
             self.model.dataMinMax[channel.channelName] || [];
         if (dataMinMax.length === 0) return;
         minMaxSeries.push({
-          color: channel.colorNum,
+          color: color,
           lines: {
             show: true,
             lineWidth: 0,
@@ -257,6 +263,16 @@ define(['views/dashItem', 'plot_booter',
       self.plot.setData(minMaxSeries.concat(dataSeries));
       self.plot.setupGrid();
       self.plot.draw();
+    },
+
+    setupLabels: function () {
+      this.plot.setupLabels();
+      this.addYaxesBoundsForDrops();
+      $('.label-closer', this.content)
+          .click(_.bind(this.removeChannel, this));
+      $('.legend tr', this.content)
+          .bind('mouseenter', _.bind(this.enterLegend, this))
+          .bind('mouseout', _.bind(this.leaveLegend, this));
     },
 
     plotSetupGridHook: function() {
@@ -290,6 +306,15 @@ define(['views/dashItem', 'plot_booter',
           axis.datamin -= 0.5; axis.datamax += 0.5;
         }
       });
+
+      var self = this;
+      if (!self.prevNumChannels || self.prevNumChannels !== 
+            self.model.get('channels').length || App.forceRedraw) {
+        self.setupLabels();
+        if (App.forceRedraw)
+          App.forceRedraw = false;
+      }
+      self.prevNumChannels = self.model.get('channels').length;
     },
 
     plotDrawHook: function() {
@@ -307,9 +332,6 @@ define(['views/dashItem', 'plot_booter',
         this.trigger('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
-      // TODO: do we need to do this on every plot draw?
-      this.addYaxesBoundsForDrops();
-      $('.label-closer', this.content).click(_.bind(this.removeChannel, this));
     },
 
     getVisibleTime: function() {
@@ -325,7 +347,7 @@ define(['views/dashItem', 'plot_booter',
       if (beg != xopts.min || end != xopts.max) {
         xopts.min = beg;
         xopts.max = end;
-        this.plot.setupGrid();  // Necessary?
+        this.plot.setupGrid();
         this.plot.draw();
       }
     },
@@ -478,10 +500,10 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    showNotification: function (range) {
+    showNotification: function (range, other) {
       var xaxis = this.plot.getXAxes()[0];
-      var leftSide = Math.max(xaxis.p2c(range.min/1e3), 0);
-      var rightSide = Math.min(xaxis.p2c(range.max/1e3), this.plot.width());
+      var leftSide = Math.max(xaxis.p2c(range.beg/1e3), 0);
+      var rightSide = Math.min(xaxis.p2c(range.end/1e3), this.plot.width());
       if (leftSide < this.plot.width() && rightSide > 0) {
         this.notificationPreview.css({
           left: leftSide + 'px',
@@ -586,18 +608,42 @@ define(['views/dashItem', 'plot_booter',
       return self;
     },
 
+    enterLegend: function (e) {
+      var row = $(e.target).closest('tr');
+      var channelName = $('[data-channel-name]', row)
+          .attr('data-channel-name');
+      if (channelName === this.hightlighting) return;
+      this.hightlighting = channelName;
+      this.draw();
+    },
+
+    leaveLegend: function (e) {
+      var receiver =
+          document.elementFromPoint(e.clientX,e.clientY);
+      if (receiver.nodeType == 3) // Opera
+        receiver = receiver.parentNode;
+      var row = $(receiver).closest('tr');
+      if ($('[data-channel-name]', row).length > 0)
+        return;
+      this.hightlighting = false;
+      this.draw();
+    },
+
     removeChannel: function (e) {
       var labelParent = $(e.target).parent().parent();
       var label = $('.legendLabel > div', labelParent);
       var channel = JSON.parse(label.attr('data-channel'));
+      this.hightlighting = false;
       this.trigger('ChannelUnrequested', channel);
     },
 
     addGraphFromParent: function (e) {
+      App.forceRedraw = true;
       this.trigger('addGraph');
     },
 
     removeGraphFromParent: function (e) {
+      App.forceRedraw = true;
       this.trigger('removeGraph');
     },
 

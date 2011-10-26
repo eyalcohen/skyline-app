@@ -108,8 +108,6 @@ define(['views/folderItem'], function (FolderItemView) {
       this.hookGraphControls(graph, this.graphModels.length - 1);
       this.arrangeGraphs();
       App.publish('WindowResize');
-      // var channel = App.store.get('defaultChannel-' + this.tabId);
-      // graph.addChannel(channel);
     },
 
     removeGraph: function (index) {
@@ -141,7 +139,7 @@ define(['views/folderItem'], function (FolderItemView) {
     },
 
     checkChannelExistence: function (channel) {
-      if ($('[data-channel-name="'+channel.channelName+'"]').length === 0) {
+      if ($('[data-channel-name="'+channel.channelName+'"]', this.el).length <= 1) {
         this.treeModel.view.trigger('hideChannel', channel.channelName);
       }
     },

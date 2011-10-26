@@ -719,7 +719,8 @@ tr.dark {
 }
 
 tr.dark:hover, tr.light:hover {
-  background: rgba(194,254,6,0.5);
+  background: rgba(0,0,0,0.2);
+  /*background: rgba(194,254,6,0.5);*/
 /*  background: rgba(252,241,129,0.5);*/
 }
 
@@ -1044,13 +1045,13 @@ div.preferences {
   height: 100%;
   position: absolute;
   top: 0;
-  background: rgba(194,254,6,0.3);
+  background: rgba(0,0,0,0.1);
 /*  opacity: 0.5;*/
   display: none;
 }
 
 .label-highlight {
-  background: rgba(194,254,6,0.3);
+  background: rgba(0,0,0,0.1);
 }
 
 .mouse-time {
@@ -1121,6 +1122,10 @@ div.preferences {
   display: none;
 }
 
+.legend tr:hover {
+  background: rgba(0,0,0,0.1);
+}
+
 .legend td {
   padding: 3px 5px;
   border-top: none;
@@ -1145,6 +1150,7 @@ div.preferences {
   width: 100px;
   font-weight: normal !important;
   color: black;
+  padding-top: 4px !important;
 }
 
 a.label-closer {
