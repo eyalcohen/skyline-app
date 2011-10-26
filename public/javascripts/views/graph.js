@@ -502,8 +502,8 @@ define(['views/dashItem', 'plot_booter',
 
     showNotification: function (range, other) {
       var xaxis = this.plot.getXAxes()[0];
-      var leftSide = Math.max(xaxis.p2c(range.min/1e3), 0);
-      var rightSide = Math.min(xaxis.p2c(range.max/1e3), this.plot.width());
+      var leftSide = Math.max(xaxis.p2c(range.beg/1e3), 0);
+      var rightSide = Math.min(xaxis.p2c(range.end/1e3), this.plot.width());
       if (leftSide < this.plot.width() && rightSide > 0) {
         this.notificationPreview.css({
           left: leftSide + 'px',
