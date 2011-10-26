@@ -133,6 +133,7 @@ define(['views/dashItem', 'plot_booter'],
           var $this = $(this);
           $this.hide();
           var receiver = document.elementFromPoint(e.clientX,e.clientY);
+          if (!receiver) return;
           if (receiver.nodeType == 3) { // Opera
             receiver = receiver.parentNode;
           }

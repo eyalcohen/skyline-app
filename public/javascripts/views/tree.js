@@ -108,7 +108,7 @@ define(['views/dashItem',
         themes: { theme: 'apple' },
         dnd: {
           drop_check: function (data) {
-            App.isDragging = true;
+            App.publish('DragStart-' + self.model.get('tabId'));
             data.r.data('dragover').call(data.r);
             return true;
           },
@@ -215,7 +215,7 @@ define(['views/dashItem',
       }
       if (data.r.data('dragout'))
         data.r.data('dragout').call(data.r);
-      App.isDragging = false;
+      App.publish('DragEnd-' + self.model.get('tabId'));
     },
 
     nodeDroppedExternalHandler: function (data) {
@@ -230,11 +230,11 @@ define(['views/dashItem',
         App.publish('ChannelRequested-' + this.model.get('tabId') + '-' +
             graphId, [channel]);
       }
-      App.isDragging = false;
+      App.publish('DragEnd-' + this.model.get('tabId'));
     },
 
     nodeDraggedExternalHandler: function (data, cb) {
-      App.isDragging = true;
+      App.publish('DragStart-' + this.model.get('tabId'));
       if (data.r.hasClass('axisTarget')) {
         data.r.data('dragover').call(data.r);
         cb(true);
