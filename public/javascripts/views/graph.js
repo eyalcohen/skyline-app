@@ -57,6 +57,23 @@ define(['views/dashItem', 'plot_booter',
 
     createPlot: function () {
       var self = this;
+      self.colors = [
+        "#28A128",  // Dark green
+        "#cb4b4b",  // Dark red
+        "#118CED",  // Dark blue
+        "#E8913F",  // Orange
+        "#9440ed",  // Dark purple
+        "#27CDD6",  // Dark cyan
+        "#B2B848",  // Dark yellow
+        "#8171E3",  // Violet
+        "#CC6ABE",  // Dark magenta
+        "#47A890",  // Dark teal
+        "#7A7A7A",  // Gray
+        "#76D676",  // Light green
+        "#FFA6A6",  // Pink
+        "#96BDFF",  // Light blue
+        "#D373FF",  // Light purple
+      ];
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
@@ -113,23 +130,7 @@ define(['views/dashItem', 'plot_booter',
                 label + '</span></div>';
           },
         },
-        colors: [
-            "#28A128",  // Dark green
-            "#cb4b4b",  // Dark red
-            "#118CED",  // Dark blue
-            "#E8913F",  // Orange
-            "#9440ed",  // Dark purple
-            "#27CDD6",  // Dark cyan
-            "#CFD63E",  // Dark yellow
-            "#8171E3",  // Violet
-            "#CC6ABE",  // Dark magenta
-            "#47A890",  // Dark teal
-            "#7A7A7A",  // Gray
-            "#76D676",  // Light green
-            "#FFA6A6",  // Pink
-            "#96BDFF",  // Light blue
-            "#D373FF",  // Light purple
-            ],
+        // colors: self.colors,
         hooks: {
           draw: [_.bind(self.plotDrawHook, self)],
           setupGrid: [_.bind(self.plotSetupGridHook, self)],
@@ -230,8 +231,15 @@ define(['views/dashItem', 'plot_booter',
       _.each(self.model.get('channels'), function (channel) {
         var data = self.model.data[channel.channelName] || [];
         var highlighted = self.highlighting === channel.channelName;
-        var color = !self.highlighting || highlighted ?
-            channel.colorNum : '#f0f0f0';
+        var color = self.colors[channel.colorNum % self.colors.length];
+        if (self.highlighting && !highlighted) {
+          // Lighten color.
+          color = $.color.parse(color);
+          color.r = Math.round((color.r + 255*2) / 3);
+          color.g = Math.round((color.g + 255*2) / 3);
+          color.b = Math.round((color.b + 255*2) / 3);
+          color = color.toString();
+        }
         var newDataSeries = {
           color: color,
           lines: {
