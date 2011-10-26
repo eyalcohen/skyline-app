@@ -219,16 +219,15 @@ define(['views/dashItem',
     },
 
     nodeDroppedExternalHandler: function (data) {
-      var self = this;
       if (data.r.hasClass('axisTarget')) {
         var graphId = data.r.parent().parent().data('id');
         var yaxisNum = data.r.data('axis.n');
         var channel = JSON.parse(data.o.parent().attr('data-channel'));
-        App.forceRedraw = true;
+        App.publish('ChannelDropped-' + graphId);
         $('.label-closer', data.o.parent().parent().parent()).click();
-        self.showChannel(channel.channelName);
+        this.showChannel(channel.channelName);
         channel.yaxisNum = yaxisNum;
-        App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
+        App.publish('ChannelRequested-' + this.model.get('tabId') + '-' +
             graphId, [channel]);
       }
       App.isDragging = false;
@@ -254,7 +253,7 @@ define(['views/dashItem',
 
     showChannel: function (channelName) {
       var self = this;
-      var nodes = $('li', this.treeHolder);
+      var nodes = $('li', self.treeHolder);
       nodes.each(function (i) {
         var node = $(nodes.get(i));
         if (node.attr('id') === channelName

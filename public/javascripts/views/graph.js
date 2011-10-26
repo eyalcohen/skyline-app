@@ -7,13 +7,21 @@ define(['views/dashItem', 'plot_booter',
     function (DashItemView) {
   return DashItemView.extend({
     initialize: function (args) {
-      this._super('initialize', args);
-      _.bindAll(this, 'destroy', 'showNotification', 'hideNotification',
+      var self = this;
+      self._super('initialize', args);
+      _.bindAll(self, 'destroy', 'showNotification', 'hideNotification',
                 'mouseHoverTime');
       var tabId = args.tabId;
-      App.subscribe('PreviewNotification-' + tabId, this.showNotification);
-      App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
-      App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
+      var id = args.id;
+      App.subscribe('PreviewNotification-' + tabId, self.showNotification);
+      App.subscribe('UnPreviewNotification-' + tabId, self.hideNotification);
+      App.subscribe('MouseHoverTime-' + tabId, self.mouseHoverTime);
+      // This is a horribly crufty way avoid drawing the legends every time
+      // the plot is redrawn but also ensure that it gets redawn when channels
+      // are dropped in.
+      App.subscribe('ChannelDropped-' + id, function () {
+        self.ensureLegendRedraw = true;
+      });
     },
 
     destroy: function () {
@@ -53,6 +61,11 @@ define(['views/dashItem', 'plot_booter',
       this.highlighting = false;
       this._super('render', fn);
       this.draw();
+    },
+
+    resize: function () {
+      this._super('resize');
+      this.ensureLegendRedraw = true;
     },
 
     createPlot: function () {
@@ -265,16 +278,6 @@ define(['views/dashItem', 'plot_booter',
       self.plot.draw();
     },
 
-    setupLabels: function () {
-      this.plot.setupLabels();
-      this.addYaxesBoundsForDrops();
-      $('.label-closer', this.content)
-          .click(_.bind(this.removeChannel, this));
-      $('.legend tr', this.content)
-          .bind('mouseenter', _.bind(this.enterLegend, this))
-          .bind('mouseout', _.bind(this.leaveLegend, this));
-    },
-
     plotSetupGridHook: function() {
       if (!this.plot) return;
       var xopts = this.plot.getAxes().xaxis.options;
@@ -309,10 +312,10 @@ define(['views/dashItem', 'plot_booter',
 
       var self = this;
       if (!self.prevNumChannels || self.prevNumChannels !== 
-            self.model.get('channels').length || App.forceRedraw) {
-        self.setupLabels();
-        if (App.forceRedraw)
-          App.forceRedraw = false;
+            self.model.get('channels').length || self.ensureLegendRedraw) {
+        self.setupLegend();
+        if (self.ensureLegendRedraw)
+          self.ensureLegendRedraw = false;
       }
       self.prevNumChannels = self.model.get('channels').length;
     },
@@ -332,6 +335,17 @@ define(['views/dashItem', 'plot_booter',
         this.trigger('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
+    },
+
+    setupLegend: function () {
+      console.log('drawLegend( ' + this.options.id + ' )');
+      this.plot.setupLegend();
+      this.addYaxesBoundsForDrops();
+      $('.label-closer', this.content)
+          .click(_.bind(this.removeChannel, this));
+      $('.legend tr', this.content)
+          .bind('mouseenter', _.bind(this.enterLegend, this))
+          .bind('mouseout', _.bind(this.leaveLegend, this));
     },
 
     getVisibleTime: function() {
@@ -638,12 +652,10 @@ define(['views/dashItem', 'plot_booter',
     },
 
     addGraphFromParent: function (e) {
-      App.forceRedraw = true;
       this.trigger('addGraph');
     },
 
     removeGraphFromParent: function (e) {
-      App.forceRedraw = true;
       this.trigger('removeGraph');
     },
 

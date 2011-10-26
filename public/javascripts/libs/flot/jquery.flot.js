@@ -166,7 +166,7 @@
         // public functions
         plot.setData = setData;
         plot.setupGrid = setupGrid;
-        plot.setupLabels = setupLabels;
+        plot.setupLegend = setupLegend;
         plot.draw = draw;
         plot.getPlaceholder = function() { return placeholder; };
         plot.getCanvas = function() { return canvas; };
@@ -218,7 +218,7 @@
         setupCanvases();
         setData(data_);
         setupGrid();
-        setupLabels();
+        setupLegend();
         draw();
         bindEvents();
 
@@ -1097,7 +1097,7 @@
 
         }
 
-        function setupLabels() {
+        function setupLegend() {
           placeholder.find(".legend").remove();
           if (!options.legend.oneperyaxis) {
               insertLegend();
