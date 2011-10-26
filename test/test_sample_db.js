@@ -548,9 +548,8 @@ exports.testInsertMerging = setupDbFirst(function(test) {
 });
 
 exports.testFetchMergedSamples = setupDbFirst(function(test) {
-  // 500 us real bucket thresholds: 0 us, 50 ms, 100 ms, etc.
-  // 5 ms real bucket thresholds: 0 ms, 500 ms, 1 s, etc.
-  // 1 ms synthetic bucket thresholds: 0 ms, 500 ms, 1 s, etc.
+  // real bucket thresholds: 0s, 500 us, 5ms, ...
+  // synthetic bucket thresholds: 100 us, 1 ms, 10ms, ...
   function s(beg, dur, val, min, max) {
     if (min == null && max == null)
       return { beg: beg, end: beg + dur, val: val };
@@ -577,15 +576,12 @@ exports.testFetchMergedSamples = setupDbFirst(function(test) {
   var beg = _.first(samples1).beg, end = _.last(samples1).end;
   var expectedSyn1ms = [
     // Bucket-aligned, equal to bucket duration threshold.
-    s(11000, 1000, 15, 10, 20),
-    s(12000, 1000, 35, 30, 40),
     // Below bucket duration threshold, contiguous.
     s(21000, 1000, 15, 10, 20),
     s(22000, 1000, 35, 30, 40),
     // Straddle, contiguous.
-    s(31000, 1000, 15, 10, 20),
-    s(32000, 1000, 32, 20, 40),
-    s(33000, 1000, 40, 40, 40),
+    s(31000, 1000, 10, 10, 10),
+    s(32000, 1000, 30, 30, 30),
   ];
   var expectedMerged1ms = [
     // Bucket-aligned, equal to bucket duration threshold.
@@ -597,11 +593,10 @@ exports.testFetchMergedSamples = setupDbFirst(function(test) {
     s(21000, 1000, 15, 10, 20),
     s(22000, 1000, 35, 30, 40),
     // Straddle, contiguous.
-    s(31000, 600, 15, 10, 20),
+    s(31000, 600, 10, 10, 10),
     s(31600, 600, 20),
-    s(32200, 400, 32, 20, 40),
+    s(32200, 400, 30, 30, 30),
     s(32600, 600, 40),
-    s(33200, 800, 40, 40, 40),
   ];
   // TODO: change DB format to have samples only contribute to synthetic
   // samples in a larger real bucket.  This gives cleaner results, and
@@ -637,7 +632,7 @@ exports.testFetchMergedSamples = setupDbFirst(function(test) {
                             { beginTime: beg, endTime: end, minDuration: 1000,
                               type: 'merged', getMinMax: true },
                             this);
-    }, function checkSyn1ms(err, merged) {
+    }, function checkMerged1ms(err, merged) {
       test.equal(err, null);
       test.deepEqual(merged, expectedMerged1ms);
       this();

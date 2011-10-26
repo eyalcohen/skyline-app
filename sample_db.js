@@ -917,10 +917,8 @@ SampleDb.buildChannelTree = function(samples) {
         // New category.
         var humanName = null;
         var subHumanName = sub[0].val.humanName;
-        debug('depth' + depth + ', sub[0].val.humanName: ' + inspect(subHumanName));
         if (_.isArray(subHumanName) && depth < subHumanName.length)
           humanName = subHumanName[depth];
-        debug('humanName: ' + humanName);
         desc = {
           shortName: nextPrefix,
           type: 'category',
@@ -1089,8 +1087,12 @@ SampleDb.getSyntheticDuration = function(duration) {
  */
 SampleDb.forSyntheticSamples = function(beginTime, endTime, cb) {
   var duration = endTime - beginTime;
+  // Find the next bigger bucket level than the one this sample would go into.
+  var nextBucketIndex = SampleDb.getLevelIndex(duration) + 1;
+  var minDuration = bucketThresholds[nextBucketIndex];
+  if (minDuration == null) minDuration = duration;
   syntheticDurations.forEach(function(synDuration) {
-    if (duration < synDuration) {
+    if (minDuration < synDuration) {
       var synBucket = Math.floor(beginTime / synDuration);
       var synBegin = synBucket * synDuration;
       var synEnd = synBegin + synDuration;
