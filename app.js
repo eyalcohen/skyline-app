@@ -21,10 +21,18 @@ _.mixin(require('underscore.string'));
 var Step = require('step');
 var EventID = require('./customids').EventID;
 var models = require('./models');
-var ProtobufSchema = require('protobuf_for_node').Schema;
-var Event = new ProtobufSchema(fs.readFileSync(__dirname + '/../mission-java/common/src/main/protobuf/Events.desc'));
-var WebUploadSamples = Event['event.WebUploadSamples'];
-var EventWebUpload = Event['event.EventWebUpload'];
+var EventDescFileName = __dirname +
+    '/../mission-java/common/src/main/protobuf/Events.desc';
+var WebUploadSamples, EventWebUpload;
+try {
+  var ProtobufSchema = require('protobuf_for_node').Schema;
+  var Event = new ProtobufSchema(fs.readFileSync(EventDescFileName));
+  WebUploadSamples = Event['event.WebUploadSamples'];
+  EventWebUpload = Event['event.EventWebUpload'];
+} catch (e) {
+  console.warn('Could not load proto buf ' + EventDescFileName +
+               ', upload APIs won\'t work!');
+}
 var Notify = require('./notify');
 var SampleDb = require('./sample_db.js').SampleDb;
 var compatibility = require('./compatibility.js');

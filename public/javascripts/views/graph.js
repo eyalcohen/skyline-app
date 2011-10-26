@@ -70,6 +70,23 @@ define(['views/dashItem', 'plot_booter',
 
     createPlot: function () {
       var self = this;
+      self.colors = [
+        "#28A128",  // Dark green
+        "#cb4b4b",  // Dark red
+        "#118CED",  // Dark blue
+        "#E8913F",  // Orange
+        "#9440ed",  // Dark purple
+        "#27CDD6",  // Dark cyan
+        "#B2B848",  // Dark yellow
+        "#8171E3",  // Violet
+        "#CC6ABE",  // Dark magenta
+        "#47A890",  // Dark teal
+        "#7A7A7A",  // Gray
+        "#76D676",  // Light green
+        "#FFA6A6",  // Pink
+        "#96BDFF",  // Light blue
+        "#D373FF",  // Light purple
+      ];
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
@@ -126,23 +143,7 @@ define(['views/dashItem', 'plot_booter',
                 label + '</span></div>';
           },
         },
-        colors: [
-            "#28A128",  // Dark green
-            "#cb4b4b",  // Dark red
-            "#118CED",  // Dark blue
-            "#E8913F",  // Orange
-            "#9440ed",  // Dark purple
-            "#27CDD6",  // Dark cyan
-            "#CFD63E",  // Dark yellow
-            "#8171E3",  // Violet
-            "#CC6ABE",  // Dark magenta
-            "#47A890",  // Dark teal
-            "#7A7A7A",  // Gray
-            "#76D676",  // Light green
-            "#FFA6A6",  // Pink
-            "#96BDFF",  // Light blue
-            "#D373FF",  // Light purple
-            ],
+        // colors: self.colors,
         hooks: {
           draw: [_.bind(self.plotDrawHook, self)],
           setupGrid: [_.bind(self.plotSetupGridHook, self)],
@@ -164,6 +165,9 @@ define(['views/dashItem', 'plot_booter',
           };
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouse.x);
+          // If we're hovering over the legend, don't do data mouseover.
+          if (inLegend(e.target))
+            mouse = null;
           App.publish('MouseHoverTime-' + self.model.get('tabId'),
                       [time * 1e3, mouse, self]);
         })
@@ -186,8 +190,16 @@ define(['views/dashItem', 'plot_booter',
             plot.zoomOut({ center: c, amount: factor });
           else
             plot.zoom({ center: c, amount: factor });
-        };
-      };
+        }
+      }
+
+      function inLegend(elem) {
+        while (elem) {
+          if (elem.className == 'legend') return true;
+          elem = elem.parentNode;
+        }
+        return false;
+      }
 
       function weekendAreas(axes) {
         var markings = [];
@@ -239,13 +251,20 @@ define(['views/dashItem', 'plot_booter',
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
       });
-      var dataSeries = [], minMaxSeries = [];
+      var dataSeries = [], minMaxSeries = [], highlightSeries = [];
       _.each(self.model.get('channels'), function (channel) {
         var data = self.model.data[channel.channelName] || [];
-        var color = !self.hightlighting || 
-            self.hightlighting === channel.channelName ?
-          channel.colorNum : '#f0f0f0';
-        dataSeries.push({
+        var highlighted = self.highlighting === channel.channelName;
+        var color = self.colors[channel.colorNum % self.colors.length];
+        if (self.highlighting && !highlighted) {
+          // Lighten color.
+          color = $.color.parse(color);
+          color.r = Math.round((color.r + 255*2) / 3);
+          color.g = Math.round((color.g + 255*2) / 3);
+          color.b = Math.round((color.b + 255*2) / 3);
+          color = color.toString();
+        }
+        var newDataSeries = {
           color: color,
           lines: {
             show: true,
@@ -257,11 +276,9 @@ define(['views/dashItem', 'plot_booter',
           xaxis: 1,
           yaxis: channel.yaxisNum,
           channel: channel,
-        });
-        var dataMinMax =
-            self.model.dataMinMax[channel.channelName] || [];
-        if (dataMinMax.length === 0) return;
-        minMaxSeries.push({
+        };
+        var dataMinMax = self.model.dataMinMax[channel.channelName] || [];
+        var newMinMaxSeries = {
           color: color,
           lines: {
             show: true,
@@ -271,9 +288,19 @@ define(['views/dashItem', 'plot_booter',
           data: dataMinMax,
           xaxis: 1,
           yaxis: channel.yaxisNum,
-        });
+        };
+        if (highlighted) {
+          if (dataMinMax.length)
+            highlightSeries.push(newMinMaxSeries);
+          highlightSeries.push(newDataSeries);
+        } else {
+          if (dataMinMax.length)
+            minMaxSeries.push(newMinMaxSeries);
+          dataSeries.push(newDataSeries);
+        }
       });
-      self.plot.setData(minMaxSeries.concat(dataSeries));
+      self.plot.setData(
+          [].concat.call(minMaxSeries, dataSeries, highlightSeries));
       self.plot.setupGrid();
       self.plot.draw();
     },
@@ -408,7 +435,7 @@ define(['views/dashItem', 'plot_booter',
             return prev && p && prev[0] <= time && time < p[0] && p;
           });
           if (hoveredPnt) {
-            if (graph === self) {
+            if (graph === self && mouse) {
               var dy = Math.abs(series.yaxis.p2c(hoveredPnt[1]) - mouse.y);
               if (dy <= minDist) {
                 minDist = dy;
@@ -516,8 +543,8 @@ define(['views/dashItem', 'plot_booter',
 
     showNotification: function (range, other) {
       var xaxis = this.plot.getXAxes()[0];
-      var leftSide = Math.max(xaxis.p2c(range.min/1e3), 0);
-      var rightSide = Math.min(xaxis.p2c(range.max/1e3), this.plot.width());
+      var leftSide = Math.max(xaxis.p2c(range.beg/1e3), 0);
+      var rightSide = Math.min(xaxis.p2c(range.end/1e3), this.plot.width());
       if (leftSide < this.plot.width() && rightSide > 0) {
         this.notificationPreview.css({
           left: leftSide + 'px',
@@ -626,8 +653,8 @@ define(['views/dashItem', 'plot_booter',
       var row = $(e.target).closest('tr');
       var channelName = $('[data-channel-name]', row)
           .attr('data-channel-name');
-      if (channelName === this.hightlighting) return;
-      this.hightlighting = channelName;
+      if (channelName === this.highlighting) return;
+      this.highlighting = channelName;
       this.draw();
     },
 
@@ -639,7 +666,7 @@ define(['views/dashItem', 'plot_booter',
       var row = $(receiver).closest('tr');
       if ($('[data-channel-name]', row).length > 0)
         return;
-      this.hightlighting = false;
+      this.highlighting = false;
       this.draw();
     },
 
@@ -647,7 +674,7 @@ define(['views/dashItem', 'plot_booter',
       var labelParent = $(e.target).parent().parent();
       var label = $('.legendLabel > div', labelParent);
       var channel = JSON.parse(label.attr('data-channel'));
-      this.hightlighting = false;
+      this.highlighting = false;
       this.trigger('ChannelUnrequested', channel);
     },
 
