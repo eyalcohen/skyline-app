@@ -152,6 +152,9 @@ define(['views/dashItem', 'plot_booter',
           };
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouse.x);
+          // If we're hovering over the legend, don't do data mouseover.
+          if (inLegend(e.target))
+            mouse = null;
           App.publish('MouseHoverTime-' + self.model.get('tabId'),
                       [time * 1e3, mouse, self]);
         })
@@ -174,8 +177,16 @@ define(['views/dashItem', 'plot_booter',
             plot.zoomOut({ center: c, amount: factor });
           else
             plot.zoom({ center: c, amount: factor });
-        };
-      };
+        }
+      }
+
+      function inLegend(elem) {
+        while (elem) {
+          if (elem.className == 'legend') return true;
+          elem = elem.parentNode;
+        }
+        return false;
+      }
 
       function weekendAreas(axes) {
         var markings = [];
@@ -410,7 +421,7 @@ define(['views/dashItem', 'plot_booter',
             return prev && p && prev[0] <= time && time < p[0] && p;
           });
           if (hoveredPnt) {
-            if (graph === self) {
+            if (graph === self && mouse) {
               var dy = Math.abs(series.yaxis.p2c(hoveredPnt[1]) - mouse.y);
               if (dy <= minDist) {
                 minDist = dy;
