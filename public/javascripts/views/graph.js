@@ -265,9 +265,46 @@ define(['views/dashItem', 'plot_booter',
       });
       var series = [];
       _.each(self.model.get('channels'), function (channel, i) {
-        var data = self.model.data[channel.channelName] || [];
         var highlighted = self.highlighting === channel.channelName;
-        var color = self.colors[channel.colorNum % self.colors.length];
+        var seriesBase = {
+          xaxis: 1,
+          yaxis: channel.yaxisNum,
+          channel: channel,
+          channelIndex: i,
+        };
+        var data = self.model.data[channel.channelName] || [];
+        series.push(_.extend({
+          lines: {
+            show: true,
+            lineWidth: 1,
+            fill: false,
+          },
+          data: data,
+          label: channel.title,
+        }, seriesBase));
+        var dataMinMax = self.model.dataMinMax[channel.channelName] || [];
+        if (dataMinMax.length > 0) {
+          series.push(_.extend({
+            lines: {
+              show: true,
+              lineWidth: 0,
+              fill: 0.6,
+            },
+            data: dataMinMax,
+          }, seriesBase));
+        }
+      });
+      self.updateSeriesColors(series);
+      self.plot.setData(series);
+      self.plot.setupGrid();
+      self.plot.draw();
+    },
+
+    updateSeriesColors: function(series) {
+      var self = this;
+      series.forEach(function(s, i) {
+        var highlighted = self.highlighting === s.channel.channelName;
+        var color = self.colors[s.channel.colorNum % self.colors.length];
         if (self.highlighting && !highlighted) {
           // Lighten color.
           color = $.color.parse(color);
@@ -276,39 +313,12 @@ define(['views/dashItem', 'plot_booter',
           color.b = Math.round((color.b + 255*2) / 3);
           color = color.toString();
         }
-        series.push({
-          zorder: highlighted ? 10001 : i * 2 + 1,
-          color: color,
-          lines: {
-            show: true,
-            lineWidth: 1,
-            fill: false,
-          },
-          data: data,
-          label: channel.title,
-          xaxis: 1,
-          yaxis: channel.yaxisNum,
-          channel: channel,
-        });
-        var dataMinMax = self.model.dataMinMax[channel.channelName] || [];
-        if (dataMinMax.length > 0) {
-          series.push({
-            zorder: highlighted ? 10000 : i * 2,
-            color: color,
-            lines: {
-              show: true,
-              lineWidth: 0,
-              fill: 0.6,
-            },
-            data: dataMinMax,
-            xaxis: 1,
-            yaxis: channel.yaxisNum,
-          });
-        }
+        s.color = color;
+        if (s.lines.fill)
+          s.zorder = highlighted ? 50000 : s.channelIndex;
+        else
+          s.zorder = 10000 + (highlighted ? 50000 : s.channelIndex);
       });
-      self.plot.setData(series);
-      self.plot.setupGrid();
-      self.plot.draw();
     },
 
     plotSetupGridHook: function() {
@@ -418,7 +428,8 @@ define(['views/dashItem', 'plot_booter',
         if (self.highlightedLabel)
           self.highlightedLabel.removeClass('label-highlight');
         self.highlighting = false;
-        self.draw();
+        self.updateSeriesColors(self.plot.getData());
+        self.plot.draw();
       }
       var newHighlighting = false;
       var minDist = Infinity;
@@ -470,7 +481,8 @@ define(['views/dashItem', 'plot_booter',
         self.highlightedLabel.addClass('label-highlight');
         self.plot.getPlaceholder().css(
             { cursor: newHighlighting ? 'pointer' : 'crosshair' });
-        self.draw();
+        self.updateSeriesColors(self.plot.getData());
+        self.plot.draw();
       }
     },
 
