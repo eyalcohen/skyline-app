@@ -719,7 +719,7 @@ tr.dark {
 }
 
 tr.dark:hover, tr.light:hover {
-  background: rgba(0,0,0,0.2);
+  background: rgba(174,182,154,0.2);
   /*background: rgba(194,254,6,0.5);*/
 /*  background: rgba(252,241,129,0.5);*/
 }
@@ -1045,13 +1045,14 @@ div.preferences {
   height: 100%;
   position: absolute;
   top: 0;
-  background: rgba(0,0,0,0.1);
-/*  opacity: 0.5;*/
+  background: rgba(174,182,154,0.2);
+  border-left: 1px dashed rgba(0, 0, 0, 0.3);
+  border-right: 1px dashed rgba(0, 0, 0, 0.3);
   display: none;
 }
 
 .label-highlight {
-  background: rgba(0,0,0,0.1);
+  background: rgba(174,182,154,0.2);
 }
 
 .mouse-time {
@@ -1124,6 +1125,10 @@ div.preferences {
 
 .legend > div {
   display: none;
+}
+
+.legend tr:hover {
+  background: rgba(174,182,154,0.2);
 }
 
 .legend td {

@@ -11,7 +11,7 @@ define(['jquery','libs/flot/excanvas'], function ($) {
           'libs/flot/jquery.flot.crosshair',
           'libs/flot/jquery.flot.fillbetween',
           'libs/flot/jquery.flot.navigate',
-          'libs/flot/jquery.flot.resize',
+          // 'libs/flot/jquery.flot.resize',
           'libs/flot/jquery.flot.selection',
           'libs/flot/jquery.flot.stack',
           'libs/flot/jquery.flot.symbol',

@@ -67,6 +67,19 @@ define(['views/dashItem', 'plot_booter',
       this.draw();
     },
 
+    resize: function () {
+      this._super('resize');
+      if (this.plot) {
+        this.plot.getPlaceholder().css({
+          width: this.content.width(),
+          height: this.content.height(),
+        });
+        this.plot.resize();
+        this.plot.setupGrid();
+        this.plot.draw();
+      }
+    },
+
     createPlot: function () {
       var self = this;
       self.colors = [
