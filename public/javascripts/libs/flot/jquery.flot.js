@@ -1482,9 +1482,13 @@
                 drawAxisLabels();
             }
 
-            for (var i = 0; i < series.length; ++i) {
-                executeHooks(hooks.drawSeries, [ctx, series[i]]);
-                drawSeries(series[i]);
+            // HACK HACK HACK TODO: remove underscore dep.
+            // Skyline-specific: sort by z-order.
+            var sortedSeries = _.stableSort(series,
+                    function(s1, s2) { return s1.zorder - s2.zorder });
+            for (var i = 0; i < sortedSeries.length; ++i) {
+                executeHooks(hooks.drawSeries, [ctx, sortedSeries[i]]);
+                drawSeries(sortedSeries[i]);
             }
 
             executeHooks(hooks.draw, [ctx]);

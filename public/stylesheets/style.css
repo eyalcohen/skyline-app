@@ -1122,10 +1122,6 @@ div.preferences {
   display: none;
 }
 
-.legend tr:hover {
-  background: rgba(0,0,0,0.1);
-}
-
 .legend td {
   padding: 3px 5px;
   border-top: none;

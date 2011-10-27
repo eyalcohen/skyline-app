@@ -251,8 +251,8 @@ define(['views/dashItem', 'plot_booter',
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
       });
-      var dataSeries = [], minMaxSeries = [], highlightSeries = [];
-      _.each(self.model.get('channels'), function (channel) {
+      var series = [];
+      _.each(self.model.get('channels'), function (channel, i) {
         var data = self.model.data[channel.channelName] || [];
         var highlighted = self.highlighting === channel.channelName;
         var color = self.colors[channel.colorNum % self.colors.length];
@@ -264,7 +264,8 @@ define(['views/dashItem', 'plot_booter',
           color.b = Math.round((color.b + 255*2) / 3);
           color = color.toString();
         }
-        var newDataSeries = {
+        series.push({
+          zorder: highlighted ? 10001 : i * 2 + 1,
           color: color,
           lines: {
             show: true,
@@ -276,31 +277,24 @@ define(['views/dashItem', 'plot_booter',
           xaxis: 1,
           yaxis: channel.yaxisNum,
           channel: channel,
-        };
+        });
         var dataMinMax = self.model.dataMinMax[channel.channelName] || [];
-        var newMinMaxSeries = {
-          color: color,
-          lines: {
-            show: true,
-            lineWidth: 0,
-            fill: 0.6,
-          },
-          data: dataMinMax,
-          xaxis: 1,
-          yaxis: channel.yaxisNum,
-        };
-        if (highlighted) {
-          if (dataMinMax.length)
-            highlightSeries.push(newMinMaxSeries);
-          highlightSeries.push(newDataSeries);
-        } else {
-          if (dataMinMax.length)
-            minMaxSeries.push(newMinMaxSeries);
-          dataSeries.push(newDataSeries);
+        if (dataMinMax.length > 0) {
+          series.push({
+            zorder: highlighted ? 10000 : i * 2,
+            color: color,
+            lines: {
+              show: true,
+              lineWidth: 0,
+              fill: 0.6,
+            },
+            data: dataMinMax,
+            xaxis: 1,
+            yaxis: channel.yaxisNum,
+          });
         }
       });
-      self.plot.setData(
-          [].concat.call(minMaxSeries, dataSeries, highlightSeries));
+      self.plot.setData(series);
       self.plot.setupGrid();
       self.plot.draw();
     },
@@ -338,13 +332,15 @@ define(['views/dashItem', 'plot_booter',
       });
 
       var self = this;
-      if (!self.prevNumChannels || self.prevNumChannels !== 
-            self.model.get('channels').length || self.ensureLegendRedraw) {
+      if (!self.prevNumChannels ||
+          self.prevNumChannels !== self.model.get('channels').length ||
+          self.prevHighlighting != self.highlighting ||
+          self.ensureLegendRedraw) {
         self.setupLegend();
-        if (self.ensureLegendRedraw)
-          self.ensureLegendRedraw = false;
+        self.ensureLegendRedraw = false;
+        self.prevNumChannels = self.model.get('channels').length;
+        self.prevHighlighting = self.highlighting;
       }
-      self.prevNumChannels = self.model.get('channels').length;
     },
 
     plotDrawHook: function() {
@@ -367,6 +363,12 @@ define(['views/dashItem', 'plot_booter',
     setupLegend: function () {
       console.log('drawLegend( ' + this.options.id + ' )');
       this.plot.setupLegend();
+      if (this.highlighting) {
+        var labelSibling = $('.legendLabel > div[data-channel-name="'+
+            this.highlighting+'"]', this.el);
+        var labelParent = labelSibling.parent().parent();
+        labelParent.addClass('label-highlight');
+      }
       this.addYaxesBoundsForDrops();
       $('.label-closer', this.content)
           .click(_.bind(this.removeChannel, this));
@@ -413,13 +415,7 @@ define(['views/dashItem', 'plot_booter',
         self.mouseTime.hide();
       }
 
-      // TODO: clean up labels - pass full html as flot option
-      // and remove flot hackery.
-      if (self.closestSeriesLabel) {
-        self.closestSeriesLabel.removeClass('label-highlight');
-        self.axisTargets.css({ cursor: 'crosshair' });
-      }
-      self.closestSeriesLabel = null;
+      var newHighlighting = false;
       var minDist = Infinity;
       _.each(self.plot.getData(), function (series) {
         if (!series.channel) return;
@@ -437,9 +433,9 @@ define(['views/dashItem', 'plot_booter',
           if (hoveredPnt) {
             if (graph === self && mouse) {
               var dy = Math.abs(series.yaxis.p2c(hoveredPnt[1]) - mouse.y);
-              if (dy <= minDist) {
+              if (dy <= minDist && dy <= self.minHoverDistance) {
                 minDist = dy;
-                self.closestSeriesLabel = labelParent;
+                newHighlighting = series.channel.channelName;
               }
             }
             var v = hoveredPnt[1];
@@ -459,10 +455,12 @@ define(['views/dashItem', 'plot_booter',
         }
         label.html(valueHTML);
       });
-      if (self.closestSeriesLabel &&
-            minDist <= self.minHoverDistance) {
-        self.closestSeriesLabel.addClass('label-highlight');
-        self.axisTargets.css({ cursor: 'pointer' });
+      if (mouse && newHighlighting != self.highlighting) {
+        self.highlighting = newHighlighting;
+        self.draw();
+        // self.closestSeriesLabel.addClass('label-highlight');
+        self.axisTargets.css(
+            { cursor: newHighlighting ? 'pointer' : 'crosshair' });
       }
     },
 
@@ -659,12 +657,11 @@ define(['views/dashItem', 'plot_booter',
     },
 
     leaveLegend: function (e) {
-      var receiver =
-          document.elementFromPoint(e.clientX,e.clientY);
-      if (receiver.nodeType == 3) // Opera
+      var receiver = document.elementFromPoint(e.clientX, e.clientY);
+      if (receiver && receiver.nodeType == 3) // Opera
         receiver = receiver.parentNode;
-      var row = $(receiver).closest('tr');
-      if ($('[data-channel-name]', row).length > 0)
+      if (receiver &&
+          $('[data-channel-name]', $(receiver).closest('tr')).length > 0)
         return;
       this.highlighting = false;
       this.draw();
