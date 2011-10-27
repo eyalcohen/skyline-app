@@ -343,12 +343,10 @@ define(['views/dashItem', 'plot_booter',
         }
       });
       if (this.prevNumChannels !== this.model.get('channels').length ||
-          // this.prevHighlighting !== this.highlighting ||
           this.ensureLegendRedraw) {
         this.setupLegend();
         this.ensureLegendRedraw = false;
         this.prevNumChannels = this.model.get('channels').length;
-        // this.prevHighlighting = this.highlighting;
       }
     },
 
@@ -416,12 +414,11 @@ define(['views/dashItem', 'plot_booter',
       } else {
         self.mouseTime.hide();
       }
-      if (!time) {
+      if (time == null) {
         if (self.highlightedLabel)
           self.highlightedLabel.removeClass('label-highlight');
         self.highlighting = false;
         self.draw();
-        return;
       }
       var newHighlighting = false;
       var minDist = Infinity;
@@ -659,8 +656,7 @@ define(['views/dashItem', 'plot_booter',
       if (!receiver) return;
       if (receiver.nodeType == 3) // Opera
         receiver = receiver.parentNode;
-      if (receiver &&
-          $('[data-channel-name]', $(receiver).closest('tr')).length > 0)
+      if ($('[data-channel-name]', $(receiver).closest('tr')).length > 0)
         return;
       this.highlighting = false;
       this.draw();
