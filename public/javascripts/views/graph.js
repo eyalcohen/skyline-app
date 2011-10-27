@@ -61,7 +61,7 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
       this.notificationPreview = $('.notification-preview', this.el);
-      this.minHoverDistance = 10;
+      this.minHoverDistance = 5;
       this.highlighting = false;
       this._super('render', fn);
       this.draw();
@@ -183,7 +183,7 @@ define(['views/dashItem', 'plot_booter',
           App.publish('MouseHoverTime-' + self.model.get('tabId'),
                       [time * 1e3, mouse, self]);
         })
-        .mouseleave(function (e) {
+        .bind('mouseout', function (e) {
           App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
         })
         .mousewheel(function (e, delta) {
@@ -342,8 +342,7 @@ define(['views/dashItem', 'plot_booter',
           axis.datamin -= 0.5; axis.datamax += 0.5;
         }
       });
-      if ((// this.prevNumChannels === undefined &&
-           this.prevNumChannels !== this.model.get('channels').length) ||
+      if (this.prevNumChannels !== this.model.get('channels').length ||
           // this.prevHighlighting !== this.highlighting ||
           this.ensureLegendRedraw) {
         this.setupLegend();
@@ -354,9 +353,9 @@ define(['views/dashItem', 'plot_booter',
     },
 
     plotDrawHook: function() {
-      var lastHover = this.lastHoverTime;
-      if (lastHover)
-        this.mouseHoverTime(lastHover.time, lastHover.mouse, lastHover.graph);
+      // var lastHover = this.lastHoverTime;
+      // if (lastHover)
+      //   this.mouseHoverTime(lastHover.time, lastHover.mouse, lastHover.graph);
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
@@ -373,16 +372,10 @@ define(['views/dashItem', 'plot_booter',
     setupLegend: function () {
       console.log('drawLegend( ' + this.options.id + ' )...');
       this.plot.setupLegend();
-      // if (this.highlighting) {
-      //   var labelSibling = $('.legendLabel > div[data-channel-name="'+
-      //       this.highlighting+'"]', this.el);
-      //   var labelParent = labelSibling.parent().parent();
-      //   labelParent.addClass('label-highlight');
-      // }
       $('.label-closer', this.content)
           .click(_.bind(this.removeChannel, this));
       $('.legend tr', this.content)
-          .bind('mouseenter', _.bind(this.enterLegend, this))
+          .bind('mouseover', _.bind(this.enterLegend, this))
           .bind('mouseout', _.bind(this.leaveLegend, this));
     },
 
@@ -406,7 +399,7 @@ define(['views/dashItem', 'plot_booter',
 
     mouseHoverTime: function(time, mouse, graph) {
       var self = this;
-      self.lastHoverTime = { time: time, mouse: mouse, graph: graph };
+      // self.lastHoverTime = { time: time, mouse: mouse, graph: graph };
 
       if (time != null)
         time = time / 1e3;
@@ -423,7 +416,13 @@ define(['views/dashItem', 'plot_booter',
       } else {
         self.mouseTime.hide();
       }
-
+      if (!time) {
+        if (self.highlightedLabel)
+          self.highlightedLabel.removeClass('label-highlight');
+        self.highlighting = false;
+        self.draw();
+        return;
+      }
       var newHighlighting = false;
       var minDist = Infinity;
       _.each(self.plot.getData(), function (series) {
@@ -650,8 +649,8 @@ define(['views/dashItem', 'plot_booter',
           .attr('data-channel-name');
       if (channelName === this.highlighting) return;
       this.highlighting = channelName;
-      if (this.lastHoverTime)
-        this.lastHoverTime.mouse = null;  // HACK
+      // if (this.lastHoverTime)
+      //   this.lastHoverTime.mouse = null;  // HACK
       this.draw();
     },
 

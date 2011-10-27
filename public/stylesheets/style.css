@@ -1052,7 +1052,8 @@ div.preferences {
 }
 
 .label-highlight {
-  background: rgba(174,182,154,0.2);
+/*  background: rgba(174,182,154,0.2);*/
+  border: 1px dashed gray;
 }
 
 .mouse-time {
@@ -1128,7 +1129,8 @@ div.preferences {
 }
 
 .legend tr:hover {
-  background: rgba(174,182,154,0.2);
+/*  background: rgba(174,182,154,0.2);*/
+  border: 1px dashed gray;
 }
 
 .legend td {
