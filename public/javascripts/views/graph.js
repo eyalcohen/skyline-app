@@ -342,15 +342,14 @@ define(['views/dashItem', 'plot_booter',
           axis.datamin -= 0.5; axis.datamax += 0.5;
         }
       });
-
-      if ((this.prevNumChannels !== undefined &&
+      if ((// this.prevNumChannels === undefined &&
            this.prevNumChannels !== this.model.get('channels').length) ||
-          this.prevHighlighting != this.highlighting ||
+          // this.prevHighlighting !== this.highlighting ||
           this.ensureLegendRedraw) {
         this.setupLegend();
         this.ensureLegendRedraw = false;
         this.prevNumChannels = this.model.get('channels').length;
-        this.prevHighlighting = this.highlighting;
+        // this.prevHighlighting = this.highlighting;
       }
     },
 
@@ -374,13 +373,12 @@ define(['views/dashItem', 'plot_booter',
     setupLegend: function () {
       console.log('drawLegend( ' + this.options.id + ' )...');
       this.plot.setupLegend();
-      if (this.highlighting) {
-        var labelSibling = $('.legendLabel > div[data-channel-name="'+
-            this.highlighting+'"]', this.el);
-        var labelParent = labelSibling.parent().parent();
-        labelParent.addClass('label-highlight');
-      }
-      //this.addYaxesBoundsForDrops();
+      // if (this.highlighting) {
+      //   var labelSibling = $('.legendLabel > div[data-channel-name="'+
+      //       this.highlighting+'"]', this.el);
+      //   var labelParent = labelSibling.parent().parent();
+      //   labelParent.addClass('label-highlight');
+      // }
       $('.label-closer', this.content)
           .click(_.bind(this.removeChannel, this));
       $('.legend tr', this.content)
@@ -466,12 +464,17 @@ define(['views/dashItem', 'plot_booter',
         }
         label.html(valueHTML);
       });
-      if (mouse && newHighlighting != self.highlighting) {
+      if (mouse && newHighlighting !== self.highlighting) {
+        if (self.highlightedLabel)
+          self.highlightedLabel.removeClass('label-highlight');
         self.highlighting = newHighlighting;
-        self.draw();
-        // self.closestSeriesLabel.addClass('label-highlight');
+        var labelSibling = $('.legendLabel > div[data-channel-name="'+
+            self.highlighting+'"]', self.el);
+        self.highlightedLabel = labelSibling.parent().parent();
+        self.highlightedLabel.addClass('label-highlight');
         self.plot.getPlaceholder().css(
             { cursor: newHighlighting ? 'pointer' : 'crosshair' });
+        self.draw();
       }
     },
 
@@ -508,23 +511,6 @@ define(['views/dashItem', 'plot_booter',
             .addClass('axisTarget')
             .addClass('jstree-drop')
             .appendTo(self.plot.getPlaceholder());
-            // TODO: modularize this cause its useful elsewhere.
-            // .bind('click mousedown mouseup mouseenter mouseleave '+
-            //     'mousewheel mousemove', function (e) {
-            //   if (App.isDragging) return;
-            //   if (e.preventDefault) e.preventDefault();
-            //   var $this = $(this);
-            //   $this.hide();
-            //   var receiver =
-            //       document.elementFromPoint(e.clientX,e.clientY);
-            //   if (!receiver) return;
-            //   if (receiver.nodeType == 3) // Opera
-            //     receiver = receiver.parentNode;
-            //   var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
-            //       ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
-            //   $(receiver).trigger(e, [delta]);
-            //   $this.show();
-            // });
       });
 
       self.axisTargets = $('.axisTarget', self.el);
@@ -671,7 +657,8 @@ define(['views/dashItem', 'plot_booter',
 
     leaveLegend: function (e) {
       var receiver = document.elementFromPoint(e.clientX, e.clientY);
-      if (receiver && receiver.nodeType == 3) // Opera
+      if (!receiver) return;
+      if (receiver.nodeType == 3) // Opera
         receiver = receiver.parentNode;
       if (receiver &&
           $('[data-channel-name]', $(receiver).closest('tr')).length > 0)
