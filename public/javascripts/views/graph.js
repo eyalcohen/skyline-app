@@ -7,29 +7,33 @@ define(['views/dashItem', 'plot_booter',
     function (DashItemView) {
   return DashItemView.extend({
     initialize: function (args) {
-      var self = this;
-      self._super('initialize', args);
-      _.bindAll(self, 'destroy', 'showNotification', 'hideNotification',
-                'mouseHoverTime');
+      this._super('initialize', args);
+      _.bindAll(this, 'destroy', 'showNotification', 'hideNotification',
+                'mouseHoverTime', 'addYaxesBoundsForDrops',
+                'removeYaxesBoundsForDrops', 'ensureLegend');
       var tabId = args.tabId;
       var id = args.id;
-      App.subscribe('PreviewNotification-' + tabId, self.showNotification);
-      App.subscribe('UnPreviewNotification-' + tabId, self.hideNotification);
-      App.subscribe('MouseHoverTime-' + tabId, self.mouseHoverTime);
-      // This is a horribly crufty way avoid drawing the legends every time
+      App.subscribe('PreviewNotification-' + tabId, this.showNotification);
+      App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
+      App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
+      App.subscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
+      App.subscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
+      // This is a horribly crufty way to avoid drawing the legends every time
       // the plot is redrawn but also ensure that it gets redawn when channels
       // are dropped in.
-      App.subscribe('ChannelDropped-' + id, function () {
-        self.ensureLegendRedraw = true;
-      });
+      App.subscribe('ChannelDropped-' + id, this.ensureLegend);
     },
 
     destroy: function () {
       this._super('destroy');
       var tabId = this.options.tabId;
+      var id = this.options.id;
       App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
       App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
+      App.unsubscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
+      App.unsubscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
+      App.unsubscribe('ChannelDropped-' + id, this.ensureLegend);
     },
 
     events: {
@@ -61,11 +65,6 @@ define(['views/dashItem', 'plot_booter',
       this.highlighting = false;
       this._super('render', fn);
       this.draw();
-    },
-
-    resize: function () {
-      this._super('resize');
-      this.ensureLegendRedraw = true;
     },
 
     createPlot: function () {
@@ -224,18 +223,18 @@ define(['views/dashItem', 'plot_booter',
       var self = this;
       if (!self.plot)
         self.createPlot();
-      if (self.model.get('channels').length === 0) {
+      var emptyDiv = $('.empty-graph', self.content);
+      if (self.model.get('channels').length === 0 
+          && emptyDiv.length === 0) {
         $('<div><span>Drop data channels here to display.</span></div>')
             .addClass('empty-graph').appendTo(self.content);
         $('canvas', self.plot.getPlaceholder()).hide();
         self.plot.getOptions().crosshair.mode = null;
-      } else {
-        var emptyDiv = $('.empty-graph', self.content);
-        if (emptyDiv.length > 0) {
-          emptyDiv.remove();
-          $('canvas', self.plot.getPlaceholder()).show();
-          self.plot.getOptions().crosshair.mode = 'x';
-        }
+      } else if (self.model.get('channels').length > 0 
+          && emptyDiv.length > 0) {
+        emptyDiv.remove();
+        $('canvas', self.plot.getPlaceholder()).show();
+        self.plot.getOptions().crosshair.mode = 'x';
       }
       var opts = self.plot.getOptions();
       var numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
@@ -331,15 +330,14 @@ define(['views/dashItem', 'plot_booter',
         }
       });
 
-      var self = this;
-      if (!self.prevNumChannels ||
-          self.prevNumChannels !== self.model.get('channels').length ||
-          self.prevHighlighting != self.highlighting ||
-          self.ensureLegendRedraw) {
-        self.setupLegend();
-        self.ensureLegendRedraw = false;
-        self.prevNumChannels = self.model.get('channels').length;
-        self.prevHighlighting = self.highlighting;
+      if ((this.prevNumChannels !== undefined &&
+           this.prevNumChannels !== this.model.get('channels').length) ||
+          this.prevHighlighting != this.highlighting ||
+          this.ensureLegendRedraw) {
+        this.setupLegend();
+        this.ensureLegendRedraw = false;
+        this.prevNumChannels = this.model.get('channels').length;
+        this.prevHighlighting = this.highlighting;
       }
     },
 
@@ -361,7 +359,7 @@ define(['views/dashItem', 'plot_booter',
     },
 
     setupLegend: function () {
-      console.log('drawLegend( ' + this.options.id + ' )');
+      console.log('drawLegend( ' + this.options.id + ' )...');
       this.plot.setupLegend();
       if (this.highlighting) {
         var labelSibling = $('.legendLabel > div[data-channel-name="'+
@@ -369,7 +367,7 @@ define(['views/dashItem', 'plot_booter',
         var labelParent = labelSibling.parent().parent();
         labelParent.addClass('label-highlight');
       }
-      this.addYaxesBoundsForDrops();
+      //this.addYaxesBoundsForDrops();
       $('.label-closer', this.content)
           .click(_.bind(this.removeChannel, this));
       $('.legend tr', this.content)
@@ -459,15 +457,13 @@ define(['views/dashItem', 'plot_booter',
         self.highlighting = newHighlighting;
         self.draw();
         // self.closestSeriesLabel.addClass('label-highlight');
-        self.axisTargets.css(
+        self.plot.getPlaceholder().css(
             { cursor: newHighlighting ? 'pointer' : 'crosshair' });
       }
     },
 
     addYaxesBoundsForDrops: function () {
       var self = this;
-      if (self.axisTargets)
-        self.axisTargets.remove();
       var parentPadding = {
         lr: Math.ceil((self.content.width() -
             self.plot.getPlaceholder().width()) / 2),
@@ -489,35 +485,33 @@ define(['views/dashItem', 'plot_booter',
               dragout: function () { $(this).css({ opacity: 0 }) },
             })
             .css({
-              position: 'absolute',
               left: (axis.n - 1) * self.plot.width() / 2,
               top: box.top,
               width: self.plot.width() / 2,
               height: box.height,
-              backgroundColor: 'rgba(128,255,255,0.1)',
               'border-left': borderLeft,
               'border-right': borderRight,
-              opacity: 0,
             })
             .addClass('axisTarget')
             .addClass('jstree-drop')
-            .appendTo(self.plot.getPlaceholder())
+            .appendTo(self.plot.getPlaceholder());
             // TODO: modularize this cause its useful elsewhere.
-            .bind('click mousedown mouseup mouseenter mouseleave '+
-                'mousewheel mousemove', function (e) {
-              if (App.isDragging) return;
-              if (e.preventDefault) e.preventDefault();
-              var $this = $(this);
-              $this.hide();
-              var receiver =
-                  document.elementFromPoint(e.clientX,e.clientY);
-              if (receiver.nodeType == 3) // Opera
-                receiver = receiver.parentNode;
-              var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
-                  ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
-              $(receiver).trigger(e, [delta]);
-              $this.show();
-            });
+            // .bind('click mousedown mouseup mouseenter mouseleave '+
+            //     'mousewheel mousemove', function (e) {
+            //   if (App.isDragging) return;
+            //   if (e.preventDefault) e.preventDefault();
+            //   var $this = $(this);
+            //   $this.hide();
+            //   var receiver =
+            //       document.elementFromPoint(e.clientX,e.clientY);
+            //   if (!receiver) return;
+            //   if (receiver.nodeType == 3) // Opera
+            //     receiver = receiver.parentNode;
+            //   var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
+            //       ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
+            //   $(receiver).trigger(e, [delta]);
+            //   $this.show();
+            // });
       });
 
       self.axisTargets = $('.axisTarget', self.el);
@@ -537,6 +531,10 @@ define(['views/dashItem', 'plot_booter',
         return { left: left, top: top,
               width: width, height: height };
       }
+    },
+
+    removeYaxesBoundsForDrops: function () {
+      this.axisTargets.remove();
     },
 
     showNotification: function (range, other) {
@@ -653,6 +651,8 @@ define(['views/dashItem', 'plot_booter',
           .attr('data-channel-name');
       if (channelName === this.highlighting) return;
       this.highlighting = channelName;
+      if (this.lastHoverTime)
+        this.lastHoverTime.mouse = null;  // HACK
       this.draw();
     },
 
@@ -665,6 +665,10 @@ define(['views/dashItem', 'plot_booter',
         return;
       this.highlighting = false;
       this.draw();
+    },
+
+    ensureLegend: function () {
+      this.ensureLegendRedraw = true;
     },
 
     removeChannel: function (e) {
