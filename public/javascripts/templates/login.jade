@@ -1,26 +1,27 @@
-div.c2s-login-view
-  - if (report && report !== '') {
-    h2(class=type)
-      =report
-  - }
-  div.landing-form
-    form
-      table
-        tbody
-          tr
-            td
-              label(for="user[email]") Email
-          tr
-            td
-              input(name="user[email]", type="text", value=email || "", class=!first && email=="" ? "cs-input-alert" : "")
-          tr
-            td
-              label(for="user[password]") Password
-          tr
-            td
-              input(name="user[password]", type="password", value=password || "", class=!first && password=="" ? "cs-input-alert" : "")
-          tr
-            td
-              input#login.cs-button(type="submit", title="Log In", value="Log In")
+div.login-wrap
+  div.login
+    - if (report && report !== '') {
+      h2(class=type)
+        =report
+    - }
+    div.login-form
+      form
+        table
+          tbody
+            tr
+              td
+                label(for="user[email]") Email
+            tr
+              td
+                input(name="user[email]", type="text", value=email || "", class=!first && email=="" ? "cs-input-alert" : "")
+            tr
+              td
+                label(for="user[password]") Password
+            tr
+              td
+                input(name="user[password]", type="password", value=password || "", class=!first && password=="" ? "cs-input-alert" : "")
+            tr
+              td
+                input#login.cs-button(type="submit", title="Log In", value="Log In")
 
     

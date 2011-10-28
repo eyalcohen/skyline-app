@@ -21,6 +21,13 @@ define(['views/dashItem', 'plot_booter'],
       'mouseenter .timeline-icon': 'preview',
     },
 
+    destroy: function () {
+      this._super('destroy');
+      var tabId = this.options.tabId;
+      App.unsubscribe('HideVehicle-' + tabId, this.destroy);
+      App.unsubscribe('VisibleTimeChange-'+ tabId, this.drawWindow);
+    },
+
     render: function (opts) {
       opts = opts || {};
       _.defaults(opts, {
@@ -115,8 +122,8 @@ define(['views/dashItem', 'plot_booter'],
         },
       });
 
-      self.drawWindow(self.options.timeRange.min, self.options.timeRange.max);
-      self.plotDrawHook();
+      //self.drawWindow(self.options.timeRange.min, self.options.timeRange.max);
+      //self.plotDrawHook();
 
       function bindEventsHook(plot, eventHolder) {
         plot.getPlaceholder().mousewheel(function (e, delta) {
@@ -174,18 +181,19 @@ define(['views/dashItem', 'plot_booter'],
       return self;
     },
 
-    center: function (time) {
-      var currentCenterTime = this.plot.getOptions().xaxis.max -
-          this.plot.getOptions().xaxis.min;
-      var timeShift = time - currentCenterTime;
-      var min = this.plot.getOptions().xaxis.min - timeShift;
-      var max = this.plot.getOptions().xaxis.max - timeShift;
-      App.publish('VisibleTimeChange-' + this.options.tabId,
-          [min * 1e3, max * 1e3]);
+    plotDrawHook: function() {
+      var t = this.getVisibleTime();
+      if (!t) return;
+      if (t.beg != this.prevBeg || t.end != this.prevEnd) {
+        App.publish('NavigableTimeChange-' + this.options.tabId,
+                    [t.beg, t.end]);
+        this.prevBeg = t.beg;
+        this.prevEnd = t.end;
+      }
     },
-    
 
     drawWindow: function (min, max) {
+      console.log('drawWindow( ' + [min, max] + ' )');
       var self = this;
       if (!self.box || self.box.length === 0) {
         self.box = $(self.options.parent + ' .navigator-window');
@@ -230,6 +238,19 @@ define(['views/dashItem', 'plot_booter'],
         display: display,
         left: left + width - 5 + 'px',
       });
+      self.center();
+    },
+
+    center: function () {
+      var time = (self.windowMin + self.windowMax) / 2;
+      // console.log(time);
+      var currentCenterTime = this.plot.getOptions().xaxis.max -
+          this.plot.getOptions().xaxis.min;
+      var timeShift = time - currentCenterTime;
+      var min = this.plot.getOptions().xaxis.min - timeShift;
+      var max = this.plot.getOptions().xaxis.max - timeShift;
+      // App.publish('VisibleTimeChange-' + this.options.tabId,
+      //     [min * 1e3, max * 1e3]);
     },
 
     moveWindow: function (e) {
@@ -321,17 +342,6 @@ define(['views/dashItem', 'plot_booter'],
       };
     },
 
-    plotDrawHook: function() {
-      var t = this.getVisibleTime();
-      if (!t) return;
-      if (t.beg != this.prevBeg || t.end != this.prevEnd) {
-        App.publish('NavigableTimeChange-' + this.options.tabId,
-                    [t.beg, t.end]);
-        this.prevBeg = t.beg;
-        this.prevEnd = t.end;
-      }
-    },
-
     getVisibleTime: function() {
       if (!this.plot) return null;
       var xopts = this.plot.getAxes().xaxis.options;
@@ -341,12 +351,6 @@ define(['views/dashItem', 'plot_booter'],
 
     preview: function (e) {
       // console.log(e);
-    },
-
-    destroy: function () {
-      this._super('destroy');
-      App.unsubscribe('HideVehicle-' + this.options.tabId, this.destroy);
-      App.unsubscribe('VisibleTimeChange-'+this.options.tabId, this.drawWindow);
     },
 
   });
