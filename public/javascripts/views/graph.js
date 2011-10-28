@@ -429,7 +429,7 @@ define(['views/dashItem', 'plot_booter',
       var newHighlighting = false;
       var minDist = Infinity;
       _.each(self.plot.getData(), function (series) {
-        if (!series.channel) return;
+        if (!series.channel || series.lines.fill) return;
         var labelSibling = $('.legendLabel > div[data-channel-name="'+
             series.channel.channelName+'"]', self.el);
         var labelParent = labelSibling.parent().parent();
