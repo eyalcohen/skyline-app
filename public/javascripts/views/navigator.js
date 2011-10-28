@@ -102,7 +102,7 @@ define(['views/dashItem', 'plot_booter'],
           fullSize: true,
         },
         zoom: {
-          interactive: true,
+          interactive: false,  // We implement zooming event handlers ourselves.
           amount: 1.25,
         },
         pan: {
@@ -110,10 +110,34 @@ define(['views/dashItem', 'plot_booter'],
           frameRate: 60,
         },
         hooks: {
-          draw: [addIcons, self.drawWindow, self.plotDrawHook] },
+          draw: [addIcons, self.drawWindow, self.plotDrawHook],
+          bindEvents: [bindEventsHook],
+        },
       });
+
       self.drawWindow(self.options.timeRange.min, self.options.timeRange.max);
       self.plotDrawHook();
+
+      function bindEventsHook(plot, eventHolder) {
+        plot.getPlaceholder().mousewheel(function (e, delta) {
+          graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
+          return false;
+        })
+        .dblclick(function (e) {
+          graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+        });
+
+        function graphZoomClick(e, factor, out) {
+          var c = plot.offset();
+          c.left = e.pageX - c.left;
+          c.top = e.pageY - c.top;
+          if (out)
+            plot.zoomOut({ center: c, amount: factor });
+          else
+            plot.zoom({ center: c, amount: factor });
+        }
+      }
+
       function addIcons(p, ctx) {
         $('.timeline-icon', holder).remove();
         _.each(data, function (pnt) {
@@ -149,6 +173,17 @@ define(['views/dashItem', 'plot_booter'],
 
       return self;
     },
+
+    center: function (time) {
+      var currentCenterTime = this.plot.getOptions().xaxis.max -
+          this.plot.getOptions().xaxis.min;
+      var timeShift = time - currentCenterTime;
+      var min = this.plot.getOptions().xaxis.min - timeShift;
+      var max = this.plot.getOptions().xaxis.max - timeShift;
+      App.publish('VisibleTimeChange-' + this.options.tabId,
+          [min * 1e3, max * 1e3]);
+    },
+    
 
     drawWindow: function (min, max) {
       var self = this;

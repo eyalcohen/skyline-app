@@ -61,7 +61,7 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
       this.notificationPreview = $('.notification-preview', this.el);
-      this.minHoverDistance = 5;
+      this.minHoverDistance = 8;
       this.highlighting = false;
       this._super('render', fn);
       this.draw();
@@ -155,7 +155,6 @@ define(['views/dashItem', 'plot_booter',
                 label + '</span></div>';
           },
         },
-        // colors: self.colors,
         hooks: {
           draw: [_.bind(self.plotDrawHook, self)],
           setupGrid: [_.bind(self.plotSetupGridHook, self)],
@@ -361,9 +360,6 @@ define(['views/dashItem', 'plot_booter',
     },
 
     plotDrawHook: function() {
-      // var lastHover = this.lastHoverTime;
-      // if (lastHover)
-      //   this.mouseHoverTime(lastHover.time, lastHover.mouse, lastHover.graph);
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
@@ -407,7 +403,6 @@ define(['views/dashItem', 'plot_booter',
 
     mouseHoverTime: function(time, mouse, graph) {
       var self = this;
-      // self.lastHoverTime = { time: time, mouse: mouse, graph: graph };
 
       if (time != null)
         time = time / 1e3;
@@ -442,19 +437,50 @@ define(['views/dashItem', 'plot_booter',
         var valueHTML = '';
         if (time != null &&
             time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
-          var hoveredPnt = _.detect(series.data, function(p, i) {
+          var hp = _.detect(series.data, function(p, i) {
             var prev = series.data[i-1];
             return prev && p && prev[0] <= time && time < p[0] && p;
           });
-          if (hoveredPnt) {
+          if (hp) {
             if (graph === self && mouse) {
-              var dy = Math.abs(series.yaxis.p2c(hoveredPnt[1]) - mouse.y);
-              if (dy <= minDist && dy <= self.minHoverDistance) {
-                minDist = dy;
+              // Is this crazy ???????
+              // Check for mouse near vertical lines
+              // as well as horizontal lines.
+              var dx = Infinity, dy = Infinity;
+              var i = series.data.indexOf(hp);
+              var hpxc = series.xaxis.p2c(hp[0]);
+              var hpyc = series.yaxis.p2c(hp[1]);
+              if (i > 0 && i < series.data.length - 2) {
+                var hpl = series.data[i - 1];
+                var hpr = series.data[i + 1];
+                var hplxc = series.xaxis.p2c(hpl[0]);
+                var hplyc = series.yaxis.p2c(hpl[1]);
+                var hpryc = series.yaxis.p2c(hpr[1]);
+                var dxl = mouse.x - hplxc;
+                var dxr = hpxc - mouse.x;
+                if ((mouse.y > hpyc && mouse.y < hpryc) ||
+                    (mouse.y > hpryc && mouse.y < hpyc)) {
+                  dx = dxr;
+                } else if (i > 2) {
+                  var hpll = series.data[i - 2];
+                  var hpllyc = series.yaxis.p2c(hpll[1]);                  
+                  var goingUp = hp[1] < hpr[1];
+                  if ((goingUp && mouse.y > hplyc &&
+                      mouse.y < hpllyc) ||
+                      (!goingUp && mouse.y < hplyc &&
+                      mouse.y > hpllyc)) {
+                    dx = dxl;
+                  }
+                }
+              }
+              dy = Math.abs(hpyc - mouse.y);
+              var d = Math.min(dx, dy);
+              if (d <= minDist && d <= self.minHoverDistance) {
+                minDist = d;
                 newHighlighting = series.channel.channelName;
               }
             }
-            var v = hoveredPnt[1];
+            var v = hp[1];
             if (Math.abs(Math.round(v)) >= 1e6)
               v = v.toFixed(0);
             else {
@@ -560,16 +586,6 @@ define(['views/dashItem', 'plot_booter',
       this.notificationPreview.hide();
     },
 
-    // center: function (time) {
-    //   var currentCenterTime = this.plot.getOptions().xaxis.max -
-    //       this.plot.getOptions().xaxis.min;
-    //   var timeShift = time - currentCenterTime;
-    //   var min = this.plot.getOptions().xaxis.min - timeShift;
-    //   var max = this.plot.getOptions().xaxis.max - timeShift;
-    //   App.publish('VisibleTimeChange-' + this.options.tabId,
-    //       [min * 1e3, max * 1e3]);
-    // },
-
     exportCsv: function (e) {
       var self = this;
       e.preventDefault();
@@ -658,8 +674,6 @@ define(['views/dashItem', 'plot_booter',
           .attr('data-channel-name');
       if (channelName === this.highlighting) return;
       this.highlighting = channelName;
-      // if (this.lastHoverTime)
-      //   this.lastHoverTime.mouse = null;  // HACK
       this.draw();
     },
 
