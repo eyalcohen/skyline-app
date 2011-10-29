@@ -1108,11 +1108,12 @@ div.preferences {
   position: absolute;
   width: 1px;
   height: 40px;
-  background: rgba(64, 194, 237, 0.2);
-  border-radius:5px;
+/*  background: rgba(64, 194, 237, 0.2);*/
+  background: rgba(0, 0, 0, 0.4);
+/*  border-radius:5px;
   -moz-border-radius:5px;
   -webkit-border-radius:5px;
-  z-index: 10001;
+*/  z-index: 10001;
 }
 
 .navigator-window-handle-left,
@@ -1125,6 +1126,7 @@ div.preferences {
   border-right: 1px dotted #666;
   z-index: 1;
   top: 9px;
+  display: none !important;
 }
 
 .navigator > div {

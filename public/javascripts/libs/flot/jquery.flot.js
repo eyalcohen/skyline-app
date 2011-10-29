@@ -1760,10 +1760,12 @@
                                 y = axis.options.labelsInside ?
                                     box.top - box.padding - f.size :
                                     box.top + box.padding;
-                            else
+                            else if (axis.position == "top")
                                 y = axis.options.labelsInside ?
                                     box.top + box.height - box.padding - tick.height + f.size:
                                     box.top + box.height - box.padding - tick.height;
+                            else
+                                y = plot.height() / 2 - f.size / 2;
                         }
                         else {
                             y = plotOffset.top + axis.p2c(tick.v) - tick.height/2;

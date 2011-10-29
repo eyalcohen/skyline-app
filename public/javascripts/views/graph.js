@@ -61,7 +61,7 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
       this.notificationPreview = $('.notification-preview', this.el);
-      this.minHoverDistance = 8;
+      this.minHoverDistance = 10;
       this.highlighting = false;
       this._super('render', fn);
       this.draw();
@@ -139,7 +139,7 @@ define(['views/dashItem', 'plot_booter',
         },
         crosshair: { mode: 'x' },
         zoom: {
-          interactive: false,  // We implement zooming event handlers ourselves.
+          interactive: false, // We implement zooming event handlers ourselves.
         },
         pan: {
           interactive: true,
@@ -233,8 +233,9 @@ define(['views/dashItem', 'plot_booter',
 
     draw: function () {
       var self = this;
-      if (!self.plot)
+      if (!self.plot) {
         self.createPlot();
+      }
       var emptyDiv = $('.empty-graph', self.content);
       if (self.model.get('channels').length === 0 
           && emptyDiv.length === 0) {
@@ -403,15 +404,12 @@ define(['views/dashItem', 'plot_booter',
 
     mouseHoverTime: function(time, mouse, graph) {
       var self = this;
-
       if (time != null)
         time = time / 1e3;
-
       if (time == null)
         self.plot.clearCrosshair();
       else
         self.plot.setCrosshair({x: time});
-
       if (time != null) {
         self.mouseTime.show();
         // TODO: finer than 1 second granularity.
