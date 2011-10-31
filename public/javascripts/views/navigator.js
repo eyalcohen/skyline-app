@@ -7,6 +7,7 @@ define(['views/dashItem', 'plot_booter'],
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize');
+      // this.debouncedDraw = _.debounce(this.draw, 200);
       _.bindAll(this, 'destroy', 'draw', 'moveWindow', 'hoverWindow',
           'wheelWindow', 'hookScale', 'plotDrawHook', 'preview');
       var tabId = args.tabId;
@@ -51,6 +52,22 @@ define(['views/dashItem', 'plot_booter'],
           this.draw(this.options.timeRange.beg,
                     this.options.timeRange.end);
       }, this));
+    },
+
+    resize: function () {
+      this._super('resize');
+      if (this.plot && 
+          this.plot.getPlaceholder().is(':visible')) {
+        var width = this.content.width();
+        var height = this.content.height()
+        this.plot.getPlaceholder().css({
+          width: width,
+          height: height,
+        });
+        this.plot.setCanvasDimensions(width, height)
+        this.plot.setupGrid();
+        this.plot.draw();
+      }
     },
 
     createPlot: function (beg, end) {

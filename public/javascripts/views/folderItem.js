@@ -38,6 +38,13 @@ define(['jquery',
           .appendTo('.folder');
       this.tab = App.engine('tab.jade', opts)
           .appendTo(opts.tabParent);
+
+      var winWidth = $(window).width() - 10;
+      var dl = $('.dashboard-left', this.el);
+      var dr = $('.dashboard-right', this.el);
+      dl.width(winWidth * Number(dl.attr('data-width')));
+      dr.width(winWidth * Number(dr.attr('data-width')));
+
       this.tab.click(_.bind(this.show, this));
       var self = this;
       $('.tab-closer', this.tab).click(function (e) {

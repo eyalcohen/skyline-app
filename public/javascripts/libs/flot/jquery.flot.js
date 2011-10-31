@@ -208,6 +208,12 @@
             resizeCanvas(canvas);
             resizeCanvas(overlay);
         };
+        plot.setCanvasDimensions = function (w, h) {
+          canvasWidth = w;
+          canvasHeight = h;
+          canvas.width = w;
+          canvas.height = h;
+        };
 
         // public attributes
         plot.hooks = hooks;
@@ -724,11 +730,11 @@
         function resizeCanvas(c) {
             // resizing should reset the state (excanvas seems to be
             // buggy though)
-            if (c.width != canvasWidth)
-                c.width = canvasWidth;
-
-            if (c.height != canvasHeight)
-                c.height = canvasHeight;
+            // if (c.width != canvasWidth)
+            //     c.width = canvasWidth;
+            // 
+            // if (c.height != canvasHeight)
+            //     c.height = canvasHeight;
 
             // so try to get back to the initial state (even if it's
             // gone now, this should be safe according to the spec)

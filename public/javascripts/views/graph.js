@@ -63,18 +63,21 @@ define(['views/dashItem', 'plot_booter',
       this.notificationPreview = $('.notification-preview', this.el);
       this.minHoverDistance = 10;
       this.highlighting = false;
-      this._super('render', fn);
+      this._super('render');
       this.draw();
     },
 
     resize: function () {
       this._super('resize');
-      if (this.plot) {
+      if (this.plot && 
+          this.plot.getPlaceholder().is(':visible')) {
+        var width = this.content.width();
+        var height = this.content.height()
         this.plot.getPlaceholder().css({
-          width: this.content.width(),
-          height: this.content.height(),
+          width: width,
+          height: height,
         });
-        this.plot.resize();
+        this.plot.setCanvasDimensions(width, height)
         this.plot.setupGrid();
         this.plot.draw();
       }
@@ -233,9 +236,9 @@ define(['views/dashItem', 'plot_booter',
 
     draw: function () {
       var self = this;
-      if (!self.plot) {
+      if (!self.plot)
         self.createPlot();
-      }
+      // self.resize();
       var emptyDiv = $('.empty-graph', self.content);
       if (self.model.get('channels').length === 0 
           && emptyDiv.length === 0) {
