@@ -25,6 +25,13 @@
       input#noResampleRadio(type="radio", name="sampleType", value="noResample")
       label.export-label(for="noResampleRadio")
         | Don't resample
+    p#exportError(style="visibility: hidden; color: red")
+      | Would export
+      span#rowCount
+      |  rows, maximum is
+      span#rowMax
+      | .
+
     .simplemodal-close(role="button", style="float:right; margin-left: 5px;") Done
     #download-data(role="button", title="Download data as CSV.", style="float:right;") Download
 

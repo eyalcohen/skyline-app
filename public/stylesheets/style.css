@@ -480,6 +480,21 @@ input[type='submit']:active {
   border:1px solid #98c1e6;
 }
 
+div[role=button].disabled {
+  color: #AAA;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+div[role=button].disabled:hover {
+  -moz-box-shadow: 0 0 0px rgba(0, 0, 0, 0.0);
+  -webkit-box-shadow: 0 0 0px rgba(0, 0, 0, 0.0);
+  box-shadow: 0 0 0px rgba(0, 0, 0, 0.0);
+}
+
+div[role=button].disabled:active {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
 div[role=button] > div {
   background: url(/graphics/line-chart.png) no-repeat;
   width: 18px;

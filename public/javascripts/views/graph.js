@@ -636,13 +636,35 @@ define(['views/dashItem', 'plot_booter',
       function onSampleTypeClick(e) {
         $('[name="minmax"]').get(0).disabled =
             $('[value="noResample"]').is(':checked');
+        checkExportOk();
       }
-      $('#resample').focus(onResampleTextClick).click(onResampleTextClick);
+      function checkExportOk() {
+        var resampling = $('[value="resample"]').is(':checked');
+        var viewRange = self.getVisibleTime();
+        var resampleTime = Math.round(Number($('#resample').val()) * 1e6);
+        var exportCount =
+            Math.ceil((viewRange.end - viewRange.beg) / resampleTime);
+        var maxCount = 100000;
+        if (resampling && !(exportCount <= maxCount)) {
+          $('#rowCount').text(self.addCommas(exportCount));
+          $('#rowMax').text(self.addCommas(maxCount));
+          $('#exportError').css('visibility', 'visible');
+          $('#download-data').addClass('disabled');
+          return false;
+        } else {
+          $('#exportError').css('visibility', 'hidden');
+          $('#download-data').removeClass('disabled');
+          return true;
+        }
+      }
+      $('#resample').focus(onResampleTextClick).click(onResampleTextClick).
+          keyup(checkExportOk).change(checkExportOk);
       function onResampleTextClick(e) {
         $('[value="resample"]').click();
         onSampleTypeClick();
       }
       $('#download-data').click(function (e) {
+        if (!checkExportOk()) return;
         var viewRange = self.getVisibleTime();
         var resample = !$('[value="noResample"]').is(':checked');
         var minmax = $('[name="minmax"]').is(':checked');
