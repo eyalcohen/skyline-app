@@ -213,6 +213,8 @@
           canvasHeight = h;
           canvas.width = w;
           canvas.height = h;
+          overlay.width = w;
+          overlay.height = h;
         };
 
         // public attributes
