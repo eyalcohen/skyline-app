@@ -455,6 +455,60 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
 }
 
 
+SampleDb.prototype.addDurationHeuristicHack =
+    function(vehicleId, sampleSet, maxDuration, cb) {
+  // This is a hack to add duration to samples which are of zero duration.
+  // The algorithm is: for each zero-duration sample, set the begin time to the
+  // end of the previous sample, unless that duration exceeds maxDuration.
+  // Note that if the first sample of each channel has no duration, we have to
+  // query the DB for the previous sample!
+  var self = this;
+  var prevSampleSet = {};
+  Step(
+    function() {
+      // For any channel we might need to synthesize an initial begin, get
+      // potentially overlapping data.
+      var parallel = this.parallel;
+      _.each(sampleSet, function(samples, channelName) {
+        var first = _.first(samples);
+        if (first && first.beg == first.end) {
+          var next = parallel();
+          options = { type: 'real',
+                      beginTime: first.beg - maxDuration, endTime: first.beg };
+          self.fetchSamples(vehicleId, channelName, options,
+                            function(err, samples) {
+            prevSampleSet[channelName] = samples;
+            if (err)
+              util.log('Error in addDurationHeuristicHack while fetching: ' +
+                       err.stack);
+            next();
+          });
+        }
+      });
+      parallel()();
+    },
+    function(err) {
+      if (err) { this(err); return; }
+      _.each(sampleSet, function(samples, channelName) {
+        var prevEnd = -Number.MAX_VALUE;
+        if (prevSampleSet[channelName] && _.last(prevSampleSet[channelName]))
+          prevEnd = _.last(prevSampleSet[channelName]).end;
+        samples.forEach(function(s) {
+          if (s.end <= s.beg) {
+            // Synthesize a duration for this sample.
+            var dur = Math.max(Math.min(maxDuration, s.beg - prevEnd), 0);
+            s.beg -= dur;
+          }
+          prevEnd = s.end;
+        });
+      });
+      this(null);
+    },
+    cb
+  );
+}
+
+
 /**
  * Delete a sample from the database.
  * This should only be done to redundant samples (ones which are subsumed by
