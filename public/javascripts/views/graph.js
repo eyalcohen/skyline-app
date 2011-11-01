@@ -238,18 +238,18 @@ define(['views/dashItem', 'plot_booter',
       var self = this;
       if (!self.plot)
         self.createPlot();
-      // self.resize();
       var emptyDiv = $('.empty-graph', self.content);
       if (self.model.get('channels').length === 0 
           && emptyDiv.length === 0) {
-        $('<div><span>Drop data channels here to display.</span></div>')
-            .addClass('empty-graph').appendTo(self.content);
+        App.engine('empty_graph.jade').appendTo(self.content);
         $('canvas', self.plot.getPlaceholder()).hide();
+        $('.graph', self.content).hide();
         self.plot.getOptions().crosshair.mode = null;
       } else if (self.model.get('channels').length > 0 
           && emptyDiv.length > 0) {
         emptyDiv.remove();
         $('canvas', self.plot.getPlaceholder()).show();
+        $('.graph', self.content).show();
         self.plot.getOptions().crosshair.mode = 'x';
       }
       var opts = self.plot.getOptions();
@@ -515,6 +515,7 @@ define(['views/dashItem', 'plot_booter',
 
     addYaxesBoundsForDrops: function () {
       var self = this;
+      if (this.axisTargets) return;
       var parentPadding = {
         lr: Math.ceil((self.content.width() -
             self.plot.getPlaceholder().width()) / 2),
@@ -532,12 +533,13 @@ define(['views/dashItem', 'plot_booter',
             .data({
               'axis.direction': axis.direction,
               'axis.n': axis.n,
+              id: self.options.id,
               dragover: function () { $(this).css({ opacity: 1 }) },
               dragout: function () { $(this).css({ opacity: 0 }) },
             })
             .css({
               left: (axis.n - 1) * self.plot.width() / 2,
-              top: box.top,
+              top: 0,
               width: self.plot.width() / 2,
               height: box.height,
               'border-left': borderLeft,
@@ -545,7 +547,8 @@ define(['views/dashItem', 'plot_booter',
             })
             .addClass('axisTarget')
             .addClass('jstree-drop')
-            .appendTo(self.plot.getPlaceholder());
+            // .appendTo(self.plot.getPlaceholder());
+            .appendTo(self.content);
       });
 
       self.axisTargets = $('.axisTarget', self.el);
@@ -569,6 +572,7 @@ define(['views/dashItem', 'plot_booter',
 
     removeYaxesBoundsForDrops: function () {
       this.axisTargets.remove();
+      this.axisTargets = null;
     },
 
     showNotification: function (range, other) {
@@ -728,6 +732,9 @@ define(['views/dashItem', 'plot_booter',
     },
 
     removeGraphFromParent: function (e) {
+      _.each(this.model.get('channels'), _.bind(function (channel) {
+        this.trigger('ChannelUnrequested', channel);
+      }, this));
       this.trigger('removeGraph');
     },
 

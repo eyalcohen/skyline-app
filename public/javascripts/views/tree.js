@@ -180,7 +180,7 @@ define(['views/dashItem',
 
     nodeDroppedHandler: function (data) {
       var self = this;
-      var graphId = data.r.parent().parent().data('id');
+      var graphId = data.r.data('id');
       var yaxisNum = data.r.data('axis.n');
       if (!data.o.attr('id')) {
         var children = $('ul > li', data.o);
@@ -220,7 +220,8 @@ define(['views/dashItem',
 
     nodeDroppedExternalHandler: function (data) {
       if (data.r.hasClass('axisTarget')) {
-        var graphId = data.r.parent().parent().data('id');
+        // var graphId = data.r.parent().parent().data('id');
+        var graphId = data.r.data('id');
         var yaxisNum = data.r.data('axis.n');
         var channel = JSON.parse(data.o.parent().attr('data-channel'));
         App.publish('ChannelDropped-' + graphId);
