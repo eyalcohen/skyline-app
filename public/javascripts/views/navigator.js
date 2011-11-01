@@ -90,9 +90,10 @@ define(['views/dashItem', 'plot_booter'],
           color: pnt.color,
         });
       });
+      self.holder = $('.navigator > div', self.content);
       self.expandTime(beg / 1e3, end / 1e3,
                       function (beg, end) {
-        self.plot = $.plot($('.navigator > div', self.content), [], {
+        self.plot = $.plot(self.holder, [], {
           xaxis: {
             show: true,
             mode: 'time',
@@ -164,32 +165,42 @@ define(['views/dashItem', 'plot_booter'],
       }
 
       function addIcons(p, ctx) {
-        $('.timeline-icon', $('.navigator > div', self.content)).remove();
-        _.each(data, function (pnt) {
-          var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
-          var icon = $('<img>')
-              .attr({ src: pnt.icon })
-              .css({
-                left: off.left - 8 + 'px',
-                top: off.top + 'px',
-              })
-              .addClass('timeline-icon')
-              .appendTo($('.navigator > div', self.content));
-        });
-        $('img', $('.navigator > div', self.content)).bind('mousedown, DOMMouseScroll, '+
-            'mousewheel', function (e) {
-          if (e.preventDefault) e.preventDefault();
-          var $this = $(this);
-          $this.hide();
-          var receiver = document.elementFromPoint(e.clientX,e.clientY);
-          if (!receiver) return;
-          if (receiver.nodeType == 3)
-            receiver = receiver.parentNode;
-          var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
-              ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
-          $(receiver).trigger(e, [delta]);
-          $this.show();
-        });
+        var icons = $('.timeline-icon', self.holder);
+        if (icons.length === 0) {
+          _.each(data, function (pnt) {
+            var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
+            var icon = $('<img>')
+                .attr({ src: pnt.icon })
+                .css({
+                  left: off.left - 8 + 'px',
+                  top: off.top + 'px',
+                })
+                .addClass('timeline-icon')
+                .appendTo(self.holder);
+          });
+          $('img', self.holder).bind('mousedown, DOMMouseScroll, '+
+              'mousewheel', function (e) {
+            if (e.preventDefault) e.preventDefault();
+            var $this = $(this);
+            $this.hide();
+            var receiver = document.elementFromPoint(e.clientX,e.clientY);
+            if (!receiver) return;
+            if (receiver.nodeType === 3)
+              receiver = receiver.parentNode;
+            var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
+                ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
+            $(receiver).trigger(e, [delta]);
+            $this.show();
+          });
+        } else {
+          _.each(data, function (pnt, i) {
+            var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
+            $(icons.get(i)).css({
+              left: off.left - 8 + 'px',
+              top: off.top + 'px',
+            });
+          });
+        }
       }
     },
 

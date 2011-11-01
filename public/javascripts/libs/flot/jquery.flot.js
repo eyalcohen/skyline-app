@@ -882,7 +882,7 @@
                 // but IE is unfortunately broken)
                 var lines = t.label.replace(/<br ?\/?>|\r\n|\r/g, "\n").split("\n");
                 for (var j = 0; j < lines.length; ++j) {
-                    var line = { text: lines[j] },
+                    var line = { text: addCommas(lines[j]) },
                         m = ctx.measureText(line.text);
                     
                     line.width = m.width;
@@ -911,6 +911,17 @@
 
             axis.labelWidth = Math.ceil(axisw);
             axis.labelHeight = Math.ceil(axish);
+        }
+
+        function addCommas(nStr) {
+          nStr += '';
+          var x = nStr.split('.');
+          var x1 = x[0];
+          var x2 = x.length > 1 ? '.' + x[1] : '';
+          var rgx = /(\d+)(\d{3})/;
+          while (rgx.test(x1))
+            x1 = x1.replace(rgx, '$1' + ',' + '$2');
+          return x1 + x2;
         }
 
         function allocateAxisBoxFirstPhase(axis) {
@@ -1753,17 +1764,15 @@
                     var tick = axis.ticks[i];
                     if (!tick.label || tick.v < axis.min || tick.v > axis.max)
                         continue;
-
                     var x, y, offset = 0, line;
                     for (var k = 0; k < tick.lines.length; ++k) {
                         line = tick.lines[k];
-                        
                         if (axis.direction == "x") {
                             x = plotOffset.left + axis.p2c(tick.v) - line.width/2;
-                            if (x > canvasWidth - plotOffset.right - 10)
-                              x -= f.size;
+                            if (x > canvasWidth - plotOffset.right - line.width)
+                              x -= line.width / 2 + 5;
                             if (x <= plotOffset.left)
-                              x += f.size;
+                              x += line.width / 2 + 5;
                             if (axis.position == "bottom")
                                 y = axis.options.labelsInside ?
                                     box.top - box.padding - f.size :
@@ -1776,6 +1785,7 @@
                                 y = plot.height() / 2 - f.size / 2;
                         }
                         else {
+                            if (i == 0) continue;
                             y = plotOffset.top + axis.p2c(tick.v) - tick.height/2;
                             if (y > canvasHeight - f.size)
                               y -= f.size;
@@ -1783,11 +1793,10 @@
                               y += f.size;
                             if (axis.position == "left")
                                 x = axis.options.labelsInside ?
-                                    box.left + box.width - box.padding - line.width + f.size * 3 :
-                                    box.left + box.width - box.padding - line.width;
+                                    5 : box.left + box.width - box.padding - line.width;
                             else
                                 x = axis.options.labelsInside ?
-                                    box.left + box.padding - f.size * 4:
+                                    box.left - line.width - 5:
                                     box.left + box.padding;
                         }
 
