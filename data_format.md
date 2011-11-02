@@ -267,11 +267,41 @@ We merge the real and synthetic samples by going through the real samples, and f
 
 #### Inserting Samples ####
 
+Inserting new samples is a relatively complex operation - it requires possibly merging samples, inserting real samples, and inserting synthetic samples.
+
+When inserting samples, if there is a schema element for a given channel whose `merge` attribute is true, or for the `_schema` channel, adjacent and overlapping samples with identical values are merged. This is a tricky operation, since it might require a database query to identify existing samples which need to be merged, and might require deleting samples from the database after the merge. The sequence of operations is:
+
+* In function `SampleDb.prototype.queryForMerge`:
+  * Fetch all real samples which might overlap the samples we're adding.
+  * Tag the fetched samples.
+  * Merge the fetched samples with the samples we're adding, and sort the resulting array by time.
+  * In function `mergeOverlappingSamples2`: merge overlapping samples, returning database samples which have been made redundant, and ensuring that new merged samples aren't tagged.
+  * Filter out tagged samples, so that we'll only add the new and merged samples to the database.
+* Insert the new and merged samples.
+* After all inserts are complete, delete the samples which have been made redundant using `SampleDb.prototype.deleteRedundantRealSample`:
+  * Find all rows which might contain the real sample; for each:
+    * If the row only contains a single sample, and that sample matches the redundant sample, delete the row.
+    * If the row contains multiple samples, delete the element of the `val` array which corresponds to the redundant sample, using MongoDb's [$unset](http://www.mongodb.org/display/DOCS/Updating#Updating-%24unset) operator to ensure that the operation occurs atomically.
+
+The bulk of the insert operation consists of:
+
+* Organize samples into rows - for each sample:
+  * Determine which real sample collection and row it will go into.
+  * Determine which synthetic collection rows it will go into, and aggregate `sum`/`ovr`/`min`/`max` for those rows.
+* Insert rows into real collections - for each new row:
+  * Execute an insert operation, creating the new row in the appropriate collection.
+* Update synthetic rows in synthetic collections. This is really tricky to do in a way that works correctly even if multiple clients are updating the database simultaneously. For each synthetic row:
+  1. Execute a [findAndModify](http://www.mongodb.org/display/DOCS/findAndModify+Command) upsert to find and return the appropriate synthetic row; if it doesn't exist, it is created with empty `sum`/`ovr`/`min`/`max` arrays. Call the returned row `original`.
+  2. Create a new object `modified` which consists of `original` combined with the new synthetic data.
+  3. Execute another findAndModify, querying for `original` and replacing it with `modified`.
+  4. If the findAndModify return an object, then it succeeded and we're done. If it returned null, then the synthetic row was changed by another process after we fetched its original value, so go back to step 1.
+  * _(Note: this process could use a single atomic upsert and thus be much more efficient if MongoDb had [$min/$max update operators](https://jira.mongodb.org/browse/SERVER-1534) and [$iset update operator](https://jira.mongodb.org/browse/SERVER-340).)_
+
 ## Things to Document ##
 
 Schema.
 Notifications.
-Mergable channels, and merging on insert.
+Mergable channels.
 
 ## Future Improvements/Ideas ##
 
