@@ -710,7 +710,6 @@ app.put('/samples', function (req, res) {
   var sampleSet = {};
   var firstError;
   Step(
-    /*
     // get the cycle's user and authenticate
     function getUser() {
       User.findOne({ email: uploadSamples.userId }, this);
@@ -734,11 +733,9 @@ app.put('/samples', function (req, res) {
       else
         this();
     },
-    */
 
     // save the cycle locally for now
     function(err) {
-      veh = { year: 2011, make: 'foo', model: 'bar' };
       if (err) return this(err);
       var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
           (new Date()).valueOf() + '.js';
