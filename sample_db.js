@@ -142,6 +142,7 @@ function deltaDecodeInPlace(array) {
 
 function execInGroups(groupSize, functions, cb) {
   var firstErr = null, fIndex = 0, len = functions.length, completed = 0;
+  if (!len) return cb();
   function done(err) {
     firstErr = firstErr || err;
     if (++completed == len)
@@ -298,7 +299,6 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
           }
         });
 
-        var insertRealPending = 0, insertSynPending = 0;
         // Insert bucketed real samples into DB.
         _.values(real).forEach(function(bucketSamples) {
           var levelInfo = SampleDb.getLevelInfo(bucketSamples[0]);
@@ -310,7 +310,6 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
             end: deltaEncodeInPlace(_.pluck(bucketSamples, 'end')),
             val: _.pluck(bucketSamples, 'val'),
           };
-          ++insertRealPending;
           toExec.push(function(cb) {
             self.realCollections[levelInfo.level].insert(
                 sample, { safe: true }, cb);
@@ -332,7 +331,6 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
             end: topLevelSample.end,
             val: topLevelSample.val,
           };
-          ++insertRealPending;
           toExec.push(function(cb) {
             self.realCollections[levelInfo.level].insert(
                 sample, { safe: true }, cb);
@@ -353,7 +351,6 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
             chn: channelName,
             buk: synRow,
           };
-          ++insertSynPending;
           toExec.push(function(cb) {
             Step(
               function findAndEnsureExists() {
@@ -420,9 +417,10 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
 
       // Execute all queued up operations 10 at a time, to avoid blocking for an
       // excessive amount of time talking to the DB.
-      Array.prototype.push.apply(toExec, toExecAfter);
-      execInGroups(10, toExec, cb);
-      // chain(toExec, cb);
+      execInGroups(10, toExec, function(err) {
+        if (err) cb(err);
+        else execInGroups(10, toExecAfter, cb);
+      });
     }
   );
 }
