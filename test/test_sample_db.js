@@ -413,7 +413,7 @@ exports.testSimpleInsert = setupDbFirst(function(test) {
             { fields: { _id: 0 } },
             function(err, syn) {
           test.equal(err, null);
-          test.deepEqual(syn, duration <= 1 * s ? undefined : {
+          test.deepEqual(syn, duration <= 1 * s ? null : {
             veh: 123, chn: 'testSimpleInsert', buk: 0,
             ovr: [ 5000000 ], sum: [ 1500000000 ],
             min: [ 100 ], max: [ 500 ],
@@ -437,7 +437,7 @@ exports.testSimpleInsert = setupDbFirst(function(test) {
             { fields: { _id: 0 } },
             function(err, syn) {
           test.equal(err, null);
-          test.deepEqual(syn, duration <= 1 * s ? undefined : {
+          test.deepEqual(syn, duration <= 1 * s ? null : {
             veh: 123, chn: 'testSimpleInsert', buk: 0,
             ovr: [ 9000000 ], sum: [ 1900000000 ],
             min: [ -700 ], max: [ 900 ],
