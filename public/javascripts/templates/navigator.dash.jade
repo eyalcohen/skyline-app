@@ -4,7 +4,7 @@
     div.small-button-light.month-scale(role="button") 1 month
     div.small-button-light.day-scale(role="button") 1 day
     div.small-button-light.hour-scale(role="button") 1 hour
-    div.small-button-light.second-scale(role="button") 1 second
+    div.small-button-light.minute-scale(role="button") 1 minute
     - if (shrinkable) {
       a.dashboard-link.toggler(href="javascript:;", title="shrink")
         | -
@@ -24,9 +24,10 @@
     - } else {
       // .navigator-scale
       .navigator-window
-      .navigator-window-handle-left
-      .navigator-window-handle-right
+      // .navigator-window-handle-left
+      // .navigator-window-handle-right
       .navigator
         div
+      .notification-preview
     - }
 

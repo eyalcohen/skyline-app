@@ -7,19 +7,26 @@ define(['views/dashItem', 'plot_booter'],
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize');
-      // this.debouncedDraw = _.debounce(this.draw, 200);
-      _.bindAll(this, 'destroy', 'draw', 'moveWindow', 'hoverWindow',
-          'wheelWindow', 'hookScale', 'plotDrawHook', 'preview');
+      _.bindAll(this, 'destroy', 'draw', 'drawWindow', 
+                'moveWindow', 'hoverWindow', 'exitWindow',
+                'passWindowEvent', 'hookScale', 'plotDrawHook',
+                'showNotification', 'hideNotification');
       var tabId = args.tabId;
+      App.subscribe('PreviewNotification-' + tabId, this.showNotification);
+      App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.subscribe('HideVehicle-' + tabId, this.destroy);
       App.subscribe('VisibleTimeChange-' + tabId, this.draw);
+      this.debouncedDrawWindow = _.debounce(this.drawWindow, 20);
       this.ready = false;
       this.dragging = false;
+      this.action = 'move';
     },
 
     destroy: function () {
       this._super('destroy');
       var tabId = this.options.tabId;
+      App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
+      App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.unsubscribe('HideVehicle-' + tabId, this.destroy);
       App.unsubscribe('VisibleTimeChange-'+ tabId, this.draw);
     },
@@ -28,8 +35,10 @@ define(['views/dashItem', 'plot_booter'],
       'click .toggler': 'toggle',
       'mousedown .navigator-window': 'moveWindow',
       'mousemove .navigator-window': 'hoverWindow',
-      'mousewheel .navigator-window': 'wheelWindow',
-      'mouseenter .timeline-icon': 'preview',
+      'mouseleave .navigator-window': 'exitWindow',
+      'mousewheel .navigator-window': 'passWindowEvent',
+      'DOMMouseScroll .navigator-window': 'passWindowEvent',
+      'dblclick .navigator-window': 'passWindowEvent',
     },
 
     render: function (opts) {
@@ -46,6 +55,7 @@ define(['views/dashItem', 'plot_booter'],
       this.plot = null;
       this.el = App.engine('navigator.dash.jade', opts)
           .appendTo(this.options.parent);
+      this.notificationPreview = $('.notification-preview', this.el);
       this._super('render', _.bind(function () {
         if (!opts.loading && !opts.empty)
           this.ready = true;
@@ -74,7 +84,13 @@ define(['views/dashItem', 'plot_booter'],
       var self = this;
       var data = _.pluck(self.collection.models, 'attributes');
       var shapes = [];
-      _.each(data, function (pnt) {
+      var sortedData = _.stableSort(data,
+              function(s1, s2) {
+        var d1 = s1.end - s1.beg;
+        var d2 = s2.end - s2.beg;
+        return d2 - d1;
+      });
+      _.each(sortedData, function (pnt) {
         shapes.push({
           xaxis: {
             from: pnt.beg / 1e3,
@@ -124,7 +140,6 @@ define(['views/dashItem', 'plot_booter'],
           },
           zoom: {
             interactive: false, // We implement zooming event handlers ourselves.
-            amount: 1.25,
           },
           pan: {
             interactive: true,
@@ -138,20 +153,21 @@ define(['views/dashItem', 'plot_booter'],
         });
         $('.navigator', self.content).data({ plot: self.plot });
         self.visibleBox = $(self.options.parent + ' .navigator-window');
-        self.leftHandle = $(self.options.parent + ' .navigator-window-handle-left');
-        self.rightHandle = $(self.options.parent + ' .navigator-window-handle-right');
         self.hookScale();
       });
 
       function bindEventsHook(plot, eventHolder) {
-        plot.getPlaceholder().mousewheel(function (e, delta) {
-          graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
-          return false;
-        })
-        .dblclick(function (e) {
-          graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
-        });
-
+        plot.getPlaceholder()
+            .bind('mousewheel DOMMouseScroll', function (e, delta) {
+              graphZoomClick(e, e.shiftKey ? 1.25 : 1.05, delta < 0);
+              return false;
+            })
+            .dblclick(function (e) {
+              graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+            });
+        $('canvas.flot-overlay', self.content)
+            .bind('drag', self.debouncedDrawWindow);
+        
         function graphZoomClick(e, factor, out) {
           var c = plot.offset();
           c.left = e.pageX - c.left;
@@ -160,7 +176,7 @@ define(['views/dashItem', 'plot_booter'],
             plot.zoomOut({ center: c, amount: factor });
           else
             plot.zoom({ center: c, amount: factor });
-          self.drawWindow();
+          self.debouncedDrawWindow();
         }
       }
 
@@ -178,20 +194,18 @@ define(['views/dashItem', 'plot_booter'],
                 .addClass('timeline-icon')
                 .appendTo(self.holder);
           });
-          $('img', self.holder).bind('mousedown, DOMMouseScroll, '+
-              'mousewheel', function (e) {
-            if (e.preventDefault) e.preventDefault();
-            var $this = $(this);
-            $this.hide();
-            var receiver = document.elementFromPoint(e.clientX,e.clientY);
-            if (!receiver) return;
-            if (receiver.nodeType === 3)
-              receiver = receiver.parentNode;
-            var delta = e.wheelDelta ? (e.wheelDelta / Math.abs(e.wheelDelta)) *
-                ((self.plot.getOptions().zoom.amount - 1) / 10) : null;
-            $(receiver).trigger(e, [delta]);
-            $this.show();
-          });
+          $('img', self.holder)
+              .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel',
+              function (e) {
+                if (e.type === 'mousedown' || 
+                    e.type === 'mousemove')
+                  $('.flot-overlay', self.content).trigger(e);
+                else
+                  if (e.type === 'mouseup')
+                    self.plot.getPlaceholder().css({ cursor: 'default' });
+                else
+                  self.passWindowEvent(e);
+              });
         } else {
           _.each(data, function (pnt, i) {
             var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
@@ -206,6 +220,7 @@ define(['views/dashItem', 'plot_booter'],
 
     draw: function (beg, end) {
       var self = this;
+      self.zoomedRange = { min: beg / 1e3, max: end / 1e3 };
       if (!self.ready) return;
       if (!self.plot)
         self.createPlot(beg, end);
@@ -232,7 +247,7 @@ define(['views/dashItem', 'plot_booter'],
     setVisibleTime: function (beg, end) {
       var xopts = this.plot.getAxes().xaxis.options;
       beg /= 1000; end /= 1000;
-      this.drawWindow(beg, end);
+      this.debouncedDrawWindow(beg, end);
       this.expandTime(beg, end, _.bind(function (beg, end) {
         if (beg != xopts.min || end != xopts.max) {
           xopts.min = beg;
@@ -256,32 +271,63 @@ define(['views/dashItem', 'plot_booter'],
       }
     },
 
+    hookScale: function () {
+      var self = this;
+      var xopts = this.plot.getAxes().xaxis.options;
+      $('.minute-scale', self.el).click(function (e) {
+        zoomToRange(60*1e3);
+      });
+      $('.hour-scale', self.el).click(function (e) {
+        zoomToRange(60*60*1e3);
+      });
+      $('.day-scale', self.el).click(function (e) {
+        zoomToRange(60*60*24*1e3);
+      });
+      $('.month-scale', self.el).click(function (e) {
+        zoomToRange(60*60*24*7*4*1e3);
+      });
+      $('.year-scale', self.el).click(function (e) {
+        zoomToRange(60*60*24*7*52*1e3);
+      });
+      function zoomToRange(range) {
+        var center = (self.zoomedRange.min + 
+                      self.zoomedRange.max) / 2;
+        xopts.min = (center - range / 2);
+        xopts.max = (center + range / 2);
+        self.plot.setupGrid();
+        self.plot.draw();
+        self.drawWindow();
+      };
+    },
+
     drawWindow: function (beg, end) {
       var self = this;
-      if (!beg && !end) {
+      if (!_.isNumber(beg) || !_.isNumber(end)) {
         beg = self.boxBeg;
         end = self.boxEnd;
+      } else {
+        beg = Math.round(beg);
+        end = Math.round(end);
       }
       self.boxBeg = beg;
       self.boxEnd = end;
-      console.log('drawWindow( ' + [beg, end] + ' )');
       var off = $(self.options.parent).offset();
       var xaxis = self.plot.getXAxes()[0];
       var left = xaxis.p2c(beg);
       var width = Math.max(xaxis.p2c(end) - left, 14);
-      var display = '';
+      var display = 'block';
+      var borderLeft = '1px dashed rgba(0, 0, 0, 0.3)';
       if (left < 0) {
         width = width + left;
         left = 0;
+        borderLeft = 'none';
         if (width <= 0)
           display = 'none';
       }
-      if (left > self.el.width() - 1) {
+      if (left > self.el.width()) {
         display = 'none';
-      } else if (left + width > self.el.width() - 1) {
-        width = self.el.width() - left + 1;
-        if (width > self.el.width() - 1)
-          width -= 1;
+      } else if (left + width > self.el.width()) {
+        width = self.el.width() - left;
       }
       left = Math.floor(left);
       width = Math.floor(width);
@@ -289,14 +335,7 @@ define(['views/dashItem', 'plot_booter'],
         display: display,
         left: left + 'px',
         width: width + 'px',
-      });
-      self.leftHandle.css({
-        display: display,
-        left: left + 2 + 'px',
-      });
-      self.rightHandle.css({
-        display: display,
-        left: left + width - 5 + 'px',
+        borderLeft: borderLeft,
       });
     },
 
@@ -329,22 +368,32 @@ define(['views/dashItem', 'plot_booter'],
           publish = false;
         }
         if (posr >= outerWidth) {
-          posl = outerWidth - boxWidth;
+          posl = outerWidth - boxWidth - 2;
           posr = outerWidth;
           publish = false;
         }
-        self.visibleBox.css({
-          left: posl + 'px',
-        });
-        self.leftHandle.css({
-          left: posl + 2 + 'px',
-        });
-        self.rightHandle.css({
-          left: posr - 5 + 'px',
-        });
-        if (publish)
-          App.publish('VisibleTimeChange-' + self.options.tabId,
-              [leftTime * 1e3, rightTime * 1e3]);
+        var css = { borderLeft: '1px dashed rgba(0, 0, 0, 0.3)' };
+        switch (self.action) {
+          case 'move' :
+            css.left = posl + 'px';
+            break;
+          case 'e-resize' :
+            css.left = posl + 'px';
+            css.width = boxWidth - delta;
+            break;
+          case 'w-resize' :
+            css.width = boxWidth + delta;
+            break;
+        }
+        if (!css.width || css.width > 20) {
+          self.visibleBox.css(css);
+          if (publish) {
+            self.boxBeg = leftTime;
+            self.boxEnd = rightTime;
+            App.publish('VisibleTimeChange-' + self.options.tabId,
+                [self.boxBeg * 1e3, self.boxEnd * 1e3]);
+          }
+        }
       }, 0);
       $(document).bind('mouseup', function (e) {
         self.dragging = false;
@@ -355,20 +404,28 @@ define(['views/dashItem', 'plot_booter'],
     },
 
     hoverWindow: function (e) {
+      if (this.dragging) return;
       var side = this.getWindowSide(e);
-      if (side == 'left')
-        this.visibleBox.css({ cursor: 'e-resize' });
-      else if (side == 'right')
-        this.visibleBox.css({ cursor: 'w-resize' });
-      else
-        this.visibleBox.css({ cursor: 'move' });
+      if (side == 'left') {
+        this.action = 'e-resize';
+        this.content.css({ cursor: 'e-resize' });
+      }
+      else if (side == 'right') {
+        this.action = 'w-resize';
+        this.content.css({ cursor: 'w-resize' });
+      } else {
+        this.action = 'move';
+        this.content.css({ cursor: 'move' });
+      }
     },
 
-    wheelWindow: function (e) {
-      var newTarget = $(this.plot.getCanvas()).siblings().get(0);
-      var delta = (e.wheelDelta / Math.abs(e.wheelDelta)) *
-          ((this.plot.getOptions().zoom.amount - 1) / 10);
-      $(newTarget).trigger(e, [delta]);
+    exitWindow: function (e) {
+      if (!this.dragging)
+        this.content.css({ cursor: 'default' });
+    },
+
+    passWindowEvent: function (e) {
+      this.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
     },
 
     getWindowSide: function (e) {
@@ -383,40 +440,22 @@ define(['views/dashItem', 'plot_booter'],
       if (!side) return null;
     },
 
-    hookScale: function () {
-      var self = this;
-      var axis = self.plot.getXAxes()[0];
-      $('.second-scale', self.el).click(function (e) {
-        zoomToRange(1e3);
-      });
-      $('.hour-scale', self.el).click(function (e) {
-        zoomToRange(60*60*1e3);
-      });
-      $('.day-scale', self.el).click(function (e) {
-        zoomToRange(60*60*24*1e3);
-      });
-      $('.month-scale', self.el).click(function (e) {
-        zoomToRange(60*60*24*7*4*1e3);
-      });
-      $('.year-scale', self.el).click(function (e) {
-        zoomToRange(60*60*24*7*52*1e3);
-      });
-      function zoomToRange(range) {
-        var boxLeft = parseInt(self.visibleBox.offset().left);
-        var boxRight = boxLeft + self.visibleBox.width();
-        var center = axis.c2p(Math.round((boxRight + boxLeft) / 2 -
-            parseInt(self.el.offset().left)));
-        var min = Math.round(center - range / 2);
-        var max = Math.round(center + range / 2);
-        axis.options.min = min;
-        axis.options.max = max;
-        self.plot.setupGrid();
-        self.plot.draw();
-      };
+    showNotification: function (range, other) {
+      this.visibleBox.hide();
+      var xaxis = this.plot.getXAxes()[0];
+      var leftSide = Math.max(xaxis.p2c(range.beg/1e3), 0);
+      var rightSide = Math.min(xaxis.p2c(range.end/1e3), this.plot.width());
+      if (leftSide < this.plot.width() && rightSide > 0) {
+        this.notificationPreview.css({
+          left: leftSide + 'px',
+          width: rightSide - leftSide + 'px',
+        }).show();
+      }
     },
 
-    preview: function (e) {
-      // console.log(e);
+    hideNotification: function () {
+      this.notificationPreview.hide();
+      this.visibleBox.show();
     },
 
   });

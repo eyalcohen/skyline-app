@@ -52,7 +52,7 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
       // map.mapTypes.set('grayscale',
       //     new google.maps.StyledMapType(style.stylez, style.styledOptions));
       //map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-      map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+      map.setMapTypeId(google.maps.MapTypeId.TERRAIN);
 
       // cursor
       this.cursor = new google.maps.Marker({
@@ -226,8 +226,8 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
         var oldGeometry = this.visibleGeometry;
         this.visibleGeometry = pointsToGeometry(pointsVisible,
             {  // polyOptions
-              strokeColor: '#0000ff',
-              strokeOpacity: 0.6,
+              strokeColor: '#FFA500',
+              strokeOpacity: 0.75,
               strokeWeight: 8,
               clickable: false,
               zIndex: 10,
@@ -247,9 +247,9 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
         var oldGeometry = this.navigableGeometry;
         this.navigableGeometry = pointsToGeometry(pointsNavigable,
             {  // polyOptions
-              strokeColor: '#000044',
+              strokeColor: '#000000',
               strokeOpacity: 0.5,
-              strokeWeight: 6,
+              strokeWeight: 8,
               clickable: false,
               zIndex: 5,
             }, null);

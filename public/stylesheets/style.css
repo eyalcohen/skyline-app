@@ -1126,19 +1126,23 @@ div.preferences {
 }
 
 .navigator {
-  background: #f2f2f2;
+  /*background: #f2f2f2;*/
 }
 
 .navigator-window {
   position: absolute;
   width: 1px;
   height: 40px;
+  display: none;
 /*  background: rgba(64, 194, 237, 0.2);*/
-  background: rgba(0, 0, 0, 0.4);
+/*  background: rgba(0, 0, 0, 0.4);*/
 /*  border-radius:5px;
   -moz-border-radius:5px;
   -webkit-border-radius:5px;
 */  z-index: 10001;
+  background: rgba(174,182,154,0.2);
+  border-left: 1px dashed rgba(0, 0, 0, 0.3);
+  border-right: 1px dashed rgba(0, 0, 0, 0.3);
 }
 
 .navigator-window-handle-left,
