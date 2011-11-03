@@ -23,6 +23,11 @@
 	<!-- if debug is set to true, we will show some basic connectivity/debug info on the 8 vcpcb LEDs -->
 	<vcLeds debug="true" />
 
+        <subsystem id="mc">
+	</subsystem>
+        <subsystem id="vc">
+	</subsystem>
+
         <canfilter iface="can0">
             <canid channel="2" operation="getShort" param="pm/fault.faultEncoded"/>
             <canid param="pm.*/.*"/>
@@ -37,7 +42,8 @@
                 <sourceref>can0Source</sourceref>
                 <sourceref>gpsSource</sourceref> 
                 <teesink>
-                    <printsink/>
+                    <!-- <printsink/> -->
+
 		    <!-- interval is bucket length in msecs, maxCount is max # allower per bucket --> 
                     <throttledsink interval="60000" maxCount="1000">
                         <throttledsink interval="1000" maxCount="100">

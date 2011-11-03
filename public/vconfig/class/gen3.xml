@@ -5,6 +5,10 @@
         <!-- if present turns on the canstream server inside the vehicle (defaults to off) -->
         <canstream enabled="true" />
         
+	<!-- If url is set, we will launch a web browser session showing that URL (normally used to show a dash) -->
+	<!-- If screenOn is true we will keep the screen from going to sleep when the vehicle is awake (for the dash) -->
+	<gui screenOn="true" url="http://localhost:4403/index.html" />
+
         <subsystem id="mc">
 	</subsystem>
         <subsystem id="vc">
