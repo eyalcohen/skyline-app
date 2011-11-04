@@ -1289,9 +1289,18 @@ var createDnodeConnection = function (remote, conn) {
   function fetchChannelTree(vehicleId, cb) {
     if (!checkAuth(cb)) return;
     sampleDb.fetchSamples(vehicleId, '_schema', {},
-                          errWrap(cb, function(samples) {
+                          errWrap(cb, function (samples) {
       cb(null, SampleDb.buildChannelTree(samples));
     }));
+  }
+
+  function fetchVehicleConfig(vehicleId, cb) {
+    console.log(cb);
+    if (!checkAuth(cb)) return;
+    fs.readFile(__dirname + '/public/vconfig/template.xml', 'utf8',
+        function (err, data) {
+      cb(err, data);
+    });
   }
 
   conn.on('end', function () {
@@ -1307,6 +1316,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
     fetchChannelTree: fetchChannelTree,
+    fetchVehicleConfig: fetchVehicleConfig,
   };
 };
 

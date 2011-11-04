@@ -34,7 +34,7 @@
           -  row = row.attributes;
           -  var title = row.vehicle ? row.vehicle.year+" "+row.vehicle.make+" "+row.vehicle.model+(row.vehicle.name?" "+row.vehicle.name:"") : 'inherit'
             tr(id=row.htmlId, class=['dark','light'][i%2], data-title=title)
-              td(width="16")
+              td(width="16", style="vertical-align: middle;")
                 img(src=row.icon)
               td(style="font-weight:bold;")
                 =row.desc

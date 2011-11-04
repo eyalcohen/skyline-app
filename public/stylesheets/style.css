@@ -84,7 +84,7 @@ a:hover { color: #036; }
 */
 
 html {
-  overflow-y: hidden;
+  overflow: hidden;
   height: 100%;
 }
 
@@ -784,7 +784,7 @@ th {
 }
 td {
   padding: 5px 10px;
-  vertical-align: middle;
+  vertical-align: initial;
 }
 
 th:first-child,
@@ -803,12 +803,23 @@ thead {
   color: gray;
 }
 
-.edit-panel { visibility:hidden; white-space:nowrap; }
+iframe {
+  width: 100%;
+  height: 500px;
+}
+
+.edit-panel { 
+  visibility: hidden;
+  white-space: nowrap;
+  display: block;
+}
+
 a.edit-link,
 a.trash-link,
 a.view-link,
-a.clone-link {
-  font-size: 11px;
+a.config-link {
+  font-weight: normal;
+  font-size: 10px;
   text-decoration: none;
   font-style: normal;
   padding: 5px 0 0 0;
@@ -822,14 +833,14 @@ a.trash-link {
 a.view-link {
   color: purple;
 }
-a.clone-link {
+a.config-link {
   color: green;
 }
 a.edit-link:hover,
 a.trash-link:hover,
 a.view-link:hover,
-a.clone-link:hover {
-  color: orange;
+a.config-link:hover {
+  color: black;
 }
 
 .tabs {
@@ -1256,7 +1267,6 @@ a.label-closer:hover {
   background: transparent;
   color: black;
 }
-
 
 .miniColors-trigger {
   height: 15px;
