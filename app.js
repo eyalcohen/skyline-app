@@ -19,6 +19,7 @@ var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Step = require('step');
+var Buffers = require('buffers')
 var EventID = require('./customids').EventID;
 var models = require('./models');
 var EventDescFileName = __dirname +
@@ -188,6 +189,25 @@ app.configure('production', function () {
 });
 
 
+function rawBody(rawMimeTypes) {
+  return function(req, res, next) {
+    if ('GET' == req.method || 'HEAD' == req.method) return next();
+    var mimeType = (req.headers['content-type'] || '').split(';')[0];
+    if (_.contains(rawMimeTypes, mimeType) && !req.body) {
+      // req.setEncoding(null);
+      var bufs = Buffers();
+      req.on('data', function(chunk) { bufs.push(chunk); });
+      req.on('end', function() {
+        req.rawBody = bufs.toBuffer();
+        next();
+      });
+    } else {
+      next();
+    }
+  }
+}
+
+
 app.configure(function () {
   // Use gzip compression for all responses.
   // Note that this adds computation cost and latency, but will help
@@ -199,7 +219,7 @@ app.configure(function () {
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.bodyParser());
-  express.bodyParser.parse['application/octet-stream'] = Buffer;
+  app.use(rawBody(['application/octet-stream']));
   app.use(express.cookieParser());
 
   var sessionServerDb =
@@ -694,10 +714,19 @@ app.put('/samples', function (req, res) {
   // Parse to JSON.
   var uploadSamples, mimeType = requestMimeType(req);
   if (mimeType == 'application/octet-stream') {
-    if (!(req.body instanceof Buffer)) {
-      fail('BAD_PROTOBUF_FORMAT');
-      return;
-    }
+    /*
+    debug('rawBody: ' + req.rawBody.length + ' (' + inspect(req.rawBody) + ')');
+    var fileName = (new Date()).valueOf() + '.pbraw';
+    fs.mkdir(__dirname + '/samples', '0755', function (err) {
+      fs.writeFile(__dirname + '/samples/' + fileName, req.rawBody, null, function (err) {
+        if (err)
+          util.log(err);
+        else
+          util.log('Saved to: ' + __dirname + '/samples/' + fileName);
+      });
+    });
+    */
+
     uploadSamples = WebUploadSamples.parse(new Buffer(req.rawBody, 'binary'));
   } else if (mimeType == 'application/json') {
     uploadSamples = req.body;
