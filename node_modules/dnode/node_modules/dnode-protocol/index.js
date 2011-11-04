@@ -1,6 +1,7 @@
 var Traverse = require('traverse');
 var EventEmitter = require('events').EventEmitter;
 var stream = process.title === 'browser' ? {} : require('stream');
+var json = typeof JSON === 'object' ? JSON : require('jsonify');
 
 var exports = module.exports = function (wrapper) {
     var self = {};
@@ -69,10 +70,10 @@ var Session = exports.Session = function (id, wrapper) {
     
     self.parse = function (line) {
         var msg = null;
-        try { msg = JSON.parse(line) }
+        try { msg = json.parse(line) }
         catch (err) {
             self.emit('error', new SyntaxError(
-                'Error parsing JSON message: ' + JSON.stringify(line))
+                'Error parsing JSON message: ' + json.stringify(line))
             );
             return;
         }
