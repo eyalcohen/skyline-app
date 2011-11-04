@@ -60,22 +60,29 @@ var done = false;
 
 process.stdin.setEncoding('utf8');
 var inStream = byline.createLineStream(process.stdin);
-var lineRegex = /^([-0-9A-Z:]+)\.([0-9]{6})  *([-0-9]+)$/;
+// Example line:
+//   2011-02-31T07:53:22.964300              888
+// The month seems to be zero-based rather than one-based - ugh!
+var lineRegex = /^([0-9]+)-([0-9]+)-([0-9]+)T([0-9]+):([0-9]+):([0-9]+)\.([0-9]{6})  *([-+.eE0-9]+)$/;
 inStream.on('data', function(line) {
   ++lineNumber;
   var m = line.match(lineRegex);
   if (!m) {
     log('Line ' + lineNumber + ': ' + line);
   } else {
-    var ms = Date.parse(m[1] + ' UTC');
-    var us = ms * 1000 + Number(m[2]);
+    var year = m[1], month = Number(m[2]) + 1, day = m[3];
+    var hour = m[4], minute = m[5], second = m[6], useconds = m[7];
+    var ms = Date.parse(
+        year + '-' + month + '-' + day + ' ' +
+        hour + ':' + minute + ':' + second + ' UTC');
+    var us = ms * 1000 + Number(useconds);
     if (isNaN(us)) {
-      log('Line ' + lineNumber + ': Could not parse time ' + m[1] + '.' + m[2]);
+      log('Line ' + lineNumber + ': Could not parse time: ' + line);
       return;
     }
-    var val = Number(m[3]);
+    var val = Number(m[8]);
     if (isNaN(val)) {
-      log('Line ' + lineNumber + ': Could not parse value ' + m[3]);
+      log('Line ' + lineNumber + ': Could not parse value ' + m[8]);
       return;
     }
     pendingSamples.push({ beg: us, end: us, val: val });
@@ -92,8 +99,8 @@ process.stdin.resume();
 function insertPending() {
   if (!pendingSamples.length) return;
   ++pendingInserts;
-  log('Starting insert of ' + pendingSamples.length + ' samples; ' +
-      pendingInserts + ' inserts pending.');
+  // log('Starting insert of ' + pendingSamples.length + ' samples; ' +
+      // pendingInserts + ' inserts pending.');
   var startTime = Date.now();
   process.stdin.pause();  // TODO: this won't stop byline from emitting for a while.
   var channelName = argv.station + '.' + argv.channel;
@@ -118,6 +125,11 @@ function insertPending() {
           type: 'int',
           merge: false,
         }
+      } ];
+      sampleSet._wake = [ {
+        beg: _.first(samples).beg,
+        end: _.last(samples).end,
+        val: 1,
       } ];
       this();
     }, errStep('addSchema'),
