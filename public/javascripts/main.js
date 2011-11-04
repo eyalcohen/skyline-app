@@ -17,83 +17,82 @@ requirejs(['libs/json2',
   window.App = {
     debug: true,
     start: function () {
-      DNode().connect({ disconnect: App.reconnect }, function (remote) {
-        try {
-          App.api = remote;
-          App.store = store;
-          App.engine = require('jadeify');
-          App.publish = require('./minpubsub').publish;
-          App.subscribe = require('./minpubsub').subscribe;
-          App.unsubscribe = require('./minpubsub').unsubscribe;
-          App.shared = require('./shared_utils');
-          App.user = App.store.get('user') || {};
-          App.regions = {
-            header: $('header'),
-            main: $('#main'),
-            footer: $('footer'),
-            menu: $('nav ul'),
-          };
+      var firstConnect = true;
+      DNode().connect({ disconnect: App.disconnect }, function (remote) {
+        App.api = remote;
 
-          requirejs(['models', 'collections', 'views', 'sample-cache',
-              'router', 'backbone-sync', 'backbone-super'],
-              function (models, collections, views, SampleCache, Router) {
-            App.models = models;
-            App.collections = collections;
-            App.views = views;
-            App.sampleCache = new SampleCache();
-            App.router = new Router();
-            Backbone.history.start({
-              pushState: true,
-              silent: true,
-            });
-            // SP: This will set the URL, but we must ensure
-            // the server can provide the same route if 
-            // asked directly.
-            //// App.router.navigate('somewhere');
-            App.login = new views.LoginView();
-            App.logout = new views.LogoutView();
-            App.loginOpts = {
-              first: true,
-              report: 'Please log in.',
-              type: 'message',
+        if (firstConnect) {
+          try {
+            firstConnect = false;
+            App.store = store;
+            App.engine = require('jadeify');
+            App.publish = require('./minpubsub').publish;
+            App.subscribe = require('./minpubsub').subscribe;
+            App.unsubscribe = require('./minpubsub').unsubscribe;
+            App.shared = require('./shared_utils');
+            App.user = App.store.get('user') || {};
+            App.regions = {
+              header: $('header'),
+              main: $('#main'),
+              footer: $('footer'),
+              menu: $('nav ul'),
             };
-            App.subscribe('UserWasAuthenticated', App.build);
-            if (_.isEmpty(App.user)) {
-              App.publish('NotAuthenticated', [App.loginOpts]);
-              App.loading.stop();
-            } else {
-              App.api.authenticate(App.user, function handleAuthResult(err) {
-                if (err) App.publish('NotAuthenticated', [App.loginOpts]);
-                else App.publish('UserWasAuthenticated');
+
+            requirejs(['models', 'collections', 'views', 'sample-cache',
+                'router', 'backbone-sync', 'backbone-super'],
+                function (models, collections, views, SampleCache, Router) {
+              App.models = models;
+              App.collections = collections;
+              App.views = views;
+              App.sampleCache = new SampleCache();
+              App.router = new Router();
+              Backbone.history.start({
+                pushState: true,
+                silent: true,
               });
-            }
-          });
-        } catch (err) {
-          console.error('Error in App.start: ' + err + '\n' + err.stack);
+              // SP: This will set the URL, but we must ensure
+              // the server can provide the same route if 
+              // asked directly.
+              //// App.router.navigate('somewhere');
+              App.login = new views.LoginView();
+              App.logout = new views.LogoutView();
+              App.loginOpts = {
+                first: true,
+                report: 'Please log in.',
+                type: 'message',
+              };
+              App.subscribe('UserWasAuthenticated', App.build);
+              if (_.isEmpty(App.user)) {
+                App.publish('NotAuthenticated', [App.loginOpts]);
+                App.loading.stop();
+              } else {
+                App.api.authenticate(App.user, function handleAuthResult(err) {
+                  if (err) App.publish('NotAuthenticated', [App.loginOpts]);
+                  else App.publish('UserWasAuthenticated');
+                });
+              }
+            });
+          } catch (err) {
+            console.error('Error in App.start: ' + err + '\n' + err.stack);
+          }
+        } else {
+          if (!_.isEmpty(App.user)) {
+            App.api.authenticate(App.user, function (err) {
+              if (err) {
+                console.warn('Server reconnected. User NOT authorized!');
+                App.publish('NotAuthenticated', [App.loginOpts]);
+              } else {
+                console.warn('Server reconnected. User authorized!');
+                App.publish('DNodeReconnectUserAuthorized');
+              }
+            });
+          }
         }
       });
     },
 
-    reconnect: function () {
-      console.warn('The server went away. Trying to reconnect ...');
-      if (App.reconnecter)
-        clearInterval(App.reconnecter);
-      App.reconnecter = setInterval(function () {
-        DNode.connect({ disconnect: App.reconnect }, function (remote) {
-          App.api = remote;
-          clearInterval(App.reconnecter);
-          App.reconnecter = null;
-          App.api.authenticate(App.user, function (err) {
-            if (err) {
-              console.warn('Server reconnected. User NOT authorized!');
-              App.publish('NotAuthenticated', [App.loginOpts]);
-            } else {
-              console.warn('Server reconnected. User authorized!');
-              App.publish('DNodeReconnectUserAuthorized');
-            }
-          });
-        });
-      }, 500);
+    disconnect: function () {
+      console.warn('The server went away.');
     },
 
     build: function () {
