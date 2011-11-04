@@ -264,20 +264,24 @@ define(function () {
     // TODO: we could avoid fetching samples sometimes if we determine that
     // a larger cached bucket already has entirely non-synthetic data for
     // the given time range.
+    //console.log(
+        //'fetchSamples(' + req.veh + ', "' +
+        //req.chan + '", ' + JSON.stringify(options) + ')');
     App.api.fetchSamples(req.veh, req.chan, options, function(err, samples) {
       if (err) {
         console.error(
             'SampleCache server call fetchSamples(' + req.veh + ', "' +
             req.chan + '", ' + JSON.stringify(options) +
             ') returned error: ' + err);
-        samples = [];
+        samples = null;
       } else {
         entry.syn = samples.some(function(s){return 'min' in s});
       }
       if (entry.samples)
         self.cacheSize -= entry.samples.length;
       entry.samples = samples;
-      self.cacheSize += samples.length;
+      if (samples)
+        self.cacheSize += samples.length;
       // Delete this entry from the pending request array.
       self.pendingCacheEntries.splice(
           self.pendingCacheEntries.indexOf(entry), 1);

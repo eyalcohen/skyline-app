@@ -19,6 +19,7 @@
             <canid channel="2" operation="getShort" param="pm/fault.faultEncoded"/>
             <canid param="pm.*/.*"/>
             <canid param="mc.*/.*"/>
+	    <canid param="vc.*/.*"/>
             <canid param="bms.*/fault.*"/>
             <canid channel="2" operation="getShort" param="21/43" isRequest="true"/>
             <canid mask="0x1fffffff" compare="0x123323" extended="true"/>

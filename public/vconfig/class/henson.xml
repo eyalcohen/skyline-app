@@ -5,6 +5,13 @@
         <!-- if present turns on the canstream server inside the vehicle (defaults to off) -->
         <canstream enabled="true" />
         
+        <subsystem id="mc">
+	</subsystem>
+        <subsystem id="vc">
+	</subsystem>
+        <subsystem id="pm">
+	</subsystem>
+
         <!-- specifies (in seconds) the minimum latency for fetching or 
 	     uploading files to/from the server.
              minIntervalOn is used when the vehicle is running, 
