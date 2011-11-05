@@ -13,7 +13,8 @@ define(['views/main',
     'views/users',
     'views/tree',
     'views/navigator',
-    'views/dash'],
+    'views/dash',
+    'views/editor'],
     function () {
   return {
     MainView: arguments[0],
@@ -28,6 +29,7 @@ define(['views/main',
     TreeView: arguments[9],
     NavigatorView: arguments[10],
     DashView: arguments[11],
+    EditorView: arguments[12],
   };
 });
 

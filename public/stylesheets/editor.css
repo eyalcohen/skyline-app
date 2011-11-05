@@ -16,3 +16,7 @@ pre {
   line-height: 14px;
 }
 
+.ace_scroller {
+  overflow-x: hidden !important;
+}
+

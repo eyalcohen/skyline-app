@@ -2,9 +2,8 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashItem', 'libs/jquery.simplemodal-1.4.1.min'
-    //'libs/ace/ace'//, 'libs/ace/theme-monokai', 'libs/ace/mode-xml'
-    ], function (DashItemView) {
+define(['views/dashItem'],
+    function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -47,102 +46,36 @@ define(['views/dashItem', 'libs/jquery.simplemodal-1.4.1.min'
     },
 
     open: function (e) {
-      var parentRow = $(e.target).closest('tr');
-      var lastSeen = parseInt(
-          $('[data-time]', parentRow).attr('data-time'));
-      var lastCycle = JSON.parse(
-          $('[data-cycle]', parentRow).attr('data-cycle'));
-      var items = parentRow.attr('id').split('_');
-      var id = parseInt(items[items.length - 1]);
-      var title = $(e.target).closest('tr').attr('data-title');
-      App.publish('VehicleRequested', [id, title, lastCycle]);
+      var attrs = this.getRowAttributesFromChild(e.target);
+      App.publish('VehicleRequested',
+          [attrs.id, attrs.title, attrs.lastCycle]);
       return this;
     },
 
     configure: function (e) {
-      App.api.fetchVehicleConfig('sdvdsv', function (err, xml) {
+      var attrs = this.getRowAttributesFromChild(e.target);
+      App.api.fetchVehicleConfig(attrs.id, function (err, xml) {
         if (err) throw err;
-        else {
-          App.engine('configure.dialog.jade', {
-            vehicleId: 'fsvsdfvds',
-          }).appendTo('body').modal({
-            overlayId: 'osx-overlay',
-            containerId: 'osx-container',
-            closeHTML: null,
-            minHeight: 80,
-            minWidth: 700,
-            opacity: 65,
-            position: ['0',],
-            overlayClose: true,
-            onOpen: function (d) {
-              var self = this;
-              self.container = d.container[0];
-              d.overlay.fadeIn('fast', function () {
-                $('#osx-modal-content', self.container).show();
-                var title = $('#osx-modal-title', self.container);
-                title.show();
-                d.container.slideDown('fast', function () {
-                  setTimeout(function () {
-                    var h = $('#osx-modal-data', self.container).height() +
-                        title.height() + 20;
-                    d.container.animate({ height: h }, 200, function () {
-                      $('#osx-container').height(572);
-                      createEditor(xml, function () {
-                        $('div.close', self.container).show();
-                        $('#osx-modal-data', self.container).fadeIn('fast');
-                      });
-                    });
-                  }, 300);
-                });
-              });
-            },
-            onClose: function (d) {
-              var self = this;
-              d.container.animate({ top:'-' + (d.container.height() + 20) }, 300,
-                  function () {
-                self.close();
-                $('#osx-modal-content').remove();
-              });
-            },
-          });
-        }
+        else App.editorView.open('<span style="font-weight:normal;">Configure Vehicle:</span> ' +
+            attrs.title + ' (' + attrs.id + ')', xml, function (data, cb) {
+          App.api.saveVehicleConfig(attrs.id, data, cb);
+        });
       });
-
-      function createEditor(initial, cb) {
-        var iframe = document.editor || window.editor;
-        var doc = iframe.document;
-        var win = iframe.window;
-        var pre = $('<pre id="editor">').text(initial);
-        var acer = setInterval(function () {
-          if (win.ace && doc.body) {
-            clearInterval(acer);
-            var css = doc.createElement('link');
-            css.href = '/stylesheets/config.css';
-            css.rel = 'stylesheet';
-            css.type = 'text/css';
-            doc.head.appendChild(css);
-            pre.appendTo($(doc.body));
-            var aceEditor = win.ace.edit('editor');
-            aceEditor.setTheme('ace/theme/solarized_dark');
-            var XMLMode = win.require('ace/mode/xml').Mode;
-            aceEditor.getSession().setMode(new XMLMode());
-            aceEditor.getSession().setTabSize(4);
-            aceEditor.getSession().setUseSoftTabs(true);
-            aceEditor.getSession().setUseWrapMode(true);
-            aceEditor.setShowPrintMargin(false);
-            setTimeout(cb, 500);
-          }
-        }, 10);
-        doc.write('<scr' + 'ipt type="text/javascript" ' +
-                  'src="/javascripts/libs/ace/ace.js"><\/scr' + 'ipt>');
-        doc.write('<scr' + 'ipt type="text/javascript" ' +
-                  'src="/javascripts/libs/ace/theme-solarized_dark.js"><\/scr' + 'ipt>');
-        doc.write('<scr' + 'ipt type="text/javascript" ' +
-                  'src="/javascripts/libs/ace/mode-xml.js"><\/scr' + 'ipt>');
-        doc.write('<bo' + 'dy><\/bo' + 'dy>');
-      }
-
     },
+
+    getRowAttributesFromChild: function (child) {
+      var tr = $(child).closest('tr');
+      var items = tr.attr('id').split('_');
+      return {
+        id: parseInt(items[items.length - 1]),
+        title: tr.attr('data-title'),
+        lastSeen: parseInt(
+            $('[data-time]', tr).attr('data-time')),
+        lastCycle: JSON.parse(
+            $('[data-cycle]', tr).attr('data-cycle')),
+      };
+    },
+
   });
 });
 

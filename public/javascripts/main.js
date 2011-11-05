@@ -105,6 +105,7 @@ requirejs(['libs/json2',
         tabClosable: false,
         left: 30
       }, 'dash.jade');
+      App.editorView = new App.views.EditorView().render();
       App.loading.stop();
       // // TODO: check if user is ADMIN first!
       // App.userCollection =

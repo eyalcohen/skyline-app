@@ -601,7 +601,8 @@ define(['views/dashItem', 'plot_booter',
           { channelName: '$endRelTime', title: 'End Since Start', units: 's' },
         ].concat(self.model.get('channels'));
       App.engine('export_csv.dialog.jade',
-          { channels: channels }).appendTo('body').modal({
+          { channels: channels }).appendTo(self.el).modal({
+        appendTo: self.el,
         overlayId: 'osx-overlay',
         containerId: 'osx-container',
         closeHTML: null,

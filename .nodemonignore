@@ -13,7 +13,7 @@
 .git
 cycles
 uploads
-#public
+public/vconfig
 samples
 example-data
 .DS_Store
