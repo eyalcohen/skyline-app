@@ -1,0 +1,6 @@
+<!-- This is the generic config for any vehicle -->
+<config generation="234">
+    <!-- All directives for a particular vehicle must be inside a vehicle node, other nodes are ignored -->
+    <vehicle id="[vid]"></vehicle>
+</config>
+

@@ -174,24 +174,6 @@ define(['jquery',
       }
     },
 
-    // getId: function (e) {
-    //   var str = $(e.target).parent().parent().attr('id');
-    //   try {
-    //     var items = str.split('_');
-    //     return parseInt(items[items.length - 1]);
-    //   } catch (exception) {
-    //     return null;
-    //   }
-    // },
-
-    // insertAt: function (parent, child, i) {
-    //   if (i === 0) {
-    //     child.prependTo(parent);
-    //     return;
-    //   }
-    //   $('div:nth-child(' + i + ')', parent).before(child);
-    // },
-
     addCommas: function (nStr) {
       nStr += '';
       var x = nStr.split('.');

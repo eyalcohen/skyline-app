@@ -2,11 +2,15 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/dashItem'], function (DashItemView) {
+define(['views/dashItem'],
+    function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
+      'mouseenter tr': 'showPanel',
+      'mouseleave tr': 'hidePanel',
       'click .open-vehicle': 'open',
+      'click .config-link': 'configure',
     },
 
     render: function (opts) {
@@ -31,19 +35,45 @@ define(['views/dashItem'], function (DashItemView) {
       return this;
     },
 
+    showPanel: function (e) {
+      var tr = $(e.target).closest('tr');
+      $('.edit-panel', tr).css({ visibility: 'visible' });
+    },
+
+    hidePanel: function (e) {
+      var tr = $(e.target).closest('tr');
+      $('.edit-panel', tr).css({ visibility: 'hidden' });
+    },
+
     open: function (e) {
-      var parentRow = $(e.target).closest('tr');
-      var lastSeen = parseInt(
-          $('[data-time]', parentRow).attr('data-time'));
-      var lastCycle = JSON.parse(
-          $('[data-cycle]', parentRow).attr('data-cycle'));
-      //var range = { beg: lastCycle.beg - 1e6*60*60*8,   // -8 hours
-                    //end: lastCycle.end + 1e6*60*60*2 }; // +2 hours
-      var items = parentRow.attr('id').split('_');
-      var id = parseInt(items[items.length - 1]);
-      var title = $(e.target).closest('tr').attr('data-title');
-      App.publish('VehicleRequested', [id, title, lastCycle]);
+      var attrs = this.getRowAttributesFromChild(e.target);
+      App.publish('VehicleRequested',
+          [attrs.id, attrs.title, attrs.lastCycle]);
       return this;
+    },
+
+    configure: function (e) {
+      var attrs = this.getRowAttributesFromChild(e.target);
+      App.api.fetchVehicleConfig(attrs.id, function (err, xml) {
+        if (err) throw err;
+        else App.editorView.open('<span style="font-weight:normal;">Configure Vehicle:</span> ' +
+            attrs.title + ' (' + attrs.id + ')', xml, function (data, cb) {
+          App.api.saveVehicleConfig(attrs.id, data, cb);
+        });
+      });
+    },
+
+    getRowAttributesFromChild: function (child) {
+      var tr = $(child).closest('tr');
+      var items = tr.attr('id').split('_');
+      return {
+        id: parseInt(items[items.length - 1]),
+        title: tr.attr('data-title'),
+        lastSeen: parseInt(
+            $('[data-time]', tr).attr('data-time')),
+        lastCycle: JSON.parse(
+            $('[data-cycle]', tr).attr('data-cycle')),
+      };
     },
 
   });

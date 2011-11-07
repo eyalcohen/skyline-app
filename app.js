@@ -1318,9 +1318,39 @@ var createDnodeConnection = function (remote, conn) {
   function fetchChannelTree(vehicleId, cb) {
     if (!checkAuth(cb)) return;
     sampleDb.fetchSamples(vehicleId, '_schema', {},
-                          errWrap(cb, function(samples) {
+                          errWrap(cb, function (samples) {
       cb(null, SampleDb.buildChannelTree(samples));
     }));
+  }
+
+  function fetchVehicleConfig(vehicleId, cb) {
+    if (!checkAuth(cb)) return;
+    var idFilePath = __dirname + '/public/vconfig/id/' + vehicleId + '.xml';
+    var templateFilePath = __dirname + '/public/vconfig/template.xml';
+    fs.readFile(idFilePath, 'utf8',
+        function (err, data) {
+      if (err) {
+        fs.readFile(templateFilePath, 'utf8',
+            function (err, data) {
+          data = data.replace(/\[vid\]/, vehicleId);
+          fs.writeFile(idFilePath, data, function (err) {
+            util.log("XML Configuration File CREATED for Vehicle " + vehicleId);
+            cb(err, data);
+          });
+        });
+      } else {
+        cb(err, data);
+      }
+    });
+  }
+
+  function saveVehicleConfig(vehicleId, data, cb) {
+    if (!checkAuth(cb)) return;
+    var idFilePath = __dirname + '/public/vconfig/id/' + vehicleId + '.xml';
+    fs.writeFile(idFilePath, data, function (err) {
+      util.log("XML Configuration File SAVED for Vehicle " + vehicleId);
+      cb(err);
+    });
   }
 
   conn.on('end', function () {
@@ -1336,6 +1366,8 @@ var createDnodeConnection = function (remote, conn) {
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
     fetchChannelTree: fetchChannelTree,
+    fetchVehicleConfig: fetchVehicleConfig,
+    saveVehicleConfig: saveVehicleConfig,
   };
 };
 

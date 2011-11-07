@@ -152,6 +152,7 @@ define(function () {
       self.data = data;
       self.dataMinMax = dataMinMax;
       self.view.draw();
+      // TODO: fix this, Sander
       self.view.resize();
     },
 
