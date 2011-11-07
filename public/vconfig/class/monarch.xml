@@ -36,6 +36,9 @@
 
         <canfilter iface="can0">
             <canid operation="announceShort" />
+
+	    <!-- For service debugging guarantee we see some traffic -->
+            <canid deviceId="vc" />
         </canfilter>
         <tree>
             <pipe>
