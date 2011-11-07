@@ -1347,9 +1347,15 @@ var createDnodeConnection = function (remote, conn) {
   function saveVehicleConfig(vehicleId, data, cb) {
     if (!checkAuth(cb)) return;
     var idFilePath = __dirname + '/public/vconfig/id/' + vehicleId + '.xml';
+    var generation = data.match(/<config generation="([0-9]*)">/);
+    if (generation && generation[1] !== "") {
+      var genNum = parseInt(generation[1]);
+      data = data.replace('<config generation="' + genNum + '">',
+                          '<config generation="' + (genNum + 1) + '">');
+    }
     fs.writeFile(idFilePath, data, function (err) {
       util.log("XML Configuration File SAVED for Vehicle " + vehicleId);
-      cb(err);
+      cb(err, data);
     });
   }
 

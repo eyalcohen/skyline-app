@@ -10,6 +10,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'],
       _.bindAll(this, 'render', 'destroy', 'open', 'close');
       App.subscribe('NotAuthenticated', this.destroy);
       this.firstOpen = true;
+      this.saved = true;
       this.aceEditor;
       return this;
     },
@@ -66,9 +67,13 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'],
         },
       });
       $('#save-editor').click(function (e) {
-        self.onSave(self.aceEditor.getSession().getValue(), function (err) {
-          if (err) self.showMessage(err);
-          else self.hideMessage();
+        self.onSave(self.aceEditor.getSession().getValue(), function (err, data) {
+          if (err) self.showMessage(err, 'gray');
+          else {
+            var txt = self.aceEditor.getSession().setValue(data);
+            self.saved = true;
+            self.showMessage('Saved!', 'green');
+          }
         });
       });
       return self;
@@ -100,8 +105,8 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'],
       return this;
     },
 
-    showMessage: function (text) {
-      $('.editor-message').text(text).show();
+    showMessage: function (text, color) {
+      $('.editor-message').text(text).css({color:color}).show();
     },
 
     hideMessage: function () {
@@ -132,8 +137,9 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'],
           self.aceEditor.getSession().setUseWrapMode(true);
           self.aceEditor.setShowPrintMargin(false);
           self.aceEditor.getSession().on('change', function () {
-            if (!$('.editor-message').is(':visible') && self.ready) {
-              self.showMessage('Not saved.');
+            if (self.saved && self.ready) {
+              self.saved = false;
+              self.showMessage('Not saved.', 'gray');
             }
           });
           cb();
