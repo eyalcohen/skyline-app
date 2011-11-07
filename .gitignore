@@ -2,6 +2,9 @@ public/javascripts/libs/dygraphs/
 backups/
 cycles/
 samples/
+public/vconfig/class/
+public/vconfig/fleet/
+public/vconfig/id/
 *.log
 .monitor
 *-old.*

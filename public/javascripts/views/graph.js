@@ -3,7 +3,7 @@
  */
 
 define(['views/dashItem', 'plot_booter',
-    'libs/jquery.simplemodal-1.4.1.min'],
+    'libs/jquery.simplemodal-1.4.1'],
     function (DashItemView) {
   return DashItemView.extend({
     initialize: function (args) {
