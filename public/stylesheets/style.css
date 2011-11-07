@@ -1254,6 +1254,7 @@ a.label-closer:hover {
 
 .legendColorBox {
   width: 18px;
+  vertical-align: middle;
 }
 
 .axisTarget {

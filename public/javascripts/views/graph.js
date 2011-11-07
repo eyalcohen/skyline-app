@@ -451,7 +451,8 @@ define(['views/dashItem', 'plot_booter',
               var i = series.data.indexOf(hp);
               var hpxc = series.xaxis.p2c(hp[0]);
               var hpyc = series.yaxis.p2c(hp[1]);
-              if (i > 0 && i < series.data.length - 2) {
+              if (series.data.length > 1 &&
+                  i > 0 && i < series.data.length - 2) {
                 var hpl = series.data[i - 1];
                 var hpr = series.data[i + 1];
                 var hplxc = series.xaxis.p2c(hpl[0]);
@@ -547,7 +548,6 @@ define(['views/dashItem', 'plot_booter',
             })
             .addClass('axisTarget')
             .addClass('jstree-drop')
-            // .appendTo(self.plot.getPlaceholder());
             .appendTo(self.content);
       });
 
