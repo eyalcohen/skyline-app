@@ -66,12 +66,13 @@ define(['views/dashItem'],
     getRowAttributesFromChild: function (child) {
       var tr = $(child).closest('tr');
       var items = tr.attr('id').split('_');
+      var time = parseInt(
+          $('[data-time]', tr).attr('data-time'));
       return {
         id: parseInt(items[items.length - 1]),
         title: tr.attr('data-title'),
-        lastSeen: parseInt(
-            $('[data-time]', tr).attr('data-time')),
-        lastCycle: JSON.parse(
+        lastSeen: time,
+        lastCycle: time === 0 ? null : JSON.parse(
             $('[data-cycle]', tr).attr('data-cycle')),
       };
     },
