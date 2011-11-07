@@ -47,7 +47,6 @@ define(['views/dashItem', 'plot_booter'],
         title: this.options.title,
         waiting: false,
         loading: false,
-        empty: false,
         shrinkable: false,
       });
       if (this.el.length)
@@ -57,7 +56,7 @@ define(['views/dashItem', 'plot_booter'],
           .appendTo(this.options.parent);
       this.notificationPreview = $('.notification-preview', this.el);
       this._super('render', _.bind(function () {
-        if (!opts.loading && !opts.empty)
+        if (!opts.loading)
           this.ready = true;
           this.draw(this.options.timeRange.beg,
                     this.options.timeRange.end);
@@ -85,10 +84,8 @@ define(['views/dashItem', 'plot_booter'],
       var data = _.pluck(self.collection.models, 'attributes');
       var shapes = [];
       var sortedData = _.stableSort(data,
-              function(s1, s2) {
-        var d1 = s1.end - s1.beg;
-        var d2 = s2.end - s2.beg;
-        return d2 - d1;
+          function(s1, s2) {
+        return (s2.end - s2.beg) - (s1.end - s1.beg);
       });
       _.each(sortedData, function (pnt) {
         shapes.push({
@@ -181,9 +178,10 @@ define(['views/dashItem', 'plot_booter'],
       }
 
       function addIcons(p, ctx) {
+        if (sortedData.length === 0) return;
         var icons = $('.timeline-icon', self.holder);
         if (icons.length === 0) {
-          _.each(data, function (pnt) {
+          _.each(sortedData, function (pnt) {
             var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
             var icon = $('<img>')
                 .attr({ src: pnt.icon })
@@ -207,7 +205,7 @@ define(['views/dashItem', 'plot_booter'],
                   self.passWindowEvent(e);
               });
         } else {
-          _.each(data, function (pnt, i) {
+          _.each(sortedData, function (pnt, i) {
             var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
             $(icons.get(i)).css({
               left: off.left - 8 + 'px',
