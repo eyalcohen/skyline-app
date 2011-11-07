@@ -659,7 +659,7 @@ app.post('/usercreate/:newemail', function (req, res) {
 
 app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
   var v = new Vehicle({
-      _id: parseInt(Math.random() * 0xffffffff)  // TODO: collisions
+      _id: parseInt(Math.random() * 0x7fffffff)  // TODO: collisions
     , make: req.params.make
     , model: req.params.model
     , year: req.params.year
