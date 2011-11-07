@@ -79,8 +79,9 @@
 	/*
 	 * Close the modal dialog.
 	 */
-	$.modal.close = function () {
-		$.modal.impl.close();
+	$.modal.close = function (m) {
+    // $.modal.impl.close();
+		m.close();
 	};
 
 	/*
@@ -88,23 +89,26 @@
 	 * element, call $.modal.focus('last'). If no input elements are found, focus is placed
 	 * on the data wrapper element.
 	 */
-	$.modal.focus = function (pos) {
-		$.modal.impl.focus(pos);
+	$.modal.focus = function (m, pos) {
+    // $.modal.impl.focus(pos);
+    m.focus(pos);
 	};
 
 	/*
 	 * Determine and set the dimensions of the modal dialog container.
 	 * setPosition() is called if the autoPosition option is true.
 	 */
-	$.modal.setContainerDimensions = function () {
-		$.modal.impl.setContainerDimensions();
+	$.modal.setContainerDimensions = function (m) {
+    // $.modal.impl.setContainerDimensions();
+		m.setContainerDimensions();
 	};
 
 	/*
 	 * Re-position the modal dialog.
 	 */
-	$.modal.setPosition = function () {
-		$.modal.impl.setPosition();
+	$.modal.setPosition = function (m) {
+    // $.modal.impl.setPosition();
+		m.setPosition();
 	};
 
 	/*
@@ -114,8 +118,9 @@
 	 * setContainerDimensions() is called, which in turn calls setPosition(), if enabled.
 	 * Lastly, focus() is called is the focus option is true.
 	 */
-	$.modal.update = function (height, width) {
-		$.modal.impl.update(height, width);
+	$.modal.update = function (m, height, width) {
+    // $.modal.impl.update(height, width);
+		m.update(height, width);
 	};
 
 	/*
@@ -200,6 +205,7 @@
 	 * o = options
 	 */
 	$.modal.impl = function () {
+	  var initial = true;
 	  return {
   		/*
   		 * Contains the modal dialog elements and is the object passed
@@ -633,7 +639,10 @@
   			s.o.focus && s.focus();
 
   			// bind default events
-  			s.bindEvents();
+  			if (initial) {
+  			  initial = false;
+  			  s.bindEvents();
+			  }
   		},
   		/*
   		 * Close the modal dialog
@@ -653,7 +662,8 @@
   			}
 
   			// remove the default events
-  			//s.unbindEvents();
+  			if (!s.o.keep)
+  			  s.unbindEvents();
 
   			if ($.isFunction(s.o.onClose) && !s.occb) {
   				// set the onClose callback flag
