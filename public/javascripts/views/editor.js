@@ -122,6 +122,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'],
       var acer = setInterval(function () {
         if (win.ace && doc.body) {
           clearInterval(acer);
+          win.stop();
           var css = doc.createElement('link');
           css.href = '/stylesheets/editor.css';
           css.rel = 'stylesheet';
