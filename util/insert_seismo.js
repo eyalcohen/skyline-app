@@ -126,11 +126,13 @@ function insertPending() {
           merge: false,
         }
       } ];
+      /*
       sampleSet._wake = [ {
         beg: _.first(samples).beg,
         end: _.last(samples).end,
         val: 1,
       } ];
+      */
       this();
     }, errStep('addSchema'),
 
