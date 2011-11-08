@@ -1,5 +1,5 @@
 <!-- This is the standard config for any Monarch type vehicle -->
-<config generation="234">
+<config generation="252">
     <!-- All directives for a particular vehicle must be inside a vehicle node, other nodes are ignored -->
     <vehicle id="234142">
         
@@ -7,14 +7,14 @@
         <canstream enabled="true" />
         
         <!-- specifies (in seconds) the minimum latency for fetching or 
-	     uploading files to/from the server.
+         uploading files to/from the server.
              minIntervalOn is used when the vehicle is running, 
 	     minIntervalOff is used when asleep.
 
              uploadRoot is where we should squirt our collected data
         -->
-        <serverinfo type="upload" minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/samples" />
-        <serverinfo type="download" minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/vconfig" />
+        <uploadserver minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/samples" />
+        <configserver minIntervalOn="600"  minIntervalOff="100" url="http://triptrack.ridemission.com/vconfig" />
 
 	<!-- If url is set, we will launch a web browser session showing that URL (normally used to show a dash) -->
 	<!-- If screenOn is true we will keep the screen from going to sleep when the vehicle is awake (for the dash) -->
@@ -25,7 +25,7 @@
 
         <subsystem id="mc" />
         <subsystem id="vc">
-            <loadinfo type="app" version="1.8" minVersion="1.8" recVersion="1.8">file://localhost/home/kevinh/tmp/vc_stellarisx.bin</loadinfo>
+            <!-- <loadinfo type="app" version="1.8" minVersion="1.8" recVersion="1.8">file://localhost/home/kevinh/tmp/vc_stellarisx.bin</loadinfo> -->
 	</subsystem>
         <subsystem id="bms1" />
         <subsystem id="bms2" />
@@ -36,24 +36,58 @@
 
         <canfilter iface="can0">
             <canid operation="announceShort" />
-
-	    <!-- For service debugging guarantee we see some traffic -->
-            <canid deviceId="vc" />
+	        <!-- For service debugging guarantee we see some traffic -->    
+            <canid deviceId="bms1" operation="getShort" isRequest="false" />
+            <canid deviceId="bms2" operation="getShort" isRequest="false" />
+            <canid deviceId="bms3" operation="getShort" isRequest="false" />
+            <canid deviceId="bms4" operation="getShort" isRequest="false" />
+            <canid deviceId="bms5" operation="getShort" isRequest="false" />
+            <canid deviceId="bms6" operation="getShort" isRequest="false" />
+            
+            <!-- <canid deviceId="vc" operation="getShort" isRequest="false" /> -->
         </canfilter>
         <tree>
             <pipe>
                 <sourceref>can0Source</sourceref>
                 <sourceref>gpsSource</sourceref> 
-                <teesink>
-                    <printsink/> 
-
-		    <!-- interval is bucket length in msecs, maxCount is max # allower per bucket --> 
-                    <throttledsink interval="60000" maxCount="1000">
-                        <throttledsink interval="1000" maxCount="100">
+                
+	        <teesink>
+		  <!-- FIXME add support for switch filters -->
+	          <andfiltersink>
+		    <filters>
+		      <canid deviceId="mc" />
+		    </filters>
+		    <onPass>
+	          	<!-- interval is bucket length in msecs, maxCount is max # allower per bucket --> 
+                  	<throttledsink interval="1000" maxCount="50">
+                        <teesink>
+                            <printsink/>
                             <sinkref>eventSpooler</sinkref>
-                        </throttledsink>
-                    </throttledsink>
-                </teesink>
+                        </teesink>    
+                  	</throttledsink>
+		    </onPass>
+		  </andfiltersink>
+		  
+	          <orfiltersink>
+		    <filters>
+		      <canid deviceId="bms1" />
+		      <canid deviceId="bms2" />
+		      <canid deviceId="bms3" />
+		      <canid deviceId="bms4" />
+		      <canid deviceId="bms5" />
+		      <canid deviceId="bms6" />
+		    </filters>
+		    <onPass>
+	          	<!-- interval is bucket length in msecs, maxCount is max # allower per bucket --> 
+                  	<throttledsink interval="5000" maxCount="50">
+                        <teesink>
+                            <printsink/>
+                            <sinkref>eventSpooler</sinkref>
+                        </teesink>    
+                  	</throttledsink>
+		    </onPass>
+		  </orfiltersink>
+		</teesink>
             </pipe>
         </tree>
     </vehicle>
