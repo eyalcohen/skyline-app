@@ -659,7 +659,7 @@ app.post('/usercreate/:newemail', function (req, res) {
 
 app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
   var v = new Vehicle({
-      _id: parseInt(Math.random() * 0xffffffff)  // TODO: collisions
+      _id: parseInt(Math.random() * 0x7fffffff)  // TODO: collisions
     , make: req.params.make
     , model: req.params.model
     , year: req.params.year
@@ -1347,9 +1347,15 @@ var createDnodeConnection = function (remote, conn) {
   function saveVehicleConfig(vehicleId, data, cb) {
     if (!checkAuth(cb)) return;
     var idFilePath = __dirname + '/public/vconfig/id/' + vehicleId + '.xml';
+    var generation = data.match(/<config generation="([0-9]*)">/);
+    if (generation && generation[1] !== "") {
+      var genNum = parseInt(generation[1]);
+      data = data.replace('<config generation="' + genNum + '">',
+                          '<config generation="' + (genNum + 1) + '">');
+    }
     fs.writeFile(idFilePath, data, function (err) {
       util.log("XML Configuration File SAVED for Vehicle " + vehicleId);
-      cb(err);
+      cb(err, data);
     });
   }
 

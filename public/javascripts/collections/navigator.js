@@ -14,8 +14,7 @@ define(['models/notification'], function (model) {
       this.view = new App.views.NavigatorView(args);
       this.view.render({ loading: true });
       this.loaded = _.bind(function () {
-        var empty = this.models.length === 0;
-        this.view.render({ empty: empty });
+        this.view.render();
       }, this);
       return this;
     },
