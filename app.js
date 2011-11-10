@@ -12,7 +12,6 @@ var MongoStore = require('connect-mongodb');
 var gzip = require('connect-gzip');
 var dnode = require('dnode');
 var fs = require('fs');
-var sys = require('sys');
 var path = require('path');
 var CSV = require('csv');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
