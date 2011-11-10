@@ -234,9 +234,12 @@ app.configure(function () {
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+  debug('requiring browserify.');
+  var start = Date.now();
   app.use(require('browserify')({
     require : ['dnode', 'underscore', 'step', './minpubsub', './shared_utils']
   }).use(jadeify(__dirname + '/public/javascripts/templates')));
+  debug('browserify took: ' + (Date.now() - start) + 'ms.');
 });
 
 
