@@ -9,6 +9,9 @@
 // We need special support for socket.io requests to ensure that all requests
 // in a given connection go to the same frontend.
 
+// TODO: perhaps we'd get better performance with:
+// https://github.com/nodejitsu/node-http-proxy
+
 var optimist = require('optimist');
 var argv = optimist
     .describe('help', 'Get help')
@@ -36,7 +39,7 @@ var staticRE =
       return '^/' + fname;
     }).join('|'));
 var socketIORE = /^\/socket.io\//,
-    socketIOExistingRE = /^\/socket.io\/[0-9]+\/[^/]+\/([0-9]+)$/;
+    socketIOExistingRE = /^\/socket.io\/[0-9]+\/[^/]+\/([0-9]+)(?:\?.*)?$/;
 var staticPorts = JSON.parse('['+argv.staticPorts+']');
 var apiPorts = JSON.parse('['+argv.apiPorts+']');
 var staticI = 0, apiI = 0;

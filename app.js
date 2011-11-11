@@ -1240,9 +1240,9 @@ if (!module.parent) {
               io: { 'log level': 2,
                     transports: [
                       'websocket',
-                      'htmlfile',  // doesn't work?
+                      //'htmlfile',  // doesn't work
                       'xhr-polling',
-                      'jsonp-polling',
+                      //'jsonp-polling',  // doesn't work
                     ] }
           } );
       util.log("Express server listening on port " + app.address().port);
