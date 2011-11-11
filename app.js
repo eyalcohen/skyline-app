@@ -1,3 +1,19 @@
+#!/usr/bin/env node
+
+/**
+ * Arguments.
+ */
+var optimist = require('optimist');
+var argv = optimist
+    .describe('help', 'Get help')
+    .describe('port', 'Port to listen on')
+      .default('port', 8080)
+    .argv;
+
+if (argv._.length || argv.help) {
+  optimist.showHelp();
+  process.exit(1);
+}
 
 /**
  * Module dependencies.
@@ -1194,7 +1210,7 @@ var createDnodeConnection = function (remote, conn) {
   };
 };
 
-////////////// Initialize and Listen on 8080 (maps to 80 on EC2)
+////////////// Initialize and Listen
 
 var sampleDb;
 
@@ -1217,18 +1233,18 @@ if (!module.parent) {
     // Listen:
     function(err) {
       if (err) { this(err); return; }
-      app.listen(8080);
+      app.listen(argv.port);
 
-      // setInterval(function () {
-      //   var n = Math.floor(Math.random() * 100);
-      //   pubsub.publish('data', [n]);
-      // }, 100);
-
-      // dnode(function (client, conn) {
-      //   this.subscribe = pubsub.subscribe;
-      // }).listen(8080).listen(app);
-
-      dnode(createDnodeConnection).use(dnodeLogMiddleware).listen(8081).listen(app);
+      dnode(createDnodeConnection).use(dnodeLogMiddleware).
+          listen(app, {
+              io: { 'log level': 2,
+                    transports: [
+                      'websocket',
+                      'htmlfile',  // doesn't work?
+                      'xhr-polling',
+                      'jsonp-polling',
+                    ] }
+          } );
       util.log("Express server listening on port " + app.address().port);
     }
   );
