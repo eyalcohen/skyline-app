@@ -12,7 +12,6 @@ var MongoStore = require('connect-mongodb');
 var gzip = require('connect-gzip');
 var dnode = require('dnode');
 var fs = require('fs');
-var sys = require('sys');
 var path = require('path');
 var CSV = require('csv');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
@@ -235,9 +234,12 @@ app.configure(function () {
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+  debug('requiring browserify.');
+  var start = Date.now();
   app.use(require('browserify')({
     require : ['dnode', 'underscore', 'step', './minpubsub', './shared_utils']
   }).use(jadeify(__dirname + '/public/javascripts/templates')));
+  debug('browserify took: ' + (Date.now() - start) + 'ms.');
 });
 
 
@@ -812,7 +814,8 @@ app.put('/samples', function (req, res) {
       });
 
       // HACK: Heuristically add durations to zero-duration samples.
-      addDurationHeuristicHack(vehicleId, sampleSet, this);
+      sampleDb.addDurationHeuristicHack(vehicleId, sampleSet, 10 * SampleDb.s,
+                                        this);
     },
 
     function(err) {
@@ -937,58 +940,6 @@ app.put('/cycle', function (req, res) {
     });
   });
 });
-
-function addDurationHeuristicHack(vehicleId, sampleSet, cb) {
-  // This is a hack to add duration to samples which are of zero duration.
-  // The algorithm is: for each zero-duration sample, set the begin time to the
-  // end of the previous sample, unless that duration exceeds maxDuration.
-  // Note that if the first sample of each channel has no duration, we have to
-  // query the DB for the previous sample!
-  var maxDuration = 10 * SampleDb.s;
-  var prevSampleSet = {};
-  Step(
-    function() {
-      // For any channel we might need to synthesize an initial begin, get
-      // potentially overlapping data.
-      var parallel = this.parallel;
-      _.each(sampleSet, function(samples, channelName) {
-        var first = _.first(samples);
-        if (first && first.beg == first.end) {
-          var next = parallel();
-          options = { type: 'real',
-                      beginTime: first.beg - maxDuration, endTime: first.beg };
-          sampleDb.fetchSamples(vehicleId, channelName, options,
-                                function(err, samples) {
-            prevSampleSet[channelName] = samples;
-            if (err)
-              util.log('Error in addDurationHeuristicHack while fetching: ' +
-                       err.stack);
-            next();
-          });
-        }
-      });
-      parallel()();
-    },
-    function(err) {
-      if (err) return this(err);
-      _.each(sampleSet, function(samples, channelName) {
-        var prevEnd = -Number.MAX_VALUE;
-        if (prevSampleSet[channelName] && _.last(prevSampleSet[channelName]))
-          prevEnd = _.last(prevSampleSet[channelName]).end;
-        samples.forEach(function(s) {
-          if (s.end <= s.beg) {
-            // Synthesize a duration for this sample.
-            var dur = Math.max(Math.min(maxDuration, s.beg - prevEnd), 0);
-            s.beg -= dur;
-          }
-          prevEnd = s.end;
-        });
-      });
-      this(null);
-    },
-    cb
-  );
-}
 
 
 ////////////// DNode Methods

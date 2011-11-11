@@ -65,7 +65,7 @@ define(function () {
         var extend = (range.end - range.beg) * factor;
         return { beg: range.beg - extend, end: range.end + extend };
       }
-      viewRange = expandRange(viewRange, 0.2);
+      viewRange = expandRange(viewRange, 0.1);
       // When necessary to fetch more data, fetch twice as much as necessary,
       // so we can scroll and zoom smoothly without excessive redrawing.
       if (this.prevDur != dur || this.prevRange == null ||
@@ -74,7 +74,7 @@ define(function () {
         // Either duration has changed, or the new view does not overlap the
         // data we've already fetched.
         this.prevDur = dur;
-        this.prevRange = expandRange(viewRange, 0.5);
+        this.prevRange = expandRange(viewRange, 0.25);
       }
       App.sampleCache.setClientView(
           this.clientId, this.get('vehicleId'),
