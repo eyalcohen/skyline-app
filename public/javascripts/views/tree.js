@@ -73,8 +73,8 @@ define(['views/dashItem',
                 initiallySelect = metadata.channelName;
                 App.store.set('defaultChannel-' + self.model.get('tabId'),
                               metadata);
-                App.publish('ChannelRequested-' + self.model.get('tabId'),
-                            [metadata]);
+                App.publish('ChannelRequested-' + 
+                    self.model.get('tabId') + '-MASTER', [metadata]);
               }
               var id = metadata.channelName, attr = {};
               if (id) attr.id = id;
@@ -147,8 +147,7 @@ define(['views/dashItem',
       var node = target.hasClass('jstree-checkbox') ?
           target.parent().parent() : target.parent();
       // Just use the first graph. Is there a better option??
-      var graphId = $($('.graph',
-          $('.' + self.model.get('target'))).get(0)).data('id');
+      var graphId = 'MASTER';
       if (!node.attr('id')) {
         var children = $('ul > li', node);
         var requestedChannels = [];
@@ -157,23 +156,31 @@ define(['views/dashItem',
             var channel = _.clone($(children.get(i)).data());
             requestedChannels.push(channel);
           });
-          App.publish('ChannelRequested-' + self.model.get('tabId') +'-' +
-              graphId, [requestedChannels]);
+          App.publish('ChannelRequested-' + 
+              self.model.get('tabId') +'-' +graphId, [requestedChannels]);
         } else if (node.hasClass('jstree-unchecked')) {
+          var graphs = $('.' + self.model.get('target') + ' .graph');
           children.each(function (i) {
             var channel = _.clone($(children.get(i)).data());
-            App.publish('ChannelUnrequested-' + self.model.get('tabId'),
-                        [channel]);
+            graphs.each(function (i) {
+              var gid = $(graphs.get(i)).data('id');
+              App.publish('ChannelUnrequested-' +
+                  self.model.get('tabId') + '-' + gid, [channel]);
+            });
           });
         }
       } else {
         var channel = _.clone(node.data());
         if (node.hasClass('jstree-checked')) {
-          App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
-              graphId, [channel]);
+          App.publish('ChannelRequested-' + 
+              self.model.get('tabId') + '-' + graphId, [channel]);
         } else if (node.hasClass('jstree-unchecked')) {
-          App.publish('ChannelUnrequested-' + self.model.get('tabId'),
-                      [channel]);
+          var graphs = $('.' + self.model.get('target') + ' .graph');
+          graphs.each(function (i) {
+            var gid = $(graphs.get(i)).data('id');
+            App.publish('ChannelUnrequested-' +
+                self.model.get('tabId') + '-' + gid, [channel]);
+          });
         }
       }
     },
@@ -188,8 +195,8 @@ define(['views/dashItem',
           var child = $(children.get(i));
           var channel = _.clone(child.data());
           channel.yaxisNum = yaxisNum;
-          App.publish('ChannelRequested-' + self.model.get('tabId') +'-' +
-              graphId, [channel]);
+          App.publish('ChannelRequested-' + 
+              self.model.get('tabId') +'-' + graphId, [channel]);
           if (child.hasClass('jstree-unchecked')) {
             child.removeClass('jstree-unchecked')
                 .addClass('jstree-checked');
@@ -205,8 +212,8 @@ define(['views/dashItem',
       } else {
         var channel = _.clone(data.o.data());
         channel.yaxisNum = data.r.data('axis.n');
-        App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
-            graphId, [channel]);
+        App.publish('ChannelRequested-' + 
+            self.model.get('tabId') + '-' + graphId, [channel]);
         if (data.o.hasClass('jstree-unchecked')) {
           data.o.removeClass('jstree-unchecked')
               .addClass('jstree-checked');
@@ -228,8 +235,8 @@ define(['views/dashItem',
         $('.label-closer', data.o.parent().parent().parent()).click();
         this.showChannel(channel.channelName);
         channel.yaxisNum = yaxisNum;
-        App.publish('ChannelRequested-' + this.model.get('tabId') + '-' +
-            graphId, [channel]);
+        App.publish('ChannelRequested-' + 
+            this.model.get('tabId') + '-' + graphId, [channel]);
       }
       App.publish('DragEnd-' + this.model.get('tabId'));
     },

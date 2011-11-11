@@ -33,8 +33,7 @@ define(['views/folderItem'], function (FolderItemView) {
         target: this.targetClass,
         height: 70,
         bottomPad: 63,
-        id: this.makeid(),
-        master: true,
+        id: 'MASTER',
       })];
       this.hookGraphControls(this.graphModels[0], 0);
       this.mapModel = new App.models.MapModel({
@@ -93,6 +92,7 @@ define(['views/folderItem'], function (FolderItemView) {
 
     addGraph: function (index) {
       var viewRange = this.graphModels[0].view.getVisibleTime();
+      var graphId = App.util.makeId();
       var graph = new App.models.GraphModel({
         tabId: this.tabId,
         vehicleId: this.vehicleId,
@@ -101,17 +101,18 @@ define(['views/folderItem'], function (FolderItemView) {
         target: this.targetClass,
         height: 70,
         bottomPad: 0,
-        id: this.makeid(),
-        master: false,
+        id: graphId,
       });
       this.graphModels.push(graph);
       this.hookGraphControls(graph, this.graphModels.length - 1);
       this.arrangeGraphs();
+      App.publish('GraphRequested-' + this.tabId, [graphId]);
       App.publish('WindowResize');
     },
 
     removeGraph: function (index) {
       var self = this;
+      var graphId = self.graphModels[index].get('id');
       self.graphModels[index].destroy();
       self.graphModels.splice(index, 1);
       _.each(self.graphModels, function (g, i) {
@@ -119,6 +120,7 @@ define(['views/folderItem'], function (FolderItemView) {
         self.hookGraphControls(g, i);
       });
       self.arrangeGraphs();
+      App.publish('GraphUnrequested-' + this.tabId, [graphId]);
       App.publish('WindowResize');
     },
 
@@ -144,19 +146,9 @@ define(['views/folderItem'], function (FolderItemView) {
       }
     },
 
-    makeid: function () {
-      var text = '';
-      var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
-          'abcdefghijklmnopqrstuvwxyz0123456789';
-      for( var i=0; i < 5; i++ )
-        text += possible.charAt(Math.floor(
-            Math.random() * possible.length));
-      return text;
-    },
-
     destroy: function (clicked) {
       this._super('destroy', clicked);
-      App.publish('HideVehicle-' + this.tabId);
+      App.publish('VehicleUnrequested-' + this.tabId);
     },
 
   });

@@ -22,34 +22,28 @@ define(function () {
       self.clientId = tabId + '-graph-' + args.id;
       _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
           'addChannel', 'removeChannel', 'updateSampleSet');
-      App.subscribe('HideVehicle-' + tabId, self.destroy);
+      App.subscribe('VehicleUnrequested-' + tabId, self.destroy);
       App.subscribe('VisibleTimeChange-' + tabId, self.changeVisibleTime);
-      App.subscribe('ChannelRequested-' + tabId + '-' + args.id,
-          self.addChannel);
-      if (args.master)
-        App.subscribe('ChannelRequested-' + tabId, self.addChannel);
-      App.subscribe('ChannelUnrequested-' + tabId, self.removeChannel);
-      App.sampleCache.bind('update-' + self.clientId,
-          self.updateSampleSet);
-      self.view.bind('ChannelUnrequested', self.removeChannel);
+      App.subscribe('ChannelRequested-' + tabId + '-' + args.id, self.addChannel);
+      App.subscribe('ChannelUnrequested-' + tabId + '-' + args.id, self.removeChannel);
+      App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
       self.view.bind('VisibleTimeChange', function (beg, end) {
         self.updateCacheSubscription();
         App.publish('VisibleTimeChange-' + tabId, [beg, end]);
       });
       self.view.bind('VisibleWidthChange', self.updateCacheSubscription);
       self.view.render();
+      
       return self;
     },
 
     destroy: function () {
       var self = this, tabId = self.get('tabId');
-      App.unsubscribe('HideVehicle-' + tabId, self.destroy);
+      var id = self.get('id');
+      App.unsubscribe('VehicleUnrequested-' + tabId, self.destroy);
       App.unsubscribe('VisibleTimeChange-'+ tabId, self.changeVisibleTime);
-      App.unsubscribe('ChannelRequested-'+ tabId + '-' + self.get('id'),
-                      self.addChannel);
-      if (self.get('master'))
-        App.unsubscribe('ChannelRequested-' + tabId, self.addChannel);
-      App.unsubscribe('ChannelUnrequested-' + tabId, self.removeChannel);
+      App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, self.addChannel);
+      App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id, self.removeChannel);
       App.sampleCache.unbind('update-' + self.clientId, self.updateSampleSet);
       App.sampleCache.endClient(self.clientId);
       self.view.destroy();

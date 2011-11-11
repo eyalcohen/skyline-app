@@ -48,8 +48,10 @@ define(['views/dashItem'], function (DashItemView) {
         App.publish('VisibleTimeChange-' + props.id,
                     [timeRange.beg, timeRange.end]);
         App.publish('PreviewNotification-' + props.id, [timeRange]);
-      } else
-        App.publish('VehicleRequested', [props.id, props.title, timeRange]);
+      } else {
+        var tabId = App.util.makeId();
+        App.publish('VehicleRequested', [props.id, tabId, props.title, timeRange]);
+      }
       return this;
     },
 
