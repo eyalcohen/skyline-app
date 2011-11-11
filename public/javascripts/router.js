@@ -6,11 +6,11 @@ define(function () {
   return Backbone.Router.extend({
 
     routes: {
-      vehicles: 'vehicles',
+      'vehicle/:id': 'vehicle',
     },
 
-    vehicles: function () {
-      
+    vehicle: function (id) {
+      console.log(id);
     },
 
   });

@@ -14,7 +14,7 @@ define(function () {
           'updateNavigableSampleSet');
       this.clientIdVisible = args.tabId + '-map-visible';
       this.clientIdNavigable = args.tabId + '-map-navigable';
-      App.subscribe('HideVehicle-' + args.tabId, this.destroy);
+      App.subscribe('VehicleUnrequested-' + args.tabId, this.destroy);
       App.subscribe('VisibleTimeChange-' + args.tabId,
           _.bind(this.changeTime, this, this.clientIdVisible));
       App.subscribe('NavigableTimeChange-' + args.tabId,
@@ -28,7 +28,7 @@ define(function () {
     },
 
     destroy: function () {
-      App.unsubscribe('HideVehicle-' + this.get('tabId'), this.destroy);
+      App.unsubscribe('VehicleUnrequested-' + this.get('tabId'), this.destroy);
       App.unsubscribe('VisibleTimeChange-' + this.get('tabId'),
           this.changeTime);
       App.unsubscribe('NavigableTimeChange-' + this.get('tabId'),

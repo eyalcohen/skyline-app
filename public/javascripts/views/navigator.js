@@ -14,7 +14,7 @@ define(['views/dashItem', 'plot_booter'],
       var tabId = args.tabId;
       App.subscribe('PreviewNotification-' + tabId, this.showNotification);
       App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
-      App.subscribe('HideVehicle-' + tabId, this.destroy);
+      App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
       App.subscribe('VisibleTimeChange-' + tabId, this.draw);
       this.debouncedDrawWindow = _.debounce(this.drawWindow, 20);
       this.ready = false;
@@ -27,7 +27,7 @@ define(['views/dashItem', 'plot_booter'],
       var tabId = this.options.tabId;
       App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
       App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
-      App.unsubscribe('HideVehicle-' + tabId, this.destroy);
+      App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
       App.unsubscribe('VisibleTimeChange-'+ tabId, this.draw);
     },
 
@@ -439,6 +439,7 @@ define(['views/dashItem', 'plot_booter'],
     },
 
     showNotification: function (range, other) {
+      if (!this.visibleBox) return;
       this.visibleBox.hide();
       var xaxis = this.plot.getXAxes()[0];
       var leftSide = Math.max(xaxis.p2c(range.beg/1e3), 0);
@@ -453,7 +454,8 @@ define(['views/dashItem', 'plot_booter'],
 
     hideNotification: function () {
       this.notificationPreview.hide();
-      this.visibleBox.show();
+      if (this.visibleBox)
+        this.visibleBox.show();
     },
 
   });

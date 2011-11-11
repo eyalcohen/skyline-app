@@ -36,8 +36,7 @@ define(['jquery',
       return this;
     },
 
-    load: function (vehicleId, vehicleTitle, timeRange) {
-      var tabId = this.makeid();
+    load: function (vehicleId, tabId, vehicleTitle, timeRange) {
       var targetClass = 'target-' + tabId;
       new App.views.VehicleView({
         targetClass: targetClass,
@@ -48,16 +47,6 @@ define(['jquery',
         timeRange: timeRange,
         active: true,
       }, 'vehicle.jade');
-    },
-
-    makeid: function () {
-      var text = '';
-      var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
-          'abcdefghijklmnopqrstuvwxyz0123456789';
-      for( var i=0; i < 5; i++ )
-        text += possible.charAt(Math.floor(
-              Math.random() * possible.length));
-      return text;
     },
 
   });

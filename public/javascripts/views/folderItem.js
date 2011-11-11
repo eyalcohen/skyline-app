@@ -38,14 +38,15 @@ define(['jquery',
           .appendTo('.folder');
       this.tab = App.engine('tab.jade', opts)
           .appendTo(opts.tabParent);
-
       var winWidth = $(window).width() - 10;
       var dl = $('.dashboard-left', this.el);
       var dr = $('.dashboard-right', this.el);
       dl.width(winWidth * Number(dl.attr('data-width')));
       dr.width(winWidth * Number(dr.attr('data-width')));
-
-      this.tab.click(_.bind(this.show, this));
+      this.tab.click(function (e) {
+        var tabTarget = $(e.target).closest('[data-tab-target]').data('tabTarget');
+        App.publish('ShowFolderItem-' + tabTarget);
+      });
       var self = this;
       $('.tab-closer', this.tab).click(function (e) {
         self.destroy(true);
@@ -64,6 +65,7 @@ define(['jquery',
         $this.css({ zIndex: parseInt($this.css('z-index')) - 10001 });
         flipTabSides($this);
         $('.tab-content', $this).addClass('tab-content-inactive');
+        App.publish('HideFolderItem-' + $this.data('tabTarget'));
       });
       this.tab.addClass('tab-active');
       this.tab.css({ zIndex: 10001 + parseInt(this.tab.css('z-index')) });

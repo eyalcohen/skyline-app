@@ -725,7 +725,8 @@ define(['views/dashItem', 'plot_booter',
       var label = $('.legendLabel > div', labelParent);
       var channel = JSON.parse(label.attr('data-channel'));
       this.highlighting = false;
-      this.trigger('ChannelUnrequested', channel);
+      App.publish('ChannelUnrequested-' + 
+          this.options.tabId + '-' + this.options.id, [channel]);
     },
 
     addGraphFromParent: function (e) {
@@ -734,7 +735,8 @@ define(['views/dashItem', 'plot_booter',
 
     removeGraphFromParent: function (e) {
       _.each(this.model.get('channels'), _.bind(function (channel) {
-        this.trigger('ChannelUnrequested', channel);
+        App.publish('ChannelUnrequested-' + 
+            this.options.tabId + '-' + this.options.id, [channel]);
       }, this));
       this.trigger('removeGraph');
     },

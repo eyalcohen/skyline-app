@@ -38,14 +38,19 @@ requirejs(['libs/json2',
               menu: $('nav ul'),
             };
 
-            requirejs(['models', 'collections', 'views', 'sample-cache',
+            requirejs(['models', 'collections', 'views', 'util',
+                'sample-cache', 'state-monitor',
                 'router', 'backbone-sync', 'backbone-super'],
-                function (models, collections, views, SampleCache, Router) {
+                function (models, collections, views, util,
+                          SampleCache, StateMonitor, Router) {
               App.models = models;
               App.collections = collections;
               App.views = views;
+              App.util = util;
               App.sampleCache = new SampleCache();
+              App.stateMonitor = new StateMonitor();
               App.router = new Router();
+
               Backbone.history.start({
                 pushState: true,
                 silent: true,
