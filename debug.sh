@@ -8,4 +8,4 @@ if [ -x /usr/bin/open ]; then
 fi
 
 # Start app.js.
-node --debug app.js
+node --debug app.js "$@"

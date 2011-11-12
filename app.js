@@ -1,3 +1,19 @@
+#!/usr/bin/env node
+
+/**
+ * Arguments.
+ */
+var optimist = require('optimist');
+var argv = optimist
+    .describe('help', 'Get help')
+    .describe('port', 'Port to listen on')
+      .default('port', 8080)
+    .argv;
+
+if (argv._.length || argv.help) {
+  optimist.showHelp();
+  process.exit(1);
+}
 
 /**
  * Module dependencies.
@@ -234,7 +250,6 @@ app.configure(function () {
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
-  debug('requiring browserify.');
   var start = Date.now();
   app.use(require('browserify')({
     require : ['dnode', 'underscore', 'step', './minpubsub', './shared_utils']
@@ -314,139 +329,6 @@ app.param('vintid', function (req, res, next, id) {
 
 app.get('/', function (req, res) {
   res.render('index');
-});
-
-// app.get('/', loadUser, function (req, res) {
-//   var filterUser;
-//   if (req.currentUser.role === 'admin') {
-//     filterUser = null;
-//   } else if (req.currentUser.role === 'office') {
-//     filterUser = ['4ddc6340f978287c5e000003', '4ddc84a0c2e5c2205f000001', '4ddee7a08fa7e041710001cb'];
-//   } else {
-//     filterUser = req.currentUser;
-//   }
-//   findVehiclesByUser(filterUser, function (vehicles) {
-//     Step(
-//       // Add lastSeen to all vehicles in parallel.
-//       function() {
-//         var parallel = this.parallel;
-//         vehicles.forEach(function (v) {
-//           var next = parallel();
-//           sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
-//             if (cycles && cycles.length > 0)
-//               v.lastSeen = _.max(_.pluck(cycles, 'end'));
-//             next();
-//           });
-//         });
-//         parallel()(); // In case there are no vehicles.
-//       }, function(err) {
-//         if (err) { this(err); return; }
-//
-//         // Only keep vehicles which have drive cycles.
-//         vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
-//
-//         // Sort by lastSeen.
-//         vehicles.sort(function (a, b) {
-//           return b.lastSeen - a.lastSeen;
-//         });
-//
-//         if (vehicles.length > 0) {
-//           // TODO: include a session cookie to prevent known-id attacks.
-//           res.render('index', {
-//               data: vehicles
-//             , user: req.currentUser
-//           });
-//         } else {
-//           res.render('empty', {
-//             user: req.currentUser
-//           });
-//         }
-//       }
-//     );
-//   });
-// });
-
-
-// Landing page
-
-app.get('/login', function (req, res) {
-  if (req.session.user_id) {
-    User.findById(req.session.user_id, function (err, usr) {
-      if (usr) {
-        req.currentUser = usr;
-        res.redirect('/');
-      } else {
-        res.render('login');
-      }
-    });
-  } else if (req.cookies.logintoken) {
-    authenticateFromLoginToken(req, res, function () {
-      res.redirect('/');
-    });
-  } else {
-    res.render('login');
-  }
-});
-
-
-// Login - add user to session
-
-app.post('/sessions', function (req, res) {
-  // check fields
-  var missing = [];
-  if (!req.body.user.email) {
-    missing.push('email');
-  }
-  if (!req.body.user.password) {
-    missing.push('password');
-  }
-  if (missing.length !== 0) {
-    res.send({ status: 'fail', data: { code: 'MISSING_FIELD', message: 'Both your email and password are required for login.', missing: missing } });
-    return;
-  }
-  User.findOne({ email: req.body.user.email }, function (err, usr) {
-    if (usr && usr.authenticate(req.body.user.password)) {
-      usr.meta.logins++
-      usr.save(function (err) {
-        if (!err) {
-          req.session.user_id = usr.id;
-          if (req.body.remember_me) {
-            var loginToken = new LoginToken({ email: usr.email });
-            loginToken.save(function () {
-              res.cookie('logintoken', loginToken.cookieValue, { expires: new Date(Date.now() + 2 * 604800000), path: '/' });
-              res.send({ status: 'success' });
-            });
-          } else {
-            res.send({ status: 'success' });
-          }
-        } else {
-          res.send({ status: 'error', message: 'We\'re experiencing an unknown problem but are looking into it now. Please try again later.' });
-          util.log("Error finding user '" + req.body.user.email + "': " + err);
-          Notify.problem(err);
-        }
-      });
-    } else {
-      res.send({
-          status: 'fail'
-        , data: {
-              code: 'BAD_AUTH'
-            , message: 'That didn\'t work. Your email or password is incorrect.'
-          }
-      });
-    }
-  });
-});
-
-
-// Delete a session on logout
-
-app.del('/sessions', loadUser, function (req, res) {
-  if (req.session) {
-    LoginToken.remove({ email: req.currentUser.email }, function () {});
-    res.clearCookie('logintoken');
-    req.session.destroy(function () {});
-  }
-  res.redirect('/login');
 });
 
 
@@ -1328,7 +1210,7 @@ var createDnodeConnection = function (remote, conn) {
   };
 };
 
-////////////// Initialize and Listen on 8080 (maps to 80 on EC2)
+////////////// Initialize and Listen
 
 var sampleDb;
 
@@ -1351,18 +1233,18 @@ if (!module.parent) {
     // Listen:
     function(err) {
       if (err) { this(err); return; }
-      app.listen(8080);
+      app.listen(argv.port);
 
-      // setInterval(function () {
-      //   var n = Math.floor(Math.random() * 100);
-      //   pubsub.publish('data', [n]);
-      // }, 100);
-
-      // dnode(function (client, conn) {
-      //   this.subscribe = pubsub.subscribe;
-      // }).listen(8080).listen(app);
-
-      dnode(createDnodeConnection).use(dnodeLogMiddleware).listen(8081).listen(app);
+      dnode(createDnodeConnection).use(dnodeLogMiddleware).
+          listen(app, {
+              io: { 'log level': 2,
+                    transports: [
+                      'websocket',
+                      //'htmlfile',  // doesn't work
+                      'xhr-polling',
+                      //'jsonp-polling',  // doesn't work
+                    ] }
+          } );
       util.log("Express server listening on port " + app.address().port);
     }
   );
