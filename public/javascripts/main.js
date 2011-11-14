@@ -112,6 +112,11 @@ requirejs(['libs/json2',
       }, 'dash.jade');
       App.editorView = new App.views.EditorView().render();
       App.loading.stop();
+      setTimeout(function () {
+        var search = window.location.search;
+        if (search !== '')
+          App.stateMonitor.setState(search);
+      }, 1000);
       // // TODO: check if user is ADMIN first!
       // App.userCollection =
       //     new App.collections.UserCollection().fetch();

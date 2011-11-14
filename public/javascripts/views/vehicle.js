@@ -6,7 +6,15 @@ define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
+      _.bindAll(this, 'addGraph', 'removeGraph', 'checkChannelExistence');
       return this;
+    },
+
+    destroy: function (clicked) {
+      this._super('destroy', clicked);
+      App.unsubscribe('GraphRequested-' + this.tabId, this.addGraph);
+      App.unsubscribe('GraphUnrequested-' + this.tabId, this.removeGraph);
+      App.publish('VehicleUnrequested-' + this.tabId);
     },
 
     render: function (opts, template) {
@@ -24,18 +32,7 @@ define(['views/folderItem'], function (FolderItemView) {
         height: 40,
         bottomPad: 0,
       }).fetch();
-      this.graphModels = [new App.models.GraphModel({
-        tabId: this.tabId,
-        vehicleId: this.vehicleId,
-        timeRange: this.timeRange,
-        title: 'Graphs',
-        parent: '.' + this.targetClass + ' div .dashboard-right .top',
-        target: this.targetClass,
-        height: 70,
-        bottomPad: 63,
-        id: 'MASTER',
-      })];
-      this.hookGraphControls(this.graphModels[0], 0);
+      this.graphModels = [];
       this.mapModel = new App.models.MapModel({
         tabId: this.tabId,
         vehicleId: this.vehicleId,
@@ -69,58 +66,57 @@ define(['views/folderItem'], function (FolderItemView) {
         bottomPad: 0,
         singleVehicle: true,
       }).fetch();
+      App.subscribe('GraphRequested-' + this.tabId, this.addGraph);
+      App.subscribe('GraphUnrequested-' + this.tabId, this.removeGraph);
+      if (!App.stateMonitor.isRestoring)
+        this.addGraph('MASTER');
       App.publish('VisibleTimeChange-' + this.tabId,
                   [this.timeRange.beg, this.timeRange.end]);
       return this;
     },
 
-    hookGraphControls: function (graph, index) {
+    bindGraph: function (graph) {
       _.extend(graph, Backbone.Events);
-      graph.view.bind('channelRemoved',
-          _.bind(this.checkChannelExistence, this));
-      graph.view.bind('addGraph', _.bind(this.addGraph, this, index));
-      graph.view.bind('removeGraph', _.bind(this.removeGraph, this, index));
-      return this;
+      graph.view.bind('channelRemoved', this.checkChannelExistence);
+      
     },
 
-    unhookGraphControls: function (g) {
-      g.view.unbind('channelRemoved');
-      g.view.unbind('addGraph');
-      g.view.unbind('removeGraph');
-      return this;
+    unbindGraph: function (graph) {
+      graph.view.unbind('channelRemoved', this.checkChannelExistence);
     },
 
-    addGraph: function (index) {
-      var viewRange = this.graphModels[0].view.getVisibleTime();
-      var graphId = App.util.makeId();
+    addGraph: function (id) {
+      var timeRange = this.graphModels.length === 0 ? 
+          this.timeRange :
+          this.graphModels[0].view.getVisibleTime();
+      var isMaster = id == 'MASTER';
       var graph = new App.models.GraphModel({
         tabId: this.tabId,
         vehicleId: this.vehicleId,
-        timeRange: viewRange,
+        timeRange: timeRange,
+        title: isMaster ? 'Graphs' : null,
         parent: '.' + this.targetClass + ' div .dashboard-right .top',
         target: this.targetClass,
         height: 70,
-        bottomPad: 0,
-        id: graphId,
+        bottomPad: isMaster ? 63 : 0,
+        id: id,
       });
+      this.bindGraph(graph);
       this.graphModels.push(graph);
-      this.hookGraphControls(graph, this.graphModels.length - 1);
       this.arrangeGraphs();
-      App.publish('GraphRequested-' + this.tabId, [graphId]);
       App.publish('WindowResize');
     },
 
-    removeGraph: function (index) {
-      var self = this;
-      var graphId = self.graphModels[index].get('id');
-      self.graphModels[index].destroy();
-      self.graphModels.splice(index, 1);
-      _.each(self.graphModels, function (g, i) {
-        self.unhookGraphControls(g);
-        self.hookGraphControls(g, i);
+    removeGraph: function (id) {
+      var graph = _.find(this.graphModels, function (g) {
+        return g.get('id') == id;
       });
-      self.arrangeGraphs();
-      App.publish('GraphUnrequested-' + this.tabId, [graphId]);
+      graph.destroy();      
+      this.graphModels = _.reject(this.graphModels, function (g) {
+        return g.get('id') == id;
+      });
+      this.unbindGraph(graph);
+      this.arrangeGraphs();
       App.publish('WindowResize');
     },
 
@@ -146,19 +142,6 @@ define(['views/folderItem'], function (FolderItemView) {
       }
     },
 
-    destroy: function (clicked) {
-      this._super('destroy', clicked);
-      App.publish('VehicleUnrequested-' + this.tabId);
-    },
-
   });
 });
-
-
-
-
-
-
-
-
 

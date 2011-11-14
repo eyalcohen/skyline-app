@@ -157,7 +157,7 @@ define(['views/dashItem',
             requestedChannels.push(channel);
           });
           App.publish('ChannelRequested-' + 
-              self.model.get('tabId') +'-' +graphId, [requestedChannels]);
+              self.model.get('tabId') + '-' + graphId, [requestedChannels]);
         } else if (node.hasClass('jstree-unchecked')) {
           var graphs = $('.' + self.model.get('target') + ' .graph');
           children.each(function (i) {
@@ -196,7 +196,7 @@ define(['views/dashItem',
           var channel = _.clone(child.data());
           channel.yaxisNum = yaxisNum;
           App.publish('ChannelRequested-' + 
-              self.model.get('tabId') +'-' + graphId, [channel]);
+              self.model.get('tabId') + '-' + graphId, [channel]);
           if (child.hasClass('jstree-unchecked')) {
             child.removeClass('jstree-unchecked')
                 .addClass('jstree-checked');
