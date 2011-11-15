@@ -226,7 +226,11 @@ models.defineModels(mongoose, function () {
   app.User = User = mongoose.model('User');
   app.Vehicle = Vehicle = mongoose.model('Vehicle');
   app.AppState = AppState = mongoose.model('AppState');
-  db = mongoose.connectSet(app.set('db-uri-mongoose'));
+  var uri = app.set('db-uri-mongoose');
+  if (uri.indexOf(',') < 0)
+    db = mongoose.connect(app.set('db-uri-mongoose'));
+  else
+    db = mongoose.connectSet(app.set('db-uri-mongoose'));
 });
 
 
