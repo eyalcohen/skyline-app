@@ -84,7 +84,10 @@ define(function () {
 
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
-    this.state[tabId].g[graphId][channel.channelName] = channel;
+    if (!_.isArray(channel)) channel = [channel];
+    for (var i = 0, len = channel.length; i < len; i++) {
+      this.state[tabId].g[graphId][channel[i].channelName] = channel[i];
+    }
   }
 
   StateMonitor.prototype.removeChannel = function (tabId, graphId, channel) {
