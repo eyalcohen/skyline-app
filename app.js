@@ -860,7 +860,6 @@ app.post('/debug/:logFile', function (req, res) {
       message += '\n';
     stream.end(message, 'utf8');
   });
-  req.resume();
 });
 
 
