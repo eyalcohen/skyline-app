@@ -49,6 +49,13 @@ try {
   console.warn('Could not load proto buf ' + EventDescFileName +
                ', upload APIs won\'t work!');
 }
+var getrusage;
+try {
+  getrusage = require('getrusage');
+} catch (e) {
+  console.warn('Could not load getrusage module, try:');
+  console.warn('  make -C node_modules/getrusage');
+}
 var Notify = require('./notify');
 var SampleDb = require('./sample_db.js').SampleDb;
 var compatibility = require('./compatibility.js');
@@ -197,7 +204,13 @@ app.configure(function () {
       if (err) util.log('Error creating MongoStore: ' + err);
     })
   }));
-  app.use(express.logger({ format: '\x1b[1m:method\x1b[0m \x1b[33m:url\x1b[0m :response-time ms' }))
+  app.use(express.logger({ format: function(tok, req, res) {
+    var url = tok.url(req, res) || '-';
+    if (/^\/status/(url)) return;
+    return '\x1b[1m' + (tok.method(req, res) || '-') + '\x1b[0m ' +
+        '\x1b[33m' + (tok.url(req, res) || '-') + '\x1b[0m ' +
+        tok['response-time'](req, res) + ' ms';
+  } }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
@@ -793,6 +806,30 @@ app.put('/cycle', function (req, res) {
       });
     });
   });
+});
+
+
+// Maintain an approximate load average for this process.
+var loadAvg = 1.0;
+if (getrusage) {
+  var lastSampleTime, lastCpuTime;
+  setInterval(function() {
+    var now = Date.now();
+    var cpuTime = getrusage.getcputime();
+    if (lastSampleTime) {
+      var delta = (now - lastSampleTime) * 1e-3;
+      var load = (cpuTime - lastCpuTime) / delta;
+      var rc = 0.2 * delta;
+      loadAvg = (1 - rc) * loadAvg + rc * load;
+    }
+    lastSampleTime = now;
+    lastCpuTime = cpuTime;
+  }, 500);
+}
+
+
+app.get('/status/load', function (req, res) {
+  res.end(loadAvg + '\n');
 });
 
 
