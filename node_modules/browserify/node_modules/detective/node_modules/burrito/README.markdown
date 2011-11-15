@@ -157,12 +157,26 @@ Labels are returned for "call", "var", "defun", and "function" nodes.
 Returns an array for "var" nodes since `var` statements can
 contain multiple labels in assignment.
 
-installation
-============
+install
+=======
 
 With [npm](http://npmjs.org) you can just:
 
     npm install burrito
+
+in the browser
+==============
+
+Burrito works in browser with
+[browserify](https://github.com/substack/node-browserify).
+
+It has been tested against:
+
+* Internet Explorer 5.5, 6.0, 7.0, 8.0, 9.0
+* Firefox 3.5
+* Chrome 6.0
+* Opera 10.6
+* Safari 5.0
 
 kudos
 =====

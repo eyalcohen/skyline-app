@@ -14,7 +14,7 @@ define(function () {
       switch (args.type) {
         case '_drive':
           _.extend(this.attributes, {
-            icon: 'graphics/marker.png',
+            icon: '/graphics/marker.png',
             color: '#9dfbf3',
             desc: 'Cycle',
             note: args.val.drive_km + ' km' + ', '
@@ -23,7 +23,7 @@ define(function () {
           break;
         case '_charge':
           _.extend(this.attributes, {
-            icon: 'graphics/charge.png',
+            icon: '/graphics/charge.png',
             color: '#9dfba0',
             desc: 'Charge',
             note: args.val.charge_kWh + ' kWh' + ', ' +
@@ -32,7 +32,7 @@ define(function () {
           break;
         case '_error':
           _.extend(this.attributes, {
-            icon: 'graphics/error.png',
+            icon: '/graphics/error.png',
             color: '#fbaa9d',
             desc: 'Error',
             note: args.val.humanName,
@@ -40,7 +40,7 @@ define(function () {
           break;
         case '_warning':
           _.extend(this.attributes, {
-            icon: 'graphics/warning.png',
+            icon: '/graphics/warning.png',
             color: '#f5fb9a',
             desc: 'Warning',
             note: args.val.humanName,

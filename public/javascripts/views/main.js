@@ -2,10 +2,9 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['jquery',
-   'jquery-extensions'],
-   function ($) {
+define(['jquery', 'jquery-extensions'], function ($) {
   return Backbone.View.extend({
+
     initialize: function (args) {
       _.bindAll(this, 'resize', 'destroy', 'load');
       App.subscribe('NotAuthenticated', this.destroy);

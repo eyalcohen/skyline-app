@@ -1,5 +1,5 @@
 var assert = require('assert');
-var burrito = require('burrito');
+var burrito = require('../');
 var vm = require('vm');
 
 exports.preserveTernaryParentheses = function () {

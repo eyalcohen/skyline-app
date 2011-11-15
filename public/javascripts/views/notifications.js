@@ -33,6 +33,8 @@ define(['views/dashItem'], function (DashItemView) {
       this.timer = setInterval(this.setTime, 5000);
       this.setTime();
       this.setDuration();
+      if (!opts.loading)
+        App.publish('AppReady');
       return this;
     },
 

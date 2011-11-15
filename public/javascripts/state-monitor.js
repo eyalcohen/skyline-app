@@ -11,13 +11,12 @@ define(function () {
   }
 
   StateMonitor.prototype.getState = function () {
-    var url = 'http://' + window.location.host + '/?';
-    return url + encode(this.state);
+    return encode(this.state);
   }
 
   StateMonitor.prototype.setState = function (str) {
     this.isRestoring = true;
-    var state = decode(str.substr(str.indexOf('?') + 1));
+    var state = decode(str);
     _.each(state, function (tab, tabId) {
       var timeRange = { beg: tab.r.b, end: tab.r.e };
       App.publish('VehicleRequested',
@@ -25,6 +24,7 @@ define(function () {
       _.each(tab.g, function (channels, graphId) {
         App.publish('GraphRequested-' + tabId, [graphId]);
         _.each(channels, function (channel, channelName) {
+          console.log(channel);
           App.publish('ChannelRequested-' + 
               tabId + '-' + graphId, [channel]);
         });
@@ -85,10 +85,6 @@ define(function () {
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
     this.state[tabId].g[graphId][channel.channelName] = channel;
-    // {
-    //   c: 123456,
-    //   a: 'left',
-    // };
   }
 
   StateMonitor.prototype.removeChannel = function (tabId, graphId, channel) {
@@ -106,7 +102,7 @@ define(function () {
 
   /*!
    * Converts an object into a url encoded string.
-   * Input must not be or contain self-references.
+   * Input must not contain self-references.
    */
   function encode(obj) {
     var str = '';
@@ -137,6 +133,7 @@ define(function () {
       var v = decodeURIComponent(parms[1]);
       var o = obj, len = keys.length;
       _.each(keys, function (k, i) {
+        // Put dots back after decoding commas
         k = decodeURIComponent(k).replace(/,/g, '.');
         if (i === len - 1) {
           var n = Number(v);

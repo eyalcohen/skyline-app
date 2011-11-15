@@ -53,7 +53,7 @@ var Notify = require('./notify');
 var SampleDb = require('./sample_db.js').SampleDb;
 var compatibility = require('./compatibility.js');
 
-var db, User, Vehicle, LoginToken;
+var db, User, Vehicle, AppState;
 
 var pubsub = require('./minpubsub');
 var jadeify = require('jadeify');
@@ -91,65 +91,8 @@ function errWrap(next, f) {
 
 
 /**
- * Loads current session user.
- */
-
-function loadUser(req, res, next) {
-  if (req.session.user_id) {
-    User.findById(req.session.user_id, function (err, usr) {
-      if (usr) {
-        req.currentUser = usr;
-        next();
-      } else {
-        res.redirect('/login');
-      }
-    });
-  } else if (req.cookies.logintoken) {
-    authenticateFromLoginToken(req, res, next);
-  } else {
-    res.redirect('/login');
-  }
-}
-
-
-/**
- * Logs in with a cookie.
- */
-
-function authenticateFromLoginToken(req, res, next) {
-  var cookie = JSON.parse(req.cookies.logintoken);
-  LoginToken.findOne({
-      email: cookie.email
-    , series: cookie.series
-    , token: cookie.token }, (function (err, token) {
-    if (!token) {
-      res.redirect('/login');
-      return;
-    }
-    User.findOne({ email: token.email }, function (err, usr) {
-      if (usr) {
-        req.session.user_id = usr.id;
-        req.currentUser = usr;
-        token.token = token.randomToken();
-        token.save(function () {
-          res.cookie('logintoken', token.cookieValue, {
-              expires: new Date(Date.now() + 2 * 604800000),
-              path: '/'
-          });
-          next();
-        });
-      } else {
-        res.redirect('/login');
-      }
-    });
-  }));
-}
-
-
-/**
  * Gets all vehicles owned by user or all if user is null.
  */
-
 function findVehiclesByUser(user, next) {
   var filter;
   if (!user) {
@@ -172,7 +115,6 @@ function findVehiclesByUser(user, next) {
 /**
  * Finds a single vehicle by integer id
  */
-
 function findVehicleByIntId(id, next) {
   if ('string' === typeof id) {
     id = parseInt(id);
@@ -182,6 +124,15 @@ function findVehicleByIntId(id, next) {
   });
 }
 
+
+/**
+ * Find an app state object describing a GUI layout
+ */
+function fetchAppState(data, cb) {
+  AppState.findOne({ key: data }, function (err, state) {
+    cb(err, state);
+  });
+}
 
 /////////////// Configuration
 
@@ -261,7 +212,7 @@ app.configure(function () {
 models.defineModels(mongoose, function () {
   app.User = User = mongoose.model('User');
   app.Vehicle = Vehicle = mongoose.model('Vehicle');
-  app.LoginToken = LoginToken = mongoose.model('LoginToken');
+  app.AppState = AppState = mongoose.model('AppState');
   db = mongoose.connectSet(app.set('db-uri-mongoose'));
 });
 
@@ -328,7 +279,7 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', function (req, res) {
-  res.render('index');
+  res.render('index', { stateStr: '' });
 });
 
 
@@ -515,6 +466,20 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
 });
 
 
+// Pass state key to client
+
+app.get('/s', function (req, res) {
+  res.redirect('/');
+});
+
+app.get('/s/:key', function (req, res) {
+  fetchAppState(req.params.key, function (err, state) {
+    var stateStr = err || !state ? '' : state.val;
+    res.render('index', { stateStr: stateStr });
+  });
+});
+
+
 // Handle user create request
 
 app.post('/usercreate/:newemail', function (req, res) {
@@ -533,7 +498,13 @@ app.post('/usercreate/:newemail', function (req, res) {
         }
       });
     } else {
-      res.send({ status: 'fail', data: { code: 'DUPLICATE_EMAIL', message: 'This email address is already being used on our system.' } });
+      res.send({
+        status: 'fail',
+        data: {
+          code: 'DUPLICATE_EMAIL',
+          message: 'This email address is already being used on our system.',
+        },
+      });
     }
   });
 });
@@ -570,7 +541,8 @@ app.get('/userinfo/:email', function (req, res) {
 
 app.get('/summary/:email/:vintid', function (req, res) {
   if (req.vehicle.user_id.toHexString() === req.currentUser._id.toHexString()) {
-    jade.renderFile(path.join(__dirname, 'views', 'summary.jade'), { locals: { user: req.currentUser } }, function (err, body) {
+    jade.renderFile(path.join(__dirname, 'views', 'summary.jade'),
+        { locals: { user: req.currentUser } }, function (err, body) {
       if (!err) {
         res.send(body);
       }
@@ -1192,6 +1164,14 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
+  function saveAppState(data, cb) {
+    if (!checkAuth(cb)) return;
+    var state = new AppState({ val: data });
+    state.save(function (err) {
+      cb(err, state.key);
+    });
+  }
+
   conn.on('end', function () {
     _.keys(subscriptions).forEach(cancelSubscribeSamples);
   });
@@ -1207,6 +1187,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchChannelTree: fetchChannelTree,
     fetchVehicleConfig: fetchVehicleConfig,
     saveVehicleConfig: saveVehicleConfig,
+    saveAppState: saveAppState,
   };
 };
 

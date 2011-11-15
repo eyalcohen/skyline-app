@@ -93,10 +93,12 @@ define(function () {
         if (_.pluck(self.get('channels'), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
-        channel = _.clone(channel);
-        var usedColors = _.pluck(self.get('channels'), 'colorNum');
-        for (var c = 0; _.include(usedColors, c); ++c) { }
-        channel.colorNum = c;
+        // channel = _.clone(channel);
+        if (!channel.colorNum) {
+          var usedColors = _.pluck(self.get('channels'), 'colorNum');
+          for (var c = 0; _.include(usedColors, c); ++c) { }
+          channel.colorNum = c;
+        }
         self.get('channels').push(channel);
         console.log('addChannel(', channel, ')...');
       });

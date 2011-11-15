@@ -20,6 +20,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'],
       self.el = App.engine('editor.dialog.jade').appendTo('body').modal({
         overlayId: 'osx-overlay-editor',
         containerId: 'osx-container-editor',
+        closeClass: 'simplemodal-close-editor',
         closeHTML: null,
         minHeight: 80,
         minWidth: 700,

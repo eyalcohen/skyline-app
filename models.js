@@ -1,31 +1,16 @@
 /**
  * Module dependencies.
  */
-
-
-var crypto = require('crypto')
-  , User
-  , Vehicle
-  , LoginToken
-;
-
-
-/**
-  * Models wrapper used in config
-  */
-
+var crypto = require('crypto'), User, Vehicle, AppState;
 
 function defineModels(mongoose, fn) {
-  var Schema = mongoose.Schema
-    , ObjectId = Schema.ObjectId
-  ;
+  var Schema = mongoose.Schema, 
+      ObjectId = Schema.ObjectId;
 
 
   /**
     * Converts string to title case.
     */
-
-
   String.prototype.toTitleCase = function () {
     return this.replace(/\w\S*/g, function (txt) {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -36,30 +21,50 @@ function defineModels(mongoose, fn) {
   /**
     * Ensures a string exists and is not empty.
     */
-
-
   function validatePresenceOf(value) {
     return value && value.length;
   }
 
 
   /**
-    * Model: Member
+    * Creates a string identifier
     */
+  function makeId(length) {
+    var text = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
+        'abcdefghijklmnopqrstuvwxyz0123456789';
+    for (var i = 0; i < length; i++)
+      text += possible.charAt(Math.floor(
+            Math.random() * possible.length));
+    return text;
+  }
 
+  /**
+    * Model: User
+    */
   User = new Schema({
-      email             : { type: String, validate: [validatePresenceOf, 'an email is required'], index: { unique: true } }
-    , hashed_password   : String
-    , salt              : String
-    , name              : {
-          first         : String
-        , last          : String
-      }
-    , role              : { type: String, enum: ['admin', 'guest', 'office'], default: 'guest' }
-    , created           : { type: Date, default: Date.now }
-    , meta              : {
-          logins        : { type: Number, default: 0 }
-      }
+    email: {
+      type: String, 
+      validate: [validatePresenceOf, 'an email is required'], 
+      index: { unique: true } },
+    hashed_password: String,
+    salt: String,
+    name: {
+      first: String,
+      last: String,
+    },
+    role: {
+      type: String,
+      enum: ['admin', 'guest', 'office'],
+      default: 'guest',
+    },
+    created: {
+      type: Date,
+      default: Date.now,
+    },
+    meta: {
+      logins: { type: Number, default: 0 },
+    },
   });
 
   User.index({ 'name.last': 1, 'name.first': 1 });
@@ -82,10 +87,9 @@ function defineModels(mongoose, fn) {
       return this.name.first + ' ' + this.name.last;
     })
     .set(function (setFullNameTo) {
-      var split = setFullNameTo.split(' ')
-        , firstName = split[0]
-        , lastName = split[split.length - 1]
-      ;
+      var split = setFullNameTo.split(' '),
+          firstName = split[0],
+          lastName = split[split.length - 1];
       this.set('name.first', firstName);
       this.set('name.last', lastName);
     });
@@ -118,60 +122,42 @@ function defineModels(mongoose, fn) {
   /**
     * Model: Vehicle
     */
-
-
   Vehicle = new Schema({
-      _id     : Number
-    , make    : String
-    , model   : String
-    , name    : String
-    , year    : { type: String, index: true }
-    , user_id : ObjectId
-    , created : { type: Date, default: Date.now }
+    _id: Number,
+    make: String,
+    model: String,
+    name: String,
+    year: { type: String, index: true },
+    user_id: ObjectId,
+    created: {
+      type: Date,
+      default: Date.now,
+    },
   });
 
 
   /**
-    * Model: LoginToken
-    *
-    * Used for session persistence.
+    * Model: AppState
     */
-
-
-  LoginToken = new Schema({
-      email   : { type: String, index: true }
-    , series  : { type: String, index: true }
-    , token   : { type: String, index: true }
+  AppState = new Schema({
+    _id: Number,
+    key: { type: String, index: true },
+    val: String,
   });
 
-  LoginToken.method('randomToken', function () {
-    return Math.round((new Date().valueOf() * Math.random())) + '';
-  });
-
-  LoginToken.pre('save', function (next) {
-    // Automatically create the tokens
-    this.token = this.randomToken();
+  AppState.pre('save', function (next) {
     if (this.isNew) {
-      this.series = this.randomToken();
+      this.key = makeId(8);
+      next();
+    } else {
+      next();
     }
-    next();
   });
-
-  LoginToken.virtual('id')
-    .get(function () {
-      return this._id.toHexString();
-    });
-
-  LoginToken.virtual('cookieValue')
-    .get(function () {
-      return JSON.stringify({ email: this.email, token: this.token, series: this.series });
-    });
-
 
 
   mongoose.model('User', User);
   mongoose.model('Vehicle', Vehicle);
-  mongoose.model('LoginToken', LoginToken);
+  mongoose.model('AppState', AppState);
 
   fn();
 }

@@ -32,6 +32,8 @@ define(['views/dashItem'],
       }
       this.timer = setInterval(this.setTime, 5000);
       this.setTime();
+      if (!opts.loading)
+        App.publish('AppReady');
       return this;
     },
 
