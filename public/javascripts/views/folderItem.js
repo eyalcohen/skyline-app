@@ -34,18 +34,17 @@ define(['jquery',
         tabClosable: true,
         dynamic: true,
       });
-      this.el = App.engine(template, opts)
-          .appendTo('.folder');
-      this.tab = App.engine('tab.jade', opts)
-          .appendTo(opts.tabParent);
-
+      this.el = App.engine(template, opts).appendTo('.folder').hide();
+      this.tab = App.engine('tab.jade', opts).appendTo(opts.tabParent);
       var winWidth = $(window).width() - 10;
       var dl = $('.dashboard-left', this.el);
       var dr = $('.dashboard-right', this.el);
       dl.width(winWidth * Number(dl.attr('data-width')));
       dr.width(winWidth * Number(dr.attr('data-width')));
-
-      this.tab.click(_.bind(this.show, this));
+      this.tab.click(function (e) {
+        var tabTarget = $(e.target).closest('[data-tab-target]').data('tabTarget');
+        App.publish('ShowFolderItem-' + tabTarget);
+      });
       var self = this;
       $('.tab-closer', this.tab).click(function (e) {
         self.destroy(true);
@@ -57,6 +56,7 @@ define(['jquery',
     },
 
     show: function (e) {
+      var self = this;
       if (e && $(e.target).hasClass('tab-closer')) return;
       $('.tab-active').each(function (i) {
         var $this = $(this);
@@ -64,6 +64,8 @@ define(['jquery',
         $this.css({ zIndex: parseInt($this.css('z-index')) - 10001 });
         flipTabSides($this);
         $('.tab-content', $this).addClass('tab-content-inactive');
+        self.el.hide();
+        App.publish('HideFolderItem-' + $this.data('tabTarget'));
       });
       this.tab.addClass('tab-active');
       this.tab.css({ zIndex: 10001 + parseInt(this.tab.css('z-index')) });
@@ -72,6 +74,7 @@ define(['jquery',
       var target = $('.' + this.tab.attr('data-tab-target'));
       $('.tab-target').hide();
       target.show();
+      this.el.show();
       App.publish('WindowResize');
       function flipTabSides(ctx) {
         var sides = $('.tab-side img', ctx);

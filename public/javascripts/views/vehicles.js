@@ -32,6 +32,8 @@ define(['views/dashItem'],
       }
       this.timer = setInterval(this.setTime, 5000);
       this.setTime();
+      if (!opts.loading)
+        App.publish('AppReady');
       return this;
     },
 
@@ -47,8 +49,10 @@ define(['views/dashItem'],
 
     open: function (e) {
       var attrs = this.getRowAttributesFromChild(e.target);
+      var tabId = App.util.makeId();
+      var timeRange = { beg: attrs.lastCycle.beg, end: attrs.lastCycle.end };
       App.publish('VehicleRequested',
-          [attrs.id, attrs.title, attrs.lastCycle]);
+          [attrs.id, tabId, attrs.title, timeRange]);
       return this;
     },
 

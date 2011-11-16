@@ -308,3 +308,17 @@ Mergable channels.
 What does inserting overlapping samples mean?
 
 How does the client upload higher-resolution data when available?
+
+### Optimized Schema ###
+
+* Passing `{ autoIndexId: false }` to `createCollection` allows creating a collection without an index on `_id`, which could save a lot of space, and no longer require unique IDs.
+* Alternately, `_id` could contain `[ vehicleId, channelName, bucket ]`.
+* Idea to require a single lookup per request:
+  * All real samples should get synthetic samples, even real-samples with non-numeric samples.  For such samples, the synthetic sample values would simply indicate that real samples exist overlapping the corresponding time range.
+  * Client sample cache would know to only request higher-resolution samples in buckets that overlap a lower-resolution synthetic sample.
+  * Server would track which buckets the client has visible and cached, and send updates for visible buckets which the client doesn't have cached or which have changed, and cache invalidation requests for buckets which the client has cached and have changed.
+  * For locality, store multiple buckets in a single document, and store real and synthetic samples in same document.  Can retreive a portion of an array from a request: `foo: { $slice: [10, 5] }`.
+  * Keep a capped log of buckets which have had data updates.  This can be used for client cache invalidation, with a tailable cursor.
+* Could store begin and end arrays relative to bucket start time.
+* Could make a begin time of null mean "same as previous end time".
+* Could intern channel names, store them as 32-bit numbers.

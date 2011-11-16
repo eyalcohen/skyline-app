@@ -21,6 +21,7 @@ define(['views/dashItem', 'plot_booter',
       // This is a horribly crufty way to avoid drawing the legends every time
       // the plot is redrawn but also ensure that it gets redawn when channels
       // are dropped in.
+      this.ensureLegendRedraw = true;
       App.subscribe('ChannelDropped-' + id, this.ensureLegend);
     },
 
@@ -39,8 +40,8 @@ define(['views/dashItem', 'plot_booter',
     events: {
       'click .toggler': 'toggle',
       'click .export': 'exportCsv',
-      'click .add-graph': 'addGraphFromParent',
-      'click .graph-closer': 'removeGraphFromParent',
+      'click .add-graph': 'addGraph',
+      'click .graph-closer': 'removeGraph',
     },
 
     render: function (opts, fn) {
@@ -52,9 +53,7 @@ define(['views/dashItem', 'plot_booter',
         empty: false,
         shrinkable: false,
       });
-      if (this.el.length) {
-        this.remove();
-      }
+      if (this.el.length) this.remove();
       this.plot = null;
       this.el = App.engine('graph.dash.jade', opts)
           .appendTo(this.options.parent);
@@ -67,19 +66,22 @@ define(['views/dashItem', 'plot_booter',
       this.draw();
     },
 
-    resize: function () {
+    resize: function (skipDraw) {
       this._super('resize');
-      if (this.plot && 
-          this.plot.getPlaceholder().is(':visible')) {
+      if (this.plot) {
         var width = this.content.width();
-        var height = this.content.height()
+        var height = this.content.height();
+        if (width === 0)
+          width = this.plot.getPlaceholder().closest('[data-width]').width();
         this.plot.getPlaceholder().css({
           width: width,
           height: height,
         });
-        this.plot.setCanvasDimensions(width, height)
-        this.plot.setupGrid();
-        this.plot.draw();
+        this.plot.setCanvasDimensions(width, height);
+        if (!skipDraw) {
+          this.plot.setupGrid();
+          this.plot.draw();
+        }
       }
     },
 
@@ -165,7 +167,6 @@ define(['views/dashItem', 'plot_booter',
         },
       });
       self.plot.lockCrosshair();  // Disable default crosshair movement.
-
       $('.graph', self.content).data({
         plot: self.plot,
         id: self.options.id,
@@ -250,6 +251,7 @@ define(['views/dashItem', 'plot_booter',
         emptyDiv.remove();
         $('canvas', self.plot.getPlaceholder()).show();
         $('.graph', self.content).show();
+        self.resize(true);
         self.plot.getOptions().crosshair.mode = 'x';
       }
       var opts = self.plot.getOptions();
@@ -355,10 +357,10 @@ define(['views/dashItem', 'plot_booter',
           axis.datamin -= 0.5; axis.datamax += 0.5;
         }
       });
-      if (this.prevNumChannels !== this.model.get('channels').length ||
-          this.ensureLegendRedraw) {
+      
+      if (this.prevNumChannels !== this.model.get('channels').length
+          || this.ensureLegendRedraw) {
         this.setupLegend();
-        this.ensureLegendRedraw = false;
         this.prevNumChannels = this.model.get('channels').length;
       }
     },
@@ -379,7 +381,10 @@ define(['views/dashItem', 'plot_booter',
 
     setupLegend: function () {
       console.log('drawLegend( ' + this.options.id + ' )...');
-      this.plot.setupLegend();
+      this.plot.setupLegend(_.bind(function (okay) {
+        if (okay)
+          this.ensureLegendRedraw = false;
+      }, this));
       $('.label-closer', this.content)
           .click(_.bind(this.removeChannel, this));
       $('.legend tr', this.content)
@@ -725,18 +730,20 @@ define(['views/dashItem', 'plot_booter',
       var label = $('.legendLabel > div', labelParent);
       var channel = JSON.parse(label.attr('data-channel'));
       this.highlighting = false;
-      this.trigger('ChannelUnrequested', channel);
+      App.publish('ChannelUnrequested-' + 
+          this.options.tabId + '-' + this.options.id, [channel]);
     },
 
-    addGraphFromParent: function (e) {
-      this.trigger('addGraph');
+    addGraph: function (e) {
+      App.publish('GraphRequested-' + this.options.tabId, [App.util.makeId()]);
     },
 
-    removeGraphFromParent: function (e) {
+    removeGraph: function (e) {
       _.each(this.model.get('channels'), _.bind(function (channel) {
-        this.trigger('ChannelUnrequested', channel);
+        App.publish('ChannelUnrequested-' + 
+            this.options.tabId + '-' + this.options.id, [channel]);
       }, this));
-      this.trigger('removeGraph');
+      App.publish('GraphUnrequested-' + this.options.tabId, [this.options.id]);
     },
 
   });

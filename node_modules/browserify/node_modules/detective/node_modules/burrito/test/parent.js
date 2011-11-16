@@ -1,5 +1,5 @@
 var assert = require('assert');
-var burrito = require('burrito');
+var burrito = require('../');
 
 exports.checkParent = function () {
     var src = 'Math.tan(0) + Math.sin(0)';

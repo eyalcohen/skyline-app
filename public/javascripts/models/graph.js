@@ -22,34 +22,28 @@ define(function () {
       self.clientId = tabId + '-graph-' + args.id;
       _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
           'addChannel', 'removeChannel', 'updateSampleSet');
-      App.subscribe('HideVehicle-' + tabId, self.destroy);
+      App.subscribe('VehicleUnrequested-' + tabId, self.destroy);
       App.subscribe('VisibleTimeChange-' + tabId, self.changeVisibleTime);
-      App.subscribe('ChannelRequested-' + tabId + '-' + args.id,
-          self.addChannel);
-      if (args.master)
-        App.subscribe('ChannelRequested-' + tabId, self.addChannel);
-      App.subscribe('ChannelUnrequested-' + tabId, self.removeChannel);
-      App.sampleCache.bind('update-' + self.clientId,
-          self.updateSampleSet);
-      self.view.bind('ChannelUnrequested', self.removeChannel);
+      App.subscribe('ChannelRequested-' + tabId + '-' + args.id, self.addChannel);
+      App.subscribe('ChannelUnrequested-' + tabId + '-' + args.id, self.removeChannel);
+      App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
       self.view.bind('VisibleTimeChange', function (beg, end) {
         self.updateCacheSubscription();
         App.publish('VisibleTimeChange-' + tabId, [beg, end]);
       });
       self.view.bind('VisibleWidthChange', self.updateCacheSubscription);
       self.view.render();
+      
       return self;
     },
 
     destroy: function () {
       var self = this, tabId = self.get('tabId');
-      App.unsubscribe('HideVehicle-' + tabId, self.destroy);
+      var id = self.get('id');
+      App.unsubscribe('VehicleUnrequested-' + tabId, self.destroy);
       App.unsubscribe('VisibleTimeChange-'+ tabId, self.changeVisibleTime);
-      App.unsubscribe('ChannelRequested-'+ tabId + '-' + self.get('id'),
-                      self.addChannel);
-      if (self.get('master'))
-        App.unsubscribe('ChannelRequested-' + tabId, self.addChannel);
-      App.unsubscribe('ChannelUnrequested-' + tabId, self.removeChannel);
+      App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, self.addChannel);
+      App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id, self.removeChannel);
       App.sampleCache.unbind('update-' + self.clientId, self.updateSampleSet);
       App.sampleCache.endClient(self.clientId);
       self.view.destroy();
@@ -71,7 +65,7 @@ define(function () {
         var extend = (range.end - range.beg) * factor;
         return { beg: range.beg - extend, end: range.end + extend };
       }
-      viewRange = expandRange(viewRange, 0.2);
+      viewRange = expandRange(viewRange, 0.1);
       // When necessary to fetch more data, fetch twice as much as necessary,
       // so we can scroll and zoom smoothly without excessive redrawing.
       if (this.prevDur != dur || this.prevRange == null ||
@@ -80,7 +74,7 @@ define(function () {
         // Either duration has changed, or the new view does not overlap the
         // data we've already fetched.
         this.prevDur = dur;
-        this.prevRange = expandRange(viewRange, 0.5);
+        this.prevRange = expandRange(viewRange, 0.25);
       }
       App.sampleCache.setClientView(
           this.clientId, this.get('vehicleId'),
@@ -99,10 +93,13 @@ define(function () {
         if (_.pluck(self.get('channels'), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
-        channel = _.clone(channel);
-        var usedColors = _.pluck(self.get('channels'), 'colorNum');
-        for (var c = 0; _.include(usedColors, c); ++c) { }
-        channel.colorNum = c;
+        // channel = _.clone(channel);
+        if (!channel.colorNum) {
+          var usedColors = _.pluck(self.get('channels'), 'colorNum');
+          for (var c = 0; _.include(usedColors, c); ++c) { }
+          channel.colorNum = c;
+        }
+        self.trigger('channelAdded', channel.channelName);
         self.get('channels').push(channel);
         console.log('addChannel(', channel, ')...');
       });

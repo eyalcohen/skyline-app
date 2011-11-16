@@ -8,12 +8,13 @@ window.Step = require('step');
 window.DNode = require('dnode');
 
 // include client deps and build app root
-requirejs(['libs/json2',
+requirejs(['libs/domReady',
+    'libs/json2',
     'libs/modernizr-1.7.min',
     'libs/backbone-min',
     'libs/store.min',
     'libs/spin.min'],
-    function () {
+    function (domReady) {
   window.App = {
     debug: true,
     start: function () {
@@ -38,22 +39,24 @@ requirejs(['libs/json2',
               menu: $('nav ul'),
             };
 
-            requirejs(['models', 'collections', 'views', 'sample-cache',
+            requirejs(['models', 'collections', 'views', 'util',
+                'sample-cache', 'state-monitor',
                 'router', 'backbone-sync', 'backbone-super'],
-                function (models, collections, views, SampleCache, Router) {
+                function (models, collections, views, util,
+                          SampleCache, StateMonitor, Router) {
+
               App.models = models;
               App.collections = collections;
               App.views = views;
+              App.util = util;
               App.sampleCache = new SampleCache();
+              App.stateMonitor = new StateMonitor();
               App.router = new Router();
               Backbone.history.start({
                 pushState: true,
                 silent: true,
               });
-              // SP: This will set the URL, but we must ensure
-              // the server can provide the same route if 
-              // asked directly.
-              //// App.router.navigate('somewhere');
+
               App.login = new views.LoginView();
               App.logout = new views.LogoutView();
               App.loginOpts = {
@@ -61,7 +64,9 @@ requirejs(['libs/json2',
                 report: 'Please log in.',
                 type: 'message',
               };
+              App.dashReady = _.after(2, _.once(App.dashReady));
               App.subscribe('UserWasAuthenticated', App.build);
+
               if (_.isEmpty(App.user)) {
                 App.publish('NotAuthenticated', [App.loginOpts]);
                 App.loading.stop();
@@ -96,6 +101,7 @@ requirejs(['libs/json2',
     },
 
     build: function () {
+      App.subscribe('AppReady', App.dashReady);
       App.mainView = new App.views.MainView().render();
       App.dashView = new App.views.DashView({
         targetClass: 'dashboard',
@@ -111,6 +117,15 @@ requirejs(['libs/json2',
       // App.userCollection =
       //     new App.collections.UserCollection().fetch();
       // App.publish('AppReady');
+    },
+
+    dashReady: function () {
+      // TODO: Make this work without the delay.
+      _.delay(function () {
+        var state = $('#main').data('state');
+        if (state)
+          App.stateMonitor.setState(state);
+      }, 500);
     },
 
     Loader: function () {
@@ -144,7 +159,7 @@ requirejs(['libs/json2',
     },
 
   };
-  requirejs.ready(function () {
+  domReady(function () {
     App.loading = new App.Loader().start();
     App.start();
   });

@@ -2,10 +2,9 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['jquery',
-   'jquery-extensions'],
-   function ($) {
+define(['jquery', 'jquery-extensions'], function ($) {
   return Backbone.View.extend({
+
     initialize: function (args) {
       _.bindAll(this, 'resize', 'destroy', 'load');
       App.subscribe('NotAuthenticated', this.destroy);
@@ -36,9 +35,9 @@ define(['jquery',
       return this;
     },
 
-    load: function (vehicleId, vehicleTitle, timeRange) {
-      var tabId = this.makeid();
+    load: function (vehicleId, tabId, vehicleTitle, timeRange, hide) {
       var targetClass = 'target-' + tabId;
+      var active = hide ? false : true;
       new App.views.VehicleView({
         targetClass: targetClass,
       }).render({
@@ -46,18 +45,8 @@ define(['jquery',
         title: vehicleTitle,
         vehicleId: vehicleId,
         timeRange: timeRange,
-        active: true,
+        active: active,
       }, 'vehicle.jade');
-    },
-
-    makeid: function () {
-      var text = '';
-      var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
-          'abcdefghijklmnopqrstuvwxyz0123456789';
-      for( var i=0; i < 5; i++ )
-        text += possible.charAt(Math.floor(
-              Math.random() * possible.length));
-      return text;
     },
 
   });

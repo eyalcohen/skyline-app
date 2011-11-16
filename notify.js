@@ -1,7 +1,6 @@
 var mailer = require('emailjs')
   , crypto = require('crypto')
   , path = require('path')
-  , sys = require('sys')
   , util = require('util')
   , jade = require('jade')
   , SMTP

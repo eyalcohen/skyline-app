@@ -1,3 +1,19 @@
+#!/usr/bin/env node
+
+/**
+ * Arguments.
+ */
+var optimist = require('optimist');
+var argv = optimist
+    .describe('help', 'Get help')
+    .describe('port', 'Port to listen on')
+      .default('port', 8080)
+    .argv;
+
+if (argv._.length || argv.help) {
+  optimist.showHelp();
+  process.exit(1);
+}
 
 /**
  * Module dependencies.
@@ -12,7 +28,6 @@ var MongoStore = require('connect-mongodb');
 var gzip = require('connect-gzip');
 var dnode = require('dnode');
 var fs = require('fs');
-var sys = require('sys');
 var path = require('path');
 var CSV = require('csv');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
@@ -34,11 +49,18 @@ try {
   console.warn('Could not load proto buf ' + EventDescFileName +
                ', upload APIs won\'t work!');
 }
+var getrusage;
+try {
+  getrusage = require('getrusage');
+} catch (e) {
+  console.warn('Could not load getrusage module, try:');
+  console.warn('  make -C node_modules/getrusage');
+}
 var Notify = require('./notify');
 var SampleDb = require('./sample_db.js').SampleDb;
 var compatibility = require('./compatibility.js');
 
-var db, User, Vehicle, LoginToken;
+var db, User, Vehicle, AppState;
 
 var pubsub = require('./minpubsub');
 var jadeify = require('jadeify');
@@ -76,65 +98,8 @@ function errWrap(next, f) {
 
 
 /**
- * Loads current session user.
- */
-
-function loadUser(req, res, next) {
-  if (req.session.user_id) {
-    User.findById(req.session.user_id, function (err, usr) {
-      if (usr) {
-        req.currentUser = usr;
-        next();
-      } else {
-        res.redirect('/login');
-      }
-    });
-  } else if (req.cookies.logintoken) {
-    authenticateFromLoginToken(req, res, next);
-  } else {
-    res.redirect('/login');
-  }
-}
-
-
-/**
- * Logs in with a cookie.
- */
-
-function authenticateFromLoginToken(req, res, next) {
-  var cookie = JSON.parse(req.cookies.logintoken);
-  LoginToken.findOne({
-      email: cookie.email
-    , series: cookie.series
-    , token: cookie.token }, (function (err, token) {
-    if (!token) {
-      res.redirect('/login');
-      return;
-    }
-    User.findOne({ email: token.email }, function (err, usr) {
-      if (usr) {
-        req.session.user_id = usr.id;
-        req.currentUser = usr;
-        token.token = token.randomToken();
-        token.save(function () {
-          res.cookie('logintoken', token.cookieValue, {
-              expires: new Date(Date.now() + 2 * 604800000),
-              path: '/'
-          });
-          next();
-        });
-      } else {
-        res.redirect('/login');
-      }
-    });
-  }));
-}
-
-
-/**
  * Gets all vehicles owned by user or all if user is null.
  */
-
 function findVehiclesByUser(user, next) {
   var filter;
   if (!user) {
@@ -157,7 +122,6 @@ function findVehiclesByUser(user, next) {
 /**
  * Finds a single vehicle by integer id
  */
-
 function findVehicleByIntId(id, next) {
   if ('string' === typeof id) {
     id = parseInt(id);
@@ -167,6 +131,15 @@ function findVehicleByIntId(id, next) {
   });
 }
 
+
+/**
+ * Find an app state object describing a GUI layout
+ */
+function fetchAppState(data, cb) {
+  AppState.findOne({ key: data }, function (err, state) {
+    cb(err, state);
+  });
+}
 
 /////////////// Configuration
 
@@ -231,21 +204,33 @@ app.configure(function () {
       if (err) util.log('Error creating MongoStore: ' + err);
     })
   }));
-  app.use(express.logger({ format: '\x1b[1m:method\x1b[0m \x1b[33m:url\x1b[0m :response-time ms' }))
+  app.use(express.logger({ format: function(tok, req, res) {
+    var url = tok.url(req, res) || '-';
+    if (/^\/status/(url)) return;
+    return '\x1b[1m' + (tok.method(req, res) || '-') + '\x1b[0m ' +
+        '\x1b[33m' + (tok.url(req, res) || '-') + '\x1b[0m ' +
+        tok['response-time'](req, res) + ' ms';
+  } }));
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+  var start = Date.now();
   app.use(require('browserify')({
     require : ['dnode', 'underscore', 'step', './minpubsub', './shared_utils']
   }).use(jadeify(__dirname + '/public/javascripts/templates')));
+  debug('browserify took: ' + (Date.now() - start) + 'ms.');
 });
 
 
 models.defineModels(mongoose, function () {
   app.User = User = mongoose.model('User');
   app.Vehicle = Vehicle = mongoose.model('Vehicle');
-  app.LoginToken = LoginToken = mongoose.model('LoginToken');
-  db = mongoose.connectSet(app.set('db-uri-mongoose'));
+  app.AppState = AppState = mongoose.model('AppState');
+  var uri = app.set('db-uri-mongoose');
+  if (uri.indexOf(',') < 0)
+    db = mongoose.connect(app.set('db-uri-mongoose'));
+  else
+    db = mongoose.connectSet(app.set('db-uri-mongoose'));
 });
 
 
@@ -311,140 +296,7 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', function (req, res) {
-  res.render('index');
-});
-
-// app.get('/', loadUser, function (req, res) {
-//   var filterUser;
-//   if (req.currentUser.role === 'admin') {
-//     filterUser = null;
-//   } else if (req.currentUser.role === 'office') {
-//     filterUser = ['4ddc6340f978287c5e000003', '4ddc84a0c2e5c2205f000001', '4ddee7a08fa7e041710001cb'];
-//   } else {
-//     filterUser = req.currentUser;
-//   }
-//   findVehiclesByUser(filterUser, function (vehicles) {
-//     Step(
-//       // Add lastSeen to all vehicles in parallel.
-//       function() {
-//         var parallel = this.parallel;
-//         vehicles.forEach(function (v) {
-//           var next = parallel();
-//           sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
-//             if (cycles && cycles.length > 0)
-//               v.lastSeen = _.max(_.pluck(cycles, 'end'));
-//             next();
-//           });
-//         });
-//         parallel()(); // In case there are no vehicles.
-//       }, function(err) {
-//         if (err) { this(err); return; }
-//
-//         // Only keep vehicles which have drive cycles.
-//         vehicles = vehicles.filter(function(v) { return v.lastSeen != null; });
-//
-//         // Sort by lastSeen.
-//         vehicles.sort(function (a, b) {
-//           return b.lastSeen - a.lastSeen;
-//         });
-//
-//         if (vehicles.length > 0) {
-//           // TODO: include a session cookie to prevent known-id attacks.
-//           res.render('index', {
-//               data: vehicles
-//             , user: req.currentUser
-//           });
-//         } else {
-//           res.render('empty', {
-//             user: req.currentUser
-//           });
-//         }
-//       }
-//     );
-//   });
-// });
-
-
-// Landing page
-
-app.get('/login', function (req, res) {
-  if (req.session.user_id) {
-    User.findById(req.session.user_id, function (err, usr) {
-      if (usr) {
-        req.currentUser = usr;
-        res.redirect('/');
-      } else {
-        res.render('login');
-      }
-    });
-  } else if (req.cookies.logintoken) {
-    authenticateFromLoginToken(req, res, function () {
-      res.redirect('/');
-    });
-  } else {
-    res.render('login');
-  }
-});
-
-
-// Login - add user to session
-
-app.post('/sessions', function (req, res) {
-  // check fields
-  var missing = [];
-  if (!req.body.user.email) {
-    missing.push('email');
-  }
-  if (!req.body.user.password) {
-    missing.push('password');
-  }
-  if (missing.length !== 0) {
-    res.send({ status: 'fail', data: { code: 'MISSING_FIELD', message: 'Both your email and password are required for login.', missing: missing } });
-    return;
-  }
-  User.findOne({ email: req.body.user.email }, function (err, usr) {
-    if (usr && usr.authenticate(req.body.user.password)) {
-      usr.meta.logins++
-      usr.save(function (err) {
-        if (!err) {
-          req.session.user_id = usr.id;
-          if (req.body.remember_me) {
-            var loginToken = new LoginToken({ email: usr.email });
-            loginToken.save(function () {
-              res.cookie('logintoken', loginToken.cookieValue, { expires: new Date(Date.now() + 2 * 604800000), path: '/' });
-              res.send({ status: 'success' });
-            });
-          } else {
-            res.send({ status: 'success' });
-          }
-        } else {
-          res.send({ status: 'error', message: 'We\'re experiencing an unknown problem but are looking into it now. Please try again later.' });
-          util.log("Error finding user '" + req.body.user.email + "': " + err);
-          Notify.problem(err);
-        }
-      });
-    } else {
-      res.send({
-          status: 'fail'
-        , data: {
-              code: 'BAD_AUTH'
-            , message: 'That didn\'t work. Your email or password is incorrect.'
-          }
-      });
-    }
-  });
-});
-
-
-// Delete a session on logout
-
-app.del('/sessions', loadUser, function (req, res) {
-  if (req.session) {
-    LoginToken.remove({ email: req.currentUser.email }, function () {});
-    res.clearCookie('logintoken');
-    req.session.destroy(function () {});
-  }
-  res.redirect('/login');
+  res.render('index', { stateStr: '' });
 });
 
 
@@ -631,6 +483,20 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
 });
 
 
+// Pass state key to client
+
+app.get('/s', function (req, res) {
+  res.redirect('/');
+});
+
+app.get('/s/:key', function (req, res) {
+  fetchAppState(req.params.key, function (err, state) {
+    var stateStr = err || !state ? '' : state.val;
+    res.render('index', { stateStr: stateStr });
+  });
+});
+
+
 // Handle user create request
 
 app.post('/usercreate/:newemail', function (req, res) {
@@ -649,7 +515,13 @@ app.post('/usercreate/:newemail', function (req, res) {
         }
       });
     } else {
-      res.send({ status: 'fail', data: { code: 'DUPLICATE_EMAIL', message: 'This email address is already being used on our system.' } });
+      res.send({
+        status: 'fail',
+        data: {
+          code: 'DUPLICATE_EMAIL',
+          message: 'This email address is already being used on our system.',
+        },
+      });
     }
   });
 });
@@ -686,7 +558,8 @@ app.get('/userinfo/:email', function (req, res) {
 
 app.get('/summary/:email/:vintid', function (req, res) {
   if (req.vehicle.user_id.toHexString() === req.currentUser._id.toHexString()) {
-    jade.renderFile(path.join(__dirname, 'views', 'summary.jade'), { locals: { user: req.currentUser } }, function (err, body) {
+    jade.renderFile(path.join(__dirname, 'views', 'summary.jade'),
+        { locals: { user: req.currentUser } }, function (err, body) {
       if (!err) {
         res.send(body);
       }
@@ -812,7 +685,8 @@ app.put('/samples', function (req, res) {
       });
 
       // HACK: Heuristically add durations to zero-duration samples.
-      addDurationHeuristicHack(vehicleId, sampleSet, this);
+      sampleDb.addDurationHeuristicHack(vehicleId, sampleSet, 10 * SampleDb.s,
+                                        this);
     },
 
     function(err) {
@@ -938,57 +812,55 @@ app.put('/cycle', function (req, res) {
   });
 });
 
-function addDurationHeuristicHack(vehicleId, sampleSet, cb) {
-  // This is a hack to add duration to samples which are of zero duration.
-  // The algorithm is: for each zero-duration sample, set the begin time to the
-  // end of the previous sample, unless that duration exceeds maxDuration.
-  // Note that if the first sample of each channel has no duration, we have to
-  // query the DB for the previous sample!
-  var maxDuration = 10 * SampleDb.s;
-  var prevSampleSet = {};
-  Step(
-    function() {
-      // For any channel we might need to synthesize an initial begin, get
-      // potentially overlapping data.
-      var parallel = this.parallel;
-      _.each(sampleSet, function(samples, channelName) {
-        var first = _.first(samples);
-        if (first && first.beg == first.end) {
-          var next = parallel();
-          options = { type: 'real',
-                      beginTime: first.beg - maxDuration, endTime: first.beg };
-          sampleDb.fetchSamples(vehicleId, channelName, options,
-                                function(err, samples) {
-            prevSampleSet[channelName] = samples;
-            if (err)
-              util.log('Error in addDurationHeuristicHack while fetching: ' +
-                       err.stack);
-            next();
-          });
-        }
-      });
-      parallel()();
-    },
-    function(err) {
-      if (err) return this(err);
-      _.each(sampleSet, function(samples, channelName) {
-        var prevEnd = -Number.MAX_VALUE;
-        if (prevSampleSet[channelName] && _.last(prevSampleSet[channelName]))
-          prevEnd = _.last(prevSampleSet[channelName]).end;
-        samples.forEach(function(s) {
-          if (s.end <= s.beg) {
-            // Synthesize a duration for this sample.
-            var dur = Math.max(Math.min(maxDuration, s.beg - prevEnd), 0);
-            s.beg -= dur;
-          }
-          prevEnd = s.end;
-        });
-      });
-      this(null);
-    },
-    cb
-  );
+
+// Maintain an approximate load average for this process.
+var loadAvg = 1.0;
+if (getrusage) {
+  var lastSampleTime, lastCpuTime;
+  setInterval(function() {
+    var now = Date.now();
+    var cpuTime = getrusage.getcputime();
+    if (lastSampleTime) {
+      var delta = (now - lastSampleTime) * 1e-3;
+      var load = (cpuTime - lastCpuTime) / delta;
+      var rc = 0.2 * delta;
+      loadAvg = (1 - rc) * loadAvg + rc * load;
+    }
+    lastSampleTime = now;
+    lastCpuTime = cpuTime;
+  }, 500);
 }
+
+
+app.get('/status/load', function (req, res) {
+  res.end(loadAvg + '\n');
+});
+
+
+// Dump a message to a log file for debugging clients.
+app.post('/debug/:logFile', function (req, res) {
+  if (requestMimeType(req) != 'text/plain') {
+    res.statusCode = 400;
+    res.end('Use content-type: text/plain');
+    return;
+  }
+  var path = 'debug/' + req.params.logFile.replace(/\//g, '_');
+  var stream = fs.createWriteStream(path, { flags: 'a', encoding: 'utf8' });
+  stream.on('error', function(err) {
+    util.log(req.url + ' - error writing: ' + err);
+    res.statusCode = 500;
+    res.end('Error writing: ' + err, 'utf8');
+  });
+  stream.on('close', function() { res.end() });
+  req.setEncoding('utf8');
+  var message = '';
+  req.on('data', function(m) { message += m });
+  req.on('end', function() {
+    if (!/\n$/.test(message))
+      message += '\n';
+    stream.end(message, 'utf8');
+  });
+});
 
 
 ////////////// DNode Methods
@@ -1359,6 +1231,14 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
+  function saveAppState(data, cb) {
+    if (!checkAuth(cb)) return;
+    var state = new AppState({ val: data });
+    state.save(function (err) {
+      cb(err, state.key);
+    });
+  }
+
   conn.on('end', function () {
     _.keys(subscriptions).forEach(cancelSubscribeSamples);
   });
@@ -1374,10 +1254,11 @@ var createDnodeConnection = function (remote, conn) {
     fetchChannelTree: fetchChannelTree,
     fetchVehicleConfig: fetchVehicleConfig,
     saveVehicleConfig: saveVehicleConfig,
+    saveAppState: saveAppState,
   };
 };
 
-////////////// Initialize and Listen on 8080 (maps to 80 on EC2)
+////////////// Initialize and Listen
 
 var sampleDb;
 
@@ -1400,18 +1281,18 @@ if (!module.parent) {
     // Listen:
     function(err) {
       if (err) { this(err); return; }
-      app.listen(8080);
+      app.listen(argv.port);
 
-      // setInterval(function () {
-      //   var n = Math.floor(Math.random() * 100);
-      //   pubsub.publish('data', [n]);
-      // }, 100);
-
-      // dnode(function (client, conn) {
-      //   this.subscribe = pubsub.subscribe;
-      // }).listen(8080).listen(app);
-
-      dnode(createDnodeConnection).use(dnodeLogMiddleware).listen(8081).listen(app);
+      dnode(createDnodeConnection).use(dnodeLogMiddleware).
+          listen(app, {
+              io: { 'log level': 2,
+                    transports: [
+                      'websocket',
+                      //'htmlfile',  // doesn't work
+                      'xhr-polling',
+                      //'jsonp-polling',  // doesn't work
+                    ] }
+          } );
       util.log("Express server listening on port " + app.address().port);
     }
   );

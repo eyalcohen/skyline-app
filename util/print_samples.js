@@ -1,8 +1,11 @@
 var util = require('util'), debug = util.debug, inspect = util.inspect;
-var log = console.log;
 var _ = require('underscore');
 
-exports.printSamples = function(sampleSet, cb) {
+exports.printSamples = function(sampleSet, log, cb) {
+  if (!cb) {
+    cb = log;
+    log = console.log;
+  }
   log('{');
   var work = [];
   if (sampleSet['_schema']) {
@@ -21,7 +24,7 @@ exports.printSamples = function(sampleSet, cb) {
         log('  \'' + channelName + '\': [');
         samples.forEach(function(s) {
           log('    { beg: ' + s.beg + ', end: ' + s.end +
-              ', val: ' + s.val + ' },');
+              ', val: ' + insp(s.val) + ' },');
         });
         log('  ],');
       }

@@ -16,4 +16,5 @@ uploads
 public/vconfig
 samples
 example-data
+debug
 .DS_Store

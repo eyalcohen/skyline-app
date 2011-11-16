@@ -6,6 +6,11 @@ define(['views/dashItem',
     'libs/jstree/jquery.jstree'],
     function (DashItemView) {
   return DashItemView.extend({
+    initialize: function (args) {
+      this._super('initialize', args);
+      this.ready = false;
+    },
+
     events: {
       'click .toggler': 'toggle',
       'keyup .dashboard-search': 'search',
@@ -34,23 +39,21 @@ define(['views/dashItem',
     draw: function () {
       var self = this;
       var data = JSON.parse(JSON.stringify(this.model.get('data')));
-      var initiallySelect;
+      var initiallySelect = 'none';
+      var numNodes = 0;
+      (function cnt(node, top) {
+        var children = top ? node : node.sub || [];
+        _.each(children, function (child) {
+          numNodes++;
+          cnt(child);
+        });
+      })(data, true);
       self.treeHolder = $('.tree', this.content).jstree({
         json_data: {
-          data: function (n, cb) {
-            fillInternal(data, true);
-            cb(data);
-            // TODO: make this not really ugly.
-            $('ul > li', self.el).each(function (i, node) {
-              var $node = $(node)
-              if ($node.attr('id') === initiallySelect) {
-                $($node.parent().siblings().get(0)).click();
-                $node.removeClass('jstree-unchecked')
-                .addClass('jstree-checked');
-                $node.parent().parent().addClass('jstree-undetermined');
-              }
-            });
-            function fillInternal(node, top) {
+          data: function (n, cb) {            
+            var numDone = 0;
+            var defaultChannel;
+            (function fillInternal(node, top) {
               var children = top ? node : node.sub || [];
               _.each(children, function (child) {
                 child.parent = top ? null : node;
@@ -68,14 +71,10 @@ define(['views/dashItem',
                 }
               });
               metadata.title = title;
-              if (metadata.channelName === 'mc/motorSpeed'
-                  || metadata.channelName === 'mc.motorSpeed_RPM') {
-                initiallySelect = metadata.channelName;
-                App.store.set('defaultChannel-' + self.model.get('tabId'),
-                              metadata);
-                App.publish('ChannelRequested-' + self.model.get('tabId'),
-                            [metadata]);
-              }
+              // if (metadata.channelName === 'mc/motorSpeed'
+              //     || metadata.channelName === 'mc.motorSpeed_RPM') {
+              //   defaultChannel = _.clone(metadata);
+              // }
               var id = metadata.channelName, attr = {};
               if (id) attr.id = id;
               attr.rel = children.length > 0 ? 'root' : '';
@@ -85,7 +84,16 @@ define(['views/dashItem',
                 attr: attr,
                 children: children,
               });
-            }
+              if (!defaultChannel)
+                defaultChannel = _.clone(metadata);
+              numDone++;
+              if (numNodes === numDone) {
+                cb(data);
+                self.ready = true;
+                if (defaultChannel)
+                  self.trigger('ready', defaultChannel);
+              }
+            })(data, true);
           },
         },
         core: { animation: 0 },
@@ -146,9 +154,8 @@ define(['views/dashItem',
       if (target.hasClass('jstree-icon')) return;
       var node = target.hasClass('jstree-checkbox') ?
           target.parent().parent() : target.parent();
-      // Just use the first graph. Is there a better option??
-      var graphId = $($('.graph',
-          $('.' + self.model.get('target'))).get(0)).data('id');
+      // Just use the first graph.
+      var graphId = 'MASTER';
       if (!node.attr('id')) {
         var children = $('ul > li', node);
         var requestedChannels = [];
@@ -157,23 +164,31 @@ define(['views/dashItem',
             var channel = _.clone($(children.get(i)).data());
             requestedChannels.push(channel);
           });
-          App.publish('ChannelRequested-' + self.model.get('tabId') +'-' +
-              graphId, [requestedChannels]);
+          App.publish('ChannelRequested-' + 
+              self.model.get('tabId') + '-' + graphId, [requestedChannels]);
         } else if (node.hasClass('jstree-unchecked')) {
+          var graphs = $('.' + self.model.get('target') + ' .graph');
           children.each(function (i) {
             var channel = _.clone($(children.get(i)).data());
-            App.publish('ChannelUnrequested-' + self.model.get('tabId'),
-                        [channel]);
+            graphs.each(function (i) {
+              var gid = $(graphs.get(i)).data('id');
+              App.publish('ChannelUnrequested-' +
+                  self.model.get('tabId') + '-' + gid, [channel]);
+            });
           });
         }
       } else {
         var channel = _.clone(node.data());
         if (node.hasClass('jstree-checked')) {
-          App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
-              graphId, [channel]);
+          App.publish('ChannelRequested-' + 
+              self.model.get('tabId') + '-' + graphId, [channel]);
         } else if (node.hasClass('jstree-unchecked')) {
-          App.publish('ChannelUnrequested-' + self.model.get('tabId'),
-                      [channel]);
+          var graphs = $('.' + self.model.get('target') + ' .graph');
+          graphs.each(function (i) {
+            var gid = $(graphs.get(i)).data('id');
+            App.publish('ChannelUnrequested-' +
+                self.model.get('tabId') + '-' + gid, [channel]);
+          });
         }
       }
     },
@@ -188,8 +203,8 @@ define(['views/dashItem',
           var child = $(children.get(i));
           var channel = _.clone(child.data());
           channel.yaxisNum = yaxisNum;
-          App.publish('ChannelRequested-' + self.model.get('tabId') +'-' +
-              graphId, [channel]);
+          App.publish('ChannelRequested-' + 
+              self.model.get('tabId') + '-' + graphId, [channel]);
           if (child.hasClass('jstree-unchecked')) {
             child.removeClass('jstree-unchecked')
                 .addClass('jstree-checked');
@@ -205,8 +220,8 @@ define(['views/dashItem',
       } else {
         var channel = _.clone(data.o.data());
         channel.yaxisNum = data.r.data('axis.n');
-        App.publish('ChannelRequested-' + self.model.get('tabId') + '-' +
-            graphId, [channel]);
+        App.publish('ChannelRequested-' + 
+            self.model.get('tabId') + '-' + graphId, [channel]);
         if (data.o.hasClass('jstree-unchecked')) {
           data.o.removeClass('jstree-unchecked')
               .addClass('jstree-checked');
@@ -220,16 +235,17 @@ define(['views/dashItem',
 
     nodeDroppedExternalHandler: function (data) {
       if (data.r.hasClass('axisTarget')) {
-        // var graphId = data.r.parent().parent().data('id');
         var graphId = data.r.data('id');
+        if (!graphId) return;
         var yaxisNum = data.r.data('axis.n');
         var channel = JSON.parse(data.o.parent().attr('data-channel'));
         App.publish('ChannelDropped-' + graphId);
         $('.label-closer', data.o.parent().parent().parent()).click();
-        this.showChannel(channel.channelName);
         channel.yaxisNum = yaxisNum;
-        App.publish('ChannelRequested-' + this.model.get('tabId') + '-' +
-            graphId, [channel]);
+        console.log('ChannelRequested-' + 
+            this.model.get('tabId') + '-' + graphId);
+        App.publish('ChannelRequested-' + 
+            this.model.get('tabId') + '-' + graphId, [channel]);
       }
       App.publish('DragEnd-' + this.model.get('tabId'));
     },
@@ -252,8 +268,13 @@ define(['views/dashItem',
       this.treeHolder.jstree('search', txt);
     },
 
-    showChannel: function (channelName) {
+    showChannel: function (channelName, ensureOpen) {
       var self = this;
+      if (!self.ready) {
+        _.delay(_.bind(arguments.callee, self),
+            200, channelName, ensureOpen);
+        return;
+      }
       var nodes = $('li', self.treeHolder);
       nodes.each(function (i) {
         var node = $(nodes.get(i));
@@ -262,6 +283,8 @@ define(['views/dashItem',
           node.removeClass('jstree-unchecked')
               .addClass('jstree-checked');
           self.handleParentVisibility(node.parent().parent());
+          if (ensureOpen)
+            self.treeHolder.jstree('open_node', node.parent().parent(), false, true);
         }
       });
     },
