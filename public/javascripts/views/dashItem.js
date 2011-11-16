@@ -89,7 +89,7 @@ define(['jquery',
       if (this.options.height !== null && this.options.height !== undefined) {
         var dest = 'string' === typeof this.options.height ?
             { height: parseInt(this.options.height) } :
-            { height: Math.floor((win.height() - this.offset.top - 57)
+            { height: Math.floor((win.height() - 76 - 57)
                 * this.options.height / 100 - this.options.bottomPad) };
         if (this.options.animate && this.options.height !== 0) {
           this.content.animate(dest, 'fast');
@@ -97,7 +97,7 @@ define(['jquery',
           this.content.css(dest);
           this.options.animate = false; // keep this off for now...
         }
-      } else {        
+      } else {
         this.content.height(win.height() - this.offset.top - 39);
       }
       this.addScroll();

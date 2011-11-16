@@ -6,7 +6,8 @@ define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
-      _.bindAll(this, 'addGraph', 'removeGraph', 'checkChannelExistence');
+      _.bindAll(this, 'addGraph', 'removeGraph', 'bindGraph', 'unbindGraph',
+          'checkChannelExistence', 'requestDefaultChannel');
       return this;
     },
 
@@ -32,6 +33,7 @@ define(['views/folderItem'], function (FolderItemView) {
         height: 40,
         bottomPad: 0,
       }).fetch();
+      this.treeModel.view.bind('ready', this.requestDefaultChannel);
       this.graphModels = [];
       this.mapModel = new App.models.MapModel({
         tabId: this.tabId,
@@ -78,7 +80,9 @@ define(['views/folderItem'], function (FolderItemView) {
     bindGraph: function (graph) {
       _.extend(graph, Backbone.Events);
       graph.view.bind('channelRemoved', this.checkChannelExistence);
-      
+      graph.bind('channelAdded', _.bind(function (channelName) {
+        this.treeModel.view.showChannel(channelName, true);
+      }, this));
     },
 
     unbindGraph: function (graph) {
@@ -86,7 +90,7 @@ define(['views/folderItem'], function (FolderItemView) {
     },
 
     addGraph: function (id) {
-      var timeRange = this.graphModels.length === 0 ? 
+      var timeRange = this.graphModels.length === 0 ?
           this.timeRange :
           this.graphModels[0].view.getVisibleTime();
       var isMaster = id == 'MASTER';
@@ -140,6 +144,15 @@ define(['views/folderItem'], function (FolderItemView) {
       if ($('[data-channel-name="'+channel.channelName+'"]', this.el).length <= 1) {
         this.treeModel.view.trigger('hideChannel', channel.channelName);
       }
+    },
+
+    requestDefaultChannel: function (channel) {
+      var master = _.find(this.graphModels, function (graph) {
+        return graph.id == 'MASTER';
+      });
+      if (master.get('channels').length === 0)
+        App.publish('ChannelRequested-' +
+            this.tabId + '-MASTER', [channel]);
     },
 
   });

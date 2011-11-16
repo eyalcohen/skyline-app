@@ -64,6 +64,7 @@ requirejs(['libs/domReady',
                 report: 'Please log in.',
                 type: 'message',
               };
+              App.dashReady = _.after(2, _.once(App.dashReady));
               App.subscribe('UserWasAuthenticated', App.build);
 
               if (_.isEmpty(App.user)) {
@@ -100,8 +101,7 @@ requirejs(['libs/domReady',
     },
 
     build: function () {
-      // App.dashReady = ;
-      App.subscribe('AppReady', _.after(2, _.once(App.dashReady)));
+      App.subscribe('AppReady', App.dashReady);
       App.mainView = new App.views.MainView().render();
       App.dashView = new App.views.DashView({
         targetClass: 'dashboard',

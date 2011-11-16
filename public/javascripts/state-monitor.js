@@ -20,11 +20,10 @@ define(function () {
     _.each(state, function (tab, tabId) {
       var timeRange = { beg: tab.r.b, end: tab.r.e };
       App.publish('VehicleRequested',
-          [tab.i, tabId, tab.t, timeRange]);
+          [tab.i, tabId, tab.t, timeRange, !tab.v ]);
       _.each(tab.g, function (channels, graphId) {
         App.publish('GraphRequested-' + tabId, [graphId]);
         _.each(channels, function (channel, channelName) {
-          console.log(channel);
           App.publish('ChannelRequested-' + 
               tabId + '-' + graphId, [channel]);
         });
