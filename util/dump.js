@@ -11,7 +11,7 @@
      mongoimport -d service-samples -c vehicles --upsert < dump/vehicles.json
      for f in dump/vehicle.*.json.gz; do
        id=`expr "$f" : '.*\.\([-0-9]*\)\.json\.gz$'`
-       gzcat $f | util/insert.js --vehicleId=$id
+       gunzip -c $f | util/insert.js --vehicleId=$id
      done
 */
 
@@ -108,34 +108,40 @@ function dumpVehicle(vehicle, callback) {
     }, errStep('fetchSchema'),
 
     function fetchSamples(schema) {
-      sampleSet._schema = schema;
+      if (schema.length) sampleSet._schema = schema;
       var channels = _(schema).chain()
           .pluck('val')
           .pluck('channelName')
           .sort()
           .uniq()
           .value();
-      if (!channels.length) {
-        debug('No data, skipping vehicle ' + vehicleId);
-        callback();
-        return;
-      }
-      StepArray(channels, function(channelName, cb) {
+      channels.push('_wake', '_error', '_warning', '_charge', '_drive');
+      stepForEach(channels, function(channelName, cb) {
         if (channelName === '_schema') return cb();
         debug('Fetching channel ' + channelName);
         sampleDb.fetchRealSamples(vehicleId, channelName,
                                   function(err, samples) {
-          if (samples) sampleSet[channelName] = samples;
+          if (samples && samples.length)
+            sampleSet[channelName] = samples;
           cb(err);
         });
       }, this);
     }, errStep('fetchSamples'),
 
+    function() {
+      if (_.isEmpty(sampleSet)) {
+        debug('No data, skipping vehicle ' + vehicleId);
+        callback();
+        return;
+      }
+      this();
+    },
+
     function mkdir() {
       fs.mkdir(argv.dir, 0777, this);
     }, /* ignore error from mkdir */
     function dumpSamples() {
-      var path = argv.dir + '/' + vehicleId + '.json.gz';
+      var path = argv.dir + '/vehicle.' + vehicleId + '.json.gz';
       debug('Dumping to ' + path);
       var stream = fs.createWriteStream(path);
       var gzip = new gzbz2.Gzip;
@@ -170,7 +176,7 @@ function dumpVehicle(vehicle, callback) {
   );
 }
 
-function StepArray(array, f, cb) {
+function stepForEach(array, f, cb) {
   var i = 0;
   (function step(err) {
     if (err) cb(err);
