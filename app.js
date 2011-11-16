@@ -837,6 +837,32 @@ app.get('/status/load', function (req, res) {
 });
 
 
+// Dump a message to a log file for debugging clients.
+app.post('/debug/:logFile', function (req, res) {
+  if (requestMimeType(req) != 'text/plain') {
+    res.statusCode = 400;
+    res.end('Use content-type: text/plain');
+    return;
+  }
+  var path = 'debug/' + req.params.logFile.replace(/\//g, '_');
+  var stream = fs.createWriteStream(path, { flags: 'a', encoding: 'utf8' });
+  stream.on('error', function(err) {
+    util.log(req.url + ' - error writing: ' + err);
+    res.statusCode = 500;
+    res.end('Error writing: ' + err, 'utf8');
+  });
+  stream.on('close', function() { res.end() });
+  req.setEncoding('utf8');
+  var message = '';
+  req.on('data', function(m) { message += m });
+  req.on('end', function() {
+    if (!/\n$/.test(message))
+      message += '\n';
+    stream.end(message, 'utf8');
+  });
+});
+
+
 ////////////// DNode Methods
 
 
