@@ -18,7 +18,11 @@ var argv = optimist
     .default('type', 'merged')
     .boolean('json')
     .boolean('getMinMax')
+    .describe('benchmark', 'Number of benchmarking iterations to run.')
     .argv;
+
+if (argv.synDuration == null)
+  argv.synDuration = SampleDb.getSyntheticDuration(argv.minDuration || 0);
 
 function errCheck(err, op) {
   if (err) {
@@ -43,15 +47,17 @@ if (!argv._.length)
 // Perform queries.
 Step(
   function() {
+    if (argv.benchmark) {
+      doBenchmark(argv.benchmark, this);
+      return;
+    }
     var parallel = this.parallel;
     if (argv.json)
       log('{');
     argv._.forEach(function(channelName) {
       var next = argv.subscribe == null ? parallel() : _.identity;
 
-      if (argv.synDuration == null)
-        argv.synDuration = SampleDb.getSyntheticDuration(argv.minDuration || 0);
-
+      var start = Date.now();
       sampleDb.fetchSamples(
           argv.vehicleId, channelName, _.clone(argv), function(err, samples) {
         if (err) { next(err); return; }
@@ -117,5 +123,42 @@ Step(
     }
   }
 );
+
+function doBenchmark(iterations, cb) {
+  log('Benchmarking ' + iterations + ' iterations.');
+  var it = 0, dots = 0, start = Date.now();
+  (function iterate() {
+    for (var newDots = it / iterations * 80; dots < newDots; ++dots)
+      process.stdout.write('.');
+    if (it >= iterations)
+      return done();
+    Step(
+      function fetch() {
+        var parallel = this.parallel;
+        argv._.forEach(function(channelName) {
+          var next = parallel();
+          sampleDb.fetchSamples(argv.vehicleId, channelName, _.clone(argv),
+                                function(err, samples) {
+            if (err) { next(err); return; }
+            if (argv.resample)
+              SampleDb.resample(samples, argv.beginTime, argv.endTime,
+                                argv.resample, { stddev: argv.stddev });
+            next(null, samples);
+          });
+        });
+        parallel()();
+      }, function nextIt(err) {
+        errCheck(err, 'fetch');
+        ++it;
+        iterate();
+      }
+    );
+  })();
+  function done() {
+    var time = (Date.now() - start) / iterations;
+    log('\nTime per iteration: ' + time + ' ms.');
+    cb();
+  }
+}
 
 })});
