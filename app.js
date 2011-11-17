@@ -147,8 +147,8 @@ var app = module.exports = express.createServer();
 
 
 app.configure('development', function () {
-  app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples,mongodb://localhost:27018,mongodb://localhost:27019');
-  app.set('db-uri-mongodb', 'mongodb://:27017,:27018,:27019/service-samples');
+  app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples');
+  app.set('db-uri-mongodb', 'mongodb://:27017/service-samples');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
