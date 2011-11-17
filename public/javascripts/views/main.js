@@ -35,8 +35,9 @@ define(['jquery', 'jquery-extensions'], function ($) {
       return this;
     },
 
-    load: function (vehicleId, tabId, vehicleTitle, timeRange) {
+    load: function (vehicleId, tabId, vehicleTitle, timeRange, hide) {
       var targetClass = 'target-' + tabId;
+      var active = hide ? false : true;
       new App.views.VehicleView({
         targetClass: targetClass,
       }).render({
@@ -44,7 +45,7 @@ define(['jquery', 'jquery-extensions'], function ($) {
         title: vehicleTitle,
         vehicleId: vehicleId,
         timeRange: timeRange,
-        active: true,
+        active: active,
       }, 'vehicle.jade');
     },
 

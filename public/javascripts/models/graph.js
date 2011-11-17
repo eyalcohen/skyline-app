@@ -99,6 +99,7 @@ define(function () {
           for (var c = 0; _.include(usedColors, c); ++c) { }
           channel.colorNum = c;
         }
+        self.trigger('channelAdded', channel.channelName);
         self.get('channels').push(channel);
         console.log('addChannel(', channel, ')...');
       });

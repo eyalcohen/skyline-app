@@ -725,8 +725,17 @@
             canvasWidth = placeholder.width();
             canvasHeight = placeholder.height();
             
-            if (canvasWidth <= 0 || canvasHeight <= 0)
-                throw "Invalid dimensions for plot, width = " + canvasWidth + ", height = " + canvasHeight;
+            // HACK
+            // if (canvasWidth <= 0 || canvasHeight <= 0)
+            //     throw "Invalid dimensions for plot, width = " + canvasWidth + ", height = " + canvasHeight;
+            if (canvasWidth <= 0) {
+              canvasWidth = 100;
+              placeholder.width(canvasWidth);
+            }
+            if (canvasHeight <= 0) {
+              canvasHeight = 100;
+              placeholder.height(canvasHeight);
+            }
         }
 
         function resizeCanvas(c) {
@@ -1116,8 +1125,11 @@
 
         }
 
-        function setupLegend() {
+        function setupLegend(cb) {
           placeholder.find(".legend").remove();
+          var gotSeries = series.length > 0;
+          if (cb) cb(gotSeries);
+          if (!gotSeries) return;
           if (!options.legend.oneperyaxis) {
               insertLegend();
           } else {
@@ -2319,7 +2331,7 @@
             }
             if (rowStarted)
                 fragments.push('</tr>');
-            
+
             if (fragments.length == 0)
                 return;
 
@@ -2345,13 +2357,14 @@
                         legend.css({ left: m[0] + plotOffset.left + 'px' });
                         // pos += 'left:' + (m[0] + plotOffset.left) + 'px;';
                 } else {
-                  var legendTable = $('table', legend);
+                  var legendTable = $('table', legend, plotOffset[legSeries[0].yaxis.position]);
                   // pos += legSeries[0].yaxis.position + ':' + (m[0] + plotOffset[legSeries[0].yaxis.position]) + 'px;';
                   if (legSeries[0].yaxis.position === 'left')
                     legendTable.css({ left: m[0] + plotOffset[legSeries[0].yaxis.position] + 'px' });
                     // pos += 'left:' + (m[0] + plotOffset[legSeries[0].yaxis.position]) + 'px;';
                   else
-                    legendTable.css({ left: plot.width() - m[0] - plotOffset[legSeries[0].yaxis.position] - legendTable.width() + 'px' });
+                    // legendTable.css({ left: plot.width() - m[0] - plotOffset[legSeries[0].yaxis.position] - legendTable.width() + 'px' });
+                    legendTable.css({ right: m[0] + 'px' });
                     // pos += 'left:' + (plot.width() - m[0] - plotOffset[legSeries[0].yaxis.position]) + 'px;';
                 }
                 if (options.legend.backgroundOpacity != 0.0) {

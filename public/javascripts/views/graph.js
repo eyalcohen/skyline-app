@@ -21,6 +21,7 @@ define(['views/dashItem', 'plot_booter',
       // This is a horribly crufty way to avoid drawing the legends every time
       // the plot is redrawn but also ensure that it gets redawn when channels
       // are dropped in.
+      this.ensureLegendRedraw = true;
       App.subscribe('ChannelDropped-' + id, this.ensureLegend);
     },
 
@@ -67,10 +68,11 @@ define(['views/dashItem', 'plot_booter',
 
     resize: function (skipDraw) {
       this._super('resize');
-      if (this.plot && 
-          this.plot.getPlaceholder().is(':visible')) {
+      if (this.plot) {
         var width = this.content.width();
-        var height = this.content.height()
+        var height = this.content.height();
+        if (width === 0)
+          width = this.plot.getPlaceholder().closest('[data-width]').width();
         this.plot.getPlaceholder().css({
           width: width,
           height: height,
@@ -355,10 +357,10 @@ define(['views/dashItem', 'plot_booter',
           axis.datamin -= 0.5; axis.datamax += 0.5;
         }
       });
-      if (this.prevNumChannels !== this.model.get('channels').length ||
-          this.ensureLegendRedraw) {
+      
+      if (this.prevNumChannels !== this.model.get('channels').length
+          || this.ensureLegendRedraw) {
         this.setupLegend();
-        this.ensureLegendRedraw = false;
         this.prevNumChannels = this.model.get('channels').length;
       }
     },
@@ -379,7 +381,10 @@ define(['views/dashItem', 'plot_booter',
 
     setupLegend: function () {
       console.log('drawLegend( ' + this.options.id + ' )...');
-      this.plot.setupLegend();
+      this.plot.setupLegend(_.bind(function (okay) {
+        if (okay)
+          this.ensureLegendRedraw = false;
+      }, this));
       $('.label-closer', this.content)
           .click(_.bind(this.removeChannel, this));
       $('.legend tr', this.content)
