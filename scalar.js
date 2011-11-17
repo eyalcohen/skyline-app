@@ -20,11 +20,11 @@ var optimist = require('optimist');
 var argv = optimist
     .describe('help', 'Get help')
     .describe('port', 'Port to listen on')
-      .default('port', 80)
+      .default('port', 8080)
     .describe('static', 'List of host:port to redirect static requests to')
-      .default('static', '8080 8081')
+      .default('static', '9000')
     .describe('api', 'List of host:port to redirect API requests to')
-      .default('api', '8082 8083')
+      .default('api', '9010 9011')
     .argv;
 
 if (argv._.length || argv.help) {
