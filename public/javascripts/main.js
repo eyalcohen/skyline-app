@@ -55,11 +55,6 @@ requirejs(['libs/domReady',
 
               App.stateMonitor = new StateMonitor();
               App.router = new Router();
-              Backbone.history.start({
-                pushState: true,
-                silent: true,
-                root: '/',
-              });
 
               App.login = new views.LoginView();
               App.logout = new views.LogoutView();

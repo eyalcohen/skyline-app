@@ -50,7 +50,8 @@ define(['views/dashItem'],
     open: function (e) {
       var attrs = this.getRowAttributesFromChild(e.target);
       var tabId = App.util.makeId();
-      var timeRange = { beg: attrs.lastCycle.beg, end: attrs.lastCycle.end };
+      var timeRange = { beg: attrs.lastCycle.beg,
+          end: attrs.lastCycle.end };
       App.publish('VehicleRequested',
           [attrs.id, tabId, attrs.title, timeRange]);
       return this;
@@ -70,14 +71,12 @@ define(['views/dashItem'],
     getRowAttributesFromChild: function (child) {
       var tr = $(child).closest('tr');
       var items = tr.attr('id').split('_');
-      var time = parseInt(
-          $('[data-time]', tr).attr('data-time'));
+      var time = parseInt($('[data-time]', tr).attr('data-time'));
       return {
         id: parseInt(items[items.length - 1]),
         title: tr.attr('data-title'),
-        lastSeen: time,
-        lastCycle: time === 0 ? null : JSON.parse(
-            $('[data-cycle]', tr).attr('data-cycle')),
+        lastCycle: time === 0 ? null :
+            JSON.parse($('[data-cycle]', tr).attr('data-cycle')),
       };
     },
 

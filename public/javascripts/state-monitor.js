@@ -100,9 +100,9 @@ define(function () {
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
     if (!_.isArray(channel)) channel = [channel];
-    for (var i = 0, len = channel.length; i < len; i++) {
-      this.state[tabId].g[graphId][channel[i].channelName] = channel[i];
-    }
+    _.each(channel, _.bind(function (c) {
+      this.state[tabId].g[graphId][c.channelName] = c;
+    }, this));
   }
 
   StateMonitor.prototype.removeChannel = function (tabId, graphId, channel) {
@@ -165,9 +165,9 @@ define(function () {
         k = decodeURIComponent(k).replace(/,/g, '.');
         if (i === len - 1) {
           var n = Number(v);
-          if (_.isNumber(n)) o[k] = n;
-          else if (v === 'true') o[k] = true;
+          if (v === 'true') o[k] = true;
           else if (v === 'false') o[k] = false;
+          else if (!isNaN(n)) o[k] = n;
           else o[k] = v;
         }
         else if (!o[k]) o[k] = {};
