@@ -13,8 +13,8 @@
 
              uploadRoot is where we should squirt our collected data
         -->
-        <uploadserver minIntervalOn="10"  minIntervalOff="100" url="http://triptrack.ridemission.com/samples" />
-        <configserver minIntervalOn="600"  minIntervalOff="100" url="http://triptrack.ridemission.com/vconfig" />
+        <uploadserver minIntervalOn="10"  minIntervalOff="100" url="http://skyline-dev.ridemission.com/samples" />
+        <configserver minIntervalOn="600"  minIntervalOff="100" url="http://skyline-dev.ridemission.com/vconfig" />
 
 	<!-- If url is set, we will launch a web browser session showing that URL (normally used to show a dash) -->
 	<!-- If screenOn is true we will keep the screen from going to sleep when the vehicle is awake (for the dash) -->

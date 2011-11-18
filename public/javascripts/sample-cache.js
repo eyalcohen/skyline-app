@@ -317,9 +317,10 @@ define(function () {
    */
   SampleCache.prototype.updateClient = function(clientId, client, timeout) {
     var self = this;
+    var newTimeout = Date.now() + timeout;
     if (client.updateId) {
-      if (client.updateTimeout - Date.now() > timeout) {
-        // The new timeout will expire after the current timeout, so let the
+      if (newTimeout > client.updateTimeout) {
+        // The new timeout would expire after the current timeout, so let the
         // current timeout be.
         return;
       } else {
@@ -328,7 +329,7 @@ define(function () {
         clearTimeout(client.updateId);
       }
     }
-    client.updateTimeout = Date.now() + timeout;
+    client.updateTimeout = newTimeout;
     client.updateId = setTimeout(function() {
       var start = Date.now();
       client.updateId = null;

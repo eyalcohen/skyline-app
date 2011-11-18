@@ -429,6 +429,8 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
 SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
                                             cb) {
   var self = this;
+  if (!newSamples.length)
+    return cb(null, newSamples, []);
   var redundant;
   Step(
     function() {

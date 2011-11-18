@@ -147,8 +147,8 @@ var app = module.exports = express.createServer();
 
 
 app.configure('development', function () {
-  app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples,mongodb://localhost:27018,mongodb://localhost:27019');
-  app.set('db-uri-mongodb', 'mongodb://:27017,:27018,:27019/service-samples');
+  app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples');
+  app.set('db-uri-mongodb', 'mongodb://:27017/service-samples');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
@@ -926,7 +926,7 @@ function shortInpsect(argList, maxChars) {
 
 function dnodeLogMiddleware(remote, client) {
   var self = this;
-  var maxArgsChars = 60;
+  var maxArgsChars = 160, maxResultsChars = 40;
   Object.keys(self).forEach(function(fname) {
     var f = self[fname];
     if (!_.isFunction(f)) return;
@@ -947,7 +947,7 @@ function dnodeLogMiddleware(remote, client) {
           console.log(fnamePretty + '(\x1b[4m' +
                       shortInpsect(funcArgs, maxArgsChars) +
                       '\x1b[0m) -> (\x1b[4m' +
-                      shortInpsect(arguments, maxArgsChars) + '\x1b[0m) ' +
+                      shortInpsect(arguments, maxResultsChars) + '\x1b[0m) ' +
                       (Date.now() - start) + ' ms');
           callback.apply(this, arguments);
         };
@@ -964,11 +964,37 @@ function dnodeLogMiddleware(remote, client) {
 }
 
 
+function ExecutionQueue(maxInFlight) {
+  var inFlight = 0;
+  var queue = [];
+  function done() {
+    --inFlight;
+    while (queue.length && inFlight < maxInFlight) {
+      var f = queue.shift();
+      ++inFlight;
+      f(done);
+    }
+  }
+  return function(f) {
+    if (inFlight < maxInFlight) {
+      ++inFlight;
+      f(done);
+    } else
+      queue.push(f);
+  };
+}
+
+
 // Every time a client connects via dnode, this function will be called, and
 // the object it returns will be transferred to the client.
 var createDnodeConnection = function (remote, conn) {
   var subscriptions = { };
   var user = null;  // Set once user is authenticated.
+
+  // Mostly serialize fetch operations - doing a bunch in parallel is
+  // mysteriously slower than serially, and there's nothing to be gained by
+  // making requests delay each other.
+  var sampleDbExecutionQueue = ExecutionQueue(2);
 
   //// Methods accessible to remote side: ////
 
@@ -1178,21 +1204,26 @@ var createDnodeConnection = function (remote, conn) {
   // option.
   function fetchSamples(vehicleId, channelName, options, cb) {
     if (!checkAuth(cb)) return;
-    var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
-    console.time(id);
-    function next(err, samples) {
-      cb(err, JSON.parse(JSON.stringify(samples)));
-    };
-    if (options.subscribe != null) {
-      var handle = options.subscribe;
-      console.log(handle);
-      options.subscribe = 0.25;  // Polling interval, seconds.
-      cancelSubscribeSamples(handle);
-      subscriptions[handle] =
-          sampleDb.fetchSamples(vehicleId, channelName, options, next);
-    } else {
-      sampleDb.fetchSamples(vehicleId, channelName, options, next);
-    }
+    sampleDbExecutionQueue(function(done) {
+      var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
+      console.time(id);
+      function next(err, samples) {
+        console.timeEnd(id);
+        cb(err, samples);
+        // TODO: subscriptions broken with execution queue.
+        done();
+      };
+      if (options.subscribe != null) {
+        var handle = options.subscribe;
+        console.log(handle);
+        options.subscribe = 0.25;  // Polling interval, seconds.
+        cancelSubscribeSamples(handle);
+        subscriptions[handle] =
+            sampleDb.fetchSamples(vehicleId, channelName, options, next);
+      } else {
+        sampleDb.fetchSamples(vehicleId, channelName, options, next);
+      }
+    });
   }
 
   function cancelSubscribeSamples(handle, cb) {
