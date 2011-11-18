@@ -8,6 +8,7 @@ define(['views/folderItem'], function (FolderItemView) {
       this._super('initialize', args);
       _.bindAll(this, 'addGraph', 'removeGraph', 'bindGraph', 'unbindGraph',
           'checkChannelExistence', 'requestDefaultChannel');
+      App.subscribe('KillallTabs', this.destroy);
       return this;
     },
 

@@ -242,8 +242,6 @@ define(['views/dashItem',
         App.publish('ChannelDropped-' + graphId);
         $('.label-closer', data.o.parent().parent().parent()).click();
         channel.yaxisNum = yaxisNum;
-        console.log('ChannelRequested-' + 
-            this.model.get('tabId') + '-' + graphId);
         App.publish('ChannelRequested-' + 
             this.model.get('tabId') + '-' + graphId, [channel]);
       }

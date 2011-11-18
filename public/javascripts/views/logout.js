@@ -48,7 +48,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
         openDialog('http://' + window.location.host);
       else
         App.api.saveAppState(state, function (err, key) {
-          openDialog('http://' + window.location.host + '/s/' + key);
+          openDialog('http://' + window.location.host + '/state/' + key);
         });
       function openDialog(link) {
         App.engine('permalink.dialog.jade',

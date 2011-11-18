@@ -48,13 +48,17 @@ requirejs(['libs/domReady',
               App.models = models;
               App.collections = collections;
               App.views = views;
+
               App.util = util;
+
               App.sampleCache = new SampleCache();
+
               App.stateMonitor = new StateMonitor();
               App.router = new Router();
               Backbone.history.start({
                 pushState: true,
                 silent: true,
+                root: '/',
               });
 
               App.login = new views.LoginView();
@@ -64,7 +68,6 @@ requirejs(['libs/domReady',
                 report: 'Please log in.',
                 type: 'message',
               };
-              App.dashReady = _.after(2, _.once(App.dashReady));
               App.subscribe('UserWasAuthenticated', App.build);
 
               if (_.isEmpty(App.user)) {
@@ -101,31 +104,11 @@ requirejs(['libs/domReady',
     },
 
     build: function () {
-      App.subscribe('AppReady', App.dashReady);
       App.mainView = new App.views.MainView().render();
-      App.dashView = new App.views.DashView({
-        targetClass: 'dashboard',
-      }).render({
-        title: 'Dashboard',
-        active: true,
-        tabClosable: false,
-        left: 30
-      }, 'dash.jade');
-      App.editorView = new App.views.EditorView().render();
       App.loading.stop();
       // // TODO: check if user is ADMIN first!
       // App.userCollection =
       //     new App.collections.UserCollection().fetch();
-      // App.publish('AppReady');
-    },
-
-    dashReady: function () {
-      // TODO: Make this work without the delay.
-      _.delay(function () {
-        var state = $('#main').data('state');
-        if (state)
-          App.stateMonitor.setState(state);
-      }, 500);
     },
 
     Loader: function () {
@@ -159,9 +142,11 @@ requirejs(['libs/domReady',
     },
 
   };
+
   domReady(function () {
     App.loading = new App.Loader().start();
     App.start();
   });
+
 });
 

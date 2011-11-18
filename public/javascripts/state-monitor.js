@@ -6,8 +6,14 @@ define(function () {
 
   function StateMonitor() {
     this.state = {};
+    this.subs = {};
     this.isRestoring = false;
-    App.subscribe('VehicleRequested', _.bind(this.addTab, this));
+    var proxy = _.bind(this.addTab, this);
+    App.subscribe('VehicleRequested', proxy);
+    App.subscribe('NotAuthenticated', _.bind(function () {
+      App.unsubscribe('VehicleRequested', proxy);
+      App.unsubscribe('NotAuthenticated', arguments.callee);
+    }, this));
   }
 
   StateMonitor.prototype.getState = function () {
@@ -24,12 +30,19 @@ define(function () {
       _.each(tab.g, function (channels, graphId) {
         App.publish('GraphRequested-' + tabId, [graphId]);
         _.each(channels, function (channel, channelName) {
-          App.publish('ChannelRequested-' + 
+          App.publish('ChannelRequested-' +
               tabId + '-' + graphId, [channel]);
         });
       });
     });
     this.isRestoring = false;
+  }
+
+  StateMonitor.prototype.resetState = function (str) {
+    _.each(this.state, _.bind(function (tab, tabId) {
+      this.removeTab(tabId);
+    }, this));
+    this.state = {};
   }
 
   StateMonitor.prototype.addTab =
@@ -41,46 +54,49 @@ define(function () {
       r: { b: timeRange.beg, e: timeRange.end },
       g: {},
     };
+    this.addSub('GraphRequested-' + tabId, 
+                _.bind(this.addGraph, this, tabId));
+    this.addSub('GraphUnrequested-' + tabId, 
+                _.bind(this.removeGraph, this, tabId));
+    this.addSub('VisibleTimeChange-' + tabId, 
+                _.bind(this.updateTimeRange, this, tabId));
+    this.addSub('ShowFolderItem-target-' + tabId, 
+                _.bind(this.updateVisibility, this, tabId, true));
+    this.addSub('HideFolderItem-target-' + tabId, 
+                _.bind(this.updateVisibility, this, tabId, false));
+    this.addSub('VehicleUnrequested-' + tabId, 
+                _.bind(this.removeTab, this, tabId));
     this.addGraph(tabId, 'MASTER');
-    App.subscribe('GraphRequested-' + tabId,
-        _.bind(this.addGraph, this, tabId));
-    App.subscribe('GraphUnrequested-' + tabId,
-        _.bind(this.removeGraph, this, tabId));
-    App.subscribe('VisibleTimeChange-' + tabId,
-        _.bind(this.updateTimeRange, this, tabId));
-    App.subscribe('ShowFolderItem-target-' + tabId,
-        _.bind(this.updateVisibility, this, tabId, true));
-    App.subscribe('HideFolderItem-target-' + tabId, 
-        _.bind(this.updateVisibility, this, tabId, false));
-    App.subscribe('VehicleUnrequested-' + tabId,
-        _.bind(this.removeTab, this, tabId));
   }
 
   StateMonitor.prototype.removeTab = function (tabId) {
-    App.unsubscribe('GraphRequested-' + tabId, this.addGraph);
-    App.unsubscribe('GraphUnrequested-' + tabId, this.removeGraph);
-    App.unsubscribe('VisibleTimeChange-' + tabId, this.updateTimeRange);
-    App.unsubscribe('VehicleUnrequested-' + tabId, this.removeTab);
+    _.each(this.state[tabId].g, _.bind(function (graph, graphId) {
+      this.removeGraph(tabId, graphId);
+    }, this));
+    this.removeSub('GraphRequested-' + tabId);
+    this.removeSub('GraphUnrequested-' + tabId);
+    this.removeSub('VisibleTimeChange-' + tabId);
+    this.removeSub('ShowFolderItem-target-' + tabId);
+    this.removeSub('HideFolderItem-target-' + tabId);
+    this.removeSub('VehicleUnrequested-' + tabId);
     delete this.state[tabId];
   }
-
 
   StateMonitor.prototype.addGraph = function (tabId, graphId) {
     var handle = tabId + '-' + graphId;
     this.state[tabId].g[graphId] = {};
-    App.subscribe('ChannelRequested-' + handle,
-        _.bind(this.addChannel, this, tabId, graphId));
-    App.subscribe('ChannelUnrequested-' + handle,
-        _.bind(this.removeChannel, this, tabId, graphId));
+    this.addSub('ChannelRequested-' + handle,
+                _.bind(this.addChannel, this, tabId, graphId));
+    this.addSub('ChannelUnrequested-' + handle,
+                _.bind(this.removeChannel, this, tabId, graphId));
   }
 
   StateMonitor.prototype.removeGraph = function (tabId, graphId) {
     var handle = tabId + '-' + graphId;
+    this.removeSub('ChannelRequested-' + handle);
+    this.removeSub('ChannelUnRequested-' + handle);
     delete this.state[tabId].g[graphId];
-    App.unsubscribe('ChannelRequested-' + handle, this.addChannel);
-    App.unsubscribe('ChannelUnRequested-' + handle, this.removeChannel);
   }
-
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
     if (!_.isArray(channel)) channel = [channel];
@@ -102,6 +118,16 @@ define(function () {
     this.state[tabId].v = visible;
   }
 
+  StateMonitor.prototype.addSub = function (topic, fn) {
+    this.subs[topic] = fn;
+    App.subscribe(topic, fn);
+  }
+
+  StateMonitor.prototype.removeSub = function (topic) {
+    App.unsubscribe(topic, this.subs[topic]);
+    delete this.subs[topic];
+  }
+
   /*!
    * Converts an object into a url encoded string.
    * Input must not contain self-references.
@@ -118,7 +144,7 @@ define(function () {
           step(v, key ? key + objectDelimiter + k : k);
         else
           str += encodeURIComponent(key + objectDelimiter + k) +
-              '=' + encodeURIComponent(v) + '&';
+                  '=' + encodeURIComponent(v) + '&';
       });
     })(obj);
     return str.substr(0, str.length - 1);

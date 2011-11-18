@@ -10,7 +10,7 @@ define(['jquery',
    function ($) {
   return Backbone.View.extend({
     initialize: function (args) {
-      _.bindAll(this, 'render', 'resize', 'destroy', 'show');
+      _.bindAll(this, 'render', 'resize', 'destroy', 'show', 'clickTab');
       App.subscribe('NotAuthenticated', this.destroy);
       App.subscribe('ShowFolderItem-' + args.targetClass, this.show);
       return this;
@@ -34,6 +34,7 @@ define(['jquery',
         tabClosable: true,
         dynamic: true,
       });
+      this.vehicleId = opts.vehicleId;
       this.el = App.engine(template, opts).appendTo('.folder').hide();
       this.tab = App.engine('tab.jade', opts).appendTo(opts.tabParent);
       var winWidth = $(window).width() - 10;
@@ -41,10 +42,7 @@ define(['jquery',
       var dr = $('.dashboard-right', this.el);
       dl.width(winWidth * Number(dl.attr('data-width')));
       dr.width(winWidth * Number(dr.attr('data-width')));
-      this.tab.click(function (e) {
-        var tabTarget = $(e.target).closest('[data-tab-target]').data('tabTarget');
-        App.publish('ShowFolderItem-' + tabTarget);
-      });
+      this.tab.click(this.clickTab);
       var self = this;
       $('.tab-closer', this.tab).click(function (e) {
         self.destroy(true);
@@ -52,7 +50,17 @@ define(['jquery',
       $('.resize-horizontal', this.el)
           .bind('mousedown', _.bind(this.resizeHorizontal, this));
       if (opts.active)
-        this.tab.click();
+        this.clickTab();
+    },
+
+    clickTab: function (e) {
+      App.publish('ShowFolderItem-' + this.options.targetClass);
+      if (this.vehicleId)
+        App.router.navigate('vehicle/' + this.vehicleId);
+      // Don't click dash on first load
+      // if vehicle or state is requested.
+      else if (e)
+        App.router.navigate('/');
     },
 
     show: function (e) {
@@ -92,9 +100,13 @@ define(['jquery',
       App.unsubscribe('ShowFolderItem-' + this.targetClass, this.show);
       var targetIndex = this.tab.attr('data-tab-index');
       var tabs = $('.tab-dynamic');
-      if (this.tab.hasClass('tab-active') && clicked)
-        App.publish('ShowFolderItem-'+
-            $(tabs.get(targetIndex-1)).data('tabTarget'));
+      if (this.tab.hasClass('tab-active') && clicked) {
+        var otherTab = $(tabs.get(targetIndex-1));
+        App.publish('ShowFolderItem-'+ otherTab.data('tabTarget'));
+        var oid = otherTab.data('vehicleId');
+        if (oid) App.router.navigate('vehicle/' + oid);
+        else App.router.navigate('/');
+      }
       this.tab.remove();
       tabs = $('.tab-dynamic');
       var offset = 30;

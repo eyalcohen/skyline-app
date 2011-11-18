@@ -473,7 +473,7 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
         csv.write(line);
       });
 
-      csv.write([]);  // Make sure there's a terminating newline.
+      csv.write([]); // Make sure there's a terminating newline.
       csv.end();
       res.end();
     },
@@ -485,8 +485,27 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
 
 // Pass state key to client
 
+app.get('/vehicle', function (req, res) {
+  res.redirect('/');
+});
+
+app.get('/vehicle/:id', function (req, res) {
+  res.render('index', { stateStr: '!vehicle_' + req.params.id });
+});
+
+app.get('/state', function (req, res) {
+  res.redirect('/');
+});
+
 app.get('/s', function (req, res) {
   res.redirect('/');
+});
+
+app.get('/state/:key', function (req, res) {
+  fetchAppState(req.params.key, function (err, state) {
+    var stateStr = err || !state ? '' : state.val;
+    res.render('index', { stateStr: stateStr });
+  });
 });
 
 app.get('/s/:key', function (req, res) {
