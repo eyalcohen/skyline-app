@@ -336,7 +336,6 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
   try {
     var vehicleId = req.vehicle._id;
     // if ('toNumber' in vehicleId) vehicleId = vehicleId.toNumber();
-    vehicleId = vehicleId.toNumber();
     var resample = numParam('resample');
     var beginTime = numParam('beg', resample != null);
     var endTime = numParam('end', resample != null);
