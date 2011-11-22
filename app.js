@@ -335,7 +335,8 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
   // Example: curl 'http://localhost:8080/export/1772440972/data.csv?beg=1309914019674000&end=1309916383000000&chan=$beginDate&chan=$beginTime&chan=$beginAbsTime&chan=$duration&chan=$beginRelTime&chan=$endRelTime&chan=gps.speed_m_s&chan=gps.latitude_deg&chan=gps.longitude_deg&chan=gps.altitude_m&chan=accel.x_m_s2&minDuration=10000000&minmax'
   try {
     var vehicleId = req.vehicle._id;
-    if ('toNumber' in vehicleId) vehicleId = vehicleId.toNumber();
+    // if ('toNumber' in vehicleId) vehicleId = vehicleId.toNumber();
+    vehicleId = vehicleId.toNumber();
     var resample = numParam('resample');
     var beginTime = numParam('beg', resample != null);
     var endTime = numParam('end', resample != null);
