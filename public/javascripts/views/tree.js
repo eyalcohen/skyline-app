@@ -71,10 +71,6 @@ define(['views/dashItem',
                 }
               });
               metadata.title = title;
-              // if (metadata.channelName === 'mc/motorSpeed'
-              //     || metadata.channelName === 'mc.motorSpeed_RPM') {
-              //   defaultChannel = _.clone(metadata);
-              // }
               var id = metadata.channelName, attr = {};
               if (id) attr.id = id;
               attr.rel = children.length > 0 ? 'root' : '';

@@ -50,8 +50,10 @@ define(['views/dashItem'],
     open: function (e) {
       var attrs = this.getRowAttributesFromChild(e.target);
       var tabId = App.util.makeId();
-      var timeRange = { beg: attrs.lastCycle.beg,
-          end: attrs.lastCycle.end };
+      var timeRange = {
+        beg: attrs.lastCycle.beg,
+        end: attrs.lastCycle.end,
+      };
       App.publish('VehicleRequested',
           [attrs.id, tabId, attrs.title, timeRange]);
       return this;

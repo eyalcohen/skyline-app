@@ -490,7 +490,7 @@ app.get('/vehicle', function (req, res) {
 });
 
 app.get('/vehicle/:id', function (req, res) {
-  res.render('index', { stateStr: '!vehicle_' + req.params.id });
+  res.render('index', { stateStr: '' });
 });
 
 app.get('/state', function (req, res) {

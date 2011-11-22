@@ -11,7 +11,7 @@ window.DNode = require('dnode');
 requirejs(['libs/domReady',
     'libs/json2',
     'libs/modernizr-1.7.min',
-    'libs/backbone-min',
+    'libs/backbone',
     'libs/store.min',
     'libs/spin.min'],
     function (domReady) {

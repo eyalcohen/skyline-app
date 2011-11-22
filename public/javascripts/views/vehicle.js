@@ -151,7 +151,7 @@ define(['views/folderItem'], function (FolderItemView) {
       var master = _.find(this.graphModels, function (graph) {
         return graph.id == 'MASTER';
       });
-      if (master.get('channels').length === 0)
+      if (master && master.get('channels').length === 0)
         App.publish('ChannelRequested-' +
             this.tabId + '-MASTER', [channel]);
     },

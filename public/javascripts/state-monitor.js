@@ -8,10 +8,10 @@ define(function () {
     this.state = {};
     this.subs = {};
     this.isRestoring = false;
-    var proxy = _.bind(this.addTab, this);
-    App.subscribe('VehicleRequested', proxy);
+    var localAddTab = _.bind(this.addTab, this);
+    App.subscribe('VehicleRequested', localAddTab);
     App.subscribe('NotAuthenticated', _.bind(function () {
-      App.unsubscribe('VehicleRequested', proxy);
+      App.unsubscribe('VehicleRequested', localAddTab);
       App.unsubscribe('NotAuthenticated', arguments.callee);
     }, this));
   }
@@ -22,19 +22,24 @@ define(function () {
 
   StateMonitor.prototype.setState = function (str) {
     this.isRestoring = true;
-    var state = decode(str);
-    _.each(state, function (tab, tabId) {
-      var timeRange = { beg: tab.r.b, end: tab.r.e };
-      App.publish('VehicleRequested',
-          [tab.i, tabId, tab.t, timeRange, !tab.v ]);
-      _.each(tab.g, function (channels, graphId) {
-        App.publish('GraphRequested-' + tabId, [graphId]);
-        _.each(channels, function (channel, channelName) {
-          App.publish('ChannelRequested-' +
-              tabId + '-' + graphId, [channel]);
+    if (!str) App.router.navigate('/');
+    else {
+      // TODO: Handle decoding errors somehow.
+      var state = decode(str);
+      _.each(state, function (tab, tabId) {
+        var timeRange = { beg: tab.r.b, end: tab.r.e };
+        App.publish('VehicleRequested',
+            [tab.i, tabId, tab.t, timeRange, !tab.v ]);
+        _.each(tab.g, function (channels, graphId) {
+          App.publish('GraphRequested-' + tabId, [graphId]);
+          if (channels)
+            _.each(channels, function (channel, channelName) {
+              App.publish('ChannelRequested-' +
+                  tabId + '-' + graphId, [channel]);
+            });
         });
       });
-    });
+    }
     this.isRestoring = false;
   }
 
@@ -45,6 +50,13 @@ define(function () {
     this.state = {};
   }
 
+  StateMonitor.prototype.update = function (save) {
+    var frag = encode(this.state);
+    frag = frag !== '' ? '/?' + frag : '/';
+    console.log('updateURI(', save ? 'push' : 'replace', ')...');
+    App.router.navigate(frag, { replace: !save });
+  },
+
   StateMonitor.prototype.addTab =
       function (vehicleId, tabId, vehicleTitle, timeRange) {
     this.state[tabId] = {
@@ -54,19 +66,20 @@ define(function () {
       r: { b: timeRange.beg, e: timeRange.end },
       g: {},
     };
-    this.addSub('GraphRequested-' + tabId, 
+    this.addSub('GraphRequested-' + tabId,
                 _.bind(this.addGraph, this, tabId));
-    this.addSub('GraphUnrequested-' + tabId, 
+    this.addSub('GraphUnrequested-' + tabId,
                 _.bind(this.removeGraph, this, tabId));
-    this.addSub('VisibleTimeChange-' + tabId, 
+    this.addSub('VisibleTimeChange-' + tabId,
                 _.bind(this.updateTimeRange, this, tabId));
-    this.addSub('ShowFolderItem-target-' + tabId, 
+    this.addSub('ShowFolderItem-target-' + tabId,
                 _.bind(this.updateVisibility, this, tabId, true));
-    this.addSub('HideFolderItem-target-' + tabId, 
+    this.addSub('HideFolderItem-target-' + tabId,
                 _.bind(this.updateVisibility, this, tabId, false));
-    this.addSub('VehicleUnrequested-' + tabId, 
+    this.addSub('VehicleUnrequested-' + tabId,
                 _.bind(this.removeTab, this, tabId));
     this.addGraph(tabId, 'MASTER');
+    this.update();
   }
 
   StateMonitor.prototype.removeTab = function (tabId) {
@@ -80,6 +93,7 @@ define(function () {
     this.removeSub('HideFolderItem-target-' + tabId);
     this.removeSub('VehicleUnrequested-' + tabId);
     delete this.state[tabId];
+    this.update();
   }
 
   StateMonitor.prototype.addGraph = function (tabId, graphId) {
@@ -89,6 +103,7 @@ define(function () {
                 _.bind(this.addChannel, this, tabId, graphId));
     this.addSub('ChannelUnrequested-' + handle,
                 _.bind(this.removeChannel, this, tabId, graphId));
+    this.update();
   }
 
   StateMonitor.prototype.removeGraph = function (tabId, graphId) {
@@ -96,6 +111,7 @@ define(function () {
     this.removeSub('ChannelRequested-' + handle);
     this.removeSub('ChannelUnRequested-' + handle);
     delete this.state[tabId].g[graphId];
+    this.update();
   }
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
@@ -103,19 +119,22 @@ define(function () {
     _.each(channel, _.bind(function (c) {
       this.state[tabId].g[graphId][c.channelName] = c;
     }, this));
+    this.update();
   }
 
   StateMonitor.prototype.removeChannel = function (tabId, graphId, channel) {
     delete this.state[tabId].g[graphId][channel.channelName];
+    this.update();
   }
-
 
   StateMonitor.prototype.updateTimeRange = function (tabId, beg, end) {
     this.state[tabId].r = { b: beg, e: end };
+    this.update();
   }
 
   StateMonitor.prototype.updateVisibility = function (tabId, visible) {
     this.state[tabId].v = visible;
+    this.update(true);
   }
 
   StateMonitor.prototype.addSub = function (topic, fn) {
@@ -124,8 +143,24 @@ define(function () {
   }
 
   StateMonitor.prototype.removeSub = function (topic) {
+    // WHY do some topics not get deleted?
+    // This makes no sense!
     App.unsubscribe(topic, this.subs[topic]);
     delete this.subs[topic];
+    // var rem = _.bind(function () {
+    //   var before = _.size(this.subs);
+    //   delete this.subs[topic];
+    //   var after = _.size(this.subs);
+    //   this.subs = {};
+    //   return before !== after && after !== 0;
+    // }, this);
+    // (function attempt() {
+    //   _.delay(function () {
+    //     if (!rem()) {
+    //       attempt();
+    //     }
+    //   }, 100);
+    // })();
   }
 
   /*!
@@ -140,10 +175,14 @@ define(function () {
         // which are not encodable.
         // Replace them with commas.
         var k = k.replace(/\./g, ',');
+        var kk = key ? key + objectDelimiter + k : k;
         if (_.isObject(v))
-          step(v, key ? key + objectDelimiter + k : k);
+          if (!_.isEmpty(v))
+            step(v, kk);
+          else 
+            str += encodeURIComponent(kk) + '=false&';
         else
-          str += encodeURIComponent(key + objectDelimiter + k) +
+          str += encodeURIComponent(kk) +
                   '=' + encodeURIComponent(v) + '&';
       });
     })(obj);

@@ -81,26 +81,30 @@ define(['jquery',
     search: function (e) {},
 
     resize: function () {
-      var win = $(window);
-      if (this.offset.top === 0)
-        this.offset = this.options.target ?
-            $('.' + this.options.target).offset() :
-            this.el.offset();
-      if (this.options.height !== null && this.options.height !== undefined) {
-        var dest = 'string' === typeof this.options.height ?
-            { height: parseInt(this.options.height) } :
-            { height: Math.floor((win.height() - 76 - 57)
-                * this.options.height / 100 - this.options.bottomPad) };
-        if (this.options.animate && this.options.height !== 0) {
-          this.content.animate(dest, 'fast');
+      try {
+        var win = $(window);
+        if (this.offset.top === 0)
+          this.offset = this.options.target ?
+              $('.' + this.options.target).offset() :
+              this.el.offset();
+        if (this.options.height !== null && this.options.height !== undefined) {
+          var dest = 'string' === typeof this.options.height ?
+              { height: parseInt(this.options.height) } :
+              { height: Math.floor((win.height() - 76 - 57)
+                  * this.options.height / 100 - this.options.bottomPad) };
+          if (this.options.animate && this.options.height !== 0) {
+            this.content.animate(dest, 'fast');
+          } else {
+            this.content.css(dest);
+            this.options.animate = false; // keep this off for now...
+          }
         } else {
-          this.content.css(dest);
-          this.options.animate = false; // keep this off for now...
+          this.content.height(win.height() - this.offset.top - 39);
         }
-      } else {
-        this.content.height(win.height() - this.offset.top - 39);
+        this.addScroll();
+      } catch (err) {
+        console.log(err);
       }
-      this.addScroll();
     },
 
     addScroll: function (cb) {

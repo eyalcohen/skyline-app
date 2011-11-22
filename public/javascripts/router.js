@@ -5,14 +5,26 @@
 define(['jquery'], function ($) {
   return Backbone.Router.extend({
 
+    initialize: function(options) {
+      // Heuristically filter the matches to reduce
+      // likelihood of an invalid app state.
+      this.route(/\?([A-Za-z0-9-]{5}\..*)/, 'query', this.query);
+    },
+
     routes: {
-      '': 'dashboard',
+      '': 'query',
       'vehicle/:id': 'vehicle',
       'state/:key': 'state',
     },
 
-    dashboard: function () {
+    query: function (str) {
+      // Brutally kills everything and
+      // loads all content from scratch.
+      // TODO: Be nicer.
+      App.publish('KillallTabs');
       App.publish('ShowFolderItem-dashboard');
+      App.stateMonitor.resetState();
+      App.stateMonitor.setState(str);
     },
 
     vehicle: function (id) {
@@ -42,18 +54,6 @@ define(['jquery'], function ($) {
       }
       App.stateMonitor.resetState();
       App.stateMonitor.setState(state);
-    },
-
-    getTimeFromURL: function () {
-      var str = window.location.search;
-      if (str === '') return;
-      var frags = str.substr(1).split('&'), time;
-      _.each(frags, function (f) {
-        var parms = f.split('=');
-        if ('time' === parms[0])
-          time = parms[1].split(',');
-      });
-      return time ? { beg: time[0], end: time[1] } : false;
     },
 
   });

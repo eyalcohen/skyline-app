@@ -380,7 +380,7 @@ define(['views/dashItem', 'plot_booter',
     },
 
     setupLegend: function () {
-      console.log('drawLegend( ' + this.options.id + ' )...');
+      // console.log('drawLegend( ' + this.options.id + ' )...');
       this.plot.setupLegend(_.bind(function (okay) {
         if (okay)
           this.ensureLegendRedraw = false;
