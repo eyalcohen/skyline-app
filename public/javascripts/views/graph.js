@@ -449,7 +449,6 @@ define(['views/dashItem', 'plot_booter',
           });
           if (hp) {
             if (graph === self && mouse) {
-              // Is this crazy ???????
               // Check for mouse near vertical lines
               // as well as horizontal lines.
               var dx = Infinity, dy = Infinity;
@@ -460,23 +459,25 @@ define(['views/dashItem', 'plot_booter',
                   i > 0 && i < series.data.length - 2) {
                 var hpl = series.data[i - 1];
                 var hpr = series.data[i + 1];
-                var hplxc = series.xaxis.p2c(hpl[0]);
-                var hplyc = series.yaxis.p2c(hpl[1]);
-                var hpryc = series.yaxis.p2c(hpr[1]);
-                var dxl = mouse.x - hplxc;
-                var dxr = hpxc - mouse.x;
-                if ((mouse.y > hpyc && mouse.y < hpryc) ||
-                    (mouse.y > hpryc && mouse.y < hpyc)) {
-                  dx = dxr;
-                } else if (i > 2) {
-                  var hpll = series.data[i - 2];
-                  var hpllyc = series.yaxis.p2c(hpll[1]);                  
-                  var goingUp = hp[1] < hpr[1];
-                  if ((goingUp && mouse.y > hplyc &&
-                      mouse.y < hpllyc) ||
-                      (!goingUp && mouse.y < hplyc &&
-                      mouse.y > hpllyc)) {
-                    dx = dxl;
+                if (hpr) {
+                  var hplxc = series.xaxis.p2c(hpl[0]);
+                  var hplyc = series.yaxis.p2c(hpl[1]);
+                  var hpryc = series.yaxis.p2c(hpr[1]);
+                  var dxl = mouse.x - hplxc;
+                  var dxr = hpxc - mouse.x;
+                  if ((mouse.y > hpyc && mouse.y < hpryc) ||
+                      (mouse.y > hpryc && mouse.y < hpyc)) {
+                    dx = dxr;
+                  } else if (i > 2) {
+                    var hpll = series.data[i - 2];
+                    var hpllyc = series.yaxis.p2c(hpll[1]);                  
+                    var goingUp = hp[1] < hpr[1];
+                    if ((goingUp && mouse.y > hplyc &&
+                        mouse.y < hpllyc) ||
+                        (!goingUp && mouse.y < hplyc &&
+                        mouse.y > hpllyc)) {
+                      dx = dxl;
+                    }
                   }
                 }
               }

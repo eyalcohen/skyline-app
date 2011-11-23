@@ -55,12 +55,13 @@ define(['jquery',
 
     clickTab: function (e) {
       App.publish('ShowFolderItem-' + this.options.targetClass);
-      // if (this.vehicleId)
-      //   App.router.navigate('vehicle/' + this.vehicleId);
+      if (this.vehicleId)
+        if (e)
+          App.router.go('vehicle/' + this.vehicleId, this.vehicleId);
+        else App.router.navigate('vehicle/' + this.vehicleId);
       // Don't click dash on first load
       // if vehicle or state is requested.
-      // else if (e)
-      //   App.router.navigate('/');
+      else if (e) App.router.navigate('/');
     },
 
     show: function (e) {
@@ -103,9 +104,9 @@ define(['jquery',
       if (this.tab.hasClass('tab-active') && clicked) {
         var otherTab = $(tabs.get(targetIndex-1));
         App.publish('ShowFolderItem-'+ otherTab.data('tabTarget'));
-        // var oid = otherTab.data('vehicleId');
-        // if (oid) App.router.navigate('vehicle/' + oid);
-        // else App.router.navigate('/');
+        var oid = otherTab.data('vehicleId');
+        if (oid) App.router.go('vehicle/' + oid, oid);
+        else App.router.navigate('/');
       }
       this.tab.remove();
       tabs = $('.tab-dynamic');

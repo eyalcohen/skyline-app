@@ -6,15 +6,21 @@ define(['jquery'], function ($) {
   return Backbone.Router.extend({
 
     initialize: function(options) {
+      this.route(/^vehicle\/([0-9]+)(?:\?time=(.*))?/, 'vehicle', this.vehicle);
+      this.route(/^state\/([A-Za-z0-9]{5})(?:\?time=(.*))?/, 'state', this.state);      
       // Heuristically filter the matches to reduce
       // likelihood of an invalid app state.
-      this.route(/\?([A-Za-z0-9-]{5}\..*)/, 'query', this.query);
+      this.route(/\?([A-Za-z0-9]{5}\..*)/, 'query', this.query);
     },
 
     routes: {
-      '': 'query',
-      'vehicle/:id': 'vehicle',
-      'state/:key': 'state',
+      '': 'dashboard',
+    },
+
+    go: function (frag, vehicleId, opts) {
+      var lastTime = App.stateMonitor.getVehicleTime(vehicleId);
+      this.navigate(frag, opts);
+      this.updateURLTime(lastTime.beg, lastTime.end);
     },
 
     query: function (str) {
@@ -27,11 +33,19 @@ define(['jquery'], function ($) {
       App.stateMonitor.setState(str);
     },
 
-    vehicle: function (id) {
+    dashboard: function () {
+      App.publish('ShowFolderItem-dashboard');
+    },
+
+    vehicle: function (id, q) {
+      var urlTime = q ? this.parseURLTime(q) : null;
       var tab = $('[data-id="' + id + '"]');
       if (tab.length !== 0) {
         var tabId = tab.data('tabTarget');
         App.publish('ShowFolderItem-' + tabId);
+        if (urlTime)
+          App.publish('VisibleTimeChange-' + tabId,
+              [urlTime.beg, urlTime.end]);
       } else {
         var tr = $('#vehicle_' + id);
         var items = tr.attr('id').split('_');
@@ -40,8 +54,9 @@ define(['jquery'], function ($) {
         var lastCycle = time === 0 ? null :
             JSON.parse($('[data-cycle]', tr).attr('data-cycle'));
         var tabId = App.util.makeId();
-        var timeRange = { beg: lastCycle.beg, end: lastCycle.end };
-        App.publish('VehicleRequested', [Number(id), tabId, title, timeRange]);
+        var timeRange = urlTime || { beg: lastCycle.beg, end: lastCycle.end };
+        App.publish('VehicleRequested',
+                    [Number(id), tabId, title, timeRange]);
       }
     },
 
@@ -54,6 +69,23 @@ define(['jquery'], function ($) {
       }
       App.stateMonitor.resetState();
       App.stateMonitor.setState(state);
+    },
+
+    parseURLTime: function (str) {
+      var times = str.split(',');
+      if (times.length !== 2)
+        return false;
+      var beg = Number(times[0]);
+      var end = Number(times[1]);
+      if (isNaN(beg) || isNaN(end))
+        return false;
+      return { beg: beg, end: end };
+    },
+
+    updateURLTime: function (beg, end) {
+      var timeStr = '?time=' + beg + ',' + end;
+      this.navigate(window.location.pathname +
+                    timeStr, { replace: true });
     },
 
   });

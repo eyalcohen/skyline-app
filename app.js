@@ -143,8 +143,14 @@ function fetchAppState(data, cb) {
 
 /////////////// Configuration
 
-var app = module.exports = express.createServer();
+// Keep this off for now because we need some
+// methods for only using it in production.
+// var app = module.exports = express.createServer({
+//   key: fs.readFileSync(__dirname + '/keys/privatekey.pem'),
+//   cert: fs.readFileSync(__dirname + '/keys/certificate.pem'),
+// });
 
+var app = module.exports = express.createServer();
 
 app.configure('development', function () {
   app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples');
@@ -335,7 +341,6 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
   // Example: curl 'http://localhost:8080/export/1772440972/data.csv?beg=1309914019674000&end=1309916383000000&chan=$beginDate&chan=$beginTime&chan=$beginAbsTime&chan=$duration&chan=$beginRelTime&chan=$endRelTime&chan=gps.speed_m_s&chan=gps.latitude_deg&chan=gps.longitude_deg&chan=gps.altitude_m&chan=accel.x_m_s2&minDuration=10000000&minmax'
   try {
     var vehicleId = req.vehicle._id;
-    // if ('toNumber' in vehicleId) vehicleId = vehicleId.toNumber();
     var resample = numParam('resample');
     var beginTime = numParam('beg', resample != null);
     var endTime = numParam('end', resample != null);

@@ -17,7 +17,7 @@ define(function () {
   }
 
   StateMonitor.prototype.getState = function () {
-    return encode(this.state);
+    return this.state;
   }
 
   StateMonitor.prototype.setState = function (str) {
@@ -50,12 +50,12 @@ define(function () {
     this.state = {};
   }
 
-  StateMonitor.prototype.update = function (save) {
-    var frag = encode(this.state);
-    frag = frag !== '' ? '/?' + frag : '/';
-    console.log('updateURI(', save ? 'push' : 'replace', ')...');
-    App.router.navigate(frag, { replace: !save });
-  },
+  StateMonitor.prototype.getVehicleTime = function (vehicleId) {
+    var tab = _.find(this.state, function (v, k) {
+      return v.i === vehicleId;
+    });
+    return { beg: tab.r.b, end: tab.r.e };
+  }
 
   StateMonitor.prototype.addTab =
       function (vehicleId, tabId, vehicleTitle, timeRange) {
@@ -79,7 +79,7 @@ define(function () {
     this.addSub('VehicleUnrequested-' + tabId,
                 _.bind(this.removeTab, this, tabId));
     this.addGraph(tabId, 'MASTER');
-    this.update();
+    App.router.updateURLTime(timeRange.beg, timeRange.end);
   }
 
   StateMonitor.prototype.removeTab = function (tabId) {
@@ -93,7 +93,6 @@ define(function () {
     this.removeSub('HideFolderItem-target-' + tabId);
     this.removeSub('VehicleUnrequested-' + tabId);
     delete this.state[tabId];
-    this.update();
   }
 
   StateMonitor.prototype.addGraph = function (tabId, graphId) {
@@ -103,7 +102,6 @@ define(function () {
                 _.bind(this.addChannel, this, tabId, graphId));
     this.addSub('ChannelUnrequested-' + handle,
                 _.bind(this.removeChannel, this, tabId, graphId));
-    this.update();
   }
 
   StateMonitor.prototype.removeGraph = function (tabId, graphId) {
@@ -111,7 +109,6 @@ define(function () {
     this.removeSub('ChannelRequested-' + handle);
     this.removeSub('ChannelUnRequested-' + handle);
     delete this.state[tabId].g[graphId];
-    this.update();
   }
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
@@ -119,22 +116,19 @@ define(function () {
     _.each(channel, _.bind(function (c) {
       this.state[tabId].g[graphId][c.channelName] = c;
     }, this));
-    this.update();
   }
 
   StateMonitor.prototype.removeChannel = function (tabId, graphId, channel) {
     delete this.state[tabId].g[graphId][channel.channelName];
-    this.update();
   }
 
   StateMonitor.prototype.updateTimeRange = function (tabId, beg, end) {
     this.state[tabId].r = { b: beg, e: end };
-    this.update();
+    App.router.updateURLTime(beg, end);
   }
 
   StateMonitor.prototype.updateVisibility = function (tabId, visible) {
     this.state[tabId].v = visible;
-    this.update(true);
   }
 
   StateMonitor.prototype.addSub = function (topic, fn) {
@@ -147,20 +141,6 @@ define(function () {
     // This makes no sense!
     App.unsubscribe(topic, this.subs[topic]);
     delete this.subs[topic];
-    // var rem = _.bind(function () {
-    //   var before = _.size(this.subs);
-    //   delete this.subs[topic];
-    //   var after = _.size(this.subs);
-    //   this.subs = {};
-    //   return before !== after && after !== 0;
-    // }, this);
-    // (function attempt() {
-    //   _.delay(function () {
-    //     if (!rem()) {
-    //       attempt();
-    //     }
-    //   }, 100);
-    // })();
   }
 
   /*!
@@ -214,6 +194,16 @@ define(function () {
       });
     });
     return obj;
+  }
+
+  /*!
+   * Changes the current URL to relect the app state.
+   */
+  function update(state, save) {
+    var frag = encode(state);
+    frag = frag !== '' ? '/?' + frag : '/';
+    console.log('updateURI(', save ? 'push' : 'replace', ')...');
+    App.router.navigate(frag, { replace: !save });
   }
 
   var objectDelimiter = '.';

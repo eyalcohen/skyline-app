@@ -36,9 +36,9 @@ define(['views/dashItem', 'plot_booter'],
       'mousedown .navigator-window': 'moveWindow',
       'mousemove .navigator-window': 'hoverWindow',
       'mouseleave .navigator-window': 'exitWindow',
-      'mousewheel .navigator-window': 'passWindowEvent',
-      'DOMMouseScroll .navigator-window': 'passWindowEvent',
-      'dblclick .navigator-window': 'passWindowEvent',
+      // 'mousewheel .navigator-window': 'passWindowEvent',
+      // 'DOMMouseScroll .navigator-window': 'passWindowEvent',
+      // 'dblclick .navigator-window': 'passWindowEvent',
     },
 
     render: function (opts) {
@@ -104,8 +104,9 @@ define(['views/dashItem', 'plot_booter'],
         });
       });
       self.holder = $('.navigator > div', self.content);
+      self.visibleBox = $(self.options.parent + ' .navigator-window');
       self.expandTime(beg / 1e3, end / 1e3,
-                      function (beg, end) {
+          function (beg, end) {
         self.plot = $.plot(self.holder, [], {
           xaxis: {
             show: true,
@@ -149,22 +150,21 @@ define(['views/dashItem', 'plot_booter'],
           },
         });
         $('.navigator', self.content).data({ plot: self.plot });
-        self.visibleBox = $(self.options.parent + ' .navigator-window');
         self.hookScale();
       });
 
       function bindEventsHook(plot, eventHolder) {
-        plot.getPlaceholder()
-            .bind('mousewheel DOMMouseScroll', function (e, delta) {
-              graphZoomClick(e, e.shiftKey ? 1.25 : 1.05, delta < 0);
-              return false;
-            })
-            .dblclick(function (e) {
-              graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
-            });
+        _.each([plot.getPlaceholder(), self.visibleBox], function (elem) {
+          elem.bind('mousewheel DOMMouseScroll', function (e, delta) {
+            graphZoomClick(e, e.shiftKey ? 1.25 : 1.05, delta < 0);
+            return false;
+          }).dblclick(function (e) {
+            graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+          });
+        });
         $('canvas.flot-overlay', self.content)
             .bind('drag', self.debouncedDrawWindow);
-        
+
         function graphZoomClick(e, factor, out) {
           var c = plot.offset();
           c.left = e.pageX - c.left;
@@ -423,6 +423,9 @@ define(['views/dashItem', 'plot_booter'],
     },
 
     passWindowEvent: function (e) {
+      // var wheel = e.wheelDelta || e.originalEvent.detail
+      // var detail = e.detail || e.originalEvent.detail;
+      // console.log(e.wheelDelta, detail, e.wheelDelta || detail);
       this.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
     },
 
