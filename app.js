@@ -143,13 +143,12 @@ function fetchAppState(data, cb) {
 
 /////////////// Configuration
 
-// Keep this off for now because we need some
-// methods for only using it in production.
-// var app = module.exports = express.createServer({
-//   key: fs.readFileSync(__dirname + '/keys/privatekey.pem'),
-//   cert: fs.readFileSync(__dirname + '/keys/certificate.pem'),
-// });
-
+// if (process.env.NODE_ENV && process.env.NODE_ENV == 'production')
+//   var app = module.exports = express.createServer({
+//     key: fs.readFileSync(__dirname + '/keys/production/privatekey.pem'),
+//     cert: fs.readFileSync(__dirname + '/keys/production/certificate.pem'),
+//   });
+// else
 var app = module.exports = express.createServer();
 
 app.configure('development', function () {
@@ -1287,6 +1286,7 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function saveAppState(data, cb) {
+    console.log(data);
     if (!checkAuth(cb)) return;
     var state = new AppState({ val: data });
     state.save(function (err) {

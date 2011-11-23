@@ -17,7 +17,7 @@ define(function () {
   }
 
   StateMonitor.prototype.getState = function () {
-    return this.state;
+    return encode(this.state);
   }
 
   StateMonitor.prototype.setState = function (str) {
