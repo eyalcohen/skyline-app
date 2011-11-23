@@ -6,6 +6,7 @@ define(['jquery'], function ($) {
   return Backbone.Router.extend({
 
     initialize: function(options) {
+      this.updateURLTime = _.debounce(this.updateURLTime, 500);
       this.route(/^vehicle\/([0-9]+)(?:\?time=(.*))?/, 'vehicle', this.vehicle);
       this.route(/^state\/([A-Za-z0-9]{5})(?:\?time=(.*))?/, 'state', this.state);      
       // Heuristically filter the matches to reduce

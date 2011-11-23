@@ -152,7 +152,8 @@ define(['views/dashItem',
       var self = this;
       self.cachedVisibleTime = { beg: beg, end: end };
       function handleNode(parent) {
-        var nodes = $('ul>li', parent);
+        if (!parent) return;
+        var nodes = $('ul > li', parent);
         var visibleNodeCount = 0;
         nodes.each(function (i) {
           var node = $(nodes.get(i));

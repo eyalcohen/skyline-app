@@ -1286,7 +1286,6 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function saveAppState(data, cb) {
-    console.log(data);
     if (!checkAuth(cb)) return;
     var state = new AppState({ val: data });
     state.save(function (err) {
