@@ -18,14 +18,17 @@ define(function () {
       // use .set for data or dataMinMax to avoid this overhead.
       self.data = {};  // Map from channelName to data.
       self.dataMinMax = {};  // Map from channelName to data.
-      var tabId = args.tabId;
-      self.clientId = tabId + '-graph-' + args.id;
-      _.bindAll(self, 'destroy', 'updateCacheSubscription', 'changeVisibleTime',
-          'addChannel', 'removeChannel', 'updateSampleSet');
+      var tabId = args.tabId, id = args.id;
+      self.clientId = tabId + '-graph-' + id;
+      _.bindAll(self, 'destroy', 'updateCacheSubscription',
+          'changeVisibleTime', 'addChannel', 'removeChannel',
+          'fetchGraphedChannels', 'updateSampleSet');
       App.subscribe('VehicleUnrequested-' + tabId, self.destroy);
       App.subscribe('VisibleTimeChange-' + tabId, self.changeVisibleTime);
-      App.subscribe('ChannelRequested-' + tabId + '-' + args.id, self.addChannel);
-      App.subscribe('ChannelUnrequested-' + tabId + '-' + args.id, self.removeChannel);
+      App.subscribe('ChannelRequested-' + tabId + '-' + id, self.addChannel);
+      App.subscribe('ChannelUnrequested-' + tabId + '-' + id,
+                    self.removeChannel);
+      App.subscribe('FetchGraphedChannels-' + tabId, self.fetchGraphedChannels);
       App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
       self.view.bind('VisibleTimeChange', function (beg, end) {
         self.updateCacheSubscription();
@@ -38,15 +41,17 @@ define(function () {
     },
 
     destroy: function () {
-      var self = this, tabId = self.get('tabId');
-      var id = self.get('id');
-      App.unsubscribe('VehicleUnrequested-' + tabId, self.destroy);
-      App.unsubscribe('VisibleTimeChange-'+ tabId, self.changeVisibleTime);
-      App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, self.addChannel);
-      App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id, self.removeChannel);
-      App.sampleCache.unbind('update-' + self.clientId, self.updateSampleSet);
-      App.sampleCache.endClient(self.clientId);
-      self.view.destroy();
+      var tabId = this.get('tabId'), id = this.get('id');
+      App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
+      App.unsubscribe('VisibleTimeChange-'+ tabId, this.changeVisibleTime);
+      App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, this.addChannel);
+      App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id,
+                      this.removeChannel);
+      App.unsubscribe('FetchGraphedChannels-' + tabId,
+                      this.fetchGraphedChannels);
+      App.sampleCache.unbind('update-' + this.clientId, this.updateSampleSet);
+      App.sampleCache.endClient(this.clientId);
+      this.view.destroy();
     },
 
     updateCacheSubscription: function () {
@@ -99,11 +104,11 @@ define(function () {
           for (var c = 0; _.include(usedColors, c); ++c) { }
           channel.colorNum = c;
         }
-        self.trigger('channelAdded', channel.channelName);
         self.get('channels').push(channel);
         console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription();
+      App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
       return self;
     },
 
@@ -114,9 +119,13 @@ define(function () {
       if (index === -1) return;
       self.get('channels').splice(index, 1);
       console.log('removeChannel(', channel, ')...');
-      self.view.trigger('channelRemoved', channel);
       self.updateCacheSubscription();
+      App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
       return self;
+    },
+
+    fetchGraphedChannels: function(cb) {
+      cb(this.get('channels'));
     },
 
     updateSampleSet: function (sampleSet) {

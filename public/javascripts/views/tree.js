@@ -48,9 +48,11 @@ define(['views/dashItem',
           cnt(child);
         });
       })(data, true);
-      self.treeHolder = $('.tree', this.content).jstree({
+      self.treeHolder = $('.tree', this.content)
+          .bind('loaded.jstree', _.bind(self.updateCheckedChannels, self, true))
+          .jstree({
         json_data: {
-          data: function (n, cb) {            
+          data: function (n, cb) {
             var numDone = 0;
             var defaultChannel;
             (function fillInternal(node, top) {
@@ -144,6 +146,107 @@ define(['views/dashItem',
       return self;
     },
 
+    changeVisibleTime: function (beg, end) {
+      // Hide all channels which do not have schema in the given time range,
+      // and are not checked.
+      var self = this;
+      self.cachedVisibleTime = { beg: beg, end: end };
+      function handleNode(parent) {
+        var nodes = $('ul>li', parent);
+        var visibleNodeCount = 0;
+        nodes.each(function (i) {
+          var node = $(nodes.get(i));
+          var channelName = node.attr('id');
+          if (channelName == null) {
+            // This is a parent node.
+            var visibleChildCount = handleNode(node);
+            visibleNodeCount += visibleChildCount;
+            if (visibleChildCount) {
+              node.show();
+            } else {
+              node.hide();
+            }
+          } else {
+            var channelInfo = self.model.findChannelInfo(channelName);
+            var visible = channelInfo.valid.some(function(v) {
+              return v.beg < end && v.end > beg;
+            });
+            if (visible) {
+              node.show();
+              $('a', node).css({ color: 'black' });
+              ++visibleNodeCount;
+            } else if (node.hasClass('jstree-checked')) {
+              node.show();
+              $('a', node).css({ color: 'gray' });
+              ++visibleNodeCount;
+            } else {
+              node.hide();
+            }
+          }
+        });
+        return visibleNodeCount;
+      };
+      handleNode(self.treeHolder);
+    },
+
+    updateCheckedChannels: function (ensureOpen) {
+      // Update all check marks.
+      var self = this;
+      var channelsGraphed = {};
+      App.publish('FetchGraphedChannels-' + self.model.get('tabId'), 
+                  [ function(channels) {
+        channels.forEach(function(chan) {
+          channelsGraphed[chan.channelName] = true;
+        });
+      } ]);
+
+      function handleNode(parent) {
+        var nodes = $('ul>li', parent);
+        var checkedNodeCount = 0, allNodeCount = 0;
+        nodes.each(function (i) {
+          var node = $(nodes.get(i));
+          var channelName = node.attr('id');
+          if (channelName == null) {
+            // This is a parent node.
+            var childCounts = handleNode(node);
+            checkedNodeCount += childCounts.checked;
+            allNodeCount += childCounts.all;
+            if (childCounts.checked == 0) {
+              node.removeClass('jstree-checked')
+                  .removeClass('jstree-undetermined')
+                  .addClass('jstree-unchecked');
+            } else if (childCounts.checked == childCounts.all) {
+              node.removeClass('jstree-unchecked')
+                  .removeClass('jstree-undetermined')
+                  .addClass('jstree-checked');
+            } else {
+              node.removeClass('jstree-checked')
+                  .removeClass('jstree-unchecked')
+                  .addClass('jstree-undetermined');
+            }
+            if (ensureOpen && childCounts.checked) {
+              self.treeHolder.jstree('open_node', node, false, true);
+            }
+          } else {
+            ++allNodeCount;
+            if (channelsGraphed[channelName]) {
+              if (node.hasClass('jstree-unchecked'))
+                node.removeClass('jstree-unchecked').addClass('jstree-checked');
+              ++checkedNodeCount;
+            } else {
+              if (node.hasClass('jstree-checked'))
+                node.removeClass('jstree-checked').addClass('jstree-unchecked');
+            }
+          }
+        });
+        return { checked: checkedNodeCount, all: allNodeCount };
+      };
+      handleNode(self.treeHolder);
+      if (self.cachedVisibleTime)
+        self.changeVisibleTime(self.cachedVisibleTime.beg,
+                               self.cachedVisibleTime.end);
+    },
+
     nodeClickHandler: function (e) {
       var self = this;
       var target = $(e.target);
@@ -201,28 +304,12 @@ define(['views/dashItem',
           channel.yaxisNum = yaxisNum;
           App.publish('ChannelRequested-' + 
               self.model.get('tabId') + '-' + graphId, [channel]);
-          if (child.hasClass('jstree-unchecked')) {
-            child.removeClass('jstree-unchecked')
-                .addClass('jstree-checked');
-          }
         });
-        if (data.o.hasClass('jstree-unchecked')) {
-          data.o.removeClass('jstree-unchecked')
-              .addClass('jstree-checked');
-        } else if (data.o.hasClass('jstree-undetermined')) {
-          data.o.removeClass('jstree-undetermined')
-            .addClass('jstree-checked');
-        }
       } else {
         var channel = _.clone(data.o.data());
         channel.yaxisNum = data.r.data('axis.n');
         App.publish('ChannelRequested-' + 
             self.model.get('tabId') + '-' + graphId, [channel]);
-        if (data.o.hasClass('jstree-unchecked')) {
-          data.o.removeClass('jstree-unchecked')
-              .addClass('jstree-checked');
-        }
-        self.handleParentVisibility(data.o.parent().parent());
       }
       if (data.r.data('dragout'))
         data.r.data('dragout').call(data.r);
@@ -260,59 +347,6 @@ define(['views/dashItem',
     search: function (e) {
       var txt = $(e.target).val().trim();
       this.treeHolder.jstree('search', txt);
-    },
-
-    showChannel: function (channelName, ensureOpen) {
-      var self = this;
-      if (!self.ready) {
-        _.delay(_.bind(arguments.callee, self),
-            200, channelName, ensureOpen);
-        return;
-      }
-      var nodes = $('li', self.treeHolder);
-      nodes.each(function (i) {
-        var node = $(nodes.get(i));
-        if (node.attr('id') === channelName
-            && node.hasClass('jstree-unchecked')) {
-          node.removeClass('jstree-unchecked')
-              .addClass('jstree-checked');
-          self.handleParentVisibility(node.parent().parent());
-          if (ensureOpen)
-            self.treeHolder.jstree('open_node', node.parent().parent(), false, true);
-        }
-      });
-    },
-
-    hideChannel: function (channelName) {
-      var self = this;
-      var nodes = $('li', this.treeHolder);
-      nodes.each(function (i) {
-        var node = $(nodes.get(i));
-        if (node.attr('id') === channelName
-            && node.hasClass('jstree-checked')) {
-          node.removeClass('jstree-checked')
-              .addClass('jstree-unchecked');
-          self.handleParentVisibility(node.parent().parent());
-        }
-      });
-    },
-
-    handleParentVisibility: function (parentNode) {
-      var children = $('ul > li', parentNode);
-      var hasChecked = false, hasUnchecked = false;
-      children.each(function (j) {
-        var parentChild = $(children.get(j));
-        if (parentChild.hasClass('jstree-checked'))
-          hasChecked = true;
-        else if (parentChild.hasClass('jstree-unchecked'))
-          hasUnchecked = true;
-      });
-      var classToAddToParent = hasChecked && !hasUnchecked ?
-          'jstree-checked' : (hasChecked && hasUnchecked ?
-          'jstree-undetermined' : 'jstree-unchecked');
-      parentNode.removeClass('jstree-checked')
-          .removeClass('jstree-undetermined')
-          .addClass(classToAddToParent);
     },
 
   });

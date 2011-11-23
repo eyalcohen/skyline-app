@@ -5,23 +5,33 @@
 define(function (fn) {
   return Backbone.Model.extend({
     initialize: function (args) {
+      var self = this;
       if (!args) args = {};
-      _.extend(args, { model: this });
-      this.view = new App.views.TreeView(args);
-      _.bindAll(this, 'destroy', 'fetchChannelInfo');
-      this.view.bind('hideChannel', _.bind(this.view.hideChannel, this.view));
-      App.subscribe('VehicleUnrequested-' + args.tabId, this.destroy);
+      _.extend(args, { model: self });
+      self.view = new App.views.TreeView(args);
+      _.bindAll(self, 'destroy', 'changeVisibleTime', 'updateCheckedChannels',
+                'fetchChannelInfo');
+      var tabId = args.tabId, vehicleId = args.vehicleId;
+      App.subscribe('VehicleUnrequested-' + tabId, self.destroy);
+      App.subscribe('VisibleTimeChange-' + tabId, self.changeVisibleTime);
+      self.updateCheckedChannelsDebounced =
+          _.debounce(self.updateCheckedChannels, 50);
+      App.subscribe('GraphedChannelsChanged-' + tabId,
+                    self.updateCheckedChannelsDebounced);
       // This is a horribly crufty way to allow fetching the channel tree by
       // other models...  Perhaps instead we should subscribe to _schema, and
       // build the channel tree client-side?
-      App.subscribe('FetchChannelInfo-' + args.vehicleId, this.fetchChannelInfo);
-      return this;
+      App.subscribe('FetchChannelInfo-' + vehicleId, self.fetchChannelInfo);
+      return self;
     },
 
     destroy: function () {
-      App.unsubscribe('VehicleUnrequested-' + this.get('tabId'), this.destroy);
-      App.unsubscribe('FetchChannelInfo-' + this.get('vehicleId'),
-          this.fetchChannelInfo);
+      var tabId = this.get('tabId'), vehicleId = this.get('vehicleId');
+      App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
+      App.unsubscribe('VisibleTimeChange-' + tabId, this.changeVisibleTime);
+      App.unsubscribe('GraphedChannelsChanged-' + tabId,
+                    this.updateCheckedChannelsDebounced);
+      App.unsubscribe('FetchChannelInfo-' + vehicleId, this.fetchChannelInfo);
     },
 
     fetch: function () {
@@ -40,7 +50,15 @@ define(function (fn) {
       return this;
     },
 
-    fetchChannelInfo: function(channel, cb) {
+    changeVisibleTime: function (beg, end) {
+      this.view.changeVisibleTime(beg, end);
+    },
+
+    updateCheckedChannels: function () {
+      this.view.updateCheckedChannels();
+    },
+
+    findChannelInfo: function(channel) {
       var result = null;
       function f(desc) {
         if (desc.channelName === channel)
@@ -49,7 +67,11 @@ define(function (fn) {
           (desc.sub || []).forEach(f);
       };
       (this.get('data') || []).forEach(f);
-      cb(result);
+      return result;
+    },
+
+    fetchChannelInfo: function(chan, cb) {
+      cb(this.findChannelInfo(chan));
     },
 
   });

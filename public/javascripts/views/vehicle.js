@@ -6,8 +6,7 @@ define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
-      _.bindAll(this, 'addGraph', 'removeGraph', 'bindGraph', 'unbindGraph',
-          'checkChannelExistence', 'requestDefaultChannel');
+      _.bindAll(this, 'addGraph', 'removeGraph', 'requestDefaultChannel');
       App.subscribe('KillallTabs', this.destroy);
       return this;
     },
@@ -78,18 +77,6 @@ define(['views/folderItem'], function (FolderItemView) {
       return this;
     },
 
-    bindGraph: function (graph) {
-      _.extend(graph, Backbone.Events);
-      graph.view.bind('channelRemoved', this.checkChannelExistence);
-      graph.bind('channelAdded', _.bind(function (channelName) {
-        this.treeModel.view.showChannel(channelName, true);
-      }, this));
-    },
-
-    unbindGraph: function (graph) {
-      graph.view.unbind('channelRemoved', this.checkChannelExistence);
-    },
-
     addGraph: function (id) {
       var timeRange = this.graphModels.length === 0 ?
           this.timeRange :
@@ -106,7 +93,6 @@ define(['views/folderItem'], function (FolderItemView) {
         bottomPad: isMaster ? 63 : 0,
         id: id,
       });
-      this.bindGraph(graph);
       this.graphModels.push(graph);
       this.arrangeGraphs();
       App.publish('WindowResize');
@@ -120,7 +106,6 @@ define(['views/folderItem'], function (FolderItemView) {
       this.graphModels = _.reject(this.graphModels, function (g) {
         return g.get('id') == id;
       });
-      this.unbindGraph(graph);
       this.arrangeGraphs();
       App.publish('WindowResize');
     },
@@ -139,12 +124,6 @@ define(['views/folderItem'], function (FolderItemView) {
           g.view.options.bottomPad += padRem;
         }
       });
-    },
-
-    checkChannelExistence: function (channel) {
-      if ($('[data-channel-name="'+channel.channelName+'"]', this.el).length <= 1) {
-        this.treeModel.view.trigger('hideChannel', channel.channelName);
-      }
     },
 
     requestDefaultChannel: function (channel) {
