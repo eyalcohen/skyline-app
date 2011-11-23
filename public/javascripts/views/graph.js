@@ -470,13 +470,15 @@ define(['views/dashItem', 'plot_booter',
                     dx = dxr;
                   } else if (i > 2) {
                     var hpll = series.data[i - 2];
-                    var hpllyc = series.yaxis.p2c(hpll[1]);                  
-                    var goingUp = hp[1] < hpr[1];
-                    if ((goingUp && mouse.y > hplyc &&
-                        mouse.y < hpllyc) ||
-                        (!goingUp && mouse.y < hplyc &&
-                        mouse.y > hpllyc)) {
-                      dx = dxl;
+                    if (hpll) {
+                      var hpllyc = series.yaxis.p2c(hpll[1]);                  
+                      var goingUp = hp[1] < hpr[1];
+                      if ((goingUp && mouse.y > hplyc &&
+                          mouse.y < hpllyc) ||
+                          (!goingUp && mouse.y < hplyc &&
+                          mouse.y > hpllyc)) {
+                        dx = dxl;
+                      }
                     }
                   }
                 }
