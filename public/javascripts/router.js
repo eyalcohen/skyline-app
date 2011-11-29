@@ -7,11 +7,11 @@ define(['jquery'], function ($) {
 
     initialize: function(options) {
       this.updateURLTime = _.debounce(this.updateURLTime, 500);
-      this.route(/^vehicle\/([0-9]+)(?:\?time=(.*))?/, 'vehicle', this.vehicle);
-      this.route(/^state\/([A-Za-z0-9]{5})(?:\?time=(.*))?/, 'state', this.state);      
+      this.route(/^vehicle\/([0-9]+)(?:\?(.*))?/, 'vehicle', this.vehicle);
+      this.route(/^state\/([A-Za-z0-9]{5})/, 'state', this.state);      
       // Heuristically filter the matches to reduce
       // likelihood of an invalid app state.
-      this.route(/\?([A-Za-z0-9]{5}\..*)/, 'query', this.query);
+      this.route(/^\?([A-Za-z0-9]{5}\..*)/, 'query', this.query);
     },
 
     routes: {
@@ -73,18 +73,27 @@ define(['jquery'], function ($) {
     },
 
     parseURLTime: function (str) {
-      var times = str.split(',');
-      if (times.length !== 2)
-        return false;
-      var beg = Number(times[0]);
-      var end = Number(times[1]);
-      if (isNaN(beg) || isNaN(end))
-        return false;
-      return { beg: beg, end: end };
+      var frags = str.split('&');
+      var beg, end, dur;
+      _.each(frags, function (f) {
+        var parms = f.split('=');
+        var k = parms[0];
+        var v = Number(parms[1]);
+        switch (k) {
+          case 'beg': beg = v; break;
+          case 'end': end = v; break;
+          case 'dur': dur = v; break;
+        }
+      });
+      if (!isNaN(beg) && !isNaN(dur))
+        return { beg: beg, end: beg + dur };
+      else if (!isNaN(beg) && !isNaN(end))
+        return { beg: beg, end: end };
+      else return false;
     },
 
     updateURLTime: function (beg, end) {
-      var timeStr = '?time=' + beg + ',' + end;
+      var timeStr = '?beg=' + beg + '&dur=' + (end - beg);
       this.navigate(window.location.pathname +
                     timeStr, { replace: true });
     },

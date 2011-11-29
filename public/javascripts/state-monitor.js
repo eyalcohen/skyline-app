@@ -180,7 +180,7 @@ define(function () {
       var v = decodeURIComponent(parms[1]);
       var o = obj, len = keys.length;
       _.each(keys, function (k, i) {
-        // Put dots back after decoding commas
+        // Put dots back after decoding commas.
         k = decodeURIComponent(k).replace(/,/g, '.');
         if (i === len - 1) {
           var n = Number(v);
