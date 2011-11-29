@@ -56,6 +56,20 @@ exports.bucketSizes = exports.bucketThresholds.map(function(t, i) {
 
 
 /**
+ * Compare two sample values.
+ */
+exports.sampleValuesEqual = function(val1, val2) {
+  if (_.isObject(val1) && _.isObject(val2)) {
+    // Underscore's isEqual function is too paranoid about comparing objects
+    // created with different constructor functions but identical contents,
+    // so use this hack instead:
+    return JSON.stringify(val1) == JSON.stringify(val2);
+  } else
+    return val1 == val2;
+}
+
+
+/**
  * Merge samples which are adjacent or overlapping and share a value.
  *
  * @param samples Set of incoming samples, sorted by begin time.
@@ -72,7 +86,8 @@ exports.mergeOverlappingSamples = function(samples) {
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
       if (/*t.end >= s.beg &&*/ t.beg <= s.end &&
-          t.val == s.val && t.min == s.min && t.max == s.max) {
+          exports.sampleValuesEqual(t.val, s.val) &&
+          t.min == s.min && t.max == s.max) {
         // Samples overlap - merge them.
         t.beg = Math.min(t.beg, s.beg);
         t.end = Math.max(t.end, s.end);

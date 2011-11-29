@@ -531,7 +531,7 @@ SampleDb.prototype.deleteRedundantRealSample =
       cursorIterate(collection.find(query), function(rawSample) {
         expandRealSample(rawSample, function(s, i) {
           if (s.beg == sample.beg && s.end == sample.end &&
-              _.isEqual(s.val, sample.val)) {
+              SampleDb.sampleValuesEqual(s.val, sample.val)) {
             // Found it!  Delete!
             if (i == null || rawSample.val.length == 1) {
               // This sample is the only one in this row - delete row.
@@ -897,7 +897,7 @@ function copyProperties(to, from, props) {
 // Remove consecutive duplicate elements from array.
 function deepUnique(array) {
   return _.reduce(array, function(memo, el, i) {
-    if (0 == i || !_.isEqual(_.last(memo), el))
+    if (0 == i || !SampleDb.sampleValuesEqual(_.last(memo), el))
       memo.push(el);
     return memo;
   }, []);
@@ -999,14 +999,6 @@ SampleDb.buildChannelTree = function(samples) {
 /**
  * Merge samples which are adjacent or overlapping and share a value.
  *
- * mergeOverlappingSamples = function(samples);
- * @param samples Set of incoming samples, sorted by begin time.  Modified!
- */
-SampleDb.mergeOverlappingSamples = shared.mergeOverlappingSamples;
-
-/**
- * Merge samples which are adjacent or overlapping and share a value.
- *
  * Cases to get right:
  *   1. If two DB samples are identical, don't mark either redundant (no unique
  *      key to delete one).
@@ -1033,7 +1025,8 @@ function mergeOverlappingSamples2(samples) {
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
       if (/*t.end >= s.beg &&*/ t.beg <= s.end &&
-          _.isEqual(t.val, s.val) && t.min == s.min && t.max == s.max) {
+          SampleDb.sampleValuesEqual(t.val, s.val) &&
+          t.min == s.min && t.max == s.max) {
         var identical = s.beg == t.beg && s.end == t.end;
         // Samples overlap.  Merge them somehow and delete one.
         if (s.indb && t.indb && identical) {
@@ -1314,18 +1307,6 @@ var groupSamplesByTime = SampleDb.groupSamplesByTime = function(sampleSet) {
   }
   return result;
 }
-
-
-/**
- * Reorganize a sampleSet into a list of samples which occur with the same
- * begin and end times.
- *
- * splitSamplesByTime = function(sampleSet);
- * @param sampleSet Mapping from channel name to sample arrays.  Sample arrays
- *     must be sorted by time.
- * @return Array of maps from channel name to samples.
- */
-SampleDb.splitSamplesByTime = shared.splitSamplesByTime;
 
 
 /**

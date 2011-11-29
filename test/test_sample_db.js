@@ -86,6 +86,14 @@ exports.testMergeOverlappingSamples = function(test) {
     // Min & Max.
     { beg: 8100, end: 8200, val: 9, min: 5, max: 12 },
     { beg: 8200, end: 8300, val: 9, min: 5, max: 12 },
+    // Structured value.
+    { beg: 9000, end: 9100, val: { foo: 'bar', merge: false } },
+    { beg: 9100, end: 9300, val: { foo: 'bar', merge: false } },
+    // Overlapping, multiple at same time.
+    { beg: 10000, end: 10100, val: { foo: 'bar', merge: false } },
+    { beg: 10000, end: 10100, val: { foo: 'baz', merge: true } },
+    { beg: 10100, end: 10300, val: { foo: 'bar', merge: false } },
+    { beg: 10100, end: 10300, val: { foo: 'baz', merge: true } },
   ];
   var afterMerge = deepCopy(beforeMerge);
   SampleDb.mergeOverlappingSamples(afterMerge);
@@ -99,6 +107,9 @@ exports.testMergeOverlappingSamples = function(test) {
     { beg: 6100, end: 6300, val: 7, min: 5 },
     { beg: 7100, end: 7300, val: 8, max: 10 },
     { beg: 8100, end: 8300, val: 9, min: 5, max: 12 },
+    { beg: 9000, end: 9300, val: { foo: 'bar', merge: false } },
+    { beg: 10000, end: 10300, val: { foo: 'bar', merge: false } },
+    { beg: 10000, end: 10300, val: { foo: 'baz', merge: true } },
   ]);
   test.done();
 };
@@ -464,9 +475,9 @@ exports.testSimpleInsert = setupDbFirst(function(test) {
 
 exports.testInsertMerging = setupDbFirst(function(test) {
   var schema = [
-    { beg: 0, end: 10000,
+    { beg: 100, end: 5500,
       val: { channelName: 'testInsertMerging1', type: 'int', merge: true } },
-    { beg: 0, end: 10000,
+    { beg: 100, end: 5500,
       val: { channelName: 'testInsertMerging2', type: 'int', merge: true } },
   ];
   var beforeMerge = [
@@ -491,6 +502,15 @@ exports.testInsertMerging = setupDbFirst(function(test) {
   ];
   var evenSamples = beforeMerge.filter(function(s, i) { return i % 2 == 0; });
   var oddSamples = beforeMerge.filter(function(s, i) { return i % 2 == 1; });
+  function fixSchemaTimes(sampleSet) {
+    _.forEach(sampleSet, function(val, key) {
+      var schema = _.find(sampleSet['_schema'],
+                          function(s){ return s.val.channelName == key });
+      if (!schema) return;
+      schema.beg = _.first(val).beg;
+      schema.end = _.last(val).end;
+    });
+  }
   var sampleSet1 = {
     '_schema': deepCopy(schema),
     testInsertMerging1: oddSamples,
@@ -501,6 +521,8 @@ exports.testInsertMerging = setupDbFirst(function(test) {
     testInsertMerging1: evenSamples,
     testInsertMerging2: oddSamples,
   };
+  fixSchemaTimes(sampleSet1);
+  fixSchemaTimes(sampleSet2);
   var expected = [
     { beg: 100, end: 300, val: 1 },
     { beg: 1000, end: 1300, val: 2 },
@@ -539,6 +561,9 @@ exports.testInsertMerging = setupDbFirst(function(test) {
         return s.val.channelName.match(/^testInsertMerging/);
       });
       // There should only be a single _schema sample for each channel.
+      samples.sort(function(s1, s2) {
+        return s1.val.channelName.localeCompare(s2.val.channelName);
+      });
       test.deepEqual(samples, schema);
       this();
     },
