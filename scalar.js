@@ -50,7 +50,11 @@ var socketIORE = /^\/socket.io\//,
 function parseFrontends(arg) {
   return String(arg).split(' ').map(function(hp) {
     var m = /^(.+):([0-9]+)$/(hp);
-    return m ? { host: m[0], port: Number(m[1]) } : { port: Number(hp) };
+    return {
+      host: m && m[0],
+      port: m ? m[1] : Number(hp),
+      penalty: 0,
+    };
   });
 }
 var staticFrontends = parseFrontends(argv.static);
@@ -69,18 +73,24 @@ bouncy(function(req, bounce) {
       res.end();
       return;
     }
-    var stream = bounce(frontend.host, frontend.port, opts);
-    stream.on('error', function(e) {
+    try {
+      var stream =
+          frontend.host ?  bounce(frontend.host, frontend.port) : bounce(frontend.port);
+      stream.on('error', onerror);
+    } catch (e) {
+      onerror(e);
+    }
+    function onerror(e) {
       log(color.red('error ') + 'connecting to ' +
               color.yellow((frontend.host || '') + ':' + frontend.port) +
-              ': ' + e);
-      frontend.loadAvg = null;
+              ': ' + e.stack);
+      setLoadAvg(frontend, null, e);
       var res = bounce.respond();
       var url = 'http://' + req.headers.host + req.url;
       res.writeHead(302, 'Scalar could not connect to frontend',
                     { Location: url });
       res.end();
-    });
+    }
     return stream;
   }
 
@@ -134,15 +144,15 @@ bouncy(function(req, bounce) {
 function bestApiFrontend() {
   var bestLoad = Infinity, bestFrontend = null;
   apiFrontends.forEach(function(frontend, i) {
-    var load = frontend.loadAvg + (frontend.penalty || 0);
-    if (load < bestLoad) {
+    var load = frontend.loadAvg + frontend.penalty;
+    if (frontend.loadAvg != null && load < bestLoad) {
       bestLoad = load; bestFrontend = frontend;
     }
   });
   // Add a small penalty for each redirect to an API frontend, to distribute
   // the load.
   if (bestFrontend)
-    bestFrontend.penalty = (bestFrontend.penalty || 0) + 0.05;
+    bestFrontend.penalty += 0.05;
   return bestFrontend;
 }
 
@@ -152,6 +162,25 @@ function logRedirect(method, req, frontend) {
   log(color.red(method) + ' ' +
       color.yellow(req.client.remoteAddress + ' ' + req.url) + ' ' +
       dest);
+}
+
+function setLoadAvg(frontend, loadAvg, message) {
+  var msg;
+  if (!('loadAvg' in frontend) || (frontend.loadAvg == null) != (loadAvg == null)) {
+    log((loadAvg == null ? color.red : color.green)(
+        'Frontend ' + (frontend.host || '') + ':' + frontend.port + ' became ' +
+        (loadAvg == null ? 'unhealthy: ' : 'healthy: ') + message));
+    // When a frontend becomes healthy, assign it the lowest penalty of any API frontend.
+    // This prevents a long-dead frontend from having a very low penalty
+    // compared to all the others and getting all API traffic.
+    var penalty = Infinity;
+    apiFrontends.forEach(function(f) {
+      if (f.loadAvg != null && f.penalty < penalty)
+        penalty = f.penalty;
+    });
+    frontend.penalty = isFinite(penalty) ? penalty : 0;
+  }
+  frontend.loadAvg = loadAvg;
 }
 
 // Periodically poll all frontends for load average.
@@ -166,25 +195,19 @@ function pollFrontend(frontend) {
     res.on('data', function(chunk) {
       var n = Number(chunk);
       if (isNaN(n)) {
-        log('Polling ' + frontend.host + ':' + frontend.port +
-            ': could not parse loadAvg ' + JSON.stringify(chunk));
-        frontend.loadAvg = null;
+        setLoadAvg(frontend, null, 'could not parse loadAvg ' + JSON.stringify(chunk));
       } else {
-        //log('Polling ' + frontend.host + ':' + frontend.port + ': got loadAvg ' + n);
-        frontend.loadAvg = n;
+        setLoadAvg(frontend, n, 'got loadAvg ' + n);
       }
       clearTimeout(timeout);
     });
   });
   req.on('error', function(e) {
-    frontend.loadAvg = null;
-    log('Error polling ' + frontend.host + ':' + frontend.port +
-        ': ' + e.message);
+    setLoadAvg(frontend, null, e.message);
     clearTimeout(timeout);
   });
   var timeout = setTimeout(function() {
     req.abort();
-    frontend.loadAvg = null;
-    log('Timeout polling ' + frontend.host + ':' + frontend.port);
+    setLoadAvg(frontend, null, 'timeout');
   }, 750);
 }

@@ -847,6 +847,7 @@ if (getrusage) {
       var delta = Math.min(1, (now - lastSampleTime) * 1e-3);
       var load = (cpuTime - lastCpuTime) / delta;
       var rc = 0.2 * delta;
+      if (isNaN(loadAvg)) loadAvg = 1.0;  // Why does loadAvg occasionally become NaN?
       loadAvg = (1 - rc) * loadAvg + rc * load;
     }
     lastSampleTime = now;
