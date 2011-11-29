@@ -74,6 +74,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
                   d.container.animate({ height: h }, 200, function () {
                     $('div.close', self.container).show();
                     $('#osx-modal-data', self.container).show();
+                    $('.permalink-txt').select();
                   });
                 }, 300);
               });
