@@ -167,7 +167,7 @@ function pollFrontend(frontend) {
       var n = Number(chunk);
       if (isNaN(n)) {
         log('Polling ' + frontend.host + ':' + frontend.port +
-            ': could not parse loadAvg ' + chunk);
+            ': could not parse loadAvg ' + JSON.stringify(chunk));
         frontend.loadAvg = null;
       } else {
         //log('Polling ' + frontend.host + ':' + frontend.port + ': got loadAvg ' + n);

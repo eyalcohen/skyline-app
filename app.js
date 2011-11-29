@@ -844,7 +844,7 @@ if (getrusage) {
     var now = Date.now();
     var cpuTime = getrusage.getcputime();
     if (lastSampleTime) {
-      var delta = (now - lastSampleTime) * 1e-3;
+      var delta = Math.min(1, (now - lastSampleTime) * 1e-3);
       var load = (cpuTime - lastCpuTime) / delta;
       var rc = 0.2 * delta;
       loadAvg = (1 - rc) * loadAvg + rc * load;
