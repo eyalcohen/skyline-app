@@ -54,7 +54,6 @@ define(['views/dashItem',
         json_data: {
           data: function (n, cb) {
             var numDone = 0;
-            var defaultChannel;
             (function fillInternal(node, top) {
               var children = top ? node : node.sub || [];
               _.each(children, function (child) {
@@ -82,14 +81,10 @@ define(['views/dashItem',
                 attr: attr,
                 children: children,
               });
-              if (!defaultChannel)
-                defaultChannel = _.clone(metadata);
               numDone++;
               if (numNodes === numDone) {
                 cb(data);
                 self.ready = true;
-                if (defaultChannel)
-                  self.trigger('ready', defaultChannel);
               }
             })(data, true);
           },

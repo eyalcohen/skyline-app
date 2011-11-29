@@ -6,7 +6,7 @@ define(['views/folderItem'], function (FolderItemView) {
   return FolderItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
-      _.bindAll(this, 'addGraph', 'removeGraph', 'requestDefaultChannel');
+      _.bindAll(this, 'addGraph', 'removeGraph' );
       App.subscribe('KillallTabs', this.destroy);
       return this;
     },
@@ -33,7 +33,6 @@ define(['views/folderItem'], function (FolderItemView) {
         height: 40,
         bottomPad: 0,
       }).fetch();
-      this.treeModel.view.bind('ready', this.requestDefaultChannel);
       this.graphModels = [];
       this.mapModel = new App.models.MapModel({
         tabId: this.tabId,
@@ -124,15 +123,6 @@ define(['views/folderItem'], function (FolderItemView) {
           g.view.options.bottomPad += padRem;
         }
       });
-    },
-
-    requestDefaultChannel: function (channel) {
-      var master = _.find(this.graphModels, function (graph) {
-        return graph.id == 'MASTER';
-      });
-      if (master && master.get('channels').length === 0)
-        App.publish('ChannelRequested-' +
-            this.tabId + '-MASTER', [channel]);
     },
 
   });
