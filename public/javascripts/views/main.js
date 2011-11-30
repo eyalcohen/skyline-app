@@ -56,15 +56,14 @@ define(['jquery'], function ($) {
     loadVehicle: function (vehicleId, tabId, vehicleTitle, timeRange, hide) {
       var targetClass = 'target-' + tabId;
       var active = hide ? false : true;
-      new App.views.VehicleView({
+      new App.models.VehicleTabModel({
         targetClass: targetClass,
-      }).render({
         tabId: tabId,
         title: vehicleTitle,
         vehicleId: vehicleId,
         timeRange: timeRange,
         active: active,
-      }, 'vehicle.jade');
+      });
     },
 
   });

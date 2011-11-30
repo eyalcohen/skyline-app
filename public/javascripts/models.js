@@ -4,6 +4,7 @@
 
 define(['models/notification',
     'models/vehicle',
+    'models/vehicleTab',
     'models/map',
     'models/graph',
     'models/user',
@@ -13,11 +14,12 @@ define(['models/notification',
   return {
     NotificationModel: arguments[0],
     VehicleModel: arguments[1],
-    MapModel: arguments[2],
-    GraphModel: arguments[3],
-    UserModel: arguments[4],
-    TreeModel: arguments[5],
-    // NavigatorModel: arguments[6],
+    VehicleTabModel: arguments[2],
+    MapModel: arguments[3],
+    GraphModel: arguments[4],
+    UserModel: arguments[5],
+    TreeModel: arguments[6],
+    // NavigatorModel: arguments[7],
   };
 });
 
