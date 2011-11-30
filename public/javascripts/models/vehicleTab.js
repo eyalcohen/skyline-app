@@ -11,7 +11,6 @@ define(function (fn) {
       // Attributes of note to other models:
       //   visibleTime.beg, visibleTime.end: current visible time range, in us.
       //   navigableTime.beg, navigableTime.end: current navigator time range.
-      this.set({ visibleTime: args.timeRange });
 
       this.tabId = args.tabId;
       this.vehicleId = args.vehicleId;

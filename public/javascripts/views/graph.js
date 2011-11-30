@@ -104,12 +104,13 @@ define(['views/dashItem', 'plot_booter',
         "#96BDFF",  // Light blue
         "#D373FF",  // Light purple
       ];
+      var visibleTime = self.model.tabModel.get('visibleTime');
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
           position: 'bottom',
-          min: self.options.timeRange.beg / 1e3,
-          max: self.options.timeRange.end / 1e3,
+          min: visibleTime.beg / 1e3,
+          max: visibleTime.end / 1e3,
           tickColor: '#f0f0f0',
           labelsInside: true,
         },
@@ -369,7 +370,7 @@ define(['views/dashItem', 'plot_booter',
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
-        this.trigger('VisibleTimeChange', t.beg, t.end);
+        this.trigger('VisibleTimeChange', { beg: t.beg, end: t.end });
         this.prevBeg = t.beg;
         this.prevEnd = t.end;
       }

@@ -5,45 +5,44 @@
 define(function () {
   return Backbone.Model.extend({
     initialize: function (args) {
-      var self = this;
       if (!args) args = {};
-      _.extend(args, { model: self });
-      self.view = new App.views.GraphView(args);
-      self.set({
+      _.extend(args, { model: this });
+      this.tabModel = args.tabModel;
+      this.view = new App.views.GraphView(args);
+      this.set({
         channels: [],
-        beg: null, end: null, // Viewed time range.
       });
       // Note: Backbone's .set method does a deep comparison of the old
       // data to the new data, which is expensive for large datasets.  Don't
       // use .set for data or dataMinMax to avoid this overhead.
-      self.data = {};  // Map from channelName to data.
-      self.dataMinMax = {};  // Map from channelName to data.
+      this.data = {};  // Map from channelName to data.
+      this.dataMinMax = {};  // Map from channelName to data.
       var tabId = args.tabId, id = args.id;
-      self.clientId = tabId + '-graph-' + id;
-      _.bindAll(self, 'destroy', 'updateCacheSubscription',
-          'changeVisibleTime', 'addChannel', 'removeChannel',
+      this.clientId = tabId + '-graph-' + id;
+      _.bindAll(this, 'destroy', 'updateCacheSubscription',
+          'visibleTimeChanged', 'addChannel', 'removeChannel',
           'fetchGraphedChannels', 'updateSampleSet');
-      App.subscribe('VehicleUnrequested-' + tabId, self.destroy);
-      App.subscribe('VisibleTimeChange-' + tabId, self.changeVisibleTime);
-      App.subscribe('ChannelRequested-' + tabId + '-' + id, self.addChannel);
+      App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
+      this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
+      App.subscribe('ChannelRequested-' + tabId + '-' + id, this.addChannel);
       App.subscribe('ChannelUnrequested-' + tabId + '-' + id,
-                    self.removeChannel);
-      App.subscribe('FetchGraphedChannels-' + tabId, self.fetchGraphedChannels);
-      App.sampleCache.bind('update-' + self.clientId, self.updateSampleSet);
-      self.view.bind('VisibleTimeChange', function (beg, end) {
-        self.updateCacheSubscription();
-        App.publish('VisibleTimeChange-' + tabId, [beg, end]);
-      });
-      self.view.bind('VisibleWidthChange', self.updateCacheSubscription);
-      self.view.render();
+                    this.removeChannel);
+      App.subscribe('FetchGraphedChannels-' + tabId, this.fetchGraphedChannels);
+      App.sampleCache.bind('update-' + this.clientId, this.updateSampleSet);
+      this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
+        this.tabModel.set({ visibleTime: visibleTime });
+        this.updateCacheSubscription();
+      }, this));
+      this.view.bind('VisibleWidthChange', this.updateCacheSubscription);
+      this.view.render();
       
-      return self;
+      return this;
     },
 
     destroy: function () {
       var tabId = this.get('tabId'), id = this.get('id');
       App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
-      App.unsubscribe('VisibleTimeChange-'+ tabId, this.changeVisibleTime);
+      this.tabModel.unbind('change:visibleTime', this.visibleTimeChanged);
       App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, this.addChannel);
       App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id,
                       this.removeChannel);
@@ -87,8 +86,8 @@ define(function () {
           dur, this.prevRange.beg, this.prevRange.end);
     },
 
-    changeVisibleTime: function (beg, end) {
-      this.view.setVisibleTime(beg, end);
+    visibleTimeChanged: function (model, visibleTime) {
+      this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
     },
 
     addChannel: function (channels) {

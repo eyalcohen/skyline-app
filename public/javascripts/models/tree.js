@@ -5,30 +5,34 @@
 define(function (fn) {
   return Backbone.Model.extend({
     initialize: function (args) {
-      var self = this;
       if (!args) args = {};
-      _.extend(args, { model: self });
-      self.view = new App.views.TreeView(args);
-      _.bindAll(self, 'destroy', 'changeVisibleTime', 'updateCheckedChannels',
+      _.extend(args, { model: this });
+      this.tabModel = args.tabModel;
+      this.view = new App.views.TreeView(args);
+      _.bindAll(this, 'destroy', 'visibleTimeChanged', 'updateCheckedChannels',
                 'fetchChannelInfo');
       var tabId = args.tabId, vehicleId = args.vehicleId;
-      App.subscribe('VehicleUnrequested-' + tabId, self.destroy);
-      App.subscribe('VisibleTimeChange-' + tabId, self.changeVisibleTime);
-      self.updateCheckedChannelsDebounced =
-          _.debounce(self.updateCheckedChannels, 50);
+      App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
+      this.visibleTimeChangedDebounced =
+          _.debounce(this.visibleTimeChanged, 50);
+      this.tabModel.bind('change:visibleTime',
+                         this.visibleTimeChangedDebounced);
+      this.updateCheckedChannelsDebounced =
+          _.debounce(this.updateCheckedChannels, 50);
       App.subscribe('GraphedChannelsChanged-' + tabId,
-                    self.updateCheckedChannelsDebounced);
+                    this.updateCheckedChannelsDebounced);
       // This is a horribly crufty way to allow fetching the channel tree by
       // other models...  Perhaps instead we should subscribe to _schema, and
       // build the channel tree client-side?
-      App.subscribe('FetchChannelInfo-' + vehicleId, self.fetchChannelInfo);
-      return self;
+      App.subscribe('FetchChannelInfo-' + vehicleId, this.fetchChannelInfo);
+      return this;
     },
 
     destroy: function () {
       var tabId = this.get('tabId'), vehicleId = this.get('vehicleId');
       App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
-      App.unsubscribe('VisibleTimeChange-' + tabId, this.changeVisibleTime);
+      this.tabModel.unbind('change:visibleTime',
+                           this.visibleTimeChangedDebounced);
       App.unsubscribe('GraphedChannelsChanged-' + tabId,
                     this.updateCheckedChannelsDebounced);
       App.unsubscribe('FetchChannelInfo-' + vehicleId, this.fetchChannelInfo);
@@ -50,8 +54,8 @@ define(function (fn) {
       return this;
     },
 
-    changeVisibleTime: function (beg, end) {
-      this.view.changeVisibleTime(beg, end);
+    visibleTimeChanged: function (model, visibleTime) {
+      this.view.visibleTimeChanged(visibleTime);
     },
 
     updateCheckedChannels: function () {

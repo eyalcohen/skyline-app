@@ -8,6 +8,7 @@ define(function () {
     initialize: function (args) {
       if (!args) args = {};
       _.extend(args, { model: this });
+      this.tabModel = args.tabModel;
       this.view = new App.views.MapView(args);
       this.view.render({ waiting: true });
       _.bindAll(this, 'destroy', 'mouseHoverTime', 'updateVisibleSampleSet',
@@ -15,26 +16,30 @@ define(function () {
       this.clientIdVisible = args.tabId + '-map-visible';
       this.clientIdNavigable = args.tabId + '-map-navigable';
       App.subscribe('VehicleUnrequested-' + args.tabId, this.destroy);
-      App.subscribe('VisibleTimeChange-' + args.tabId,
-          _.bind(this.changeTime, this, this.clientIdVisible));
-      App.subscribe('NavigableTimeChange-' + args.tabId,
-          _.bind(this.changeTime, this, this.clientIdNavigable));
+      this.visibleTimeChanged =
+          _.bind(this.timeChanged, this, this.clientIdVisible);
+      this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
+      this.navigableTimeChanged =
+          _.bind(this.timeChanged, this, this.clientIdNavigable);
+      this.tabModel.bind('change:navigableTime', this.navigableTimeChanged);
       App.subscribe('MouseHoverTime-' + args.tabId, this.mouseHoverTime);
       App.sampleCache.bind('update-' + this.clientIdVisible,
           this.updateVisibleSampleSet);
       App.sampleCache.bind('update-' + this.clientIdNavigable,
           this.updateNavigableSampleSet);
+      this.timeChanged(this.clientIdVisible, null,
+                       this.tabModel.get('visibleTime'));
+      this.timeChanged(this.clientIdNavigable, null,
+                       this.tabModel.get('navigableTime'));
       return this;
     },
 
     destroy: function () {
-      App.unsubscribe('VehicleUnrequested-' + this.get('tabId'), this.destroy);
-      App.unsubscribe('VisibleTimeChange-' + this.get('tabId'),
-          this.changeTime);
-      App.unsubscribe('NavigableTimeChange-' + this.get('tabId'),
-          this.changeTime);
-      App.unsubscribe('MouseHoverTime-' + this.get('tabId'),
-          this.mouseHoverTime);
+      var tabId = this.get('tabId');
+      App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
+      this.tabModel.unbind('change:visibleTime', this.visibleTimeChanged);
+      this.tabModel.unbind('change:navigableTime', this.navigableTimeChanged);
+      App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
       App.sampleCache.unbind('update-' + this.clientIdVisible,
           this.updateVisibleSampleSet);
       App.sampleCache.endClient(this.clientIdVisible);
@@ -43,8 +48,9 @@ define(function () {
       App.sampleCache.endClient(this.clientIdNavigable);
     },
 
-    changeTime: function(clientId, beg, end) {
+    timeChanged: function(clientId, model, timeRange) {
       var maxSamples = 5000;  // Maximum latlngs to target.
+      var beg = timeRange.beg, end = timeRange.end;
       // TODO: For views which include a lot of time with no gps data, we fetch
       // very few points.  We could get clever and use the _schema time ranges
       // for gps data to use the time range which overlaps [beg,end) rather
