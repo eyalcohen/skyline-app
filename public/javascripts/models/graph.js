@@ -36,7 +36,7 @@ define(function () {
       });
       self.view.bind('VisibleWidthChange', self.updateCacheSubscription);
       self.view.render();
-      
+
       return self;
     },
 

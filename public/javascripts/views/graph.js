@@ -39,6 +39,7 @@ define(['views/dashItem', 'plot_booter',
 
     events: {
       'click .toggler': 'toggle',
+      'click .latest': 'showLatest',
       'click .export': 'exportCsv',
       'click .add-graph': 'addGraph',
       'click .graph-closer': 'removeGraph',
@@ -597,6 +598,10 @@ define(['views/dashItem', 'plot_booter',
 
     hideNotification: function () {
       this.notificationPreview.hide();
+    },
+
+    showLatest: function (e) {
+      
     },
 
     exportCsv: function (e) {

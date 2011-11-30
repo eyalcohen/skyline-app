@@ -3,6 +3,7 @@
  */
 
 define({
+
   makeId: function () {
     var text = '';
     var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
@@ -12,4 +13,12 @@ define({
             Math.random() * possible.length));
     return text;
   },
+
+  newFilledArray: function (len, val) {
+    var rv = new Array(len);
+    while (--len >= 0) rv[len] = val;
+    return rv;
+  },
+
 });
+
