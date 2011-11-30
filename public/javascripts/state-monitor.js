@@ -27,9 +27,9 @@ define(function () {
       // TODO: Handle decoding errors somehow.
       var state = decode(str);
       _.each(state, function (tab, tabId) {
-        var timeRange = { beg: tab.r.b, end: tab.r.e };
+        var visibleTime = { beg: tab.r.b, end: tab.r.e };
         App.publish('VehicleRequested',
-            [tab.i, tabId, tab.t, timeRange, !tab.v ]);
+            [tab.i, tabId, tab.t, visibleTime, !tab.v ]);
         _.each(tab.g, function (channels, graphId) {
           App.publish('GraphRequested-' + tabId, [graphId]);
           if (channels)
@@ -58,12 +58,12 @@ define(function () {
   }
 
   StateMonitor.prototype.addTab =
-      function (vehicleId, tabId, vehicleTitle, timeRange) {
+      function (vehicleId, tabId, vehicleTitle, visibleTime) {
     this.state[tabId] = {
       v: true,
       i: vehicleId,
       t: vehicleTitle,
-      r: { b: timeRange.beg, e: timeRange.end },
+      r: { b: visibleTime.beg, e: visibleTime.end },
       g: {},
     };
     this.addSub('GraphRequested-' + tabId,
@@ -79,7 +79,7 @@ define(function () {
     this.addSub('VehicleUnrequested-' + tabId,
                 _.bind(this.removeTab, this, tabId));
     this.addGraph(tabId, 'MASTER');
-    App.router.updateURLTime(timeRange.beg, timeRange.end);
+    App.router.updateURLTime(visibleTime.beg, visibleTime.end);
   }
 
   StateMonitor.prototype.removeTab = function (tabId) {

@@ -39,7 +39,7 @@ define(['views/dashItem', 'plot_booter',
 
     events: {
       'click .toggler': 'toggle',
-      'click .latest': 'showLatest',
+      'click .fetchLatest': 'fetchLatest',
       'click .export': 'exportCsv',
       'click .add-graph': 'addGraph',
       'click .graph-closer': 'removeGraph',
@@ -105,12 +105,13 @@ define(['views/dashItem', 'plot_booter',
         "#96BDFF",  // Light blue
         "#D373FF",  // Light purple
       ];
+      var visibleTime = self.model.tabModel.get('visibleTime');
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
           position: 'bottom',
-          min: self.options.timeRange.beg / 1e3,
-          max: self.options.timeRange.end / 1e3,
+          min: visibleTime.beg / 1e3,
+          max: visibleTime.end / 1e3,
           tickColor: '#f0f0f0',
           labelsInside: true,
         },
@@ -370,7 +371,7 @@ define(['views/dashItem', 'plot_booter',
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
-        this.trigger('VisibleTimeChange', t.beg, t.end);
+        this.trigger('VisibleTimeChange', { beg: t.beg, end: t.end });
         this.prevBeg = t.beg;
         this.prevEnd = t.end;
       }
@@ -600,8 +601,16 @@ define(['views/dashItem', 'plot_booter',
       this.notificationPreview.hide();
     },
 
-    showLatest: function (e) {
-      
+    fetchLatest: function (e) {
+      e.preventDefault();
+      App.sampleCache.refetchLatest(this.model.tabModel.treeModel,
+                                    this.model.get('vehicleId'),
+                                    function (newTimeRange) {
+        if (newTimeRange) {
+          // Make sure graph includes [newTimeRange.beg, newTimeRange.end).
+          console.log('Got new data:', beg, end);
+        }
+      });
     },
 
     exportCsv: function (e) {

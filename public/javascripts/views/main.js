@@ -53,18 +53,17 @@ define(['jquery'], function ($) {
       });
     },
 
-    loadVehicle: function (vehicleId, tabId, vehicleTitle, timeRange, hide) {
+    loadVehicle: function (vehicleId, tabId, vehicleTitle, visibleTime, hide) {
       var targetClass = 'target-' + tabId;
       var active = hide ? false : true;
-      new App.views.VehicleView({
+      new App.models.VehicleTabModel({
         targetClass: targetClass,
-      }).render({
         tabId: tabId,
         title: vehicleTitle,
         vehicleId: vehicleId,
-        timeRange: timeRange,
+        visibleTime: visibleTime,
         active: active,
-      }, 'vehicle.jade');
+      });
     },
 
   });

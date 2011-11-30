@@ -17,6 +17,7 @@ define(['views/dashItem',
     },
 
     render: function (opts) {
+      var start = Date.now();
       opts = opts || {};
       _.defaults(opts, {
         title: this.options.title,
@@ -29,10 +30,12 @@ define(['views/dashItem',
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('tree.dash.jade', opts).appendTo(parent);
+      console.log('tree.dash.jade:', Date.now() - start);
       this._super('render');
       if (!this.firstRender && !opts.loading && !opts.empty) {
         this.draw();
       }
+      console.log('render:', Date.now() - start);
       return this;
     },
 
@@ -141,11 +144,11 @@ define(['views/dashItem',
       return self;
     },
 
-    changeVisibleTime: function (beg, end) {
+    visibleTimeChanged: function (visibleTime) {
       // Hide all channels which do not have schema in the given time range,
       // and are not checked.
       var self = this;
-      self.cachedVisibleTime = { beg: beg, end: end };
+      var start = Date.now();
       function handleNode(parent) {
         if (!parent) return;
         var nodes = $('ul > li', parent);
@@ -165,7 +168,7 @@ define(['views/dashItem',
           } else {
             var channelInfo = self.model.findChannelInfo(channelName);
             var visible = channelInfo.valid.some(function(v) {
-              return v.beg < end && v.end > beg;
+              return v.beg < visibleTime.end && v.end > visibleTime.beg;
             });
             if (visible) {
               node.show();
@@ -183,11 +186,13 @@ define(['views/dashItem',
         return visibleNodeCount;
       };
       handleNode(self.treeHolder);
+      console.log('visibleTimeChanged took:', Date.now() - start);
     },
 
     updateCheckedChannels: function (ensureOpen) {
       // Update all check marks.
       var self = this;
+      var start = Date.now();
       var channelsGraphed = {};
       App.publish('FetchGraphedChannels-' + self.model.get('tabId'), 
                   [ function(channels) {
@@ -238,9 +243,8 @@ define(['views/dashItem',
         return { checked: checkedNodeCount, all: allNodeCount };
       };
       handleNode(self.treeHolder);
-      if (self.cachedVisibleTime)
-        self.changeVisibleTime(self.cachedVisibleTime.beg,
-                               self.cachedVisibleTime.end);
+      console.log('updateCheckedChannels took:', Date.now() - start);
+      self.visibleTimeChanged(self.model.tabModel.get('visibleTime'));
     },
 
     nodeClickHandler: function (e) {

@@ -43,10 +43,10 @@ define(['jquery'], function ($) {
       var tab = $('[data-id="' + id + '"]');
       if (tab.length !== 0) {
         var tabId = tab.data('tabTarget');
+        var tabModel = App.vehicleTabModels[tabId];
         App.publish('ShowFolderItem-' + tabId);
         if (urlTime)
-          App.publish('VisibleTimeChange-' + tabId,
-              [urlTime.beg, urlTime.end]);
+          tabModel.set({ visibleTime: urlTime });
       } else {
         var tr = $('#vehicle_' + id);
         var items = tr.attr('id').split('_');

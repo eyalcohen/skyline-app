@@ -51,8 +51,8 @@ requirejs(['libs/domReady',
 
               App.util = util;
 
+              App.vehicleTabModels = {};  // Map from tabId to VehicleTabModel.
               App.sampleCache = new SampleCache();
-
               App.stateMonitor = new StateMonitor();
               App.router = new Router();
 

@@ -24,8 +24,10 @@ define(['views/dashItem'], function (DashItemView) {
       if (this.el.length) {
         this.remove();
       }
+      var start = Date.now();
       this.el = App.engine('notifications.dash.jade', opts)
           .appendTo(this.options.parent);
+      console.log('notifications.dash.jade took', Date.now() - start);
       this._super('render');
       if (this.timer) {
         clearInterval(this.timer);
@@ -47,8 +49,7 @@ define(['views/dashItem'], function (DashItemView) {
       var props = this.getProps(parentRow);
       if (this.singleVehicle) {
         App.publish('UnPreviewNotification-' + props.id);
-        App.publish('VisibleTimeChange-' + props.id,
-                    [timeRange.beg, timeRange.end]);
+        this.collection.tabModel.set({ visibleTime: timeRange });
         App.publish('PreviewNotification-' + props.id, [timeRange]);
       } else {
         var tabId = App.util.makeId();

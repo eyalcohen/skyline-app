@@ -9,8 +9,9 @@ define(['models/notification'], function (model) {
 
     initialize: function (args) {
       if (!args) args = {};
-      this.readOpts = { vehicleId: args.vehicleId };
       _.extend(args, { collection: this });
+      this.tabModel = args.tabModel;
+      this.readOpts = { vehicleId: args.vehicleId };
       this.view = new App.views.NotificationsView(args);
       this.view.render({
         title: args.title,

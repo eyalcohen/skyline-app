@@ -7,7 +7,8 @@ define(['views/dashItem', 'plot_booter'],
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize');
-      _.bindAll(this, 'destroy', 'draw', 'drawWindow', 
+      this.tabModel = args.tabModel;
+      _.bindAll(this, 'destroy', 'visibleTimeChanged', 'drawWindow', 
                 'moveWindow', 'hoverWindow', 'exitWindow',
                 'passWindowEvent', 'hookScale', 'plotDrawHook',
                 'showNotification', 'hideNotification');
@@ -15,11 +16,13 @@ define(['views/dashItem', 'plot_booter'],
       App.subscribe('PreviewNotification-' + tabId, this.showNotification);
       App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
-      App.subscribe('VisibleTimeChange-' + tabId, this.draw);
+      this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
       this.debouncedDrawWindow = _.debounce(this.drawWindow, 20);
       this.ready = false;
       this.dragging = false;
       this.action = 'move';
+      var visibleTime = this.tabModel.get('visibleTime');
+      this.tabModel.set({ navigableTime: this.expandTime(visibleTime) }, false);
     },
 
     destroy: function () {
@@ -28,7 +31,7 @@ define(['views/dashItem', 'plot_booter'],
       App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
       App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
-      App.unsubscribe('VisibleTimeChange-'+ tabId, this.draw);
+      this.tabModel.unbind('change:visibleTime', this.visibleTimeChanged);
     },
 
     events: {
@@ -58,8 +61,7 @@ define(['views/dashItem', 'plot_booter'],
       this._super('render', _.bind(function () {
         if (!opts.loading)
           this.ready = true;
-          this.draw(this.options.timeRange.beg,
-                    this.options.timeRange.end);
+          this.draw();
       }, this));
     },
 
@@ -79,8 +81,9 @@ define(['views/dashItem', 'plot_booter'],
       }
     },
 
-    createPlot: function (beg, end) {
+    createPlot: function () {
       var self = this;
+      var navigableTime = self.tabModel.get('navigableTime');
       var data = _.pluck(self.collection.models, 'attributes');
       var shapes = [];
       var sortedData = _.stableSort(data,
@@ -105,53 +108,51 @@ define(['views/dashItem', 'plot_booter'],
       });
       self.holder = $('.navigator > div', self.content);
       self.visibleBox = $(self.options.parent + ' .navigator-window');
-      self.expandTime(beg / 1e3, end / 1e3,
-          function (beg, end) {
-        self.plot = $.plot(self.holder, [], {
-          xaxis: {
-            show: true,
-            mode: 'time',
-            position: 'middle',
-            min: beg,
-            max: end,
-            tickColor: '#ddd',
-            labelsInside: true,
-          },
-          yaxis: { 
-            show: false,
-            zoomRange: false,
-            panRange: false,
-          },
-          series: {
-            lines: { show: false },
-            points: {},
-            bars: {},
-            shadowSize: 0,
-          },
-          grid: {
-            markings: shapes,
-            backgroundColor: null,
-            borderWidth: 0,
-            borderColor: null,
-            minBorderMargin: 0,
-            fullSize: true,
-          },
-          zoom: {
-            interactive: false, // We implement zooming event handlers ourselves.
-          },
-          pan: {
-            interactive: true,
-            frameRate: 60,
-          },
-          hooks: {
-            draw: [addIcons, _.bind(self.plotDrawHook, self)],
-            setupGrid: [_.bind(self.plotSetupGridHook, self)],
-            bindEvents: [bindEventsHook],
-          },
-        });
-        $('.navigator', self.content).data({ plot: self.plot });
-        self.hookScale();
+      self.plot = $.plot(self.holder, [], {
+        xaxis: {
+          show: true,
+          mode: 'time',
+          position: 'middle',
+          min: navigableTime.beg / 1e3,
+          max: navigableTime.end / 1e3,
+          tickColor: '#ddd',
+          labelsInside: true,
+        },
+        yaxis: { 
+          show: false,
+          zoomRange: false,
+          panRange: false,
+        },
+        series: {
+          lines: { show: false },
+          points: {},
+          bars: {},
+          shadowSize: 0,
+        },
+        grid: {
+          markings: shapes,
+          backgroundColor: null,
+          borderWidth: 0,
+          borderColor: null,
+          minBorderMargin: 0,
+          fullSize: true,
+        },
+        zoom: {
+          interactive: false, // We implement zooming event handlers ourselves.
+        },
+        pan: {
+          interactive: true,
+          frameRate: 60,
+        },
+        hooks: {
+          draw: [addIcons, _.bind(self.plotDrawHook, self)],
+          setupGrid: [_.bind(self.plotSetupGridHook, self)],
+          bindEvents: [bindEventsHook],
+        },
       });
+      $('.navigator', self.content).data({ plot: self.plot });
+      self.hookScale();
+      self.visibleTimeChanged(null, self.tabModel.get('visibleTime'));
 
       function bindEventsHook(plot, eventHolder) {
         _.each([plot.getPlaceholder(), self.visibleBox], function (elem) {
@@ -216,57 +217,51 @@ define(['views/dashItem', 'plot_booter'],
       }
     },
 
-    draw: function (beg, end) {
-      var self = this;
-      self.zoomedRange = { min: beg / 1e3, max: end / 1e3 };
-      if (!self.ready) return;
-      if (!self.plot)
-        self.createPlot(beg, end);
-      if (!self.dragging)
-        self.setVisibleTime(beg, end);
+    draw: function () {
+      if (!this.ready) return;
+      if (!this.plot)
+        this.createPlot();
     },
 
-    expandTime: function (beg, end, cb) {
+    expandTime: function (visibleTime) {
       var factor = 5;
-      var span = end - beg;
+      var span = visibleTime.end - visibleTime.beg;
       var newSpan = span * factor;
-      beg -= (newSpan - span) / 2;
-      end += (newSpan - span) / 2;
-      cb(beg, end);
+      return {
+        beg: visibleTime.beg - (newSpan - span) / 2,
+        end: visibleTime.end + (newSpan - span) / 2,
+      };
     },
 
-    getVisibleTime: function () {
+    getNavigableTime: function () {
       if (!this.plot) return null;
       var xopts = this.plot.getAxes().xaxis.options;
       return { beg: xopts.min * 1000, end: xopts.max * 1000,
                width: this.plot.width() };
     },
 
-    setVisibleTime: function (beg, end) {
+    visibleTimeChanged: function (model, visibleTime) {
+      if (this.dragging) return;
       var xopts = this.plot.getAxes().xaxis.options;
-      beg /= 1000; end /= 1000;
-      this.debouncedDrawWindow(beg, end);
-      this.expandTime(beg, end, _.bind(function (beg, end) {
-        if (beg != xopts.min || end != xopts.max) {
-          xopts.min = beg;
-          xopts.max = end;
-          this.plot.setupGrid();
-          this.plot.draw();
-        }
-      }, this));
+      var min = visibleTime.beg / 1000, max = visibleTime.end / 1000;
+      this.debouncedDrawWindow(min, max);
+      var navigableTime = this.expandTime(visibleTime);
+      var navMin = navigableTime.beg / 1000, navMax = navigableTime.end / 1000;
+      if (navMin != xopts.min || navMax != xopts.max) {
+        xopts.min = navMin;
+        xopts.max = navMax;
+        this.plot.setupGrid();
+        this.plot.draw();
+      }
     },
 
     plotSetupGridHook: function () {},
 
     plotDrawHook: function () {
-      var t = this.getVisibleTime();
+      if (this.dragging) return;
+      var t = this.getNavigableTime();
       if (!t) return;
-      if (t.beg != this.prevBeg || t.end != this.prevEnd) {
-        App.publish('NavigableTimeChange-' + this.options.tabId,
-                    [t.beg, t.end]);
-        this.prevBeg = t.beg;
-        this.prevEnd = t.end;
-      }
+      this.tabModel.set({ navigableTime: { beg: t.beg, end: t.end } });
     },
 
     hookScale: function () {
@@ -288,8 +283,8 @@ define(['views/dashItem', 'plot_booter'],
         zoomToRange(60*60*24*7*52*1e3);
       });
       function zoomToRange(range) {
-        var center = (self.zoomedRange.min + 
-                      self.zoomedRange.max) / 2;
+        var visibleTime = this.tabModel.get('visibleTime');
+        var center = (visibleTime.beg + visibleTime.end) / 2e3;
         xopts.min = (center - range / 2);
         xopts.max = (center + range / 2);
         self.plot.setupGrid();
@@ -388,8 +383,8 @@ define(['views/dashItem', 'plot_booter'],
           if (publish) {
             self.boxBeg = leftTime;
             self.boxEnd = rightTime;
-            App.publish('VisibleTimeChange-' + self.options.tabId,
-                [self.boxBeg * 1e3, self.boxEnd * 1e3]);
+            self.tabModel.set({ visibleTime: { beg: self.boxBeg * 1e3,
+                                               end: self.boxEnd * 1e3 } });
           }
         }
       }, 0);
@@ -397,6 +392,7 @@ define(['views/dashItem', 'plot_booter'],
         self.dragging = false;
         $(document).unbind('mousemove', movehandle)
             .unbind('mouseup', arguments.callee);
+        self.visibleTimeChanged(null, self.tabModel.get('visibleTime'));
       });
       $(document).bind('mousemove', movehandle);
     },
