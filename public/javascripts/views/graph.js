@@ -608,7 +608,7 @@ define(['views/dashItem', 'plot_booter',
                                     function (newTimeRange) {
         if (newTimeRange) {
           // Make sure graph includes [newTimeRange.beg, newTimeRange.end).
-          console.log('Got new data:', beg, end);
+          console.log('Got new data:', newTimeRange.beg, newTimeRange.end);
         }
       });
     },
