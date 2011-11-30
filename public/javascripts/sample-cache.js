@@ -36,6 +36,7 @@ define(function () {
                   pending: true,  // If a fetch is pending.
                   samples: [ <samples...> ],  // If data has been fetched.
                   syn: <bool>,  // Does samples contain synthetic data?
+                  refetch: <bool>,  // If true, we should refetch this bucket.
               }, ...
             }, ...
             // syntheticDurations[1], ...:
@@ -128,6 +129,60 @@ define(function () {
     }));
   }
 
+  /**
+   * Invalidate the latest samples for a vehicle and refetch them.
+   * This is a total hack to do real-time updates!
+   */
+  SampleCache.prototype.refetchLatest = function(treeModel, vehicleId,
+                                                 callback) {
+    var self = this;
+
+    // Find end time of last schema entry for all channels.
+    var channelRanges = {};
+    function findChannelRanges(beforeAfter) {
+      (treeModel.get('data') || []).forEach(function process(treeEntry) {
+        (treeEntry.sub || []).forEach(process);
+        if (treeEntry.channelName) {
+          defObj(channelRanges, treeEntry.channelName)[beforeAfter] =
+              { beg: _.first(treeEntry.valid).beg,
+                end: _.last(treeEntry.valid).end };
+        }
+      });
+    }
+    findChannelRanges('before');
+
+    // Refetch the channel tree.
+    treeModel.fetch(false, function() {
+      // Now invalidate everything that might have changed.
+      findChannelRanges('after');
+      var changeBeg = Infinity, changeEnd = -Infinity;
+      _.forEach(channelRanges, function(ranges, channelName) {
+        var before = ranges['before'].end || -Infinity;
+        var after = ranges['after'].end || Infinity;
+        if (before == after) {
+          // Nothing changed!
+          return;
+        }
+        self.refetchOverlapping(vehicleId, channelName, before, after);
+        if (ranges['before'].end)
+          changeBeg = Math.min(changeBeg, ranges['before'].end);
+        else if (ranges['after'].beg)
+          changeBeg = Math.min(changeBeg, ranges['after'].beg);
+        if (ranges['after'].end)
+          changeEnd = Math.max(changeEnd, ranges['after'].end);
+      });
+
+      // Refetch from the server and update graphs and such.
+      self.fillPendingRequests();
+
+      if (callback)
+        if (isFinite(changeBeg) && isFinite(changeEnd))
+          callback({ beg: changeBeg, end: changeEnd });
+        else
+          callback(null);
+    });
+  }
+
   //// Private: ////
 
   /**
@@ -207,7 +262,8 @@ define(function () {
                                  function(buck, buckBeg, buckEnd) {
             var entry = self.getCacheEntry(client.vehicleId, channelName,
                                            dur, buck, false);
-            if (entry && (entry.samples || entry.pending)) return;
+            if (entry && !entry.refetch && (entry.samples || entry.pending))
+              return;
             var priority = basePriority +
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
@@ -242,7 +298,7 @@ define(function () {
             break;
           }
         }
-        if (covered) continue;
+        if (!req.refetch && covered) continue;
         self.issueRequest(req);
         if (self.pendingCacheEntries.length >= maxPendingRequests)
           return;
@@ -254,6 +310,7 @@ define(function () {
     var self = this;
     var entry = self.getCacheEntry(req.veh, req.chan, req.dur, req.buck, true);
     entry.pending = true;
+    delete entry.refetch;
     self.pendingCacheEntries.push(entry);
     var buckDur = bucketSize(req.dur);
     var buckBeg = req.buck * buckDur, buckEnd = buckBeg + buckDur;
@@ -261,12 +318,6 @@ define(function () {
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
-    // TODO: we could avoid fetching samples sometimes if we determine that
-    // a larger cached bucket already has entirely non-synthetic data for
-    // the given time range.
-    //console.log(
-        //'fetchSamples(' + req.veh + ', "' +
-        //req.chan + '", ' + JSON.stringify(options) + ')');
     App.api.fetchSamples(req.veh, req.chan, options, function(err, samples) {
       if (err) {
         console.error(
@@ -331,7 +382,6 @@ define(function () {
     }
     client.updateTimeout = newTimeout;
     client.updateId = setTimeout(function() {
-      var start = Date.now();
       client.updateId = null;
       delete client.updateTimeout;
       var sampleSet = {};
@@ -346,7 +396,6 @@ define(function () {
             client.dur, client.beg, client.end, validRanges);
       });
       self.trigger('update-' + clientId, sampleSet);
-      console.log('Cache size is ' + self.cacheSize + '.');
     }, timeout);
   }
 
@@ -399,9 +448,6 @@ define(function () {
     if (self.cacheSize <= maxCacheSize)
       return;
 
-    console.log('Cache size is ' + self.cacheSize + ', cleaning cache...');
-    var startTime = Date.now();
-
     // Create an array of all entries reverse sorted by age.
     var allEntryBuckets = [];
     _.each(self.cache, function(vehChanEntry) {
@@ -439,8 +485,24 @@ define(function () {
       if (Object.keys(vehChanEntry).length == 0)
         delete self.cache[vehChan];
     });
+  }
 
-    console.log('Cache clean took ' + (Date.now() - startTime) + 'ms, final cache size ' + self.cacheSize);
+  /**
+   * Invalidate all buckets which overlap a time range.
+   */
+  SampleCache.prototype.refetchOverlapping =
+      function(vehicleId, channelName, beg, end) {
+    var cacheKey = vehicleId + '-' + channelName;
+    var cacheLine = ifDef(this.cache, cacheKey);
+    if (cacheLine) durations.forEach(function(dur) {
+      var buckDur = bucketSize(dur);
+      var begBuck = Math.floor(beg / buckDur);
+      var endBuck = Math.ceil(end / buckDur);
+      _.forEach(ifDef(cacheLine, dur) || {}, function(entry, buck) {
+        if (begBuck <= buck && buck < endBuck)
+          entry.refetch = true;
+      });
+    });
   }
 
   var minPendingRequests = 8, maxPendingRequests = 16;

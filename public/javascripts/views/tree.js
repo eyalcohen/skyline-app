@@ -17,6 +17,7 @@ define(['views/dashItem',
     },
 
     render: function (opts) {
+      var start = Date.now();
       opts = opts || {};
       _.defaults(opts, {
         title: this.options.title,
@@ -29,10 +30,12 @@ define(['views/dashItem',
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('tree.dash.jade', opts).appendTo(parent);
+      console.log('tree.dash.jade:', Date.now() - start);
       this._super('render');
       if (!this.firstRender && !opts.loading && !opts.empty) {
         this.draw();
       }
+      console.log('render:', Date.now() - start);
       return this;
     },
 

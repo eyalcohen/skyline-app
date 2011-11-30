@@ -38,9 +38,9 @@ define(function (fn) {
       App.unsubscribe('FetchChannelInfo-' + vehicleId, this.fetchChannelInfo);
     },
 
-    fetch: function () {
+    fetch: function (showLoading, callback) {
       var self = this;
-      self.view.render({ loading: true });
+      self.view.render({ loading: showLoading == null ? true : showLoading });
       App.api.fetchChannelTree(self.get('vehicleId'), function (err, data) {
         if (err) { throw err; return; }
         if (!data || data.length === 0) {
@@ -50,6 +50,7 @@ define(function (fn) {
           self.set({ data: data });
           self.view.render();
         }
+        if (callback) callback();
       });
       return this;
     },

@@ -39,6 +39,7 @@ define(['views/dashItem', 'plot_booter',
 
     events: {
       'click .toggler': 'toggle',
+      'click .fetchLatest': 'fetchLatest',
       'click .export': 'exportCsv',
       'click .add-graph': 'addGraph',
       'click .graph-closer': 'removeGraph',
@@ -598,6 +599,18 @@ define(['views/dashItem', 'plot_booter',
 
     hideNotification: function () {
       this.notificationPreview.hide();
+    },
+
+    fetchLatest: function (e) {
+      e.preventDefault();
+      App.sampleCache.refetchLatest(this.model.tabModel.treeModel,
+                                    this.model.get('vehicleId'),
+                                    function (newTimeRange) {
+        if (newTimeRange) {
+          // Make sure graph includes [newTimeRange.beg, newTimeRange.end).
+          console.log('Got new data:', beg, end);
+        }
+      });
     },
 
     exportCsv: function (e) {
