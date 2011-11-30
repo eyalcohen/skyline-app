@@ -551,6 +551,30 @@ span.landing-copy {
   padding: 0 0 20px;
 }
 
+.settings-button {
+  width: 12px;
+  height: 12px;
+  background: url(/graphics/gear_12.png) no-repeat;
+  background-position: 0px 0px;
+  float: right;
+  margin: 4px 8px 0;
+}
+
+.settings-button-active {
+  background-position: 0px -12px;
+}
+
+.dropdown {
+  width: 200px;
+  height: 100%;
+  
+}
+
+.dropdown > ul > li {
+  
+}
+
+
 #remember_me {
   margin: 0 5px 0 0;
 }
