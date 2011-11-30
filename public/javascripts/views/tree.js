@@ -41,7 +41,7 @@ define(['views/dashItem',
 
     draw: function () {
       var self = this;
-      var data = JSON.parse(JSON.stringify(this.model.get('data')));
+      var data = JSON.parse(JSON.stringify(this.model.data));
       var initiallySelect = 'none';
       var numNodes = 0;
       (function cnt(node, top) {
@@ -160,26 +160,33 @@ define(['views/dashItem',
             // This is a parent node.
             var visibleChildCount = handleNode(node);
             visibleNodeCount += visibleChildCount;
-            if (visibleChildCount) {
-              node.show();
-            } else {
-              node.hide();
+            var newState = visibleChildCount ? null : 'hide';
+            if (node[0].state != newState) {
+              node[0].state = newState;
+              if (newState === 'hide') node.hide(); else node.show();
             }
           } else {
             var channelInfo = self.model.findChannelInfo(channelName);
             var visible = channelInfo.valid.some(function(v) {
               return v.beg < visibleTime.end && v.end > visibleTime.beg;
             });
-            if (visible) {
-              node.show();
-              $('a', node).css({ color: 'black' });
+            var newState =
+                visible ? null :
+                node.hasClass('jstree-checked') ? 'gray' :
+                'hide';
+            if (newState !== 'hide')
               ++visibleNodeCount;
-            } else if (node.hasClass('jstree-checked')) {
-              node.show();
-              $('a', node).css({ color: 'gray' });
-              ++visibleNodeCount;
-            } else {
-              node.hide();
+            if (node[0].state != newState) {
+              node[0].state = newState;
+              if (newState === 'hide') {
+                node.hide();
+              } else if (newState === 'gray') {
+                node.show();
+                $('a', node).css({ color: 'gray' });
+              } else {
+                node.show();
+                $('a', node).css({ color: 'black' });
+              }
             }
           }
         });
@@ -202,7 +209,7 @@ define(['views/dashItem',
       } ]);
 
       function handleNode(parent) {
-        var nodes = $('ul>li', parent);
+        var nodes = $('ul > li', parent);
         var checkedNodeCount = 0, allNodeCount = 0;
         nodes.each(function (i) {
           var node = $(nodes.get(i));
@@ -213,17 +220,20 @@ define(['views/dashItem',
             checkedNodeCount += childCounts.checked;
             allNodeCount += childCounts.all;
             if (childCounts.checked == 0) {
-              node.removeClass('jstree-checked')
-                  .removeClass('jstree-undetermined')
-                  .addClass('jstree-unchecked');
+              if (!node.hasClass('jstree-unchecked'))
+                node.removeClass('jstree-checked')
+                    .removeClass('jstree-undetermined')
+                    .addClass('jstree-unchecked');
             } else if (childCounts.checked == childCounts.all) {
-              node.removeClass('jstree-unchecked')
-                  .removeClass('jstree-undetermined')
-                  .addClass('jstree-checked');
+              if (!node.hasClass('jstree-checked'))
+                node.removeClass('jstree-unchecked')
+                    .removeClass('jstree-undetermined')
+                    .addClass('jstree-checked');
             } else {
-              node.removeClass('jstree-checked')
-                  .removeClass('jstree-unchecked')
-                  .addClass('jstree-undetermined');
+              if (!node.hasClass('jstree-undetermined'))
+                node.removeClass('jstree-checked')
+                    .removeClass('jstree-unchecked')
+                    .addClass('jstree-undetermined');
             }
             if (ensureOpen && childCounts.checked) {
               self.treeHolder.jstree('open_node', node, false, true);
