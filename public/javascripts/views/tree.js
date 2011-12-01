@@ -30,12 +30,12 @@ define(['views/dashItem',
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('tree.dash.jade', opts).appendTo(parent);
-      console.log('tree.dash.jade:', Date.now() - start);
+      // console.log('tree.dash.jade:', Date.now() - start);
       this._super('render');
       if (!this.firstRender && !opts.loading && !opts.empty) {
         this.draw();
       }
-      console.log('render:', Date.now() - start);
+      // console.log('render:', Date.now() - start);
       return this;
     },
 
@@ -186,7 +186,7 @@ define(['views/dashItem',
         return visibleNodeCount;
       };
       handleNode(self.treeHolder);
-      console.log('visibleTimeChanged took:', Date.now() - start);
+      // console.log('visibleTimeChanged took:', Date.now() - start);
     },
 
     updateCheckedChannels: function (ensureOpen) {
@@ -243,7 +243,7 @@ define(['views/dashItem',
         return { checked: checkedNodeCount, all: allNodeCount };
       };
       handleNode(self.treeHolder);
-      console.log('updateCheckedChannels took:', Date.now() - start);
+      // console.log('updateCheckedChannels took:', Date.now() - start);
       self.visibleTimeChanged(self.model.tabModel.get('visibleTime'));
     },
 

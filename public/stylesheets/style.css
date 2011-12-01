@@ -564,14 +564,25 @@ span.landing-copy {
   background-position: 0px -12px;
 }
 
-.dropdown {
+.settings-pane {
   width: 200px;
-  height: 100%;
-  
+  min-height: 50px;
+  position: absolute;
+  top: 20px;
+  right: 5px;
+  background: rgba(51, 51, 51, 0.9);
+  z-index: 10001;
 }
 
-.dropdown > ul > li {
-  
+.settings-pane > ul {
+  margin: 0;
+}
+
+.settings-pane > ul > li {
+  color: white;
+  font-weight: bold;
+  list-style-type: none;
+  border-bottom: 1px solid #ccc;
 }
 
 
@@ -680,6 +691,7 @@ span.landing-copy {
 }
 
 div.small-button,
+div.small-button-sticky,
 div.small-button-light {
   float: right;
   font-size: 10px;
@@ -705,6 +717,12 @@ div.small-button:active,
 div.small-button-light:active {
   border: none;
   background: #ccc;
+}
+
+div.small-button-sticky:active,
+div.small-button-sticky-active {
+  border: none;
+  background: lightgreen;
 }
 
 input.dashboard-search {

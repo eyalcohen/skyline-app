@@ -283,7 +283,7 @@ define(['views/dashItem', 'plot_booter'],
         zoomToRange(60*60*24*7*52*1e3);
       });
       function zoomToRange(range) {
-        var visibleTime = this.tabModel.get('visibleTime');
+        var visibleTime = self.tabModel.get('visibleTime');
         var center = (visibleTime.beg + visibleTime.end) / 2e3;
         xopts.min = (center - range / 2);
         xopts.max = (center + range / 2);

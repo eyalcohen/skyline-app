@@ -40,6 +40,7 @@ define(['views/dashItem', 'plot_booter',
     events: {
       'click .toggler': 'toggle',
       'click .fetchLatest': 'fetchLatest',
+      'click .followLatest': 'followLatest',
       'click .export': 'exportCsv',
       'click .add-graph': 'addGraph',
       'click .graph-closer': 'removeGraph',
@@ -63,6 +64,7 @@ define(['views/dashItem', 'plot_booter',
       this.notificationPreview = $('.notification-preview', this.el);
       this.minHoverDistance = 10;
       this.highlighting = false;
+      this.following = false;
       this._super('render');
       this.draw();
     },
@@ -601,16 +603,74 @@ define(['views/dashItem', 'plot_booter',
       this.notificationPreview.hide();
     },
 
-    fetchLatest: function (e) {
-      e.preventDefault();
-      App.sampleCache.refetchLatest(this.model.tabModel.treeModel,
-                                    this.model.get('vehicleId'),
+    fetchLatest: function (e, cb) {
+      if (e) e.preventDefault();
+      var self = this;
+      App.sampleCache.refetchLatest(self.model.tabModel.treeModel,
+                                    self.model.get('vehicleId'),
                                     function (newTimeRange) {
+        //* Note: for testing only!
+        // if (!newTimeRange) {
+        //   newTimeRange = self.getVisibleTime();
+        //   var rand = Math.random() * 10000000;
+        //   newTimeRange.beg += rand;
+        //   newTimeRange.end += rand;
+        // }
+        //*
         if (newTimeRange) {
-          // Make sure graph includes [newTimeRange.beg, newTimeRange.end).
+          var prevTimeRange = self.getVisibleTime();
+          var xaxis = self.plot.getXAxes()[0];
+          pan(xaxis.p2c(newTimeRange.end/1e3)
+                - xaxis.p2c(prevTimeRange.end/1e3), function () {
+            if (cb) cb();
+          });
           console.log('Got new data:', newTimeRange.beg, newTimeRange.end);
         }
       });
+
+      function pan(dest, cb) {
+        var dur = 500, inc = 20;
+        var pos = _.map(_.range(0, dur+inc, inc),
+            function (time) {
+          return App.easing.easeOutExpo(time, 0, dest, dur);
+        });
+        var len = pos.length;
+        var steps = _.map(pos, function (p, i) {
+          return i < len - 1 ? pos[i+1] - p : 0;
+        });
+        (function step(i) {
+          if (i < len)
+            _.delay(function () {
+              self.plot.pan({ left: steps[i], top: 0 });
+              step(++i);
+            }, inc);
+          else cb();
+        })(0);
+      }
+    },
+
+    followLatest: function (e) {
+      e.preventDefault();
+      var self = this;
+      var freq = 10000;
+      var button = $(e.target);
+      if (button.hasClass('small-button-sticky-active')) {
+        button.removeClass('small-button-sticky-active');
+        this.following = false;
+      } else {
+        button.addClass('small-button-sticky-active');
+        this.following = true;
+        checkLatest();
+      }
+
+      function checkLatest() {
+        if (self.following) {
+          self.fetchLatest(null, function () {
+            if (self.following)
+              _.delay(checkLatest, freq);
+          });
+        }
+      }
     },
 
     exportCsv: function (e) {

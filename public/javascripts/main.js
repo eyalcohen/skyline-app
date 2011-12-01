@@ -40,16 +40,18 @@ requirejs(['libs/domReady',
             };
 
             requirejs(['models', 'collections', 'views', 'util',
-                'sample-cache', 'state-monitor',
+                'easing', 'sample-cache', 'state-monitor',
                 'router', 'backbone-sync', 'backbone-super'],
                 function (models, collections, views, util,
-                          SampleCache, StateMonitor, Router) {
+                          easing, SampleCache, StateMonitor, Router) {
 
               App.models = models;
               App.collections = collections;
               App.views = views;
 
               App.util = util;
+
+              App.easing = easing;
 
               App.vehicleTabModels = {};  // Map from tabId to VehicleTabModel.
               App.sampleCache = new SampleCache();
