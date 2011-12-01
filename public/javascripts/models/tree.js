@@ -7,6 +7,12 @@ define(function (fn) {
     initialize: function (args) {
       if (!args) args = {};
       _.extend(args, { model: this });
+
+      // Store fetched data in object variable rather than backbone attributes
+      // to avoid backbone overhead.
+      this.data = []
+      this.channelMap = {};
+
       this.tabModel = args.tabModel;
       this.view = new App.views.TreeView(args);
       _.bindAll(this, 'destroy', 'visibleTimeChanged', 'updateCheckedChannels',
@@ -47,12 +53,19 @@ define(function (fn) {
           console.warn('Vehicle with id ' + self.get('vehicleId') +
               ' has never been seen before!');
         } else {
-          self.set({ data: data });
+          self.data = data;
+          self.channelMap = {};  // Map from channel name to schema.
+          (self.data || []).forEach(function traverseDesc(desc) {
+            if (desc.channelName)
+              self.channelMap[desc.channelName] = desc;
+            else
+              (desc.sub || []).forEach(traverseDesc);
+          });
           self.view.render();
         }
         if (callback) callback();
       });
-      return this;
+      return self;
     },
 
     visibleTimeChanged: function (model, visibleTime) {
@@ -63,16 +76,8 @@ define(function (fn) {
       this.view.updateCheckedChannels();
     },
 
-    findChannelInfo: function(channel) {
-      var result = null;
-      function f(desc) {
-        if (desc.channelName === channel)
-          result = desc;
-        else
-          (desc.sub || []).forEach(f);
-      };
-      (this.get('data') || []).forEach(f);
-      return result;
+    findChannelInfo: function(channelName) {
+      return this.channelMap[channelName];
     },
 
     fetchChannelInfo: function(chan, cb) {
