@@ -53,8 +53,7 @@ var getrusage;
 try {
   getrusage = require('getrusage');
 } catch (e) {
-  console.warn('Could not load getrusage module, try:');
-  console.warn('  make -C node_modules/getrusage');
+  console.warn('Could not load getrusage module, try: node_modules/build.sh');
 }
 var Notify = require('./notify');
 var SampleDb = require('./sample_db.js').SampleDb;
@@ -610,7 +609,6 @@ app.put('/samples', function (req, res) {
   // Parse to JSON.
   var uploadSamples, mimeType = requestMimeType(req);
   if (mimeType == 'application/octet-stream') {
-    /*
     debug('rawBody: ' + req.rawBody.length + ' (' + inspect(req.rawBody) + ')');
     var fileName = (new Date()).valueOf() + '.pbraw';
     fs.mkdir(__dirname + '/samples', '0755', function (err) {
@@ -621,7 +619,6 @@ app.put('/samples', function (req, res) {
           util.log('Saved to: ' + __dirname + '/samples/' + fileName);
       });
     });
-    */
 
     uploadSamples = WebUploadSamples.parse(new Buffer(req.rawBody, 'binary'));
   } else if (mimeType == 'application/json') {
@@ -727,6 +724,15 @@ app.put('/samples', function (req, res) {
         var end =
             _.max(samples, function(sample) { return sample.end; }).end;
         schema.type = schema.type.toLowerCase();
+        function transformEnumDescriptions(descriptions) {
+          var r = {};
+          descriptions.forEach(function(d) { r[d.value] = d.name });
+          return r;
+        }
+        if (schema.enumVals)
+          schema.enumVals = transformEnumDescriptions(schema.enumVals);
+        if (schema.bitfieldBits)
+          schema.bitfieldBits = transformEnumDescriptions(schema.bitfieldBits);
         schemaSamples.push({ beg: beg, end: end, val: schema });
       });
       sampleSet._schema = schemaSamples;
