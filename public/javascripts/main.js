@@ -41,7 +41,7 @@ requirejs(['libs/domReady',
 
             requirejs(['models', 'collections', 'views', 'util',
                 'easing', 'sample-cache', 'state-monitor',
-                'router', 'backbone-sync', 'backbone-super'],
+                'router', 'date', 'backbone-sync', 'backbone-super'],
                 function (models, collections, views, util,
                           easing, SampleCache, StateMonitor, Router) {
 

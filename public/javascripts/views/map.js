@@ -11,7 +11,7 @@ requirejs(['async!http://maps.google.com/maps/api/js?' +
   notifier.trigger('load');
 });
 
-define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
+define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
@@ -49,9 +49,6 @@ define([ 'views/dashItem', 'map_style' ], function (DashItemView, style) {
       };
       var map = this.map =
           new google.maps.Map($('.map', this.content).get(0), options);
-      // map.mapTypes.set('grayscale',
-      //     new google.maps.StyledMapType(style.stylez, style.styledOptions));
-      //map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
       map.setMapTypeId(google.maps.MapTypeId.TERRAIN);
 
       // cursor

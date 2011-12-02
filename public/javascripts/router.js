@@ -42,9 +42,10 @@ define(['jquery'], function ($) {
       var urlTime = q ? this.parseURLTime(q) : null;
       var tab = $('[data-id="' + id + '"]');
       if (tab.length !== 0) {
-        var tabId = tab.data('tabTarget');
+        var tabId = tab.data('tabTarget')
+                    .substr(tabId.indexOf('-') + 1);
         var tabModel = App.vehicleTabModels[tabId];
-        App.publish('ShowFolderItem-' + tabId);
+        App.publish('ShowFolderItem-target-' + tabId);
         if (urlTime)
           tabModel.set({ visibleTime: urlTime });
       } else {
