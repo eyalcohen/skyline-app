@@ -111,6 +111,7 @@ define(['views/dashItem', 'plot_booter',
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
+          utc: true,
           twelveHourClock: true,
           position: 'bottom',
           min: visibleTime.beg / 1e3,

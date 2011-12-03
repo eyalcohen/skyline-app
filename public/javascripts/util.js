@@ -23,7 +23,8 @@ define({
   toLocaleString: function (utcDate, mask) {
     var time = utcDate.getTime();
     var zone = this.getTimeZone();
-    var localDate = new Date((3600000 * zone) + time);
+    // var localDate = new Date((3600000 * zone) + time);
+    var localDate = new Date(time);
     return localDate.format(mask);
   },
 

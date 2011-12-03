@@ -58,6 +58,7 @@
                     show: null, // null = auto-detect, true = always, false = never
                     position: "bottom", // or "top"
                     mode: null, // null or "time"
+                    utc: true,
                     font: null, // null (derived from CSS in placeholder) or object like { size: 11, style: "italic", weight: "bold", family: "sans-serif", variant: "small-caps" }
                     color: null, // base color, labels, ticks
                     tickColor: null, // possibly different color of ticks, e.g. "rgba(0,0,0,0.15)"
@@ -1271,29 +1272,28 @@
                     var step = tickSize * timeUnitSize[unit];
 
                     if (unit == "second")
-                        d.setUTCSeconds(floorInBase(d.getUTCSeconds(), tickSize));
+                        setSeconds(d, floorInBase(getSeconds(d, opts.utc), tickSize), opts.utc);
                     if (unit == "minute")
-                        d.setUTCMinutes(floorInBase(d.getUTCMinutes(), tickSize));
+                        setMinutes(d, floorInBase(getMinutes(d, opts.utc), tickSize), opts.utc);
                     if (unit == "hour")
-                        d.setUTCHours(floorInBase(d.getUTCHours(), tickSize));
+                        setHours(d, floorInBase(getHours(d, opts.utc), tickSize), opts.utc);
                     if (unit == "month")
-                        d.setUTCMonth(floorInBase(d.getUTCMonth(), tickSize));
+                        setMonth(d, floorInBase(getMonth(d, opts.utc), tickSize), opts.utc);
                     if (unit == "year")
-                        d.setUTCFullYear(floorInBase(d.getUTCFullYear(), tickSize));
-                    
-                    // reset smaller components
-                    d.setUTCMilliseconds(0);
-                    if (step >= timeUnitSize.minute)
-                        d.setUTCSeconds(0);
-                    if (step >= timeUnitSize.hour)
-                        d.setUTCMinutes(0);
-                    if (step >= timeUnitSize.day)
-                        d.setUTCHours(0);
-                    if (step >= timeUnitSize.day * 4)
-                        d.setUTCDate(1);
-                    if (step >= timeUnitSize.year)
-                        d.setUTCMonth(0);
+                        setFullYear(d, floorInBase(getFullYear(d, opts.utc), tickSize), opts.utc);
 
+                    // reset smaller components
+                    setMilliseconds(d, 0, opts.utc);
+                    if (step >= timeUnitSize.minute)
+                        setSeconds(d, 0, opts.utc);
+                    if (step >= timeUnitSize.hour)
+                        setMinutes(d, 0, opts.utc);
+                    if (step >= timeUnitSize.day)
+                        setHours(d, 0, opts.utc);
+                    if (step >= timeUnitSize.day * 4)
+                        setDate(d, 1, opts.utc);
+                    if (step >= timeUnitSize.year)
+                        setMonth(d, 0, opts.utc);
 
                     var carry = 0, v = Number.NaN, prev;
                     do {
@@ -1305,19 +1305,19 @@
                                 // a bit complicated - we'll divide the month
                                 // up but we need to take care of fractions
                                 // so we don't end up in the middle of a day
-                                d.setUTCDate(1);
+                                setDate(d, 1, opts.utc);
                                 var start = d.getTime();
-                                d.setUTCMonth(d.getUTCMonth() + 1);
+                                setMonth(d, getMonth(d, otps.utc) + 1, otps.utc);
                                 var end = d.getTime();
                                 d.setTime(v + carry * timeUnitSize.hour + (end - start) * tickSize);
-                                carry = d.getUTCHours();
-                                d.setUTCHours(0);
+                                carry = getHours(d, otps.utc);
+                                setHours(d, 0, otps.utc);
                             }
                             else
-                                d.setUTCMonth(d.getUTCMonth() + tickSize);
+                                setMonth(d, getMonth(d, otps.utc) + tickSize, otps.utc);
                         }
                         else if (unit == "year") {
-                            d.setUTCFullYear(d.getUTCFullYear() + tickSize);
+                            setFullYear(d, getFullYear(d, otps.utc) + tickSize, otps.utc);
                         }
                         else
                             d.setTime(v + step);
@@ -2688,15 +2688,17 @@
     $.plot.plugins = [];
 
     // returns a string with the date d formatted according to fmt
-    $.plot.formatDate = function(d, fmt, monthNames) {
+    $.plot.formatDate = function(d, fmt, monthNames, utc) {
         var leftPad = function(n) {
             n = "" + n;
             return n.length == 1 ? "0" + n : n;
         };
-        
+
+        if (utc === undefined) utc = false;
+
         var r = [];
         var escape = false, padNext = false;
-        var hours = d.getUTCHours();
+        var hours = getHours(d, utc);
         var isAM = hours < 12;
         if (monthNames == null)
             monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -2715,12 +2717,12 @@
                 switch (c) {
                 case 'h': c = "" + hours; break;
                 case 'H': c = leftPad(hours); break;
-                case 'M': c = leftPad(d.getUTCMinutes()); break;
-                case 'S': c = leftPad(d.getUTCSeconds()); break;
-                case 'd': c = "" + d.getUTCDate(); break;
-                case 'm': c = "" + (d.getUTCMonth() + 1); break;
-                case 'y': c = "" + d.getUTCFullYear(); break;
-                case 'b': c = "" + monthNames[d.getUTCMonth()]; break;
+                case 'M': c = leftPad(getMinutes(d, utc)); break;
+                case 'S': c = leftPad(getSeconds(d, utc)); break;
+                case 'd': c = "" + getDate(d, utc); break;
+                case 'm': c = "" + (getMonth(d, utc) + 1); break;
+                case 'y': c = "" + getFullYear(d, utc); break;
+                case 'b': c = "" + monthNames[getMonth(d, utc)]; break;
                 case 'p': c = (isAM) ? ("" + "am") : ("" + "pm"); break;
                 case 'P': c = (isAM) ? ("" + "AM") : ("" + "PM"); break;
                 case '0': c = ""; padNext = true; break;
@@ -2747,5 +2749,45 @@
     function floorInBase(n, base) {
         return base * Math.floor(n / base);
     }
-    
+
+    function getSeconds(d, utc) {
+      return utc ? d.getUTCSeconds() : d.getSeconds();
+    }
+    function getMinutes(d, utc) {
+      return utc ? d.getUTCMinutes() : d.getMinutes();
+    }
+    function getHours(d, utc) {
+      return utc ? d.getUTCHours() : d.getHours();
+    }
+    function getMonth(d, utc) {
+      return utc ? d.getUTCMonth() : d.getMonth();
+    }
+    function getFullYear(d, utc) {
+      return utc ? d.getUTCFullYear() : d.getFullYear();
+    }
+    function getDate(d, utc) {
+      return utc ? d.getUTCDate() : d.getDate();
+    }
+    function setMilliseconds(d, v, utc) {
+      return utc ? d.setUTCMilliseconds(v) : d.setMilliseconds(v);
+    }
+    function setSeconds(d, v, utc) {
+      return utc ? d.setUTCSeconds(v) : d.setSeconds(v);
+    }
+    function setMinutes(d, v, utc) {
+      return utc ? d.setUTCMinutes(v) : d.setMinutes(v);
+    }
+    function setHours(d, v, utc) {
+      return utc ? d.setUTCHours(v) : d.setHours(v);
+    }
+    function setMonth(d, v, utc) {
+      return utc ? d.setUTCMonth(v) : d.setMonth(v);
+    }
+    function setFullYear(d, v, utc) {
+      return utc ? d.setUTCFullYear(v) : d.setFullYear(v);
+    }
+    function setDate(d, v, utc) {
+      return utc ? d.setUTCDate(v) : d.setDate(v);
+    }
+
 })(jQuery);
