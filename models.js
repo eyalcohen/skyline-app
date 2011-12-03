@@ -143,6 +143,10 @@ function defineModels(mongoose, fn) {
     _id: Number,
     key: { type: String, index: true },
     val: String,
+    created: {
+      type: Date,
+      default: Date.now,
+    },
   });
 
   AppState.pre('save', function (next) {
