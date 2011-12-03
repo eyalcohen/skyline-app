@@ -292,6 +292,7 @@ define(['views/dashItem', 'plot_booter'],
         self.plot.setupGrid();
         self.plot.draw();
         self.drawWindow();
+        // self.tabModel.set({ visibleTime: { beg: xopts.min, end: xopts.max } });
       };
     },
 
