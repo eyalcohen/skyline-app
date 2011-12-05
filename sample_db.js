@@ -24,8 +24,11 @@ var shared = require('./shared_utils');
  *       humanName: human-readable channel name, e.g. "Front wheel speed".
  *       units: string describing units, e.g. "m/s^2".
  *       description: long human-readable description (optional).
- *       type: the type of the channel, one of: 'float', 'int', 'enum', 'object'.
- *       enumVals: if type == 'enum', a list of possible values for the enum.
+ *       type: the type of the channel, one of:
+ *           'float', 'int', 'enum', 'bitfield', 'object'.
+ *       enumVals: if type == 'enum', an object mapping from enum value to name.
+ *       bitfieldBits: if type == 'bitfield', an object mapping from zero-based
+ *           bit number to bit name.
  *       order: number - lower numbers appear earlier in channel list.
  *       merge: true if samples which abut or overlap and have the same val
  *           should be merged into a single sample.
@@ -750,7 +753,7 @@ SampleDb.prototype.fetchMergedSamples =
         this(null, realSamples);
         return;
       }
-      
+
       // Compute synthetic averages by bucket.
       var synBegin = Math.floor(_.first(synSamples).beg / synDuration);
       var synEnd = Math.ceil(_.last(synSamples).end / synDuration);

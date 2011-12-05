@@ -30,6 +30,7 @@ var dnode = require('dnode');
 var fs = require('fs');
 var path = require('path');
 var CSV = require('csv');
+var traverse = require('traverse');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
@@ -609,7 +610,6 @@ app.put('/samples', function (req, res) {
   // Parse to JSON.
   var uploadSamples, mimeType = requestMimeType(req);
   if (mimeType == 'application/octet-stream') {
-    debug('rawBody: ' + req.rawBody.length + ' (' + inspect(req.rawBody) + ')');
     var fileName = (new Date()).valueOf() + '.pbraw';
     fs.mkdir(__dirname + '/samples', '0755', function (err) {
       fs.writeFile(__dirname + '/samples/' + fileName, req.rawBody, null, function (err) {
@@ -662,8 +662,19 @@ app.put('/samples', function (req, res) {
       var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
           (new Date()).valueOf() + '.js';
       fs.mkdir(__dirname + '/samples', '0755', function (err) {
+        /* Transform Buffers into arrays so they get stringified pretty. */
+        var newSamples = traverse(uploadSamples).map(function(o) {
+          if (_.isObject(o) && !_.isArray(o) && _.isNumber(o.length)) {
+            var a = Array(o.length);
+            for (var i = 0; i < o.length; ++i)
+              a[i] = o[i];
+            this.update(a);
+          }
+        });
+
         fs.writeFile(__dirname + '/samples/' + fileName,
-                     JSON.stringify(uploadSamples, null, '  '), function (err) {
+                     JSON.stringify(newSamples, null, '  ') + '\n',
+                     function (err) {
           if (err)
             util.log(err);
           else
