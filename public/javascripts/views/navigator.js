@@ -112,6 +112,8 @@ define(['views/dashItem', 'plot_booter'],
         xaxis: {
           show: true,
           mode: 'time',
+          utc: true,
+          twelveHourClock: true,
           position: 'middle',
           min: navigableTime.beg / 1e3,
           max: navigableTime.end / 1e3,
@@ -290,6 +292,7 @@ define(['views/dashItem', 'plot_booter'],
         self.plot.setupGrid();
         self.plot.draw();
         self.drawWindow();
+        // self.tabModel.set({ visibleTime: { beg: xopts.min, end: xopts.max } });
       };
     },
 

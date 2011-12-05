@@ -104,7 +104,7 @@ define(function () {
           channel.colorNum = c;
         }
         self.get('channels').push(channel);
-        console.log('addChannel(', channel, ')...');
+        // console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription();
       App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
@@ -117,7 +117,7 @@ define(function () {
           .indexOf(channel.channelName);
       if (index === -1) return;
       self.get('channels').splice(index, 1);
-      console.log('removeChannel(', channel, ')...');
+      // console.log('removeChannel(', channel, ')...');
       self.updateCacheSubscription();
       App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
       return self;

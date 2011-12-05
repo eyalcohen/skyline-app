@@ -111,11 +111,21 @@ define(['views/dashItem', 'plot_booter',
       self.plot = $.plot($('.graph > div', self.content), [], {
         xaxis: {
           mode: 'time',
+          utc: true,
+          twelveHourClock: true,
           position: 'bottom',
           min: visibleTime.beg / 1e3,
           max: visibleTime.end / 1e3,
           tickColor: '#f0f0f0',
           labelsInside: true,
+          tickFormatter: function (val, axis) {
+            var visible = self.getVisibleTime();
+            var span = (visible.end - visible.beg) / 1e3;
+            var date = new Date(val);
+            return span < 86400000 ?
+              App.util.toLocaleString(date, 'h:MM:ss TT') :
+              App.util.toLocaleString(date, 'm/d/yy');
+          }
         },
         yaxis: {
           reserveSpace: true,
@@ -425,7 +435,14 @@ define(['views/dashItem', 'plot_booter',
       if (time != null) {
         self.mouseTime.show();
         // TODO: finer than 1 second granularity.
-        self.mouseTimeTxt.text(new Date(Math.round(time)).toString());
+        var date = new Date(Math.round(time));
+        // var dateStr = date.toLocaleDateString();
+        // var timeStr = date.toLocaleTimeString();
+        // var millStr = Math.round(Math.abs(time - Math.round(time)) * 1000);
+        // self.mouseTimeTxt.text(dateStr + ' ' + timeStr);
+        self.mouseTimeTxt.text(
+                App.util.toLocaleString(
+                date, 'dddd m/d/yy h:MM:ss TT Z'));
       } else {
         self.mouseTime.hide();
       }

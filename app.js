@@ -200,15 +200,15 @@ app.configure(function () {
   app.use(rawBody(['application/octet-stream']));
   app.use(express.cookieParser());
 
-  var sessionServerDb =
-      mongodb.connect(app.set('db-uri-mongodb'), { noOpen: true }, function() {});
-  app.use(express.session({
-    cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
-    secret: 'topsecretmission',
-    store: new MongoStore({ db: sessionServerDb, }, function (err) {
-      if (err) util.log('Error creating MongoStore: ' + err);
-    })
-  }));
+  // var sessionServerDb =
+  //     mongodb.connect(app.set('db-uri-mongodb'), { noOpen: true }, function() {});
+  // app.use(express.session({
+  //   cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
+  //   secret: 'topsecretmission',
+  //   store: new MongoStore({ db: sessionServerDb, }, function (err) {
+  //     if (err) util.log('Error creating MongoStore: ' + err);
+  //   })
+  // }));
   app.use(express.logger({ format: function(tok, req, res) {
     var url = tok.url(req, res) || '-';
     if (/^\/status/(url)) return;
