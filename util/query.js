@@ -41,11 +41,27 @@ errCheck(err, 'connect('+argv.db+')');
 new SampleDb(db, { ensureIndexes: false }, function (err, sampleDb) {
 errCheck(err, 'new sampleDb');
 
-if (!argv._.length)
-  optimist.showHelp();
-
 // Perform queries.
 Step(
+  function() {
+    if (argv._.length)
+      return true;
+
+    // If no channels were specified, fetch the schema and build a channel list
+    // from it.
+    var next = this;
+    sampleDb.fetchSamples(
+        argv.vehicleId, '_schema', _.clone(argv), function(err, samples) {
+      if (err) { next(err); return; }
+      argv._.push('_schema');
+      samples.forEach(function (s) {
+        if (!_.contains(argv._, s.val.channelName))
+          argv._.push(s.val.channelName);
+      });
+      next();
+    });
+  },
+
   function() {
     if (argv.benchmark) {
       doBenchmark(argv.benchmark, this);
