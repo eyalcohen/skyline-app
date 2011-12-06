@@ -21,7 +21,7 @@ if (argv._.length || argv.help) {
 
 var express = require('express');
 var mongoose = require('mongoose');
-var ObjectID = require('mongoose/lib/mongoose/types/objectid');
+var ObjectID = require('mongoose/lib/types/objectid');
 var jade = require('jade');
 var mongodb = require('mongodb');
 var MongoStore = require('connect-mongodb');
@@ -1180,7 +1180,7 @@ var createDnodeConnection = function (remote, conn) {
           // SP: ugly - mongoose's weird doc mapping
           // makes it hard to inject new props, like lastSeen.
           var vehs = vehicles.map(function (vehicle) {
-            var v = vehicle.doc;
+            var v = vehicle._doc;
             v.user = vehicle.user;
             v.lastSeen = vehicle.lastSeen || 0;
             if (vehicle.lastCycle) v.lastCycle = vehicle.lastCycle;

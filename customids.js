@@ -4,7 +4,7 @@
  */
 
 var BinaryParser = require('mongodb').BinaryParser
-  , ObjectID = require('mongoose/lib/mongoose/types/objectid')
+  , ObjectID = require('mongoose/lib/types/objectid')
 ;
 
 
