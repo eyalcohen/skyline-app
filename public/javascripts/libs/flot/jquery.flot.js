@@ -1307,17 +1307,17 @@
                                 // so we don't end up in the middle of a day
                                 setDate(d, 1, opts.utc);
                                 var start = d.getTime();
-                                setMonth(d, getMonth(d, otps.utc) + 1, otps.utc);
+                                setMonth(d, getMonth(d, opts.utc) + 1, opts.utc);
                                 var end = d.getTime();
                                 d.setTime(v + carry * timeUnitSize.hour + (end - start) * tickSize);
-                                carry = getHours(d, otps.utc);
-                                setHours(d, 0, otps.utc);
+                                carry = getHours(d, opts.utc);
+                                setHours(d, 0, opts.utc);
                             }
                             else
-                                setMonth(d, getMonth(d, otps.utc) + tickSize, otps.utc);
+                                setMonth(d, getMonth(d, opts.utc) + tickSize, opts.utc);
                         }
                         else if (unit == "year") {
-                            setFullYear(d, getFullYear(d, otps.utc) + tickSize, otps.utc);
+                            setFullYear(d, getFullYear(d, opts.utc) + tickSize, opts.utc);
                         }
                         else
                             d.setTime(v + step);

@@ -436,10 +436,6 @@ define(['views/dashItem', 'plot_booter',
         self.mouseTime.show();
         // TODO: finer than 1 second granularity.
         var date = new Date(Math.round(time));
-        // var dateStr = date.toLocaleDateString();
-        // var timeStr = date.toLocaleTimeString();
-        // var millStr = Math.round(Math.abs(time - Math.round(time)) * 1000);
-        // self.mouseTimeTxt.text(dateStr + ' ' + timeStr);
         self.mouseTimeTxt.text(
                 App.util.toLocaleString(
                 date, 'dddd m/d/yy h:MM:ss TT Z'));
@@ -642,7 +638,7 @@ define(['views/dashItem', 'plot_booter',
             if (cb) cb();
           });
           console.log('Got new data:', newTimeRange.beg, newTimeRange.end);
-        }
+        } else if (cb) cb();
       });
 
       function pan(dest, cb) {
