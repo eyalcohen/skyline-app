@@ -1263,7 +1263,7 @@ var createDnodeConnection = function (remote, conn) {
    *       sample.
    *   newValue can be null to delete a note.
    */
-  function modifySample(vehicleId, oldNote, newNote, cb) {
+  function modifyNote(vehicleId, oldNote, newNote, cb) {
     if (!checkAuth(cb)) return;
     Step(
       function() {
@@ -1345,7 +1345,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchUsers: fetchUsers,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
-    modifySample: modifySample,
+    modifyNote: modifyNote,
     fetchChannelTree: fetchChannelTree,
     fetchVehicleConfig: fetchVehicleConfig,
     saveVehicleConfig: saveVehicleConfig,
