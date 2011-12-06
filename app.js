@@ -1254,6 +1254,34 @@ var createDnodeConnection = function (remote, conn) {
     if (cb) cb();
   }
 
+  /**
+   * Modify a sample in-place.
+   * If the service is interrupted during the process, there's a small chance
+   * of losing the sample.
+   *
+   *   schema should contain the schema for the new value.
+   *   oldValue can be null to add a sample rather than modify an existing
+   *       sample.
+   */
+  function modifySample(vehicleId, schema, oldValue, newValue, cb) {
+    if (!checkAuth(cb)) return;
+    var channelName = schema && schema.channelName;
+    if (!channelName) { cb(Error('schema must include channelName')); }
+    Step(
+      function() {
+        if (!oldValue) return null;
+        sampleDb.deleteRealSample(vehicleId, channelName, oldValue, this);
+      },
+      function(err) {
+        if (err) return err;
+        var sampleSet = { _schema: [ schema ] };
+        sampleSet.channelName = [ newValue ];
+        sampleDb.insertSamples(vehicleId, sampleSet, {}, this);
+      },
+      cb
+    );
+  }
+
   // Fetch channel tree.
   // TODO: move this into client code, use _schema subscription instead.
   function fetchChannelTree(vehicleId, cb) {
@@ -1320,6 +1348,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchUsers: fetchUsers,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
+    modifySample: modifySample,
     fetchChannelTree: fetchChannelTree,
     fetchVehicleConfig: fetchVehicleConfig,
     saveVehicleConfig: saveVehicleConfig,

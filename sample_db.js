@@ -54,14 +54,27 @@ var shared = require('./shared_utils');
  *       humanName: human-readable short description,
  *           e.g. "Motor Controller Overcurrent Fault".
  *       description: optional longer description of notification.
- *       channels: optional list of channels related to this
+ *       channels: optional array of channel names related to this
  *           notification (e.g. [ 'mc/fault.activeFaults[hard]' ]).
  *       ... notification-specific data?:
  *         charge: kWh added, charger type, outlet type, latlng?
  *         drive: kWh delta, distance travelled
  *         error, warning: channels containing relevant further data
  *     }
- *   TODO: Are _wake and _drive redundant?  Who creates these things?
+ *     TODO: Are _wake and _drive redundant?  Who creates these things?
+ *   Notes:
+ *     chn: '_note'
+ *     beg, end: time range to which note applies - can be zero-duration
+ *     val: {
+ *       text: string - text of the note.  (Allow HTML?)
+ *       tags: array[string] - list of tags?
+ *       creationUserEmail: string - email address of user who created note.
+ *       creationDate: date - creation time/date.
+ *       modificationUserEmail: optional string - email address of last user
+ *           who modified note.
+ *       modificationDate: optional date - time/date of last modification.
+ *       channels: optional array of channel names related to this note.
+ *     }
  */
 
 
@@ -239,8 +252,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
               sampleSet[channelName] = mergedSamples;
               redundantSamples.forEach(function (redundant) {
                 toExecAfter.push(function(cb) {
-                  self.deleteRedundantRealSample(vehicleId, channelName,
-                                                 redundant, cb);
+                  self.deleteRealSample(vehicleId, channelName, redundant, cb);
                 });
               });
               next();
@@ -519,10 +531,12 @@ SampleDb.prototype.addDurationHeuristicHack =
 
 /**
  * Delete a sample from the database.
- * This should only be done to redundant samples (ones which are subsumed by
- * a sample with an identical value).
+ *
+ * Warning: this currently doesn't handle synthetic samples at all, so it
+ * should only be applied to samples which are redundant, or which are
+ * non-numeric and thus don't generate synthetic samples.
  */
-SampleDb.prototype.deleteRedundantRealSample =
+SampleDb.prototype.deleteRealSample =
     function(vehicleId, channelName, sample, cb) {
   var levelInfo = SampleDb.getLevelInfo(sample);
   var query = {
