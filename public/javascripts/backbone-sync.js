@@ -17,7 +17,11 @@ Backbone.sync = function(method, model, options) {
   };
   switch (method) {
     case 'read':
-      App.api[model.readFunc].call(App.api, handleResponse, model.readOpts);
+      if (model.readOpts != null)
+        App.api[model.readFunc].call(App.api, model.readOpts, handleResponse);
+      else
+        App.api[model.readFunc].call(App.api, handleResponse);
+      break;
   }
 };
 

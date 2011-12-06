@@ -1074,7 +1074,11 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   // TMP: use subscriptions from client end
-  function fetchNotifications(cb, opts) {
+  function fetchNotifications(opts, cb) {
+    if (_.isFunction(opts)) {
+      cb = opts;
+      opts = null;
+    }
     if (!checkAuth(cb)) return;
     function callback() {
       notifications.sort(function (a, b) {
