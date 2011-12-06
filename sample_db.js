@@ -29,7 +29,10 @@ var shared = require('./shared_utils');
  *       enumVals: if type == 'enum', an object mapping from enum value to name.
  *       bitfieldBits: if type == 'bitfield', an object mapping from zero-based
  *           bit number to bit name.
- *       order: number - lower numbers appear earlier in channel list.
+ *       channelNumber: number - device-specific channel number - lower numbers
+ *           appear earlier in channel list.
+ *       order: number - DEPRECATED - lower numbers appear earlier in channel
+ *           list.
  *       merge: true if samples which abut or overlap and have the same val
  *           should be merged into a single sample.
  *     }
@@ -907,6 +910,14 @@ function deepUnique(array) {
 };
 
 
+function ifNull(val, def) { return val == null ? def : val }
+function compare(a,b) {
+  // Return a - b doesn't function correctly when a or b are very large, e.g.
+  // Infinity.
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+
 /**
  * Build a channel description tree from a list of schema samples.
  *
@@ -993,7 +1004,11 @@ SampleDb.buildChannelTree = function(samples) {
   }
   var sortedSamples = _.clone(samples);
   sortedSamples.sort(function(a, b) {
-    return (a.val.order || 0) - (b.val.order || 0);
+    return compare(ifNull(a.val.order, Infinity),
+                   ifNull(b.val.order, Infinity)) ||
+           compare(ifNull(a.val.channelNumber, Infinity),
+                   ifNull(b.val.channelNumber, Infinity)) ||
+           compare(a.val.channelName, b.val.channelName);
   });
   var descriptionTree = buildInternal(sortedSamples, '', 0);
   return descriptionTree;

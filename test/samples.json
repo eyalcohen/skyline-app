@@ -13,6 +13,7 @@
     {
       "channelName": "pm/systemState",
       "humanName": "Id=0x088afa60,Req,Ch=1,DevId=PM,Param=2003,Op=getShort  (pm/systemState)",
+      "channelNumber": 2003,
       "type": "ENUM",
       "enumVals": [
         { "value": 0, "name": "KEY_OFF" },
@@ -25,6 +26,7 @@
     {
       "channelName": "mc/hardFaults",
       "humanName": "Id=0x11997722,Rsp,Ch=2,DevId=MC,Param=3001,Op=announceShort  (mc/hardFaults)",
+      "channelNumber": 3001,
       "type": "BITFIELD",
       "bitfieldBits": [
         { "value": 0, "name": "faultUser" },
@@ -38,12 +40,14 @@
     {
       "channelName": "mc/3001",
       "humanName": "Id=0x11997722,Rsp,Ch=2,DevId=MC,Param=3001,Op=announceShort  (mc/3001)",
+      "channelNumber": 3001,
       "type": "BYTES",
       "merge": false
     },
     {
       "channelName": "vc/vcin8",
       "humanName": "Id=0x19df7940,Req,Ch=3,DevId=VC,Param=3018,Op=getShort  (vc/vcin8)",
+      "channelNumber": 3018,
       "type": "BOOL",
       "merge": true
     }

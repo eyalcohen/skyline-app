@@ -242,28 +242,19 @@ exports.testBuildChannelTree = function(test) {
       description: 'GPS: speed in m/s', units: 'm/s', type: 'float' },
     { channelName: 'foo.bar', humanName: 'i pity the', type: 'enum' },
     { channelName: 'gps/latitude_deg', humanName: 'GPS Latitude',
-      units: '°', type: 'float' },
+      channelNumber: 0, units: '°', type: 'float' },
     { channelName: 'gps/satellites.count', humanName: 'Satellite count',
-      type: 'int' },
+      channelNumber: 1, type: 'int' },
   ];
   var samples = schema.map(function(s) { return { beg: 5, end: 9, val: s }; });
   var expected = [
-    { shortName: 'no_hierarchy',
-      channelName: 'no_hierarchy',
-      humanName: 'Blah blah',
-      type: 'string' },
     { shortName: 'gps/',
       type: 'category',
       sub: [
-        { shortName: 'speed_m_s',
-          channelName: 'gps/speed_m_s',
-          humanName: 'Speed',
-          description: 'GPS: speed in m/s',
-          units: 'm/s',
-          type: 'float' },
         { shortName: 'latitude_deg',
           channelName: 'gps/latitude_deg',
           humanName: 'GPS Latitude',
+          channelNumber: 0,
           units: '°',
           type: 'float' },
         { shortName: 'satellites.',
@@ -272,7 +263,14 @@ exports.testBuildChannelTree = function(test) {
             { shortName: 'count',
               channelName: 'gps/satellites.count',
               humanName: 'Satellite count',
-              type: 'int' } ] } ] },
+              channelNumber: 1,
+              type: 'int' } ] },
+        { shortName: 'speed_m_s',
+          channelName: 'gps/speed_m_s',
+          humanName: 'Speed',
+          description: 'GPS: speed in m/s',
+          units: 'm/s',
+          type: 'float' } ] },
     { shortName: 'foo.',
       type: 'category',
       sub: [
@@ -280,6 +278,10 @@ exports.testBuildChannelTree = function(test) {
           channelName: 'foo.bar',
           humanName: 'i pity the',
           type: 'enum' } ] },
+    { shortName: 'no_hierarchy',
+      channelName: 'no_hierarchy',
+      humanName: 'Blah blah',
+      type: 'string' },
   ];
   function setValid(a, valid) {
     a.forEach(function(d) {
