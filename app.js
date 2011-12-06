@@ -1255,28 +1255,25 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   /**
-   * Modify a sample in-place.
+   * Modify a note in-place.
    * If the service is interrupted during the process, there's a small chance
-   * of losing the sample.
+   * of losing the note.
    *
-   *   schema should contain the schema for the new value.
-   *   oldValue can be null to add a sample rather than modify an existing
+   *   oldValue can be null to add a new note rather than modify an existing
    *       sample.
+   *   newValue can be null to delete a note.
    */
-  function modifySample(vehicleId, schema, oldValue, newValue, cb) {
+  function modifySample(vehicleId, oldNote, newNote, cb) {
     if (!checkAuth(cb)) return;
-    var channelName = schema && schema.channelName;
-    if (!channelName) { cb(Error('schema must include channelName')); }
     Step(
       function() {
         if (!oldValue) return null;
-        sampleDb.deleteRealSample(vehicleId, channelName, oldValue, this);
+        sampleDb.deleteRealSample(vehicleId, '_note', oldValue, this);
       },
       function(err) {
         if (err) return err;
-        var sampleSet = { _schema: [ schema ] };
-        sampleSet.channelName = [ newValue ];
-        sampleDb.insertSamples(vehicleId, sampleSet, {}, this);
+        if (!newValue) return null;
+        sampleDb.insertSamples(vehicleId, { _note: [ newValue ] }, {}, this);
       },
       cb
     );
