@@ -982,6 +982,7 @@ SampleDb.buildChannelTree = function(samples) {
         var same = removeSome(sub, function(s2) {
           return s2.val.channelName == s.val.channelName;
         });
+        sortSamplesByTime(same);
         s = _.last(same);  // Use the latest.
         // Copy channelName and such in.
         desc = { shortName: shortName };
@@ -994,7 +995,6 @@ SampleDb.buildChannelTree = function(samples) {
         desc.valid = same.map(function(s2) {
           return { beg: s2.beg, end: s2.end };
         });
-        sortSamplesByTime(desc.valid);
       } else {
         // New category.
         var humanName = null;
