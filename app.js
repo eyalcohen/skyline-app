@@ -1080,31 +1080,8 @@ var createDnodeConnection = function (remote, conn) {
       opts = null;
     }
     if (!checkAuth(cb)) return;
-    function callback() {
-      notifications.sort(function (a, b) {
-        return b.beg - a.beg;
-      });
-      cb(null, JSON.parse(JSON.stringify(notifications)));
-    }
-    var notifications = [];
     if (opts && opts.vehicleId) {
-      Step(
-        function () {
-          sampleDb.fetchSamples(opts.vehicleId, '_drive', {}, this.parallel());
-          sampleDb.fetchSamples(opts.vehicleId, '_charge', {}, this.parallel());
-          sampleDb.fetchSamples(opts.vehicleId, '_error', {}, this.parallel());
-          sampleDb.fetchSamples(opts.vehicleId, '_warning', {}, this.parallel());
-        },
-        function (err, drives, charges, errors, warnings) {
-          if (err) { cb(err); return; }
-          drives.forEach(function (not) { not.type = '_drive'; });
-          charges.forEach(function (not) { not.type = '_charge'; });
-          errors.forEach(function (not) { not.type = '_error'; });
-          warnings.forEach(function (not) { not.type = '_warning'; });
-          notifications = notifications.concat(drives, charges, errors, warnings);
-          callback();
-        }
-      );
+      fetch([ { _id: opts.vehicleId } ], false);
     } else {
       var filterUser;
       if (user.role === 'admin') {
@@ -1113,39 +1090,55 @@ var createDnodeConnection = function (remote, conn) {
         filterUser = ['4ddc6340f978287c5e000003',
             '4ddc84a0c2e5c2205f000001',
             '4ddee7a08fa7e041710001cb'];
-      } else { filterUser = user; }
-      findVehiclesByUser(filterUser, function (vehicles) { //1088675181
-        Step(
-          function () {
-            var parallel = this.parallel;
-            vehicles.forEach(function (v) {
-              var next = parallel();
-              Step(
-                function () {
-                  sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
-                  sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
-                  sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
-                  sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
-                },
-                function (err, drives, charges, errors, warnings) {
-                  if (err) { cb(err); return; }
-                  drives.forEach(function (not) { not.type = '_drive'; not.vehicle = v; });
-                  charges.forEach(function (not) { not.type = '_charge'; not.vehicle = v; });
-                  errors.forEach(function (not) { not.type = '_error'; not.vehicle = v; });
-                  warnings.forEach(function (not) { not.type = '_warning'; not.vehicle = v; });
-                  notifications = notifications.concat(drives, charges, errors, warnings);
-                  next();
-                }
-              );
-            });
-            parallel()(); // In case there are no vehicles.
-          },
-          function (err) {
-            if (err) { cb(err); return; }
-            callback();
-          }
-        );
+      } else {
+        filterUser = user;
+      }
+      findVehiclesByUser(filterUser, function (vehicles) {
+        fetch(vehicles, true);
       });
+    }
+
+    function fetch(vehicles, addVehicle) {
+      var notifications = [];
+      Step(
+        function () {
+          var parallel = this.parallel;
+          vehicles.forEach(function (v) {
+            v = JSON.parse(JSON.stringify(v));  // Strip mongoose crap.
+            var next = parallel();
+            Step(
+              function () {
+                sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
+                sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
+                sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
+                sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
+              },
+              function (err, drives, charges, errors, warnings) {
+                if (err) { cb(err); return; }
+                function addType(type) {
+                  return function(not) {
+                    not.type = type;
+                    if (addVehicle) not.vehicle = v;
+                  }
+                }
+                drives.forEach(addType('_drive'));
+                charges.forEach(addType('_charge'));
+                errors.forEach(addType('_error'));
+                warnings.forEach(addType('_warning'));
+                notifications =
+                    notifications.concat(drives, charges, errors, warnings);
+                next();
+              }
+            );
+          });
+          parallel()(); // In case there are no vehicles.
+        },
+        function (err) {
+          if (err) { cb(err); return; }
+          SampleDb.sortSamplesByTime(notifications, true);
+          cb(null, notifications);
+        }
+      );
     }
   }
 

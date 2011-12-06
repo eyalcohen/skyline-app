@@ -900,6 +900,14 @@ function copyProperties(to, from, props) {
 }
 
 
+function ifNull(val, def) { return val == null ? def : val }
+function compare(a,b) {
+  // Return a - b doesn't function correctly when a or b are very large, e.g.
+  // Infinity.
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+
 // Remove consecutive duplicate elements from array.
 function deepUnique(array) {
   return _.reduce(array, function(memo, el, i) {
@@ -908,14 +916,6 @@ function deepUnique(array) {
     return memo;
   }, []);
 };
-
-
-function ifNull(val, def) { return val == null ? def : val }
-function compare(a,b) {
-  // Return a - b doesn't function correctly when a or b are very large, e.g.
-  // Infinity.
-  return a < b ? -1 : a > b ? 1 : 0;
-}
 
 
 /**
@@ -1194,13 +1194,11 @@ SampleDb.forSampleGaps = function(samples, beginTime, endTime, cb) {
 };
 
 
-var sortSamplesByTime = SampleDb.sortSamplesByTime = function(samples) {
+var sortSamplesByTime = SampleDb.sortSamplesByTime =
+    function(samples, reverse) {
+  reverse = reverse ? -1 : 1;
   samples.sort(function(a, b) {
-    var begDelta = a.beg - b.beg;
-    if (begDelta)
-      return a.beg - b.beg;
-    else
-      return a.end - b.end;
+    return reverse * (compare(a.beg, b.beg) || compare(a.end, b.end));
   });
 };
 
