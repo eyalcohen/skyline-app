@@ -1282,28 +1282,20 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   /**
-   * Modify a note in-place.
-   * If the service is interrupted during the process, there's a small chance
-   * of losing the note.
+   * Insert samples.
    *
-   *   oldValue can be null to add a new note rather than modify an existing
-   *       sample.
-   *   newValue can be null to delete a note.
+   *   sampleSet = {
+   *     <channelName>: [ samples ],
+   *     ...
+   *   }
    */
-  function modifyNote(vehicleId, oldNote, newNote, cb) {
+  function insertSamples(vehicleId, sampleSet, options, cb) {
+    if (_.isFunction(options) && cb == null) {
+      cb = options;
+      options = {};
+    }
     if (!checkAuth(cb)) return;
-    Step(
-      function() {
-        if (!oldValue) return null;
-        sampleDb.deleteRealSample(vehicleId, '_note', oldValue, this);
-      },
-      function(err) {
-        if (err) return err;
-        if (!newValue) return null;
-        sampleDb.insertSamples(vehicleId, { _note: [ newValue ] }, {}, this);
-      },
-      cb
-    );
+    sampleDb.insertSamples(vehicleId, sampleSet, options, cb);
   }
 
   // Fetch channel tree.
@@ -1372,7 +1364,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchUsers: fetchUsers,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
-    modifyNote: modifyNote,
+    insertSamples: insertSamples,
     fetchChannelTree: fetchChannelTree,
     fetchVehicleConfig: fetchVehicleConfig,
     saveVehicleConfig: saveVehicleConfig,
