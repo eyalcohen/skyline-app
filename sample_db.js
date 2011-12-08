@@ -68,12 +68,8 @@ var shared = require('./shared_utils');
  *     val: {
  *       text: string - text of the note.  (Allow HTML?)
  *       tags: array[string] - list of tags?
- *       creationUserEmail: string - email address of user who created note.
- *       creationDate: date - creation time/date.
- *       modificationUserEmail: optional string - email address of last user
- *           who modified note.
- *       modificationDate: optional date - time/date of last modification.
- *       channels: optional array of channel names related to this note.
+ *       userEmail: string - email address of user who added comment.
+ *       date: date - comment time/date.
  *     }
  */
 

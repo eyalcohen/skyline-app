@@ -8,6 +8,9 @@ var argv = optimist
     .describe('help', 'Get help')
     .describe('port', 'Port to listen on')
       .default('port', 8080)
+    .describe('db', 'MongoDb URL to connect to')
+      .default('db', 'mongo:///service-samples')
+      // .default('db', 'mongo://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-samples')  // old production
     .argv;
 
 if (argv._.length || argv.help) {
@@ -152,16 +155,12 @@ function fetchAppState(data, cb) {
 var app = module.exports = express.createServer();
 
 app.configure('development', function () {
-  app.set('db-uri-mongoose', 'mongodb://localhost:27017/service-samples');
-  app.set('db-uri-mongodb', 'mongodb://:27017/service-samples');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
 
 
 app.configure('production', function () {
-  app.set('db-uri-mongoose', 'mongodb://10.201.227.195:27017/service-samples,mongodb://10.211.174.11:27017,mongodb://10.207.62.61:27017');
-  app.set('db-uri-mongodb', 'mongodb://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-samples');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = true;
 });
@@ -201,7 +200,7 @@ app.configure(function () {
   app.use(express.cookieParser());
 
   // var sessionServerDb =
-  //     mongodb.connect(app.set('db-uri-mongodb'), { noOpen: true }, function() {});
+  //     mongodb.connect(argv.db, { noOpen: true }, function() {});
   // app.use(express.session({
   //   cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
   //   secret: 'topsecretmission',
@@ -231,11 +230,39 @@ models.defineModels(mongoose, function () {
   app.User = User = mongoose.model('User');
   app.Vehicle = Vehicle = mongoose.model('Vehicle');
   app.AppState = AppState = mongoose.model('AppState');
-  var uri = app.set('db-uri-mongoose');
-  if (uri.indexOf(',') < 0)
-    db = mongoose.connect(app.set('db-uri-mongoose'));
-  else
-    db = mongoose.connectSet(app.set('db-uri-mongoose'));
+
+  // Ugh: parse mongodb-style URL and convert to a mongoose-compatible one.
+  var match = argv.db.match(
+      new RegExp('^mongo(?:db)?://(?:|([^@/]*)@)([^@/]*)(?:|/([^?]*)(?:|\\?([^?]*)))$'));
+  if (!match)
+    throw Error("URL must be in the format mongodb://user:pass@host:port/dbname");
+
+  var authPart = match[1] || '';
+  var auth = authPart.split(':', 2);
+  var hostPart = match[2];
+  var dbname = match[3] || 'default';
+  var urlOptions = (match[4] || '').split(/[&;]/);
+  if (urlOptions != '')
+    throw Error('URL options in mongodb URL not handled yet: ' + urlOptions);
+
+  var servers = hostPart.split(',').map(function(h) {
+    var hostPort = h.split(':', 2);
+    return { host: hostPort[0] || 'localhost',
+             port: hostPort[1] != null ? parseInt(hostPort[1]) : 27017 };
+  });
+  var mongooseUri = 'mongodb://' + (authPart ? authPart + '@' : '') +
+      servers[0].host + ':' + servers[0].port + '/' + dbname;
+  if (servers.length == 1) {
+    util.log('Connecting to mongoose DB: ' + mongooseUri);
+    db = mongoose.connect(mongooseUri);
+  } else {
+    mongooseUri += ',';
+    mongooseUri += _.rest(servers).map(function(server) {
+      return 'mongodb://' + server.host + ':' + server.port;
+    }).join(',');
+    util.log('Connecting to mongoose DB set: ' + mongooseUri);
+    db = mongoose.connectSet(mongooseUri);
+  }
 });
 
 
@@ -1255,28 +1282,20 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   /**
-   * Modify a note in-place.
-   * If the service is interrupted during the process, there's a small chance
-   * of losing the note.
+   * Insert samples.
    *
-   *   oldValue can be null to add a new note rather than modify an existing
-   *       sample.
-   *   newValue can be null to delete a note.
+   *   sampleSet = {
+   *     <channelName>: [ samples ],
+   *     ...
+   *   }
    */
-  function modifyNote(vehicleId, oldNote, newNote, cb) {
+  function insertSamples(vehicleId, sampleSet, options, cb) {
+    if (_.isFunction(options) && cb == null) {
+      cb = options;
+      options = {};
+    }
     if (!checkAuth(cb)) return;
-    Step(
-      function() {
-        if (!oldValue) return null;
-        sampleDb.deleteRealSample(vehicleId, '_note', oldValue, this);
-      },
-      function(err) {
-        if (err) return err;
-        if (!newValue) return null;
-        sampleDb.insertSamples(vehicleId, { _note: [ newValue ] }, {}, this);
-      },
-      cb
-    );
+    sampleDb.insertSamples(vehicleId, sampleSet, options, cb);
   }
 
   // Fetch channel tree.
@@ -1345,7 +1364,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchUsers: fetchUsers,
     fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
-    modifyNote: modifyNote,
+    insertSamples: insertSamples,
     fetchChannelTree: fetchChannelTree,
     fetchVehicleConfig: fetchVehicleConfig,
     saveVehicleConfig: saveVehicleConfig,
@@ -1361,9 +1380,8 @@ if (!module.parent) {
   Step(
     // Connect to SampleDb:
     function() {
-      mongodb.connect(app.set('db-uri-mongodb'),
-                      { server: { poolSize: 4 } },
-                      this);
+      util.log('Connecting to SampleDb: ' + argv.db);
+      mongodb.connect(argv.db, { server: { poolSize: 4 } }, this);
     }, function(err, db) {
       if (err) { this(err); return; }
       new SampleDb(db, { ensureIndexes: true }, this);
