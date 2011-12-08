@@ -1,3 +1,68 @@
+$.fn.placeholder = function () {  
+
+  var placeholder = this;
+  
+  if (placeholder.val().length === 0) {
+    var placeholderVal = placeholder.attr("placeholder");
+    placeholder.attr("data-placeholder", placeholderVal);
+    placeholder.val(placeholderVal);
+    placeholder.attr("placeholder", null);
+    placeholder.attr("data-type", placeholder.attr("type"));
+    if (placeholder.attr("type") === "password") {
+      placeholder.attr("type", "text");
+    }
+    placeholder.addClass("placeholder");
+  }
+
+  // Apply events for placeholder handling
+  placeholder.bind("focus", setCaret);
+  placeholder.bind("drop", setCaret);
+  placeholder.bind("click", setCaret);
+  placeholder.bind("keydown", clearPlaceholder);
+  placeholder.bind("keyup", restorePlaceHolder);
+  placeholder.bind("blur", restorePlaceHolder);
+
+  // Set caret at the beginning of the input
+  function setCaret(evt) {
+    var $this = $(this);
+    if ($this.val() === $this.attr("data-placeholder")) {
+      this.setSelectionRange(0, 0);
+      evt.preventDefault();
+      // evt.stopPropagation();
+      return false;
+    }
+  }
+
+  // Clear placeholder value at user input
+  function clearPlaceholder(evt) {
+    var $this = $(this);
+    if (!(evt.shiftKey && evt.keyCode === 16) && evt.keyCode !== 9) {
+      if ($this.val() === $this.attr("data-placeholder")) {
+        $this.val("");
+        $this.removeClass("placeholder");
+        if ($this.attr("data-type") === "password") {
+          $this.attr("type", "password");
+        }
+      }
+    }
+  }
+
+  function restorePlaceHolder() {
+    var $this = $(this);
+    if ($this.val().length === 0) {
+      $this.val($this.attr("data-placeholder"));
+      setCaret.apply(this, arguments);
+      $this.addClass("placeholder");
+      if ($this.attr("type") === "password") {
+        $this.attr("type", "text");
+      }
+    }
+  }
+
+  return this;
+
+};
+
 // $.fn.serializeObject = function () {
 //   var o = {},
 //       a = this.serializeArray();

@@ -118,7 +118,6 @@ function defineModels(mongoose, fn) {
     }
   });
 
-
   /**
     * Model: Vehicle
     */
@@ -134,7 +133,6 @@ function defineModels(mongoose, fn) {
       default: Date.now,
     },
   });
-
 
   /**
     * Model: AppState

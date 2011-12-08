@@ -437,6 +437,10 @@ input[type=password] {
   font-weight: bold;
 }
 
+.placeholder {
+  color: gray !important;
+}
+
 input.export-input-text {
   display: inline-block;
   font-size: 12px;
@@ -520,6 +524,14 @@ div[role=button] > div {
   height: 23px;
   display: inline-block;
   vertical-align: -7px;
+}
+
+div[role=button].little {
+  font-size: 10px;
+  padding: 0 6px;
+  height: 17px;
+  line-height: 17px;
+  min-width: 28px;
 }
 
 input[type="checkbox"],
@@ -736,6 +748,7 @@ input.dashboard-search {
   padding: 1px;
   width: auto;
   height: 11px;
+  font-weight: normal;
 }
 input.dashboard-search:focus {
   color: black;
@@ -1095,6 +1108,105 @@ div.preferences {
   height: 100%;
 }
 
+.note {
+  position: absolute;
+  width: 300px;
+  z-index: 10001;
+  background: rgba(51,51,51,0.9);
+
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+
+  -moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.note::after {
+  position: absolute;
+  top: 8px;
+  width: 0;
+  display: block;
+  border-color: transparent rgba(0,0,0,0.25);
+  border-style: solid;
+  content: "";
+}
+
+.left-triangle::after {
+  left: -15px;
+  border-width: 8px 15px 8px 0;
+}
+
+.right-triangle::after {
+  right: -15px;
+  border-width: 8px 0 8px 15px;
+}
+
+.note-header {
+  background: yellow;
+  padding: 1px 5px;
+
+  -webkit-border-radius: 4px 4px 0 0;
+  -moz-border-radius: 4px 4px 0 0;
+  border-radius: 4px 4px 0 0;
+}
+
+.note-header > span {
+  color: black;
+  font-size: 11px;
+}
+
+.note-content {
+
+}
+
+.note-add {
+
+}
+
+textarea.note-text {
+  width: 290px;
+  min-height: 60px;
+  padding: 5px;
+  resize: vertical;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  color: #111;
+}
+
+.note-actions {
+  padding: 5px;
+
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-pack: end;
+
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-pack: end;
+
+  display: box;
+  box-orient: horizontal;
+  box-pack: end;
+}
+
+a.note-cancel {
+  font-size: 10px;
+  padding: 0 10px;
+  cursor: pointer;
+  color: white;
+}
+
+a.note-cancel:hover {
+  color: red;
+  text-decoration: underline;
+}
+
+a.note-cancel:active {
+  color: black;
+}
+
 .graph,
 .navigator {
   width: 100%;
@@ -1179,6 +1291,21 @@ div.preferences {
   background-image: url(/graphics/graph-closer-hover.png);
 }
 
+.note-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+/*.flot-base {
+  z-index: 2;
+}
+
+.flot-overlay {
+  z-index: 1;
+}
+*/
 .notification-preview {
   height: 100%;
   position: absolute;
@@ -1258,10 +1385,6 @@ div.preferences {
   width: auto;
   background: rgba(255,255,255,0.9);
   z-index: 10002;
-
-/*border-left: 1px solid #666;
-  border-right: 1px solid #666;
-  border-bottom: 1px solid #666;*/
 
   -moz-box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);

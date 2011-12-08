@@ -1,0 +1,23 @@
+.note(class=onRight ? "left-triangle" : "right-triangle")
+  .note-header
+    span
+      - if (isNew) {
+        | Add a comment at
+        span(style="font-weight:bold")= time
+      - } else {
+        =num 
+        | comments at 
+        span(style="font-weight:bold")= time
+      - }
+  .note-content
+    - notes.forEach(function (n) {
+      .note-user
+        =n.user.name.first
+      .note-body
+        =n.text
+    - })
+  .note-add
+    textarea.note-text(placeholder="Enter text here.")
+    .note-actions
+      a.note-cancel Cancel
+      .note-add-button.little(role="button") Post

@@ -121,9 +121,16 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
         pan: {
             interactive: false,
             cursor: "move",
-            frameRate: 20
+            frameRate: 20,
+            useShiftKey: false,
+            onShiftDragStart: function () {},
+            onShiftDrag: function () {},
+            onShiftDragEnd: function () {},
+            cancelShiftDrag: function () {},
         }
     };
+
+    var isShiftKey = false;
 
     function init(plot) {
         function onZoomClick(e, zoomOut) {
@@ -147,6 +154,12 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
         function onDragStart(e) {
             if (e.which != 1)  // only accept left-click
                 return false;
+            isShiftKey = false;
+            if (e.shiftKey && plot.getOptions().pan.useShiftKey) {
+              isShiftKey = true;
+              plot.getOptions().pan.onShiftDragStart.call(this, e, plot);
+              return;
+            }
             var c = plot.getPlaceholder().css('cursor');
             if (c)
                 prevCursor = c;
@@ -159,13 +172,19 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
             var frameRate = plot.getOptions().pan.frameRate;
             if (panTimeout || !frameRate)
                 return;
-
+            if (isShiftKey) {
+              if (e.shiftKey)
+                plot.getOptions().pan.onShiftDrag.call(this, e, plot);
+              else
+                plot.getOptions().pan.cancelShiftDrag.call(this, e, plot);
+              return;
+            }
             panTimeout = setTimeout(function () {
                 plot.pan({ left: prevPageX - e.pageX,
                            top: prevPageY - e.pageY });
                 prevPageX = e.pageX;
                 prevPageY = e.pageY;
-                                                    
+
                 panTimeout = null;
             }, 1 / frameRate * 1000);
         }
@@ -175,7 +194,13 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
                 clearTimeout(panTimeout);
                 panTimeout = null;
             }
-                    
+            if (isShiftKey) {
+              if (e.shiftKey) {
+                plot.getOptions().pan.onShiftDragEnd.call(this, e, plot);
+                isShiftKey = false;
+              }
+              return;
+            }
             plot.getPlaceholder().css('cursor', prevCursor);
             plot.pan({ left: prevPageX - e.pageX,
                        top: prevPageY - e.pageY });

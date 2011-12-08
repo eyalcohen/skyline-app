@@ -65,6 +65,7 @@ define(['views/dashItem', 'plot_booter',
       this.minHoverDistance = 10;
       this.highlighting = false;
       this.following = false;
+      this.noteBox = null;
       this._super('render');
       this.draw();
     },
@@ -81,9 +82,11 @@ define(['views/dashItem', 'plot_booter',
           height: height,
         });
         this.plot.setCanvasDimensions(width, height);
+        this.noteCanvas.attr({ width: width, height: height });
         if (!skipDraw) {
           this.plot.setupGrid();
           this.plot.draw();
+          this.redrawNote();
         }
       }
     },
@@ -163,6 +166,11 @@ define(['views/dashItem', 'plot_booter',
         pan: {
           interactive: true,
           frameRate: 60,
+          useShiftKey: true,
+          onShiftDragStart: _.bind(self.beginNote, self),
+          onShiftDrag: _.throttle(_.bind(self.drawNote, self), 20),
+          onShiftDragEnd: _.bind(self.endNote, self),
+          cancelShiftDrag: _.bind(self.cancelNote, self),
         },
         legend: {
           margin: [40, 0],
@@ -185,13 +193,14 @@ define(['views/dashItem', 'plot_booter',
         plot: self.plot,
         id: self.options.id,
       });
+      self.noteCanvas = $('<canvas width="' + self.plot.getPlaceholder().width()
+                        + '" height="' + self.plot.getPlaceholder().height()
+                        + '" class="note-canvas">').appendTo('.graph > div', self.content);
+      self.noteCtx = self.noteCanvas.get(0).getContext('2d');
 
       function bindEventsHook(plot, eventHolder) {
         plot.getPlaceholder().mousemove(function (e) {
-          var mouse = {
-            x: e.pageX - parseInt(plot.offset().left),
-            y: e.pageY - parseInt(plot.offset().top),
-          };
+          var mouse = self.getMouse(e, plot);
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouse.x);
           // If we're hovering over the legend, don't do data mouseover.
@@ -204,10 +213,12 @@ define(['views/dashItem', 'plot_booter',
           App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
         })
         .mousewheel(function (e, delta) {
+          if (self.note) return;
           graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
           return false;
         })
         .dblclick(function (e) {
+          if (self.note) return;
           graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         });
 
@@ -257,13 +268,13 @@ define(['views/dashItem', 'plot_booter',
       if (self.model.get('channels').length === 0 
           && emptyDiv.length === 0) {
         App.engine('empty_graph.jade').appendTo(self.content);
-        $('canvas', self.plot.getPlaceholder()).hide();
+        $('.flot-base, .flot-overlay', self.plot.getPlaceholder()).hide();
         $('.graph', self.content).hide();
         self.plot.getOptions().crosshair.mode = null;
       } else if (self.model.get('channels').length > 0 
           && emptyDiv.length > 0) {
         emptyDiv.remove();
-        $('canvas', self.plot.getPlaceholder()).show();
+        $('.flot-base, .flot-overlay', self.plot.getPlaceholder()).show();
         $('.graph', self.content).show();
         self.resize(true);
         self.plot.getOptions().crosshair.mode = 'x';
@@ -834,6 +845,98 @@ define(['views/dashItem', 'plot_booter',
             this.options.tabId + '-' + this.options.id, [channel]);
       }, this));
       App.publish('GraphUnrequested-' + this.options.tabId, [this.options.id]);
+    },
+
+    getMouse: function (e, plot) {
+      return {
+        x: e.pageX - parseInt(plot.offset().left),
+        y: e.pageY - parseInt(plot.offset().top),
+      };
+    },
+
+    // Note handling.
+
+    beginNote: function (e, plot) {
+      this.noteCanvas.show();
+      if (this.noteBox) this.clearNote();
+      this.noteBox = {
+        x: this.getMouse(e, plot).x,
+        y: 0,
+        w: 0,
+        h: plot.getPlaceholder().height(),
+      };
+    },
+
+    drawNote: function (e, plot) {
+      this.noteCtx.fillStyle = 'rgba(0,0,0,0.25)';
+      this.clearNote();
+      this.noteBox.w = this.getMouse(e, plot).x - this.noteBox.x;
+      this.noteCtx.fillRect(this.noteBox.x, this.noteBox.y,
+                            this.noteBox.w, this.noteBox.h);
+    },
+
+    endNote: function (e, plot) {
+      var self = this;
+      var mouse = self.getMouse(e, plot);
+      var xaxis = plot.getXAxes()[0];
+      var time = xaxis.c2p(mouse.x);
+      var date = new Date(Math.round(time));
+      var reversed = mouse.x < self.noteBox.x;
+      var onRight = reversed ? 
+          $(document).width() - 320 > e.pageX - self.noteBox.w :
+          $(document).width() - 320 > e.pageX;
+      var leftEdge = reversed ? mouse.x : self.noteBox.x;
+      var rightEdge = reversed ? self.noteBox.x : mouse.x;
+      self.note = self.getNote({
+        top: mouse.y + 3,
+        left: onRight ? rightEdge + 15 : leftEdge - 315,
+      }, {
+        time: App.util.toLocaleString(date,
+                  'dddd m/d/yy h:MM:ss TT Z'),
+        onRight: onRight,
+      }).appendTo(self.el);
+      $('.note-cancel', self.note).bind('click', function (e) {
+        self.cancelNote(null, plot);
+      });
+      $('.note-text', this.note).placeholder().focus();
+      
+      // 
+      // this.noteCtx.fillStyle = 'rgba(0,0,0,0.75)';
+      // this.clearNote();
+      // this.noteCtx.fillRect(0, this.noteBox.y,
+      //                       leftEdge, this.noteBox.h);
+      // this.noteCtx.fillRect(rightEdge, this.noteBox.y,
+      //                       plot.getPlaceholder().width(), this.noteBox.h);
+    },
+
+    cancelNote: function (e, plot) {
+      if (this.note) {
+        this.note.remove();
+        this.note = null;
+      }
+      this.noteCanvas.hide();
+      this.clearNote();
+    },
+
+    clearNote: function () {
+      this.noteCtx.clearRect(this.noteBox.x, this.noteBox.y,
+                            this.noteBox.w, this.noteBox.h);
+    },
+
+    redrawNote: function () {
+      
+    },
+
+    getNote: function (pos, opts) {
+      opts = opts || {};
+      _.defaults(opts, {
+        isNew: true,
+        notes: [],
+        time: Date(),
+        onRight: true,
+      });
+      return App.engine('note.jade', opts)
+          .css({ top: pos.top, left: pos.left });
     },
 
   });

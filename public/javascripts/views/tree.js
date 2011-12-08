@@ -30,6 +30,7 @@ define(['views/dashItem',
       }
       var parent = this.options.parent || App.regions.left;
       this.el = App.engine('tree.dash.jade', opts).appendTo(parent);
+      $('.dashboard-search', this.el).placeholder();
       // console.log('tree.dash.jade:', Date.now() - start);
       this._super('render');
       if (!this.firstRender && !opts.loading && !opts.empty) {
@@ -355,7 +356,9 @@ define(['views/dashItem',
     },
 
     search: function (e) {
+      var placeholder = $(e.target).attr('data-placeholder');
       var txt = $(e.target).val().trim();
+      if (txt == placeholder) txt = '';
       this.treeHolder.jstree('search', txt);
     },
 
