@@ -1146,6 +1146,7 @@ div.preferences {
 .note-header {
   background: yellow;
   padding: 1px 5px;
+  cursor: default;
 
   -webkit-border-radius: 4px 4px 0 0;
   -moz-border-radius: 4px 4px 0 0;
@@ -1167,12 +1168,13 @@ div.preferences {
 
 textarea.note-text {
   width: 290px;
-  min-height: 60px;
+  min-height: 40px;
   padding: 5px;
   resize: vertical;
   border: none;
   background: rgba(255,255,255,0.9);
   color: #111;
+  display: block;
 }
 
 .note-actions {
@@ -1204,6 +1206,62 @@ a.note-cancel:hover {
 }
 
 a.note-cancel:active {
+  color: black;
+}
+
+.note-loading {
+  padding: 0 10px;
+  display: none;
+}
+
+.note-loading > div {
+  left: 0 !important;
+  top: 8px !important;
+}
+
+.note-message {
+  color: yellow;
+  font-size: 10px;
+  margin: 7px 0 0 0;
+  padding: 0 10px;
+  float: left;
+  display: none;
+}
+
+.note-channels {
+  padding: 2px 5px 5px;
+  background: rgba(255,255,255,0.1);
+}
+
+.note-channels-header {
+  color: white;
+  font-weight: bold;
+  font-size: 10px;
+/*  text-transform: uppercase;*/
+}
+
+.note-channels > ul {
+  margin: 0 0 0 15px;
+}
+
+.note-channels > ul > li {
+  list-style-type: none;
+  display: block;
+  color: white;
+  font-size: 10px;
+}
+
+.note-channels > ul > li > a {
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.note-channels > ul > li > a:hover {
+  color: red;
+}
+
+.note-channels > ul > li > a:active {
   color: black;
 }
 

@@ -18,6 +18,16 @@
     - })
   .note-add
     textarea.note-text(placeholder="Enter text here.")
+    .note-channels
+      span.note-channels-header Relevant Channels:
+      ul
+        - channels.forEach(function (c, i) {
+            li.note-channel(data-channel-name=c)= c
+              a.note-channel-remove(href="javascript:;", title="Remove channel") &nbsp;(X)
+        - })
+    span.note-message
     .note-actions
+      .note-loading
       a.note-cancel Cancel
-      .note-add-button.little(role="button") Post
+      .note-post.little(role="button") Post
+
