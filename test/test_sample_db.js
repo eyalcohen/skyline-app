@@ -285,9 +285,10 @@ exports.testBuildChannelTree = function(test) {
   ];
   function setValid(a, valid) {
     a.forEach(function(d) {
-      d.valid = valid;
       if ('sub' in d)
         setValid(d.sub, valid);
+      else
+        d.valid = valid;
     });
   };
   setValid(expected, [ { beg: 5, end: 9 } ]);

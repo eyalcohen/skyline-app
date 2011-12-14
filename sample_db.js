@@ -934,7 +934,6 @@ function deepUnique(array) {
  *     humanName: 'GPS data',  // optional
  *     description: 'GPS data from dash unit.',  // optional
  *     type: 'category',
- *     valid: [ { beg: 123, end: 678 }, ... ],
  *     sub: [
  *       { shortName: 'latitude_deg',
  *         channelName: 'gps.latitude_deg',
@@ -949,7 +948,6 @@ function deepUnique(array) {
  *   { shortName: 'mc/',
  *     humanName: 'Motor Controller',  // optional
  *     type: 'category',
- *     valid: [ { beg: 123, end: 678 }, ... ],
  *     sub: ...
  *   },
  * ]
@@ -1001,9 +999,10 @@ SampleDb.buildChannelTree = function(samples) {
           type: 'category',
           sub: buildInternal(sub, subPrefix, depth + 1),
         };
-        desc.valid = [].concat.apply([], _.pluck(desc.sub, 'valid'));
-        sortSamplesByTime(desc.valid);
-        desc.valid = deepUnique(desc.valid);
+        // Don't bother with valid for categories, since GUI doesn't use it.
+        //desc.valid = [].concat.apply([], _.pluck(desc.sub, 'valid'));
+        //sortSamplesByTime(desc.valid);
+        //desc.valid = deepUnique(desc.valid);
         if (humanName) desc.humanName = humanName;
       }
       result.push(desc);
