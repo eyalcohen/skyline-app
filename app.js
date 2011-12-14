@@ -222,7 +222,7 @@ app.configure(function () {
   app.use(require('browserify')({
     require : ['dnode', 'underscore', 'step', './minpubsub', './shared_utils']
   }).use(jadeify(__dirname + '/public/javascripts/templates')));
-  debug('browserify took: ' + (Date.now() - start) + 'ms.');
+  util.log('browserify took: ' + (Date.now() - start) + 'ms.');
 });
 
 
@@ -281,10 +281,10 @@ app.param('email', function (req, res, next, email) {
         req.currentUser = usr;
         next();
       } else {
-        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } });
+        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } }, 400);
       }
     } else {
-      res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } });
+      res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } }, 400);
     }
   }));
 });
@@ -301,7 +301,7 @@ app.param('vid', function (req, res, next, id) {
       util.log('vid ' + id + ' -> ' + util.inspect(veh));
       next();
     } else {
-      res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
+      res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } }, 400);
     }
   }));
 });
@@ -317,7 +317,7 @@ app.param('vintid', function (req, res, next, id) {
       req.vehicle = veh;
       next();
     } else {
-      res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
+      res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } }, 400);
     }
   });
 });
@@ -571,7 +571,7 @@ app.post('/usercreate/:newemail', function (req, res) {
           code: 'DUPLICATE_EMAIL',
           message: 'This email address is already being used on our system.',
         },
-      });
+      }, 400);
     }
   });
 });
@@ -591,7 +591,7 @@ app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
     if (!err) {
       res.send({ status: 'success', data: { vehicleId: v._id } });
     } else {
-      res.send({ status: 'error', message: err });
+      res.send({ status: 'error', message: err }, 400);
     }
   });
 });
@@ -615,7 +615,7 @@ app.get('/summary/:email/:vintid', function (req, res) {
       }
     });
   } else {
-    res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } });
+    res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } }, 400);
   }
 });
 
@@ -631,7 +631,7 @@ app.put('/samples', function (req, res) {
 
   function fail(code) {
     util.log('PUT /samples failed: ' + code);
-    res.send({ status: 'fail', data: { code: code } });
+    res.send({ status: 'fail', data: { code: code } }, 400);
   }
 
   // Parse to JSON.
@@ -805,7 +805,7 @@ app.put('/cycle', function (req, res) {
 
   function fail(code) {
     util.log('PUT /cycle failed: ' + code);
-    res.send({ status: 'fail', data: { code: code } });
+    res.send({ status: 'fail', data: { code: code } }, 400);
   }
 
   // Parse to JSON.
@@ -913,21 +913,27 @@ app.post('/debug/:logFile', function (req, res) {
     return;
   }
   var path = 'debug/' + req.params.logFile.replace(/\//g, '_');
-  var stream = fs.createWriteStream(path, { flags: 'a', encoding: 'utf8' });
-  stream.on('error', function(err) {
+  try {
+    var stream = fs.createWriteStream(path, { flags: 'a', encoding: 'utf8' });
+    stream.on('error', function(err) {
+      util.log(req.url + ' - error writing: ' + err);
+      res.statusCode = 500;
+      res.end('Error writing: ' + err, 'utf8');
+    });
+    stream.on('close', function() { res.end() });
+    req.setEncoding('utf8');
+    var message = '';
+    req.on('data', function(m) { message += m });
+    req.on('end', function() {
+      if (!/\n$/.test(message))
+        message += '\n';
+      stream.end(message, 'utf8');
+    });
+  } catch (e) {
     util.log(req.url + ' - error writing: ' + err);
     res.statusCode = 500;
     res.end('Error writing: ' + err, 'utf8');
-  });
-  stream.on('close', function() { res.end() });
-  req.setEncoding('utf8');
-  var message = '';
-  req.on('data', function(m) { message += m });
-  req.on('end', function() {
-    if (!/\n$/.test(message))
-      message += '\n';
-    stream.end(message, 'utf8');
-  });
+  }
 });
 
 
@@ -986,27 +992,26 @@ function dnodeLogMiddleware(remote, client) {
       var callback = funcArgs[funcArgs.length - 1];
       if (_.isFunction(callback)) {
         var waiting = setInterval(function() {
-          console.log(fnamePretty + '(\x1b[4m' +
-                      shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m): ' +
-                      'no callback after ' +
-                      (Date.now() - start) + ' ms!!!');
+          util.log(fnamePretty + '(\x1b[4m' +
+                   shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m): ' +
+                   'no callback after ' + (Date.now() - start) + ' ms!!!');
         }, 1000);
         funcArgs[funcArgs.length - 1] = function() {
           clearInterval(waiting);
-          console.log(fnamePretty + '(\x1b[4m' +
-                      shortInpsect(funcArgs, maxArgsChars) +
-                      '\x1b[0m) -> (\x1b[4m' +
-                      shortInpsect(arguments, maxResultsChars) + '\x1b[0m) ' +
-                      (Date.now() - start) + ' ms');
+          util.log(fnamePretty + '(\x1b[4m' +
+                   shortInpsect(funcArgs, maxArgsChars) +
+                   '\x1b[0m) -> (\x1b[4m' +
+                   shortInpsect(arguments, maxResultsChars) + '\x1b[0m) ' +
+                   (Date.now() - start) + ' ms');
           callback.apply(this, arguments);
         };
         f.apply(this, funcArgs);
       } else {
         var start = Date.now();
         f.apply(this, funcArgs);
-        console.log(fnamePretty + '(\x1b[4m' +
-                    shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m) ' +
-                    (Date.now() - start) + ' ms');
+        util.log(fnamePretty + '(\x1b[4m' +
+                 shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m) ' +
+                 (Date.now() - start) + ' ms');
       }
     };
   });
