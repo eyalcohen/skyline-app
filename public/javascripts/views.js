@@ -2,34 +2,35 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['views/main',
+define([
+    'views/dashTab',
+    'views/editor',
+    'views/events',
+    'views/graph',
     'views/login',
     'views/logout',
-    'views/notifications',
-    'views/vehicles',
+    'views/main',
     'views/map',
-    'views/graph',
-    'views/vehicleTab',
-    'views/users',
+    'views/timeline',
     'views/tree',
-    'views/navigator',
-    'views/dash',
-    'views/editor'],
-    function () {
+    'views/users',
+    'views/vehicles',
+    'views/vehicleTab',
+    ], function () {
   return {
-    MainView: arguments[0],
-    LoginView: arguments[1],
-    LogoutView: arguments[2],
-    NotificationsView: arguments[3],
-    VehiclesView: arguments[4],
-    MapView: arguments[5],
-    GraphView: arguments[6],
-    VehicleTabView: arguments[7],
-    UsersView: arguments[8],
+    DashTabView: arguments[0],
+    EditorView: arguments[1],
+    EventsView: arguments[2],
+    GraphView: arguments[3],
+    LoginView: arguments[4],
+    LogoutView: arguments[5],
+    MainView: arguments[6],
+    MapView: arguments[7],
+    TimelineView: arguments[8],
     TreeView: arguments[9],
-    NavigatorView: arguments[10],
-    DashView: arguments[11],
-    EditorView: arguments[12],
+    UsersView: arguments[10],
+    VehiclesView: arguments[11],
+    VehicleTabView: arguments[12],
   };
 });
 

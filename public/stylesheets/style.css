@@ -1237,7 +1237,6 @@ a.note-cancel:active {
   color: white;
   font-weight: bold;
   font-size: 10px;
-/*  text-transform: uppercase;*/
 }
 
 .note-channels > ul {
@@ -1266,7 +1265,7 @@ a.note-cancel:active {
 }
 
 .graph,
-.navigator {
+.timeline {
   width: 100%;
   height: 100%;
 
@@ -1393,11 +1392,11 @@ a.note-cancel:active {
   white-space: nowrap;
 }
 
-.navigator {
+.timeline {
   /*background: #f2f2f2;*/
 }
 
-.navigator-window {
+.timeline-window {
   position: absolute;
   width: 1px;
   height: 40px;
@@ -1413,8 +1412,8 @@ a.note-cancel:active {
   border-right: 1px dashed rgba(0, 0, 0, 0.3);
 }
 
-.navigator-window-handle-left,
-.navigator-window-handle-right {
+.timeline-window-handle-left,
+.timeline-window-handle-right {
   background: none;
   height: 25px;
   width: 1px;
@@ -1426,7 +1425,7 @@ a.note-cancel:active {
   display: none !important;
 }
 
-.navigator > div {
+.timeline > div {
   width: 100%;
   height: 100%;
 }

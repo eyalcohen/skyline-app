@@ -2,24 +2,29 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['models/notification',
-    'models/vehicle',
-    'models/vehicleTab',
-    'models/map',
+define([
+    'models/dashTab',
+    'models/events',
     'models/graph',
-    'models/user',
+    'models/map',
+    'models/notification',
+    'models/timeline',
     'models/tree',
-    /* 'models/navigator' */],
-    function () {
+    'models/user',
+    'models/vehicle',
+    'models/vehicleTab'
+    ], function () {
   return {
-    NotificationModel: arguments[0],
-    VehicleModel: arguments[1],
-    VehicleTabModel: arguments[2],
+    DashTabModel: arguments[0],
+    EventsModel: arguments[1],
+    GraphModel: arguments[2],
     MapModel: arguments[3],
-    GraphModel: arguments[4],
-    UserModel: arguments[5],
+    NotificationModel: arguments[4],
+    TimelineModel: arguments[5],
     TreeModel: arguments[6],
-    // NavigatorModel: arguments[7],
+    UserModel: arguments[7],
+    VehicleModel: arguments[8],
+    VehicleTabModel: arguments[9],
   };
 });
 

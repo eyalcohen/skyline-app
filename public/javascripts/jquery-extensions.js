@@ -67,7 +67,7 @@
 
 })(jQuery);
 
-(function($) {
+(function ($) {
 
     /*
      * Auto-growing textareas; technique ripped from Facebook
@@ -102,7 +102,10 @@
                 $(this).css('height', Math.max(shadow.height() + 13, minHeight));
             }
             
-            $(this).change(update).keyup(update).keydown(update);
+            $(this).change(update).keyup(update)
+                .keydown(update).bind('remove', function (e) {
+              shadow.remove();
+            });
             
             update.apply(this);
             
@@ -112,5 +115,16 @@
         
     }
     
+})(jQuery);
+
+
+(function ($) {
+  var ev = new $.Event('remove'),
+    orig = $.fn.remove;
+  $.fn.remove = function () {
+    $(this).trigger(ev);
+    orig.apply(this, arguments);
+    return this;
+  }
 })(jQuery);
 

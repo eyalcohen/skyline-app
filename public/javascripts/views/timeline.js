@@ -7,7 +7,7 @@ define(['views/dashItem', 'plot_booter'],
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize');
-      this.tabModel = args.tabModel;
+      // this.tabModel = args.tabModel;
       _.bindAll(this, 'destroy', 'visibleTimeChanged', 'drawWindow', 
                 'moveWindow', 'hoverWindow', 'exitWindow',
                 'passWindowEvent', 'hookScale', 'plotDrawHook',
@@ -16,13 +16,13 @@ define(['views/dashItem', 'plot_booter'],
       App.subscribe('PreviewNotification-' + tabId, this.showNotification);
       App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
-      this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
+      this.model.get('tabModel').bind('change:visibleTime', this.visibleTimeChanged);
       this.debouncedDrawWindow = _.debounce(this.drawWindow, 20);
       this.ready = false;
       this.dragging = false;
       this.action = 'move';
-      var visibleTime = this.tabModel.get('visibleTime');
-      this.tabModel.set({ navigableTime: this.expandTime(visibleTime) }, false);
+      var visibleTime = this.model.get('tabModel').get('visibleTime');
+      this.model.get('tabModel').set({ navigableTime: this.expandTime(visibleTime) }, false);
     },
 
     destroy: function () {
@@ -31,17 +31,17 @@ define(['views/dashItem', 'plot_booter'],
       App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
       App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
-      this.tabModel.unbind('change:visibleTime', this.visibleTimeChanged);
+      this.model.get('tabModel').unbind('change:visibleTime', this.visibleTimeChanged);
     },
 
     events: {
       'click .toggler': 'toggle',
-      'mousedown .navigator-window': 'moveWindow',
-      'mousemove .navigator-window': 'hoverWindow',
-      'mouseleave .navigator-window': 'exitWindow',
-      // 'mousewheel .navigator-window': 'passWindowEvent',
-      // 'DOMMouseScroll .navigator-window': 'passWindowEvent',
-      // 'dblclick .navigator-window': 'passWindowEvent',
+      'mousedown .timeline-window': 'moveWindow',
+      'mousemove .timeline-window': 'hoverWindow',
+      'mouseleave .timeline-window': 'exitWindow',
+      // 'mousewheel .timeline-window': 'passWindowEvent',
+      // 'DOMMouseScroll .timeline-window': 'passWindowEvent',
+      // 'dblclick .timeline-window': 'passWindowEvent',
     },
 
     render: function (opts) {
@@ -55,7 +55,7 @@ define(['views/dashItem', 'plot_booter'],
       if (this.el.length)
         this.remove();
       this.plot = null;
-      this.el = App.engine('navigator.dash.jade', opts)
+      this.el = App.engine('timeline.dash.jade', opts)
           .appendTo(this.options.parent);
       this.notificationPreview = $('.notification-preview', this.el);
       this._super('render', _.bind(function () {
@@ -83,8 +83,8 @@ define(['views/dashItem', 'plot_booter'],
 
     createPlot: function () {
       var self = this;
-      var navigableTime = self.tabModel.get('navigableTime');
-      var data = _.pluck(self.collection.models, 'attributes');
+      var navigableTime = self.model.get('tabModel').get('navigableTime');
+      var data = _.pluck(self.model.get('notifications'), 'attributes');
       var shapes = [];
       var sortedData = _.stableSort(data,
           function(s1, s2) {
@@ -106,8 +106,8 @@ define(['views/dashItem', 'plot_booter'],
           color: pnt.color,
         });
       });
-      self.holder = $('.navigator > div', self.content);
-      self.visibleBox = $(self.options.parent + ' .navigator-window');
+      self.holder = $('.timeline > div', self.content);
+      self.visibleBox = $(self.options.parent + ' .timeline-window');
       self.plot = $.plot(self.holder, [], {
         xaxis: {
           show: true,
@@ -152,9 +152,9 @@ define(['views/dashItem', 'plot_booter'],
           bindEvents: [bindEventsHook],
         },
       });
-      $('.navigator', self.content).data({ plot: self.plot });
+      $('.timeline', self.content).data({ plot: self.plot });
       self.hookScale();
-      self.visibleTimeChanged(null, self.tabModel.get('visibleTime'));
+      self.visibleTimeChanged(null, self.model.get('tabModel').get('visibleTime'));
 
       function bindEventsHook(plot, eventHolder) {
         _.each([plot.getPlaceholder(), self.visibleBox], function (elem) {
@@ -263,7 +263,7 @@ define(['views/dashItem', 'plot_booter'],
       if (this.dragging) return;
       var t = this.getNavigableTime();
       if (!t) return;
-      this.tabModel.set({ navigableTime: { beg: t.beg, end: t.end } });
+      this.model.get('tabModel').set({ navigableTime: { beg: t.beg, end: t.end } });
     },
 
     hookScale: function () {
@@ -285,14 +285,14 @@ define(['views/dashItem', 'plot_booter'],
         zoomToRange(60*60*24*7*52*1e3);
       });
       function zoomToRange(range) {
-        var visibleTime = self.tabModel.get('visibleTime');
+        var visibleTime = self.model.get('tabModel').get('visibleTime');
         var center = (visibleTime.beg + visibleTime.end) / 2e3;
         xopts.min = (center - range / 2);
         xopts.max = (center + range / 2);
         self.plot.setupGrid();
         self.plot.draw();
         self.drawWindow();
-        // self.tabModel.set({ visibleTime: { beg: xopts.min, end: xopts.max } });
+        // self.model.get('tabModel').set({ visibleTime: { beg: xopts.min, end: xopts.max } });
       };
     },
 
@@ -386,8 +386,8 @@ define(['views/dashItem', 'plot_booter'],
           if (publish) {
             self.boxBeg = leftTime;
             self.boxEnd = rightTime;
-            self.tabModel.set({ visibleTime: { beg: self.boxBeg * 1e3,
-                                               end: self.boxEnd * 1e3 } });
+            self.model.get('tabModel').set({ visibleTime: { beg: self.boxBeg * 1e3,
+                                            end: self.boxEnd * 1e3 } });
           }
         }
       }, 0);
@@ -395,7 +395,7 @@ define(['views/dashItem', 'plot_booter'],
         self.dragging = false;
         $(document).unbind('mousemove', movehandle)
             .unbind('mouseup', arguments.callee);
-        self.visibleTimeChanged(null, self.tabModel.get('visibleTime'));
+        self.visibleTimeChanged(null, self.model.get('tabModel').get('visibleTime'));
       });
       $(document).bind('mousemove', movehandle);
     },
@@ -422,9 +422,6 @@ define(['views/dashItem', 'plot_booter'],
     },
 
     passWindowEvent: function (e) {
-      // var wheel = e.wheelDelta || e.originalEvent.detail
-      // var detail = e.detail || e.originalEvent.detail;
-      // console.log(e.wheelDelta, detail, e.wheelDelta || detail);
       this.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
     },
 

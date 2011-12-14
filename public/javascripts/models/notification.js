@@ -12,10 +12,7 @@ define(function () {
       // (2+ seconds!) to generate the notifications list.  We don't need
       // the reference, so get rid of it.
       delete this.collection;
-      if (!args || !args.beg || !args.end || !args.type || !args.val) {
-        // throw new Error('InvalidConstructArgs');
-        // return;
-      }
+
       switch (args.type) {
         case '_drive':
           _.extend(this.attributes, {
@@ -51,12 +48,21 @@ define(function () {
             note: args.val.humanName,
           });
           break;
+        case '_note':
+          _.extend(this.attributes, {
+            icon: '/graphics/paper.png',
+            color: 'yellow',
+            desc: 'Note',
+            note: args.val.text,
+          });
+          break;
       }
       if (args.vehicle) {
         this.set({
           htmlId: 'notification_' + args.vehicle._id,
         });
       }
+
       return this;
     }
   });

@@ -121,7 +121,8 @@ define(['jquery',
       $('[data-time]', this.el).each(function (i) {
         var time = $(this);
         if (!time.data('ts'))
-          time.data('ts', time.attr('data-time'));
+          var src = time.attr('data-occured') || time.attr('data-time');
+          time.data('ts', src);
         if (time.data('ts') !== '0')
           time.text(getRelativeTime(time.data('ts')));
         else
@@ -132,8 +133,8 @@ define(['jquery',
         ts = parseInt(ts);
         var parsed_date = new Date(ts / 1e3),
             relative_to = (arguments.length > 1) ?
-                arguments[1] / 1000 : new Date(),
-            delta = parseInt((relative_to.getTime() - parsed_date) / 1000);
+                arguments[1] / 1e3 : new Date(),
+            delta = parseInt((relative_to.getTime() - parsed_date) / 1e3);
         if (delta < 5) return 'just now';
         else if (delta < 15) return 'just a moment ago';
         else if (delta < 30) return 'just a few moments ago';
@@ -152,7 +153,7 @@ define(['jquery',
           return 'about a day ago';
         else if (delta < (10 * 24 * 60 * 60)) 
           return (parseInt(delta / 86400)).toString() + ' days ago';
-        else return new Date(ts / 1000).toLocaleDateString();
+        else return new Date(ts / 1e3).toLocaleDateString();
       }
       return this;
     },
@@ -167,8 +168,10 @@ define(['jquery',
         delta = parseFloat(delta) / 1e6;
         if (delta === 0)
           return 'n / a';
+        if (delta < 1)
+          return (delta * 1e3).toFixed(1) + ' milliseconds';
         else if (delta < 60)
-          return delta + ' seconds';
+          return delta.toFixed(1) + ' seconds';
         else if (delta < (45 * 60)) 
           return (delta / 60).toFixed(1) + ' minutes';
         else if (delta < (24 * 60 * 60))

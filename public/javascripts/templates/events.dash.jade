@@ -12,7 +12,7 @@
         | Loading...
     - } else if (rows.length === 0) {
       p.dashboard-item-message
-        | You don't have any notifications in your system yet.
+        | You don't have any events in your system yet.
     - } else {
       table
         thead
@@ -42,9 +42,10 @@
               td
                 =row.vehicle.year+" "+row.vehicle.make+" "+row.vehicle.model+(row.vehicle.name?" "+row.vehicle.name:"")
               - }
+              - var occured = row.val.date ? row.val.date * 1e3 : row.beg;
               td(style="font-style:italic;")
                 =row.note
-              td(data-time=row.beg, data-time-end=row.end)
+              td(data-occured=occured, data-time=row.beg, data-time-end=row.end)
                 | -
               td(data-duration=(row.end-row.beg))
                 | -

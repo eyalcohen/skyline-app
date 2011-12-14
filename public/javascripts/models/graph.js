@@ -35,7 +35,7 @@ define(function () {
       }, this));
       this.view.bind('VisibleWidthChange', this.updateCacheSubscription);
       this.view.render();
-      
+
       return this;
     },
 

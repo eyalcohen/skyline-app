@@ -1144,8 +1144,9 @@ var createDnodeConnection = function (remote, conn) {
                 sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
                 sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
                 sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
+                sampleDb.fetchSamples(v._id, '_note', {}, this.parallel());
               },
-              function (err, drives, charges, errors, warnings) {
+              function (err, drives, charges, errors, warnings, note) {
                 if (err) { cb(err); return; }
                 function addType(type) {
                   return function(not) {
@@ -1157,8 +1158,9 @@ var createDnodeConnection = function (remote, conn) {
                 charges.forEach(addType('_charge'));
                 errors.forEach(addType('_error'));
                 warnings.forEach(addType('_warning'));
+                note.forEach(addType('_note'));
                 notifications =
-                    notifications.concat(drives, charges, errors, warnings);
+                    notifications.concat(drives, charges, errors, warnings, note);
                 next();
               }
             );
@@ -1167,7 +1169,13 @@ var createDnodeConnection = function (remote, conn) {
         },
         function (err) {
           if (err) { cb(err); return; }
-          SampleDb.sortSamplesByTime(notifications, true);
+          // SampleDb.sortSamplesByTime(notifications, true);
+          // HACK: notes require special sorting.
+          notifications.sort(function(a, b) {
+            var at = a.val.date ? a.val.date * 1e3 : a.beg;
+            var bt = b.val.date ? b.val.date * 1e3 : b.beg;
+            return bt - at;
+          });
           cb(null, notifications);
         }
       );

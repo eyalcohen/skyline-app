@@ -62,6 +62,7 @@ define(['views/dashItem', 'plot_booter',
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
       this.notificationPreview = $('.notification-preview', this.el);
+      this.notificationIcons = [];
       this.minHoverDistance = 10;
       this.highlighting = false;
       this.following = false;
@@ -111,7 +112,8 @@ define(['views/dashItem', 'plot_booter',
         "#D373FF",  // Light purple
       ];
       var visibleTime = self.model.tabModel.get('visibleTime');
-      self.plot = $.plot($('.graph > div', self.content), [], {
+      self.holder = $('.graph > div', self.content);
+      self.plot = $.plot(self.holder, [], {
         xaxis: {
           mode: 'time',
           utc: true,
@@ -402,6 +404,51 @@ define(['views/dashItem', 'plot_booter',
         this.trigger('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
+      this.positionIcons();
+    },
+
+    setupIcons: function () {
+      var self = this;
+      if (self.notificationIcons.length > 0)
+        self.notificationIcons.remove();
+      var notifications =
+          _.stableSort(_.pluck(self.model.get('notifications'), 'attributes'),
+          function(s1, s2) {
+        return (s2.end - s2.beg) - (s1.end - s1.beg);
+      });
+      _.each(notifications, function (not) {
+        var icon = $('<img>')
+            .attr({ src: not.icon })
+            .css({ bottom: 20 })
+            .addClass('timeline-icon')
+            .data('beg', not.beg)
+            .appendTo(self.holder)
+            .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel', function (e) {
+              if (e.type === 'mousedown' || 
+                  e.type === 'mousemove')
+                $('.flot-overlay', self.content).trigger(e);
+              else
+                if (e.type === 'mouseup')
+                  self.plot.getPlaceholder().css({ cursor: 'default' });
+              else passWindowEvent(e);
+            });
+      });
+      self.notificationIcons = $('.timeline-icon', self.holder);
+      self.positionIcons();
+
+      function passWindowEvent(e) {
+        self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
+      }
+    },
+
+    positionIcons: function () {
+      var xaxis = this.plot.getXAxes()[0];
+      _.each(this.notificationIcons, function (icon, i) {
+        var $icon = $(icon);
+        $icon.css({
+          left: xaxis.p2c($icon.data('beg') / 1e3) - 8,
+        });
+      });
     },
 
     setupLegend: function () {
@@ -945,8 +992,8 @@ define(['views/dashItem', 'plot_booter',
         }
         loading.show();
         var note = {
-          beg: beg,
-          end: end,
+          beg: beg * 1e3,
+          end: end * 1e3,
           val: {
             text: $('.note-text', self.note).val(),
             user_id: App.store.get('user').id,
@@ -961,13 +1008,10 @@ define(['views/dashItem', 'plot_booter',
             loading.hide();
             _.delay(function () {
               self.cancelNote(null, plot, true);
-            }, 1000);
-            App.api.fetchSamples(self.model.get('vehicleId'),
-                                '_note', {}, function (err, samples) {
-              // console.log(err, samples);
-            });
-          }
-          else throw new Error(err);
+            }, 1e3);
+            $('.timeline-icon', self.holder).remove();
+            self.model.tabModel.resetNotifications();
+          } else throw new Error(err);
         });
       });
 
@@ -1013,10 +1057,13 @@ define(['views/dashItem', 'plot_booter',
       if (this.note) {
         if (fade)
           this.note.fadeOut(200, function () {
+            $('.note-text', this).remove();
             $(this).remove();
           });
-        else
+        else {
+          $('.note-text', this.note).remove();
           this.note.remove();
+        }
         this.note = null;
       }
       this.noteCanvas.hide();
@@ -1025,6 +1072,7 @@ define(['views/dashItem', 'plot_booter',
     },
 
     clearNote: function () {
+      if (!this.noteBox) return;
       this.noteCtx.clearRect(this.noteBox.x, this.noteBox.y,
                             this.noteBox.w, this.noteBox.h);
     },
