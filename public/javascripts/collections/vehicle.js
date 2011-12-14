@@ -11,9 +11,9 @@ define(['models/vehicle'], function (model) {
       if (!args) args = {};
       _.extend(args, { collection: this });
       this.view = new App.views.VehiclesView(args);
-      this.view.render({ loading: true, title: 'Vehicles' });
+      this.view.render({ loading: true });
       this.loaded = _.bind(function () {
-        this.view.render({title: 'Vehicles'});
+        this.view.render();
       }, this);
       return this;
     },

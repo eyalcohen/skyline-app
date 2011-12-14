@@ -22,14 +22,9 @@ define(['jquery'], function ($) {
     },
 
     render: function () {
-      App.dashView = new App.views.DashView({
+      App.dashTabModel = new App.models.DashTabModel({
         targetClass: 'dashboard',
-      }).render({
-        title: 'Dashboard',
-        active: true,
-        tabClosable: false,
-        left: 30
-      }, 'dash.jade');
+      });
       App.editorView = new App.views.EditorView().render();
       $('.tabs, .folder').show();
     },

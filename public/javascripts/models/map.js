@@ -49,6 +49,7 @@ define(function () {
     },
 
     timeChanged: function(clientId, model, timeRange) {
+      if (!timeRange) return;
       var maxSamples = 5000;  // Maximum latlngs to target.
       var beg = timeRange.beg, end = timeRange.end;
       // TODO: For views which include a lot of time with no gps data, we fetch

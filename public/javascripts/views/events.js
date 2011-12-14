@@ -16,18 +16,17 @@ define(['views/dashItem'], function (DashItemView) {
       _.defaults(opts, {
         title: this.options.title,
         loading: false,
-        singleVehicle: false,
+        singleVehicle: this.model.get('singleVehicle'),
         shrinkable: this.options.shrinkable,
-        rows: this.collection.models,
+        rows: this.model.get('notifications'),
       });
-      this.singleVehicle = opts.singleVehicle;
       if (this.el.length) {
         this.remove();
       }
       var start = Date.now();
-      this.el = App.engine('notifications.dash.jade', opts)
+      this.el = App.engine('events.dash.jade', opts)
           .appendTo(this.options.parent);
-      // console.log('notifications.dash.jade took', Date.now() - start);
+      // console.log('events.dash.jade took', Date.now() - start);
       this._super('render');
       if (this.timer) {
         clearInterval(this.timer);
@@ -47,9 +46,9 @@ define(['views/dashItem'], function (DashItemView) {
         end: parseInt($('[data-time-end]', parentRow).attr('data-time-end')),
       };
       var props = this.getProps(parentRow);
-      if (this.singleVehicle) {
+      if (this.model.get('singleVehicle')) {
         App.publish('UnPreviewNotification-' + props.id);
-        this.collection.tabModel.set({ visibleTime: timeRange });
+        this.model.get('tabModel').set({ visibleTime: timeRange });
         App.publish('PreviewNotification-' + props.id, [timeRange]);
       } else {
         var tabId = App.util.makeId();
@@ -59,7 +58,7 @@ define(['views/dashItem'], function (DashItemView) {
     },
 
     preview: function (e) {
-      if (!this.singleVehicle) return;
+      if (!this.model.get('singleVehicle')) return;
       var parentRow = $(e.target).closest('tr');
       var beg = parseInt($('[data-time]', parentRow).attr('data-time'));
       var end = parseInt($('[data-time-end]', parentRow).attr('data-time-end'));
@@ -69,7 +68,7 @@ define(['views/dashItem'], function (DashItemView) {
     },
 
     unpreview: function (e) {
-      if (!this.singleVehicle) return;
+      if (!this.model.get('singleVehicle')) return;
       var props = this.getProps($(e.target).closest('tr'));
       App.publish('UnPreviewNotification-' + props.id);
       return this;

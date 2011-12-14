@@ -12,7 +12,6 @@ define(['views/folderItem'], function (FolderItemView) {
 
     destroy: function (clicked) {
       this._super('destroy', clicked);
-      var tabId = this.options.tabId;
       App.unsubscribe('KillallTabs', this.destroy);
     },
 

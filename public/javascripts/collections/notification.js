@@ -12,18 +12,8 @@ define(['models/notification'], function (model) {
       _.extend(args, { collection: this });
       this.tabModel = args.tabModel;
       this.readOpts = { vehicleId: args.vehicleId };
-      this.view = new App.views.NotificationsView(args);
-      this.view.render({
-        title: args.title,
-        loading: true,
-        singleVehicle: args.singleVehicle,
-      });
-      this.loaded = _.bind(function () {
-        this.view.render({
-          title: args.title,
-          singleVehicle: args.singleVehicle,
-        });
-      }, this);
+      this.dependents = args.dependents;
+      this.loaded = args.loaded || function () {};
       return this;
     },
 
