@@ -163,7 +163,7 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
             var c = plot.getPlaceholder().css('cursor');
             if (c)
                 prevCursor = c;
-            plot.getPlaceholder().css('cursor', plot.getOptions().pan.cursor);
+            // plot.getPlaceholder().css('cursor', plot.getOptions().pan.cursor);
             prevPageX = e.pageX;
             prevPageY = e.pageY;
         }
@@ -201,7 +201,7 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
               }
               return;
             }
-            plot.getPlaceholder().css('cursor', prevCursor);
+            // plot.getPlaceholder().css('cursor', prevCursor);
             plot.pan({ left: prevPageX - e.pageX,
                        top: prevPageY - e.pageY });
         }

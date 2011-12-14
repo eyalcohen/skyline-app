@@ -31,7 +31,10 @@ define(function (fn) {
         dependents: [this.eventsModel],
       }).bind('reset', function () {
         _.each(this.dependents, _.bind(function (dep) {
-          dep.set({ notifications: this.models });
+          if (this.models.length === 0)
+            dep.trigger('change:notifications');
+          else
+            dep.set({ notifications: this.models });
         }, this));
       });
       this.notificationCollection.fetch();

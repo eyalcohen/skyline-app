@@ -421,24 +421,48 @@ define(['views/dashItem', 'plot_booter',
             .attr({ src: not.icon })
             .css({ bottom: 20 })
             .addClass('timeline-icon')
-            .data('beg', not.beg)
+            .data(_.extend({}, not))
             .appendTo(self.holder)
-            .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel', function (e) {
+            .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel',
+                function (e) {
               if (e.type === 'mousedown' || 
                   e.type === 'mousemove')
                 $('.flot-overlay', self.content).trigger(e);
               else
                 if (e.type === 'mouseup')
                   self.plot.getPlaceholder().css({ cursor: 'default' });
-              else passWindowEvent(e);
+              else
+                self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
             });
+            // .bind('mouseover', function (e) {
+            //   var not = $(e.target).data();
+            //   var xaxis = self.plot.getXAxes()[0];
+            //   var off = _.map(self.plot.offset(), function (o) {
+            //     return parseInt(o);
+            //   });
+            //   var dsEvent = $.Event('dragstart');
+            //   var dEvent = $.Event('drag');
+            //   var deEvent = $.Event('dragend');
+            //   _([dsEvent, dEvent, deEvent]).each(function (evt) {
+            //     evt.which = 1;
+            //     evt.shiftKey = true;
+            //     evt.pageY = off[0] + 100;
+            //     evt.note = not;
+            //   });
+            //   dsEvent.pageX = xaxis.p2c(not.beg / 1e3) + off[1];
+            //   dEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
+            //   deEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
+            //   $('.flot-overlay', self.holder)
+            //       .trigger(dsEvent)
+            //       .trigger(dEvent)
+            //       .trigger(deEvent);
+            // })
+            // .bind('mouseout', function (e) {
+            //   self.cancelNote(null, self.plot);
+            // });
       });
       self.notificationIcons = $('.timeline-icon', self.holder);
       self.positionIcons();
-
-      function passWindowEvent(e) {
-        self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
-      }
     },
 
     positionIcons: function () {
@@ -452,7 +476,6 @@ define(['views/dashItem', 'plot_booter',
     },
 
     setupLegend: function () {
-      // console.log('drawLegend( ' + this.options.id + ' )...');
       this.plot.setupLegend(_.bind(function (okay) {
         if (okay)
           this.ensureLegendRedraw = false;
@@ -664,8 +687,8 @@ define(['views/dashItem', 'plot_booter',
 
     showNotification: function (range, other) {
       var xaxis = this.plot.getXAxes()[0];
-      var leftSide = Math.max(xaxis.p2c(range.beg/1e3), 0);
-      var rightSide = Math.min(xaxis.p2c(range.end/1e3), this.plot.width());
+      var leftSide = Math.max(xaxis.p2c(range.beg / 1e3), 0);
+      var rightSide = Math.min(xaxis.p2c(range.end / 1e3), this.plot.width());
       if (leftSide < this.plot.width() && rightSide > 0) {
         this.notificationPreview.css({
           left: leftSide + 'px',
@@ -695,8 +718,8 @@ define(['views/dashItem', 'plot_booter',
         if (newTimeRange) {
           var prevTimeRange = self.getVisibleTime();
           var xaxis = self.plot.getXAxes()[0];
-          pan(xaxis.p2c(newTimeRange.end/1e3)
-                - xaxis.p2c(prevTimeRange.end/1e3), function () {
+          pan(xaxis.p2c(newTimeRange.end / 1e3)
+                - xaxis.p2c(prevTimeRange.end / 1e3), function () {
             if (cb) cb();
           });
           console.log('Got new data:', newTimeRange.beg, newTimeRange.end);
@@ -945,13 +968,14 @@ define(['views/dashItem', 'plot_booter',
       var beg = xaxis.c2p(leftEdge);
       var end = xaxis.c2p(rightEdge);
 
-      self.noteChannels = 
+      self.noteChannels = e.note ? e.note.val.channels :
           _.pluck(self.model.get('channels'), 'channelName');
 
       self.note = self.getNote({
         top: mouse.y + 3,
         left: onRight ? rightEdge + 15 : leftEdge - 315,
       }, {
+        isNew: !e.note,
         time: App.util.toLocaleString(new Date(Math.round(beg)),
                                       'dddd m/d/yy h:MM:ss TT Z'),
         onRight: onRight,
@@ -996,7 +1020,7 @@ define(['views/dashItem', 'plot_booter',
           end: end * 1e3,
           val: {
             text: $('.note-text', self.note).val(),
-            user_id: App.store.get('user').id,
+            userId: App.store.get('user').id,
             date: new Date().getTime(),
             channels: self.noteChannels,
           },

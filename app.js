@@ -1146,7 +1146,7 @@ var createDnodeConnection = function (remote, conn) {
                 sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
                 sampleDb.fetchSamples(v._id, '_note', {}, this.parallel());
               },
-              function (err, drives, charges, errors, warnings, note) {
+              function (err, drives, charges, errors, warnings, notes) {
                 if (err) { cb(err); return; }
                 function addType(type) {
                   return function(not) {
@@ -1158,19 +1158,28 @@ var createDnodeConnection = function (remote, conn) {
                 charges.forEach(addType('_charge'));
                 errors.forEach(addType('_error'));
                 warnings.forEach(addType('_warning'));
-                note.forEach(addType('_note'));
+                notes.forEach(addType('_note'));
                 notifications =
-                    notifications.concat(drives, charges, errors, warnings, note);
+                    notifications.concat(drives, charges, errors, warnings, notes);
                 next();
               }
             );
           });
           parallel()(); // In case there are no vehicles.
         },
+        // function (err) {
+        //   notifications.forEach(function (not) {
+        //     if (not.val.userId) {
+        //       User.findOne({ id: not.val.userId }, function (usr) {
+        //         not.val.user = usr;
+        //       });
+        //     }
+        //   });
+        // },
         function (err) {
           if (err) { cb(err); return; }
           // SampleDb.sortSamplesByTime(notifications, true);
-          // HACK: notes require special sorting.
+          // NOTE: notes require special sorting.
           notifications.sort(function(a, b) {
             var at = a.val.date ? a.val.date * 1e3 : a.beg;
             var bt = b.val.date ? b.val.date * 1e3 : b.beg;

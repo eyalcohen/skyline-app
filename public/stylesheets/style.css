@@ -1432,6 +1432,7 @@ a.note-cancel:active {
 
 .timeline-icon {
   position: absolute;
+  cursor: pointer;
 }
 
 .legend {
