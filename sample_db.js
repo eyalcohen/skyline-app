@@ -66,7 +66,7 @@ var shared = require('./shared_utils');
  *     chn: '_note'
  *     beg, end: time range to which note applies - can be zero-duration
  *     val: {
- *       text: string - text of the note.  (Allow HTML?)
+ *       text: string - text of the note.  (No HTML!)
  *       tags: array[string] - list of tags?
  *       userEmail: string - email address of user who added comment.
  *       date: date - comment time/date.
@@ -887,17 +887,14 @@ SampleDb.prototype.cancelSubscription = function(subscriptionToken) {
 }
 
 
-function removeSome(array, test) {
-  var result = [];
-  for (var i = 0; i < array.length; ) {
-    if (test(array[i])) {
-      result.push(array[i]);
-      array.splice(i, 1);  // Remove i.
-    } else {
-      ++i;
+function filter2(array, test, trueElems) {
+  return array.filter(function(elem) {
+    if (test(elem)) {
+      trueElems.push(elem);
+      return false;
     }
-  }
-  return result;
+    return true;
+  });
 }
 
 
@@ -961,13 +958,9 @@ var prefixRe = /^([^./]*[./]).+$/;
 SampleDb.buildChannelTree = function(samples) {
 
   function buildInternal(samples, prefix, depth) {
-    // Remove all samples which start with the given prefix.
-    var sub = removeSome(samples, function(s) {
-      return _.startsWith(s.val.channelName, prefix);
-    });
     var result = [];
-    while (sub.length > 0) {
-      var s = _.first(sub);
+    while (samples.length > 0) {
+      var s = _.first(samples);
       var shortName = s.val.channelName.substr(prefix.length);
       var m = shortName.match(prefixRe);
       var nextPrefix = m && m[1];
@@ -975,9 +968,10 @@ SampleDb.buildChannelTree = function(samples) {
       if (!nextPrefix) {
         // This is a terminal.
         // Find all samples with the same channelName.
-        var same = removeSome(sub, function(s2) {
+        var same = [];
+        samples = filter2(samples, function(s2) {
           return s2.val.channelName == s.val.channelName;
-        });
+        }, same);
         sortSamplesByTime(same);
         s = _.last(same);  // Use the latest.
         // Copy channelName and such in.
@@ -994,13 +988,18 @@ SampleDb.buildChannelTree = function(samples) {
       } else {
         // New category.
         var humanName = null;
-        var subHumanName = sub[0].val.humanName;
+        var subHumanName = samples[0].val.humanName;
         if (_.isArray(subHumanName) && depth < subHumanName.length)
           humanName = subHumanName[depth];
+        // Remove all samples which start with the given prefix.
+        var sub = [], subPrefix = prefix + nextPrefix;
+        samples = filter2(samples, function(s) {
+          return _.startsWith(s.val.channelName, subPrefix);
+        }, sub);
         desc = {
           shortName: nextPrefix,
           type: 'category',
-          sub: buildInternal(sub, prefix + nextPrefix, depth + 1),
+          sub: buildInternal(sub, subPrefix, depth + 1),
         };
         desc.valid = [].concat.apply([], _.pluck(desc.sub, 'valid'));
         sortSamplesByTime(desc.valid);
