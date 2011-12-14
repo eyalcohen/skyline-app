@@ -242,8 +242,12 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
           var chanSchema = schemaSet[channelName] || { val: {} };
           if (chanSchema.val.merge || channelName == '_schema') {
             var next = parallel();
-            self.queryForMerge(vehicleId, channelName, sampleSet[channelName],
-                               function (err, mergedSamples, redundantSamples) {
+            // Merge _schema samples if they're within an hour to avoid
+            // excessive samples.
+            var expandBy = channelName == '_schema' ? SampleDb.h : 0;
+            self.queryForMerge(
+                vehicleId, channelName, sampleSet[channelName], expandBy,
+                function (err, mergedSamples, redundantSamples) {
               if (err) { next(err); return; }
               sampleSet[channelName] = mergedSamples;
               redundantSamples.forEach(function (redundant) {
@@ -440,8 +444,8 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
 }
 
 
-SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
-                                            cb) {
+SampleDb.prototype.queryForMerge =
+    function(vehicleId, channelName, newSamples, expandBy, cb) {
   var self = this;
   if (!newSamples.length)
     return cb(null, newSamples, []);
@@ -451,8 +455,9 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
       // Get real samples which might overlap with the samples we're adding.
       self.fetchSamples(vehicleId, channelName,
                         { type: 'real',
-                          beginTime: _.first(newSamples).beg - 1,
-                          endTime: _.last(newSamples).end + 1 }, this);
+                          beginTime: _.first(newSamples).beg - expandBy - 1,
+                          endTime: _.last(newSamples).end + expandBy + 1,
+                        }, this);
     }, function(err, dbSamples) {
       if (err) { cb(err); return; }
       // Figure out which samples to add to db, and which existing samples to
@@ -463,7 +468,7 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
       //Array.prototype.push.apply(newSamples, dbSamples);
       newSamples = newSamples.concat(dbSamples);
       sortSamplesByTime(newSamples);
-      redundant = mergeOverlappingSamples2(newSamples);
+      redundant = mergeOverlappingSamples2(newSamples, expandBy);
       var merged = newSamples.filter(function(s) { return !s.indb; });
       this(null, merged, redundant);
     }, cb
@@ -1026,8 +1031,8 @@ SampleDb.buildChannelTree = function(samples) {
  * Merge samples which are adjacent or overlapping and share a value.
  *
  * Cases to get right:
- *   1. If two DB samples are identical, don't mark either redundant (no unique
- *      key to delete one).
+ *   1. If two DB samples are identical or a DB and non-DB sample are
+ *      identical, don't mark either redundant (no unique key to delete one).
  *   2. If a record is identical to or subsumes another record, delete the
  *      other record.
  *   3. If two samples can be merged into a larger sample, do so and mark both
@@ -1038,7 +1043,7 @@ SampleDb.buildChannelTree = function(samples) {
  * @return An array of DB samples which were made redundant.  Redundant indb
  *   samples should be deleted from DB.
  */
-function mergeOverlappingSamples2(samples) {
+function mergeOverlappingSamples2(samples, expandBy) {
   var redundant = [];
   // Index of first sample which might overlap current sample.
   var mightOverlap = 0;
@@ -1046,19 +1051,24 @@ function mergeOverlappingSamples2(samples) {
   for (var i = 0; i < samples.length; ++i) {
     var s = samples[i];
     // Skip ahead until mightOverlap is a sample which could possibly overlap.
-    while (mightOverlap < samples.length && samples[mightOverlap].end < s.beg)
+    while (mightOverlap < samples.length &&
+           samples[mightOverlap].end + expandBy < s.beg)
       ++mightOverlap;
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
-      if (/*t.end >= s.beg &&*/ t.beg <= s.end &&
+      if (/*t.end + expandBy >= s.beg &&*/ t.beg - expandBy <= s.end &&
           SampleDb.sampleValuesEqual(t.val, s.val) &&
           t.min == s.min && t.max == s.max) {
         var identical = s.beg == t.beg && s.end == t.end;
         // Samples overlap.  Merge them somehow and delete one.
-        if (s.indb && t.indb && identical) {
+        if (identical && t.indb) {
           // 1. If two DB samples are identical, don't delete either from DB
           // (no unique key).
           samples.splice(i, 1);  // Delete s from samples.
+        } else if (identical && s.indb) {
+          // 1. If a DB and non-DB sample are identical, don't mark either
+          // redundant.
+          samples.splice(j, 1);  // Delete t from samples.
         } else if (s.beg <= t.beg && s.end >= t.end) {  // s subsumes t.
           // 2. If a record is identical to or subsumes another record, delete
           // the other record.
