@@ -469,7 +469,7 @@ SampleDb.prototype.queryForMerge =
       newSamples = newSamples.concat(dbSamples);
       sortSamplesByTime(newSamples);
       redundant = mergeOverlappingSamples2(newSamples, expandBy);
-      var merged = newSamples.filter(function(s) { return !s.indb; });
+      var merged = newSamples.filter(function(s) { return s && !s.indb; });
       this(null, merged, redundant);
     }, cb
   );
@@ -1052,11 +1052,13 @@ function mergeOverlappingSamples2(samples, expandBy) {
     var s = samples[i];
     // Skip ahead until mightOverlap is a sample which could possibly overlap.
     while (mightOverlap < samples.length &&
-           samples[mightOverlap].end + expandBy < s.beg)
+           (!samples[mightOverlap] ||
+            samples[mightOverlap].end + expandBy < s.beg))
       ++mightOverlap;
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
-      if (/*t.end + expandBy >= s.beg &&*/ t.beg - expandBy <= s.end &&
+      if (t &&
+          /*t.end + expandBy >= s.beg &&*/ t.beg - expandBy <= s.end &&
           SampleDb.sampleValuesEqual(t.val, s.val) &&
           t.min == s.min && t.max == s.max) {
         var identical = s.beg == t.beg && s.end == t.end;
@@ -1064,21 +1066,21 @@ function mergeOverlappingSamples2(samples, expandBy) {
         if (identical && t.indb) {
           // 1. If two DB samples are identical, don't delete either from DB
           // (no unique key).
-          samples.splice(i, 1);  // Delete s from samples.
+          samples[i] = null;  // Delete s from samples.
         } else if (identical && s.indb) {
           // 1. If a DB and non-DB sample are identical, don't mark either
           // redundant.
-          samples.splice(j, 1);  // Delete t from samples.
+          samples[j] = null;  // Delete t from samples.
         } else if (s.beg <= t.beg && s.end >= t.end) {  // s subsumes t.
           // 2. If a record is identical to or subsumes another record, delete
           // the other record.
           if (t.indb) redundant.push(t);
-          samples.splice(j, 1);  // Delete t from samples.
+          samples[j] = null;  // Delete t from samples.
         } else if (t.beg <= s.beg && t.end >= s.end) {  // t subsumes s.
           // 2. If a record is identical to or subsumes another record, delete
           // the other record.
           if (s.indb) redundant.push(s);
-          samples.splice(i, 1);  // Delete s from samples.
+          samples[i] = null;  // Delete s from samples.
         } else {
           if (s.indb) redundant.push(s);
           if (t.indb) redundant.push(t);
@@ -1089,9 +1091,8 @@ function mergeOverlappingSamples2(samples, expandBy) {
           };
           if (s.min != null) n.min = s.min;
           if (s.max != null) n.max = s.max;
-          samples.splice(i, 1);  // Delete s from samples.
+          samples[i] = null;  // Delete s from samples.
         }
-        --i;
         break;
       }
     }
