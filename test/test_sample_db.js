@@ -13,8 +13,8 @@ var _ = require('underscore');
 var SampleDb = require('../sample_db.js').SampleDb;
 
 var argv = require('optimist')
-    .default('db', 'mongo://localhost:27017/test-samples')
-    .argv;
+.default('db', 'mongo://localhost:27017/test-samples')
+.argv;
 
 var db, sampleDb;
 var finished = 0;
@@ -59,75 +59,75 @@ exports.testGetLevel = function(test) {
 
 exports.testMergeOverlappingSamples = function(test) {
   var beforeMerge = [
-    // Adjacent.
-    { beg: 100, end: 200, val: 1 },
-    { beg: 200, end: 300, val: 1 },
-    // Overlap.
-    { beg: 1000, end: 1200, val: 2 },
-    { beg: 1100, end: 1300, val: 2 },
-    // Equal.
-    { beg: 2000, end: 2200, val: 3 },
-    { beg: 2000, end: 2200, val: 3 },
-    // Subsumes.
-    { beg: 3000, end: 3500, val: 4 },
-    { beg: 3100, end: 3400, val: 4 },
-    // Subsumes2.
-    { beg: 4000, end: 4400, val: 5 },
-    { beg: 4000, end: 4500, val: 5 },
-    // Subsumes3.
-    { beg: 5000, end: 5500, val: 6 },
-    { beg: 5000, end: 5400, val: 6 },
-    // Min.
-    { beg: 6100, end: 6200, val: 7, min: 5 },
-    { beg: 6200, end: 6300, val: 7, min: 5 },
-    // Max.
-    { beg: 7100, end: 7200, val: 8, max: 10 },
-    { beg: 7200, end: 7300, val: 8, max: 10 },
-    // Min & Max.
-    { beg: 8100, end: 8200, val: 9, min: 5, max: 12 },
-    { beg: 8200, end: 8300, val: 9, min: 5, max: 12 },
-    // Structured value.
-    { beg: 9000, end: 9100, val: { foo: 'bar', merge: false } },
-    { beg: 9100, end: 9300, val: { foo: 'bar', merge: false } },
-    // Overlapping, multiple at same time.
-    { beg: 10000, end: 10100, val: { foo: 'bar', merge: false } },
-    { beg: 10000, end: 10100, val: { foo: 'baz', merge: true } },
-    { beg: 10100, end: 10300, val: { foo: 'bar', merge: false } },
-    { beg: 10100, end: 10300, val: { foo: 'baz', merge: true } },
+      // Adjacent.
+  { beg: 100, end: 200, val: 1 },
+  { beg: 200, end: 300, val: 1 },
+  // Overlap.
+  { beg: 1000, end: 1200, val: 2 },
+  { beg: 1100, end: 1300, val: 2 },
+  // Equal.
+  { beg: 2000, end: 2200, val: 3 },
+  { beg: 2000, end: 2200, val: 3 },
+  // Subsumes.
+  { beg: 3000, end: 3500, val: 4 },
+  { beg: 3100, end: 3400, val: 4 },
+  // Subsumes2.
+  { beg: 4000, end: 4400, val: 5 },
+  { beg: 4000, end: 4500, val: 5 },
+  // Subsumes3.
+  { beg: 5000, end: 5500, val: 6 },
+  { beg: 5000, end: 5400, val: 6 },
+  // Min.
+  { beg: 6100, end: 6200, val: 7, min: 5 },
+  { beg: 6200, end: 6300, val: 7, min: 5 },
+  // Max.
+  { beg: 7100, end: 7200, val: 8, max: 10 },
+  { beg: 7200, end: 7300, val: 8, max: 10 },
+  // Min & Max.
+  { beg: 8100, end: 8200, val: 9, min: 5, max: 12 },
+  { beg: 8200, end: 8300, val: 9, min: 5, max: 12 },
+  // Structured value.
+  { beg: 9000, end: 9100, val: { foo: 'bar', merge: false } },
+  { beg: 9100, end: 9300, val: { foo: 'bar', merge: false } },
+  // Overlapping, multiple at same time.
+  { beg: 10000, end: 10100, val: { foo: 'bar', merge: false } },
+  { beg: 10000, end: 10100, val: { foo: 'baz', merge: true } },
+  { beg: 10100, end: 10300, val: { foo: 'bar', merge: false } },
+  { beg: 10100, end: 10300, val: { foo: 'baz', merge: true } },
   ];
   var afterMerge = deepCopy(beforeMerge);
   SampleDb.mergeOverlappingSamples(afterMerge);
   test.deepEqual(afterMerge, [
-    { beg: 100, end: 300, val: 1 },
-    { beg: 1000, end: 1300, val: 2 },
-    { beg: 2000, end: 2200, val: 3 },
-    { beg: 3000, end: 3500, val: 4 },
-    { beg: 4000, end: 4500, val: 5 },
-    { beg: 5000, end: 5500, val: 6 },
-    { beg: 6100, end: 6300, val: 7, min: 5 },
-    { beg: 7100, end: 7300, val: 8, max: 10 },
-    { beg: 8100, end: 8300, val: 9, min: 5, max: 12 },
-    { beg: 9000, end: 9300, val: { foo: 'bar', merge: false } },
-    { beg: 10000, end: 10300, val: { foo: 'bar', merge: false } },
-    { beg: 10000, end: 10300, val: { foo: 'baz', merge: true } },
-  ]);
+                 { beg: 100, end: 300, val: 1 },
+                 { beg: 1000, end: 1300, val: 2 },
+                 { beg: 2000, end: 2200, val: 3 },
+                 { beg: 3000, end: 3500, val: 4 },
+                 { beg: 4000, end: 4500, val: 5 },
+                 { beg: 5000, end: 5500, val: 6 },
+                 { beg: 6100, end: 6300, val: 7, min: 5 },
+                 { beg: 7100, end: 7300, val: 8, max: 10 },
+                 { beg: 8100, end: 8300, val: 9, min: 5, max: 12 },
+                 { beg: 9000, end: 9300, val: { foo: 'bar', merge: false } },
+                 { beg: 10000, end: 10300, val: { foo: 'bar', merge: false } },
+                 { beg: 10000, end: 10300, val: { foo: 'baz', merge: true } },
+                 ]);
   test.done();
 };
 
 exports.testMergeOverlappingSamplesNoMerge = function(test) {
   var beforeMerge = [
-    // No overlap.
-    { beg: 10100, end: 10200, val: 10 },
-    { beg: 10201, end: 10300, val: 10 },
-    // Different value.
-    { beg: 11100, end: 11200, val: 11 },
-    { beg: 11200, end: 11300, val: 10 },
-    // Different min.
-    { beg: 12100, end: 12200, val: 12, min: 5 },
-    { beg: 12200, end: 12300, val: 12, min: 6 },
-    // Different max.
-    { beg: 13100, end: 13200, val: 12, max: 15 },
-    { beg: 13200, end: 13300, val: 12, min: 16 },
+      // No overlap.
+  { beg: 10100, end: 10200, val: 10 },
+  { beg: 10201, end: 10300, val: 10 },
+  // Different value.
+  { beg: 11100, end: 11200, val: 11 },
+  { beg: 11200, end: 11300, val: 10 },
+  // Different min.
+  { beg: 12100, end: 12200, val: 12, min: 5 },
+  { beg: 12200, end: 12300, val: 12, min: 6 },
+  // Different max.
+  { beg: 13100, end: 13200, val: 12, max: 15 },
+  { beg: 13200, end: 13300, val: 12, min: 16 },
   ];
   var afterMerge = deepCopy(beforeMerge);
   SampleDb.mergeOverlappingSamples(afterMerge);
@@ -137,98 +137,98 @@ exports.testMergeOverlappingSamplesNoMerge = function(test) {
 
 exports.testSplitSamplesByTime = function(test) {
   var beforeSplit = {
-    chan1: [
-      { beg: 0, end: 1, val: 1 },
-      { beg: 10, end: 11, val: 4 },
-      { beg: 20, end: 29, val: 9 },
-      { beg: 30, end: 39, val: 12 },
-      { beg: 40, end: 49, val: 13 },
-      { beg: 60, end: 69, val: 17 },
-    ],
-    chan2: [
-      { beg: 2, end: 4, val: 2 },
-      { beg: 11, end: 12, val: 5 },
-      { beg: 20, end: 26, val: 8 },
-      { beg: 34, end: 39, val: 11 },
-      { beg: 42, end: 47, val: 14 },
-      { beg: 50, end: 55, val: 15 },
-      { beg: 62, end: 62, val: 18 },
-    ],
-    chan3: [
-      { beg: 7, end: 9, val: 3 },
-      { beg: 12, end: 13, val: 6 },
-      { beg: 20, end: 22, val: 7 },
-      { beg: 37, end: 39, val: 10 },
-      { beg: 52, end: 59, val: 16 },
-      { beg: 64, end: 50, val: 19 },
-    ],
+chan1: [
+       { beg: 0, end: 1, val: 1 },
+       { beg: 10, end: 11, val: 4 },
+       { beg: 20, end: 29, val: 9 },
+       { beg: 30, end: 39, val: 12 },
+       { beg: 40, end: 49, val: 13 },
+       { beg: 60, end: 69, val: 17 },
+       ],
+       chan2: [
+       { beg: 2, end: 4, val: 2 },
+       { beg: 11, end: 12, val: 5 },
+       { beg: 20, end: 26, val: 8 },
+       { beg: 34, end: 39, val: 11 },
+       { beg: 42, end: 47, val: 14 },
+       { beg: 50, end: 55, val: 15 },
+       { beg: 62, end: 62, val: 18 },
+       ],
+       chan3: [
+       { beg: 7, end: 9, val: 3 },
+       { beg: 12, end: 13, val: 6 },
+       { beg: 20, end: 22, val: 7 },
+       { beg: 37, end: 39, val: 10 },
+       { beg: 52, end: 59, val: 16 },
+       { beg: 64, end: 50, val: 19 },
+       ],
   };
   var expected = [
-    // Isolated samples.
-    { beg: 0, end: 1, val: { chan1: { beg: 0, end: 1, val: 1 }, } },
-    { beg: 2, end: 4, val: { chan2: { beg: 2, end: 4, val: 2 }, } },
-    { beg: 7, end: 9, val: { chan3: { beg: 7, end: 9, val: 3 }, } },
-    // Adjacent samples.
-    { beg: 10, end: 11, val: { chan1: { beg: 10, end: 11, val: 4 }, } },
-    { beg: 11, end: 12, val: { chan2: { beg: 11, end: 12, val: 5 }, } },
-    { beg: 12, end: 13, val: { chan3: { beg: 12, end: 13, val: 6 }, } },
-    // Same begin.
-    { beg: 20, end: 22, val: {
-        chan1: { beg: 20, end: 29, val: 9 },
-        chan2: { beg: 20, end: 26, val: 8 },
-        chan3: { beg: 20, end: 22, val: 7 }, } },
-    { beg: 22, end: 26, val: {
-        chan1: { beg: 20, end: 29, val: 9 },
-        chan2: { beg: 20, end: 26, val: 8 }, } },
-    { beg: 26, end: 29, val: {
-        chan1: { beg: 20, end: 29, val: 9 }, } },
-    // Same end.
-    { beg: 30, end: 34, val: {
-        chan1: { beg: 30, end: 39, val: 12 }, } },
-    { beg: 34, end: 37, val: {
-        chan1: { beg: 30, end: 39, val: 12 },
-        chan2: { beg: 34, end: 39, val: 11 }, } },
-    { beg: 37, end: 39, val: {
-        chan1: { beg: 30, end: 39, val: 12 },
-        chan2: { beg: 34, end: 39, val: 11 },
-        chan3: { beg: 37, end: 39, val: 10 }, } },
-    // Subsumed.
-    { beg: 40, end: 42, val: { chan1: { beg: 40, end: 49, val: 13 }, } },
-    { beg: 42, end: 47, val: {
-        chan1: { beg: 40, end: 49, val: 13 },
-        chan2: { beg: 42, end: 47, val: 14 }, } },
-    { beg: 47, end: 49, val: { chan1: { beg: 40, end: 49, val: 13 }, } },
-    // Overlapping.
-    { beg: 50, end: 52, val: { chan2: { beg: 50, end: 55, val: 15 }, } },
-    { beg: 52, end: 55, val: {
-        chan2: { beg: 50, end: 55, val: 15 },
-        chan3: { beg: 52, end: 59, val: 16 }, } },
-    { beg: 55, end: 59, val: { chan3: { beg: 52, end: 59, val: 16 }, } },
-    // Zero-duration.
-    { beg: 60, end: 62, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
-    { beg: 62, end: 62, val: {
-        chan1: { beg: 60, end: 69, val: 17 },
-        chan2: { beg: 62, end: 62, val: 18 } } },
-    { beg: 62, end: 64, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
-    { beg: 64, end: 64, val: {
-        chan1: { beg: 60, end: 69, val: 17 },
-        chan3: { beg: 64, end: 50, val: 19 } } },
-    { beg: 64, end: 69, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
+      // Isolated samples.
+  { beg: 0, end: 1, val: { chan1: { beg: 0, end: 1, val: 1 }, } },
+  { beg: 2, end: 4, val: { chan2: { beg: 2, end: 4, val: 2 }, } },
+  { beg: 7, end: 9, val: { chan3: { beg: 7, end: 9, val: 3 }, } },
+  // Adjacent samples.
+  { beg: 10, end: 11, val: { chan1: { beg: 10, end: 11, val: 4 }, } },
+  { beg: 11, end: 12, val: { chan2: { beg: 11, end: 12, val: 5 }, } },
+  { beg: 12, end: 13, val: { chan3: { beg: 12, end: 13, val: 6 }, } },
+  // Same begin.
+  { beg: 20, end: 22, val: {
+chan1: { beg: 20, end: 29, val: 9 },
+       chan2: { beg: 20, end: 26, val: 8 },
+       chan3: { beg: 20, end: 22, val: 7 }, } },
+  { beg: 22, end: 26, val: {
+chan1: { beg: 20, end: 29, val: 9 },
+       chan2: { beg: 20, end: 26, val: 8 }, } },
+  { beg: 26, end: 29, val: {
+chan1: { beg: 20, end: 29, val: 9 }, } },
+  // Same end.
+  { beg: 30, end: 34, val: {
+chan1: { beg: 30, end: 39, val: 12 }, } },
+  { beg: 34, end: 37, val: {
+chan1: { beg: 30, end: 39, val: 12 },
+       chan2: { beg: 34, end: 39, val: 11 }, } },
+  { beg: 37, end: 39, val: {
+chan1: { beg: 30, end: 39, val: 12 },
+       chan2: { beg: 34, end: 39, val: 11 },
+       chan3: { beg: 37, end: 39, val: 10 }, } },
+  // Subsumed.
+  { beg: 40, end: 42, val: { chan1: { beg: 40, end: 49, val: 13 }, } },
+  { beg: 42, end: 47, val: {
+chan1: { beg: 40, end: 49, val: 13 },
+       chan2: { beg: 42, end: 47, val: 14 }, } },
+  { beg: 47, end: 49, val: { chan1: { beg: 40, end: 49, val: 13 }, } },
+  // Overlapping.
+  { beg: 50, end: 52, val: { chan2: { beg: 50, end: 55, val: 15 }, } },
+  { beg: 52, end: 55, val: {
+chan2: { beg: 50, end: 55, val: 15 },
+       chan3: { beg: 52, end: 59, val: 16 }, } },
+  { beg: 55, end: 59, val: { chan3: { beg: 52, end: 59, val: 16 }, } },
+  // Zero-duration.
+  { beg: 60, end: 62, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
+  { beg: 62, end: 62, val: {
+chan1: { beg: 60, end: 69, val: 17 },
+       chan2: { beg: 62, end: 62, val: 18 } } },
+  { beg: 62, end: 64, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
+  { beg: 64, end: 64, val: {
+chan1: { beg: 60, end: 69, val: 17 },
+       chan3: { beg: 64, end: 50, val: 19 } } },
+  { beg: 64, end: 69, val: { chan1: { beg: 60, end: 69, val: 17 }, } },
   ];
   var afterSplit = SampleDb.splitSamplesByTime(beforeSplit);
   test.deepEqual(afterSplit, expected);
 
   var before2 = {
-    lat: [{beg:1314376952845000,end:1314376952845000,val:37.773921966552734}],
-    lng: [{beg:1314376952851000,end:1314376952851000,val:-122.4073715209961}],
+lat: [{beg:1314376952845000,end:1314376952845000,val:37.773921966552734}],
+     lng: [{beg:1314376952851000,end:1314376952851000,val:-122.4073715209961}],
   };
   var expected2 = [
-    { beg:1314376952845000,end:1314376952845000, val:
-      {lat:{beg:1314376952845000,end:1314376952845000,val:37.773921966552734}}
-    },
-    { beg:1314376952851000,end:1314376952851000, val:
-      {lng:{beg:1314376952851000,end:1314376952851000,val:-122.4073715209961}}
-    },
+  { beg:1314376952845000,end:1314376952845000, val:
+    {lat:{beg:1314376952845000,end:1314376952845000,val:37.773921966552734}}
+  },
+  { beg:1314376952851000,end:1314376952851000, val:
+    {lng:{beg:1314376952851000,end:1314376952851000,val:-122.4073715209961}}
+  },
   ];
   test.deepEqual(SampleDb.splitSamplesByTime(before2), expected2);
   test.done();
@@ -237,70 +237,71 @@ exports.testSplitSamplesByTime = function(test) {
 
 exports.testBuildChannelTree = function(test) {
   var schema = [
-    { channelName: 'no_hierarchy', humanName: 'Blah blah', type: 'string' },
-    { channelName: 'gps/speed_m_s', humanName: 'Speed',
-      description: 'GPS: speed in m/s', units: 'm/s', type: 'float' },
-    { channelName: 'foo.bar', humanName: 'i pity the', type: 'enum' },
-    { channelName: 'gps/latitude_deg', humanName: 'GPS Latitude',
-      channelNumber: 0, units: '°', type: 'float' },
-    { channelName: 'gps/satellites.count', humanName: 'Satellite count',
-      channelNumber: 1, type: 'int' },
+  { channelName: 'no_hierarchy', humanName: 'Blah blah', type: 'string' },
+  { channelName: 'gps/speed_m_s', humanName: 'Speed',
+description: 'GPS: speed in m/s', units: 'm/s', type: 'float' },
+  { channelName: 'foo.bar', humanName: 'i pity the', type: 'enum' },
+  { channelName: 'gps/latitude_deg', humanName: 'GPS Latitude',
+channelNumber: 0, units: '°', type: 'float' },
+  { channelName: 'gps/satellites.count', humanName: 'Satellite count',
+channelNumber: 1, type: 'int' },
   ];
   var samples = schema.map(function(s) { return { beg: 5, end: 9, val: s }; });
   var expected = [
-    { shortName: 'gps/',
-      type: 'category',
+  { shortName: 'gps/',
+type: 'category',
       sub: [
-        { shortName: 'latitude_deg',
-          channelName: 'gps/latitude_deg',
-          humanName: 'GPS Latitude',
-          channelNumber: 0,
-          units: '°',
-          type: 'float' },
-        { shortName: 'satellites.',
-          type: 'category',
-          sub: [
-            { shortName: 'count',
-              channelName: 'gps/satellites.count',
-              humanName: 'Satellite count',
-              channelNumber: 1,
-              type: 'int' } ] },
-        { shortName: 'speed_m_s',
-          channelName: 'gps/speed_m_s',
-          humanName: 'Speed',
-          description: 'GPS: speed in m/s',
-          units: 'm/s',
-          type: 'float' } ] },
-    { shortName: 'foo.',
-      type: 'category',
+      { shortName: 'latitude_deg',
+channelName: 'gps/latitude_deg',
+             humanName: 'GPS Latitude',
+             channelNumber: 0,
+             units: '°',
+             type: 'float' },
+      { shortName: 'satellites.',
+type: 'category',
       sub: [
-        { shortName: 'bar',
-          channelName: 'foo.bar',
-          humanName: 'i pity the',
-          type: 'enum' } ] },
-    { shortName: 'no_hierarchy',
-      channelName: 'no_hierarchy',
-      humanName: 'Blah blah',
-      type: 'string' },
+      { shortName: 'count',
+channelName: 'gps/satellites.count',
+             humanName: 'Satellite count',
+             channelNumber: 1,
+             type: 'int' } ] },
+      { shortName: 'speed_m_s',
+channelName: 'gps/speed_m_s',
+             humanName: 'Speed',
+             description: 'GPS: speed in m/s',
+             units: 'm/s',
+             type: 'float' } ] },
+  { shortName: 'foo.',
+type: 'category',
+      sub: [
+      { shortName: 'bar',
+channelName: 'foo.bar',
+             humanName: 'i pity the',
+             type: 'enum' } ] },
+  { shortName: 'no_hierarchy',
+channelName: 'no_hierarchy',
+             humanName: 'Blah blah',
+             type: 'string' },
   ];
   function setValid(a, valid) {
     a.forEach(function(d) {
-      d.valid = valid;
-      if ('sub' in d)
-        setValid(d.sub, valid);
-    });
+              if ('sub' in d)
+              setValid(d.sub, valid);
+              else
+              d.valid = valid;
+              });
   };
   setValid(expected, [ { beg: 5, end: 9 } ]);
   test.deepEqual(SampleDb.buildChannelTree(samples), expected);
 
   // Add additional schema elements - we should pick the later versions.
   var samples2 = _(samples).map(function munge(s) {
-    s = deepCopy(s);
-    s.beg = 1;
-    s.end = 4;
-    s.val.humanName = s.val.humanName + ' old';
-    return s;
-  }).concat(samples);
+                                s = deepCopy(s);
+                                s.beg = 1;
+                                s.end = 4;
+                                s.val.humanName = s.val.humanName + ' old';
+                                return s;
+                                }).concat(samples);
   setValid(expected, [ { beg: 1, end: 4 }, { beg: 5, end: 9 } ]);
   test.deepEqual(SampleDb.buildChannelTree(samples2), expected);
 
@@ -311,11 +312,11 @@ exports.testBuildChannelTree = function(test) {
 exports.testTrimSamples = function(test) {
   test.deepEqual(SampleDb.trimSamples([], 100, 200), []);
   var samples = [
-    { beg: 100, end: 120, val: 0 },
-    { beg: 120, end: 125, val: 1 },
-    { beg: 130, end: 130, val: 2 },
-    { beg: 130, end: 140, val: 3 },
-    { beg: 150, end: 180, val: 4 },
+  { beg: 100, end: 120, val: 0 },
+  { beg: 120, end: 125, val: 1 },
+  { beg: 130, end: 130, val: 2 },
+  { beg: 130, end: 140, val: 3 },
+  { beg: 150, end: 180, val: 4 },
   ];
   test.deepEqual(SampleDb.trimSamples(samples, 0, 500), samples);
   test.deepEqual(SampleDb.trimSamples(samples, 100, 180), samples);
@@ -323,20 +324,20 @@ exports.testTrimSamples = function(test) {
   test.deepEqual(SampleDb.trimSamples(samples, 100, 128), samples.slice(0, 2));
   test.deepEqual(SampleDb.trimSamples(samples, 110, 170),
                  [ { beg: 110, end: 120, val: 0 },
-                   { beg: 120, end: 125, val: 1 },
-                   { beg: 130, end: 130, val: 2 },
-                   { beg: 130, end: 140, val: 3 },
-                   { beg: 150, end: 170, val: 4 } ]);
+                 { beg: 120, end: 125, val: 1 },
+                 { beg: 130, end: 130, val: 2 },
+                 { beg: 130, end: 140, val: 3 },
+                 { beg: 150, end: 170, val: 4 } ]);
   test.deepEqual(SampleDb.trimSamples(samples, 122, 135),
                  [ { beg: 122, end: 125, val: 1 },
-                   { beg: 130, end: 130, val: 2 },
-                   { beg: 130, end: 135, val: 3 } ]);
+                 { beg: 130, end: 130, val: 2 },
+                 { beg: 130, end: 135, val: 3 } ]);
   test.deepEqual(SampleDb.trimSamples(samples, 130, 135),
                  [ { beg: 130, end: 130, val: 2 },
-                   { beg: 130, end: 135, val: 3 } ]);
+                 { beg: 130, end: 135, val: 3 } ]);
   test.deepEqual(SampleDb.trimSamples(samples, 122, 130),
                  [ { beg: 122, end: 125, val: 1 },
-                   { beg: 130, end: 130, val: 2 } ]);
+                 { beg: 130, end: 130, val: 2 } ]);
   test.deepEqual(SampleDb.trimSamples(samples, 130, 130),
                  [ { beg: 130, end: 130, val: 2 } ]);
   test.deepEqual(SampleDb.trimSamples(samples, 0, 50), [ ]);
@@ -356,11 +357,11 @@ function setupDbFirst(cb) {
     if (sampleDb) {
       cb(test);
     } else Step(
-      // Initialization.
-      function connectToDb() {
+        // Initialization.
+        function connectToDb() {
         mongodb.connect(argv.db, { server: { poolSize: 4 } }, this);
-      },
-      function dropDb(err, db_) {
+        },
+        function dropDb(err, db_) {
         test.equal(err, null, 'mongodb.connect(' + argv.db + ')');
         db = db_;
         db.dropDatabase(this);
@@ -567,6 +568,79 @@ exports.testInsertMerging = setupDbFirst(function(test) {
         return s1.val.channelName.localeCompare(s2.val.channelName);
       });
       test.deepEqual(samples, schema);
+      this();
+    },
+
+    test.done
+  );
+});
+
+exports.testSchemaMerging = setupDbFirst(function(test) {
+  var schemaVal1 = { channelName: 'testSchemaMerging1' };
+  var schemaVal2 = { channelName: 'testSchemaMerging2' };
+  var beforeMerge = [
+    // Adjacent.
+    { beg: 1*d + 100, end: 1*d + 200, val: schemaVal1 },
+    { beg: 1*d + 200, end: 1*d + 300, val: schemaVal1 },
+    // Overlap.
+    { beg: 2*d + 1000, end: 2*d + 1200, val: schemaVal1 },
+    { beg: 2*d + 1100, end: 2*d + 1300, val: schemaVal1 },
+    // Equal.
+    { beg: 3*d + 2000, end: 3*d + 2200, val: schemaVal1 },
+    { beg: 3*d + 2000, end: 3*d + 2200, val: schemaVal1 },
+    // Subsumes.
+    { beg: 4*d + 3000, end: 4*d + 3500, val: schemaVal1 },
+    { beg: 4*d + 3100, end: 4*d + 3400, val: schemaVal1 },
+    // Subsumes2.
+    { beg: 5*d + 4000, end: 5*d + 4400, val: schemaVal1 },
+    { beg: 5*d + 4000, end: 5*d + 4500, val: schemaVal1 },
+    // Subsumes3.
+    { beg: 6*d + 5000, end: 6*d + 5500, val: schemaVal1 },
+    { beg: 6*d + 5000, end: 6*d + 5400, val: schemaVal1 },
+    // Within an hour.
+    { beg: 7*d + 0, end: 7*d + 500, val: schemaVal1 },
+    { beg: 7*d + 1*h, end: 7*d + 1*h + 500, val: schemaVal1 },
+    // Within an hour but different values.
+    { beg: 8*d + 0, end: 8*d + 500, val: schemaVal1 },
+    { beg: 8*d + 1*h, end: 8*d + 1*h + 500, val: schemaVal2 },
+  ];
+  var evenSamples = beforeMerge.filter(function(s, i) { return i % 2 == 0; });
+  var oddSamples = beforeMerge.filter(function(s, i) { return i % 2 == 1; });
+  var expected = [
+    // Adjacent.
+    { beg: 1*d + 100, end: 1*d + 300, val: schemaVal1 },
+    // Overlap.
+    { beg: 2*d + 1000, end: 2*d + 1300, val: schemaVal1 },
+    // Equal.
+    { beg: 3*d + 2000, end: 3*d + 2200, val: schemaVal1 },
+    // Subsumes.
+    { beg: 4*d + 3000, end: 4*d + 3500, val: schemaVal1 },
+    // Subsumes2.
+    { beg: 5*d + 4000, end: 5*d + 4500, val: schemaVal1 },
+    // Subsumes3.
+    { beg: 6*d + 5000, end: 6*d + 5500, val: schemaVal1 },
+    // Within an hour.
+    { beg: 7*d + 0, end: 7*d + 1*h + 500, val: schemaVal1 },
+    // Within an hour but different values.
+    { beg: 8*d + 0, end: 8*d + 500, val: schemaVal1 },
+    { beg: 8*d + 1*h, end: 8*d + 1*h + 500, val: schemaVal2 },
+  ];
+  Step(
+    function insert1() {
+      sampleDb.insertSamples(123, { '_schema': evenSamples }, { merge: true },
+                             this);
+    },
+    function insert2(err) {
+      test.equal(err, null);
+      sampleDb.insertSamples(123, { '_schema': oddSamples }, { merge: true },
+                             this);
+    }, function fetchReal1(err) {
+      test.equal(err, null);
+      sampleDb.fetchSamples(123, '_schema', {}, this);
+    }, function checkReal1(err, samples) {
+      test.equal(err, null);
+      var filtered = samples.filter(function(s) { return /^testSchemaMerging/(s.val.channelName) });
+      test.deepEqual(filtered, expected);
       this();
     },
 

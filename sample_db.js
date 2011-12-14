@@ -66,7 +66,7 @@ var shared = require('./shared_utils');
  *     chn: '_note'
  *     beg, end: time range to which note applies - can be zero-duration
  *     val: {
- *       text: string - text of the note.  (Allow HTML?)
+ *       text: string - text of the note.  (No HTML!)
  *       tags: array[string] - list of tags?
  *       userEmail: string - email address of user who added comment.
  *       date: date - comment time/date.
@@ -242,8 +242,12 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
           var chanSchema = schemaSet[channelName] || { val: {} };
           if (chanSchema.val.merge || channelName == '_schema') {
             var next = parallel();
-            self.queryForMerge(vehicleId, channelName, sampleSet[channelName],
-                               function (err, mergedSamples, redundantSamples) {
+            // Merge _schema samples if they're within an hour to avoid
+            // excessive samples.
+            var expandBy = channelName == '_schema' ? SampleDb.h : 0;
+            self.queryForMerge(
+                vehicleId, channelName, sampleSet[channelName], expandBy,
+                function (err, mergedSamples, redundantSamples) {
               if (err) { next(err); return; }
               sampleSet[channelName] = mergedSamples;
               redundantSamples.forEach(function (redundant) {
@@ -440,8 +444,8 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
 }
 
 
-SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
-                                            cb) {
+SampleDb.prototype.queryForMerge =
+    function(vehicleId, channelName, newSamples, expandBy, cb) {
   var self = this;
   if (!newSamples.length)
     return cb(null, newSamples, []);
@@ -451,8 +455,9 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
       // Get real samples which might overlap with the samples we're adding.
       self.fetchSamples(vehicleId, channelName,
                         { type: 'real',
-                          beginTime: _.first(newSamples).beg - 1,
-                          endTime: _.last(newSamples).end + 1 }, this);
+                          beginTime: _.first(newSamples).beg - expandBy - 1,
+                          endTime: _.last(newSamples).end + expandBy + 1,
+                        }, this);
     }, function(err, dbSamples) {
       if (err) { cb(err); return; }
       // Figure out which samples to add to db, and which existing samples to
@@ -463,8 +468,8 @@ SampleDb.prototype.queryForMerge = function(vehicleId, channelName, newSamples,
       //Array.prototype.push.apply(newSamples, dbSamples);
       newSamples = newSamples.concat(dbSamples);
       sortSamplesByTime(newSamples);
-      redundant = mergeOverlappingSamples2(newSamples);
-      var merged = newSamples.filter(function(s) { return !s.indb; });
+      redundant = mergeOverlappingSamples2(newSamples, expandBy);
+      var merged = newSamples.filter(function(s) { return s && !s.indb; });
       this(null, merged, redundant);
     }, cb
   );
@@ -887,17 +892,14 @@ SampleDb.prototype.cancelSubscription = function(subscriptionToken) {
 }
 
 
-function removeSome(array, test) {
-  var result = [];
-  for (var i = 0; i < array.length; ) {
-    if (test(array[i])) {
-      result.push(array[i]);
-      array.splice(i, 1);  // Remove i.
-    } else {
-      ++i;
+function filter2(array, test, trueElems) {
+  return array.filter(function(elem) {
+    if (test(elem)) {
+      trueElems.push(elem);
+      return false;
     }
-  }
-  return result;
+    return true;
+  });
 }
 
 
@@ -937,7 +939,6 @@ function deepUnique(array) {
  *     humanName: 'GPS data',  // optional
  *     description: 'GPS data from dash unit.',  // optional
  *     type: 'category',
- *     valid: [ { beg: 123, end: 678 }, ... ],
  *     sub: [
  *       { shortName: 'latitude_deg',
  *         channelName: 'gps.latitude_deg',
@@ -952,7 +953,6 @@ function deepUnique(array) {
  *   { shortName: 'mc/',
  *     humanName: 'Motor Controller',  // optional
  *     type: 'category',
- *     valid: [ { beg: 123, end: 678 }, ... ],
  *     sub: ...
  *   },
  * ]
@@ -961,13 +961,9 @@ var prefixRe = /^([^./]*[./]).+$/;
 SampleDb.buildChannelTree = function(samples) {
 
   function buildInternal(samples, prefix, depth) {
-    // Remove all samples which start with the given prefix.
-    var sub = removeSome(samples, function(s) {
-      return _.startsWith(s.val.channelName, prefix);
-    });
     var result = [];
-    while (sub.length > 0) {
-      var s = _.first(sub);
+    while (samples.length > 0) {
+      var s = _.first(samples);
       var shortName = s.val.channelName.substr(prefix.length);
       var m = shortName.match(prefixRe);
       var nextPrefix = m && m[1];
@@ -975,9 +971,10 @@ SampleDb.buildChannelTree = function(samples) {
       if (!nextPrefix) {
         // This is a terminal.
         // Find all samples with the same channelName.
-        var same = removeSome(sub, function(s2) {
+        var same = [];
+        samples = filter2(samples, function(s2) {
           return s2.val.channelName == s.val.channelName;
-        });
+        }, same);
         sortSamplesByTime(same);
         s = _.last(same);  // Use the latest.
         // Copy channelName and such in.
@@ -994,17 +991,23 @@ SampleDb.buildChannelTree = function(samples) {
       } else {
         // New category.
         var humanName = null;
-        var subHumanName = sub[0].val.humanName;
+        var subHumanName = samples[0].val.humanName;
         if (_.isArray(subHumanName) && depth < subHumanName.length)
           humanName = subHumanName[depth];
+        // Remove all samples which start with the given prefix.
+        var sub = [], subPrefix = prefix + nextPrefix;
+        samples = filter2(samples, function(s) {
+          return _.startsWith(s.val.channelName, subPrefix);
+        }, sub);
         desc = {
           shortName: nextPrefix,
           type: 'category',
-          sub: buildInternal(sub, prefix + nextPrefix, depth + 1),
+          sub: buildInternal(sub, subPrefix, depth + 1),
         };
-        desc.valid = [].concat.apply([], _.pluck(desc.sub, 'valid'));
-        sortSamplesByTime(desc.valid);
-        desc.valid = deepUnique(desc.valid);
+        // Don't bother with valid for categories, since GUI doesn't use it.
+        //desc.valid = [].concat.apply([], _.pluck(desc.sub, 'valid'));
+        //sortSamplesByTime(desc.valid);
+        //desc.valid = deepUnique(desc.valid);
         if (humanName) desc.humanName = humanName;
       }
       result.push(desc);
@@ -1028,8 +1031,8 @@ SampleDb.buildChannelTree = function(samples) {
  * Merge samples which are adjacent or overlapping and share a value.
  *
  * Cases to get right:
- *   1. If two DB samples are identical, don't mark either redundant (no unique
- *      key to delete one).
+ *   1. If two DB samples are identical or a DB and non-DB sample are
+ *      identical, don't mark either redundant (no unique key to delete one).
  *   2. If a record is identical to or subsumes another record, delete the
  *      other record.
  *   3. If two samples can be merged into a larger sample, do so and mark both
@@ -1040,7 +1043,7 @@ SampleDb.buildChannelTree = function(samples) {
  * @return An array of DB samples which were made redundant.  Redundant indb
  *   samples should be deleted from DB.
  */
-function mergeOverlappingSamples2(samples) {
+function mergeOverlappingSamples2(samples, expandBy) {
   var redundant = [];
   // Index of first sample which might overlap current sample.
   var mightOverlap = 0;
@@ -1048,29 +1051,36 @@ function mergeOverlappingSamples2(samples) {
   for (var i = 0; i < samples.length; ++i) {
     var s = samples[i];
     // Skip ahead until mightOverlap is a sample which could possibly overlap.
-    while (mightOverlap < samples.length && samples[mightOverlap].end < s.beg)
+    while (mightOverlap < samples.length &&
+           (!samples[mightOverlap] ||
+            samples[mightOverlap].end + expandBy < s.beg))
       ++mightOverlap;
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
-      if (/*t.end >= s.beg &&*/ t.beg <= s.end &&
+      if (t &&
+          /*t.end + expandBy >= s.beg &&*/ t.beg - expandBy <= s.end &&
           SampleDb.sampleValuesEqual(t.val, s.val) &&
           t.min == s.min && t.max == s.max) {
         var identical = s.beg == t.beg && s.end == t.end;
         // Samples overlap.  Merge them somehow and delete one.
-        if (s.indb && t.indb && identical) {
+        if (identical && t.indb) {
           // 1. If two DB samples are identical, don't delete either from DB
           // (no unique key).
-          samples.splice(i, 1);  // Delete s from samples.
+          samples[i] = null;  // Delete s from samples.
+        } else if (identical && s.indb) {
+          // 1. If a DB and non-DB sample are identical, don't mark either
+          // redundant.
+          samples[j] = null;  // Delete t from samples.
         } else if (s.beg <= t.beg && s.end >= t.end) {  // s subsumes t.
           // 2. If a record is identical to or subsumes another record, delete
           // the other record.
           if (t.indb) redundant.push(t);
-          samples.splice(j, 1);  // Delete t from samples.
+          samples[j] = null;  // Delete t from samples.
         } else if (t.beg <= s.beg && t.end >= s.end) {  // t subsumes s.
           // 2. If a record is identical to or subsumes another record, delete
           // the other record.
           if (s.indb) redundant.push(s);
-          samples.splice(i, 1);  // Delete s from samples.
+          samples[i] = null;  // Delete s from samples.
         } else {
           if (s.indb) redundant.push(s);
           if (t.indb) redundant.push(t);
@@ -1081,9 +1091,8 @@ function mergeOverlappingSamples2(samples) {
           };
           if (s.min != null) n.min = s.min;
           if (s.max != null) n.max = s.max;
-          samples.splice(i, 1);  // Delete s from samples.
+          samples[i] = null;  // Delete s from samples.
         }
-        --i;
         break;
       }
     }

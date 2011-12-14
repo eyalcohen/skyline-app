@@ -14,6 +14,7 @@ var optimist = require('optimist');
 var argv = optimist
     .default('db', 'mongo://localhost:27017/service-samples')
     .demand('vehicleId')
+    .describe('channelName', 'Channel name to delete')
     .argv;
 
 function errCheck(err, op) {
@@ -41,7 +42,10 @@ Step(
     var parallel = this.parallel;
     _.values(sampleDb.realCollections).concat(
         _.values(sampleDb.syntheticCollections)).forEach(function (collection) {
-      collection.remove({ veh: argv.vehicleId }, { safe: true }, parallel());
+      var query = { veh: argv.vehicleId };
+      if (argv.channelName)
+        query.chn = argv.channelName;
+      collection.remove(query, { safe: true }, parallel());
     });
   }, function(err) {
     if (err)
