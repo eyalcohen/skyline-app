@@ -32,7 +32,8 @@ var bouncy = require('bouncy');
 var fs = require('fs');
 var http = require('http');
 var color = require('cli-color');
-var util = require('util'), inspect = util.inspect, log = util.log;
+var util = require('util'), inspect = util.inspect;
+var log = require('./log.js').log;
 
 var staticRE =
     RegExp(fs.readdirSync(__dirname + '/public').map(function(fname) {
