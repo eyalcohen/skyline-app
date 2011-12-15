@@ -12,17 +12,13 @@
 // TODO: perhaps we'd get better performance with:
 //   https://github.com/nodejitsu/node-http-proxy
 
-// TODO:
-//   * Don't die when we can't talk to targets.
-//   * Health-check targets, and distribute based on target health/load.
-
 var optimist = require('optimist');
 var argv = optimist
     .describe('help', 'Get help')
     .describe('port', 'Port to listen on')
       .default('port', 8080)
     .describe('static', 'List of host:port to redirect static requests to')
-      .default('static', '9000')
+      .default('static', '9000 9001')
     .describe('api', 'List of host:port to redirect API requests to')
       .default('api', '9010 9011')
     .argv;
@@ -36,8 +32,7 @@ var bouncy = require('bouncy');
 var fs = require('fs');
 var http = require('http');
 var color = require('cli-color');
-var log = require('console').log;
-var util = require('util'), inspect = util.inspect;
+var util = require('util'), inspect = util.inspect, log = util.log;
 
 var staticRE =
     RegExp(fs.readdirSync(__dirname + '/public').map(function(fname) {
@@ -64,7 +59,13 @@ var staticI = 0;
 var apiSessions = {};  // Mapping from sessionid to port.  TODO: expire sessions?
 
 log('Waiting to bounce requests to ' + argv.port);
-bouncy(function(req, bounce) {
+var bouncyServer = bouncy(handleRequest);
+bouncyServer.listen(argv.port);
+bouncyServer.on('error', function(e) {
+  log(color.red('SERVER ERROR ') + ': ' + e.stack);
+});
+
+function handleRequest(req, bounce) {
   function safeBounce(frontend, opts) {
     if (!frontend) {
       // None of the frontends are healthy, return a 503 Service Unavailable.
@@ -139,7 +140,7 @@ bouncy(function(req, bounce) {
     logRedirect('api', req, frontend);
     safeBounce(frontend);
   }
-}).listen(argv.port);
+}
 
 function bestApiFrontend() {
   var bestLoad = Infinity, bestFrontend = null;
