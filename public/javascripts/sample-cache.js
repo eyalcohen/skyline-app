@@ -140,7 +140,7 @@ define(function () {
     // Find end time of last schema entry for all channels.
     var channelRanges = {};
     function findChannelRanges(beforeAfter) {
-      (treeModel.get('data') || []).forEach(function process(treeEntry) {
+      (treeModel.data || []).forEach(function process(treeEntry) {
         (treeEntry.sub || []).forEach(process);
         if (treeEntry.channelName) {
           defObj(channelRanges, treeEntry.channelName)[beforeAfter] =

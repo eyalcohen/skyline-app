@@ -742,9 +742,11 @@ app.put('/samples', function (req, res) {
         });
       });
 
-      // HACK: Heuristically add durations to zero-duration samples.
-      sampleDb.addDurationHeuristicHack(vehicleId, sampleSet, 10 * SampleDb.s,
-                                        this);
+      if (!(uploadSamples.protocolVersion >= 2)) {
+        // HACK: Heuristically add durations to zero-duration samples.
+        sampleDb.addDurationHeuristicHack(vehicleId, sampleSet, 10 * SampleDb.s,
+                                          this);
+      }
     },
 
     function(err) {

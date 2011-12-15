@@ -45,7 +45,7 @@ errCheck(err, 'new sampleDb');
 if (argv._.length)
   optimist.showHelp();
 
-// Perform queries.
+// Perform insert.
 Step(
   function() {
     readEntireStream(process.stdin, this);
