@@ -100,6 +100,10 @@ function makeBounce (bs, client, req) {
     bounce.respond = function () {
         var res = new ServerResponse(req);
         res.assignSocket(client);
+        res.on('finish', function () {
+            res.detachSocket(client);
+            client.destroySoon();
+        });
         return res;
     };
     
