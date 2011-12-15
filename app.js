@@ -214,7 +214,7 @@ app.configure(function () {
 
   app.use(express.logger({ format: function(tok, req, res) {
     var url = tok.url(req, res) || '-';
-    if (/^\/status/(url)) return;
+    if (/^\/status/.test(url)) return;
     return logTimestamp() + ' ' + color.red(tok.method(req, res) || '-') + ' ' +
         color.yellow(tok.url(req, res) || '-') + ' ' +
         tok['response-time'](req, res) + ' ms';
