@@ -1,3 +1,4 @@
+- var numComments = note.val.replies.length + 1
 .note(class=onRight ? "left-triangle" : "right-triangle")
   .note-header
     span
@@ -5,28 +6,41 @@
         | Add a comment at
         span(style="font-weight:bold")= time
       - } else {
-        | 3 comments at 
+        =numComments
+        - if (numComments > 1) {
+          |  comments at 
+        - } else {
+          |  comment at 
+        - }
         span(style="font-weight:bold")= time
       - }
-  .note-content
-    - notes.forEach(function (n) {
-      .note-user
-        =n.user.name.first
-      .note-body
-        =n.text
-    - })
+  - if (!isNew) {
+    .note-content
+      .note-user= note.val.user.name.first
+      .note-body= note.val.text
+    .note-replies
+      - note.val.replies.forEach(function (r) {
+        //.note-user= r.user.name.first
+        .note-body= r.text
+      - })
+  - }
   .note-add
     textarea.note-text(placeholder="Enter text here.")
     .note-channels
       span.note-channels-header Relevant Channels:
       ul
-        - channels.forEach(function (c, i) {
+        - note.val.channels.forEach(function (c, i) {
             li.note-channel(data-channel-name=c)= c
-              a.note-channel-remove(href="javascript:;", title="Remove channel") &nbsp;(X)
+              - if (isNew)
+                a.note-channel-remove(href="javascript:;", title="Remove channel") &nbsp;(X)
         - })
     span.note-message
     .note-actions
       .note-loading
-      a.note-cancel Cancel
-      .note-post.little(role="button") Post
+      - if (isNew) {
+        a.note-cancel Cancel
+        .note-post.little(role="button") Post
+      - } else {
+        .note-post.little(role="button") Reply
+      - }
 

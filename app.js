@@ -1167,19 +1167,23 @@ var createDnodeConnection = function (remote, conn) {
           });
           parallel()(); // In case there are no vehicles.
         },
-        // function (err) {
-        //   notifications.forEach(function (not) {
-        //     if (not.val.userId) {
-        //       User.findOne({ id: not.val.userId }, function (usr) {
-        //         not.val.user = usr;
-        //       });
-        //     }
-        //   });
-        // },
+        function (err) {
+          var next = _.after(notifications.length, this);
+          notifications.forEach(function (not) {
+            if (not.val.userId) {
+              User.findById(not.val.userId, function (err, usr) {
+                if (usr)
+                  // Strip mongoose crap.
+                  not.val.user = JSON.parse(JSON.stringify(usr));
+                next();
+              });
+            } else next();
+          });
+        },
         function (err) {
           if (err) { cb(err); return; }
-          // SampleDb.sortSamplesByTime(notifications, true);
-          // NOTE: notes require special sorting.
+          // NOTE: _notes require special sorting
+          // because created date is not 'beg'.
           notifications.sort(function(a, b) {
             var at = a.val.date ? a.val.date * 1e3 : a.beg;
             var bt = b.val.date ? b.val.date * 1e3 : b.beg;

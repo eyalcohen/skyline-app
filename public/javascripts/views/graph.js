@@ -67,6 +67,8 @@ define(['views/dashItem', 'plot_booter',
       this.highlighting = false;
       this.following = false;
       this.noteBox = null;
+      this.noteWindow = null;
+      this.editingNote = false;
       this._super('render');
       this.draw();
     },
@@ -433,33 +435,39 @@ define(['views/dashItem', 'plot_booter',
                   self.plot.getPlaceholder().css({ cursor: 'default' });
               else
                 self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
+            })
+            .bind('mouseover', function (e) {
+              var not = $(e.target).data();
+              var xaxis = self.plot.getXAxes()[0];
+              var off = _.map(self.plot.offset(), function (o) {
+                return parseInt(o);
+              });
+              var dsEvent = $.Event('dragstart');
+              var dEvent = $.Event('drag');
+              var deEvent = $.Event('dragend');
+              _([dsEvent, dEvent, deEvent]).each(function (evt) {
+                evt.which = 1;
+                evt.shiftKey = true;
+                evt.pageY = off[0] + 100;
+                evt.note = not;
+              });
+              dsEvent.pageX = xaxis.p2c(not.beg / 1e3) + off[1];
+              dEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
+              deEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
+              $('.flot-overlay', self.holder)
+                  .trigger(dsEvent)
+                  .trigger(dEvent)
+                  .trigger(deEvent);
+            })
+            .bind('mouseout', function (e) {
+              (function checkItBoy() {
+                _.delay(function () {
+                  if (!self.editingNote)
+                    self.cancelNote(null, self.plot);
+                  else checkItBoy();
+                }, 1e3);
+              })();
             });
-            // .bind('mouseover', function (e) {
-            //   var not = $(e.target).data();
-            //   var xaxis = self.plot.getXAxes()[0];
-            //   var off = _.map(self.plot.offset(), function (o) {
-            //     return parseInt(o);
-            //   });
-            //   var dsEvent = $.Event('dragstart');
-            //   var dEvent = $.Event('drag');
-            //   var deEvent = $.Event('dragend');
-            //   _([dsEvent, dEvent, deEvent]).each(function (evt) {
-            //     evt.which = 1;
-            //     evt.shiftKey = true;
-            //     evt.pageY = off[0] + 100;
-            //     evt.note = not;
-            //   });
-            //   dsEvent.pageX = xaxis.p2c(not.beg / 1e3) + off[1];
-            //   dEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
-            //   deEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
-            //   $('.flot-overlay', self.holder)
-            //       .trigger(dsEvent)
-            //       .trigger(dEvent)
-            //       .trigger(deEvent);
-            // })
-            // .bind('mouseout', function (e) {
-            //   self.cancelNote(null, self.plot);
-            // });
       });
       self.notificationIcons = $('.timeline-icon', self.holder);
       self.positionIcons();
@@ -952,7 +960,7 @@ define(['views/dashItem', 'plot_booter',
     endNote: function (e, plot) {
       var self = this;
       var mouse = self.getMouse(e, plot);
-
+      var xaxis = plot.getXAxes()[0];
       var onRight, leftEdge, rightEdge;
       if (mouse.x < self.noteBox.x) {
         onRight = $(document).width() - 320 > e.pageX - self.noteBox.w;
@@ -964,27 +972,32 @@ define(['views/dashItem', 'plot_booter',
         rightEdge = mouse.x;
       }
 
-      var xaxis = plot.getXAxes()[0];
-      var beg = xaxis.c2p(leftEdge);
-      var end = xaxis.c2p(rightEdge);
+      var isNew = !e.note;
+      var note = e.note ? e.note :
+          {
+            beg: xaxis.c2p(leftEdge) * 1e3,
+            end: xaxis.c2p(rightEdge) * 1e3,
+            val: {
+              userId: App.store.get('user').id,
+              replies: [],
+              channels: _.pluck(self.model.get('channels'), 'channelName'),
+            },
+          };
 
-      self.noteChannels = e.note ? e.note.val.channels :
-          _.pluck(self.model.get('channels'), 'channelName');
+      self.noteChannels = note.val.channels;
 
-      self.note = self.getNote({
-        top: mouse.y + 3,
-        left: onRight ? rightEdge + 15 : leftEdge - 315,
-      }, {
-        isNew: !e.note,
-        time: App.util.toLocaleString(new Date(Math.round(beg)),
+      self.noteWindow = self.getNote({
+        isNew: isNew,
+        time: App.util.toLocaleString(new Date(Math.round(note.beg / 1e3)),
                                       'dddd m/d/yy h:MM:ss TT Z'),
         onRight: onRight,
-        channels: self.noteChannels,
-      }).hide().appendTo(self.el).fadeIn(200);
+        top: mouse.y + 3,
+        left: onRight ? rightEdge + 15 : leftEdge - 315,
+      }, note).hide().appendTo(self.el).fadeIn(200);
 
-      var body = $('.note-text', self.note);
-      var msg = $('.note-message', self.note);
-      var loading = $('.note-loading', self.note);
+      var body = $('.note-text', self.noteWindow);
+      var msg = $('.note-message', self.noteWindow);
+      var loading = $('.note-loading', self.noteWindow);
       var spinner = new Spinner({
         lines: 8,
         length: 0,
@@ -997,8 +1010,15 @@ define(['views/dashItem', 'plot_booter',
       });
       spinner.spin(loading.get(0));
 
+      // for visibility
+      self.noteWindow.bind('mouseover', function () {
+        self.editingNote = true;
+      }).bind('mouseout', function () {
+        self.editingNote = false;
+      });
+
       // textarea
-      $('.note-text', this.note).placeholder().autogrow().focus()
+      $('.note-text', self.noteWindow).placeholder().autogrow().focus()
           .bind('keyup', function (e) {
         if (!msg.is(':visible')) return;
         var val = body.val().trim();
@@ -1007,7 +1027,7 @@ define(['views/dashItem', 'plot_booter',
       });
 
       // post button
-      $('.note-post', self.note).bind('click', function (e) {
+      $('.note-post', self.noteWindow).bind('click', function (e) {
         msg.hide();
         var val = body.val().trim();
         if (val === '' || val === body.attr('data-placeholder')) {
@@ -1015,16 +1035,22 @@ define(['views/dashItem', 'plot_booter',
           return;
         }
         loading.show();
-        var note = {
-          beg: beg * 1e3,
-          end: end * 1e3,
-          val: {
-            text: $('.note-text', self.note).val(),
-            userId: App.store.get('user').id,
+
+        var text = $('.note-text', self.noteWindow).val();
+
+        if (!isNew) {
+          note.val.replies.push({
+            text: text,
             date: new Date().getTime(),
-            channels: self.noteChannels,
-          },
-        };
+            userId: App.store.get('user').id,
+          });
+        } else {
+          note.val.text = text;
+          note.val.date = new Date().getTime();
+        }
+
+        delete note.val.user;
+
         App.api.insertSamples(self.model.get('vehicleId'),
                               { _note: [ note ] }, function (err) {
           if (!err) {
@@ -1040,12 +1066,12 @@ define(['views/dashItem', 'plot_booter',
       });
 
       // cancel anchor
-      $('.note-cancel', self.note).bind('click', function (e) {
+      $('.note-cancel', self.noteWindow).bind('click', function (e) {
         self.cancelNote(null, plot);
       });
 
       // remove channel x's
-      $('.note-channel-remove', self.note).bind('click',
+      $('.note-channel-remove', self.noteWindow).bind('click',
           _.bind(self.removeNoteChannel, self));
 
     },
@@ -1053,7 +1079,7 @@ define(['views/dashItem', 'plot_booter',
     addNoteChannelFromLabel: function (e) {
       var self = this;
       if (!self.noteBox) return;
-      var noteChannelsList = $('.note-channels > ul', self.note);
+      var noteChannelsList = $('.note-channels > ul', self.noteWindow);
       var channelName = 
           $(e.target).closest('[data-channel-name]').data('channel-name');
       if (!channelName) return;
@@ -1078,17 +1104,17 @@ define(['views/dashItem', 'plot_booter',
     },
 
     cancelNote: function (e, plot, fade) {
-      if (this.note) {
+      if (this.noteWindow) {
         if (fade)
-          this.note.fadeOut(200, function () {
+          this.noteWindow.fadeOut(200, function () {
             $('.note-text', this).remove();
             $(this).remove();
           });
         else {
-          $('.note-text', this.note).remove();
-          this.note.remove();
+          $('.note-text', this.noteWindow).remove();
+          this.noteWindow.remove();
         }
-        this.note = null;
+        this.noteWindow = null;
       }
       this.noteCanvas.hide();
       this.clearNote();
@@ -1105,17 +1131,15 @@ define(['views/dashItem', 'plot_booter',
       
     },
 
-    getNote: function (pos, opts) {
+    getNote: function (opts, note) {
       opts = opts || {};
       _.defaults(opts, {
         isNew: true,
-        notes: [],
-        channels: [],
-        time: Date(),
         onRight: true,
       });
+      opts.note = note;
       return App.engine('note.jade', opts)
-          .css({ top: pos.top, left: pos.left });
+          .css({ top: opts.top, left: opts.left });
     },
 
   });
