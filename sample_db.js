@@ -419,9 +419,9 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
                   } else {
                     // If o is null, then the sample was modified by somebody
                     // else before we managed to update, so try again.
-                    console.log('Update race in insertSamples.' +
-                                'tryUpdateMinMax, retrying.');
-                    synCollection.findOne(query, tryUpdateMinMax);
+                    console.log('Update race in insertSamples.tryUpdate, ' +
+                                'retrying.');
+                    synCollection.findOne(query, tryUpdate);
                   }
                 });
               }
