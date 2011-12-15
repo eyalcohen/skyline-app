@@ -62,7 +62,7 @@ log('Waiting to bounce requests to ' + argv.port);
 var bouncyServer = bouncy(handleRequest);
 bouncyServer.listen(argv.port);
 bouncyServer.on('error', function(e) {
-  log(color.red('SERVER ERROR ') + ': ' + e.stack);
+  log(color.red('SERVER ERROR ') + ': ' + (e.stack || e));
 });
 
 function handleRequest(req, bounce) {
@@ -75,8 +75,10 @@ function handleRequest(req, bounce) {
       return;
     }
     try {
-      var stream =
-          frontend.host ?  bounce(frontend.host, frontend.port) : bounce(frontend.port);
+      var opts = { emitter: { emit: onerror } };
+      var stream = frontend.host ?
+          bounce(frontend.host, frontend.port, opts) :
+          bounce(frontend.port, opts);
       stream.on('error', onerror);
     } catch (e) {
       onerror(e);
@@ -84,7 +86,7 @@ function handleRequest(req, bounce) {
     function onerror(e) {
       log(color.red('error ') + 'connecting to ' +
               color.yellow((frontend.host || '') + ':' + frontend.port) +
-              ': ' + e.stack);
+              ': ' + (e.stack || e));
       setLoadAvg(frontend, null, e);
       var res = bounce.respond();
       var url = 'http://' + req.headers.host + req.url;
