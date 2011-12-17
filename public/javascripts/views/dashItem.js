@@ -81,30 +81,28 @@ define(['jquery',
     search: function (e) {},
 
     resize: function () {
-      try {
-        var win = $(window);
-        if (this.offset.top === 0)
-          this.offset = this.options.target ?
-              $('.' + this.options.target).offset() :
-              this.el.offset();
-        if (this.options.height !== null && this.options.height !== undefined) {
-          var dest = 'string' === typeof this.options.height ?
-              { height: parseInt(this.options.height) } :
-              { height: Math.floor((win.height() - 76 - 57)
-                  * this.options.height / 100 - this.options.bottomPad) };
-          if (this.options.animate && this.options.height !== 0) {
-            this.content.animate(dest, 'fast');
-          } else {
-            this.content.css(dest);
-            this.options.animate = false; // keep this off for now...
-          }
+      if (!this.el || this.el.length === 0)
+        return;
+      var win = $(window);
+      if (this.offset.top === 0)
+        this.offset = this.options.target ?
+            $('.' + this.options.target).offset() :
+            this.el.offset();
+      if (this.options.height !== null && this.options.height !== undefined) {
+        var dest = 'string' === typeof this.options.height ?
+            { height: parseInt(this.options.height) } :
+            { height: Math.floor((win.height() - 76 - 57)
+                * this.options.height / 100 - this.options.bottomPad) };
+        if (this.options.animate && this.options.height !== 0) {
+          this.content.animate(dest, 'fast');
         } else {
-          this.content.height(win.height() - this.offset.top - 39);
+          this.content.css(dest);
+          this.options.animate = false; // keep this off for now...
         }
-        this.addScroll();
-      } catch (err) {
-        console.log(err);
+      } else {
+        this.content.height(win.height() - this.offset.top - 39);
       }
+      this.addScroll();
     },
 
     addScroll: function (cb) {
@@ -124,61 +122,18 @@ define(['jquery',
           var src = time.attr('data-occured') || time.attr('data-time');
           time.data('ts', src);
         if (time.data('ts') !== '0')
-          time.text(getRelativeTime(time.data('ts')));
+          time.text(App.util.getRelativeTime(parseInt(time.data('ts')) / 1e3));
         else
           time.text('Never');
       });
-
-      function getRelativeTime (ts) {
-        ts = parseInt(ts);
-        var parsed_date = new Date(ts / 1e3),
-            relative_to = (arguments.length > 1) ?
-                arguments[1] / 1e3 : new Date(),
-            delta = parseInt((relative_to.getTime() - parsed_date) / 1e3);
-        if (delta < 5) return 'just now';
-        else if (delta < 15) return 'just a moment ago';
-        else if (delta < 30) return 'just a few moments ago';
-        else if (delta < 60) return 'less than a minute ago';
-        else if (delta < 120) return 'about a minute ago';
-        else if (delta < (45 * 60)) 
-          return (parseInt(delta / 60)).toString() + ' minutes ago';
-        else if (delta < (90 * 60)) 
-          return 'about an hour ago';
-        else if (delta < (24 * 60 * 60)) {
-          var h = (parseInt(delta / 3600)).toString();
-          if (h != '1') return 'about ' + h + ' hours ago';
-          else return 'about an hour ago';
-        }
-        else if (delta < (2 * 24 * 60 * 60)) 
-          return 'about a day ago';
-        else if (delta < (10 * 24 * 60 * 60)) 
-          return (parseInt(delta / 86400)).toString() + ' days ago';
-        else return new Date(ts / 1e3).toLocaleDateString();
-      }
       return this;
     },
 
     setDuration: function () {
       $('[data-duration]', this.el).each(function (i) {
         var $this = $(this);
-        $this.text(getDuration($this.attr('data-duration')));
+        $this.text(App.util.getDuration($this.attr('data-duration')));
       });
-
-      function getDuration(delta) {
-        delta = parseFloat(delta) / 1e6;
-        if (delta === 0)
-          return 'n / a';
-        if (delta < 1)
-          return (delta * 1e3).toFixed(1) + ' milliseconds';
-        else if (delta < 60)
-          return delta.toFixed(1) + ' seconds';
-        else if (delta < (45 * 60)) 
-          return (delta / 60).toFixed(1) + ' minutes';
-        else if (delta < (24 * 60 * 60))
-          return (delta / 3600).toFixed(1) + ' hours';
-        else
-          return (delta / 86400).toFixed(1) + ' days';
-      }
     },
 
     addCommas: function (nStr) {

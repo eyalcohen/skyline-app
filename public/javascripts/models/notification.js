@@ -15,46 +15,46 @@ define(function () {
 
       switch (args.type) {
         case '_drive':
-          _.extend(this.attributes, {
+          this.attributes.meta = {
             icon: '/graphics/marker.png',
             color: '#9dfbf3',
             desc: 'Cycle',
-            note: args.val.drive_km + ' km' + ', '
+            info: args.val.drive_km + ' km' + ', '
                 + args.val.drive_kWh + ' kWh',
-          });
+          };
           break;
         case '_charge':
-          _.extend(this.attributes, {
+          this.attributes.meta = {
             icon: '/graphics/charge.png',
             color: '#9dfba0',
             desc: 'Charge',
-            note: args.val.charge_kWh + ' kWh' + ', ' +
+            info: args.val.charge_kWh + ' kWh' + ', ' +
                 args.val.wall_A + ' A, ' + args.val.wall_V + ' V',
-          });
+          };
           break;
         case '_error':
-          _.extend(this.attributes, {
+          this.attributes.meta = {
             icon: '/graphics/error.png',
             color: '#fbaa9d',
             desc: 'Error',
-            note: args.val.humanName,
-          });
+            info: args.val.humanName,
+          };
           break;
         case '_warning':
-          _.extend(this.attributes, {
+          this.attributes.meta = {
             icon: '/graphics/warning.png',
             color: '#f5fb9a',
             desc: 'Warning',
-            note: args.val.humanName,
-          });
+            info: args.val.humanName,
+          };
           break;
         case '_note':
-          _.extend(this.attributes, {
+          this.attributes.meta = {
             icon: '/graphics/paper.png',
             color: 'yellow',
             desc: 'Note',
-            note: args.val.text,
-          });
+            info: args.val.text,
+          }
           break;
       }
       if (args.vehicle) {

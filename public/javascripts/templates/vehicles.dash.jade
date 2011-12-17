@@ -18,12 +18,6 @@
         thead
           tr
             th
-              | Year
-            th
-              | Make
-            th
-              | Model
-            th
               | Name
             th
               | Owner
@@ -33,26 +27,26 @@
           - rows.forEach(function (row, i) {
           -  row = row.attributes;
             tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.year+" "+row.make+" "+row.model+(row.name?" "+row.name:""))
-              td(style="font-weight:bold;")
-                =row.year
+              td.nowrap(style="font-weight:bold;")
+                =row.year + ' ' + row.make + ' ' + row.model + ' ' + row.name
                 span.edit-panel
                   a.edit-link(href="javascript:;", title="Change vehicle properties")
                     | Edit | 
                   a.config-link(href="javascript:;", title="Manage vehicle data logging")
                     | Configure
-              td(style="font-weight:bold;")
-                =row.make
-              td(style="font-weight:bold;")
-                =row.model
-              td(style="font-weight:bold;")
-                =row.name
-              td(style="font-style:italic;")
+              //td(style="font-weight:bold;")
+              //=row.make
+              //td(style="font-weight:bold;")
+              //=row.model
+              //td(style="font-weight:bold;")
+              //=row.name
+              td.nowrap(style="font-style:italic;")
                 - if (row.user) {
                   =row.user.email
                 - } else {
                   | n / a
                 - }
-              td(colspan="2", data-time=row.lastSeen, data-cycle=JSON.stringify(row.lastCycle))
+              td.nowrap(colspan="2", data-time=row.lastSeen, data-cycle=JSON.stringify(row.lastCycle))
                 | -
               td(align="right")
                 - if (row.lastSeen !== 0) {

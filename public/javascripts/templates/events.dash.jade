@@ -17,7 +17,7 @@
       table
         thead
           tr
-            th(colspan="2")
+            th(colspan="1")
               | Type
             - if (!singleVehicle) {
             th
@@ -31,23 +31,30 @@
               | Duration
         tbody
           - rows.forEach(function (row, i) {
-          -  row = row.attributes;
-          -  var title = row.vehicle ? row.vehicle.year+" "+row.vehicle.make+" "+row.vehicle.model+(row.vehicle.name?" "+row.vehicle.name:"") : 'inherit'
+            - row = row.attributes;
+            - var title = row.vehicle ? row.vehicle.year+" "+row.vehicle.make+" "+row.vehicle.model+(row.vehicle.name?" "+row.vehicle.name:"") : 'inherit'
+            - var info = App.util.getBlurb(row.meta.info, 60)
+            - var replies = row.replies && row.replies.length > 0 ? row.replies.length : null;
+            - if (replies > 1) {
+            -   replies = ' (' + replies + ' replies)'
+            - } else if (replies == 1) {
+            -   replies = ' (' + replies + ' reply)'
+            - }
             tr(id=row.htmlId, class=['dark','light'][i%2], data-title=title)
               td(width="16", style="vertical-align: middle;")
-                img(src=row.icon)
-              td(style="font-weight:bold;")
-                =row.desc
+                img(src=row.meta.icon)
+              //td(style="font-weight:bold;")
+              //=row.desc
               - if (!singleVehicle) {
-              td
+              td.nowrap(style="font-weight:bold;")
                 =row.vehicle.year+" "+row.vehicle.make+" "+row.vehicle.model+(row.vehicle.name?" "+row.vehicle.name:"")
               - }
-              - var occured = row.val.date ? row.val.date * 1e3 : row.beg;
-              td(style="font-style:italic;")
-                =row.note
-              td(data-occured=occured, data-time=row.beg, data-time-end=row.end)
+              - var occured = row.latest ? row.latest * 1e3 : row.beg;
+              td(style="font-style:italic;")= info
+                span.row-replies= replies
+              td.nowrap(data-occured=occured, data-time=row.beg, data-time-end=row.end)
                 | -
-              td(data-duration=(row.end-row.beg))
+              td.nowrap(data-duration=(row.end-row.beg))
                 | -
               td(align="right")
                 div.open-vehicle(role="button", title="Go to event")

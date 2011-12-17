@@ -90,20 +90,20 @@ define(['views/dashItem', 'plot_booter'],
           function(s1, s2) {
         return (s2.end - s2.beg) - (s1.end - s1.beg);
       });
-      _.each(sortedData, function (pnt) {
+      _.each(sortedData, function (not) {
         shapes.push({
           xaxis: {
-            from: pnt.beg / 1e3,
-            to: pnt.beg / 1e3,
+            from: not.beg / 1e3,
+            to: not.beg / 1e3,
           },
           color: '#999',
         });
         shapes.push({
           xaxis: {
-            from: pnt.beg / 1e3,
-            to: pnt.end / 1e3,
+            from: not.beg / 1e3,
+            to: not.end / 1e3,
           },
-          color: pnt.color,
+          color: not.meta.color,
         });
       });
       self.holder = $('.timeline > div', self.content);
@@ -184,10 +184,10 @@ define(['views/dashItem', 'plot_booter'],
         if (sortedData.length === 0) return;
         var icons = $('.timeline-icon', self.holder);
         if (icons.length === 0) {
-          _.each(sortedData, function (pnt) {
-            var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
+          _.each(sortedData, function (not) {
+            var off = p.pointOffset({ x: not.beg / 1e3, y: 0.22 });
             var icon = $('<img>')
-                .attr({ src: pnt.icon })
+                .attr({ src: not.meta.icon })
                 .css({
                   left: off.left - 8 + 'px',
                   top: off.top + 'px',
@@ -208,8 +208,8 @@ define(['views/dashItem', 'plot_booter'],
                   self.passWindowEvent(e);
               });
         } else {
-          _.each(sortedData, function (pnt, i) {
-            var off = p.pointOffset({ x: pnt.beg / 1e3, y: 0.22 });
+          _.each(sortedData, function (not, i) {
+            var off = p.pointOffset({ x: not.beg / 1e3, y: 0.22 });
             $(icons.get(i)).css({
               left: off.left - 8 + 'px',
               top: off.top + 'px',

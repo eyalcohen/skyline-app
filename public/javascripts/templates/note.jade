@@ -1,4 +1,7 @@
-- var numComments = note.val.replies.length + 1
+- var replies = note.replies || []
+- var numComments = replies.length + 1
+- var time = App.util.toLocaleString(new Date(Math.round(note.beg/1e3)),'dddd m/d/yy h:MM:ss TT Z')
+- var placeholderTxt = isNew ? "Enter text here." : "Add reply here."
 .note(class=onRight ? "left-triangle" : "right-triangle")
   .note-header
     span
@@ -16,16 +19,17 @@
       - }
   - if (!isNew) {
     .note-content
-      .note-user= note.val.user.name.first
-      .note-body= note.val.text
-    .note-replies
-      - note.val.replies.forEach(function (r) {
-        //.note-user= r.user.name.first
-        .note-body= r.text
+      h2.note-user= note.user.name.first + ' ' + note.user.name.last
+        span.note-content-date= ' ' + App.util.getRelativeTime(note.val.date)
+      p.note-body= note.val.text
+      - replies.forEach(function (r) {
+        h2.note-user-reply= r.user.name.first + ' ' + r.user.name.last
+          span.note-content-date= ' ' + App.util.getRelativeTime(r.val.date)
+        p.note-body= r.val.text
       - })
   - }
   .note-add
-    textarea.note-text(placeholder="Enter text here.")
+    textarea.note-text(placeholder=placeholderTxt)
     .note-channels
       span.note-channels-header Relevant Channels:
       ul
@@ -41,6 +45,7 @@
         a.note-cancel Cancel
         .note-post.little(role="button") Post
       - } else {
+        a.note-cancel Close
         .note-post.little(role="button") Reply
       - }
 
