@@ -1139,7 +1139,11 @@ var createDnodeConnection = function (remote, conn) {
     }
 
     function fetch(vehicles, addVehicle) {
-      var notifications = [];
+      var drives = [];
+      var charges = [];
+      var errors = [];
+      var warnings = []; 
+      var notes = [];
       Step(
         function () {
           var parallel = this.parallel;
@@ -1148,13 +1152,14 @@ var createDnodeConnection = function (remote, conn) {
             var next = parallel();
             Step(
               function () {
+                var _parallel = this.parallel;
                 sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
                 sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
                 sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
                 sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
                 sampleDb.fetchSamples(v._id, '_note', {}, this.parallel());
               },
-              function (err, drives, charges, errors, warnings, notes) {
+              function (err, drives_, charges_, errors_, warnings_, notes_) {
                 if (err) { cb(err); return; }
                 function addType(type) {
                   return function(not) {
@@ -1162,13 +1167,16 @@ var createDnodeConnection = function (remote, conn) {
                     if (addVehicle) not.vehicle = v;
                   }
                 }
-                drives.forEach(addType('_drive'));
-                charges.forEach(addType('_charge'));
-                errors.forEach(addType('_error'));
-                warnings.forEach(addType('_warning'));
-                notes.forEach(addType('_note'));
-                notifications =
-                    notifications.concat(drives, charges, errors, warnings, notes);
+                drives_.forEach(addType('_drive'));
+                charges_.forEach(addType('_charge'));
+                errors_.forEach(addType('_error'));
+                warnings_.forEach(addType('_warning'));
+                notes_.forEach(addType('_note'));
+                drives = drives.concat(drives_);
+                charges = charges.concat(charges_);
+                errors = errors.concat(errors_);
+                warnings = warnings.concat(warnings_);
+                notes = notes.concat(notes_);
                 next();
               }
             );
@@ -1176,28 +1184,49 @@ var createDnodeConnection = function (remote, conn) {
           parallel()(); // In case there are no vehicles.
         },
         function (err) {
-          var next = _.after(notifications.length, this);
-          notifications.forEach(function (not) {
-            if (not.val.userId) {
-              User.findById(not.val.userId, function (err, usr) {
-                if (usr)
-                  // Strip mongoose crap.
-                  not.val.user = JSON.parse(JSON.stringify(usr));
-                next();
-              });
-            } else next();
-          });
-        },
-        function (err) {
           if (err) { cb(err); return; }
-          // NOTE: _notes require special sorting
-          // because created date is not 'beg'.
-          notifications.sort(function(a, b) {
-            var at = a.val.date ? a.val.date * 1e3 : a.beg;
-            var bt = b.val.date ? b.val.date * 1e3 : b.beg;
-            return bt - at;
+          
+          var _sort = _.after(notes.length, sort);
+          notes.forEach(function (note) {
+            User.findById(note.val.userId, function (err, usr) {
+              // Strip mongoose crap.
+              note.user = JSON.parse(JSON.stringify(usr));
+              _sort();
+            });
           });
-          cb(null, notifications);
+          function sort() {
+            var threads = [];
+            var threadedNotes = [];
+            notes.forEach(function (note, i) {
+              var thread = [note];
+              notes.splice(i, 1);
+              notes.forEach(function (n, j) {
+                if (n.beg === note.beg && n.end === note.end) {
+                  thread.push(n);
+                  notes.splice(j, 1);
+                }
+              });
+              threads.push(thread);
+            });
+            threads.forEach(function (grp) {
+              grp.sort(function (a, b) {
+                return a.val.date - b.val.date;
+              });
+              var note = grp[0];
+              note.replies = _.rest(grp);
+              note.latest = _.last(grp).val.date;
+              threadedNotes.push(note);
+            });
+            var notifications = [].concat(drives, charges, errors,
+                                          warnings, threadedNotes);
+            notifications.sort(function(a, b) {
+              var at = a.latest ? a.latest * 1e3 : a.beg;
+              var bt = b.latest ? b.latest * 1e3 : b.beg;
+              return bt - at;
+            });
+            cb(null, notifications);
+
+          }
         }
       );
     }

@@ -481,7 +481,7 @@ define(['views/dashItem', 'plot_booter',
       });
       _.each(notifications, function (not) {
         var icon = $('<img>')
-            .attr({ src: not.icon })
+            .attr({ src: not.meta.icon })
             .css({ bottom: 20 })
             .addClass('timeline-icon')
             .data(_.extend({}, not))
@@ -497,8 +497,9 @@ define(['views/dashItem', 'plot_booter',
               else
                 self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
             })
-            .bind('mouseover', function (e) {
+            .bind('click', function (e) {
               var not = $(e.target).data();
+              if (not.type !== '_note') return;
               var xaxis = self.plot.getXAxes()[0];
               var off = _.map(self.plot.offset(), function (o) {
                 return parseInt(o);
@@ -509,7 +510,7 @@ define(['views/dashItem', 'plot_booter',
               _([dsEvent, dEvent, deEvent]).each(function (evt) {
                 evt.which = 1;
                 evt.shiftKey = true;
-                evt.pageY = off[0] + 100;
+                evt.pageY = off[0] + 30;
                 evt.note = not;
               });
               dsEvent.pageX = xaxis.p2c(not.beg / 1e3) + off[1];
@@ -520,15 +521,24 @@ define(['views/dashItem', 'plot_booter',
                   .trigger(dEvent)
                   .trigger(deEvent);
             })
+            .bind('mouseover', function (e) {
+              App.publish('PreviewNotification-' + self.model.get('tabId'),
+                          [{beg: not.beg, end: not.end}]);
+            })
             .bind('mouseout', function (e) {
-              (function checkItBoy() {
-                _.delay(function () {
-                  if (!self.editingNote)
-                    self.cancelNote(null, self.plot);
-                  else checkItBoy();
-                }, 1e3);
-              })();
+              App.publish('UnPreviewNotification-' + self.model.get('tabId'));
             });
+            // .bind('mouseout', function (e) {
+            //   var not = $(e.target).data();
+            //   if (not.type !== '_note') return;
+            //   (function checkItBoy() {
+            //     _.delay(function () {
+            //       if (!self.editingNote)
+            //         self.cancelNote(null, self.plot);
+            //       else checkItBoy();
+            //     }, 250);
+            //   })();
+            // });
       });
       self.notificationIcons = $('.timeline-icon', self.holder);
       self.positionIcons();
@@ -1026,7 +1036,7 @@ define(['views/dashItem', 'plot_booter',
 
     beginNote: function (e, plot) {
       this.noteCanvas.show();
-      if (this.noteBox) this.clearNote();
+      if (this.noteBox) this.clearNoteBox();
       this.noteBox = {
         x: this.getMouse(e, plot).x,
         y: 0,
@@ -1037,13 +1047,16 @@ define(['views/dashItem', 'plot_booter',
 
     drawNote: function (e, plot) {
       this.noteCtx.fillStyle = 'rgba(0,0,0,0.25)';
-      this.clearNote();
+      this.clearNoteBox();
       this.noteBox.w = this.getMouse(e, plot).x - this.noteBox.x;
       this.noteCtx.fillRect(this.noteBox.x, this.noteBox.y,
                             this.noteBox.w, this.noteBox.h);
     },
 
     endNote: function (e, plot) {
+      if (this.noteWindow)
+        this.clearNoteWindow();
+
       var self = this;
       var mouse = self.getMouse(e, plot);
       var xaxis = plot.getXAxes()[0];
@@ -1065,7 +1078,6 @@ define(['views/dashItem', 'plot_booter',
             end: xaxis.c2p(rightEdge) * 1e3,
             val: {
               userId: App.store.get('user').id,
-              replies: [],
               channels: _.pluck(self.model.get('channels'), 'channelName'),
             },
           };
@@ -1074,8 +1086,6 @@ define(['views/dashItem', 'plot_booter',
 
       self.noteWindow = self.getNote({
         isNew: isNew,
-        time: App.util.toLocaleString(new Date(Math.round(note.beg / 1e3)),
-                                      'dddd m/d/yy h:MM:ss TT Z'),
         onRight: onRight,
         top: mouse.y + 3,
         left: onRight ? rightEdge + 15 : leftEdge - 315,
@@ -1122,23 +1132,22 @@ define(['views/dashItem', 'plot_booter',
         }
         loading.show();
 
-        var text = $('.note-text', self.noteWindow).val();
+        note.val.text = $('.note-text', self.noteWindow).val();
+        note.val.date = new Date().getTime();
 
-        if (!isNew) {
-          note.val.replies.push({
-            text: text,
-            date: new Date().getTime(),
-            userId: App.store.get('user').id,
-          });
-        } else {
-          note.val.text = text;
-          note.val.date = new Date().getTime();
-        }
+        if (!isNew)
+          delete note.val.channels;
 
-        delete note.val.user;
+        // TODO: Don't muck-up the original object
+        // so this is not needed.
+        var _note = {
+          beg: note.beg,
+          end: note.end,
+          val: note.val,
+        };
 
         App.api.insertSamples(self.model.get('vehicleId'),
-                              { _note: [ note ] }, function (err) {
+                              { _note: [ _note ] }, function (err) {
           if (!err) {
             msg.text('Your comment has been posted.').show();
             loading.hide();
@@ -1149,6 +1158,7 @@ define(['views/dashItem', 'plot_booter',
             self.model.tabModel.resetNotifications();
           } else throw new Error(err);
         });
+
       });
 
       // cancel anchor
@@ -1159,7 +1169,6 @@ define(['views/dashItem', 'plot_booter',
       // remove channel x's
       $('.note-channel-remove', self.noteWindow).bind('click',
           _.bind(self.removeNoteChannel, self));
-
     },
 
     addNoteChannelFromLabel: function (e) {
@@ -1192,30 +1201,27 @@ define(['views/dashItem', 'plot_booter',
     cancelNote: function (e, plot, fade) {
       if (this.noteWindow) {
         if (fade)
-          this.noteWindow.fadeOut(200, function () {
-            $('.note-text', this).remove();
-            $(this).remove();
-          });
-        else {
-          $('.note-text', this.noteWindow).remove();
-          this.noteWindow.remove();
-        }
-        this.noteWindow = null;
+          this.noteWindow.fadeOut(200, _.bind(this.clearNoteWindow, this));
+        else this.clearNoteWindow();
       }
       this.noteCanvas.hide();
-      this.clearNote();
+      this.clearNoteBox();
       this.noteBox = null;
     },
 
-    clearNote: function () {
+    clearNoteBox: function () {
       if (!this.noteBox) return;
       this.noteCtx.clearRect(this.noteBox.x, this.noteBox.y,
                             this.noteBox.w, this.noteBox.h);
     },
 
-    redrawNote: function () {
-      
+    clearNoteWindow: function () {
+      $('.note-text', this.noteWindow).remove();
+      this.noteWindow.remove();
+      this.noteWindow = null;
     },
+
+    redrawNote: function () {},
 
     getNote: function (opts, note) {
       opts = opts || {};
