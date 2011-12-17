@@ -120,8 +120,7 @@ function handleRequest(req, bounce) {
 
       stream.on('data', function(chunk) {
         // Format: '<headers>\n\n<#>\n<sid>:<#>:<#>:<transports>'
-        var d = chunk.toString();
-        var m = (/^([0-9]+):[0-9]+:[0-9]+:[^:]+$/m).test(chunk.toString());
+        var m = chunk.toString().match(/^([0-9]+):[0-9]+:[0-9]+:[^:]+$/m);
         if (m) {
           var sid = m[1];
           apiSessions[sid] = frontend;
