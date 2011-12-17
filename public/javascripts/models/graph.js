@@ -14,9 +14,8 @@ define(function () {
       });
       // Note: Backbone's .set method does a deep comparison of the old
       // data to the new data, which is expensive for large datasets.  Don't
-      // use .set for data or dataMinMax to avoid this overhead.
-      this.data = {};  // Map from channelName to data.
-      this.dataMinMax = {};  // Map from channelName to data.
+      // use .set for sampleSet to avoid this overhead.
+      this.sampleSet = {};  // Map from channelName to data.
       var tabId = args.tabId, id = args.id;
       this.clientId = tabId + '-graph-' + id;
       _.bindAll(this, 'destroy', 'updateCacheSubscription',
@@ -128,35 +127,8 @@ define(function () {
     },
 
     updateSampleSet: function (sampleSet) {
-      var self = this;
-      var data = {}, dataMinMax = {};
-      self.get('channels').forEach(function(channel) {
-        var samples = sampleSet[channel.channelName] || [];
-        var channelData = data[channel.channelName] = [];
-        var channelMinMaxData = dataMinMax[channel.channelName] = [];
-        var prevEnd = null, prevMinMaxEnd = null;
-        _.each(samples, function (s, i) {
-          if (prevEnd != s.beg)
-            channelData.push(null);
-          channelData.push([s.beg / 1000, s.val]);
-          if (s.end !== s.beg)
-            channelData.push([s.end / 1000, s.val]);
-          prevEnd = s.end;
-          if (s.min != null || s.max != null) {
-            if (prevMinMaxEnd != s.beg)
-              channelMinMaxData.push(null);
-            var max = s.max == null ? s.val : s.max;
-            var min = s.min == null ? s.val : s.min;
-            channelMinMaxData.push([s.beg / 1000, max, min]);
-            if (s.end !== s.beg)
-              channelMinMaxData.push([s.end / 1000, max, min]);
-            prevMinMaxEnd = s.end;
-          }
-        });
-      });
-      self.data = data;
-      self.dataMinMax = dataMinMax;
-      self.view.draw();
+      this.sampleSet = sampleSet;
+      this.view.draw();
     },
 
 

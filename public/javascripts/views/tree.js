@@ -65,7 +65,7 @@ define(['views/dashItem',
                 fillInternal(child);
               });
               if (top) return;
-              var title = node.channelName || node.shortName;
+              var title = node.humanName || node.shortName;
               if (node.units)
                 title += ' (' + node.units + ')';
               var metadata = {};

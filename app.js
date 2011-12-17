@@ -225,7 +225,8 @@ app.configure(function () {
   app.use(express.static(__dirname + '/public'));
   var start = Date.now();
   app.use(require('browserify')({
-    require : ['dnode', 'underscore', 'step', './minpubsub', './shared_utils']
+    require : [ 'dnode', 'underscore', 'step', './minpubsub',
+        './shared_utils', './units.js' ],
   }).use(jadeify(__dirname + '/public/javascripts/templates')));
   log('browserify took: ' + (Date.now() - start) + 'ms.');
 });

@@ -183,12 +183,7 @@ define(['views/dashItem', 'plot_booter',
         legend: {
           margin: [40, 0],
           oneperyaxis: true,
-          labelFormatter: function(label, series) {
-            return "<div data-channel='" + JSON.stringify(series.channel) + "' "+
-                'data-channel-name="' + series.channel.channelName + '">'+
-                '<span class="jstree-draggable" style="cursor:pointer">'+
-                label + '</span></div>';
-          },
+          labelFormatter: labelFormatter,
         },
         hooks: {
           draw: [_.bind(self.plotDrawHook, self)],
@@ -205,6 +200,40 @@ define(['views/dashItem', 'plot_booter',
                         + '" height="' + self.plot.getPlaceholder().height()
                         + '" class="note-canvas">').appendTo('.graph > div', self.content);
       self.noteCtx = self.noteCanvas.get(0).getContext('2d');
+
+      function labelFormatter(label, series) {
+        var channel = series.channel;
+        var r = "<div data-channel='" +
+            _.escape(JSON.stringify(channel)) + "' " +
+            "data-channel-name='" +
+            _.escape(channel.channelName) + "'>";
+        r += '<span class="jstree-draggable" style="cursor:pointer">';
+        r += channel.humanName || channel.shortName;
+        r += '</span>';
+        if (channel.units) {
+          var compat = App.units.findCompatibleUnits(channel.units);
+          if (compat) {
+            r += ' (<select>';
+            compat.units.forEach(function(u) {
+              if (u === compat.selected)
+                r += '<option selected>';
+              else
+                r += '<option>';
+              r += _.escape(u.unit);
+              /*
+              if (u.long !== u.unit)
+                r += ' (' + _.escape(u.long) + ')';
+              */
+              r += '</option>';
+            });
+            r += '</select>)';
+          } else {
+            r += '(' + _.escape(channel.units) + ')';
+          }
+        }
+        r += '</div>';
+        return r;
+      }
 
       function bindEventsHook(plot, eventHolder) {
         plot.getPlaceholder().mousemove(function (e) {
@@ -310,25 +339,24 @@ define(['views/dashItem', 'plot_booter',
           channel: channel,
           channelIndex: i,
         };
-        var data = self.model.data[channel.channelName] || [];
+        var data = self.calculateSeriesData(channel);
         series.push(_.extend({
           lines: {
             show: true,
             lineWidth: 1,
             fill: false,
           },
-          data: data,
+          data: data.data,
           label: channel.title,
         }, seriesBase));
-        var dataMinMax = self.model.dataMinMax[channel.channelName] || [];
-        if (dataMinMax.length > 0) {
+        if (data.minMax.length > 0) {
           series.push(_.extend({
             lines: {
               show: true,
               lineWidth: 0,
               fill: 0.6,
             },
-            data: dataMinMax,
+            data: data.minMax,
           }, seriesBase));
         }
       });
@@ -336,6 +364,35 @@ define(['views/dashItem', 'plot_booter',
       self.plot.setData(series);
       self.plot.setupGrid();
       self.plot.draw();
+    },
+
+    calculateSeriesData: function(channel) {
+      var conv = App.units.findConversion(channel.units,
+          channel.displayUnits || channel.units);
+      var samples = this.model.sampleSet[channel.channelName] || [];
+      var data = [];
+      var minMax = [];
+      var prevEnd = null, prevMinMaxEnd = null;
+      _.each(samples, function (s, i) {
+        if (prevEnd != s.beg)
+          data.push(null);
+        var val = s.val * conv.factor + conv.offset;
+        data.push([s.beg / 1000, val]);
+        if (s.end !== s.beg)
+          data.push([s.end / 1000, val]);
+        prevEnd = s.end;
+        if (s.min != null || s.max != null) {
+          if (prevMinMaxEnd != s.beg)
+            minMax.push(null);
+          var max = s.max == null ? val : s.max * conv.factor + conv.offset;
+          var min = s.min == null ? val : s.min * conv.factor + conv.offset;
+          minMax.push([s.beg / 1000, max, min]);
+          if (s.end !== s.beg)
+            minMax.push([s.end / 1000, max, min]);
+          prevMinMaxEnd = s.end;
+        }
+      });
+      return { data: data, minMax: minMax };
     },
 
     updateSeriesColors: function(series) {
@@ -497,6 +554,8 @@ define(['views/dashItem', 'plot_booter',
       $('.legend tr', this.content)
           .bind('mouseenter', _.bind(this.enterLegend, this))
           .bind('mouseleave', _.bind(this.leaveLegend, this));
+      $('.legend select', this.content)
+          .bind('change', _.bind(this.unitsChange, this));
       // add note channels from legend
       $('.legendLabel', this.content).bind('click',
           _.bind(this.addNoteChannelFromLabel, this));
@@ -911,6 +970,29 @@ define(['views/dashItem', 'plot_booter',
 
     ensureLegend: function () {
       this.ensureLegendRedraw = true;
+    },
+
+    unitsChange: function (e) {
+      var newUnits = e.target.value;
+      var channel = JSON.parse($(e.target.parentNode).attr('data-channel'));
+      var series = this.plot.getData();
+      for (var i = 0; i < series.length; ++i) {
+        if (series[i].channel.channelName === channel.channelName) {
+          series[i].channel.displayUnits = newUnits;
+          var data = this.calculateSeriesData(series[i].channel);
+          series[i].data = data.data;
+          // HACK
+          if (series[i+1] &&
+              series[i+1].channel.channelName === channel.channelName &&
+              data.minMax.length > 0) {
+            series[i+1].data = data.minMax;
+          }
+          break;
+        }
+      }
+      this.plot.setData(series);
+      this.plot.setupGrid();
+      this.plot.draw();
     },
 
     removeChannel: function (e) {

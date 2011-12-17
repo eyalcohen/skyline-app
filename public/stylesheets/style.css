@@ -1374,8 +1374,8 @@ a.note-cancel:active {
 }
 
 .label-highlight {
-  background: rgba(174,182,154,0.2);
-  border: 1px dashed rgba(0, 0, 0, 0.3);
+  background: rgba(174,182,154,0.4);
+  /* border: 1px dashed rgba(0, 0, 0, 0.3); */
 }
 
 .mouse-time {
@@ -1451,11 +1451,6 @@ a.note-cancel:active {
 
 .legend > div {
   display: none;
-}
-
-.legend tr:hover {
-  background: rgba(174,182,154,0.2);
-  border: 1px dashed rgba(0, 0, 0, 0.3);
 }
 
 .legend td {

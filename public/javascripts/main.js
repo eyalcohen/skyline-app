@@ -31,6 +31,7 @@ requirejs(['libs/domReady',
             App.subscribe = require('./minpubsub').subscribe;
             App.unsubscribe = require('./minpubsub').unsubscribe;
             App.shared = require('./shared_utils');
+            App.units = require('./units');
             App.user = App.store.get('user') || {};
             App.regions = {
               header: $('header'),
