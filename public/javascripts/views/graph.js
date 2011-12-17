@@ -8,11 +8,14 @@ define(['views/dashItem', 'plot_booter',
   return DashItemView.extend({
     initialize: function (args) {
       this._super('initialize', args);
-      _.bindAll(this, 'destroy', 'showNotification', 'hideNotification',
+      _.bindAll(this, 'destroy', 'highlightedChannelChanged',
+                'showNotification', 'hideNotification',
                 'mouseHoverTime', 'addYaxesBoundsForDrops',
                 'removeYaxesBoundsForDrops', 'ensureLegend');
       var tabId = args.tabId;
       var id = args.id;
+      this.model.tabModel.bind('change:highlightedChannel',
+                               this.highlightedChannelChanged);
       App.subscribe('PreviewNotification-' + tabId, this.showNotification);
       App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
@@ -29,6 +32,8 @@ define(['views/dashItem', 'plot_booter',
       this._super('destroy');
       var tabId = this.options.tabId;
       var id = this.options.id;
+      this.model.tabModel.unbind('change:highlightedChannel',
+                                 this.highlightedChannelChanged);
       App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
       App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
       App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
@@ -64,7 +69,6 @@ define(['views/dashItem', 'plot_booter',
       this.notificationPreview = $('.notification-preview', this.el);
       this.notificationIcons = [];
       this.minHoverDistance = 10;
-      this.highlighting = false;
       this.following = false;
       this.noteBox = null;
       this.noteWindow = null;
@@ -213,7 +217,7 @@ define(['views/dashItem', 'plot_booter',
           App.publish('MouseHoverTime-' + self.model.get('tabId'),
                       [time * 1e3, mouse, self]);
         })
-        .bind('mouseout', function (e) {
+        .bind('mouseleave', function (e) {
           App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
         })
         .mousewheel(function (e, delta) {
@@ -299,7 +303,7 @@ define(['views/dashItem', 'plot_booter',
       });
       var series = [];
       _.each(self.model.get('channels'), function (channel, i) {
-        var highlighted = self.highlighting === channel.channelName;
+        var highlighted = self.highlightedChannel === channel.channelName;
         var seriesBase = {
           xaxis: 1,
           yaxis: channel.yaxisNum,
@@ -337,9 +341,9 @@ define(['views/dashItem', 'plot_booter',
     updateSeriesColors: function(series) {
       var self = this;
       series.forEach(function(s, i) {
-        var highlighted = self.highlighting === s.channel.channelName;
+        var highlighted = self.highlightedChannel === s.channel.channelName;
         var color = self.colors[s.channel.colorNum % self.colors.length];
-        if (self.highlighting && !highlighted) {
+        if (self.highlightedChannel && !highlighted) {
           // Lighten color.
           color = $.color.parse(color);
           color.r = Math.round((color.r + 255*2) / 3);
@@ -432,7 +436,7 @@ define(['views/dashItem', 'plot_booter',
                 $('.flot-overlay', self.content).trigger(e);
               else
                 if (e.type === 'mouseup')
-                  self.plot.getPlaceholder().css({ cursor: 'default' });
+                  self.plot.getPlaceholder().css({ cursor: 'crosshair' });
               else
                 self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
             })
@@ -501,8 +505,8 @@ define(['views/dashItem', 'plot_booter',
       $('.label-closer', this.content)
           .click(_.bind(this.removeChannel, this));
       $('.legend tr', this.content)
-          .bind('mouseover', _.bind(this.enterLegend, this))
-          .bind('mouseout', _.bind(this.leaveLegend, this));
+          .bind('mouseenter', _.bind(this.enterLegend, this))
+          .bind('mouseleave', _.bind(this.leaveLegend, this));
       // add note channels from legend
       $('.legendLabel', this.content).bind('click',
           _.bind(this.addNoteChannelFromLabel, this));
@@ -544,14 +548,10 @@ define(['views/dashItem', 'plot_booter',
       } else {
         self.mouseTime.hide();
       }
-      if (time == null) {
-        if (self.highlightedLabel)
-          self.highlightedLabel.removeClass('label-highlight');
-        self.highlighting = false;
-        self.updateSeriesColors(self.plot.getData());
-        self.plot.draw();
-      }
-      var newHighlighting = false;
+      if (time == null && self.highlightedChannel)
+          self.model.tabModel.set({ highlightedChannel: null });
+
+      var newHightlightedChannel = null;
       var minDist = Infinity;
       _.each(self.plot.getData(), function (series) {
         if (!series.channel || series.lines.fill) return;
@@ -606,7 +606,7 @@ define(['views/dashItem', 'plot_booter',
               var d = Math.min(dx, dy);
               if (d <= minDist && d <= self.minHoverDistance) {
                 minDist = d;
-                newHighlighting = series.channel.channelName;
+                newHightlightedChannel = series.channel.channelName;
               }
             }
             var v = hp[1];
@@ -626,18 +626,10 @@ define(['views/dashItem', 'plot_booter',
         }
         label.html(valueHTML);
       });
-      if (mouse && newHighlighting !== self.highlighting) {
-        if (self.highlightedLabel)
-          self.highlightedLabel.removeClass('label-highlight');
-        self.highlighting = newHighlighting;
-        var labelSibling = $('.legendLabel > div[data-channel-name="'+
-            self.highlighting+'"]', self.el);
-        self.highlightedLabel = labelSibling.parent().parent();
-        self.highlightedLabel.addClass('label-highlight');
+      if (mouse && graph === self) {
+        self.model.tabModel.set({ highlightedChannel: newHightlightedChannel });
         self.plot.getPlaceholder().css(
-            { cursor: newHighlighting ? 'pointer' : 'crosshair' });
-        self.updateSeriesColors(self.plot.getData());
-        self.plot.draw();
+            { cursor: newHightlightedChannel ? 'pointer' : 'crosshair' });
       }
     },
 
@@ -703,6 +695,23 @@ define(['views/dashItem', 'plot_booter',
       this.axisTargets = null;
     },
 
+    highlightedChannelChanged: function (model, highlightedChannel) {
+      if (highlightedChannel != this.highlightedChannel) {
+        if (this.highlightedLabel)
+          this.highlightedLabel.removeClass('label-highlight');
+        this.highlightedChannel = highlightedChannel;
+        if (highlightedChannel) {
+          var labelSibling = $('.legendLabel > div[data-channel-name="'+
+              highlightedChannel+'"]', this.el);
+          this.highlightedLabel = labelSibling.parent().parent();
+          this.highlightedLabel.addClass('label-highlight');
+        } else
+          this.highlightedLabel = null;
+        this.updateSeriesColors(this.plot.getData());
+        this.plot.draw();
+      }
+    },
+
     showNotification: function (range, other) {
       var xaxis = this.plot.getXAxes()[0];
       var leftSide = Math.max(xaxis.p2c(range.beg / 1e3), 0);
@@ -740,7 +749,6 @@ define(['views/dashItem', 'plot_booter',
                 - xaxis.p2c(prevTimeRange.end / 1e3), function () {
             if (cb) cb();
           });
-          console.log('Got new data:', newTimeRange.beg, newTimeRange.end);
         } else if (cb) cb();
       });
 
@@ -898,9 +906,7 @@ define(['views/dashItem', 'plot_booter',
       var row = $(e.target).closest('tr');
       var channelName = $('[data-channel-name]', row)
           .attr('data-channel-name');
-      if (channelName === this.highlighting) return;
-      this.highlighting = channelName;
-      this.draw();
+      this.model.tabModel.set({ highlightedChannel: channelName });
     },
 
     leaveLegend: function (e) {
@@ -910,8 +916,7 @@ define(['views/dashItem', 'plot_booter',
         receiver = receiver.parentNode;
       if ($('[data-channel-name]', $(receiver).closest('tr')).length > 0)
         return;
-      this.highlighting = false;
-      this.draw();
+      this.model.tabModel.set({ highlightedChannel: null });
     },
 
     ensureLegend: function () {
@@ -922,7 +927,6 @@ define(['views/dashItem', 'plot_booter',
       var labelParent = $(e.target).parent().parent();
       var label = $('.legendLabel > div', labelParent);
       var channel = JSON.parse(label.attr('data-channel'));
-      this.highlighting = false;
       App.publish('ChannelUnrequested-' + 
           this.options.tabId + '-' + this.options.id, [channel]);
     },

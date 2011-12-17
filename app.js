@@ -22,6 +22,8 @@ if (argv._.length || argv.help) {
  * Module dependencies.
  */
 
+var log = require('./log.js').log;
+var logTimestamp = require('./log.js').logTimestamp;
 var express = require('express');
 var mongoose = require('mongoose');
 var ObjectID = require('mongoose/lib/types/objectid');
@@ -30,11 +32,12 @@ var mongodb = require('mongodb');
 var MongoStore = require('connect-mongodb');
 var gzip = require('connect-gzip');
 var dnode = require('dnode');
+var color = require('cli-color');
 var fs = require('fs');
 var path = require('path');
 var CSV = require('csv');
 var traverse = require('traverse');
-var util = require('util'), debug = util.debug, inspect = util.inspect;
+var util = require('util'), inspect = util.inspect;
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Step = require('step');
@@ -50,14 +53,14 @@ try {
   WebUploadSamples = Event['event.WebUploadSamples'];
   EventWebUpload = Event['event.EventWebUpload'];
 } catch (e) {
-  console.warn('Could not load proto buf ' + EventDescFileName +
-               ', upload APIs won\'t work!');
+  log('Could not load proto buf ' + EventDescFileName +
+      ', upload APIs won\'t work!');
 }
 var getrusage;
 try {
   getrusage = require('getrusage');
 } catch (e) {
-  console.warn('Could not load getrusage module, try: node_modules/build.sh');
+  log('Could not load getrusage module, try: node_modules/build.sh');
 }
 var Notify = require('./notify');
 var SampleDb = require('./sample_db.js').SampleDb;
@@ -205,16 +208,18 @@ app.configure(function () {
   //   cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
   //   secret: 'topsecretmission',
   //   store: new MongoStore({ db: sessionServerDb, }, function (err) {
-  //     if (err) util.log('Error creating MongoStore: ' + err);
+  //     if (err) log('Error creating MongoStore: ' + err);
   //   })
   // }));
+
   app.use(express.logger({ format: function(tok, req, res) {
     var url = tok.url(req, res) || '-';
-    if (/^\/status/(url)) return;
-    return '\x1b[1m' + (tok.method(req, res) || '-') + '\x1b[0m ' +
-        '\x1b[33m' + (tok.url(req, res) || '-') + '\x1b[0m ' +
+    if (/^\/status/.test(url)) return;
+    return logTimestamp() + ' ' + color.red(tok.method(req, res) || '-') + ' ' +
+        color.yellow(tok.url(req, res) || '-') + ' ' +
         tok['response-time'](req, res) + ' ms';
   } }));
+
   app.use(express.methodOverride());
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
@@ -222,7 +227,7 @@ app.configure(function () {
   app.use(require('browserify')({
     require : ['dnode', 'underscore', 'step', './minpubsub', './shared_utils']
   }).use(jadeify(__dirname + '/public/javascripts/templates')));
-  util.log('browserify took: ' + (Date.now() - start) + 'ms.');
+  log('browserify took: ' + (Date.now() - start) + 'ms.');
 });
 
 
@@ -253,14 +258,14 @@ models.defineModels(mongoose, function () {
   var mongooseUri = 'mongodb://' + (authPart ? authPart + '@' : '') +
       servers[0].host + ':' + servers[0].port + '/' + dbname;
   if (servers.length == 1) {
-    util.log('Connecting to mongoose DB: ' + mongooseUri);
+    log('Connecting to mongoose DB: ' + mongooseUri);
     db = mongoose.connect(mongooseUri);
   } else {
     mongooseUri += ',';
     mongooseUri += _.rest(servers).map(function(server) {
       return 'mongodb://' + server.host + ':' + server.port;
     }).join(',');
-    util.log('Connecting to mongoose DB set: ' + mongooseUri);
+    log('Connecting to mongoose DB set: ' + mongooseUri);
     db = mongoose.connectSet(mongooseUri);
   }
 });
@@ -298,7 +303,7 @@ app.param('vid', function (req, res, next, id) {
   Vehicle.findById(id, errWrap(next, function (veh) {
     if (veh) {
       req.vehicle = veh;
-      util.log('vid ' + id + ' -> ' + util.inspect(veh));
+      log('vid ' + id + ' -> ' + util.inspect(veh));
       next();
     } else {
       res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } }, 400);
@@ -421,7 +426,7 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
 
     function reorganize(err) {
       if (err)
-        util.log('Error during CSV sample fetch: ' + err + '\n' + err.stack);
+        log('Error during CSV sample fetch: ' + err + '\n' + err.stack);
       samplesSplit = SampleDb.splitSamplesByTime(sampleSet);
       this();
     },
@@ -560,7 +565,7 @@ app.post('/usercreate/:newemail', function (req, res) {
       res.send({ status: 'success', data: { user: user } });
       Notify.welcome(user, function (err, message) {
         if (err) {
-          util.log("Error creating user '" + req.params.newemail + "': " + err);
+          log("Error creating user '" + req.params.newemail + "': " + err);
           Notify.problem(err);
         }
       });
@@ -630,7 +635,7 @@ function requestMimeType(req) {
 app.put('/samples', function (req, res) {
 
   function fail(code) {
-    util.log('PUT /samples failed: ' + code);
+    log('PUT /samples failed: ' + code);
     res.send({ status: 'fail', data: { code: code } }, 400);
   }
 
@@ -641,9 +646,9 @@ app.put('/samples', function (req, res) {
     fs.mkdir(__dirname + '/samples', '0755', function (err) {
       fs.writeFile(__dirname + '/samples/' + fileName, req.rawBody, null, function (err) {
         if (err)
-          util.log(err);
+          log(err);
         else
-          util.log('Saved to: ' + __dirname + '/samples/' + fileName);
+          log('Saved to: ' + __dirname + '/samples/' + fileName);
       });
     });
 
@@ -703,9 +708,9 @@ app.put('/samples', function (req, res) {
                      JSON.stringify(newSamples, null, '  ') + '\n',
                      function (err) {
           if (err)
-            util.log(err);
+            log(err);
           else
-            util.log('Saved to: ' + __dirname + '/samples/' + fileName);
+            log('Saved to: ' + __dirname + '/samples/' + fileName);
         });
       });
       this();
@@ -790,7 +795,7 @@ app.put('/samples', function (req, res) {
     // Any exceptions above end up here.
     function(err) {
       if (err) {
-        util.log('Error while processing PUT /samples request: ' + err.stack);
+        log('Error while processing PUT /samples request: ' + err.stack);
         fail('INTERNAL_ERROR');
       } else {
         // Success!
@@ -806,7 +811,7 @@ app.put('/samples', function (req, res) {
 app.put('/cycle', function (req, res) {
 
   function fail(code) {
-    util.log('PUT /cycle failed: ' + code);
+    log('PUT /cycle failed: ' + code);
     res.send({ status: 'fail', data: { code: code } }, 400);
   }
 
@@ -856,9 +861,9 @@ app.put('/cycle', function (req, res) {
         fs.writeFile(__dirname + '/cycles/' + fileName, cycleJson,
                      function (err) {
             if (err) {
-              util.log(err);
+              log(err);
             } else {
-              util.log('Saved to: ' + __dirname + '/cycles/' + fileName);
+              log('Saved to: ' + __dirname + '/cycles/' + fileName);
             }
         });
       });
@@ -871,7 +876,7 @@ app.put('/cycle', function (req, res) {
         event._id = new EventID({ id: veh._id, time: 0 });
         compatibility.insertEventBucket(sampleDb, event, function (err) {
           if (err)
-            debug('Error in insertEventBucket: ' + err.stack);
+            log('Error in insertEventBucket: ' + err.stack);
           if (++cnt === num)
             res.end();
         });
@@ -918,7 +923,7 @@ app.post('/debug/:logFile', function (req, res) {
   try {
     var stream = fs.createWriteStream(path, { flags: 'a', encoding: 'utf8' });
     stream.on('error', function(err) {
-      util.log(req.url + ' - error writing: ' + err);
+      log(req.url + ' - error writing: ' + err);
       res.statusCode = 500;
       res.end('Error writing: ' + err, 'utf8');
     });
@@ -932,7 +937,7 @@ app.post('/debug/:logFile', function (req, res) {
       stream.end(message, 'utf8');
     });
   } catch (e) {
-    util.log(req.url + ' - error writing: ' + err);
+    log(req.url + ' - error writing: ' + err);
     res.statusCode = 500;
     res.end('Error writing: ' + err, 'utf8');
   }
@@ -988,32 +993,32 @@ function dnodeLogMiddleware(remote, client) {
     var f = self[fname];
     if (!_.isFunction(f)) return;
     self[fname] = function() {
-      var fnamePretty = '\x1b[1mdnode\x1b[0m \x1b[33m' + fname + '\x1b[0m';
+      var fnamePretty = color.red('dnode') + ' ' + color.yellow(fname);
       var funcArgs = _.toArray(arguments);
       var start = Date.now();
       var callback = funcArgs[funcArgs.length - 1];
       if (_.isFunction(callback)) {
         var waiting = setInterval(function() {
-          util.log(fnamePretty + '(\x1b[4m' +
-                   shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m): ' +
-                   'no callback after ' + (Date.now() - start) + ' ms!!!');
+          log(fnamePretty + '(' +
+              color.underline(shortInpsect(funcArgs, maxArgsChars)) +
+              '): no callback after', Date.now() - start, 'ms!!!');
         }, 1000);
         funcArgs[funcArgs.length - 1] = function() {
           clearInterval(waiting);
-          util.log(fnamePretty + '(\x1b[4m' +
-                   shortInpsect(funcArgs, maxArgsChars) +
-                   '\x1b[0m) -> (\x1b[4m' +
-                   shortInpsect(arguments, maxResultsChars) + '\x1b[0m) ' +
-                   (Date.now() - start) + ' ms');
+          log(fnamePretty + '(' +
+              color.underline(shortInpsect(funcArgs, maxArgsChars)) +
+              ') -> (' +
+              color.underline(shortInpsect(arguments, maxResultsChars)) +
+              ')', Date.now() - start, 'ms');
           callback.apply(this, arguments);
         };
         f.apply(this, funcArgs);
       } else {
         var start = Date.now();
         f.apply(this, funcArgs);
-        util.log(fnamePretty + '(\x1b[4m' +
-                 shortInpsect(funcArgs, maxArgsChars) + '\x1b[0m) ' +
-                 (Date.now() - start) + ' ms');
+        log(fnamePretty + '(' +
+            color.underline(shortInpsect(funcArgs, maxArgsChars)) + ')',
+            Date.now() - start, 'ms');
       }
     };
   });
@@ -1081,7 +1086,7 @@ var createDnodeConnection = function (remote, conn) {
               message: 'We\'re experiencing an unknown problem but ' +
                 'are looking into it now. Please try again later.'
             });
-            util.log("Error finding user '" + email + "': " + err);
+            log("Error finding user '" + email + "':", err);
           }
         });
       } else {
@@ -1309,16 +1314,13 @@ var createDnodeConnection = function (remote, conn) {
     if (!checkAuth(cb)) return;
     sampleDbExecutionQueue(function(done) {
       var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
-      console.time(id);
       function next(err, samples) {
-        console.timeEnd(id);
         cb(err, samples);
         // TODO: subscriptions broken with execution queue.
         done();
       };
       if (options.subscribe != null) {
         var handle = options.subscribe;
-        console.log(handle);
         options.subscribe = 0.25;  // Polling interval, seconds.
         cancelSubscribeSamples(handle);
         subscriptions[handle] =
@@ -1376,7 +1378,7 @@ var createDnodeConnection = function (remote, conn) {
             function (err, data) {
           data = data.replace(/\[vid\]/, vehicleId);
           fs.writeFile(idFilePath, data, function (err) {
-            util.log("XML Configuration File CREATED for Vehicle " + vehicleId);
+            log("XML Configuration File CREATED for Vehicle " + vehicleId);
             cb(err, data);
           });
         });
@@ -1396,7 +1398,7 @@ var createDnodeConnection = function (remote, conn) {
                           '<config generation="' + (genNum + 1) + '">');
     }
     fs.writeFile(idFilePath, data, function (err) {
-      util.log("XML Configuration File SAVED for Vehicle " + vehicleId);
+      log("XML Configuration File SAVED for Vehicle " + vehicleId);
       cb(err, data);
     });
   }
@@ -1437,7 +1439,7 @@ if (!module.parent) {
   Step(
     // Connect to SampleDb:
     function() {
-      util.log('Connecting to SampleDb: ' + argv.db);
+      log('Connecting to SampleDb:', argv.db);
       mongodb.connect(argv.db, { server: { poolSize: 4 } }, this);
     }, function(err, db) {
       if (err) { this(err); return; }
@@ -1455,7 +1457,7 @@ if (!module.parent) {
 
       dnode(createDnodeConnection).use(dnodeLogMiddleware).
           listen(app, {
-              io: { 'log level': 2,
+              io: { // 'log level': 2,
                     transports: [
                       'websocket',
                       //'htmlfile',  // doesn't work
@@ -1463,7 +1465,7 @@ if (!module.parent) {
                       //'jsonp-polling',  // doesn't work
                     ] }
           } );
-      util.log("Express server listening on port " + app.address().port);
+      log("Express server listening on port", app.address().port);
     }
   );
 }
