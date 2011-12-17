@@ -55,12 +55,14 @@ try {
 } catch (e) {
   log('Could not load proto buf ' + EventDescFileName +
       ', upload APIs won\'t work!');
+  log(e.stack || e);
 }
 var getrusage;
 try {
   getrusage = require('getrusage');
 } catch (e) {
   log('Could not load getrusage module, try: node_modules/build.sh');
+  log(e.stack || e);
 }
 var Notify = require('./notify');
 var SampleDb = require('./sample_db.js').SampleDb;
