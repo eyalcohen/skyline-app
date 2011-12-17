@@ -45,7 +45,7 @@ var socketIORE = /^\/socket.io\//,
 
 function parseFrontends(arg) {
   return String(arg).split(' ').map(function(hp) {
-    var m = /^(.+):([0-9]+)$/(hp);
+    var m = hp.match(/^(.+):([0-9]+)$/);
     return {
       host: m && m[0],
       port: m ? m[1] : Number(hp),
@@ -109,7 +109,7 @@ function handleRequest(req, bounce) {
     logRedirect('static', req, frontend);
     safeBounce(frontend, { headers: { Connection: 'close' } });
   } else if (socketIORE.test(req.url)) {
-    var m = socketIOExistingRE(req.url);
+    var m = req.url.match(socketIOExistingRE);
     if (!m) {
       // This is a new unhandshaken socket.io connection.
       // Sniff the session id from the response.
