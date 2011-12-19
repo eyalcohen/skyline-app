@@ -329,15 +329,19 @@ define(['views/dashItem',
 
     nodeDroppedExternalHandler: function (data) {
       if (data.r.hasClass('axisTarget')) {
-        var graphId = data.r.data('id');
-        if (!graphId) return;
+        var targetGraphId = data.r.data('id');
+        if (!targetGraphId) return;
         var yaxisNum = data.r.data('axis.n');
-        var channel = JSON.parse(data.o.parent().attr('data-channel'));
-        App.publish('ChannelDropped-' + graphId);
+        var sourceGraphId = data.o.parent().attr('graph-id');
+        var sourceGraphModel = _.find(this.model.tabModel.graphModels,
+            function(g) { return g.id == sourceGraphId; });
+        var channelIndex = Number(data.o.parent().attr('data-channel-index'));
+        var channel = sourceGraphModel.get('channels')[channelIndex];
+        App.publish('ChannelDropped-' + targetGraphId);
         $('.label-closer', data.o.parent().parent().parent()).click();
         channel.yaxisNum = yaxisNum;
         App.publish('ChannelRequested-' + 
-            this.model.get('tabId') + '-' + graphId, [channel]);
+            this.model.get('tabId') + '-' + targetGraphId, [channel]);
       }
       App.publish('DragEnd-' + this.model.get('tabId'));
     },

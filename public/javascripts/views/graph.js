@@ -196,22 +196,26 @@ define(['views/dashItem', 'plot_booter',
         plot: self.plot,
         id: self.options.id,
       });
-      self.noteCanvas = $('<canvas width="' + self.plot.getPlaceholder().width()
-                        + '" height="' + self.plot.getPlaceholder().height()
-                        + '" class="note-canvas">').appendTo('.graph > div', self.content);
+      self.noteCanvas =
+          $('<canvas width="' + self.plot.getPlaceholder().width() +
+            '" height="' + self.plot.getPlaceholder().height() +
+            '" class="note-canvas">').
+          appendTo('.graph > div', self.content);
       self.noteCtx = self.noteCanvas.get(0).getContext('2d');
 
       function labelFormatter(label, series) {
-        var channel = series.channel;
-        var r = "<div data-channel='" +
-            _.escape(JSON.stringify(channel)) + "' " +
-            "data-channel-name='" +
-            _.escape(channel.channelName) + "'>";
+        var channels = self.model.get('channels');
+        var channel = channels[series.channelIndex];
+        var r = "<div " +
+            "graph-id='" + self.model.id + "'" +
+            "data-channel-index='" + series.channelIndex + "' " +
+            "data-channel-name='" + _.escape(channel.channelName) + "'>";
         r += '<span class="jstree-draggable" style="cursor:pointer">';
         r += channel.humanName || channel.shortName;
         r += '</span>';
         if (channel.units) {
-          var compat = App.units.findCompatibleUnits(channel.units);
+          var compat = App.units.findCompatibleUnits(
+              channel.displayUnits || channel.units);
           if (compat) {
             r += ' (<select>';
             compat.units.forEach(function(u) {
@@ -302,14 +306,13 @@ define(['views/dashItem', 'plot_booter',
       if (!self.plot)
         self.createPlot();
       var emptyDiv = $('.empty-graph', self.content);
-      if (self.model.get('channels').length === 0 
-          && emptyDiv.length === 0) {
+      var channels = self.model.get('channels');
+      if (channels.length === 0 && emptyDiv.length === 0) {
         App.engine('empty_graph.jade').appendTo(self.content);
         $('.flot-base, .flot-overlay', self.plot.getPlaceholder()).hide();
         $('.graph', self.content).hide();
         self.plot.getOptions().crosshair.mode = null;
-      } else if (self.model.get('channels').length > 0 
-          && emptyDiv.length > 0) {
+      } else if (channels.length > 0 && emptyDiv.length > 0) {
         emptyDiv.remove();
         $('.flot-base, .flot-overlay', self.plot.getPlaceholder()).show();
         $('.graph', self.content).show();
@@ -317,27 +320,14 @@ define(['views/dashItem', 'plot_booter',
         self.plot.getOptions().crosshair.mode = 'x';
       }
       var opts = self.plot.getOptions();
-      var numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
-      _.each(self.model.get('channels'), function (channel) {
-        if (!channel.yaxisNum) return;
-        if (channel.yaxisNum === 1)
-          numSeriesLeftAxis++;
-        else
-          numSeriesRightAxis++;
-      });
-      var yAxisNumToUse = numSeriesLeftAxis > numSeriesRightAxis ? 2 : 1;
-      _.each(self.model.get('channels'), function (channel) {
-        if (!channel.yaxisNum)
-          channel.yaxisNum = yAxisNumToUse;
-      });
       var series = [];
-      _.each(self.model.get('channels'), function (channel, i) {
+      _.each(channels, function (channel, i) {
         var highlighted = self.highlightedChannel === channel.channelName;
         var seriesBase = {
           xaxis: 1,
           yaxis: channel.yaxisNum,
-          channel: channel,
           channelIndex: i,
+          channelName: channel.channelName,
         };
         var data = self.calculateSeriesData(channel);
         series.push(_.extend({
@@ -397,9 +387,11 @@ define(['views/dashItem', 'plot_booter',
 
     updateSeriesColors: function(series) {
       var self = this;
+      var channels = self.model.get('channels');
       series.forEach(function(s, i) {
-        var highlighted = self.highlightedChannel === s.channel.channelName;
-        var color = self.colors[s.channel.colorNum % self.colors.length];
+        var channel = channels[s.channelIndex];
+        var highlighted = self.highlightedChannel === channel.channelName;
+        var color = self.colors[channel.colorNum % self.colors.length];
         if (self.highlightedChannel && !highlighted) {
           // Lighten color.
           color = $.color.parse(color);
@@ -613,9 +605,9 @@ define(['views/dashItem', 'plot_booter',
       var newHightlightedChannel = null;
       var minDist = Infinity;
       _.each(self.plot.getData(), function (series) {
-        if (!series.channel || series.lines.fill) return;
+        if (!series.channelName || series.lines.fill) return;
         var labelSibling = $('.legendLabel > div[data-channel-name="'+
-            series.channel.channelName+'"]', self.el);
+            series.channelName+'"]', self.el);
         var labelParent = labelSibling.parent().parent();
         var label = $('.legendValue', labelParent);
         var valueHTML = '';
@@ -665,7 +657,7 @@ define(['views/dashItem', 'plot_booter',
               var d = Math.min(dx, dy);
               if (d <= minDist && d <= self.minHoverDistance) {
                 minDist = d;
-                newHightlightedChannel = series.channel.channelName;
+                newHightlightedChannel = series.channelName;
               }
             }
             var v = hp[1];
@@ -963,8 +955,7 @@ define(['views/dashItem', 'plot_booter',
 
     enterLegend: function (e) {
       var row = $(e.target).closest('tr');
-      var channelName = $('[data-channel-name]', row)
-          .attr('data-channel-name');
+      var channelName = $('[data-channel-name]', row).attr('data-channel-name');
       this.model.tabModel.set({ highlightedChannel: channelName });
     },
 
@@ -984,16 +975,18 @@ define(['views/dashItem', 'plot_booter',
 
     unitsChange: function (e) {
       var newUnits = e.target.value;
-      var channel = JSON.parse($(e.target.parentNode).attr('data-channel'));
+      var channelName = $(e.target.parentNode).attr('data-channel-name');
+      var channels = this.model.get('channels');
       var series = this.plot.getData();
       for (var i = 0; i < series.length; ++i) {
-        if (series[i].channel.channelName === channel.channelName) {
-          series[i].channel.displayUnits = newUnits;
-          var data = this.calculateSeriesData(series[i].channel);
+        if (series[i].channelName === channelName) {
+          var channel = channels[series[i].channelIndex];
+          channel.displayUnits = newUnits;
+          var data = this.calculateSeriesData(channel);
           series[i].data = data.data;
           // HACK
           if (series[i+1] &&
-              series[i+1].channel.channelName === channel.channelName &&
+              series[i+1].channelName === channelName &&
               data.minMax.length > 0) {
             series[i+1].data = data.minMax;
           }
@@ -1008,7 +1001,8 @@ define(['views/dashItem', 'plot_booter',
     removeChannel: function (e) {
       var labelParent = $(e.target).parent().parent();
       var label = $('.legendLabel > div', labelParent);
-      var channel = JSON.parse(label.attr('data-channel'));
+      var channelIndex = Number(label.attr('data-channel-index'));
+      var channel = this.model.get('channels')[channelIndex];
       App.publish('ChannelUnrequested-' + 
           this.options.tabId + '-' + this.options.id, [channel]);
     },
@@ -1054,10 +1048,9 @@ define(['views/dashItem', 'plot_booter',
     },
 
     endNote: function (e, plot) {
-      if (this.noteWindow)
-        this.clearNoteWindow();
-
       var self = this;
+      if (self.noteWindow)
+        self.clearNoteWindow();
       var mouse = self.getMouse(e, plot);
       var xaxis = plot.getXAxes()[0];
       var onRight, leftEdge, rightEdge;

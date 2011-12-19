@@ -92,11 +92,24 @@ define(function () {
     addChannel: function (channels) {
       var self = this;
       channels = _.isArray(channels) ? channels : [channels];
+
+      var numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
+      _.each(self.get('channels'), function (channel) {
+        if (!channel.yaxisNum) return;
+        if (channel.yaxisNum === 1)
+          numSeriesLeftAxis++;
+        else
+          numSeriesRightAxis++;
+      });
+      var yAxisNumToUse = numSeriesLeftAxis > numSeriesRightAxis ? 2 : 1;
+
       _.each(channels, function (channel) {
         if (_.pluck(self.get('channels'), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
         // channel = _.clone(channel);
+        if (!channel.yaxisNum)
+          channel.yaxisNum = yAxisNumToUse;
         if (!channel.colorNum) {
           var usedColors = _.pluck(self.get('channels'), 'colorNum');
           for (var c = 0; _.include(usedColors, c); ++c) { }
