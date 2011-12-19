@@ -8,12 +8,14 @@ var _ = require('underscore');
 
 exports.findCompatibleUnits = function(unit) {
   var category = unitToCategory[unit];
-  if (category)
+  if (category) {
+    var units = exports.units[category];
     return {
       category: category,
-      units: units[category],
-      selected: findUnitDetails(unit, units[category]),
+      units: units,
+      selected: findUnitDetails(unit, units),
     };
+  }
 }
 
 function findUnitDetails(unit, units) {
@@ -57,7 +59,7 @@ exports.convert = function(sourceUnit, destUnit, value) {
 }
 
 // Unit conversion list.
-var units = {
+exports.units = {
   // Format:
   // <unit category>: [
   //   { // First unit is primary.
@@ -202,12 +204,12 @@ var units = {
   ],
   'percentage': [
     { unit: 'frac', long: 'fraction' },
-    { unit: '%', long: 'percent', factor: 0.01 },
+    { unit: '%', long: 'percent', alt: [ 'pct' ], factor: 0.01 },
   ],
 };
 
 var unitToCategory = {};
-_.forEach(units, function(catUnits, category) {
+_.forEach(exports.units, function(catUnits, category) {
   catUnits.forEach(function(unit) {
     unitToCategory[unit.unit] = category;
     unitToCategory[unit.long] = category;
