@@ -60,10 +60,17 @@ var staticI = 0;
 var apiSessions = {};  // Mapping from sessionid to port.  TODO: expire sessions?
 
 log('Waiting to bounce requests to ' + argv.port);
-var bouncyServer = bouncy(handleRequest);
+var bouncyServer = bouncy({
+  callback: handleRequest,
+  onConnectionError: function(e, connection) {
+    log(color.red('CONNECTION ERROR') + ' from ' +
+        connection.remoteAddress + ':' + connection.remotePort + ': ' +
+        (e.stack || e));
+  },
+});
 bouncyServer.listen(argv.port);
 bouncyServer.on('error', function(e) {
-  log(color.red('SERVER ERROR ') + ': ' + (e.stack || e));
+  log(color.red('SERVER ERROR') + ': ' + (e.stack || e));
 });
 
 function handleRequest(req, bounce) {
