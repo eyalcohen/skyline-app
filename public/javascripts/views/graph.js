@@ -225,7 +225,7 @@ define(['views/dashItem', 'plot_booter',
                 r += '<option>';
               r += _.escape(u.unit);
               /*
-              if (u.long !== u.unit)
+              if (u.long)
                 r += ' (' + _.escape(u.long) + ')';
               */
               r += '</option>';

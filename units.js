@@ -62,7 +62,7 @@ var units = {
   // <unit category>: [
   //   { // First unit is primary.
   //     unit: <short>,  // Name of unit as displayed in parens.
-  //     long: <long>,  // Name of unit as displayed in menu.
+  //     long: <long>,  // Name of unit as displayed in menu, if different.
   //     alt: [ <altnames> ],  // Optional alternate names to recognize.
   //   },
   //   { // This unit will be defined in terms of the primary unit.
@@ -83,15 +83,15 @@ var units = {
     { unit: 'ms', long: 'millisecond', factor: 1e-3 },
     { unit: 'µs', long: 'microsecond', alt: [ 'us' ], factor: 1e-6 },
     { unit: 'min', long: 'minute', factor: 60 },
-    { unit: 'hour', long: 'hour', factor: 60*60 },
-    { unit: 'day', long: 'day', factor: 60*60*24 },
+    { unit: 'hour', factor: 60*60 },
+    { unit: 'day', factor: 60*60*24 },
   ],
   'distance': [
     { unit: 'm', long: 'meter' },
     { unit: 'mm', long: 'millimeter', factor: 1e-3 },
     { unit: 'km', long: 'kilometer', factor: 1e3 },
     { unit: 'ft', long: 'foot', factor: 0.3048 },
-    { unit: 'mile', long: 'mile', factor: 1609.344 },
+    { unit: 'mile', factor: 1609.344 },
     { unit: 'NM', long: 'nautical mile', factor: 1852 },
   ],
   'current': [
@@ -115,7 +115,7 @@ var units = {
     { unit: 'cal', long: 'calorie', factor: 4.1868 },
     { unit: 'kcal', long: 'kilocalorie', alt: [ 'Cal', 'Calorie' ],
       factor: 4.1868e3 },
-    { unit: 'Btu', long: 'BTU', alt: [ 'btu' ], factor: 1055.0559 },
+    { unit: 'Btu', alt: [ 'btu' ], factor: 1055.0559 },
   ],
   'temperature': [
     { unit: 'K', long: 'kelvin' },
@@ -134,8 +134,8 @@ var units = {
   ],
   'torque': [
     { unit: 'Nm', long: 'newton meter', alt: [ 'N m' ] },
-    { unit: 'lb ft', long: 'pound foot', alt: [ 'ft lb', 'foot pound' ],
-      factor: 1.3558179 },
+    { unit: 'lb ft', long: 'pound foot',
+      alt: [ 'lbft', 'ft lb', 'ftlb', 'foot pound' ], factor: 1.3558179 },
   ],
   'rotational speed': [
     { unit: 'rad/s', long: 'radians per second', alt: [ 'radian/s' ] },
@@ -148,7 +148,7 @@ var units = {
     { unit: 'Pa', long: 'pascal' },
     { unit: 'kPa', long: 'kilopascal', factor: 1e3 },
     { unit: 'psi', long: 'pounds per square inch', factor: 6894.7573 },
-    { unit: 'bar', long: 'bar', factor: 1e5 },
+    { unit: 'bar', factor: 1e5 },
     { unit: 'atm', long: 'standard atmosphere', factor: 101325 },
     { unit: 'Torr', long: 'torr', alt: [ 'torr' ], factor: 133.32239 },
   ],
@@ -164,6 +164,41 @@ var units = {
   'acceleration': [
     { unit: 'm/s^2', long: 'meters per second squared' },
     { unit: 'g', long: 'standard gravity', alt: [ 'G' ], factor: 9.80665 },
+  ],
+  'data': [
+    { unit: 'bit', alt: [ 'b' ] },
+    { unit: 'kilobit', alt: [ 'kbit', 'kb' ], factor: 1000 },
+    { unit: 'megabit', alt: [ 'Mbit', 'Mb' ], factor: 1000*1000 },
+    { unit: 'kibibit', alt: [ 'Kibit', 'Kib' ], factor: 1024 },
+    { unit: 'mebibit', alt: [ 'Mibit', 'Mib' ], factor: 1024*1024 },
+    { unit: 'byte', alt: [ 'B' ], factor: 8 },
+    { unit: 'kB', long: 'kilobyte', factor: 8*1000 },
+    { unit: 'MB', long: 'megabyte', factor: 8*1000*1000 },
+    { unit: 'GB', long: 'gigabyte', factor: 8*1000*1000*1000 },
+    { unit: 'KiB', long: 'kibibyte', factor: 8*1024 },
+    { unit: 'MiB', long: 'mebibyte', factor: 8*1024*1024 },
+    { unit: 'GiB', long: 'gibibyte', factor: 8*1024*1024*1024 },
+  ],
+  'bandwidth': [
+    { unit: 'bit/s', long: 'bits per second', alt: [ 'bps' ] },
+    { unit: 'kilobit/s', long: 'kilobits per second',
+      alt: [ 'kbit/s', 'kb/s', 'kbps' ], factor: 1000 },
+    { unit: 'megabit/s', long: 'megabits per second',
+      alt: [ 'Mbit/s', 'Mb/s', 'Mbps' ], factor: 1000*1000 },
+    { unit: 'kibibit/s', long: 'kibibits per second',
+      alt: [ 'Kibit/s', 'Kib/s', 'Kibps' ], factor: 1024 },
+    { unit: 'mebibit/s', long: 'mebibits per second',
+      alt: [ 'Mibit/s', 'Mib/s', 'Mibps' ], factor: 1024*1024 },
+    { unit: 'byte/s', long: 'bytes per second',
+      alt: [ 'B/s', 'Bps' ], factor: 8 },
+    { unit: 'kB/s', long: 'kilobytes per second',
+      alt: [ 'kilobyte/s', 'kBps' ], factor: 8*1000 },
+    { unit: 'MB/s', long: 'megabytes per second',
+      alt: [ 'megabyte/s', 'MBps' ], factor: 8*1000*1000 },
+    { unit: 'KiB/s', long: 'kibibytes per second',
+      alt: [ 'kibibyte/s', 'KiBps' ], factor: 8*1024 },
+    { unit: 'MiB/s', long: 'mebibytes per second',
+      alt: [ 'mebibyte/s', 'MiBps' ], factor: 8*1024*1024 },
   ],
   'percentage': [
     { unit: 'frac', long: 'fraction' },
