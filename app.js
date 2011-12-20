@@ -964,7 +964,7 @@ function verifySession(user, cb) {
     return;
   }
   User.findById(user.id, function (err, usr) {
-    if (err) {
+    if (err || !usr) {
       cb(new Error('User not authenticated.'));
     } else {
       cb(null, usr);
