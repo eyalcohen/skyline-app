@@ -319,7 +319,6 @@ define(function () {
       minDuration: req.dur, getMinMax: true,
     };
     App.api.fetchSamples(req.veh, req.chan, options, function(err, samples) {
-      samples();
       if (err) {
         console.error(
             'SampleCache server call fetchSamples(' + req.veh + ', "' +
