@@ -1052,8 +1052,14 @@ function ExecutionQueue(maxInFlight) {
 // Every time a client connects via dnode, this function will be called, and
 // the object it returns will be transferred to the client.
 var createDnodeConnection = function (remote, conn) {
+
+  conn.on('remote', function(userInfo) {
+    // log('Got remote event. Remote: ' + inspect(remote));
+  });
+
   var subscriptions = { };
   var user = null;  // Set once user is authenticated.
+  var authPending = null;  // If auth is pending, an array of functions to call once auth suceeds or fails.
 
   // Mostly serialize fetch operations - doing a bunch in parallel is
   // mysteriously slower than serially, and there's nothing to be gained by
@@ -1103,6 +1109,7 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function authenticate(clientUser, cb) {
+    if (user) return cb(null);
     verifySession(clientUser, function (err, usr) {
       user = usr;
       cb(err);
@@ -1115,13 +1122,37 @@ var createDnodeConnection = function (remote, conn) {
     return user;
   }
 
+  function ensureAuth(f) {
+    return function() {
+      var args = _.toArray(arguments);
+      var cb = _.last(args);
+      if (user) {
+        f.apply(null, args);
+      } else if (!remote.user) {
+        cb(new Error('Not authenticated!'));
+      } else {
+        var needToAuth = authPending == null;
+        if (needToAuth) authPending = [];
+        authPending.push(function(err) {
+          if (err) cb(err); else f.apply(null, args);
+        });
+        if (needToAuth) {
+          authenticate(remote.user, function(err) {
+            var p = authPending;
+            authPending = null;
+            p.forEach(function(f) { f(err) });
+          });
+        }
+      }
+    };
+  }
+
   // TMP: use subscriptions from client end
   function fetchNotifications(opts, cb) {
     if (_.isFunction(opts)) {
       cb = opts;
       opts = null;
     }
-    if (!checkAuth(cb)) return;
     if (opts && opts.vehicleId) {
       fetch([ { _id: opts.vehicleId } ], false);
     } else {
@@ -1235,7 +1266,6 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function fetchVehicles(cb) {
-    if (!checkAuth(cb)) return;
     var filterUser;
     if (user.role === 'admin') {
       filterUser = null;
@@ -1300,7 +1330,6 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function fetchUsers(cb) {
-    if (!checkAuth(cb)) return;
     User.find().sort('created', -1).run(function (err, usrs) {
       if (!err) {
         cb(null, JSON.parse(JSON.stringify(usrs)));
@@ -1314,7 +1343,6 @@ var createDnodeConnection = function (remote, conn) {
   // TODO: get rid of subscriptions, replace with 'wait until data available'
   // option.
   function fetchSamples(vehicleId, channelName, options, cb) {
-    if (!checkAuth(cb)) return;
     sampleDbExecutionQueue(function(done) {
       var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
       function next(err, samples) {
@@ -1356,14 +1384,12 @@ var createDnodeConnection = function (remote, conn) {
       cb = options;
       options = {};
     }
-    if (!checkAuth(cb)) return;
     sampleDb.insertSamples(vehicleId, sampleSet, options, cb);
   }
 
   // Fetch channel tree.
   // TODO: move this into client code, use _schema subscription instead.
   function fetchChannelTree(vehicleId, cb) {
-    if (!checkAuth(cb)) return;
     sampleDb.fetchSamples(vehicleId, '_schema', {},
                           errWrap(cb, function (samples) {
       cb(null, SampleDb.buildChannelTree(samples));
@@ -1371,7 +1397,6 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function fetchVehicleConfig(vehicleId, cb) {
-    if (!checkAuth(cb)) return;
     var idFilePath = __dirname + '/public/vconfig/id/' + vehicleId + '.xml';
     var templateFilePath = __dirname + '/public/vconfig/template.xml';
     fs.readFile(idFilePath, 'utf8',
@@ -1392,7 +1417,6 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function saveVehicleConfig(vehicleId, data, cb) {
-    if (!checkAuth(cb)) return;
     var idFilePath = __dirname + '/public/vconfig/id/' + vehicleId + '.xml';
     var generation = data.match(/<config generation="([0-9]*)">/);
     if (generation && generation[1] !== "") {
@@ -1407,7 +1431,6 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function saveAppState(data, cb) {
-    if (!checkAuth(cb)) return;
     var state = new AppState({ val: data });
     state.save(function (err) {
       cb(err, state.key);
@@ -1421,16 +1444,16 @@ var createDnodeConnection = function (remote, conn) {
   return {
     signin: signin,
     authenticate: authenticate,
-    fetchNotifications: fetchNotifications,
-    fetchVehicles: fetchVehicles,
-    fetchUsers: fetchUsers,
-    fetchSamples: fetchSamples,
+    fetchNotifications: ensureAuth(fetchNotifications),
+    fetchVehicles: ensureAuth(fetchVehicles),
+    fetchUsers: ensureAuth(fetchUsers),
+    fetchSamples: ensureAuth(fetchSamples),
     cancelSubscribeSamples: cancelSubscribeSamples,
-    insertSamples: insertSamples,
-    fetchChannelTree: fetchChannelTree,
-    fetchVehicleConfig: fetchVehicleConfig,
-    saveVehicleConfig: saveVehicleConfig,
-    saveAppState: saveAppState,
+    insertSamples: ensureAuth(insertSamples),
+    fetchChannelTree: ensureAuth(fetchChannelTree),
+    fetchVehicleConfig: ensureAuth(fetchVehicleConfig),
+    saveVehicleConfig: ensureAuth(saveVehicleConfig),
+    saveAppState: ensureAuth(saveAppState),
   };
 };
 

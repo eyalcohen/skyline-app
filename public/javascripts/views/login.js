@@ -81,6 +81,7 @@ define(['jquery'], function ($) {
         }
         App.store.set('user', user);
         App.user = App.store.get('user');
+        App.dnodeAuth.user = App.user;
         this.el.fadeOut('fast', _.bind(function () {
           App.publish('UserWasAuthenticated');
         }, this));

@@ -19,7 +19,19 @@ requirejs(['libs/domReady',
     debug: true,
     start: function () {
       var firstConnect = true;
-      DNode().connect({ disconnect: App.disconnect }, function (remote) {
+      App.user = store.get('user') || {};
+      App.dnodeAuth = {  // This object is sent to the remote server.
+        user: App.user,
+      };
+      DNode(App.dnodeAuth).connect({
+            disconnect: App.disconnect,
+            'max reconnection attempts': Infinity,
+            'reconnection limit': 5000,  // 5 seconds
+          }, function (remote, connection) {
+        connection.on('error', function(err) {
+          console.error('DNode callback threw exception:\n' +
+                        (err.stack || err));
+        });
         App.api = remote;
 
         if (firstConnect) {
@@ -32,7 +44,6 @@ requirejs(['libs/domReady',
             App.unsubscribe = require('./minpubsub').unsubscribe;
             App.shared = require('./shared_utils');
             App.units = require('./units');
-            App.user = App.store.get('user') || {};
             App.regions = {
               header: $('header'),
               main: $('#main'),
