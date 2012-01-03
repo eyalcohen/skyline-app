@@ -958,7 +958,10 @@ function deepUnique(array) {
  *   },
  * ]
  */
-var prefixRe = /^([^./]*[./]).+$/;
+// Split on:
+//   - A . or /, and include the . or / in the prefix.
+//   - A [ or ], don't include [ in the prefix.
+var prefixRe = /^(.[^./\[\]]*[./\]]*).*?$/;
 SampleDb.buildChannelTree = function(samples) {
 
   function buildInternal(samples, prefix, depth) {
@@ -967,7 +970,7 @@ SampleDb.buildChannelTree = function(samples) {
       var s = _.first(samples);
       var shortName = s.val.channelName.substr(prefix.length);
       var m = shortName.match(prefixRe);
-      var nextPrefix = m && m[1];
+      var nextPrefix = m && (m[1] !== shortName) && m[1];
       var desc;
       if (!nextPrefix) {
         // This is a terminal.
