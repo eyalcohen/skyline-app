@@ -105,6 +105,15 @@ function handleRequest(req, bounce) {
     return stream;
   }
 
+  // https://github.com/yorickvP/bouncy/commit/26412d586cbb5023e6256c2384828bde11886f1a
+  req.on('error', function(e) {
+    var conn = req.connection || {};
+    log(color.red('request error ') + 'from host ' +
+            color.yellow(conn.remoteAddress || 'unknown') +
+            ': ' + (e.stack || e));
+    req.destroy();
+  });
+
   if (staticRE.test(req.url)) {
     // Find a healthy destination to talk to.
     var frontend = null;
