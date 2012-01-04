@@ -58,14 +58,63 @@ exports.bucketSizes = exports.bucketThresholds.map(function(t, i) {
 /**
  * Compare two sample values.
  */
-exports.sampleValuesEqual = function(val1, val2) {
-  if (_.isObject(val1) && _.isObject(val2)) {
-    // Underscore's isEqual function is too paranoid about comparing objects
-    // created with different constructor functions but identical contents,
-    // so use this hack instead:
-    return JSON.stringify(val1) == JSON.stringify(val2);
+var sampleValuesEqual = exports.sampleValuesEqual = function(val1, val2) {
+  // Underscore's isEqual function is too paranoid about comparing objects
+  // created with different constructor functions but identical contents.
+  if (_.isArray(val1) && _.isArray(val2)) {
+    return val1.length === val2.length &&
+        _.all(val1, function(v1, i) { return sampleValuesEqual(v1, val2[i]) });
+  } else if (_.isObject(val1) && _.isObject(val2)) {
+    return sampleValuesEqual(_.keys(val1), _.keys(val2)) &&
+        _.all(val1, function(v1, i) { return sampleValuesEqual(v1, val2[i]) });
   } else
-    return val1 == val2;
+    return val1 === val2;
+}
+
+
+/**
+ * Determine whether two samples can be merged, and return a merged version if
+ * they can.
+ */
+exports.tryMergeSamples = function(s, t, channelName, expandBy) {
+  var merged = null;
+  function simpleMerge() {
+    merged = {
+      beg: Math.min(s.beg, t.beg),
+      end: Math.max(s.end, t.end),
+      val: s.val,
+    };
+    if (s.min != null) merged.min = s.min;
+    if (s.max != null) merged.max = s.max;
+  }
+  expandBy = expandBy || 0;
+  if (t.end + expandBy >= s.beg && t.beg - expandBy <= s.end &&
+      t.min == s.min && t.max == s.max) {
+    if (channelName === '_schema' &&
+        s.val.sampleDuration && t.val.sampleDuration) {
+      // Compare values, excluding sampleDuration and sampleCount:
+      var valsEqual = sampleValuesEqual(_.keys(s.val), _.keys(t.val)) &&
+        _.all(s.val, function(v1, i) {
+          return i === 'sampleCount' || i === 'sampleDuration' ||
+              sampleValuesEqual(v1, t.val[i]);
+        });
+      if (valsEqual) {
+        var sDensity = s.val.sampleCount / s.val.sampleDuration;
+        var tDensity = t.val.sampleCount / t.val.sampleDuration;
+        // Allow merging if densities are within 50%.
+        if (tDensity <= sDensity * 1.5 && sDensity <= tDensity * 1.5) {
+          simpleMerge();
+          merged.val = _.clone(s.val);
+          merged.val.sampleCount += t.val.sampleCount;
+          merged.val.sampleDuration += t.val.sampleDuration;
+        }
+      }
+    } else if (exports.sampleValuesEqual(t.val, s.val)) {
+      simpleMerge();
+    }
+  }
+  //console.log('???', channelName, 's:', s, 't:', t, 'merged:', merged);
+  return merged;
 }
 
 
@@ -74,7 +123,7 @@ exports.sampleValuesEqual = function(val1, val2) {
  *
  * @param samples Set of incoming samples, sorted by begin time.
  */
-exports.mergeOverlappingSamples = function(samples) {
+exports.mergeOverlappingSamples = function(samples, channelName) {
   // Index of first sample which might overlap current sample.
   var mightOverlap = 0;
 
@@ -85,16 +134,13 @@ exports.mergeOverlappingSamples = function(samples) {
       ++mightOverlap;
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
-      if (/*t.end >= s.beg &&*/ t.beg <= s.end &&
-          exports.sampleValuesEqual(t.val, s.val) &&
-          t.min == s.min && t.max == s.max) {
-        // Samples overlap - merge them.
-        t.beg = Math.min(t.beg, s.beg);
-        t.end = Math.max(t.end, s.end);
-        samples.splice(i, 1);  // Delete sample i.
-        --i;
-        break;
-      }
+      var merged = exports.tryMergeSamples(s, t, channelName);
+      if (!merged) continue;
+      // Samples overlap - merge them.
+      samples[j] = merged;
+      samples.splice(i, 1);  // Delete sample i.
+      --i;
+      break;
     }
   }
 }

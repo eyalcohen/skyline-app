@@ -96,7 +96,7 @@ exports.testMergeOverlappingSamples = function(test) {
   { beg: 10100, end: 10300, val: { foo: 'baz', merge: true } },
   ];
   var afterMerge = deepCopy(beforeMerge);
-  SampleDb.mergeOverlappingSamples(afterMerge);
+  SampleDb.mergeOverlappingSamples(afterMerge, 'foo');
   test.deepEqual(afterMerge, [
                  { beg: 100, end: 300, val: 1 },
                  { beg: 1000, end: 1300, val: 2 },
@@ -130,7 +130,7 @@ exports.testMergeOverlappingSamplesNoMerge = function(test) {
   { beg: 13200, end: 13300, val: 12, min: 16 },
   ];
   var afterMerge = deepCopy(beforeMerge);
-  SampleDb.mergeOverlappingSamples(afterMerge);
+  SampleDb.mergeOverlappingSamples(afterMerge, 'foo');
   test.deepEqual(afterMerge, beforeMerge);
   test.done();
 };
@@ -239,7 +239,8 @@ exports.testBuildChannelTree = function(test) {
   var schema = [
     { channelName: 'no_hierarchy', humanName: 'Blah blah', type: 'string' },
     { channelName: 'gps/speed_m_s', humanName: 'Speed',
-      description: 'GPS: speed in m/s', units: 'm/s', type: 'float' },
+      description: 'GPS: speed in m/s', units: 'm/s', type: 'float',
+      sampleCount: 100, sampleDuration: 1e6 },
     { channelName: 'foo.bar', humanName: 'i pity the', type: 'enum' },
     { channelName: 'gps/latitude_deg', humanName: 'GPS Latitude',
       channelNumber: 0, units: '°', type: 'float' },
@@ -269,12 +270,12 @@ exports.testBuildChannelTree = function(test) {
               humanName: 'Satellite count',
               channelNumber: 1,
               type: 'int' } ] },
-            { shortName: 'speed_m_s',
-              channelName: 'gps/speed_m_s',
-              humanName: 'Speed',
-              description: 'GPS: speed in m/s',
-              units: 'm/s',
-              type: 'float' } ] },
+        { shortName: 'speed_m_s',
+          channelName: 'gps/speed_m_s',
+          humanName: 'Speed',
+          description: 'GPS: speed in m/s',
+          units: 'm/s',
+          type: 'float' } ] },
     { shortName: 'bms1/', type: 'category',
       humanName: 'Battery Module 1',
       sub: [
@@ -308,13 +309,14 @@ exports.testBuildChannelTree = function(test) {
   ];
   function setValid(a, valid) {
     a.forEach(function(d) {
-              if ('sub' in d)
-              setValid(d.sub, valid);
-              else
-              d.valid = valid;
-              });
+      if ('sub' in d)
+        setValid(d.sub, valid);
+      else
+        d.valid = deepCopy(valid);
+    });
   };
   setValid(expected, [ { beg: 5, end: 9 } ]);
+  expected[0].sub[2].valid[0].per = 1e4;
   test.deepEqual(SampleDb.buildChannelTree(samples), expected);
 
   // Add additional schema elements - we should pick the later versions.
@@ -326,6 +328,8 @@ exports.testBuildChannelTree = function(test) {
                                 return s;
                                 }).concat(samples);
   setValid(expected, [ { beg: 1, end: 4 }, { beg: 5, end: 9 } ]);
+  expected[0].sub[2].valid[0].per = 1e4;
+  expected[0].sub[2].valid[1].per = 1e4;
   test.deepEqual(SampleDb.buildChannelTree(samples2), expected);
 
   test.done();
@@ -557,6 +561,14 @@ exports.testInsertMerging = setupDbFirst(function(test) {
     { beg: 4000, end: 4500, val: 5 },
     { beg: 5000, end: 5500, val: 6 },
   ];
+  var expectedSchema = deepCopy(schema);
+  // TODO: insertSamples doesn't maintain sampleDuration or sampleCount
+  // correctly in the presence of merging.  The following should be based
+  // on expected rather than beforeMerge:
+  expectedSchema[0].val.sampleCount = expectedSchema[1].val.sampleCount =
+      beforeMerge.length;
+  expectedSchema[0].val.sampleDuration = expectedSchema[1].val.sampleDuration =
+      _.reduce(beforeMerge, function(sum, s) { return sum + s.end - s.beg }, 0);
   Step(
     function insert1() {
       sampleDb.insertSamples(123, sampleSet1, { merge: true }, this);
@@ -590,7 +602,7 @@ exports.testInsertMerging = setupDbFirst(function(test) {
       samples.sort(function(s1, s2) {
         return s1.val.channelName.localeCompare(s2.val.channelName);
       });
-      test.deepEqual(samples, schema);
+      test.deepEqual(samples, expectedSchema);
       this();
     },
 
@@ -662,7 +674,8 @@ exports.testSchemaMerging = setupDbFirst(function(test) {
       sampleDb.fetchSamples(123, '_schema', {}, this);
     }, function checkReal1(err, samples) {
       test.equal(err, null);
-      var filtered = samples.filter(function(s) { return /^testSchemaMerging/(s.val.channelName) });
+      var filtered = samples.filter(
+          function(s) { return /^testSchemaMerging/(s.val.channelName) });
       test.deepEqual(filtered, expected);
       this();
     },

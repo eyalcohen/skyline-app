@@ -428,7 +428,7 @@ define(function () {
     // Samples which overlap from one bucket into another will end up
     // duplicated.  Remove duplicates.
     // TODO: make a mergeDuplicateSamples for speed?
-    App.shared.mergeOverlappingSamples(samples);
+    App.shared.mergeOverlappingSamples(samples, channelName);
     return App.shared.trimSamples(samples, beg, end);
   }
 

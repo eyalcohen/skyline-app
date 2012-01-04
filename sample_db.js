@@ -35,6 +35,8 @@ var shared = require('./shared_utils');
  *           appear earlier in channel list.
  *       order: number - DEPRECATED - lower numbers appear earlier in channel
  *           list.
+ *       sampleCount: number of samples contained over this time range.
+ *       sampleDuration: total duration of samples over this time range.
  *       merge: true if samples which abut or overlap and have the same val
  *           should be merged into a single sample.
  *     }
@@ -227,6 +229,13 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
       debug('insertSamples got _schema sample with no channelName: ' +
             JSON.stringify(sample));
     } else {
+      var channelSamples = sampleSet[sample.val.channelName];
+      if (!('sampleDuration' in sample.val) && channelSamples) {
+        // Create a duration and sample count for this channel.
+        sample.val.sampleCount = channelSamples.length;
+        sample.val.sampleDuration = _.reduce(channelSamples,
+            function(sum, s) { return sum + s.end - s.beg }, 0);
+      }
       schemaSet[sample.val.channelName] = sample;
     }
   });
@@ -469,7 +478,10 @@ SampleDb.prototype.queryForMerge =
       //Array.prototype.push.apply(newSamples, dbSamples);
       newSamples = newSamples.concat(dbSamples);
       sortSamplesByTime(newSamples);
-      redundant = mergeOverlappingSamples2(newSamples, expandBy);
+      //console.log('*** newSamples: ', newSamples);
+      redundant = mergeOverlappingSamples2(newSamples, channelName, expandBy);
+      //console.log('--- redundant: ', redundant);
+      //console.log('--- samples: ', newSamples);
       var merged = newSamples.filter(function(s) { return s && !s.indb; });
       this(null, merged, redundant);
     }, cb
@@ -946,7 +958,7 @@ function deepUnique(array) {
  *         humanName: 'Latitude',  // optional
  *         units: '°',  // optional
  *         type: 'float',  // optional
- *         valid: [ { beg: 123, end: 678 }, ... ],
+ *         valid: [ { beg: 123, end: 678, per: 10 }, ... ],
  *       },
  *       ...
  *     ],
@@ -957,6 +969,7 @@ function deepUnique(array) {
  *     sub: ...
  *   },
  * ]
+ * Average sample period represented by per.
  */
 // Split on:
 //   - A . or /, and include the . or / in the prefix.
@@ -984,13 +997,18 @@ SampleDb.buildChannelTree = function(samples) {
         // Copy channelName and such in.
         desc = { shortName: shortName };
         _.extend(desc, s.val);
+        delete desc.sampleDuration;
+        delete desc.sampleCount;
         if (_.isArray(desc.humanName)) {
           desc.humanName = desc.humanName[depth];
           if (desc.humanName == null) delete desc.humanName;
         }
         // TODO: interval sets to union together ranges?
         desc.valid = same.map(function(s2) {
-          return { beg: s2.beg, end: s2.end };
+          var v = { beg: s2.beg, end: s2.end };
+          if ('sampleDuration' in s2.val)
+            v.per = s2.val.sampleDuration / s2.val.sampleCount;
+          return v;
         });
       } else {
         // New category.
@@ -1047,7 +1065,7 @@ SampleDb.buildChannelTree = function(samples) {
  * @return An array of DB samples which were made redundant.  Redundant indb
  *   samples should be deleted from DB.
  */
-function mergeOverlappingSamples2(samples, expandBy) {
+function mergeOverlappingSamples2(samples, channelName, expandBy) {
   var redundant = [];
   // Index of first sample which might overlap current sample.
   var mightOverlap = 0;
@@ -1061,44 +1079,45 @@ function mergeOverlappingSamples2(samples, expandBy) {
       ++mightOverlap;
     for (var j = mightOverlap; j < i; ++j) {
       var t = samples[j];
-      if (t &&
-          /*t.end + expandBy >= s.beg &&*/ t.beg - expandBy <= s.end &&
-          SampleDb.sampleValuesEqual(t.val, s.val) &&
-          t.min == s.min && t.max == s.max) {
-        var identical = s.beg == t.beg && s.end == t.end;
-        // Samples overlap.  Merge them somehow and delete one.
-        if (identical && t.indb) {
-          // 1. If two DB samples are identical, don't delete either from DB
-          // (no unique key).
-          samples[i] = null;  // Delete s from samples.
-        } else if (identical && s.indb) {
-          // 1. If a DB and non-DB sample are identical, don't mark either
-          // redundant.
-          samples[j] = null;  // Delete t from samples.
-        } else if (s.beg <= t.beg && s.end >= t.end) {  // s subsumes t.
-          // 2. If a record is identical to or subsumes another record, delete
-          // the other record.
-          if (t.indb) redundant.push(t);
-          samples[j] = null;  // Delete t from samples.
-        } else if (t.beg <= s.beg && t.end >= s.end) {  // t subsumes s.
-          // 2. If a record is identical to or subsumes another record, delete
-          // the other record.
+      if (!t) continue;
+      var merged = SampleDb.tryMergeSamples(s, t, channelName, expandBy);
+      if (!merged) continue;
+      var identical = s.beg == t.beg && s.end == t.end &&
+          SampleDb.sampleValuesEqual(t.val, s.val);
+      // Samples overlap.  Merge them somehow and delete one.
+      if (identical && t.indb) {
+        // 1. If two DB samples are identical, don't delete either from DB
+        // (no unique key).
+        samples[i] = null;  // Delete s from samples.
+      } else if (identical && s.indb) {
+        // 1. If a DB and non-DB sample are identical, don't mark either
+        // redundant.
+        samples[j] = null;  // Delete t from samples.
+      } else if (s.beg <= t.beg && s.end >= t.end) {  // s subsumes t.
+        // 2. If a record is identical to or subsumes another record, delete
+        // the other record.
+        if (t.indb) redundant.push(t);
+        if (!SampleDb.sampleValuesEqual(s.val, merged.val)) {
+          samples[i] = merged;
           if (s.indb) redundant.push(s);
-          samples[i] = null;  // Delete s from samples.
-        } else {
-          if (s.indb) redundant.push(s);
-          if (t.indb) redundant.push(t);
-          var n = samples[j] = {
-            beg: Math.min(t.beg, s.beg),
-            end: Math.max(t.end, s.end),
-            val: t.val,
-          };
-          if (s.min != null) n.min = s.min;
-          if (s.max != null) n.max = s.max;
-          samples[i] = null;  // Delete s from samples.
         }
-        break;
+        samples[j] = null;  // Delete t from samples.
+      } else if (t.beg <= s.beg && t.end >= s.end) {  // t subsumes s.
+        // 2. If a record is identical to or subsumes another record, delete
+        // the other record.
+        if (s.indb) redundant.push(s);
+        if (!SampleDb.sampleValuesEqual(t.val, merged.val)) {
+          samples[j] = merged;
+          if (t.indb) redundant.push(t);
+        }
+        samples[i] = null;  // Delete s from samples.
+      } else {
+        if (s.indb) redundant.push(s);
+        if (t.indb) redundant.push(t);
+        samples[j] = merged;
+        samples[i] = null;  // Delete s from samples.
       }
+      break;
     }
   }
   return redundant;
