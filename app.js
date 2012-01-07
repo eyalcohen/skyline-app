@@ -1228,26 +1228,24 @@ var createDnodeConnection = function (remote, conn) {
             });
           });
           function sort() {
+            var bins = {};
             var threads = [];
             var threadedNotes = [];
-            notes.forEach(function (note, i) {
-              var thread = [note];
-              notes.splice(i, 1);
-              notes.forEach(function (n, j) {
-                if (n.beg === note.beg && n.end === note.end) {
-                  thread.push(n);
-                  notes.splice(j, 1);
-                }
-              });
-              threads.push(thread);
+            _.each(notes, function (note) {
+              var key = String(note.beg) + String(note.end);
+              if (!(key in bins)) bins[key] = [];
+              bins[key].push(note);
             });
-            threads.forEach(function (grp) {
-              grp.sort(function (a, b) {
+            _.each(bins, function (bin) {
+              threads.push(bin);
+            });
+            _.each(threads, function (thread) {
+              thread.sort(function (a, b) {
                 return a.val.date - b.val.date;
               });
-              var note = grp[0];
-              note.replies = _.rest(grp);
-              note.latest = _.last(grp).val.date;
+              var note = thread[0];
+              note.replies = _.rest(thread);
+              note.latest = _.last(thread).val.date;
               threadedNotes.push(note);
             });
             var notifications = [].concat(drives, charges, errors,
@@ -1258,7 +1256,6 @@ var createDnodeConnection = function (remote, conn) {
               return bt - at;
             });
             cb(null, notifications);
-
           }
         }
       );

@@ -984,7 +984,6 @@ define(['views/dashItem', 'plot_booter',
         if (series[i].channelName === channelName) {
           var channel = channels[series[i].channelIndex];
           channel.displayUnits = newUnits;
-          console.log(channel);
           App.stateMonitor.updateOpts(this.options.tabId, this.options.id, channel);
           var data = this.calculateSeriesData(channel);
           series[i].data = data.data;
@@ -1146,11 +1145,25 @@ define(['views/dashItem', 'plot_booter',
         App.api.insertSamples(self.model.get('vehicleId'),
                               { _note: [ _note ] }, function (err) {
           if (!err) {
-            msg.text('Your comment has been posted.').show();
             loading.hide();
-            _.delay(function () {
-              self.cancelNote(null, plot, true);
-            }, 1e3);
+            if (isNew) {
+              msg.text('Your comment has been posted.').show();
+              _.delay(function () {
+                self.cancelNote(null, plot, true);
+              }, 1e3);
+            } else {
+              msg.text('Your reply has been posted.').show();
+              $('.note-text', self.noteWindow).val('').blur().focus();
+              var user = App.store.get('user');
+              var reply = $('<h2 class="note-user-reply">' + user.first + ' ' + user.last
+                          + '<span class="note-content-date">' + ' '
+                          + App.util.getRelativeTime(_note.val.date) + '</span></h2>'
+                          + '<p class="note-body">' + _note.val.text + '</p>');
+              reply.appendTo($('.note-content', self.noteWindow));
+              _.delay(function () {
+                msg.fadeOut('slow');
+              }, 2e3);
+            }
             $('.timeline-icon', self.holder).remove();
             self.model.tabModel.resetNotifications();
           } else throw new Error(err);
