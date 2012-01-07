@@ -79,7 +79,7 @@ define(function () {
     this.addSub('GraphUnrequested-' + tabId,
                 _.bind(this.removeGraph, this, tabId));
     this.addSub('VisibleTimeChange-' + tabId,
-                _.bind(this.updateTimeRange, this, tabId));
+                _.bind(_.debounce(this.updateTimeRange, 500), this, tabId));
     this.addSub('ShowFolderItem-target-' + tabId,
                 _.bind(this.updateVisibility, this, tabId, true));
     this.addSub('HideFolderItem-target-' + tabId,
