@@ -55,18 +55,19 @@ define(['jquery',
 
     clickTab: function (e) {
       App.publish('ShowFolderItem-' + this.options.targetClass);
-      if (this.vehicleId)
-        if (e)
-          App.router.go('vehicle/' + this.vehicleId, this.vehicleId);
-        else App.router.navigate('vehicle/' + this.vehicleId);
-      // Don't click dash on first load
-      // if vehicle or state is requested.
-      else if (e) App.router.navigate('/');
+      // if (this.vehicleId)
+      //   if (e)
+      //     App.router.go('vehicle/' + this.vehicleId, this.vehicleId);
+      //   else App.router.navigate('vehicle/' + this.vehicleId);
+      // // Don't click dash on first load
+      // // if vehicle or state is requested.
+      // else if (e) App.router.navigate('/');
     },
 
     show: function (e) {
       var self = this;
-      if (e && $(e.target).hasClass('tab-closer')) return;
+      if (this.tab.hasClass('tab-active') ||
+          e && $(e.target).hasClass('tab-closer')) return;
       $('.tab-active').each(function (i) {
         var $this = $(this);
         $this.removeClass('tab-active');
@@ -103,10 +104,10 @@ define(['jquery',
       var tabs = $('.tab-dynamic');
       if (this.tab.hasClass('tab-active') && clicked) {
         var otherTab = $(tabs.get(targetIndex-1));
-        App.publish('ShowFolderItem-'+ otherTab.data('tabTarget'));
-        var oid = otherTab.data('vehicleId');
-        if (oid) App.router.go('vehicle/' + oid, oid);
-        else App.router.navigate('/');
+        App.publish('ShowFolderItem-' + otherTab.data('tabTarget'));
+        // var oid = otherTab.data('vehicleId');
+        // if (oid) App.router.go('vehicle/' + oid, oid);
+        // else App.router.navigate('/');
       }
       this.tab.remove();
       tabs = $('.tab-dynamic');

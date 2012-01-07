@@ -33,11 +33,13 @@
     .note-channels
       span.note-channels-header Relevant Channels:
       ul
+        - if (note.val.channels) {
         - note.val.channels.forEach(function (c, i) {
             li.note-channel(data-channel-name=c)= c
               - if (isNew)
                 a.note-channel-remove(href="javascript:;", title="Remove channel") &nbsp;(X)
         - })
+        - }
     span.note-message
     .note-actions
       .note-loading

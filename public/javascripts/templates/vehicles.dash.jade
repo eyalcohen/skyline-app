@@ -26,9 +26,10 @@
         tbody
           - rows.forEach(function (row, i) {
           -  row = row.attributes;
-            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.year+" "+row.make+" "+row.model+(row.name?" "+row.name:""))
+          -  var name = row.name ? " " + row.name : ""
+            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.year+" "+row.make+" "+row.model+name)
               td.nowrap(style="font-weight:bold;")
-                =row.year + ' ' + row.make + ' ' + row.model + ' ' + row.name
+                =row.year + ' ' + row.make + ' ' + row.model + name
                 span.edit-panel
                   a.edit-link(href="javascript:;", title="Change vehicle properties")
                     | Edit | 

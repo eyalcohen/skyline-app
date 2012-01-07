@@ -8,24 +8,18 @@ define(['jquery'], function ($) {
     initialize: function(options) {
       this.updateURLTime = _.debounce(this.updateURLTime, 500);
       this.route(/^vehicle\/([0-9]+)(?:\?(.*))?/, 'vehicle', this.vehicle);
-      this.route(/^state\/([A-Za-z0-9]{5})/, 'state', this.state);      
+      this.route(/^state|s\/([A-Za-z0-9]{5})/, 'state', this.state);
       // Heuristically filter the matches to reduce
       // likelihood of an invalid app state.
       this.route(/^\?([A-Za-z0-9]{5}\..*)/, 'query', this.query);
     },
 
     routes: {
-      '': 'dashboard',
-    },
-
-    go: function (frag, vehicleId, opts) {
-      var lastTime = App.stateMonitor.getVehicleTime(vehicleId);
-      this.navigate(frag, opts);
-      this.updateURLTime(lastTime.beg, lastTime.end);
+      '': 'query',
     },
 
     query: function (str) {
-      // Brutally kills everything and
+      // Kills everything and
       // loads all content from scratch.
       // TODO: Be nicer.
       App.publish('KillallTabs');
@@ -34,20 +28,12 @@ define(['jquery'], function ($) {
       App.stateMonitor.setState(str);
     },
 
-    dashboard: function () {
-      App.publish('ShowFolderItem-dashboard');
-    },
-
     vehicle: function (id, q) {
-      var urlTime = q ? this.parseURLTime(q) : null;
       var tab = $('[data-id="' + id + '"]');
       if (tab.length !== 0) {
         var tabId = tab.data('tabTarget')
                     .substr(tabId.indexOf('-') + 1);
-        var tabModel = App.vehicleTabModels[tabId];
         App.publish('ShowFolderItem-target-' + tabId);
-        if (urlTime)
-          tabModel.set({ visibleTime: urlTime });
       } else {
         var tr = $('#vehicle_' + id);
         var items = tr.attr('id').split('_');
@@ -56,9 +42,9 @@ define(['jquery'], function ($) {
         var lastCycle = time === 0 ? null :
             JSON.parse($('[data-cycle]', tr).attr('data-cycle'));
         var tabId = App.util.makeId();
-        var timeRange = urlTime || { beg: lastCycle.beg, end: lastCycle.end };
-        App.publish('VehicleRequested',
-                    [Number(id), tabId, title, timeRange]);
+        var timeRange = { beg: lastCycle.beg, end: lastCycle.end };
+        App.publish('VehicleRequested', 
+                    [Number(id), tabId, title, timeRange, false]);
       }
     },
 

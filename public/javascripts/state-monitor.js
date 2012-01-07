@@ -29,15 +29,23 @@ define(function () {
       _.each(state, function (tab, tabId) {
         var visibleTime = { beg: tab.r.b, end: tab.r.e };
         App.publish('VehicleRequested',
-            [tab.i, tabId, tab.t, visibleTime, !tab.v ]);
-        _.each(tab.g, function (channels, graphId) {
-          App.publish('GraphRequested-' + tabId, [graphId]);
-          if (channels)
-            _.each(channels, function (channel, channelName) {
-              App.publish('ChannelRequested-' +
-                  tabId + '-' + graphId, [channel]);
-            });
-        });
+            [tab.i, tabId, tab.t, visibleTime, !tab.v, function () {
+              _.each(tab.g, function (channels, graphId) {
+                App.publish('GraphRequested-' + tabId, [graphId]);
+                if (channels)
+                  _.each(channels, function (opts, channelName) {
+                    App.publish('FetchChannelInfo-' + tab.i,
+                        [channelName, function (channel) {
+                      channel.title = channel.humanName || channel.shortName;
+                      if (channel.units)
+                        channel.title += ' (' + channel.units + ')';
+                      _.extend(channel, parseChannelOptions(opts));
+                      App.publish('ChannelRequested-' +
+                          tabId + '-' + graphId, [channel]);
+                    }]);
+                  });
+              });
+            }]);
       });
     }
     this.isRestoring = false;
@@ -58,9 +66,9 @@ define(function () {
   }
 
   StateMonitor.prototype.addTab =
-      function (vehicleId, tabId, vehicleTitle, visibleTime) {
+      function (vehicleId, tabId, vehicleTitle, visibleTime, hide) {
     this.state[tabId] = {
-      v: true,
+      v: !hide,
       i: vehicleId,
       t: vehicleTitle,
       r: { b: visibleTime.beg, e: visibleTime.end },
@@ -79,7 +87,7 @@ define(function () {
     this.addSub('VehicleUnrequested-' + tabId,
                 _.bind(this.removeTab, this, tabId));
     this.addGraph(tabId, 'MASTER');
-    App.router.updateURLTime(visibleTime.beg, visibleTime.end);
+    update(this.state);
   }
 
   StateMonitor.prototype.removeTab = function (tabId) {
@@ -93,6 +101,7 @@ define(function () {
     this.removeSub('HideFolderItem-target-' + tabId);
     this.removeSub('VehicleUnrequested-' + tabId);
     delete this.state[tabId];
+    update(this.state);
   }
 
   StateMonitor.prototype.addGraph = function (tabId, graphId) {
@@ -109,26 +118,44 @@ define(function () {
     this.removeSub('ChannelRequested-' + handle);
     this.removeSub('ChannelUnRequested-' + handle);
     delete this.state[tabId].g[graphId];
+    update(this.state);
   }
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
     if (!_.isArray(channel)) channel = [channel];
     _.each(channel, _.bind(function (c) {
-      this.state[tabId].g[graphId][c.channelName] = c;
+      var opts = c.units;
+      opts += '-' + (c.colorNum || 0);
+      opts += '-' + (c.yaxisNum || 1);
+      this.state[tabId].g[graphId][c.channelName] = opts;
     }, this));
+    update(this.state);
   }
 
   StateMonitor.prototype.removeChannel = function (tabId, graphId, channel) {
     delete this.state[tabId].g[graphId][channel.channelName];
+    update(this.state);
   }
 
   StateMonitor.prototype.updateTimeRange = function (tabId, beg, end) {
     this.state[tabId].r = { b: beg, e: end };
-    App.router.updateURLTime(beg, end);
+    update(this.state);
   }
 
   StateMonitor.prototype.updateVisibility = function (tabId, visible) {
     this.state[tabId].v = visible;
+    update(this.state, true);
+  }
+
+  StateMonitor.prototype.updateOpts = function (tabId, graphId, channel) {
+    var opts = '';
+    if (channel.displayUnits)
+      opts += channel.displayUnits;
+    else opts += channel.units;
+    opts += '-' + channel.colorNum;
+    opts += '-' + channel.yaxisNum;
+    this.state[tabId].g[graphId][channel.channelName] = opts;
+    update(this.state);
   }
 
   StateMonitor.prototype.addSub = function (topic, fn) {
@@ -138,7 +165,6 @@ define(function () {
 
   StateMonitor.prototype.removeSub = function (topic) {
     // WHY do some topics not get deleted?
-    // This makes no sense!
     App.unsubscribe(topic, this.subs[topic]);
     delete this.subs[topic];
   }
@@ -159,7 +185,7 @@ define(function () {
         if (_.isObject(v))
           if (!_.isEmpty(v))
             step(v, kk);
-          else 
+          else
             str += encodeURIComponent(kk) + '=false&';
         else
           str += encodeURIComponent(kk) +
@@ -197,13 +223,22 @@ define(function () {
   }
 
   /*!
-   * Changes the current URL to relect the app state.
+   * Changes the current URL to reflect the app state.
    */
   function update(state, save) {
     var frag = encode(state);
     frag = frag !== '' ? '/?' + frag : '/';
-    console.log('updateURI(', save ? 'push' : 'replace', ')...');
+    // console.log('updateURI(', save ? 'push' : 'replace', ')...');
     App.router.navigate(frag, { replace: !save });
+  }
+
+  function parseChannelOptions(str) {
+    var opts = str.split('-');
+    return {
+      units: opts[0],
+      colorNum: Number(opts[1] || 0),
+      yaxisNum: Number(opts[2] || 1),
+    }
   }
 
   var objectDelimiter = '.';

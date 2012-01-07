@@ -13,6 +13,7 @@ define(['views/folderItem'], function (FolderItemView) {
     destroy: function (clicked) {
       this._super('destroy', clicked);
       App.unsubscribe('KillallTabs', this.destroy);
+      App.publish('VehicleUnrequested-' + this.model.tabId);
     },
 
     render: function (opts, template) {

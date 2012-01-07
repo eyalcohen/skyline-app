@@ -191,7 +191,7 @@ define(['views/dashItem', 'plot_booter',
           bindEvents: [bindEventsHook],
         },
       });
-      self.plot.lockCrosshair();  // Disable default crosshair movement.
+      self.plot.lockCrosshair(); // Disable default crosshair movement.
       $('.graph', self.content).data({
         plot: self.plot,
         id: self.options.id,
@@ -232,7 +232,7 @@ define(['views/dashItem', 'plot_booter',
             });
             r += '</select>)';
           } else {
-            r += '(' + _.escape(channel.units) + ')';
+            r += ' (' + _.escape(channel.units) + ')';
           }
         }
         r += '</div>';
@@ -444,6 +444,8 @@ define(['views/dashItem', 'plot_booter',
           || this.ensureLegendRedraw) {
         this.setupLegend();
         this.prevNumChannels = this.model.get('channels').length;
+      } else {
+        this.setupLegend();
       }
     },
 
@@ -982,6 +984,8 @@ define(['views/dashItem', 'plot_booter',
         if (series[i].channelName === channelName) {
           var channel = channels[series[i].channelIndex];
           channel.displayUnits = newUnits;
+          console.log(channel);
+          App.stateMonitor.updateOpts(this.options.tabId, this.options.id, channel);
           var data = this.calculateSeriesData(channel);
           series[i].data = data.data;
           // HACK

@@ -51,15 +51,16 @@ define(function (fn) {
         parent: '.' + this.targetClass + ' div .dashboard-left .top',
         height: 40,
       }));
-      this.treeModel.fetch();
+      this.treeModel.fetch(false, _.bind(function () {
+        if (args.channelTreeLoaded)
+          args.channelTreeLoaded();
+      }, this));
 
       this.mapModel = new App.models.MapModel(_.extend({}, this.modelArgs, {
         title: 'Location',
         parent: '.' + this.targetClass + ' div .dashboard-left .bottom',
         height: 60,
-      })).bind('change:notifications', function () {
-        // this.view.render();
-      });
+      })).bind('change:notifications', function () {});
 
       this.eventsModel = new App.models.EventsModel(_.extend({}, this.modelArgs, {
         title: 'Vehicle Events',

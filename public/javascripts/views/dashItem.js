@@ -31,19 +31,15 @@ define(['jquery',
       this.delegateEvents();
       if (this.firstRender) {
         this.firstRender = false;
-        // this.el.fadeIn('fast');
         this.el.show();
         this.offset = this.options.target ?
             $('.' + this.options.target).offset() :
             this.el.offset();
         this.resize();
       } else {
-        // this.resize();
         this.content.hide();
         this.el.show();
         this.resize();
-        // this.content.show('fast', _.bind(this.addScroll, this, cb));
-        // this.content.fadeIn('slow', _.bind(this.addScroll, this, cb));
         this.content.show();
         this.addScroll(cb);
       }
@@ -84,7 +80,7 @@ define(['jquery',
       if (!this.el || this.el.length === 0)
         return;
       var win = $(window);
-      if (this.offset.top === 0)
+      if (!this.offset || this.offset.top === 0)
         this.offset = this.options.target ?
             $('.' + this.options.target).offset() :
             this.el.offset();

@@ -52,7 +52,7 @@ define(['jquery'], function ($) {
       });
     },
 
-    loadVehicle: function (vehicleId, tabId, vehicleTitle, visibleTime, hide) {
+    loadVehicle: function (vehicleId, tabId, vehicleTitle, visibleTime, hide, cb) {
       var targetClass = 'target-' + tabId;
       var active = hide ? false : true;
       new App.models.VehicleTabModel({
@@ -62,6 +62,7 @@ define(['jquery'], function ($) {
         vehicleId: vehicleId,
         visibleTime: visibleTime,
         active: active,
+        channelTreeLoaded: cb,
       });
     },
 
