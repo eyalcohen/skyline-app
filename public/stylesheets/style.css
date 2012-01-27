@@ -887,10 +887,17 @@ iframe {
 }
 
 ol.export-channel-list {
-  max-height: 153px;
+  max-height: 150px;
   overflow-y: scroll;
   background: #F8F8F8;
-  font-size: 11px;
+  font-size: 10px;
+  color: #333;
+  padding: 0;
+  margin: 0 0 15px 0;
+}
+
+ol.export-channel-list li {
+  line-height: 14px;
 }
 
 .editor-message {

@@ -6,8 +6,8 @@
   #osx-modal-data
     p Columns to download:
       ol.export-channel-list
-        - channels.forEach(function(channel) {
-          li= channel.title
+        - channels.forEach(function(channel, i) {
+          li= (i+1) + '.&nbsp;&nbsp;' + channel.title
         - })
     p
       input#resampleRadio(type="radio", name="sampleType", value="resample")
