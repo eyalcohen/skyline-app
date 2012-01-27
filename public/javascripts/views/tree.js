@@ -142,7 +142,6 @@ define(['views/dashItem',
             ' nodes matching "' + data.rslt.str + '".');
         self.resize();
       }).bind('click.jstree', _.bind(self.nodeClickHandler, self));
-      self.resize();
       return self;
     },
 
@@ -255,6 +254,7 @@ define(['views/dashItem',
         return { checked: checkedNodeCount, all: allNodeCount };
       };
       handleNode(self.treeHolder);
+      self.resize();
       // console.log('updateCheckedChannels took:', Date.now() - start);
       self.visibleTimeChanged(self.model.tabModel.get('visibleTime'));
     },
