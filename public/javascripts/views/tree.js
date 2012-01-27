@@ -142,6 +142,7 @@ define(['views/dashItem',
             ' nodes matching "' + data.rslt.str + '".');
         self.resize();
       }).bind('click.jstree', _.bind(self.nodeClickHandler, self));
+      self.resize();
       return self;
     },
 

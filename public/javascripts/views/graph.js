@@ -206,6 +206,7 @@ define(['views/dashItem', 'plot_booter',
       function labelFormatter(label, series) {
         var channels = self.model.get('channels');
         var channel = channels[series.channelIndex];
+        if (!channel) return;
         var r = "<div " +
             "graph-id='" + self.model.id + "'" +
             "data-channel-index='" + series.channelIndex + "' " +
@@ -866,6 +867,7 @@ define(['views/dashItem', 'plot_booter',
         containerId: 'osx-container',
         closeHTML: null,
         minHeight: 80,
+        // maxHeight: $(window).height() - 200,
         opacity: 65,
         position: ['0',],
         overlayClose: true,

@@ -886,6 +886,13 @@ iframe {
   height: 500px;
 }
 
+ol.export-channel-list {
+  max-height: 153px;
+  overflow-y: scroll;
+  background: #F8F8F8;
+  font-size: 11px;
+}
+
 .editor-message {
   margin: 1px 20px 0 0;
   display: inline-block;
