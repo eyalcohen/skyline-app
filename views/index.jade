@@ -1,3 +1,5 @@
+- if (typeof user === "undefined") { user = null; }
+- if (typeof stateStr === "undefined") { stateStr = null; }
 #loading
 #container
   header
@@ -7,7 +9,7 @@
     div
       nav
         ul
-  #main(role="main", data-state=stateStr)
+  #main(role="main", data-state=stateStr, data-user=user)
     div.tabs
       div.tabs-dynamic
       div.tab-bar

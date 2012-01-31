@@ -18,7 +18,8 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
 
     render: function () {
       this.el = App.engine('logout.jade', {
-        email: App.user.email,
+        email: App.user.emails[0].value,
+        name: App.user.displayName
       }).appendTo(App.regions.menu);
       this.delegateEvents();
       return this;
@@ -33,9 +34,10 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
     signout: function (e) {
       App.store.remove('user');
       App.user = null;
+      $.get('/logout');
       App.publish('NotAuthenticated', [{
         first: true,
-        report: 'You have been logged out.',
+        report: 'Thank you. Come again.',
         type: 'message',
       }]);
       return this;

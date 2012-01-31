@@ -29,7 +29,7 @@ var mongoose = require('mongoose');
 var ObjectID = require('mongoose/lib/types/objectid');
 var jade = require('jade');
 var mongodb = require('mongodb');
-var MongoStore = require('connect-mongodb');
+var mongoStore = require('connect-mongodb');
 var gzip = require('connect-gzip');
 var dnode = require('dnode');
 var color = require('cli-color');
@@ -43,7 +43,7 @@ _.mixin(require('underscore.string'));
 var Step = require('step');
 var Buffers = require('buffers')
 var EventID = require('./customids').EventID;
-var models = require('./models');
+// var models = require('./models');
 var EventDescFileName = __dirname +
     '/../mission-java/common/src/main/protobuf/Events.desc';
 var WebUploadSamples, EventWebUpload;
@@ -65,6 +65,7 @@ try {
   log(e.stack || e);
 }
 var Notify = require('./notify');
+var UserDb = require('./user_db.js').UserDb;
 var SampleDb = require('./sample_db.js').SampleDb;
 var compatibility = require('./compatibility.js');
 
@@ -72,6 +73,9 @@ var db, User, Vehicle, AppState;
 
 var pubsub = require('./minpubsub');
 var jadeify = require('jadeify');
+
+var passport = require('passport');
+var GoogleStrategy = require('passport-google').Strategy;
 
 /////////////// Helpers
 
@@ -109,21 +113,22 @@ function errWrap(next, f) {
  * Gets all vehicles owned by user or all if user is null.
  */
 function findVehiclesByUser(user, next) {
-  var filter;
-  if (!user) {
-    filter = {};
-  } else if (user.length) {
-    filter = { user_id: { $in: user }};
-  } else {
-    filter = { user_id: user._id };
-  }
-  Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
-    if (!err) {
-      next(vehs);
-    } else {
-      next([]);
-    }
-  });
+  // var filter;
+  // if (!user) {
+  //   filter = {};
+  // } else if (user.length) {
+  //   filter = { user_id: { $in: user }};
+  // } else {
+  //   filter = { user_id: user._id };
+  // }
+  // Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
+  //   if (!err) {
+  //     next(vehs);
+  //   } else {
+  //     next([]);
+  //   }
+  // });
+  next([]);
 }
 
 
@@ -204,15 +209,17 @@ app.configure(function () {
   app.use(rawBody(['application/octet-stream']));
   app.use(express.cookieParser());
 
-  // var sessionServerDb =
-  //     mongodb.connect(argv.db, { noOpen: true }, function() {});
-  // app.use(express.session({
-  //   cookie: { maxAge: 86400 * 1000 * 7 }, // one day 86400
-  //   secret: 'topsecretmission',
-  //   store: new MongoStore({ db: sessionServerDb, }, function (err) {
-  //     if (err) log('Error creating MongoStore: ' + err);
-  //   })
-  // }));
+  var sessionServerDb =
+      mongodb.connect(argv.db, { noOpen: true }, function() {});
+  app.use(express.session({
+    cookie: { maxAge: 86400 * 1000 * 7 }, // one week
+    secret: 'hum7a5t1c',
+    store: new mongoStore({ db: sessionServerDb, }, function (err) {
+      if (err) log('Error creating mongoStore: ' + err);
+    })
+  }));
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   app.use(express.logger({ format: function(tok, req, res) {
     var url = tok.url(req, res) || '-';
@@ -234,44 +241,66 @@ app.configure(function () {
 });
 
 
-models.defineModels(mongoose, function () {
-  app.User = User = mongoose.model('User');
-  app.Vehicle = Vehicle = mongoose.model('Vehicle');
-  app.AppState = AppState = mongoose.model('AppState');
+// models.defineModels(mongoose, function () {
+//   app.User = User = mongoose.model('User');
+//   app.Vehicle = Vehicle = mongoose.model('Vehicle');
+//   app.AppState = AppState = mongoose.model('AppState');
+// 
+//   // Ugh: parse mongodb-style URL and convert to a mongoose-compatible one.
+//   var match = argv.db.match(
+//       new RegExp('^mongo(?:db)?://(?:|([^@/]*)@)([^@/]*)(?:|/([^?]*)(?:|\\?([^?]*)))$'));
+//   if (!match)
+//     throw Error("URL must be in the format mongodb://user:pass@host:port/dbname");
+// 
+//   var authPart = match[1] || '';
+//   var auth = authPart.split(':', 2);
+//   var hostPart = match[2];
+//   var dbname = match[3] || 'default';
+//   var urlOptions = (match[4] || '').split(/[&;]/);
+//   if (urlOptions != '')
+//     throw Error('URL options in mongodb URL not handled yet: ' + urlOptions);
+// 
+//   var servers = hostPart.split(',').map(function(h) {
+//     var hostPort = h.split(':', 2);
+//     return { host: hostPort[0] || 'localhost',
+//              port: hostPort[1] != null ? parseInt(hostPort[1]) : 27017 };
+//   });
+//   var mongooseUri = 'mongodb://' + (authPart ? authPart + '@' : '') +
+//       servers[0].host + ':' + servers[0].port + '/' + dbname;
+//   if (servers.length == 1) {
+//     log('Connecting to mongoose DB: ' + mongooseUri);
+//     db = mongoose.connect(mongooseUri);
+//   } else {
+//     mongooseUri += ',';
+//     mongooseUri += _.rest(servers).map(function(server) {
+//       return 'mongodb://' + server.host + ':' + server.port;
+//     }).join(',');
+//     log('Connecting to mongoose DB set: ' + mongooseUri);
+//     db = mongoose.connectSet(mongooseUri);
+//   }
+// });
 
-  // Ugh: parse mongodb-style URL and convert to a mongoose-compatible one.
-  var match = argv.db.match(
-      new RegExp('^mongo(?:db)?://(?:|([^@/]*)@)([^@/]*)(?:|/([^?]*)(?:|\\?([^?]*)))$'));
-  if (!match)
-    throw Error("URL must be in the format mongodb://user:pass@host:port/dbname");
-
-  var authPart = match[1] || '';
-  var auth = authPart.split(':', 2);
-  var hostPart = match[2];
-  var dbname = match[3] || 'default';
-  var urlOptions = (match[4] || '').split(/[&;]/);
-  if (urlOptions != '')
-    throw Error('URL options in mongodb URL not handled yet: ' + urlOptions);
-
-  var servers = hostPart.split(',').map(function(h) {
-    var hostPort = h.split(':', 2);
-    return { host: hostPort[0] || 'localhost',
-             port: hostPort[1] != null ? parseInt(hostPort[1]) : 27017 };
-  });
-  var mongooseUri = 'mongodb://' + (authPart ? authPart + '@' : '') +
-      servers[0].host + ':' + servers[0].port + '/' + dbname;
-  if (servers.length == 1) {
-    log('Connecting to mongoose DB: ' + mongooseUri);
-    db = mongoose.connect(mongooseUri);
-  } else {
-    mongooseUri += ',';
-    mongooseUri += _.rest(servers).map(function(server) {
-      return 'mongodb://' + server.host + ':' + server.port;
-    }).join(',');
-    log('Connecting to mongoose DB set: ' + mongooseUri);
-    db = mongoose.connectSet(mongooseUri);
-  }
+passport.serializeUser(function (user, cb) {
+  cb(null, user._id.toString());
 });
+
+passport.deserializeUser(function (id, cb) {
+  userDb.findUserByHexStr(id, function (err, user) {
+    cb(err, user);
+  });
+});
+
+passport.use(new GoogleStrategy({
+    returnURL: 'http://localhost:8080/auth/google/return',
+    realm: 'http://localhost:8080/'
+  },
+  function (identifier, profile, done) {
+    profile.openId = identifier;
+    userDb.findOrCreateUserFromOpenId(profile, function (err, user) {
+      done(err, user);
+    });
+  }
+));
 
 
 /////////////// Params
@@ -336,9 +365,8 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', function (req, res) {
-  res.render('index', { stateStr: '' });
+  res.render('index', { user: JSON.stringify(req.user) });
 });
-
 
 ////////////// API
 
@@ -529,7 +557,7 @@ app.get('/vehicle', function (req, res) {
 });
 
 app.get('/vehicle/:id', function (req, res) {
-  res.render('index', { stateStr: '' });
+  res.render('index');
 });
 
 app.get('/state', function (req, res) {
@@ -585,9 +613,10 @@ app.post('/usercreate/:newemail', function (req, res) {
 });
 
 
-// Handle vehicle create request
+// Handle vehicle create request - LAGACY
 
-app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
+app.post('/vehiclecreate/:email/:make/:model/:year',
+    function (req, res) {
   var v = new Vehicle({
       _id: parseInt(Math.random() * 0x7fffffff)  // TODO: collisions
     , make: req.params.make
@@ -600,6 +629,35 @@ app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
       res.send({ status: 'success', data: { vehicleId: v._id } });
     } else {
       res.send({ status: 'error', message: err }, 400);
+    }
+  });
+});
+
+// new route
+
+app.post('/create/vehicle/:title/:description/:vclass',
+    function (req, res) {
+  var props = {
+    _id: parseInt(Math.random() * 0x7fffffff), // TODO: collisions
+    title: req.params.title,
+    description: req.params.description,
+  };
+  function fail(err) {
+    res.send({ status: 'error', message: err }, 400);
+  }
+  // get vclass _id
+  var vclassId = userDb.findOrCreateVClassFromTitle(req.params.vclass,
+      function (err, vclass) {
+    if (err) fail(err);
+    else {
+      // add vehicle class to vehicle
+      props.vclass = vclass.title;
+      // create the vehicle
+      userDb.createVehicle(props, function (err, veh) {
+          if (err) fail(err);
+          else res.send({ status: 'success',
+                      data: { vehicleId: veh._id } });
+      });
     }
   });
 });
@@ -947,28 +1005,59 @@ app.post('/debug/:logFile', function (req, res) {
 });
 
 
+
+
+// Redirect the user to Google for authentication. When complete, Google
+// will redirect the user back to the application at
+// /auth/google/return
+app.get('/auth/google', passport.authenticate('google'));
+
+// Google will redirect the user to this URL after authentication. Finish
+// the process by verifying the assertion. If valid, the user will be
+// logged in. Otherwise, authentication has failed.
+// app.get('/auth/google/return',
+//         passport.authenticate('google', { session: false }),
+//         function (req, res) {
+//   res.redirect('/');
+// });
+
+app.get('/auth/google/return', 
+  passport.authenticate('google', { successRedirect: '/',
+                                    failureRedirect: '/' }));
+
+// We logout via an ajax request.
+app.get('/logout', function (req, res) {
+  req.logOut();
+  res.redirect('/');
+});
+
 ////////////// DNode Methods
 
 
 function verifySession(user, cb) {
-  if (!_.isObject(user)) {
-    cb(new Error('Missing session info.'));
-    return;
-  }
-  if (!_.isString(user.email)) {
-    cb(new Error('Session missing email.'));
-    return;
-  }
-  if (!_.isString(user.id)) {
-    cb(new Error('Session missing id.'));
-    return;
-  }
-  User.findById(user.id, function (err, usr) {
-    if (err || !usr) {
+  // if (!_.isObject(user)) {
+  //   cb(new Error('Missing session info.'));
+  //   return;
+  // }
+  // if (!_.isString(user.email)) {
+  //   cb(new Error('Session missing email.'));
+  //   return;
+  // }
+  // if (!_.isString(user._id)) {
+  //   cb(new Error('Session missing id.'));
+  //   return;
+  // }
+  // User.findById(user.id, function (err, usr) {
+  //   if (err || !usr) {
+  //     cb(new Error('User not authenticated.'));
+  //   } else {
+  //     cb(null, usr);
+  //   }
+  // });
+  userDb.findUserByHexStr(user._id, function (err, usr) {
+    if (err || !usr)
       cb(new Error('User not authenticated.'));
-    } else {
-      cb(null, usr);
-    }
+    else cb(null, usr);
   });
 }
 
@@ -1057,7 +1146,7 @@ var createDnodeConnection = function (remote, conn) {
     // log('Got remote event. Remote: ' + inspect(remote));
   });
 
-  var subscriptions = { };
+  var subscriptions = {};
   var user = null;  // Set once user is authenticated.
   var authPending = null;  // If auth is pending, an array of functions to call once auth suceeds or fails.
 
@@ -1116,11 +1205,11 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
-  function checkAuth(cb) {
-    if (!user)
-      cb(new Error('Not authenticated!'));
-    return user;
-  }
+  // function checkAuth(cb) {
+  //   if (!user)
+  //     cb(new Error('Not authenticated!'));
+  //   return user;
+  // }
 
   function ensureAuth(f) {
     return function() {
@@ -1263,78 +1352,84 @@ var createDnodeConnection = function (remote, conn) {
   }
 
   function fetchVehicles(cb) {
-    var filterUser;
-    if (user.role === 'admin') {
-      filterUser = null;
-    } else if (user.role === 'office') {
-      filterUser = ['4ddc6340f978287c5e000003',
-          '4ddc84a0c2e5c2205f000001',
-          '4ddee7a08fa7e041710001cb'];
-    } else {
-      filterUser = user;
-    }
-    findVehiclesByUser(filterUser, function (vehicles) {
-      Step(
-        // Add lastSeen to all vehicles in parallel.
-        function () {
-          var parallel = this.parallel;
-          vehicles.forEach(function (v) {
-            var next = parallel();
-            sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
-              if (cycles && cycles.length > 0) {
-                v.lastCycle = _.last(cycles);
-                v.lastSeen = v.lastCycle.end;
-              }
-              User.findById(v.user_id, function (err, usr) {
-                if (usr)
-                  v.user = usr;
-                next();
-              });
-            });
-          });
-          parallel()(); // In case there are no vehicles.
-        }, function (err) {
-          if (err) { this(err); return; }
+    // var filterUser;
+    // if (user.role === 'admin') {
+    //   filterUser = null;
+    // } else if (user.role === 'office') {
+    //   filterUser = ['4ddc6340f978287c5e000003',
+    //       '4ddc84a0c2e5c2205f000001',
+    //       '4ddee7a08fa7e041710001cb'];
+    // } else {
+    //   filterUser = user;
+    // }
+    // findVehiclesByUser(filterUser, function (vehicles) {
+    //   Step(
+    //     // Add lastSeen to all vehicles in parallel.
+    //     function () {
+    //       var parallel = this.parallel;
+    //       vehicles.forEach(function (v) {
+    //         var next = parallel();
+    //         sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
+    //           if (cycles && cycles.length > 0) {
+    //             v.lastCycle = _.last(cycles);
+    //             v.lastSeen = v.lastCycle.end;
+    //           }
+    //           User.findById(v.user_id, function (err, usr) {
+    //             if (usr)
+    //               v.user = usr;
+    //             next();
+    //           });
+    //         });
+    //       });
+    //       parallel()(); // In case there are no vehicles.
+    //     }, function (err) {
+    //       if (err) { this(err); return; }
+    // 
+    //       // SP: ugly - mongoose's weird doc mapping
+    //       // makes it hard to inject new props, like lastSeen.
+    //       var vehs = vehicles.map(function (vehicle) {
+    //         var v = vehicle._doc;
+    //         v.user = vehicle.user;
+    //         v.lastSeen = vehicle.lastSeen || 0;
+    //         if (vehicle.lastCycle) v.lastCycle = vehicle.lastCycle;
+    //         return v;
+    //       });
+    // 
+    //       // Only keep vehicles which have drive cycles.
+    //       // vehs = vehs.filter(function (v) {
+    //       //   return v.lastSeen !== null;
+    //       // });
+    // 
+    //       // Sort by lastSeen.
+    //       vehs.sort(function (a, b) {
+    //         return b.lastSeen - a.lastSeen;
+    //       });
+    // 
+    //       vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
+    //       // HACK: mongoose litters its results with __proto__ fields and
+    //       // _id with types that confuse dnode.  Go through JSON to get
+    //       // plain old data.
+    //       cb(null, JSON.parse(JSON.stringify(vehs)));
+    //     }
+    //   );
+    // });
 
-          // SP: ugly - mongoose's weird doc mapping
-          // makes it hard to inject new props, like lastSeen.
-          var vehs = vehicles.map(function (vehicle) {
-            var v = vehicle._doc;
-            v.user = vehicle.user;
-            v.lastSeen = vehicle.lastSeen || 0;
-            if (vehicle.lastCycle) v.lastCycle = vehicle.lastCycle;
-            return v;
-          });
 
-          // Only keep vehicles which have drive cycles.
-          // vehs = vehs.filter(function (v) {
-          //   return v.lastSeen !== null;
-          // });
-
-          // Sort by lastSeen.
-          vehs.sort(function (a, b) {
-            return b.lastSeen - a.lastSeen;
-          });
-
-          vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
-          // HACK: mongoose litters its results with __proto__ fields and
-          // _id with types that confuse dnode.  Go through JSON to get
-          // plain old data.
-          cb(null, JSON.parse(JSON.stringify(vehs)));
-        }
-      );
+    userDb.populateUserVehicles(user, function (err) {
+      cb(err, user.vehicles);
     });
+
   }
 
-  function fetchUsers(cb) {
-    User.find().sort('created', -1).run(function (err, usrs) {
-      if (!err) {
-        cb(null, JSON.parse(JSON.stringify(usrs)));
-      } else {
-        cb(null, []);
-      }
-    });
-  }
+  // function fetchUsers(cb) {
+  //   User.find().sort('created', -1).run(function (err, usrs) {
+  //     if (!err) {
+  //       cb(null, JSON.parse(JSON.stringify(usrs)));
+  //     } else {
+  //       cb(null, []);
+  //     }
+  //   });
+  // }
 
   // Fetch samples.
   // TODO: get rid of subscriptions, replace with 'wait until data available'
@@ -1443,7 +1538,7 @@ var createDnodeConnection = function (remote, conn) {
     authenticate: authenticate,
     fetchNotifications: ensureAuth(fetchNotifications),
     fetchVehicles: ensureAuth(fetchVehicles),
-    fetchUsers: ensureAuth(fetchUsers),
+    // fetchUsers: ensureAuth(fetchUsers),
     fetchSamples: ensureAuth(fetchSamples),
     cancelSubscribeSamples: cancelSubscribeSamples,
     insertSamples: ensureAuth(insertSamples),
@@ -1456,7 +1551,7 @@ var createDnodeConnection = function (remote, conn) {
 
 ////////////// Initialize and Listen
 
-var sampleDb;
+var userDb, sampleDb;
 
 if (!module.parent) {
   Step(
@@ -1466,9 +1561,11 @@ if (!module.parent) {
       mongodb.connect(argv.db, { server: { poolSize: 4 } }, this);
     }, function(err, db) {
       if (err) { this(err); return; }
-      new SampleDb(db, { ensureIndexes: true }, this);
-    }, function(err, newSampleDb) {
+      new UserDb(db, { ensureIndexes: true }, this.parallel());
+      new SampleDb(db, { ensureIndexes: true }, this.parallel());
+    }, function(err, newUserDb, newSampleDb) {
       if (err) { this(err); return; }
+      userDb = newUserDb;
       sampleDb = newSampleDb;
       this();
     },

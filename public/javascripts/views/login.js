@@ -79,8 +79,9 @@ define(['jquery'], function ($) {
           }
           return false;
         }
-        App.store.set('user', user);
-        App.user = App.store.get('user');
+        // App.store.set('user', user);
+        // App.user = App.store.get('user');
+        App.user = user;
         App.dnodeAuth.user = App.user;
         this.el.fadeOut('fast', _.bind(function () {
           App.publish('UserWasAuthenticated');

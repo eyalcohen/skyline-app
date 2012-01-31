@@ -10,6 +10,7 @@ define(['models/vehicle'], function (model) {
     initialize: function (args) {
       if (!args) args = {};
       _.extend(args, { collection: this });
+      console.log(this);
       this.view = new App.views.VehiclesView(args);
       this.view.render({ loading: true });
       this.loaded = _.bind(function () {
