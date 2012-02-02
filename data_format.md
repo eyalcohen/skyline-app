@@ -332,7 +332,7 @@ Skyline is capable of handling complex relationships between users / groups of u
 
 ## Architecture ##
 
-Four database schemas are used for handling data interaction: Users, Vehicles, Fleets, and Domains.
+Four database schemas are used for handling data interaction: Users, Teams, Vehicles, and Fleets.
 
 ### User Schema ###
 
