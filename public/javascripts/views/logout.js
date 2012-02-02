@@ -38,6 +38,11 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
         report: 'You have been logged out.',
         type: 'message',
       }]);
+      //// HACK!
+      // Force the windoe to reload. This fixes the
+      // not able to tab between the login fields problem.
+      window.location = '/';
+      ////
       return this;
     },
 

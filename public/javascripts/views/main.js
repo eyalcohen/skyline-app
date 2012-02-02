@@ -45,14 +45,18 @@ define(['jquery'], function ($) {
     startHistory: function () {
       // HACK: _wantsPushState is true if
       // history has already been started.
-      // if (Backbone.history._wantsPushState)
-      //   return;
+      if (Backbone.history._wantsPushState) {
+        // window.location = '/';
+        return;
+      }
+      //
       Backbone.history.start({
         pushState: true,
       });
     },
 
     loadVehicle: function (vehicleId, tabId, vehicleTitle, visibleTime, hide, cb) {
+      console.log('Tab requested...');
       var targetClass = 'target-' + tabId;
       var active = hide ? false : true;
       new App.models.VehicleTabModel({
