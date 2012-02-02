@@ -365,7 +365,7 @@ app.param('vintid', function (req, res, next, id) {
 // Home
 
 app.get('/', function (req, res) {
-  res.render('index', { user: JSON.stringify(req.user) });
+  res.render('index', { sid: req.sessionID });
 });
 
 ////////////// API
@@ -571,14 +571,14 @@ app.get('/s', function (req, res) {
 app.get('/state/:key', function (req, res) {
   fetchAppState(req.params.key, function (err, state) {
     var stateStr = err || !state ? '' : state.val;
-    res.render('index', { stateStr: stateStr });
+    res.render('index', { state: stateStr });
   });
 });
 
 app.get('/s/:key', function (req, res) {
   fetchAppState(req.params.key, function (err, state) {
     var stateStr = err || !state ? '' : state.val;
-    res.render('index', { stateStr: stateStr });
+    res.render('index', { state: stateStr });
   });
 });
 
@@ -1034,32 +1034,32 @@ app.get('/logout', function (req, res) {
 ////////////// DNode Methods
 
 
-function verifySession(user, cb) {
-  // if (!_.isObject(user)) {
-  //   cb(new Error('Missing session info.'));
-  //   return;
-  // }
-  // if (!_.isString(user.email)) {
-  //   cb(new Error('Session missing email.'));
-  //   return;
-  // }
-  // if (!_.isString(user._id)) {
-  //   cb(new Error('Session missing id.'));
-  //   return;
-  // }
-  // User.findById(user.id, function (err, usr) {
-  //   if (err || !usr) {
-  //     cb(new Error('User not authenticated.'));
-  //   } else {
-  //     cb(null, usr);
-  //   }
-  // });
-  userDb.findUserByHexStr(user._id, function (err, usr) {
-    if (err || !usr)
-      cb(new Error('User not authenticated.'));
-    else cb(null, usr);
-  });
-}
+// function verifySession(id, cb) {
+//   // if (!_.isObject(user)) {
+//   //   cb(new Error('Missing session info.'));
+//   //   return;
+//   // }
+//   // if (!_.isString(user.email)) {
+//   //   cb(new Error('Session missing email.'));
+//   //   return;
+//   // }
+//   // if (!_.isString(user._id)) {
+//   //   cb(new Error('Session missing id.'));
+//   //   return;
+//   // }
+//   // User.findById(user.id, function (err, usr) {
+//   //   if (err || !usr) {
+//   //     cb(new Error('User not authenticated.'));
+//   //   } else {
+//   //     cb(null, usr);
+//   //   }
+//   // });
+//   userDb.findSessionUserById(id, function (err, usr) {
+//     if (err || !usr)
+//       cb(new Error('User not authenticated.'));
+//     else cb(null, usr);
+//   });
+// }
 
 
 function shortInpsect(argList, maxChars) {
@@ -1142,7 +1142,7 @@ function ExecutionQueue(maxInFlight) {
 // the object it returns will be transferred to the client.
 var createDnodeConnection = function (remote, conn) {
 
-  conn.on('remote', function(userInfo) {
+  conn.on('remote', function (userInfo) {
     // log('Got remote event. Remote: ' + inspect(remote));
   });
 
@@ -1157,51 +1157,60 @@ var createDnodeConnection = function (remote, conn) {
 
   //// Methods accessible to remote side: ////
 
-  function signin(email, password, cb) {
-    if (!email || !password) {
-      cb({
-        code: 'MISSING_FIELD',
-        email: email || '',
-        password: password || '',
-        message: 'Both your email and password are required for login.'
-      });
-      return;
-    }
-    User.findOne({ email: email }, function (err, usr) {
-      if (usr && usr.authenticate(password)) {
-        usr.meta.logins ++;
-        usr.save(function (err) {
-          if (!err) {
-            user = usr;
-            cb(null, {
-              email: usr.email,
-              id: usr.id,
-              first: usr.name.first,
-              last: usr.name.last,
-            });
-          } else {
-            cb({
-              message: 'We\'re experiencing an unknown problem but ' +
-                'are looking into it now. Please try again later.'
-            });
-            log("Error finding user '" + email + "':", err);
-          }
-        });
-      } else {
-        cb({
-          code: 'BAD_AUTH',
-          email: email,
-          message: 'That didn\'t work. Your email or password is incorrect.'
-        });
-      }
-    });
-  }
+  // function signin(email, password, cb) {
+  //   if (!email || !password) {
+  //     cb({
+  //       code: 'MISSING_FIELD',
+  //       email: email || '',
+  //       password: password || '',
+  //       message: 'Both your email and password are required for login.'
+  //     });
+  //     return;
+  //   }
+  //   User.findOne({ email: email }, function (err, usr) {
+  //     if (usr && usr.authenticate(password)) {
+  //       usr.meta.logins ++;
+  //       usr.save(function (err) {
+  //         if (!err) {
+  //           user = usr;
+  //           cb(null, {
+  //             email: usr.email,
+  //             id: usr.id,
+  //             first: usr.name.first,
+  //             last: usr.name.last,
+  //           });
+  //         } else {
+  //           cb({
+  //             message: 'We\'re experiencing an unknown problem but ' +
+  //               'are looking into it now. Please try again later.'
+  //           });
+  //           log("Error finding user '" + email + "':", err);
+  //         }
+  //       });
+  //     } else {
+  //       cb({
+  //         code: 'BAD_AUTH',
+  //         email: email,
+  //         message: 'That didn\'t work. Your email or password is incorrect.'
+  //       });
+  //     }
+  //   });
+  // }
 
-  function authenticate(clientUser, cb) {
-    if (user) return cb(null);
-    verifySession(clientUser, function (err, usr) {
-      user = usr;
-      cb(err);
+  function authenticate(clientSessionId, cb) {
+    // if (user) return cb(null, user);
+    // verifySession(clientSessionId, function (err, usr) {
+    //   if (user) user = usr;
+    //   cb(err, user);
+    // });
+    
+    userDb.findSessionUserById(clientSessionId, function (err, usr) {
+      if (err || !usr)
+        cb(new Error('User not authenticated.'));
+      else {
+        if (user) user = usr;
+        cb(null, usr);
+      }
     });
   }
 
@@ -1211,30 +1220,30 @@ var createDnodeConnection = function (remote, conn) {
   //   return user;
   // }
 
-  function ensureAuth(f) {
-    return function() {
-      var args = _.toArray(arguments);
-      var cb = _.last(args);
-      if (user) {
-        f.apply(null, args);
-      } else if (!remote.user) {
-        cb(new Error('Not authenticated!'));
-      } else {
-        var needToAuth = authPending == null;
-        if (needToAuth) authPending = [];
-        authPending.push(function(err) {
-          if (err) cb(err); else f.apply(null, args);
-        });
-        if (needToAuth) {
-          authenticate(remote.user, function(err) {
-            var p = authPending;
-            authPending = null;
-            p.forEach(function(f) { f(err) });
-          });
-        }
-      }
-    };
-  }
+  // function ensureAuth(f) {
+  //   return function () {
+  //     var args = _.toArray(arguments);
+  //     var cb = _.last(args);
+  //     if (user) {
+  //       f.apply(null, args);
+  //     } else if (!remote.sessionId) {
+  //       cb(new Error('Not authenticated!'));
+  //     } else {
+  //       var needToAuth = authPending == null;
+  //       if (needToAuth) authPending = [];
+  //       authPending.push(function (err) {
+  //         if (err) cb(err); else f.apply(null, args);
+  //       });
+  //       if (needToAuth) {
+  //         authenticate(remote.sessionId, function (err) {
+  //           var p = authPending;
+  //           authPending = null;
+  //           p.forEach(function (f) { f(err) });
+  //         });
+  //       }
+  //     }
+  //   };
+  // }
 
   // TMP: use subscriptions from client end
   function fetchNotifications(opts, cb) {
@@ -1242,113 +1251,114 @@ var createDnodeConnection = function (remote, conn) {
       cb = opts;
       opts = null;
     }
-    if (opts && opts.vehicleId) {
-      fetch([ { _id: opts.vehicleId } ], false);
-    } else {
-      var filterUser;
-      if (user.role === 'admin') {
-        filterUser = null;
-      } else if (user.role === 'office') {
-        filterUser = ['4ddc6340f978287c5e000003',
-            '4ddc84a0c2e5c2205f000001',
-            '4ddee7a08fa7e041710001cb'];
-      } else {
-        filterUser = user;
-      }
-      findVehiclesByUser(filterUser, function (vehicles) {
-        fetch(vehicles, true);
-      });
-    }
-
-    function fetch(vehicles, addVehicle) {
-      var drives = [];
-      var charges = [];
-      var errors = [];
-      var warnings = []; 
-      var notes = [];
-      Step(
-        function () {
-          var parallel = this.parallel;
-          vehicles.forEach(function (v) {
-            v = JSON.parse(JSON.stringify(v));  // Strip mongoose crap.
-            var next = parallel();
-            Step(
-              function () {
-                var _parallel = this.parallel;
-                sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
-                sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
-                sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
-                sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
-                sampleDb.fetchSamples(v._id, '_note', {}, this.parallel());
-              },
-              function (err, drives_, charges_, errors_, warnings_, notes_) {
-                if (err) { cb(err); return; }
-                function addType(type) {
-                  return function(not) {
-                    not.type = type;
-                    if (addVehicle) not.vehicle = v;
-                  }
-                }
-                drives_.forEach(addType('_drive'));
-                charges_.forEach(addType('_charge'));
-                errors_.forEach(addType('_error'));
-                warnings_.forEach(addType('_warning'));
-                notes_.forEach(addType('_note'));
-                drives = drives.concat(drives_);
-                charges = charges.concat(charges_);
-                errors = errors.concat(errors_);
-                warnings = warnings.concat(warnings_);
-                notes = notes.concat(notes_);
-                next();
-              }
-            );
-          });
-          parallel()(); // In case there are no vehicles.
-        },
-        function (err) {
-          if (err) { cb(err); return; }
-          
-          var _sort = _.after(notes.length, sort);
-          notes.forEach(function (note) {
-            User.findById(note.val.userId, function (err, usr) {
-              // Strip mongoose crap.
-              note.user = JSON.parse(JSON.stringify(usr));
-              _sort();
-            });
-          });
-          function sort() {
-            var bins = {};
-            var threads = [];
-            var threadedNotes = [];
-            _.each(notes, function (note) {
-              var key = String(note.beg) + String(note.end);
-              if (!(key in bins)) bins[key] = [];
-              bins[key].push(note);
-            });
-            _.each(bins, function (bin) {
-              threads.push(bin);
-            });
-            _.each(threads, function (thread) {
-              thread.sort(function (a, b) {
-                return a.val.date - b.val.date;
-              });
-              var note = thread[0];
-              note.replies = _.rest(thread);
-              note.latest = _.last(thread).val.date;
-              threadedNotes.push(note);
-            });
-            var notifications = [].concat(drives, charges, errors,
-                                          warnings, threadedNotes);
-            notifications.sort(function(a, b) {
-              var at = a.latest ? a.latest * 1e3 : a.beg;
-              var bt = b.latest ? b.latest * 1e3 : b.beg;
-              return bt - at;
-            });
-            cb(null, notifications);
-          }
-        }
-      );
-    }
+    // if (opts && opts.vehicleId) {
+    //   fetch([ { _id: opts.vehicleId } ], false);
+    // } else {
+    //   var filterUser;
+    //   if (user.role === 'admin') {
+    //     filterUser = null;
+    //   } else if (user.role === 'office') {
+    //     filterUser = ['4ddc6340f978287c5e000003',
+    //         '4ddc84a0c2e5c2205f000001',
+    //         '4ddee7a08fa7e041710001cb'];
+    //   } else {
+    //     filterUser = user;
+    //   }
+    //   findVehiclesByUser(filterUser, function (vehicles) {
+    //     fetch(vehicles, true);
+    //   });
+    // }
+    // 
+    // function fetch(vehicles, addVehicle) {
+    //   var drives = [];
+    //   var charges = [];
+    //   var errors = [];
+    //   var warnings = []; 
+    //   var notes = [];
+    //   Step(
+    //     function () {
+    //       var parallel = this.parallel;
+    //       vehicles.forEach(function (v) {
+    //         v = JSON.parse(JSON.stringify(v));  // Strip mongoose crap.
+    //         var next = parallel();
+    //         Step(
+    //           function () {
+    //             var _parallel = this.parallel;
+    //             sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
+    //             sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
+    //             sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
+    //             sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
+    //             sampleDb.fetchSamples(v._id, '_note', {}, this.parallel());
+    //           },
+    //           function (err, drives_, charges_, errors_, warnings_, notes_) {
+    //             if (err) { cb(err); return; }
+    //             function addType(type) {
+    //               return function(not) {
+    //                 not.type = type;
+    //                 if (addVehicle) not.vehicle = v;
+    //               }
+    //             }
+    //             drives_.forEach(addType('_drive'));
+    //             charges_.forEach(addType('_charge'));
+    //             errors_.forEach(addType('_error'));
+    //             warnings_.forEach(addType('_warning'));
+    //             notes_.forEach(addType('_note'));
+    //             drives = drives.concat(drives_);
+    //             charges = charges.concat(charges_);
+    //             errors = errors.concat(errors_);
+    //             warnings = warnings.concat(warnings_);
+    //             notes = notes.concat(notes_);
+    //             next();
+    //           }
+    //         );
+    //       });
+    //       parallel()(); // In case there are no vehicles.
+    //     },
+    //     function (err) {
+    //       if (err) { cb(err); return; }
+    //       
+    //       var _sort = _.after(notes.length, sort);
+    //       notes.forEach(function (note) {
+    //         User.findById(note.val.userId, function (err, usr) {
+    //           // Strip mongoose crap.
+    //           note.user = JSON.parse(JSON.stringify(usr));
+    //           _sort();
+    //         });
+    //       });
+    //       function sort() {
+    //         var bins = {};
+    //         var threads = [];
+    //         var threadedNotes = [];
+    //         _.each(notes, function (note) {
+    //           var key = String(note.beg) + String(note.end);
+    //           if (!(key in bins)) bins[key] = [];
+    //           bins[key].push(note);
+    //         });
+    //         _.each(bins, function (bin) {
+    //           threads.push(bin);
+    //         });
+    //         _.each(threads, function (thread) {
+    //           thread.sort(function (a, b) {
+    //             return a.val.date - b.val.date;
+    //           });
+    //           var note = thread[0];
+    //           note.replies = _.rest(thread);
+    //           note.latest = _.last(thread).val.date;
+    //           threadedNotes.push(note);
+    //         });
+    //         var notifications = [].concat(drives, charges, errors,
+    //                                       warnings, threadedNotes);
+    //         notifications.sort(function(a, b) {
+    //           var at = a.latest ? a.latest * 1e3 : a.beg;
+    //           var bt = b.latest ? b.latest * 1e3 : b.beg;
+    //           return bt - at;
+    //         });
+    //         cb(null, notifications);
+    //       }
+    //     }
+    //   );
+    // }
+    cb(null, []);
   }
 
   function fetchVehicles(cb) {
@@ -1413,8 +1423,7 @@ var createDnodeConnection = function (remote, conn) {
     //     }
     //   );
     // });
-
-
+    cb(null, []);
     userDb.populateUserVehicles(user, function (err) {
       cb(err, user.vehicles);
     });
@@ -1533,19 +1542,34 @@ var createDnodeConnection = function (remote, conn) {
     _.keys(subscriptions).forEach(cancelSubscribeSamples);
   });
 
+  // return {
+  //   // signin: signin,
+  //   authenticate: authenticate,
+  //   fetchNotifications: ensureAuth(fetchNotifications),
+  //   fetchVehicles: ensureAuth(fetchVehicles),
+  //   // fetchUsers: ensureAuth(fetchUsers),
+  //   fetchSamples: ensureAuth(fetchSamples),
+  //   cancelSubscribeSamples: cancelSubscribeSamples,
+  //   insertSamples: ensureAuth(insertSamples),
+  //   fetchChannelTree: ensureAuth(fetchChannelTree),
+  //   fetchVehicleConfig: ensureAuth(fetchVehicleConfig),
+  //   saveVehicleConfig: ensureAuth(saveVehicleConfig),
+  //   saveAppState: ensureAuth(saveAppState),
+  // };
+  
   return {
-    signin: signin,
+    // signin: signin,
     authenticate: authenticate,
-    fetchNotifications: ensureAuth(fetchNotifications),
-    fetchVehicles: ensureAuth(fetchVehicles),
+    fetchNotifications: fetchNotifications,
+    fetchVehicles: fetchVehicles,
     // fetchUsers: ensureAuth(fetchUsers),
-    fetchSamples: ensureAuth(fetchSamples),
+    fetchSamples: fetchSamples,
     cancelSubscribeSamples: cancelSubscribeSamples,
-    insertSamples: ensureAuth(insertSamples),
-    fetchChannelTree: ensureAuth(fetchChannelTree),
-    fetchVehicleConfig: ensureAuth(fetchVehicleConfig),
-    saveVehicleConfig: ensureAuth(saveVehicleConfig),
-    saveAppState: ensureAuth(saveAppState),
+    insertSamples: insertSamples,
+    fetchChannelTree: fetchChannelTree,
+    fetchVehicleConfig: fetchVehicleConfig,
+    saveVehicleConfig: saveVehicleConfig,
+    saveAppState: saveAppState,
   };
 };
 
@@ -1577,14 +1601,14 @@ if (!module.parent) {
 
       dnode(createDnodeConnection).use(dnodeLogMiddleware).
           listen(app, {
-              io: { // 'log level': 2,
-                    transports: [
-                      'websocket',
-                      //'htmlfile',  // doesn't work
-                      'xhr-polling',
-                      //'jsonp-polling',  // doesn't work
-                    ] }
-          } );
+            io: { // 'log level': 2,
+              transports: [
+                'websocket',
+                //'htmlfile',  // doesn't work
+                'xhr-polling',
+                //'jsonp-polling',  // doesn't work
+              ]}
+          });
       log("Express server listening on port", app.address().port);
     }
   );

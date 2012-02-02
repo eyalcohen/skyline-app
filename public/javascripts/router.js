@@ -50,7 +50,7 @@ define(['jquery'], function ($) {
 
     state: function (key) {
       App.publish('KillallTabs');
-      var state = $('#main').data('state');
+      var state = _MM_StateSTR_;
       if (!state || state.substr(0, 1) === '!') {
         window.location = window.location.href;
         return;

@@ -1,5 +1,8 @@
-- if (typeof user === "undefined") { user = null; }
-- if (typeof stateStr === "undefined") { stateStr = null; }
+- if (typeof sid === "undefined") { sid = null; }
+- if (typeof state === "undefined") { state = null; }
+script
+  _MM_SessionID_ = '#{sid}';
+  _MM_StateSTR_ = '#{state}';
 #loading
 #container
   header
@@ -9,7 +12,7 @@
     div
       nav
         ul
-  #main(role="main", data-state=stateStr, data-user=user)
+  #main(role="main")
     div.tabs
       div.tabs-dynamic
       div.tab-bar

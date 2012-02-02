@@ -322,3 +322,92 @@ How does the client upload higher-resolution data when available?
 * Could store begin and end arrays relative to bucket start time.
 * Could make a begin time of null mean "same as previous end time".
 * Could intern channel names, store them as 32-bit numbers.
+
+
+
+
+# Skyline User-Vehicle Structure #
+
+## Concepts ##
+
+Skyline is capable of handling complex relationships between users / groups of users and vehicles / groups of vehicles. This is done via a permissions or "access" schema that describes the specific relationships between users and their vehicles. Users can have access to single vehicle(s) and/or fleet(s) of vehicles. Additionally, users can be placed into groups that can have access to single vehicle(s) and/or fleet(s) of vehicles.
+
+## Architecture ##
+
+Four database schemas are used for handling data interaction: Users, Vehicles, Fleets, and Domains.
+
+### User Schema ###
+
+    {
+      _id: Number, -- A unique identifier for this User (unsigned 32-bit int)
+      displayName: String, -- The name of this User, suitable for display
+      name: Object
+      {
+        familyName: String, -- The family name of this User, or "last name" in most Western languages
+        givenName: String, -- The given name of this User, or "first name" in most Western languages
+        middleName: String, -- The middle name of this User
+      },
+      emails: [ Object ]
+      [{
+        value: String, -- The actual email address
+      }],
+      created: Number, -- Time stamp of when this User was created (Date.now())
+      vehicles: [ Access ], -- An Access object list describing Vehicles (see below)
+      fleets: [ Access ], -- An Access object list describing Fleets
+    }
+
+In practice, `displayName`, `name`, and `emails` are provided by Skyline's authentication middleware, [Passport](http://passportjs.org/guide/). Because profile information may originate from different providers (OpenID / OAuth), Passport follows the contact schema established by [Portable Contacts](http://portablecontacts.net/).
+
+### Team Schema ###
+
+    {
+      _id: Number, -- A unique identifier for this Team (unsigned 32-bit int)
+      domains: [ String ], -- Optional domain names, e.g. "ridemission.com", that will be used to scrape for this Team's Users
+      users: [ User ], -- Optional list of Users represnting this Team.
+      admins: [ User ], -- Users allowed to add/remove Team User and domains (By default, the User who created this Team is added to this list. Admins can add/remove other admins)
+      created: Number, -- Time stamp of when this Team was created (Date.now())
+      vehicles: [ Access ], -- An Access object list describing Vehicles
+      fleets: [ Access ], -- An Access object list describing Fleets
+    }
+
+At least one domain name or User is required to define a group. Domain name and User list combinations are accepted.
+
+### Vehicle Schema ###
+
+    {
+      _id: Number, -- A unique identifier for this Vehicle (unsigned 32-bit int)
+      title: String, -- e.g. "2011 Chevy Volt"
+      description: String, -- e.g. "Mike’s city commuter" - or nickname, Zipcar style, e.g. "White Lightning"
+      created: Number, -- Time stamp of when this Vehicle was created (Date.now())
+    }
+
+### Fleet Schema ###
+
+    {
+      _id: Number, -- A unique identifier for this Vehicle (unsigned 32-bit int)
+      title: String, -- e.g. "Oakland Car Share"
+      description: String, -- e.g. "Compact cars shared in Oakland" - or nickname, Zipcar style, e.g. "The Raiders"
+      created: Number, -- Time stamp of when this Fleet was created (Date.now())
+      vehicles: [ Number ], -- A list of Vehicles belonging to this Fleet
+    }
+
+Users with admin access to Vehicles can add them to Fleets.
+
+Users are associated with Vehicles and/or Fleets by "access" objects. These objects define different types of access, and may be extended with other options in the future. "Access" objects exist only as part of the above four main schemas.
+
+### Access Schema ###
+
+    {
+      targetId: Number, -- The associated target's (Vehicle or Fleet) unique identifier (unsigned 32-bit int)
+      created: Number, -- Time stamp of when this access was granted (Date.now())
+      lastAccess: Number, -- Time stamp of when this access was last used (Date.now())
+      admin: Boolean, -- Denotes wether or not the associated User can add / modify other User access to the target
+      config: Boolean, -- Denotes wether or not the associated User can edit the target's Configuration file
+      channels: [ String ], -- List of associated User accessible channel names on the target
+    }
+
+
+### Things to think about ###
+
+* How is a Vehicle originally associated with a User (this would have to be a User with admin access)? Is there a SuperUser that is auto associated with a Vehicle after it's created that must make the initial connection?
+

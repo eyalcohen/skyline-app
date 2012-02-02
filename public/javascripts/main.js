@@ -19,9 +19,9 @@ requirejs(['libs/domReady',
     debug: true,
     start: function () {
       var firstConnect = true;
-      App.user = $('#main').data('user');
+      App.sessionId = _MM_SessionID_;
       App.dnodeAuth = { // This object is sent to the remote server.
-        user: App.user,
+        sessionId: App.sessionId,
       };
       DNode(App.dnodeAuth).connect({
             disconnect: App.disconnect,
@@ -82,9 +82,9 @@ requirejs(['libs/domReady',
         } else authenticate(true);
 
         function authenticate(reconnect) {
-          if (App.user) {
-            App.api.authenticate(App.user, function (err) {
-              if (err) {
+          if (App.sessionId) {
+            App.api.authenticate(App.sessionId, function (err, user) {
+              if (err || !user) {
                 console.warn('Server connected. User NOT authorized!');
                 App.publish('NotAuthenticated', [{
                   report: 'Oops! Something bad happened so you were Signed Out. Please Sign In again.',
@@ -93,6 +93,7 @@ requirejs(['libs/domReady',
                 App.loading.stop();
               } else {
                 console.warn('Server connected. User authorized!');
+                App.user = user;
                 App.publish(reconnect ? 'DNodeReconnectUserAuthorized'
                             : 'UserWasAuthenticated');
               }

@@ -27,7 +27,7 @@ var UserDb = exports.UserDb = function (db, options, cb) {
   Step(
     function () {
       var group = this.group();
-      _.each(['users', 'vehicles', 'vclasses'], function (colName) {
+      _.each(['sessions', 'users', 'vehicles', 'vclasses'], function (colName) {
         db.collection(colName, group());
       });
     },
@@ -47,10 +47,26 @@ var UserDb = exports.UserDb = function (db, options, cb) {
 
 // find
 
-UserDb.prototype.findUserByHexStr = function (id, cb) {
-  this.collections.users.findOne({ _id: new ObjectID(id) },
+UserDb.prototype.findUserByHexStr = function (str, cb) {
+  this.collections.users.findOne({ _id: new ObjectID(str) },
                                 function (err, user) {
     cb(err, user);
+  });
+}
+
+UserDb.prototype.findSessionUserById = function (id, cb) {
+  var self = this;
+  self.collections.sessions.findOne({ _id: id },
+                                function (err, doc) {
+    if (err || !doc)
+      cb(err);
+    else
+      self.findUserByHexStr(JSON.parse(doc.session).passport.user,
+                            function (err, user) {
+        delete user.openId;
+        delete user._id;
+        cb(err, user);
+      });
   });
 }
 
