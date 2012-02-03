@@ -285,7 +285,8 @@ passport.serializeUser(function (user, cb) {
 });
 
 passport.deserializeUser(function (id, cb) {
-  userDb.findUserByHexStr(id, function (err, user) {
+  userDb.findUserById(id, function (err, user) {
+    if (!user) user = {};
     cb(err, user);
   });
 });
@@ -615,52 +616,118 @@ app.post('/usercreate/:newemail', function (req, res) {
 
 // Handle vehicle create request - LAGACY
 
-app.post('/vehiclecreate/:email/:make/:model/:year',
-    function (req, res) {
-  var v = new Vehicle({
-      _id: parseInt(Math.random() * 0x7fffffff)  // TODO: collisions
-    , make: req.params.make
-    , model: req.params.model
-    , year: req.params.year
-    , user_id: req.currentUser._id
-  });
-  v.save(function (err) {
-    if (!err) {
-      res.send({ status: 'success', data: { vehicleId: v._id } });
-    } else {
-      res.send({ status: 'error', message: err }, 400);
-    }
-  });
-});
+// app.post('/vehiclecreate/:email/:make/:model/:year',
+//     function (req, res) {
+//   var v = new Vehicle({
+//       _id: parseInt(Math.random() * 0x7fffffff)  // TODO: collisions
+//     , make: req.params.make
+//     , model: req.params.model
+//     , year: req.params.year
+//     , user_id: req.currentUser._id
+//   });
+//   v.save(function (err) {
+//     if (!err) {
+//       res.send({ status: 'success', data: { vehicleId: v._id } });
+//     } else {
+//       res.send({ status: 'error', message: err }, 400);
+//     }
+//   });
+// });
 
 // new route
 
-app.post('/create/vehicle/:title/:description/:vclass',
+// app.post('/create/vehicle/:title/:description/:vclass',
+//     function (req, res) {
+//   var props = {
+//     _id: parseInt(Math.random() * 0x7fffffff), // TODO: collisions
+//     title: req.params.title,
+//     description: req.params.description,
+//   };
+//   function fail(err) {
+//     res.send({ status: 'error', message: err }, 400);
+//   }
+//   // get vclass _id
+//   var vclassId = userDb.findOrCreateVClassFromTitle(req.params.vclass,
+//       function (err, vclass) {
+//     if (err) fail(err);
+//     else {
+//       // add vehicle class to vehicle
+//       props.vclass = vclass.title;
+//       // create the vehicle
+//       userDb.createVehicle(props, function (err, veh) {
+//           if (err) fail(err);
+//           else res.send({ status: 'success',
+//                       data: { vehicleId: veh._id } });
+//       });
+//     }
+//   });
+// });
+
+app.post('/create/vehicle/:title/:description/:nickname',
     function (req, res) {
   var props = {
-    _id: parseInt(Math.random() * 0x7fffffff), // TODO: collisions
     title: req.params.title,
     description: req.params.description,
+    nickname: req.params.nickname,
   };
-  function fail(err) {
-    res.send({ status: 'error', message: err }, 400);
-  }
-  // get vclass _id
-  var vclassId = userDb.findOrCreateVClassFromTitle(req.params.vclass,
-      function (err, vclass) {
-    if (err) fail(err);
-    else {
-      // add vehicle class to vehicle
-      props.vclass = vclass.title;
-      // create the vehicle
-      userDb.createVehicle(props, function (err, veh) {
-          if (err) fail(err);
-          else res.send({ status: 'success',
-                      data: { vehicleId: veh._id } });
-      });
-    }
+  // create the vehicle
+  userDb.createVehicle(props, function (err, veh) {
+      if (err)
+        res.send({ status: 'error', message: err }, 400);
+      else
+        res.send({ status: 'success', data: { vehicleId: veh._id } });
   });
 });
+
+app.post('/create/team/:title/:description/:nickname/:domains/:users/:admins',
+    function (req, res) {
+  var props = {
+    title: req.params.title,
+    description: req.params.description,
+    nickname: req.params.nickname,
+    domains: req.params.domains !== 'null' ?
+        req.params.domains.split(',') : [],
+    users: req.params.users !== 'null' ?
+        _.map(req.params.users.split(','),
+              function (v) { return Number(v); }) : [],
+    admins: req.params.admins !== 'null' ?
+        _.map(req.params.admins.split(','),
+              function (v) { return Number(v); }) : [],
+  };
+  // create the team
+  userDb.createTeam(props, function (err, team) {
+      if (err)
+        res.send({ status: 'error', message: err }, 400);
+      else
+        res.send({ status: 'success', data: { teamId: team._id } });
+  });
+});
+
+app.post('/create/fleet/:title/:description/:nickname/:vehicles',
+    function (req, res) {
+  var props = {
+    title: req.params.title,
+    description: req.params.description,
+    nickname: req.params.nickname,
+    vehicles: req.params.vehicles !== 'null' ?
+        _.map(req.params.vehicles.split(','),
+              function (v) { return Number(v); }) : [],
+  };
+  // create the fleet
+  userDb.createFleet(props, function (err, fle) {
+      if (err)
+        res.send({ status: 'error', message: err }, 400);
+      else
+        res.send({ status: 'success', data: { fleetId: fle._id } });
+  });
+});
+
+
+
+
+
+
+
 
 
 // Handle user info request
@@ -1197,16 +1264,21 @@ var createDnodeConnection = function (remote, conn) {
   //   });
   // }
 
+  function Err(message) {
+    this.message = message || 'Error';
+  }
+  Err.prototype = new Error();
+  Err.prototype.constructor = Err;
+
   function authenticate(clientSessionId, cb) {
     // if (user) return cb(null, user);
     // verifySession(clientSessionId, function (err, usr) {
     //   if (user) user = usr;
     //   cb(err, user);
     // });
-    
     userDb.findSessionUserById(clientSessionId, function (err, usr) {
-      if (err || !usr)
-        cb(new Error('User not authenticated.'));
+      // HACK(?): Without toString, err contents gets stripped somewhere.
+      if (err || !usr) cb(err.toString());
       else {
         if (user) user = usr;
         cb(null, usr);
@@ -1214,6 +1286,7 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
+  
   // function checkAuth(cb) {
   //   if (!user)
   //     cb(new Error('Not authenticated!'));

@@ -32,7 +32,8 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
     },
 
     signout: function (e) {
-      App.store.remove('user');
+      // App.store.remove('user');
+      // App.sessionId = null;
       App.user = null;
       $.get('/logout');
       App.publish('NotAuthenticated', [{

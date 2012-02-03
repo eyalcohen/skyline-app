@@ -84,12 +84,20 @@ requirejs(['libs/domReady',
         function authenticate(reconnect) {
           if (App.sessionId) {
             App.api.authenticate(App.sessionId, function (err, user) {
-              if (err || !user) {
+              if (err) {
                 console.warn('Server connected. User NOT authorized!');
-                App.publish('NotAuthenticated', [{
-                  report: 'Oops! Something bad happened so you were Signed Out. Please Sign In again.',
-                  type: 'error',
-                }]);
+                if ('Error: User and Session do NOT match!' === err) {
+                  App.publish('NotAuthenticated', [{
+                    report: 'Oops! Something bad happened so you were Signed Out. Please Sign In again.',
+                    type: 'error',
+                  }]);
+                } else if ('Session has no User.') {
+                  App.publish('NotAuthenticated', [{
+                    first: !reconnect,
+                    report: 'Skyline manages Users with Google Account information.',
+                    type: 'message',
+                  }]);
+                } else console.warn(err);
                 App.loading.stop();
               } else {
                 console.warn('Server connected. User authorized!');
@@ -99,11 +107,12 @@ requirejs(['libs/domReady',
               }
             });
           } else {
-            App.publish('NotAuthenticated', [{
-              first: true,
-              report: 'Skyline manages Users with Google Account information.',
-              type: 'message',
-            }]);
+            console.warn('Session ID NOT found!');
+            // App.publish('NotAuthenticated', [{
+            //   first: true,
+            //   report: 'Skyline manages Users with Google Account information.',
+            //   type: 'message',
+            // }]);
             App.loading.stop();
           }
         }
