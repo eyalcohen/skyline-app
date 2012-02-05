@@ -12,11 +12,12 @@ var exports = module.exports = function (xs) {
 exports.shuffle = function (xs) {
     if (Array.isArray(xs)) {
         // uniform shuffle
-        var ys = xs.slice();
-        var res = [];
-        while (ys.length > 0) {
-            var n = Math.floor(Math.random() * ys.length);
-            res.push(ys.splice(n, 1)[0]);
+        var res = xs.slice();
+        for (var i = res.length - 1; i >= 0; i--) {
+            var n = Math.floor(Math.random() * i);
+            var t = res[i];
+            res[i] = res[n];
+            res[n] = t;
         }
         return res;
     }

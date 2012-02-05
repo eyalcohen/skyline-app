@@ -10,7 +10,6 @@
  * when looking for these documents by _id.
  */ 
 
-// var ObjectID = require('mongodb').BSONPure.ObjectID;
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var util = require('util');
@@ -57,17 +56,18 @@ UserDb.prototype.findSessionUserById = function (id, cb) {
   var self = this;
   self.collections.sessions.findOne({ _id: id },
                                 function (err, doc) {
-    if (err || !doc) cb(err);
+    if (err) { cb(err); return; }
+    if (!doc) { cb(new Error('Failed to find session.')); return; }
     else {
       var session = JSON.parse(doc.session);
       var userId = session.passport.user;
       if (userId) {
         self.findUserById(userId, function (err, user) {
-          if (user) {
-            delete user.openId;
-            delete user._id;
-            cb(err, user);
-          } else cb(new Error('User and Session do NOT match!'))
+          if (err) { cb(err); return; }
+          if (!user) { cb(new Error('User and Session do NOT match!')); return; }
+          delete user.openId;
+          delete user._id;
+          cb(null, user);
         });
       } else cb(new Error('Session has no User.'));
     }
@@ -75,58 +75,117 @@ UserDb.prototype.findSessionUserById = function (id, cb) {
 }
 
 
-UserDb.prototype.getUserVehicleList = function (userId, cb) {
+UserDb.prototype.getUserVehicleData = function (userId, cb) {
   var self = this;
-  var vehicleIds = [];
-  var vehicles = [];
+  var data = {
+    teams: [],
+    fleets: [],
+    vehicles: [],
+  };
 
   Step(
-    function getUser() {
-      self.findUserById(userId, this());
+    // Get user.
+    function () {
+      if ('number' === typeof userId)
+        self.findUserById(userId, this);
+      else return userId;
     },
-    function getTeamVehicles(err, user) {
+    function (err, user) {
+      if (err) { cb(err); return; }
+      if (!user) { cb(new Error('Failed to find user.')); return; }
+      _getVehicles(user, this);
+    },
+    // Get the user's teams.
+    function (err, user) {
+      var next = this;
       // Find teams that contain the user
       // or that contain the user's domain name
       var userDomain = user.emails[0].value.split('@')[1];
       self.collections.teams.find({ $or : [{ users : user._id },
             { domains : userDomain }] }).toArray(function (err, teams) {
-        var fleetIds = [];
-        // Collect _ids.
-        _.each(teams, function (team) {
-          vehicleIds.concat(team.vehicles);
-          fleetIds.concat(team.fleets);
-        });
-        // Get all the fleets' vehicles.
-        _.uniq(fleetIds);
-        _.each(fleetIds, function (fleetId) {
-          self.collections.fleets.findOne({ id: fleetId },
-                                          function (err, fleet) {
-            
+        if (err) { next(err); return; }
+        // Gather teams' vehicles and fleets.
+        if (teams.length > 0) {
+          var _next = _.after(teams.length, next);
+          _.each(teams, function (team) {
+            _getVehicles(team, true, function () {
+              // Add teams to user data.
+              delete team.vehicles;
+              delete team.fleets;
+              delete team.domains;
+              delete team.users;
+              delete team.admins;
+              data.teams.push(team);
+              _next.apply(this, arguments);
+            });
+          });
+        } else return;
+      });
+    },
+    // Fetch all the vehicles.
+    function (err) {
+      if (data.vehicles.length > 0) {
+        var next = _.after(data.vehicles.length, this);
+        _.each(data.vehicles, function (veh) {
+          self.collections.vehicles.findOne({ _id: veh._id },
+                                          function (err, vehicle) {
+            if (err) { cb(err); return; }
+            if (!vehicle) { cb(new Error('Failed to find vehicle.')); return; }
+            delete vehicle._id;
+            veh.doc = vehicle;
+            next(null);
           });
         });
-        
-      });
+      } else return;
+    },
+    // All done.
+    function (err) {
+      cb(err, data);
     }
   );
 
+  function _getVehicles(owner, isTeam, cb) {
+    if ('function' === typeof isTeam) {
+      cb = isTeam;
+      isTeam = false;
+    }
+    // Get vehicles.
+    _.each(owner.vehicles, function (access) {
+      var veh = {
+        _id: access.targetId,
+        access: access,
+      };
+      if (isTeam) veh.teamId = owner._id;
+      data.vehicles.push(veh);
+    });
+    // Get fleet vehicles.
+    if (owner.fleets.length > 0) {
+      var _cb = _.after(owner.fleets.length, cb);
+      _.each(owner.fleets, function (access) {
+        self.collections.fleets.findOne({ _id: access.targetId },
+                                        function (err, fleet) {
+          if (err) { cb(err); return; }
+          if (!fleet) { cb(new Error('Failed to find fleet.')); return; }
+          _.each(fleet.vehicles, function (vehicleId) {
+            var veh = {
+              _id: vehicleId,
+              fleetId: fleet._id,
+              access: access,
+            };
+            if (isTeam) veh.teamId = owner._id;
+            data.vehicles.push(veh);
+          });
+          // Add fleets to user data only if
+          // owner is the user and not a team.
+          delete fleet.vehicles;
+          if (!isTeam) data.fleets.push(fleet);
+          cb(null, owner);
+        });
+      });
+    } else cb(null, owner);
+  }
+
 }
-
-
-// UserDb.prototype.populateUserVehicles = function (user, cb) {
-//   var self = this;
-//   if (user.vehiclesPopulated) {
-//     cb(null);
-//     return;
-//   }
-//   _.after(user.vehicles.length, cb);
-//   _.each(user.vehicles, function (access) {
-//     self.collections.vehicles.findOne({ _id: access.targetId },
-//                                       function (err, veh) {
-//       access.target = veh;
-//       cb(err);
-//     });
-//   });
-// }
 
 
 // create
@@ -186,19 +245,25 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
     channels: ['/'],
   });
   opts.targetId = targetId;
-  self.collections[granteeType].findOne({ _id: Number(granteeId) },
-                                function (err, grantee) {
-    if (err) { cb(err); return; }
-    if (!grantee) { cb(new Error('No grantee found.')); return; }
-    grantee[targetType].push(opts);
-    var update = {};
-    update[targetType] = grantee[targetType];
-    self.collections[granteeType].update({ _id: Number(granteeId) },
-                                  { $set: update }, { safe: true },
-                                  function (err) {
-      cb(err);
-    });
-  });
+  Step(
+    function () {
+      self.collections[granteeType]
+          .findOne({ _id: Number(granteeId) }, this.parallel());
+      self.collections[targetType]
+          .findOne({ _id: Number(targetId) }, this.parallel());
+    },
+    function (err, grantee, target) {
+      if (err) { cb(err); return; }
+      if (!grantee) { cb(new Error('No grantee found.')); return; }
+      if (!target) { cb(new Error('No target found.')); return; }
+      grantee[targetType].push(opts);
+      var update = {};
+      update[targetType] = grantee[targetType];
+      self.collections[granteeType].update({ _id: Number(granteeId) },
+                                    { $set: update }, { safe: true },
+                                    function (err) { cb(err); });
+    }
+  );
 }
 
 

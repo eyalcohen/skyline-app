@@ -25,6 +25,7 @@ if (argv._.length || argv.help) {
 var log = require('./log.js').log;
 var logTimestamp = require('./log.js').logTimestamp;
 var express = require('express');
+var connect = require('connect');
 var mongoose = require('mongoose');
 var ObjectID = require('mongoose/lib/types/objectid');
 var jade = require('jade');
@@ -32,6 +33,7 @@ var mongodb = require('mongodb');
 var mongoStore = require('connect-mongodb');
 var gzip = require('connect-gzip');
 var dnode = require('dnode');
+// var dnodeSession = require('dnode-session');
 var color = require('cli-color');
 var fs = require('fs');
 var path = require('path');
@@ -65,8 +67,10 @@ try {
   log(e.stack || e);
 }
 var Notify = require('./notify');
+
 var UserDb = require('./user_db.js').UserDb;
 var SampleDb = require('./sample_db.js').SampleDb;
+
 var compatibility = require('./compatibility.js');
 
 var db, User, Vehicle, AppState;
@@ -194,6 +198,11 @@ function rawBody(rawMimeTypes) {
   }
 }
 
+var sessionStore = new mongoStore({
+  db: mongodb.connect(argv.db, { noOpen: true }, function() {}),
+}, function (err) {
+  if (err) log('Error creating mongoStore: ' + err);
+});
 
 app.configure(function () {
   // Use gzip compression for all responses.
@@ -208,15 +217,10 @@ app.configure(function () {
   app.use(express.bodyParser());
   app.use(rawBody(['application/octet-stream']));
   app.use(express.cookieParser());
-
-  var sessionServerDb =
-      mongodb.connect(argv.db, { noOpen: true }, function() {});
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one week
     secret: 'hum7a5t1c',
-    store: new mongoStore({ db: sessionServerDb, }, function (err) {
-      if (err) log('Error creating mongoStore: ' + err);
-    })
+    store: sessionStore,
   }));
   app.use(passport.initialize());
   app.use(passport.session());
@@ -693,6 +697,8 @@ app.post('/create/team/:title/:description/:nickname/:domains/:users/:admins',
     admins: req.params.admins !== 'null' ?
         _.map(req.params.admins.split(','),
               function (v) { return Number(v); }) : [],
+    vehicles: [],
+    fleets: [],
   };
   // create the team
   userDb.createTeam(props, function (err, team) {
@@ -936,83 +942,83 @@ app.put('/samples', function (req, res) {
 
 // LEGACY: Handle cycle events request
 
-app.put('/cycle', function (req, res) {
-
-  function fail(code) {
-    log('PUT /cycle failed: ' + code);
-    res.send({ status: 'fail', data: { code: code } }, 400);
-  }
-
-  // Parse to JSON.
-  var cycle, mimeType = requestMimeType(req);
-  if (mimeType == 'application/octet-stream') {
-    if (!(req.body instanceof Buffer)) {
-      fail('BAD_PROTOBUF_FORMAT');
-      return;
-    }
-    cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'));
-  } else if (mimeType == 'application/json') {
-    cycle = req.body;
-  } else {
-    fail('BAD_ENCODING:' + mimeType);
-    return;
-  }
-
-  var num = cycle.events.length, cnt = 0;
-
-  // get the cycle's user
-  User.findOne({ email: cycle.userId }, function (err, usr) {
-    if (!usr) {
-      fail('USER_NOT_FOUND');
-      return;
-    }
-
-    // authenticate user
-    if (!usr.authenticate(cycle.password)) {
-      fail('INCORRECT_PASSWORD');
-      return;
-    }
-
-    // get the cycle's vehicle
-    findVehicleByIntId(cycle.vehicleId, function (veh) {
-      if (!veh) {
-        fail('VEHICLE_NOT_FOUND');
-        return;
-      }
-
-      // save the cycle locally for now
-      var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
-          (veh.name ? veh.name + '.' : '') +
-          (new Date()).valueOf() + '.js';
-      var cycleJson = JSON.stringify(cycle);
-      fs.mkdir(__dirname + '/cycles', '0755', function (err) {
-        fs.writeFile(__dirname + '/cycles/' + fileName, cycleJson,
-                     function (err) {
-            if (err) {
-              log(err);
-            } else {
-              log('Saved to: ' + __dirname + '/cycles/' + fileName);
-            }
-        });
-      });
-
-      // loop over each cycle in event
-      cycle.events.forEach(function (event) {
-
-        // add new cycle
-        event.valid = true;
-        event._id = new EventID({ id: veh._id, time: 0 });
-        compatibility.insertEventBucket(sampleDb, event, function (err) {
-          if (err)
-            log('Error in insertEventBucket: ' + err.stack);
-          if (++cnt === num)
-            res.end();
-        });
-
-      });
-    });
-  });
-});
+// app.put('/cycle', function (req, res) {
+// 
+//   function fail(code) {
+//     log('PUT /cycle failed: ' + code);
+//     res.send({ status: 'fail', data: { code: code } }, 400);
+//   }
+// 
+//   // Parse to JSON.
+//   var cycle, mimeType = requestMimeType(req);
+//   if (mimeType == 'application/octet-stream') {
+//     if (!(req.body instanceof Buffer)) {
+//       fail('BAD_PROTOBUF_FORMAT');
+//       return;
+//     }
+//     cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'));
+//   } else if (mimeType == 'application/json') {
+//     cycle = req.body;
+//   } else {
+//     fail('BAD_ENCODING:' + mimeType);
+//     return;
+//   }
+// 
+//   var num = cycle.events.length, cnt = 0;
+// 
+//   // get the cycle's user
+//   User.findOne({ email: cycle.userId }, function (err, usr) {
+//     if (!usr) {
+//       fail('USER_NOT_FOUND');
+//       return;
+//     }
+// 
+//     // authenticate user
+//     if (!usr.authenticate(cycle.password)) {
+//       fail('INCORRECT_PASSWORD');
+//       return;
+//     }
+// 
+//     // get the cycle's vehicle
+//     findVehicleByIntId(cycle.vehicleId, function (veh) {
+//       if (!veh) {
+//         fail('VEHICLE_NOT_FOUND');
+//         return;
+//       }
+// 
+//       // save the cycle locally for now
+//       var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
+//           (veh.name ? veh.name + '.' : '') +
+//           (new Date()).valueOf() + '.js';
+//       var cycleJson = JSON.stringify(cycle);
+//       fs.mkdir(__dirname + '/cycles', '0755', function (err) {
+//         fs.writeFile(__dirname + '/cycles/' + fileName, cycleJson,
+//                      function (err) {
+//             if (err) {
+//               log(err);
+//             } else {
+//               log('Saved to: ' + __dirname + '/cycles/' + fileName);
+//             }
+//         });
+//       });
+// 
+//       // loop over each cycle in event
+//       cycle.events.forEach(function (event) {
+// 
+//         // add new cycle
+//         event.valid = true;
+//         event._id = new EventID({ id: veh._id, time: 0 });
+//         compatibility.insertEventBucket(sampleDb, event, function (err) {
+//           if (err)
+//             log('Error in insertEventBucket: ' + err.stack);
+//           if (++cnt === num)
+//             res.end();
+//         });
+// 
+//       });
+//     });
+//   });
+// });
 
 
 // Maintain an approximate load average for this process.
@@ -1082,12 +1088,6 @@ app.get('/auth/google', passport.authenticate('google'));
 // Google will redirect the user to this URL after authentication. Finish
 // the process by verifying the assertion. If valid, the user will be
 // logged in. Otherwise, authentication has failed.
-// app.get('/auth/google/return',
-//         passport.authenticate('google', { session: false }),
-//         function (req, res) {
-//   res.redirect('/');
-// });
-
 app.get('/auth/google/return', 
   passport.authenticate('google', { successRedirect: '/',
                                     failureRedirect: '/' }));
@@ -1208,10 +1208,10 @@ function ExecutionQueue(maxInFlight) {
 // Every time a client connects via dnode, this function will be called, and
 // the object it returns will be transferred to the client.
 var createDnodeConnection = function (remote, conn) {
-
-  conn.on('remote', function (userInfo) {
-    // log('Got remote event. Remote: ' + inspect(remote));
-  });
+  
+  // conn.on('remote', function (userInfo) {
+  //   // log('Got remote event. Remote: ' + inspect(remote));
+  // });
 
   var subscriptions = {};
   var user = null;  // Set once user is authenticated.
@@ -1221,6 +1221,26 @@ var createDnodeConnection = function (remote, conn) {
   // mysteriously slower than serially, and there's nothing to be gained by
   // making requests delay each other.
   var sampleDbExecutionQueue = ExecutionQueue(2);
+
+  var self = this;
+  var iid, sid, cookies;
+  
+  conn.on('ready', function () {
+    if (!conn.stream.socketio) return
+  
+    var id = conn.stream.socketio.id;
+    var req = conn.stream.socketio.manager.handshaken[id];
+    var session;
+  
+    if (!req.headers.cookie) return;
+  
+    cookies = connect.utils.parseCookie(req.headers.cookie);
+    sid = cookies['connect.sid'];
+    console.log(sid);
+    
+    
+    
+  });
 
   //// Methods accessible to remote side: ////
 
@@ -1264,12 +1284,6 @@ var createDnodeConnection = function (remote, conn) {
   //   });
   // }
 
-  function Err(message) {
-    this.message = message || 'Error';
-  }
-  Err.prototype = new Error();
-  Err.prototype.constructor = Err;
-
   function authenticate(clientSessionId, cb) {
     // if (user) return cb(null, user);
     // verifySession(clientSessionId, function (err, usr) {
@@ -1278,11 +1292,16 @@ var createDnodeConnection = function (remote, conn) {
     // });
     userDb.findSessionUserById(clientSessionId, function (err, usr) {
       // HACK(?): Without toString, err contents gets stripped somewhere.
-      if (err || !usr) cb(err.toString());
-      else {
-        if (user) user = usr;
-        cb(null, usr);
-      }
+      if (err) { cb(err.toString()); return; }
+      user = usr;
+      
+      userDb.getUserVehicleData(user, function (err, data) {
+        // console.log(err, data);
+      });
+      
+      
+      
+      cb(null, user);
     });
   }
 
@@ -1497,9 +1516,9 @@ var createDnodeConnection = function (remote, conn) {
     //   );
     // });
     cb(null, []);
-    userDb.populateUserVehicles(user, function (err) {
-      cb(err, user.vehicles);
-    });
+    // userDb.populateUserVehicles(user, function (err) {
+    //   cb(err, user.vehicles);
+    // });
 
   }
 
@@ -1651,6 +1670,7 @@ var createDnodeConnection = function (remote, conn) {
 var userDb, sampleDb;
 
 if (!module.parent) {
+
   Step(
     // Connect to SampleDb:
     function() {
@@ -1668,19 +1688,21 @@ if (!module.parent) {
     },
 
     // Listen:
-    function(err) {
+    function (err) {
       if (err) { this(err); return; }
       app.listen(argv.port);
-
-      dnode(createDnodeConnection).use(dnodeLogMiddleware).
-          listen(app, {
+      dnode(createDnodeConnection)
+          .use(dnodeLogMiddleware)
+          // .use(dnodeSession({ store: sessionStore }))
+          .listen(app, {
             io: { // 'log level': 2,
               transports: [
                 'websocket',
                 //'htmlfile',  // doesn't work
-                'xhr-polling',
+                'xhr-polling'
                 //'jsonp-polling',  // doesn't work
-              ]}
+              ]
+            }
           });
       log("Express server listening on port", app.address().port);
     }
