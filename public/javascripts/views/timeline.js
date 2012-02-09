@@ -11,10 +11,10 @@ define(['views/dashItem', 'plot_booter'],
       _.bindAll(this, 'destroy', 'visibleTimeChanged', 'drawWindow', 
                 'moveWindow', 'hoverWindow', 'exitWindow',
                 'passWindowEvent', 'hookScale', 'plotDrawHook',
-                'showNotification', 'hideNotification');
+                'showEvent', 'hideEvent');
       var tabId = args.tabId;
-      App.subscribe('PreviewNotification-' + tabId, this.showNotification);
-      App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
+      App.subscribe('PreviewEvent-' + tabId, this.showEvent);
+      App.subscribe('UnPreviewEvent-' + tabId, this.hideEvent);
       App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
       this.model.get('tabModel').bind('change:visibleTime', this.visibleTimeChanged);
       this.debouncedDrawWindow = _.debounce(this.drawWindow, 20);
@@ -28,8 +28,8 @@ define(['views/dashItem', 'plot_booter'],
     destroy: function () {
       this._super('destroy');
       var tabId = this.options.tabId;
-      App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
-      App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
+      App.unsubscribe('PreviewEvent-' + tabId, this.showEvent);
+      App.unsubscribe('UnPreviewEvent-' + tabId, this.hideEvent);
       App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
       this.model.get('tabModel').unbind('change:visibleTime', this.visibleTimeChanged);
     },
@@ -57,7 +57,7 @@ define(['views/dashItem', 'plot_booter'],
       this.plot = null;
       this.el = App.engine('timeline.dash.jade', opts)
           .appendTo(this.options.parent);
-      this.notificationPreview = $('.notification-preview', this.el);
+      this.eventPreview = $('.event-preview', this.el);
       this._super('render', _.bind(function () {
         if (!opts.loading)
           this.ready = true;
@@ -84,7 +84,7 @@ define(['views/dashItem', 'plot_booter'],
     createPlot: function () {
       var self = this;
       var navigableTime = self.model.get('tabModel').get('navigableTime');
-      var data = _.pluck(self.model.get('notifications'), 'attributes');
+      var data = _.pluck(self.model.get('events'), 'attributes');
       var shapes = [];
       var sortedData = _.stableSort(data,
           function(s1, s2) {
@@ -194,6 +194,10 @@ define(['views/dashItem', 'plot_booter'],
                 })
                 .addClass('timeline-icon')
                 .appendTo(self.holder);
+            // TMP: fix when revamping timeline
+            if (off.left - 8 < 0 ||
+                off.left - 8 > self.holder.width())
+              icon.hide();
           });
           $('img', self.holder)
               .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel',
@@ -210,10 +214,15 @@ define(['views/dashItem', 'plot_booter'],
         } else {
           _.each(sortedData, function (not, i) {
             var off = p.pointOffset({ x: not.beg / 1e3, y: 0.22 });
-            $(icons.get(i)).css({
+            var icon = $(icons.get(i));
+            icon.css({
               left: off.left - 8 + 'px',
               top: off.top + 'px',
             });
+            if (off.left - 8 >= 0 &&
+                off.left - 8 <= self.holder.width())
+              icon.show();
+            else icon.hide();
           });
         }
       }
@@ -437,22 +446,22 @@ define(['views/dashItem', 'plot_booter'],
       if (!side) return null;
     },
 
-    showNotification: function (range, other) {
+    showEvent: function (range, other) {
       if (!this.visibleBox) return;
       this.visibleBox.hide();
       var xaxis = this.plot.getXAxes()[0];
       var leftSide = Math.max(xaxis.p2c(range.beg/1e3), 0);
       var rightSide = Math.min(xaxis.p2c(range.end/1e3), this.plot.width());
       if (leftSide < this.plot.width() && rightSide > 0) {
-        this.notificationPreview.css({
+        this.eventPreview.css({
           left: leftSide + 'px',
           width: rightSide - leftSide + 'px',
         }).show();
       }
     },
 
-    hideNotification: function () {
-      this.notificationPreview.hide();
+    hideEvent: function () {
+      this.eventPreview.hide();
       if (this.visibleBox)
         this.visibleBox.show();
     },

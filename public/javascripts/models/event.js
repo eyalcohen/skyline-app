@@ -9,7 +9,7 @@ define(function () {
         return false;
       // By including a reference to collection, the jade stuff ends up
       // traversing a large amount of unnecessary crud, taking a long time
-      // (2+ seconds!) to generate the notifications list.  We don't need
+      // (2+ seconds!) to generate the events list.  We don't need
       // the reference, so get rid of it.
       delete this.collection;
 
@@ -59,7 +59,7 @@ define(function () {
       }
       if (args.vehicle) {
         this.set({
-          htmlId: 'notification_' + args.vehicle._id,
+          htmlId: 'event_' + args.vehicle._id,
         });
       }
 

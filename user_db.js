@@ -4,11 +4,11 @@
  *
  * User, Teams, Vehicles, and Fleets all have non-standard _id's:
  *
- *   _id = parseInt(Math.random() * 0x7fffffff);
+ *   _id = createUniqueId_32()
  * 
  * This means we do not need to create new ObjectIDs
  * when looking for these documents by _id.
- */ 
+ */
 
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
@@ -17,22 +17,23 @@ var debug = util.debug, inspect = util.inspect;
 var Step = require('step');
 
 
+/*
+ * Creates a db instance.
+ */
 var UserDb = exports.UserDb = function (db, options, cb) {
   var self = this;
   self.db = db;
-
   self.collections = {};
-
   Step(
     function () {
       var group = this.group();
-      _.each(['sessions', 'users', 'teams', 'vehicles', 'fleets'],
+      _.each(['sessions', 'links', 'users', 'teams', 'vehicles', 'fleets'],
             function (colName) {
         db.collection(colName, group());
       });
     },
     function (err, cols) {
-      if (err) { cb(err); return; }      
+      if (err) return cb(err);      
       _.each(cols, function (col) {
         self.collections[col.collectionName] = col;
       });
@@ -43,8 +44,90 @@ var UserDb = exports.UserDb = function (db, options, cb) {
 }
 
 
-// find
+/*
+ * Finds a user by its openId. If it does not exist
+ * create one using the given props.
+ */
+UserDb.prototype.findOrCreateUserFromOpenId = function (props, cb) {
+  var users = this.collections.users;
+  users.findOne({ openId: props.openId },
+                function (err, user) {
+    if (err) return cb(err);
+    if (!user)
+      createUniqueId_32(users, function (err, id) {
+        if (err) return cb(err);
+        _.extend(props, {
+          _id: id,
+          created: new Date,
+          vehicles: [],
+          fleets: [],
+        });
+        users.insert(props, { safe: true },
+                    function (err, inserted) {
+          cb(err, inserted[0]);
+        });
+      });
+    else cb(null, user);
+  });
+}
 
+
+/*
+ * Create methods for vehicles, fleets, and teams.
+ */
+UserDb.prototype.createVehicle = function (props, cb) {
+  _.defaults(props, {
+    title: null,
+    description: null,
+    nickname: null,
+  });
+  createDoc.call(this, this.collections.vehicles, props, cb);
+}
+UserDb.prototype.createFleet = function (props, cb) {
+  _.defaults(props, {
+    title: null,
+    description: null,
+    nickname: null,
+    vehicles: [],
+  });
+  _.uniq(props.vehicles);
+  createDoc.call(this, this.collections.fleets, props, cb);
+}
+UserDb.prototype.createTeam = function (props, cb) {
+  _.defaults(props, {
+    title: null,
+    description: null,
+    nickname: null,
+    domains: [],
+    users: [],
+    admins: [],
+    vehicles: [],
+    fleets: [],
+  });
+  _.uniq(props.domains);
+  _.uniq(props.users);
+  _.uniq(props.admins);
+  createDoc.call(this, this.collections.teams, props, cb);
+}
+UserDb.prototype.createLink = function (props, cb) {
+  var self = this;
+  (function create() {
+    var key = makeURLKey(8);
+    self.collections.links.findOne({ key: key },
+                                  function (err, doc) {
+      if (err) return cb(err);
+      if (!doc) {
+        props.key = key;
+        createDoc.call(self, self.collections.links, props, cb);
+      } else create();
+    });
+  })();
+}
+
+
+/*
+ * Finds a user by its _id.
+ */
 UserDb.prototype.findUserById = function (id, cb) {
   this.collections.users.findOne({ _id: Number(id) },
                                 function (err, user) {
@@ -52,29 +135,23 @@ UserDb.prototype.findUserById = function (id, cb) {
   });
 }
 
-UserDb.prototype.findSessionUserById = function (id, cb) {
-  var self = this;
-  self.collections.sessions.findOne({ _id: id },
-                                function (err, doc) {
-    if (err) { cb(err); return; }
-    if (!doc) { cb(new Error('Failed to find session.')); return; }
-    else {
-      var session = JSON.parse(doc.session);
-      var userId = session.passport.user;
-      if (userId) {
-        self.findUserById(userId, function (err, user) {
-          if (err) { cb(err); return; }
-          if (!user) { cb(new Error('User and Session do NOT match!')); return; }
-          delete user.openId;
-          delete user._id;
-          cb(null, user);
-        });
-      } else cb(new Error('Session has no User.'));
-    }
-  });
-}
 
-
+/*
+ * Collect all vehicles accessible by user.
+ * If a vehicle is accessed through a fleet or team,
+ * it will contain a fleetId and / or teamId.
+ * Those fleets and / or teams will be listed in the
+ * returned object in addition to all the vehicles...
+ * the team or fleet info can then be looked up in those
+ * lists by _id.
+ *
+ * Returns:
+ *   {
+ *     teams: [...],
+ *     fleets: [...],
+ *     vehicles: [...],
+ *   };
+ */
 UserDb.prototype.getUserVehicleData = function (userId, cb) {
   var self = this;
   var data = {
@@ -82,68 +159,6 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
     fleets: [],
     vehicles: [],
   };
-
-  Step(
-    // Get user.
-    function () {
-      if ('number' === typeof userId)
-        self.findUserById(userId, this);
-      else return userId;
-    },
-    function (err, user) {
-      if (err) { cb(err); return; }
-      if (!user) { cb(new Error('Failed to find user.')); return; }
-      _getVehicles(user, this);
-    },
-    // Get the user's teams.
-    function (err, user) {
-      var next = this;
-      // Find teams that contain the user
-      // or that contain the user's domain name
-      var userDomain = user.emails[0].value.split('@')[1];
-      self.collections.teams.find({ $or : [{ users : user._id },
-            { domains : userDomain }] }).toArray(function (err, teams) {
-        if (err) { next(err); return; }
-        // Gather teams' vehicles and fleets.
-        if (teams.length > 0) {
-          var _next = _.after(teams.length, next);
-          _.each(teams, function (team) {
-            _getVehicles(team, true, function () {
-              // Add teams to user data.
-              delete team.vehicles;
-              delete team.fleets;
-              delete team.domains;
-              delete team.users;
-              delete team.admins;
-              data.teams.push(team);
-              _next.apply(this, arguments);
-            });
-          });
-        } else return;
-      });
-    },
-    // Fetch all the vehicles.
-    function (err) {
-      if (data.vehicles.length > 0) {
-        var next = _.after(data.vehicles.length, this);
-        _.each(data.vehicles, function (veh) {
-          self.collections.vehicles.findOne({ _id: veh._id },
-                                          function (err, vehicle) {
-            if (err) { cb(err); return; }
-            if (!vehicle) { cb(new Error('Failed to find vehicle.')); return; }
-            delete vehicle._id;
-            veh.doc = vehicle;
-            next(null);
-          });
-        });
-      } else return;
-    },
-    // All done.
-    function (err) {
-      cb(err, data);
-    }
-  );
-
   function _getVehicles(owner, isTeam, cb) {
     if ('function' === typeof isTeam) {
       cb = isTeam;
@@ -164,8 +179,8 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
       _.each(owner.fleets, function (access) {
         self.collections.fleets.findOne({ _id: access.targetId },
                                         function (err, fleet) {
-          if (err) { cb(err); return; }
-          if (!fleet) { cb(new Error('Failed to find fleet.')); return; }
+          if (err) return cb(err);
+          if (!fleet) return cb(new Error('Failed to find fleet.'));
           _.each(fleet.vehicles, function (vehicleId) {
             var veh = {
               _id: vehicleId,
@@ -177,58 +192,99 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
           });
           // Add fleets to user data only if
           // owner is the user and not a team.
+          // * edit: currently, team fleets are also added
+          // * becuase we are not building a heirachecal list
+          // * on the client-side... nesting does not make sense.
           delete fleet.vehicles;
-          if (!isTeam) data.fleets.push(fleet);
-          cb(null, owner);
+          // if (!isTeam) 
+            data.fleets.push(fleet);
+          _cb(null, owner);
         });
       });
     } else cb(null, owner);
   }
-
-}
-
-
-// create
-
-UserDb.prototype.findOrCreateUserFromOpenId = function (props, cb) {
-  var users = this.collections.users;
-  users.findOne({ openId: props.openId },
-                function (err, user) {
-    if (err) { cb(err); return; }
-    if (!user)
-      createUniqueId_32(users, function (err, id) {
-        if (err) { cb(err); return; }
-        _.extend(props, {
-          _id: id,
-          created: Date.now(),
-          vehicles: [],
-          fleets: [],
-        });
-        users.insert(props, { safe: true },
-                    function (err, inserted) {
-          cb(err, inserted[0]);
-        });
+  // Scrape for user's vehicles.
+  Step(
+    // Get user.
+    function () {
+      if ('number' === typeof userId)
+        self.findUserById(userId, this);
+      else return userId;
+    },
+    function (err, user) {
+      if (err) return cb(err);
+      if (!user) return cb(new Error('Failed to find user.'));
+      _getVehicles(user, this);
+    },
+    // Get the user's teams.
+    function (err, user) {
+      var next = this;
+      // Find teams that contain the user
+      // or that contain the user's domain name
+      var userDomain = user.emails[0].value.split('@')[1];
+      self.collections.teams.find({ $or : [{ users : user._id },
+            { domains : userDomain }] }).toArray(function (err, teams) {
+        if (err) return next(err);
+        // Gather teams' vehicles and fleets.
+        if (teams.length > 0) {
+          var _next = _.after(teams.length, next);
+          _.each(teams, function (team) {
+            _getVehicles(team, true, function () {
+              // Add teams to user data.
+              delete team.vehicles;
+              delete team.fleets;
+              delete team.domains;
+              delete team.users;
+              delete team.admins;
+              data.teams.push(team);
+              _next.apply(this, arguments);
+            });
+          });
+        } else next();
       });
-    else cb(null, user);
-  });
+    },
+    // Fetch all the vehicles.
+    function (err) {
+      var next = this;
+      // console.log(data.vehicles);
+      if (data.vehicles.length > 0) {
+        var _next = _.after(data.vehicles.length, next);
+        _.each(data.vehicles, function (veh) {
+          self.collections.vehicles.findOne({ _id: veh._id },
+                                          function (err, vehicle) {
+            if (err) return cb(err);
+            if (!vehicle) return cb(new Error('Failed to find vehicle.'));
+            delete vehicle._id;
+            veh.doc = vehicle;
+            _next();
+          });
+        });
+      } else next();
+    },
+    // All done.
+    function (err) {
+      cb(err, data);
+    }
+  );
 }
 
-UserDb.prototype.createTeam = function (props, cb) {
-  createDoc.call(this, this.collections.teams, props, cb)
-}
 
-UserDb.prototype.createVehicle = function (props, cb) {
-  createDoc.call(this, this.collections.vehicles, props, cb)
-}
-
-UserDb.prototype.createFleet = function (props, cb) {
-  createDoc.call(this, this.collections.fleets, props, cb)
-}
-
-
-
-// edit
-
+/*
+ * Adds an access object for the given
+ * `target` - either a vehicle or fleet to the given
+ * `grantee` - either a user or a team.
+ *
+ * Default Access:
+ *   {
+ *     created: new Date,
+ *     lastAccess: null,
+ *     admin: false, -- manage other users.
+ *     config: false, -- edit vehicle config files
+ *     insert: false, -- insert sample
+ *     comment: false, -- add comments
+ *     channels: ['/'], -- access specific channels (currently IGNORED)
+ *  }
+ */
 UserDb.prototype.addAccess = function (ids, opts, cb) {
   var self = this;
   if ('function' === typeof opts) {
@@ -240,8 +296,12 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
   var granteeType = ids.userId ? 'users' : 'teams';
   var targetType = ids.vehicleId ? 'vehicles' : 'fleets';
   _.defaults(opts, {
+    created: new Date,
+    lastAccess: null,
     admin: false,
     config: false,
+    insert: false,
+    comment: false,
     channels: ['/'],
   });
   opts.targetId = targetId;
@@ -253,9 +313,22 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
           .findOne({ _id: Number(targetId) }, this.parallel());
     },
     function (err, grantee, target) {
-      if (err) { cb(err); return; }
-      if (!grantee) { cb(new Error('No grantee found.')); return; }
-      if (!target) { cb(new Error('No target found.')); return; }
+      if (err) return cb(err);
+      if (!grantee) return cb(new Error('No grantee found.'));
+      if (!target) return cb(new Error('No target found.'));
+      // This might need some more thought.
+      // If access already exists for on this grantee
+      // for this target, we replace it with the new one.
+      // Consider the case where a user's access in down/upgraded...
+      var duplicateIndex;
+      _.find(grantee[targetType], function (acc, i) {
+        if (opts.targetId === acc.targetId) {
+          duplicateIndex = i;
+          return true;
+        } else return false;
+      });
+      if (duplicateIndex)
+        grantee[targetType].splice(duplicateIndex, 1);
       grantee[targetType].push(opts);
       var update = {};
       update[targetType] = grantee[targetType];
@@ -267,33 +340,86 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
 }
 
 
-// util
+/**
+ * Determine whether or not user has access read
+ * to a vehicle. This will be true simply if the vehicle
+ * exists in req's vehicle list.
+ * Specify a list of keys to check access
+ * on a specific (combination of) flag(s).
+ *
+ *   haveAccess(vehicle._id, ['admin', 'config'])
+ */
+UserDb.haveAccess = function (vehicleId, vehicles, accessKeys) {
+  if (accessKeys && accessKeys.length === 0)
+    accessKeys = null;
+  var allow = false;
+  var vehicle = _.find(vehicles, function (veh) {
+    return veh._id === vehicleId;
+  });
+  if (vehicle && accessKeys) {
+    var allow = true;
+    _.each(accessKeys, function (k) {
+      if (!vehicle.access[k])
+        allow = false;
+      // TODO: check for strings in lists (channels)
+      // or other types of access schemes that
+      // don't exist yet.
+    });
+  } else if (vehicle) allow = true;
+  return allow;
+}
 
+
+/*
+ * Inserts a document into a collecting
+ * adding `_id` and `created` keys if they
+ * don't exist in the given props.
+ */
+function createDoc(collection, props, cb) {
+  var self = this;
+  function insert() {
+    collection.insert(props, { safe: true },
+                      function (err, inserted) {
+      cb(err, inserted[0]);
+    });
+  }
+  if (!props.created) 
+    props.created = new Date;
+  if (!props._id) {
+    createUniqueId_32(collection, function (err, id) {
+      if (err) return cb(err);
+      props._id = id;
+      insert();
+    });
+  } else insert();  
+}
+
+
+/*
+ * Create a 32-bit identifier for a
+ * document ensuring that it is unuque
+ * for the given collection.
+ */
 function createUniqueId_32(collection, cb) {
   var id = parseInt(Math.random() * 0x7fffffff);
   collection.findOne({ _id: id }, function (err, doc) {
-    if (err) { cb(err); return; }
+    if (err) return cb(err);
     if (doc) createUniqueId_32(collection, cb);
     else cb(null, id);
   });
 }
 
-function createDoc(collection, props, cb) {
-  var self = this;
-  createUniqueId_32(collection, function (err, id) {
-    if (err) { cb(err); return; }
-    _.extend(props, {
-      _id: id,
-      created: Date.now(),
-    });
-    collection.insert(props, { safe: true },
-                      function (err, inserted) {
-      cb(err, inserted[0]);
-    });
-  });
+/**
+  * Create a string identifier
+  * for use in a URL at a given length.
+  */
+function makeURLKey(length) {
+  var text = '';
+  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
+      'abcdefghijklmnopqrstuvwxyz0123456789';
+  for (var i = 0; i < length; i++)
+    text += possible.charAt(Math.floor(
+          Math.random() * possible.length));
+  return text;
 }
-
-
-
-
 

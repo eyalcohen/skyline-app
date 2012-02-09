@@ -325,6 +325,15 @@ define(function () {
             req.chan + '", ' + JSON.stringify(options) +
             ') returned error: ' + err);
         samples = null;
+        //// SWP: Without this belong crud the client 
+        //   keeps trying to get the samples forever.
+        self.pendingCacheEntries.splice(
+            self.pendingCacheEntries.indexOf(entry), 1);
+        delete entry.pending;
+        self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
+        self.cleanCache();
+        return;
+        ////
       } else {
         entry.syn = samples.some(function(s){return 'min' in s});
       }

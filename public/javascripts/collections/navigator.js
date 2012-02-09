@@ -2,10 +2,10 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['models/notification'], function (model) {
+define(['models/event'], function (model) {
   return Backbone.Collection.extend({
     model: model,
-    readFunc: 'fetchNotifications',
+    readFunc: 'fetchEvents',
 
     initialize: function (args) {
       if (!args) args = {};

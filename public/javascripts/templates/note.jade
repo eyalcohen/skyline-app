@@ -19,11 +19,11 @@
       - }
   - if (!isNew) {
     .note-content
-      h2.note-user= note.user.name.first + ' ' + note.user.name.last
+      h2.note-user= note.user.displayName
         span.note-content-date= ' ' + App.util.getRelativeTime(note.val.date)
       p.note-body= note.val.text
       - replies.forEach(function (r) {
-        h2.note-user-reply= r.user.name.first + ' ' + r.user.name.last
+        h2.note-user-reply= r.user.displayName
           span.note-content-date= ' ' + App.util.getRelativeTime(r.val.date)
         p.note-body= r.val.text
       - })

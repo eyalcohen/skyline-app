@@ -1433,7 +1433,7 @@ a.note-cancel:active {
   z-index: 1;
 }
 */
-.notification-preview {
+.event-preview {
   height: 100%;
   position: absolute;
   top: 0;

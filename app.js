@@ -10,7 +10,6 @@ var argv = optimist
       .default('port', 8080)
     .describe('db', 'MongoDb URL to connect to')
       .default('db', 'mongo:///service-samples')
-      // .default('db', 'mongo://10.201.227.195:27017,10.211.174.11:27017,10.207.62.61:27017/service-samples')  // old production
     .argv;
 
 if (argv._.length || argv.help) {
@@ -33,7 +32,6 @@ var mongodb = require('mongodb');
 var mongoStore = require('connect-mongodb');
 var gzip = require('connect-gzip');
 var dnode = require('dnode');
-// var dnodeSession = require('dnode-session');
 var color = require('cli-color');
 var fs = require('fs');
 var path = require('path');
@@ -45,7 +43,6 @@ _.mixin(require('underscore.string'));
 var Step = require('step');
 var Buffers = require('buffers')
 var EventID = require('./customids').EventID;
-// var models = require('./models');
 var EventDescFileName = __dirname +
     '/../mission-java/common/src/main/protobuf/Events.desc';
 var WebUploadSamples, EventWebUpload;
@@ -81,8 +78,8 @@ var jadeify = require('jadeify');
 var passport = require('passport');
 var GoogleStrategy = require('passport-google').Strategy;
 
-/////////////// Helpers
 
+/////////////// Helpers
 
 /**
  * Wraps a callback f to simplify error handling.  Specifically, this:
@@ -112,50 +109,8 @@ function errWrap(next, f) {
   }
 }
 
-
-/**
- * Gets all vehicles owned by user or all if user is null.
- */
-function findVehiclesByUser(user, next) {
-  // var filter;
-  // if (!user) {
-  //   filter = {};
-  // } else if (user.length) {
-  //   filter = { user_id: { $in: user }};
-  // } else {
-  //   filter = { user_id: user._id };
-  // }
-  // Vehicle.find(filter).sort('created', -1).run(function (err, vehs) {
-  //   if (!err) {
-  //     next(vehs);
-  //   } else {
-  //     next([]);
-  //   }
-  // });
-  next([]);
-}
-
-
-/**
- * Finds a single vehicle by integer id
- */
-function findVehicleByIntId(id, next) {
-  if ('string' === typeof id) {
-    id = parseInt(id);
-  }
-  Vehicle.collection.findOne({ _id: id }, function (err, veh) {
-    next(veh);
-  });
-}
-
-
-/**
- * Find an app state object describing a GUI layout
- */
-function fetchAppState(data, cb) {
-  AppState.findOne({ key: data }, function (err, state) {
-    cb(err, state);
-  });
+function requestMimeType(req) {
+  return (req.headers['content-type'] || '').split(';')[0];
 }
 
 /////////////// Configuration
@@ -198,11 +153,11 @@ function rawBody(rawMimeTypes) {
   }
 }
 
-var sessionStore = new mongoStore({
+app.set('sessionStore', new mongoStore({
   db: mongodb.connect(argv.db, { noOpen: true }, function() {}),
 }, function (err) {
   if (err) log('Error creating mongoStore: ' + err);
-});
+}));
 
 app.configure(function () {
   // Use gzip compression for all responses.
@@ -220,7 +175,7 @@ app.configure(function () {
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one week
     secret: 'hum7a5t1c',
-    store: sessionStore,
+    store: app.set('sessionStore'),
   }));
   app.use(passport.initialize());
   app.use(passport.session());
@@ -244,45 +199,7 @@ app.configure(function () {
   log('browserify took: ' + (Date.now() - start) + 'ms.');
 });
 
-
-// models.defineModels(mongoose, function () {
-//   app.User = User = mongoose.model('User');
-//   app.Vehicle = Vehicle = mongoose.model('Vehicle');
-//   app.AppState = AppState = mongoose.model('AppState');
-// 
-//   // Ugh: parse mongodb-style URL and convert to a mongoose-compatible one.
-//   var match = argv.db.match(
-//       new RegExp('^mongo(?:db)?://(?:|([^@/]*)@)([^@/]*)(?:|/([^?]*)(?:|\\?([^?]*)))$'));
-//   if (!match)
-//     throw Error("URL must be in the format mongodb://user:pass@host:port/dbname");
-// 
-//   var authPart = match[1] || '';
-//   var auth = authPart.split(':', 2);
-//   var hostPart = match[2];
-//   var dbname = match[3] || 'default';
-//   var urlOptions = (match[4] || '').split(/[&;]/);
-//   if (urlOptions != '')
-//     throw Error('URL options in mongodb URL not handled yet: ' + urlOptions);
-// 
-//   var servers = hostPart.split(',').map(function(h) {
-//     var hostPort = h.split(':', 2);
-//     return { host: hostPort[0] || 'localhost',
-//              port: hostPort[1] != null ? parseInt(hostPort[1]) : 27017 };
-//   });
-//   var mongooseUri = 'mongodb://' + (authPart ? authPart + '@' : '') +
-//       servers[0].host + ':' + servers[0].port + '/' + dbname;
-//   if (servers.length == 1) {
-//     log('Connecting to mongoose DB: ' + mongooseUri);
-//     db = mongoose.connect(mongooseUri);
-//   } else {
-//     mongooseUri += ',';
-//     mongooseUri += _.rest(servers).map(function(server) {
-//       return 'mongodb://' + server.host + ':' + server.port;
-//     }).join(',');
-//     log('Connecting to mongoose DB set: ' + mongooseUri);
-//     db = mongoose.connectSet(mongooseUri);
-//   }
-// });
+// Passport authentication cruft
 
 passport.serializeUser(function (user, cb) {
   cb(null, user._id.toString());
@@ -308,73 +225,57 @@ passport.use(new GoogleStrategy({
 ));
 
 
-/////////////// Params
-
-
-/**
- * Loads user by email request param.
- */
-
-app.param('email', function (req, res, next, email) {
-  User.findOne({ email: email }, errWrap(next, function (usr) {
-    if (usr) {
-      var pass = req.query.password || req.body.password;
-      if (usr.authenticate(pass)) {
-        req.currentUser = usr;
-        next();
-      } else {
-        res.send({ status: 'fail', data: { code: 'INCORRECT_PASSWORD' } }, 400);
-      }
-    } else {
-      res.send({ status: 'fail', data: { code: 'USER_NOT_FOUND' } }, 400);
-    }
-  }));
-});
-
-
-/**
- * Load vehicle by vehicleId request param.
- */
-
-app.param('vid', function (req, res, next, id) {
-  Vehicle.findById(id, errWrap(next, function (veh) {
-    if (veh) {
-      req.vehicle = veh;
-      log('vid ' + id + ' -> ' + util.inspect(veh));
-      next();
-    } else {
-      res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } }, 400);
-    }
-  }));
-});
-
-
-/**
- * Load vehicle by vehicleId in integer form request param.
- */
-
-app.param('vintid', function (req, res, next, id) {
-  findVehicleByIntId(id, function (veh) {
-    if (veh) {
-      req.vehicle = veh;
-      next();
-    } else {
-      res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } }, 400);
-    }
-  });
-});
-
-
 ////////////// Web Routes
 
 // Home
 
 app.get('/', function (req, res) {
-  res.render('index', { sid: req.sessionID });
+  res.render('index');
 });
 
-////////////// API
+// Redirect the user to Google for authentication. When complete, Google
+// will redirect the user back to the application at
+// /auth/google/return
+app.get('/auth/google', passport.authenticate('google'));
 
+// Google will redirect the user to this URL after authentication. Finish
+// the process by verifying the assertion. If valid, the user will be
+// logged in. Otherwise, authentication has failed.
+app.get('/auth/google/return', 
+  passport.authenticate('google', { successRedirect: '/',
+                                    failureRedirect: '/' }));
+
+// We logout via an ajax request.
+app.get('/logout', function (req, res) {
+  req.logOut();
+  res.redirect('/');
+});
+
+// Go home
+app.get('/vehicle', function (req, res) {
+  res.redirect('/');
+});
+
+// Allows sharing by vehicle
+app.get('/vehicle/:id', function (req, res) {
+  res.render('index');
+});
+
+// Go home
+app.get('/s', function (req, res) {
+  res.redirect('/');
+});
+
+// Alias to above
+app.get('/s/:key', function (req, res) {
+  userDb.collections.links.findOne({ key: req.params.key },
+                                  function (err, link) {
+    res.redirect('/?' + (err || !link ? '' : link.val));
+  });
+});
+
+
+////////////// API
 
 // Export as CSV for webapp.
 
@@ -554,119 +455,7 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
   );
 });
 
-
-// Pass state key to client
-
-app.get('/vehicle', function (req, res) {
-  res.redirect('/');
-});
-
-app.get('/vehicle/:id', function (req, res) {
-  res.render('index');
-});
-
-app.get('/state', function (req, res) {
-  res.redirect('/');
-});
-
-app.get('/s', function (req, res) {
-  res.redirect('/');
-});
-
-app.get('/state/:key', function (req, res) {
-  fetchAppState(req.params.key, function (err, state) {
-    var stateStr = err || !state ? '' : state.val;
-    res.render('index', { state: stateStr });
-  });
-});
-
-app.get('/s/:key', function (req, res) {
-  fetchAppState(req.params.key, function (err, state) {
-    var stateStr = err || !state ? '' : state.val;
-    res.render('index', { state: stateStr });
-  });
-});
-
-
-// Handle user create request
-
-app.post('/usercreate/:newemail', function (req, res) {
-  var user = new User({
-      email: req.params.newemail
-    , name: { full: req.body.fullName }
-    , password: req.body.password
-  });
-  user.save(function (err) {
-    if (!err) {
-      res.send({ status: 'success', data: { user: user } });
-      Notify.welcome(user, function (err, message) {
-        if (err) {
-          log("Error creating user '" + req.params.newemail + "': " + err);
-          Notify.problem(err);
-        }
-      });
-    } else {
-      res.send({
-        status: 'fail',
-        data: {
-          code: 'DUPLICATE_EMAIL',
-          message: 'This email address is already being used on our system.',
-        },
-      }, 400);
-    }
-  });
-});
-
-
-// Handle vehicle create request - LAGACY
-
-// app.post('/vehiclecreate/:email/:make/:model/:year',
-//     function (req, res) {
-//   var v = new Vehicle({
-//       _id: parseInt(Math.random() * 0x7fffffff)  // TODO: collisions
-//     , make: req.params.make
-//     , model: req.params.model
-//     , year: req.params.year
-//     , user_id: req.currentUser._id
-//   });
-//   v.save(function (err) {
-//     if (!err) {
-//       res.send({ status: 'success', data: { vehicleId: v._id } });
-//     } else {
-//       res.send({ status: 'error', message: err }, 400);
-//     }
-//   });
-// });
-
-// new route
-
-// app.post('/create/vehicle/:title/:description/:vclass',
-//     function (req, res) {
-//   var props = {
-//     _id: parseInt(Math.random() * 0x7fffffff), // TODO: collisions
-//     title: req.params.title,
-//     description: req.params.description,
-//   };
-//   function fail(err) {
-//     res.send({ status: 'error', message: err }, 400);
-//   }
-//   // get vclass _id
-//   var vclassId = userDb.findOrCreateVClassFromTitle(req.params.vclass,
-//       function (err, vclass) {
-//     if (err) fail(err);
-//     else {
-//       // add vehicle class to vehicle
-//       props.vclass = vclass.title;
-//       // create the vehicle
-//       userDb.createVehicle(props, function (err, veh) {
-//           if (err) fail(err);
-//           else res.send({ status: 'success',
-//                       data: { vehicleId: veh._id } });
-//       });
-//     }
-//   });
-// });
-
+// Create a vehicle
 app.post('/create/vehicle/:title/:description/:nickname',
     function (req, res) {
   var props = {
@@ -676,13 +465,14 @@ app.post('/create/vehicle/:title/:description/:nickname',
   };
   // create the vehicle
   userDb.createVehicle(props, function (err, veh) {
-      if (err)
-        res.send({ status: 'error', message: err }, 400);
-      else
-        res.send({ status: 'success', data: { vehicleId: veh._id } });
+    if (err)
+      res.send({ status: 'error', message: err }, 400);
+    else
+      res.send({ status: 'success', data: { vehicleId: veh._id } });
   });
 });
 
+// Create a team
 app.post('/create/team/:title/:description/:nickname/:domains/:users/:admins',
     function (req, res) {
   var props = {
@@ -702,13 +492,14 @@ app.post('/create/team/:title/:description/:nickname/:domains/:users/:admins',
   };
   // create the team
   userDb.createTeam(props, function (err, team) {
-      if (err)
-        res.send({ status: 'error', message: err }, 400);
-      else
-        res.send({ status: 'success', data: { teamId: team._id } });
+    if (err)
+      res.send({ status: 'error', message: err }, 400);
+    else
+      res.send({ status: 'success', data: { teamId: team._id } });
   });
 });
 
+// Create a fleet
 app.post('/create/fleet/:title/:description/:nickname/:vehicles',
     function (req, res) {
   var props = {
@@ -721,51 +512,14 @@ app.post('/create/fleet/:title/:description/:nickname/:vehicles',
   };
   // create the fleet
   userDb.createFleet(props, function (err, fle) {
-      if (err)
-        res.send({ status: 'error', message: err }, 400);
-      else
-        res.send({ status: 'success', data: { fleetId: fle._id } });
+    if (err)
+      res.send({ status: 'error', message: err }, 400);
+    else
+      res.send({ status: 'success', data: { fleetId: fle._id } });
   });
 });
 
-
-
-
-
-
-
-
-
-// Handle user info request
-
-app.get('/userinfo/:email', function (req, res) {
-  res.send({ status: 'success', data: { user: req.currentUser } });
-});
-
-
-// Handle vehicle info request
-
-app.get('/summary/:email/:vintid', function (req, res) {
-  if (req.vehicle.user_id.toHexString() === req.currentUser._id.toHexString()) {
-    jade.renderFile(path.join(__dirname, 'views', 'summary.jade'),
-        { locals: { user: req.currentUser } }, function (err, body) {
-      if (!err) {
-        res.send(body);
-      }
-    });
-  } else {
-    res.send({ status: 'fail', data: { code: 'VEHICLE_NOT_FOUND' } }, 400);
-  }
-});
-
-
-function requestMimeType(req) {
-  return (req.headers['content-type'] || '').split(';')[0];
-}
-
-
 // Handle sample upload request
-
 app.put('/samples', function (req, res) {
 
   function fail(code) {
@@ -813,7 +567,8 @@ app.put('/samples', function (req, res) {
 
     // get the cycle's vehicle
     function getVehicle() {
-      findVehicleByIntId(vehicleId, this);
+      userDb.collections.vehicles.findOne({ _id: vehicleId }, this);
+      // findVehicleByIntId(vehicleId, this);
     }, function(veh_) {
       veh = veh_;
       if (!veh)
@@ -939,88 +694,6 @@ app.put('/samples', function (req, res) {
   );
 });
 
-
-// LEGACY: Handle cycle events request
-
-// app.put('/cycle', function (req, res) {
-// 
-//   function fail(code) {
-//     log('PUT /cycle failed: ' + code);
-//     res.send({ status: 'fail', data: { code: code } }, 400);
-//   }
-// 
-//   // Parse to JSON.
-//   var cycle, mimeType = requestMimeType(req);
-//   if (mimeType == 'application/octet-stream') {
-//     if (!(req.body instanceof Buffer)) {
-//       fail('BAD_PROTOBUF_FORMAT');
-//       return;
-//     }
-//     cycle = EventWebUpload.parse(new Buffer(req.rawBody, 'binary'));
-//   } else if (mimeType == 'application/json') {
-//     cycle = req.body;
-//   } else {
-//     fail('BAD_ENCODING:' + mimeType);
-//     return;
-//   }
-// 
-//   var num = cycle.events.length, cnt = 0;
-// 
-//   // get the cycle's user
-//   User.findOne({ email: cycle.userId }, function (err, usr) {
-//     if (!usr) {
-//       fail('USER_NOT_FOUND');
-//       return;
-//     }
-// 
-//     // authenticate user
-//     if (!usr.authenticate(cycle.password)) {
-//       fail('INCORRECT_PASSWORD');
-//       return;
-//     }
-// 
-//     // get the cycle's vehicle
-//     findVehicleByIntId(cycle.vehicleId, function (veh) {
-//       if (!veh) {
-//         fail('VEHICLE_NOT_FOUND');
-//         return;
-//       }
-// 
-//       // save the cycle locally for now
-//       var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
-//           (veh.name ? veh.name + '.' : '') +
-//           (new Date()).valueOf() + '.js';
-//       var cycleJson = JSON.stringify(cycle);
-//       fs.mkdir(__dirname + '/cycles', '0755', function (err) {
-//         fs.writeFile(__dirname + '/cycles/' + fileName, cycleJson,
-//                      function (err) {
-//             if (err) {
-//               log(err);
-//             } else {
-//               log('Saved to: ' + __dirname + '/cycles/' + fileName);
-//             }
-//         });
-//       });
-// 
-//       // loop over each cycle in event
-//       cycle.events.forEach(function (event) {
-// 
-//         // add new cycle
-//         event.valid = true;
-//         event._id = new EventID({ id: veh._id, time: 0 });
-//         compatibility.insertEventBucket(sampleDb, event, function (err) {
-//           if (err)
-//             log('Error in insertEventBucket: ' + err.stack);
-//           if (++cnt === num)
-//             res.end();
-//         });
-// 
-//       });
-//     });
-//   });
-// });
-
-
 // Maintain an approximate load average for this process.
 var loadAvg = 1.0;
 if (getrusage) {
@@ -1040,11 +713,10 @@ if (getrusage) {
   }, 500);
 }
 
-
+// Get load average
 app.get('/status/load', function (req, res) {
   res.end(loadAvg + '\n');
 });
-
 
 // Dump a message to a log file for debugging clients.
 app.post('/debug/:logFile', function (req, res) {
@@ -1078,56 +750,7 @@ app.post('/debug/:logFile', function (req, res) {
 });
 
 
-
-
-// Redirect the user to Google for authentication. When complete, Google
-// will redirect the user back to the application at
-// /auth/google/return
-app.get('/auth/google', passport.authenticate('google'));
-
-// Google will redirect the user to this URL after authentication. Finish
-// the process by verifying the assertion. If valid, the user will be
-// logged in. Otherwise, authentication has failed.
-app.get('/auth/google/return', 
-  passport.authenticate('google', { successRedirect: '/',
-                                    failureRedirect: '/' }));
-
-// We logout via an ajax request.
-app.get('/logout', function (req, res) {
-  req.logOut();
-  res.redirect('/');
-});
-
 ////////////// DNode Methods
-
-
-// function verifySession(id, cb) {
-//   // if (!_.isObject(user)) {
-//   //   cb(new Error('Missing session info.'));
-//   //   return;
-//   // }
-//   // if (!_.isString(user.email)) {
-//   //   cb(new Error('Session missing email.'));
-//   //   return;
-//   // }
-//   // if (!_.isString(user._id)) {
-//   //   cb(new Error('Session missing id.'));
-//   //   return;
-//   // }
-//   // User.findById(user.id, function (err, usr) {
-//   //   if (err || !usr) {
-//   //     cb(new Error('User not authenticated.'));
-//   //   } else {
-//   //     cb(null, usr);
-//   //   }
-//   // });
-//   userDb.findSessionUserById(id, function (err, usr) {
-//     if (err || !usr)
-//       cb(new Error('User not authenticated.'));
-//     else cb(null, usr);
-//   });
-// }
-
 
 function shortInpsect(argList, maxChars) {
   var s = _.map(argList, function(arg) {
@@ -1183,7 +806,6 @@ function dnodeLogMiddleware(remote, client) {
   });
 }
 
-
 function ExecutionQueue(maxInFlight) {
   var inFlight = 0;
   var queue = [];
@@ -1208,10 +830,9 @@ function ExecutionQueue(maxInFlight) {
 // Every time a client connects via dnode, this function will be called, and
 // the object it returns will be transferred to the client.
 var createDnodeConnection = function (remote, conn) {
-  
-  // conn.on('remote', function (userInfo) {
-  //   // log('Got remote event. Remote: ' + inspect(remote));
-  // });
+
+  // This will be the initial http request seen by connect.
+  var req;
 
   var subscriptions = {};
   var user = null;  // Set once user is authenticated.
@@ -1222,321 +843,196 @@ var createDnodeConnection = function (remote, conn) {
   // making requests delay each other.
   var sampleDbExecutionQueue = ExecutionQueue(2);
 
-  var self = this;
-  var iid, sid, cookies;
-  
   conn.on('ready', function () {
-    if (!conn.stream.socketio) return
-  
-    var id = conn.stream.socketio.id;
-    var req = conn.stream.socketio.manager.handshaken[id];
-    var session;
-  
-    if (!req.headers.cookie) return;
-  
-    cookies = connect.utils.parseCookie(req.headers.cookie);
-    sid = cookies['connect.sid'];
-    console.log(sid);
-    
-    
-    
+    var sockId = conn.stream.socketio.id;
+    req = conn.stream.socketio.manager.handshaken[sockId];
   });
 
-  //// Methods accessible to remote side: ////
+  conn.on('end', function () {
+    _.keys(subscriptions).forEach(cancelSubscribeSamples);
+  });
 
-  // function signin(email, password, cb) {
-  //   if (!email || !password) {
-  //     cb({
-  //       code: 'MISSING_FIELD',
-  //       email: email || '',
-  //       password: password || '',
-  //       message: 'Both your email and password are required for login.'
-  //     });
-  //     return;
-  //   }
-  //   User.findOne({ email: email }, function (err, usr) {
-  //     if (usr && usr.authenticate(password)) {
-  //       usr.meta.logins ++;
-  //       usr.save(function (err) {
-  //         if (!err) {
-  //           user = usr;
-  //           cb(null, {
-  //             email: usr.email,
-  //             id: usr.id,
-  //             first: usr.name.first,
-  //             last: usr.name.last,
-  //           });
-  //         } else {
-  //           cb({
-  //             message: 'We\'re experiencing an unknown problem but ' +
-  //               'are looking into it now. Please try again later.'
-  //           });
-  //           log("Error finding user '" + email + "':", err);
-  //         }
-  //       });
-  //     } else {
-  //       cb({
-  //         code: 'BAD_AUTH',
-  //         email: email,
-  //         message: 'That didn\'t work. Your email or password is incorrect.'
-  //       });
-  //     }
-  //   });
-  // }
-
-  function authenticate(clientSessionId, cb) {
-    // if (user) return cb(null, user);
-    // verifySession(clientSessionId, function (err, usr) {
-    //   if (user) user = usr;
-    //   cb(err, user);
-    // });
-    userDb.findSessionUserById(clientSessionId, function (err, usr) {
-      // HACK(?): Without toString, err contents gets stripped somewhere.
-      if (err) { cb(err.toString()); return; }
-      user = usr;
-      
-      userDb.getUserVehicleData(user, function (err, data) {
-        // console.log(err, data);
+  function authorize(cb) {
+    // If we've gotten this far, the session
+    // is valid and has already been fetched.
+    // Now we see if there's a user attached.
+    var userId = req.session.passport.user;
+    if (userId) {
+      userDb.findUserById(userId, function (err, user) {
+        if (err) return cb(err);
+        if (!user)
+          // BUG(?): Without toString, err contents is stripped.
+          return cb(new Error('User and Session do NOT match!').toString());
+        delete user.openId;
+        // delete user._id;
+        userDb.getUserVehicleData(user, function (err, data) {
+          if (err) return cb(err);
+          delete user.vehicles;
+          delete user.fleets;
+          user.data = {
+            teams: data.teams,
+            fleets: data.fleets,
+          };
+          req.user = user;
+          req.user.data.vehicles = data.vehicles;
+          cb(null, user);
+        });
       });
-      
-      
-      
-      cb(null, user);
-    });
+    } else cb('Session has no User.');
   }
 
-  
-  // function checkAuth(cb) {
-  //   if (!user)
-  //     cb(new Error('Not authenticated!'));
-  //   return user;
-  // }
+  /*
+   * Wrapper for remote accesible methods.
+   * Flags is a list if specific access keys
+   * to enforce.
+   */
+  function ensureAuth(f, flags) {
+    return function () {
+      var args = _.toArray(arguments);
+      var vid = _.first(args);
+      var cb = _.last(args);
+      if (!UserDb.haveAccess(vid, req.user.data.vehicles, flags))
+        return cb('Permission denied.');
+      else f.apply(null, args);
+    };
+  }
 
-  // function ensureAuth(f) {
-  //   return function () {
-  //     var args = _.toArray(arguments);
-  //     var cb = _.last(args);
-  //     if (user) {
-  //       f.apply(null, args);
-  //     } else if (!remote.sessionId) {
-  //       cb(new Error('Not authenticated!'));
-  //     } else {
-  //       var needToAuth = authPending == null;
-  //       if (needToAuth) authPending = [];
-  //       authPending.push(function (err) {
-  //         if (err) cb(err); else f.apply(null, args);
-  //       });
-  //       if (needToAuth) {
-  //         authenticate(remote.sessionId, function (err) {
-  //           var p = authPending;
-  //           authPending = null;
-  //           p.forEach(function (f) { f(err) });
-  //         });
-  //       }
-  //     }
-  //   };
-  // }
+  //// Fetch colletion methods ////
+  // Since these are read methods and
+  // we maintain a copy of the user's 
+  // data server-side that was created against
+  // their access lists, we do not need to re-auth
+  // on those specific vehicles unless we're fetching
+  // events for a specific client-side defined vehicle.
 
-  // TMP: use subscriptions from client end
-  function fetchNotifications(opts, cb) {
-    if (_.isFunction(opts)) {
-      cb = opts;
-      opts = null;
-    }
-    // if (opts && opts.vehicleId) {
-    //   fetch([ { _id: opts.vehicleId } ], false);
-    // } else {
-    //   var filterUser;
-    //   if (user.role === 'admin') {
-    //     filterUser = null;
-    //   } else if (user.role === 'office') {
-    //     filterUser = ['4ddc6340f978287c5e000003',
-    //         '4ddc84a0c2e5c2205f000001',
-    //         '4ddee7a08fa7e041710001cb'];
-    //   } else {
-    //     filterUser = user;
-    //   }
-    //   findVehiclesByUser(filterUser, function (vehicles) {
-    //     fetch(vehicles, true);
-    //   });
-    // }
-    // 
-    // function fetch(vehicles, addVehicle) {
-    //   var drives = [];
-    //   var charges = [];
-    //   var errors = [];
-    //   var warnings = []; 
-    //   var notes = [];
-    //   Step(
-    //     function () {
-    //       var parallel = this.parallel;
-    //       vehicles.forEach(function (v) {
-    //         v = JSON.parse(JSON.stringify(v));  // Strip mongoose crap.
-    //         var next = parallel();
-    //         Step(
-    //           function () {
-    //             var _parallel = this.parallel;
-    //             sampleDb.fetchSamples(v._id, '_drive', {}, this.parallel());
-    //             sampleDb.fetchSamples(v._id, '_charge', {}, this.parallel());
-    //             sampleDb.fetchSamples(v._id, '_error', {}, this.parallel());
-    //             sampleDb.fetchSamples(v._id, '_warning', {}, this.parallel());
-    //             sampleDb.fetchSamples(v._id, '_note', {}, this.parallel());
-    //           },
-    //           function (err, drives_, charges_, errors_, warnings_, notes_) {
-    //             if (err) { cb(err); return; }
-    //             function addType(type) {
-    //               return function(not) {
-    //                 not.type = type;
-    //                 if (addVehicle) not.vehicle = v;
-    //               }
-    //             }
-    //             drives_.forEach(addType('_drive'));
-    //             charges_.forEach(addType('_charge'));
-    //             errors_.forEach(addType('_error'));
-    //             warnings_.forEach(addType('_warning'));
-    //             notes_.forEach(addType('_note'));
-    //             drives = drives.concat(drives_);
-    //             charges = charges.concat(charges_);
-    //             errors = errors.concat(errors_);
-    //             warnings = warnings.concat(warnings_);
-    //             notes = notes.concat(notes_);
-    //             next();
-    //           }
-    //         );
-    //       });
-    //       parallel()(); // In case there are no vehicles.
-    //     },
-    //     function (err) {
-    //       if (err) { cb(err); return; }
-    //       
-    //       var _sort = _.after(notes.length, sort);
-    //       notes.forEach(function (note) {
-    //         User.findById(note.val.userId, function (err, usr) {
-    //           // Strip mongoose crap.
-    //           note.user = JSON.parse(JSON.stringify(usr));
-    //           _sort();
-    //         });
-    //       });
-    //       function sort() {
-    //         var bins = {};
-    //         var threads = [];
-    //         var threadedNotes = [];
-    //         _.each(notes, function (note) {
-    //           var key = String(note.beg) + String(note.end);
-    //           if (!(key in bins)) bins[key] = [];
-    //           bins[key].push(note);
-    //         });
-    //         _.each(bins, function (bin) {
-    //           threads.push(bin);
-    //         });
-    //         _.each(threads, function (thread) {
-    //           thread.sort(function (a, b) {
-    //             return a.val.date - b.val.date;
-    //           });
-    //           var note = thread[0];
-    //           note.replies = _.rest(thread);
-    //           note.latest = _.last(thread).val.date;
-    //           threadedNotes.push(note);
-    //         });
-    //         var notifications = [].concat(drives, charges, errors,
-    //                                       warnings, threadedNotes);
-    //         notifications.sort(function(a, b) {
-    //           var at = a.latest ? a.latest * 1e3 : a.beg;
-    //           var bt = b.latest ? b.latest * 1e3 : b.beg;
-    //           return bt - at;
-    //         });
-    //         cb(null, notifications);
-    //       }
-    //     }
-    //   );
-    // }
+  function fetchUsers(cb) {
     cb(null, []);
   }
 
   function fetchVehicles(cb) {
-    // var filterUser;
-    // if (user.role === 'admin') {
-    //   filterUser = null;
-    // } else if (user.role === 'office') {
-    //   filterUser = ['4ddc6340f978287c5e000003',
-    //       '4ddc84a0c2e5c2205f000001',
-    //       '4ddee7a08fa7e041710001cb'];
-    // } else {
-    //   filterUser = user;
-    // }
-    // findVehiclesByUser(filterUser, function (vehicles) {
-    //   Step(
-    //     // Add lastSeen to all vehicles in parallel.
-    //     function () {
-    //       var parallel = this.parallel;
-    //       vehicles.forEach(function (v) {
-    //         var next = parallel();
-    //         sampleDb.fetchSamples(v._id, '_wake', {}, function(err, cycles) {
-    //           if (cycles && cycles.length > 0) {
-    //             v.lastCycle = _.last(cycles);
-    //             v.lastSeen = v.lastCycle.end;
-    //           }
-    //           User.findById(v.user_id, function (err, usr) {
-    //             if (usr)
-    //               v.user = usr;
-    //             next();
-    //           });
-    //         });
-    //       });
-    //       parallel()(); // In case there are no vehicles.
-    //     }, function (err) {
-    //       if (err) { this(err); return; }
-    // 
-    //       // SP: ugly - mongoose's weird doc mapping
-    //       // makes it hard to inject new props, like lastSeen.
-    //       var vehs = vehicles.map(function (vehicle) {
-    //         var v = vehicle._doc;
-    //         v.user = vehicle.user;
-    //         v.lastSeen = vehicle.lastSeen || 0;
-    //         if (vehicle.lastCycle) v.lastCycle = vehicle.lastCycle;
-    //         return v;
-    //       });
-    // 
-    //       // Only keep vehicles which have drive cycles.
-    //       // vehs = vehs.filter(function (v) {
-    //       //   return v.lastSeen !== null;
-    //       // });
-    // 
-    //       // Sort by lastSeen.
-    //       vehs.sort(function (a, b) {
-    //         return b.lastSeen - a.lastSeen;
-    //       });
-    // 
-    //       vehs.splice(20);  // HACK: Thow away all but first 20 vehicles.
-    //       // HACK: mongoose litters its results with __proto__ fields and
-    //       // _id with types that confuse dnode.  Go through JSON to get
-    //       // plain old data.
-    //       cb(null, JSON.parse(JSON.stringify(vehs)));
-    //     }
-    //   );
-    // });
-    cb(null, []);
-    // userDb.populateUserVehicles(user, function (err) {
-    //   cb(err, user.vehicles);
-    // });
-
+    if (req.user.data.vehicles.length > 0) {
+      var _cb = _.after(req.user.data.vehicles.length, cb);
+      _.each(req.user.data.vehicles, function (veh) {
+        sampleDb.fetchSamples(veh._id, '_wake', {},
+                              function (err, cycles) {
+          if (err) return cb(err);
+          if (cycles && cycles.length > 0)
+            veh.lastCycle = _.last(cycles);
+          _cb(null, req.user.data.vehicles);
+        });
+      });
+    } else cb(null, []);
   }
 
-  // function fetchUsers(cb) {
-  //   User.find().sort('created', -1).run(function (err, usrs) {
-  //     if (!err) {
-  //       cb(null, JSON.parse(JSON.stringify(usrs)));
-  //     } else {
-  //       cb(null, []);
-  //     }
-  //   });
-  // }
+  // TMP: use subscriptions from client end
+  function fetchEvents(opts, cb) {
+    if (_.isFunction(opts)) {
+      cb = opts;
+      opts = null;
+    }
+    var vehicles;
+    if (opts && opts.vehicleId) {
+      if (UserDb.haveAccess(opts.vehicleId, req.user.data.vehicles))
+        vehicles = [{ _id: opts.vehicleId }];
+      else return cb('Permission denied.');
+    } else vehicles = req.user.data.vehicles;
+    var drives = [];
+    var charges = [];
+    var errors = [];
+    var warnings = []; 
+    var notes = [];
+    Step(
+      function () {
+        if (vehicles.length > 0) {
+          var _this = _.after(vehicles.length, this);
+          _.each(vehicles, function (veh) {
+            Step(
+              function () {
+                sampleDb.fetchSamples(veh._id, '_drive', {}, this.parallel());
+                sampleDb.fetchSamples(veh._id, '_charge', {}, this.parallel());
+                sampleDb.fetchSamples(veh._id, '_error', {}, this.parallel());
+                sampleDb.fetchSamples(veh._id, '_warning', {}, this.parallel());
+                sampleDb.fetchSamples(veh._id, '_note', {}, this.parallel());
+              },
+              function (err, _drives, _charges, _errors, _warnings, _notes) {
+                if (err) return cb(err);
+                function addType(type) {
+                  return function (not) {
+                    not.type = type;
+                    if (!(opts && opts.vehicleId))
+                      not.vehicle = veh;
+                  }
+                }
+                _.each(_drives, addType('_drive'));
+                _.each(_charges, addType('_charge'));
+                _.each(_errors, addType('_error'));
+                _.each(_warnings, addType('_warning'));
+                _.each(_notes, addType('_note'));
+                drives = drives.concat(_drives);
+                charges = charges.concat(_charges);
+                errors = errors.concat(_errors);
+                warnings = warnings.concat(_warnings);
+                notes = notes.concat(_notes);
+                _this();
+              }
+            );
+          });
+        } else this();
+      },
+      function (err) {
+        if (err) return cb(err);
+        var _sort = _.after(notes.length, sort);
+        _.each(notes, function (note) {
+          console.log(note);
+          userDb.findUserById(note.val.userId, function (err, usr) {
+            if (err) return cb(err);
+            note.user = usr;
+            _sort();
+          });
+        });
+        function sort() {
+          var bins = {};
+          var threads = [];
+          var threadedNotes = [];
+          _.each(notes, function (note) {
+            var key = String(note.beg) + String(note.end);
+            if (!(key in bins)) bins[key] = [];
+            bins[key].push(note);
+          });
+          _.each(bins, function (bin) {
+            threads.push(bin);
+          });
+          _.each(threads, function (thread) {
+            thread.sort(function (a, b) {
+              return a.val.date - b.val.date;
+            });
+            var note = thread[0];
+            note.replies = _.rest(thread);
+            note.latest = _.last(thread).val.date;
+            threadedNotes.push(note);
+          });
+          var notifications = [].concat(drives, charges, errors,
+                                        warnings, threadedNotes);
+          notifications.sort(function(a, b) {
+            var at = a.latest ? a.latest * 1e3 : a.beg;
+            var bt = b.latest ? b.latest * 1e3 : b.beg;
+            return bt - at;
+          });
+          cb(null, notifications);
+        }
+      }
+    ); 
+  }
+
+  //// Methods that need authorization ////
 
   // Fetch samples.
   // TODO: get rid of subscriptions, replace with 'wait until data available'
   // option.
   function fetchSamples(vehicleId, channelName, options, cb) {
-    sampleDbExecutionQueue(function(done) {
+    if (!UserDb.haveAccess(vehicleId, req.user.data.vehicles))
+      return cb('Permission denied.');
+    sampleDbExecutionQueue(function (done) {
       var id = 'fetchSamples(' + vehicleId + ', ' + channelName + ') ';
       function next(err, samples) {
         cb(err, samples);
@@ -1553,15 +1049,6 @@ var createDnodeConnection = function (remote, conn) {
         sampleDb.fetchSamples(vehicleId, channelName, options, next);
       }
     });
-  }
-
-  function cancelSubscribeSamples(handle, cb) {
-    // No need to check auth.
-    if (handle != null && subscriptions[handle]) {
-      sampleDb.cancelSubscription(subscriptions[handle]);
-      delete subscriptions[handle];
-    }
-    if (cb) cb();
   }
 
   /**
@@ -1623,45 +1110,48 @@ var createDnodeConnection = function (remote, conn) {
     });
   }
 
-  function saveAppState(data, cb) {
-    var state = new AppState({ val: data });
-    state.save(function (err) {
-      cb(err, state.key);
+
+  //// Methods that do NOT need authorization ////
+
+  /*
+   * Stop receiving subscription data.
+   */
+  function cancelSubscribeSamples(handle, cb) {
+    // No need to check auth.
+    if (handle != null && subscriptions[handle]) {
+      sampleDb.cancelSubscription(subscriptions[handle]);
+      delete subscriptions[handle];
+    }
+    if (cb) cb();
+  }
+
+  /*
+   * Create a new link describing a GUI state.
+   */
+  function saveLink(str, cb) {
+    userDb.createLink({ val: str }, function (err, link) {
+      cb(err, link.key);
     });
   }
 
-  conn.on('end', function () {
-    _.keys(subscriptions).forEach(cancelSubscribeSamples);
-  });
 
-  // return {
-  //   // signin: signin,
-  //   authenticate: authenticate,
-  //   fetchNotifications: ensureAuth(fetchNotifications),
-  //   fetchVehicles: ensureAuth(fetchVehicles),
-  //   // fetchUsers: ensureAuth(fetchUsers),
-  //   fetchSamples: ensureAuth(fetchSamples),
-  //   cancelSubscribeSamples: cancelSubscribeSamples,
-  //   insertSamples: ensureAuth(insertSamples),
-  //   fetchChannelTree: ensureAuth(fetchChannelTree),
-  //   fetchVehicleConfig: ensureAuth(fetchVehicleConfig),
-  //   saveVehicleConfig: ensureAuth(saveVehicleConfig),
-  //   saveAppState: ensureAuth(saveAppState),
-  // };
-  
+  //// Methods accessible to remote side: ////
+
   return {
-    // signin: signin,
-    authenticate: authenticate,
-    fetchNotifications: fetchNotifications,
+    authorize: authorize,
+    fetchUsers: fetchUsers,
     fetchVehicles: fetchVehicles,
-    // fetchUsers: ensureAuth(fetchUsers),
-    fetchSamples: fetchSamples,
+    fetchEvents: fetchEvents,
+
+    fetchSamples: ensureAuth(fetchSamples),    
+    insertSamples: ensureAuth(insertSamples, ['insert']),
+    fetchChannelTree: ensureAuth(fetchChannelTree),
+    fetchVehicleConfig: ensureAuth(fetchVehicleConfig, ['config']),
+    saveVehicleConfig: ensureAuth(saveVehicleConfig, ['config']),
+    addNote: ensureAuth(insertSamples, ['comment']),
+
     cancelSubscribeSamples: cancelSubscribeSamples,
-    insertSamples: insertSamples,
-    fetchChannelTree: fetchChannelTree,
-    fetchVehicleConfig: fetchVehicleConfig,
-    saveVehicleConfig: saveVehicleConfig,
-    saveAppState: saveAppState,
+    saveLink: saveLink,
   };
 };
 
@@ -1693,7 +1183,6 @@ if (!module.parent) {
       app.listen(argv.port);
       dnode(createDnodeConnection)
           .use(dnodeLogMiddleware)
-          // .use(dnodeSession({ store: sessionStore }))
           .listen(app, {
             io: { // 'log level': 2,
               transports: [
@@ -1703,6 +1192,24 @@ if (!module.parent) {
                 //'jsonp-polling',  // doesn't work
               ]
             }
+          })
+          .server.socket.set('authorization', function (data, cb) {
+            var cookies = connect.utils.parseCookie(data.headers.cookie);
+            var sid = cookies['connect.sid'];
+            app.settings.sessionStore.load(sid, function (err, sess) {
+              if (err) {
+                log("Error: Failed finding session", '(' + sid + ')');
+                return cb(err);
+              }
+              if (!sess) {
+                log("Error: Invalid session", '(sid:' + sid + ')');
+                return cb(new Error('Could not find session.'));
+              }
+              log("Session opened", '(sid:' + sid + ')');
+              data.session = sess;
+              cb(null, true);
+            });
+            // TODO: Keep the session alive on an inerval.
           });
       log("Express server listening on port", app.address().port);
     }

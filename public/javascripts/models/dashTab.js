@@ -21,23 +21,23 @@ define(function (fn) {
       this.eventsModel = new App.models.EventsModel({
         title: 'Events',
         parent: '.dashboard-left',
-        notifications: [],
+        events: [],
         singleVehicle: false,
-      }).bind('change:notifications', function () {
+      }).bind('change:events', function () {
         this.view.render();
       });
 
-      this.notificationCollection = new App.collections.NotificationCollection({
+      this.eventCollection = new App.collections.EventCollection({
         dependents: [this.eventsModel],
       }).bind('reset', function () {
         _.each(this.dependents, _.bind(function (dep) {
           if (this.models.length === 0)
-            dep.trigger('change:notifications');
+            dep.trigger('change:events');
           else
-            dep.set({ notifications: this.models });
+            dep.set({ events: this.models });
         }, this));
       });
-      this.notificationCollection.fetch();
+      this.eventCollection.fetch();
 
       this.vehicleCollection = new App.collections.VehicleCollection({
         title: 'Vehicles',

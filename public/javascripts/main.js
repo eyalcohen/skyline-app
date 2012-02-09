@@ -19,11 +19,7 @@ requirejs(['libs/domReady',
     debug: true,
     start: function () {
       var firstConnect = true;
-      App.sessionId = _MM_SessionID_;
-      App.dnodeAuth = { // This object is sent to the remote server.
-        sessionId: App.sessionId,
-      };
-      DNode(App.dnodeAuth).connect({
+      DNode.connect({
             disconnect: App.disconnect,
             'max reconnection attempts': Infinity,
             'reconnection limit': 5000,  // 5 seconds
@@ -62,7 +58,6 @@ requirejs(['libs/domReady',
               App.views = views;
 
               App.util = util;
-
               App.easing = easing;
 
               App.vehicleTabModels = {};  // Map from tabId to VehicleTabModel.
@@ -73,50 +68,38 @@ requirejs(['libs/domReady',
               App.login = new views.LoginView();
               App.logout = new views.LogoutView();
               App.subscribe('UserWasAuthenticated', App.build);
-              authenticate(false);
-
+              authorize(false);
             });
           } catch (err) {
             console.error('Error in App.start: ' + err + '\n' + err.stack);
           }
-        } else authenticate(true);
+        } else authorize(true);
 
-        function authenticate(reconnect) {
-          if (App.sessionId) {
-            App.api.authenticate(App.sessionId, function (err, user) {
-              if (err) {
-                console.warn('Server connected. User NOT authorized!');
-                if ('Error: User and Session do NOT match!' === err) {
-                  App.publish('NotAuthenticated', [{
-                    report: 'Oops! Something bad happened so you were Signed Out. Please Sign In again.',
-                    type: 'error',
-                  }]);
-                } else if ('Session has no User.') {
-                  App.publish('NotAuthenticated', [{
-                    first: !reconnect,
-                    report: 'Skyline manages Users with Google Account information.',
-                    type: 'message',
-                  }]);
-                } else console.warn(err);
-                App.loading.stop();
-              } else {
-                console.warn('Server connected. User authorized!');
-                App.user = user;
-                App.publish(reconnect ? 'DNodeReconnectUserAuthorized'
-                            : 'UserWasAuthenticated');
-              }
-            });
-          } else {
-            console.warn('Session ID NOT found!');
-            // App.publish('NotAuthenticated', [{
-            //   first: true,
-            //   report: 'Skyline manages Users with Google Account information.',
-            //   type: 'message',
-            // }]);
-            App.loading.stop();
-          }
+        function authorize(reconnect) {
+          App.api.authorize(function (err, user) {
+            if (err) {
+              console.warn('Server connected. User NOT authorized!');
+              if ('Error: User and Session do NOT match!' === err) {
+                App.publish('NotAuthenticated', [{
+                  report: 'Oops! Something bad happened so you were Signed Out. Please Sign In again.',
+                  type: 'error',
+                }]);
+              } else if ('Session has no User.') {
+                App.publish('NotAuthenticated', [{
+                  first: !reconnect,
+                  report: 'Skyline manages Users with Google Account information.',
+                  type: 'message',
+                }]);
+              } else console.warn(err);
+              App.loading.stop();
+            } else {
+              console.warn('Server connected. User authorized!');
+              App.user = user;
+              App.publish(reconnect ? 'DNodeReconnectUserAuthorized'
+                          : 'UserWasAuthenticated');
+            }
+          });
         }
-
       });
     },
 

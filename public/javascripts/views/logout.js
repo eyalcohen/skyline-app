@@ -32,8 +32,6 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
     },
 
     signout: function (e) {
-      // App.store.remove('user');
-      // App.sessionId = null;
       App.user = null;
       $.get('/logout');
       App.publish('NotAuthenticated', [{
@@ -50,7 +48,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
       if (state === '')
         openDialog('http://' + window.location.host);
       else
-        App.api.saveAppState(state, function (err, key) {
+        App.api.saveLink(state, function (err, key) {
           openDialog('http://' + window.location.host + '/s/' + key);
         });
       function openDialog(link) {

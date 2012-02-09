@@ -110,6 +110,10 @@ define({
     } while (blurb.concat(words[i]).length - 1 < max);
     return blurb.substr(0, blurb.length - 1) + end;
   },
+  
+  find: function (v, k, l) {
+    return _.find(l, function (i) { return i[k] === v; });
+  },
 
 });
 
