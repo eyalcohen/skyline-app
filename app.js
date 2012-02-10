@@ -761,33 +761,39 @@ app.post('/debug/:logFile', function (req, res) {
 
 ////////////// LEGACY
 
-function legacy(path) {
-  log('LEGACY ROUTE: ' + path);
-  res.send({ status: 'fail', data: { code: 'ROUTE IS DEPRECATED' } }, 400);
+function legacy(req, res) {
+  log('LEGACY ROUTE: ' + req.route.path);
+  res.send({ status: 'fail',
+          data: { code: 'ROUTE IS DEPRECATED' } }, 400);
 }
 
 // User create
-// ** Users are now created through Passport and UserDb
-app.post('/usercreate/:newemail', function (req, res) {
-  legacy(req.route.path);
-});
+// ** Users are now created through Passport and UserDb.
+app.post('/usercreate/:newemail', legacy);
 
 // Vehicle create
-app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
-  legacy(req.route.path);
-});
+// ** Make, model and year are no longer relevant.
+// Replaced with /create/vehicle above.
+app.post('/vehiclecreate/:email/:make/:model/:year', legacy);
 
 // User info
-app.get('/userinfo/:email', function (req, res) {
-  legacy(req.route.path);
-});
+// ** Used by Henson but since telemetry devices
+// (tablets) are no longer associated with users and
+// we no longer find users by email, this is useless.
+// Not replaced.
+app.get('/userinfo/:email', legacy);
 
 // Vehicle info
+// ** Used by Henson but since telemetry devices
+// (tablets) are no longer associated with users,
+// this does not make sense.
+// Not replaced.
 app.get('/summary/:email/:vintid', function (req, res) {
   legacy(req.route.path);
 });
 
 // Dump cycles
+// ** Replaced by /samples above.
 app.put('/cycle', function (req, res) {
   legacy(req.route.path);
 });
