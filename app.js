@@ -25,8 +25,6 @@ var log = require('./log.js').log;
 var logTimestamp = require('./log.js').logTimestamp;
 var express = require('express');
 var connect = require('connect');
-var mongoose = require('mongoose');
-var ObjectID = require('mongoose/lib/types/objectid');
 var jade = require('jade');
 var mongodb = require('mongodb');
 var mongoStore = require('connect-mongodb');
@@ -42,7 +40,6 @@ var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Step = require('step');
 var Buffers = require('buffers')
-var EventID = require('./customids').EventID;
 var EventDescFileName = __dirname +
     '/../mission-java/common/src/main/protobuf/Events.desc';
 var WebUploadSamples, EventWebUpload;
