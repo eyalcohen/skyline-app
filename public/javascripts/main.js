@@ -20,10 +20,10 @@ requirejs(['libs/domReady',
     start: function () {
       var firstConnect = true;
       DNode.connect({
-            disconnect: App.disconnect,
-            'max reconnection attempts': Infinity,
-            'reconnection limit': 5000,  // 5 seconds
-          }, function (remote, connection) {
+        disconnect: App.disconnect,
+        'max reconnection attempts': Infinity,
+        'reconnection limit': 5000,  // 5 seconds
+      }, function (remote, connection) {
         connection.on('error', function (err) {
           console.error('DNode callback threw exception:\n' +
                         (err.stack || err));

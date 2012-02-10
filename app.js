@@ -186,7 +186,7 @@ app.configure(function () {
     return logTimestamp() + ' ' + color.red(tok.method(req, res) || '-') + ' ' +
         color.yellow(tok.url(req, res) || '-') + ' ' +
         tok['response-time'](req, res) + ' ms';
-  } }));
+  }}));
 
   app.use(express.methodOverride());
   app.use(app.router);
@@ -233,17 +233,22 @@ app.get('/', function (req, res) {
   res.render('index');
 });
 
-// Redirect the user to Google for authentication. When complete, Google
-// will redirect the user back to the application at
-// /auth/google/return
+// Redirect the user to Google for authentication.
+// When complete, Google will redirect the user
+// back to the application at /auth/google/return.
 app.get('/auth/google', passport.authenticate('google'));
 
-// Google will redirect the user to this URL after authentication. Finish
-// the process by verifying the assertion. If valid, the user will be
+// Google will redirect the user to this URL
+// after authentication. Finish the process by
+// verifying the assertion. If valid, the user will be
 // logged in. Otherwise, authentication has failed.
-app.get('/auth/google/return', 
-  passport.authenticate('google', { successRedirect: '/',
-                                    failureRedirect: '/' }));
+// ** successRedirect is the referer becuase
+// we might want to snarf query parameters from header
+// when the initial request was made, e.g., sharing a link.
+app.get('/auth/google/return', function (req, res, next) {
+  passport.authenticate('google', { successRedirect: req.headers.referer,
+                                    failureRedirect: '/' })(req, res, next);
+});
 
 // We logout via an ajax request.
 app.get('/logout', function (req, res) {
@@ -456,6 +461,13 @@ app.get('/export/:vintid/data.csv', function(req, res, next) {
 });
 
 // Create a vehicle
+// ** In practice, this route is only ever
+// used by a new client, e.g., a tablet,
+// when it's initializing itself. We pass
+// back a unique vehicleId to use when uploading
+// samples for a specific vehicle in our database
+// and a clientId that the the server can use
+// for authentication.
 app.post('/create/vehicle/:title/:description/:nickname',
     function (req, res) {
   var props = {
@@ -463,12 +475,12 @@ app.post('/create/vehicle/:title/:description/:nickname',
     description: req.params.description,
     nickname: req.params.nickname,
   };
-  // create the vehicle
   userDb.createVehicle(props, function (err, veh) {
     if (err)
       res.send({ status: 'error', message: err }, 400);
     else
-      res.send({ status: 'success', data: { vehicleId: veh._id } });
+      res.send({ status: 'success', data: {
+              vehicleId: veh._id, clientId: veh.clientId } });
   });
 });
 
@@ -490,7 +502,6 @@ app.post('/create/team/:title/:description/:nickname/:domains/:users/:admins',
     vehicles: [],
     fleets: [],
   };
-  // create the team
   userDb.createTeam(props, function (err, team) {
     if (err)
       res.send({ status: 'error', message: err }, 400);
@@ -510,7 +521,6 @@ app.post('/create/fleet/:title/:description/:nickname/:vehicles',
         _.map(req.params.vehicles.split(','),
               function (v) { return Number(v); }) : [],
   };
-  // create the fleet
   userDb.createFleet(props, function (err, fle) {
     if (err)
       res.send({ status: 'error', message: err }, 400);
@@ -532,9 +542,9 @@ app.put('/samples', function (req, res) {
   if (mimeType == 'application/octet-stream') {
     var fileName = (new Date()).valueOf() + '.pbraw';
     fs.mkdir(__dirname + '/samples', '0755', function (err) {
-      fs.writeFile(__dirname + '/samples/' + fileName, req.rawBody, null, function (err) {
-        if (err)
-          log(err);
+      fs.writeFile(__dirname + '/samples/' + fileName,
+                  req.rawBody, null, function (err) {
+        if (err) log(err);
         else
           log('Saved to: ' + __dirname + '/samples/' + fileName);
       });
@@ -552,39 +562,38 @@ app.put('/samples', function (req, res) {
   var sampleSet = {};
   var firstError;
   Step(
-    // get the cycle's user and authenticate
-    function getUser() {
-      User.findOne({ email: uploadSamples.userId }, this);
-    }, function(err, usr_) {
-      usr = usr_;
-      if (!usr)
-        fail('USER_NOT_FOUND');
-      else if (!usr.authenticate(uploadSamples.password))
-        fail('INCORRECT_PASSWORD');
-      else
-        this();
-    },
-
+    //// TODO: Integrate some kind of authentication.
+    //// Public-key cryptography ?
+    // get the cycle's user and authenticate ** LAGACY **
+    // function getUser() {
+    //   User.findOne({ email: uploadSamples.userId }, this);
+    // }, function (err, usr_) {
+    //   usr = usr_;
+    //   if (!usr)
+    //     fail('USER_NOT_FOUND');
+    //   else if (!usr.authenticate(uploadSamples.password))
+    //     fail('INCORRECT_PASSWORD');
+    //   else
+    //     this();
+    // },
     // get the cycle's vehicle
     function getVehicle() {
       userDb.collections.vehicles.findOne({ _id: vehicleId }, this);
       // findVehicleByIntId(vehicleId, this);
-    }, function(veh_) {
+    }, function (veh_) {
       veh = veh_;
       if (!veh)
         fail('VEHICLE_NOT_FOUND');
       else
         this();
     },
-
     // save the cycle locally for now
-    function(err) {
+    function (err) {
       if (err) return this(err);
-      var fileName = veh.year + '.' + veh.make + '.' + veh.model + '.' +
-          (new Date()).valueOf() + '.js';
+      var fileName = vehicleId + (new Date()).valueOf() + '.js';
       fs.mkdir(__dirname + '/samples', '0755', function (err) {
         /* Transform Buffers into arrays so they get stringified pretty. */
-        var newSamples = traverse(uploadSamples).map(function(o) {
+        var newSamples = traverse(uploadSamples).map(function (o) {
           if (_.isObject(o) && !_.isArray(o) && _.isNumber(o.length)) {
             var a = Array(o.length);
             for (var i = 0; i < o.length; ++i)
@@ -606,12 +615,12 @@ app.put('/samples', function (req, res) {
     },
 
     // Store the data in the database.
-    function(err) {
+    function (err) {
       if (err) return this(err);
       // Process samples.
-      uploadSamples.sampleStream.forEach(function(sampleStream) {
+      uploadSamples.sampleStream.forEach(function (sampleStream) {
         var begin = 0, duration = 0;
-        sampleStream.sample.forEach(function(upSample) {
+        sampleStream.sample.forEach(function (upSample) {
           begin += upSample.beginDelta;  // Delta decode.
           duration += upSample.durationDelta;  // Delta decode.
           var val = upSample.valueFloat;
@@ -638,29 +647,29 @@ app.put('/samples', function (req, res) {
 
       if (!(uploadSamples.protocolVersion >= 2)) {
         // HACK: Heuristically add durations to zero-duration samples.
-        sampleDb.addDurationHeuristicHack(vehicleId, sampleSet, 10 * SampleDb.s,
-                                          this);
+        sampleDb.addDurationHeuristicHack(vehicleId, sampleSet,
+                                          10 * SampleDb.s, this);
       }
     },
 
-    function(err) {
+    function (err) {
       if (err) return this(err);
 
       // Add schema samples.
       var schemaSamples = [];
-      uploadSamples.schema.forEach(function(schema) {
+      uploadSamples.schema.forEach(function (schema) {
         var samples = sampleSet[schema.channelName];
         // Ignore unused schemas.
         if (!samples)
           return;
         var beg =
-            _.min(samples, function(sample) { return sample.beg; }).beg;
+            _.min(samples, function (sample) { return sample.beg; }).beg;
         var end =
-            _.max(samples, function(sample) { return sample.end; }).end;
+            _.max(samples, function (sample) { return sample.end; }).end;
         schema.type = schema.type.toLowerCase();
         function transformEnumDescriptions(descriptions) {
           var r = {};
-          descriptions.forEach(function(d) { r[d.value] = d.name });
+          descriptions.forEach(function (d) { r[d.value] = d.name });
           return r;
         }
         if (schema.enumVals)
@@ -682,7 +691,7 @@ app.put('/samples', function (req, res) {
     },
 
     // Any exceptions above end up here.
-    function(err) {
+    function (err) {
       if (err) {
         log('Error while processing PUT /samples request: ' + err.stack);
         fail('INTERNAL_ERROR');
@@ -698,7 +707,7 @@ app.put('/samples', function (req, res) {
 var loadAvg = 1.0;
 if (getrusage) {
   var lastSampleTime, lastCpuTime;
-  setInterval(function() {
+  setInterval(function () {
     var now = Date.now();
     var cpuTime = getrusage.getcputime();
     if (lastSampleTime) {
@@ -747,6 +756,40 @@ app.post('/debug/:logFile', function (req, res) {
     res.statusCode = 500;
     res.end('Error writing: ' + err, 'utf8');
   }
+});
+
+
+////////////// LEGACY
+
+function legacy(path) {
+  log('LEGACY ROUTE: ' + path);
+  res.send({ status: 'fail', data: { code: 'ROUTE IS DEPRECATED' } }, 400);
+}
+
+// User create
+// ** Users are now created through Passport and UserDb
+app.post('/usercreate/:newemail', function (req, res) {
+  legacy(req.route.path);
+});
+
+// Vehicle create
+app.post('/vehiclecreate/:email/:make/:model/:year', function (req, res) {
+  legacy(req.route.path);
+});
+
+// User info
+app.get('/userinfo/:email', function (req, res) {
+  legacy(req.route.path);
+});
+
+// Vehicle info
+app.get('/summary/:email/:vintid', function (req, res) {
+  legacy(req.route.path);
+});
+
+// Dump cycles
+app.put('/cycle', function (req, res) {
+  legacy(req.route.path);
 });
 
 
@@ -1148,7 +1191,7 @@ var createDnodeConnection = function (remote, conn) {
     fetchChannelTree: ensureAuth(fetchChannelTree),
     fetchVehicleConfig: ensureAuth(fetchVehicleConfig, ['config']),
     saveVehicleConfig: ensureAuth(saveVehicleConfig, ['config']),
-    addNote: ensureAuth(insertSamples, ['comment']),
+    addNote: ensureAuth(insertSamples, ['note']),
 
     cancelSubscribeSamples: cancelSubscribeSamples,
     saveLink: saveLink,

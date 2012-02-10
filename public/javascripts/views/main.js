@@ -43,10 +43,6 @@ define(['jquery'], function ($) {
     },
 
     startHistory: function () {
-      // HACK: _wantsPushState is true if
-      // history has already been started.
-      // if (Backbone.history._wantsPushState)
-      //   return;
       Backbone.history.start({
         pushState: true,
       });

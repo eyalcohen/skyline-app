@@ -46,6 +46,13 @@ Step(
   function (err, uDb, sDb) {
     userDb = uDb;
     sampleDb = sDb;
+    // drop indexes
+    userDb.collections.sessions.dropIndexes(this.parallel());
+    userDb.collections.users.dropIndexes(this.parallel());
+    userDb.collections.vehicles.dropIndexes(this.parallel());
+    userDb.collections.teams.dropIndexes(this.parallel());
+    userDb.collections.fleets.dropIndexes(this.parallel());
+    // drop collections
     userDb.collections.sessions.drop(this.parallel());
     userDb.collections.users.drop(this.parallel());
     userDb.collections.vehicles.drop(this.parallel());
@@ -55,6 +62,7 @@ Step(
   // Add newly formatted vehicles.
   function (err) {
     // err if cols do not exist - but that's okay
+    log('\nDeleted old indexes.');
     log('\nDeleted all sessions, users, and vehicles.');
     var next = this;
     // Manually define vehicles because we want to add more data

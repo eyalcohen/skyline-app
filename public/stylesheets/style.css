@@ -745,11 +745,13 @@ div.small-button-light {
 }
 
 div.small-button-light:hover {
-  background: #333;
-  color: white;
+  border: none;
 }
 
-div.small-button:hover {}
+div.small-button:hover,
+div.small-button-sticky:hover {
+  border: none;
+}
 
 div.small-button:active,
 div.small-button-light:active {

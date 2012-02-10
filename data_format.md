@@ -337,7 +337,8 @@ Four database schemas are used for handling data interaction: Users, Teams, Vehi
 ### User Schema ###
 
     {
-      _id: Number, -- A unique identifier for this User (unsigned 32-bit int)
+      _id: Number [INDEX], -- A unique identifier for this User (unsigned 32-bit int)
+      openId: String [INDEX], -- e.g., "https://www.google.com/accounts/o8/id?id=AItOawndPKDzSXJD7n3FoyfmkCdxntSc4QrqVGM",
       displayName: String, -- The name of this User, suitable for display
       name: Object
       {
@@ -349,7 +350,7 @@ Four database schemas are used for handling data interaction: Users, Teams, Vehi
       [{
         value: String, -- The actual email address
       }],
-      created: ISODate, -- Timestamp of when this User was created (new Date)
+      created: ISODate [INDEX], -- Timestamp of when this User was created (new Date)
       vehicles: [ Access ], -- An Access object list describing Vehicles (see below)
       fleets: [ Access ], -- An Access object list describing Fleets
     }
@@ -359,14 +360,14 @@ In practice, `displayName`, `name`, and `emails` are provided by Skyline's authe
 ### Team Schema ###
 
     {
-      _id: Number, -- A unique identifier for this Team (unsigned 32-bit int)
+      _id: Number [INDEX], -- A unique identifier for this Team (unsigned 32-bit int)
       title: String, -- e.g., "Mission Motors-Honda EV Engineers"
       description: String, -- e.g., "Mission Motors and Honda EV research collaboration team"
       nickname: String, -- e.g., "mission-honda"
       domains: [ String ], -- Optional domain names, e.g., "ridemission.com", that will be used to scrape for this Team's Users
       users: [ User ], -- Optional list of Users represnting this Team.
       admins: [ User ], -- Users allowed to add/remove Team User and domains (By default, the User who created this Team is added to this list. Admins can add/remove other admins)
-      created: ISODate, -- Timestamp of when this Team was created (new Date)
+      created: ISODate [INDEX], -- Timestamp of when this Team was created (new Date)
       vehicles: [ Access ], -- An Access object list describing Vehicles
       fleets: [ Access ], -- An Access object list describing Fleets
     }
@@ -376,21 +377,24 @@ At least one domain name or User is required to define a group. Domain name and 
 ### Vehicle Schema ###
 
     {
-      _id: Number, -- A unique identifier for this Vehicle (unsigned 32-bit int)
+      _id: Number [INDEX], -- A unique identifier for this Vehicle (unsigned 32-bit int)
       title: String, -- e.g., "2011 Chevy Volt"
       description: String, -- e.g., "Mike’s city commuter"
       nickname: String, -- e.g., "volt2"
-      created: ISODate, -- Timestamp of when this Vehicle was created (new Date)
+      created: ISODate [INDEX], -- Timestamp of when this Vehicle was created (new Date)
+      clientId: Number, -- A unique identifier (unsigned 32-bit int) for this Vehicle's telemetry device (tablet or other)
     }
+
+`clientId` and `vehicleId` are saved by the telemetry device. When calling in to the server, it announces which vehicle it's associated with. The server then looks up this vehicle and will accept the request only if `clientId`'s match.
 
 ### Fleet Schema ###
 
     {
-      _id: Number, -- A unique identifier for this Vehicle (unsigned 32-bit int)
+      _id: Number [INDEX], -- A unique identifier for this Vehicle (unsigned 32-bit int)
       title: String, -- e.g., "Oakland Car Share"
       description: String, -- e.g., "Compact cars shared in Oakland" - or nickname, Zipcar style, e.g., "The Raiders"
       nickname: String, -- e.g., "compacts"
-      created: ISODate, -- Timestamp of when this Fleet was created (new Date)
+      created: ISODate [INDEX], -- Timestamp of when this Fleet was created (new Date)
       vehicles: [ Number ], -- A list of Vehicles belonging to this Fleet
     }
 
@@ -403,10 +407,12 @@ Users are associated with Vehicles and/or Fleets by "access" objects. These obje
     {
       targetId: Number, -- The associated target's (Vehicle or Fleet) unique identifier (unsigned 32-bit int)
       created: ISODate, -- Timestamp of when this access was created (new Date)
-      lastAccess: ISODate, -- Timestamp of when this access was last used (new Date)
+      // lastAccess: ISODate, -- Timestamp of when this access was last used (new Date)
       admin: Boolean, -- Denotes wether or not the associated User can add / modify other User access to the target
       config: Boolean, -- Denotes wether or not the associated User can edit the target's Configuration file
-      channels: [ String ], -- List of associated User accessible channel names on the target
+      insert: Boolean, -- Denotes wether or not the associated User can insert samples into the database
+      note: Boolean, -- Denotes wether or not the associated User can annotate data (in practice, insert "_note" samples)
+      chans: [ String ], -- List of associated User accessible channel names on the target
     }
 
 

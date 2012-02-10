@@ -24,22 +24,39 @@ var UserDb = exports.UserDb = function (db, options, cb) {
   var self = this;
   self.db = db;
   self.collections = {};
+
+  var collections = {
+    sessions: { index: { created: 1 }, },
+    links: { index: { created: 1, key: 1 } },
+    users: { index: { created: 1, openId: 1 } },
+    teams: { index: { created: 1 } },
+    vehicles: { index: { created: 1 } },
+    fleets: { index: { created: 1 } },
+  };
+
   Step(
     function () {
       var group = this.group();
-      _.each(['sessions', 'links', 'users', 'teams', 'vehicles', 'fleets'],
-            function (colName) {
-        db.collection(colName, group());
+      _.each(collections, function (k, name) {
+        db.collection(name, group());
       });
     },
     function (err, cols) {
-      if (err) return cb(err);      
+      if (err) return this(err);
       _.each(cols, function (col) {
         self.collections[col.collectionName] = col;
       });
-      cb(null, self);
+      if (options.ensureIndexes) {
+        var parallel = this.parallel;
+        _.each(cols, function (col) {
+          col.ensureIndex(collections[col.collectionName].index,
+                          parallel());
+        });
+      } else this();
+    },
+    function (err) {
+      cb(err, self);
     }
-    // TODO: indexes!
   );
 }
 
@@ -80,6 +97,7 @@ UserDb.prototype.createVehicle = function (props, cb) {
     title: null,
     description: null,
     nickname: null,
+    clientId: createId_32(),
   });
   createDoc.call(this, this.collections.vehicles, props, cb);
 }
@@ -297,12 +315,12 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
   var targetType = ids.vehicleId ? 'vehicles' : 'fleets';
   _.defaults(opts, {
     created: new Date,
-    lastAccess: null,
+    // lastAccess: null,
     admin: false,
     config: false,
     insert: false,
-    comment: false,
-    channels: ['/'],
+    note: false,
+    chans: ['/'],
   });
   opts.targetId = targetId;
   Step(
@@ -340,7 +358,7 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
 }
 
 
-/**
+/*
  * Determine whether or not user has access read
  * to a vehicle. This will be true simply if the vehicle
  * exists in req's vehicle list.
@@ -396,18 +414,27 @@ function createDoc(collection, props, cb) {
 
 
 /*
+ * Create a 32-bit identifier.
+ */
+function createId_32() {
+  return parseInt(Math.random() * 0x7fffffff);
+}
+
+
+/*
  * Create a 32-bit identifier for a
  * document ensuring that it is unuque
  * for the given collection.
  */
 function createUniqueId_32(collection, cb) {
-  var id = parseInt(Math.random() * 0x7fffffff);
+  var id = createId_32();
   collection.findOne({ _id: id }, function (err, doc) {
     if (err) return cb(err);
     if (doc) createUniqueId_32(collection, cb);
     else cb(null, id);
   });
 }
+
 
 /**
   * Create a string identifier
