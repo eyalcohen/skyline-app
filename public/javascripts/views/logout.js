@@ -18,7 +18,8 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
 
     render: function () {
       this.el = App.engine('logout.jade', {
-        email: App.user.email,
+        email: App.user.emails[0].value,
+        name: App.user.displayName
       }).appendTo(App.regions.menu);
       this.delegateEvents();
       return this;
@@ -31,18 +32,13 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
     },
 
     signout: function (e) {
-      App.store.remove('user');
       App.user = null;
+      $.get('/logout');
       App.publish('NotAuthenticated', [{
         first: true,
-        report: 'You have been logged out.',
+        report: 'Thank you. Come again.',
         type: 'message',
       }]);
-      //// HACK!
-      // Force the windoe to reload. This fixes the
-      // not able to tab between the login fields problem.
-      window.location = '/';
-      ////
       return this;
     },
 
@@ -52,7 +48,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
       if (state === '')
         openDialog('http://' + window.location.host);
       else
-        App.api.saveAppState(state, function (err, key) {
+        App.api.saveLink(state, function (err, key) {
           openDialog('http://' + window.location.host + '/s/' + key);
         });
       function openDialog(link) {

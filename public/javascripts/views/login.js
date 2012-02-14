@@ -5,7 +5,7 @@
 define(['jquery'], function ($) {
   return Backbone.View.extend({
     initialize: function (args) {
-      _.bindAll(this, 'render', 'signin', 'destroy');
+      _.bindAll(this, 'render', 'destroy');
       App.subscribe('UserWasAuthenticated', this.destroy);
       App.subscribe('NotAuthenticated', this.render);
       return this;
@@ -18,7 +18,7 @@ define(['jquery'], function ($) {
     },
 
     events: {
-      'click #login': 'signin',
+      // 'click #login': 'signin',
       'keyup input[name="user[email]"]': 'checkInput',
       'keyup input[name="user[password]"]': 'checkInput',
     },
@@ -38,7 +38,8 @@ define(['jquery'], function ($) {
         this.remove();
         nofade = true;
       }
-      this.el = App.engine('login.jade', opts).appendTo(App.regions.main);
+      this.el = App.engine('login.jade', opts)
+                   .appendTo(App.regions.main);
       if (!nofade) {
         this.el.hide().fadeIn('fast');
       }
@@ -55,39 +56,41 @@ define(['jquery'], function ($) {
       this.el = false;
     },
 
-    signin: function (e) {
-      e.preventDefault();
-      App.api.signin(this.email.val(),
-          this.password.val(),
-          _.bind(function (err, user) {
-        if (err !== null) {
-          switch (err.code) {
-            case 'MISSING_FIELD':
-              App.publish('NotAuthenticated', [{
-                email: err.email,
-                password: err.password,
-                report: err.message,
-                missing: err.missing
-              }]);
-              break;
-            case 'BAD_AUTH':
-              App.publish('NotAuthenticated', [{
-                email: err.email,
-                report: err.message
-              }]);
-              break;
-          }
-          return false;
-        }
-        App.store.set('user', user);
-        App.user = App.store.get('user');
-        App.dnodeAuth.user = App.user;
-        this.el.fadeOut('fast', _.bind(function () {
-          App.publish('UserWasAuthenticated');
-        }, this));
-      }, this));
-      return this;
-    },
+    // Currently this is not being used 
+    // cause are not offering username 
+    // and password logins... just google
+
+    // signin: function (e) {
+    //   e.preventDefault();
+    //   App.api.signin(this.email.val(),
+    //       this.password.val(),
+    //       _.bind(function (err, user) {
+    //     if (err !== null) {
+    //       switch (err.code) {
+    //         case 'MISSING_FIELD':
+    //           App.publish('NotAuthenticated', [{
+    //             email: err.email,
+    //             password: err.password,
+    //             report: err.message,
+    //             missing: err.missing
+    //           }]);
+    //           break;
+    //         case 'BAD_AUTH':
+    //           App.publish('NotAuthenticated', [{
+    //             email: err.email,
+    //             report: err.message
+    //           }]);
+    //           break;
+    //       }
+    //       return false;
+    //     }
+    //     App.user = user;
+    //     this.el.fadeOut('fast', _.bind(function () {
+    //       App.publish('UserWasAuthenticated');
+    //     }, this));
+    //   }, this));
+    //   return this;
+    // },
 
     checkInput: function (e) {
       var el = $(e.target);

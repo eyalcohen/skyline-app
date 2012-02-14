@@ -18,7 +18,7 @@ define(['views/dashItem'], function (DashItemView) {
         loading: false,
         singleVehicle: this.model.get('singleVehicle'),
         shrinkable: this.options.shrinkable,
-        rows: this.model.get('notifications'),
+        rows: this.model.get('events'),
       });
       if (this.el.length) {
         this.remove();
@@ -47,9 +47,9 @@ define(['views/dashItem'], function (DashItemView) {
       };
       var props = this.getProps(parentRow);
       if (this.model.get('singleVehicle')) {
-        App.publish('UnPreviewNotification-' + props.id);
+        App.publish('UnPreviewEvent-' + props.id);
         this.model.get('tabModel').set({ visibleTime: timeRange });
-        App.publish('PreviewNotification-' + props.id, [timeRange]);
+        App.publish('PreviewEvent-' + props.id, [timeRange]);
       } else {
         var tabId = App.util.makeId();
         App.publish('VehicleRequested', [props.id, tabId, props.title, timeRange]);
@@ -63,14 +63,14 @@ define(['views/dashItem'], function (DashItemView) {
       var beg = parseInt($('[data-time]', parentRow).attr('data-time'));
       var end = parseInt($('[data-time-end]', parentRow).attr('data-time-end'));
       var props = this.getProps(parentRow);
-      App.publish('PreviewNotification-' + props.id, [{beg: beg, end: end}]);
+      App.publish('PreviewEvent-' + props.id, [{beg: beg, end: end}]);
       return this;
     },
 
     unpreview: function (e) {
       if (!this.model.get('singleVehicle')) return;
       var props = this.getProps($(e.target).closest('tr'));
-      App.publish('UnPreviewNotification-' + props.id);
+      App.publish('UnPreviewEvent-' + props.id);
       return this;
     },
 

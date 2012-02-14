@@ -10,10 +10,10 @@ define(function () {
     this.isRestoring = false;
     var localAddTab = _.bind(this.addTab, this);
     App.subscribe('VehicleRequested', localAddTab);
-    // App.subscribe('NotAuthenticated', _.bind(function () {
-    //   App.unsubscribe('VehicleRequested', localAddTab);
-    //   App.unsubscribe('NotAuthenticated', arguments.callee);
-    // }, this));
+    App.subscribe('NotAuthenticated', _.bind(function () {
+      App.unsubscribe('VehicleRequested', localAddTab);
+      App.unsubscribe('NotAuthenticated', arguments.callee);
+    }, this));
   }
 
   StateMonitor.prototype.getState = function () {

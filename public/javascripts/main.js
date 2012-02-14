@@ -19,16 +19,12 @@ requirejs(['libs/domReady',
     debug: true,
     start: function () {
       var firstConnect = true;
-      App.user = store.get('user') || {};
-      App.dnodeAuth = {  // This object is sent to the remote server.
-        user: App.user,
-      };
-      DNode(App.dnodeAuth).connect({
-            disconnect: App.disconnect,
-            'max reconnection attempts': Infinity,
-            'reconnection limit': 5000,  // 5 seconds
-          }, function (remote, connection) {
-        connection.on('error', function(err) {
+      DNode.connect({
+        disconnect: App.disconnect,
+        'max reconnection attempts': Infinity,
+        'reconnection limit': 5000,  // 5 seconds
+      }, function (remote, connection) {
+        connection.on('error', function (err) {
           console.error('DNode callback threw exception:\n' +
                         (err.stack || err));
         });
@@ -62,7 +58,6 @@ requirejs(['libs/domReady',
               App.views = views;
 
               App.util = util;
-
               App.easing = easing;
 
               App.vehicleTabModels = {};  // Map from tabId to VehicleTabModel.
@@ -72,44 +67,40 @@ requirejs(['libs/domReady',
 
               App.login = new views.LoginView();
               App.logout = new views.LogoutView();
-              App.loginOpts = {
-                first: true,
-                report: 'Please log in.',
-                type: 'message',
-              };
               App.subscribe('UserWasAuthenticated', App.build);
-
-              if (_.isEmpty(App.user)) {
-                App.publish('NotAuthenticated', [App.loginOpts]);
-                App.loading.stop();
-              } else {
-                App.api.authenticate(App.user, function handleAuthResult(err) {
-                  if (err) App.publish('NotAuthenticated', [App.loginOpts]);
-                  else App.publish('UserWasAuthenticated');
-                });
-              }
+              authorize(false);
             });
           } catch (err) {
             console.error('Error in App.start: ' + err + '\n' + err.stack);
           }
-        } else {
-          if (!_.isEmpty(App.user)) {
-            App.api.authenticate(App.user, function (err) {
-              if (err) {
-                console.warn('Server reconnected. User NOT authorized!');
-                App.publish('NotAuthenticated', [App.loginOpts]);
-              } else {
-                console.warn('Server reconnected. User authorized!');
-                App.publish('DNodeReconnectUserAuthorized');
-              }
-            });
-          }
+        } else authorize(true);
+
+        function authorize(reconnect) {
+          App.api.authorize(function (err, user) {
+            if (err) {
+              console.warn('Server connected. User NOT authorized!');
+              if ('Error: User and Session do NOT match!' === err) {
+                App.publish('NotAuthenticated', [{
+                  report: 'Oops! Something bad happened so you were Signed Out. Please Sign In again.',
+                  type: 'error',
+                }]);
+              } else if ('Session has no User.') {
+                App.publish('NotAuthenticated', [{
+                  first: !reconnect,
+                  report: 'Skyline manages Users with Google Account information.',
+                  type: 'message',
+                }]);
+              } else console.warn(err);
+              App.loading.stop();
+            } else {
+              console.warn('Server connected. User authorized!');
+              App.user = user;
+              App.publish(reconnect ? 'DNodeReconnectUserAuthorized'
+                          : 'UserWasAuthenticated');
+            }
+          });
         }
       });
-    },
-
-    disconnect: function () {
-      console.warn('The server went away.');
     },
 
     build: function () {
@@ -141,9 +132,8 @@ requirejs(['libs/domReady',
           return this;
         },
         stop: function () {
-          if (App.spinner) {
+          if (App.spinner)
             App.spinner.stop();
-          }
           $(target).hide();
           return this;
         },

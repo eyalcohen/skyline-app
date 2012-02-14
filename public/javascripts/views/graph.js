@@ -9,15 +9,15 @@ define(['views/dashItem', 'plot_booter',
     initialize: function (args) {
       this._super('initialize', args);
       _.bindAll(this, 'destroy', 'highlightedChannelChanged',
-                'showNotification', 'hideNotification',
+                'showEvent', 'hideEvent',
                 'mouseHoverTime', 'addYaxesBoundsForDrops',
                 'removeYaxesBoundsForDrops', 'ensureLegend');
       var tabId = args.tabId;
       var id = args.id;
       this.model.tabModel.bind('change:highlightedChannel',
                                this.highlightedChannelChanged);
-      App.subscribe('PreviewNotification-' + tabId, this.showNotification);
-      App.subscribe('UnPreviewNotification-' + tabId, this.hideNotification);
+      App.subscribe('PreviewEvent-' + tabId, this.showEvent);
+      App.subscribe('UnPreviewEvent-' + tabId, this.hideEvent);
       App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
       App.subscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
       App.subscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
@@ -34,8 +34,8 @@ define(['views/dashItem', 'plot_booter',
       var id = this.options.id;
       this.model.tabModel.unbind('change:highlightedChannel',
                                  this.highlightedChannelChanged);
-      App.unsubscribe('PreviewNotification-' + tabId, this.showNotification);
-      App.unsubscribe('UnPreviewNotification-' + tabId, this.hideNotification);
+      App.unsubscribe('PreviewEvent-' + tabId, this.showEvent);
+      App.unsubscribe('UnPreviewEvent-' + tabId, this.hideEvent);
       App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
       App.unsubscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
       App.unsubscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
@@ -66,8 +66,8 @@ define(['views/dashItem', 'plot_booter',
           .appendTo(this.options.parent);
       this.mouseTime = $('.mouse-time', this.el);
       this.mouseTimeTxt = $('span', this.mouseTime);
-      this.notificationPreview = $('.notification-preview', this.el);
-      this.notificationIcons = [];
+      this.eventPreview = $('.event-preview', this.el);
+      this.eventIcons = [];
       this.minHoverDistance = 10;
       this.following = false;
       this.noteBox = null;
@@ -467,14 +467,14 @@ define(['views/dashItem', 'plot_booter',
 
     setupIcons: function () {
       var self = this;
-      if (self.notificationIcons.length > 0)
-        self.notificationIcons.remove();
-      var notifications =
-          _.stableSort(_.pluck(self.model.get('notifications'), 'attributes'),
+      if (self.eventIcons.length > 0)
+        self.eventIcons.remove();
+      var events =
+          _.stableSort(_.pluck(self.model.get('events'), 'attributes'),
           function(s1, s2) {
         return (s2.end - s2.beg) - (s1.end - s1.beg);
       });
-      _.each(notifications, function (not) {
+      _.each(events, function (not) {
         var icon = $('<img>')
             .attr({ src: not.meta.icon })
             .css({ bottom: 20 })
@@ -517,11 +517,11 @@ define(['views/dashItem', 'plot_booter',
                   .trigger(deEvent);
             })
             .bind('mouseover', function (e) {
-              App.publish('PreviewNotification-' + self.model.get('tabId'),
+              App.publish('PreviewEvent-' + self.model.get('tabId'),
                           [{beg: not.beg, end: not.end}]);
             })
             .bind('mouseout', function (e) {
-              App.publish('UnPreviewNotification-' + self.model.get('tabId'));
+              App.publish('UnPreviewEvent-' + self.model.get('tabId'));
             });
             // .bind('mouseout', function (e) {
             //   var not = $(e.target).data();
@@ -529,23 +529,28 @@ define(['views/dashItem', 'plot_booter',
             //   (function checkItBoy() {
             //     _.delay(function () {
             //       if (!self.editingNote)
-            //         self.cancelNote(null, self.plot);
+            //         self.cancelNote(null);
             //       else checkItBoy();
             //     }, 250);
             //   })();
             // });
       });
-      self.notificationIcons = $('.timeline-icon', self.holder);
+      self.eventIcons = $('.timeline-icon', self.holder);
       self.positionIcons();
     },
 
     positionIcons: function () {
+      var self = this;
       var xaxis = this.plot.getXAxes()[0];
-      _.each(this.notificationIcons, function (icon, i) {
+      _.each(this.eventIcons, function (icon, i) {
         var $icon = $(icon);
-        $icon.css({
-          left: xaxis.p2c($icon.data('beg') / 1e3) - 8,
-        });
+        var left = xaxis.p2c($icon.data('beg') / 1e3) - 8;
+        if (left >= 0 && left <= self.holder.width()) {
+          $icon.css({
+            left: xaxis.p2c($icon.data('beg') / 1e3) - 8,
+          });
+          $icon.show();
+        } else $icon.hide();
       });
     },
 
@@ -766,20 +771,20 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    showNotification: function (range, other) {
+    showEvent: function (range, other) {
       var xaxis = this.plot.getXAxes()[0];
       var leftSide = Math.max(xaxis.p2c(range.beg / 1e3), 0);
       var rightSide = Math.min(xaxis.p2c(range.end / 1e3), this.plot.width());
       if (leftSide < this.plot.width() && rightSide > 0) {
-        this.notificationPreview.css({
+        this.eventPreview.css({
           left: leftSide + 'px',
           width: rightSide - leftSide + 'px',
         }).show();
       }
     },
 
-    hideNotification: function () {
-      this.notificationPreview.hide();
+    hideEvent: function () {
+      this.eventPreview.hide();
     },
 
     fetchLatest: function (e, cb) {
@@ -1074,7 +1079,7 @@ define(['views/dashItem', 'plot_booter',
             beg: xaxis.c2p(leftEdge) * 1e3,
             end: xaxis.c2p(rightEdge) * 1e3,
             val: {
-              userId: App.store.get('user').id,
+              userId: App.user._id,
               channels: _.pluck(self.model.get('channels'), 'channelName'),
             },
           };
@@ -1143,20 +1148,19 @@ define(['views/dashItem', 'plot_booter',
           val: note.val,
         };
 
-        App.api.insertSamples(self.model.get('vehicleId'),
+        App.api.addNote(self.model.get('vehicleId'),
                               { _note: [ _note ] }, function (err) {
           if (!err) {
             loading.hide();
             if (isNew) {
               msg.text('Your comment has been posted.').show();
               _.delay(function () {
-                self.cancelNote(null, plot, true);
+                self.cancelNote(null, true);
               }, 1e3);
             } else {
               msg.text('Your reply has been posted.').show();
               $('.note-text', self.noteWindow).val('').blur().focus();
-              var user = App.store.get('user');
-              var reply = $('<h2 class="note-user-reply">' + user.first + ' ' + user.last
+              var reply = $('<h2 class="note-user-reply">' + App.user.displayName
                           + '<span class="note-content-date">' + ' '
                           + App.util.getRelativeTime(_note.val.date) + '</span></h2>'
                           + '<p class="note-body">' + _note.val.text + '</p>');
@@ -1166,7 +1170,11 @@ define(['views/dashItem', 'plot_booter',
               }, 2e3);
             }
             $('.timeline-icon', self.holder).remove();
-            self.model.tabModel.resetNotifications();
+            self.model.tabModel.resetEvents();
+          } else if ('Permission denied.' === err) {
+            self.cancelNote(null);
+            // TODO: Use growl style.
+            alert('Permission denied.');
           } else throw new Error(err);
         });
 
@@ -1174,7 +1182,7 @@ define(['views/dashItem', 'plot_booter',
 
       // cancel anchor
       $('.note-cancel', self.noteWindow).bind('click', function (e) {
-        self.cancelNote(null, plot);
+        self.cancelNote(null);
       });
 
       // remove channel x's
@@ -1209,7 +1217,7 @@ define(['views/dashItem', 'plot_booter',
       li.remove();
     },
 
-    cancelNote: function (e, plot, fade) {
+    cancelNote: function (e, fade) {
       if (this.noteWindow) {
         if (fade)
           this.noteWindow.fadeOut(200, _.bind(this.clearNoteWindow, this));

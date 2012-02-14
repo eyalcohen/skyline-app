@@ -2,13 +2,13 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['collections/notification',
+define(['collections/event',
     'collections/vehicle',
     'collections/user'
     ],
     function () {
   return {
-    NotificationCollection: arguments[0],
+    EventCollection: arguments[0],
     VehicleCollection: arguments[1],
     UserCollection: arguments[2],
   };

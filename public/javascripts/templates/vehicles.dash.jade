@@ -20,37 +20,39 @@
             th
               | Name
             th
-              | Owner
+              | Team
+            th
+              | Fleet
             th(colspan="2")
               | Last Seen
         tbody
           - rows.forEach(function (row, i) {
-          -  row = row.attributes;
-          -  var name = row.name ? " " + row.name : ""
-            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.year+" "+row.make+" "+row.model+name)
+          -  row = row.attributes
+          -  var config = row.access.config
+            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.doc.title)
               td.nowrap(style="font-weight:bold;")
-                =row.year + ' ' + row.make + ' ' + row.model + name
-                span.edit-panel
-                  a.edit-link(href="javascript:;", title="Change vehicle properties")
-                    | Edit | 
-                  a.config-link(href="javascript:;", title="Manage vehicle data logging")
-                    | Configure
-              //td(style="font-weight:bold;")
-              //=row.make
-              //td(style="font-weight:bold;")
-              //=row.model
-              //td(style="font-weight:bold;")
-              //=row.name
-              td.nowrap(style="font-style:italic;")
-                - if (row.user) {
-                  =row.user.email
-                - } else {
-                  | n / a
+                =row.doc.title
+                - if (config) {
+                  span.edit-panel
+                    a.config-link(href="javascript:;", title="Manage vehicle data logging")
+                      | Configure
                 - }
-              td.nowrap(colspan="2", data-time=row.lastSeen, data-cycle=JSON.stringify(row.lastCycle))
+              td.nowrap(style="font-style:italic;")
+                - if (row.teamId) {
+                  =App.util.find(row.teamId, '_id', App.user.data.teams).title
+                - } else {
+                  | -
+                - }
+              td.nowrap(style="font-style:italic;")
+                - if (row.fleetId) {
+                  =App.util.find(row.fleetId, '_id', App.user.data.fleets).title
+                - } else {
+                  | -
+                - }
+              td.nowrap(colspan="2", data-time=row.lastCycle.end, data-cycle=JSON.stringify(row.lastCycle))
                 | -
               td(align="right")
-                - if (row.lastSeen !== 0) {
+                - if (row.lastCycle) {
                   div.open-vehicle(role="button", title="See vehicle data")
                     div
                     span Open

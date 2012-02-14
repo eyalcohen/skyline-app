@@ -6,14 +6,20 @@ Backbone.sync = function(method, model, options) {
   var isCollection = model.hasChanged ? false : true,
   handleResponse = function(err, obj) {
     if (err) {
-      App.publish('NotAuthenticated');
+      if ('Permission denied.' === err) {
+        App.user = null;
+        $.get('/logout');
+        App.publish('NotAuthenticated', [{
+          first: true,
+          report: 'Permission denied. Please sign in again.',
+          type: 'error',
+        }]);
+      }
       options.error(obj);
       return;
     }
     options.success(obj);
-    if (isCollection) {
-      model.loaded();
-    }
+    if (isCollection) model.loaded();
   };
   switch (method) {
     case 'read':

@@ -105,7 +105,7 @@ define(['views/dashItem',
               icon: { image: $.jstree._themes + '/apple/drive.png' },
             },
             default: {
-              icon: { image: $.jstree._themes + '/apple/data.png' }
+              icon: { image: $.jstree._themes + '/apple/data.png' },
             }
           }
         },
@@ -119,6 +119,10 @@ define(['views/dashItem',
           },
           drop_uncheck: function (data) {
             data.r.data('dragout').call(data.r);
+            $(document).bind('mouseup', function (e) {
+              App.publish('DragEnd-' + self.model.get('tabId'));
+              $(document).unbind('mouseup', arguments.callee);
+            });
             return true;
           },
           drop_finish: _.bind(self.nodeDroppedHandler, self),

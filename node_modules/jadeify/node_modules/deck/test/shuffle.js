@@ -15,6 +15,17 @@ exports.shuffle = function () {
     shuffler(deck.shuffle);
 };
 
+exports.quick = function () {
+    var xs = [];
+    for (var i = 0; i < 1e5; i++) xs.push(Math.random());
+    
+    var t0 = Date.now();
+    var xs_ = deck.shuffle(xs);
+    var elapsed = Date.now() - t0;
+    assert.ok(elapsed < 200);
+    assert.equal(xs.length, 1e5);
+};
+
 exports.shuffleObj = function () {
     shuffler(function (xs) {
         return deck(xs).shuffle()

@@ -41,7 +41,7 @@ define(function (fn) {
         target: this.targetClass,
         bottomPad: 0,
         singleVehicle: true,
-        notifications: [],
+        events: [],
       };
 
       this.graphModels = [];
@@ -60,13 +60,13 @@ define(function (fn) {
         title: 'Location',
         parent: '.' + this.targetClass + ' div .dashboard-left .bottom',
         height: 60,
-      })).bind('change:notifications', function () {});
+      })).bind('change:events', function () {});
 
       this.eventsModel = new App.models.EventsModel(_.extend({}, this.modelArgs, {
         title: 'Vehicle Events',
         parent: '.' + this.targetClass + ' div .dashboard-right .bottom',
         height: 30,
-      })).bind('change:notifications', function () {
+      })).bind('change:events', function () {
         this.view.render();
       });
 
@@ -75,23 +75,23 @@ define(function (fn) {
         title: 'Timeline',
         parent: '.' + this.targetClass + ' div .dashboard-right .middle',
         height: '40px',
-      })).bind('change:notifications', function () {
+      })).bind('change:events', function () {
         this.view.render();
       });
 
-      this.notificationCollection = new App.collections.NotificationCollection(
+      this.eventCollection = new App.collections.EventCollection(
           _.extend({}, this.modelArgs, {
         dependents: [this.graphModels, this.mapModel,
             this.eventsModel, this.timelineModel],
       })).bind('reset', function () {
         _.each(_.flatten(this.dependents), _.bind(function (dep) {
           if (this.models.length === 0)
-            dep.trigger('change:notifications');
+            dep.trigger('change:events');
           else
-            dep.set({ notifications: this.models });
+            dep.set({ events: this.models });
         }, this));
       });
-      this.notificationCollection.fetch();
+      this.eventCollection.fetch();
 
       if (!App.stateMonitor.isRestoring)
         this.addGraph('MASTER');
@@ -115,7 +115,7 @@ define(function (fn) {
         height: 70,
         bottomPad: isMaster ? 63 : 0,
         id: id,
-      })).bind('change:notifications', function () {
+      })).bind('change:events', function () {
         if (this.view.plot)
           this.view.setupIcons();
       });
@@ -136,8 +136,8 @@ define(function (fn) {
       App.publish('WindowResize');
     },
 
-    resetNotifications: function () {
-      this.notificationCollection.fetch();
+    resetEvents: function () {
+      this.eventCollection.fetch();
     },
 
   });
