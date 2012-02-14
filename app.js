@@ -1025,7 +1025,6 @@ var createDnodeConnection = function (remote, conn) {
         if (err) return cb(err);
         var _sort = _.after(notes.length, sort);
         _.each(notes, function (note) {
-          console.log(note);
           userDb.findUserById(note.val.userId, function (err, usr) {
             if (err) return cb(err);
             note.user = usr;

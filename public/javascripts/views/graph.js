@@ -196,11 +196,12 @@ define(['views/dashItem', 'plot_booter',
         plot: self.plot,
         id: self.options.id,
       });
+
       self.noteCanvas =
           $('<canvas width="' + self.plot.getPlaceholder().width() +
             '" height="' + self.plot.getPlaceholder().height() +
             '" class="note-canvas">').
-          appendTo('.graph > div', self.content);
+          appendTo(self.holder);
       self.noteCtx = self.noteCanvas.get(0).getContext('2d');
 
       function labelFormatter(label, series) {
@@ -477,7 +478,6 @@ define(['views/dashItem', 'plot_booter',
 
     setupIcons: function (dfdf) {
       var self = this;
-      // console.log(dfdf, self.eventIcons.length);
       if (self.eventIcons.length > 0)
         self.eventIcons.remove();
       var events =
@@ -540,7 +540,7 @@ define(['views/dashItem', 'plot_booter',
             //   (function checkItBoy() {
             //     _.delay(function () {
             //       if (!self.editingNote)
-            //         self.cancelNote(null);
+            //         self.cancelNote(null, self.plot);
             //       else checkItBoy();
             //     }, 250);
             //   })();
@@ -1052,19 +1052,30 @@ define(['views/dashItem', 'plot_booter',
       this.noteCanvas.show();
       if (this.noteBox) this.clearNoteBox();
       this.noteBox = {
-        x: this.getMouse(e, plot).x,
+        x: this.getMouse(e, this.plot).x,
         y: 0,
         w: 0,
-        h: plot.getPlaceholder().height(),
+        h: this.plot.getPlaceholder().height(),
       };
     },
 
-    drawNote: function (e, plot) {
-      this.noteCtx.fillStyle = 'rgba(0,0,0,0.25)';
-      this.clearNoteBox();
-      this.noteBox.w = this.getMouse(e, plot).x - this.noteBox.x;
-      this.noteCtx.fillRect(this.noteBox.x, this.noteBox.y,
-                            this.noteBox.w, this.noteBox.h);
+    drawNote: function (e, plot, neighbor) {
+      var self = this;
+      self.noteCtx.fillStyle = 'rgba(0,0,0,0.25)';
+      self.clearNoteBox();
+      self.noteBox.w = neighbor ? -neighbor.noteBox.w :
+          self.getMouse(e, self.plot).x - self.noteBox.x;
+
+      self.noteCtx.fillRect(self.noteBox.x, self.noteBox.y,
+                            self.noteBox.w, self.noteBox.h);
+      if (neighbor) return;
+      var otherGraphs = self.model.tabModel.graphModels;
+      _.each(otherGraphs, function (gm) {
+        if (gm.view.id !== self.id) {
+          gm.view.beginNote(e);
+          gm.view.drawNote(e, null, self);
+        }
+      });
     },
 
     endNote: function (e, plot) {
@@ -1166,7 +1177,7 @@ define(['views/dashItem', 'plot_booter',
             if (isNew) {
               msg.text('Your comment has been posted.').show();
               _.delay(function () {
-                self.cancelNote(null, true);
+                self.cancelNote(null, plot, true);
               }, 1e3);
             } else {
               msg.text('Your reply has been posted.').show();
@@ -1183,7 +1194,7 @@ define(['views/dashItem', 'plot_booter',
             $('.timeline-icon', self.holder).remove();
             self.model.tabModel.resetEvents();
           } else if ('Permission denied.' === err) {
-            self.cancelNote(null);
+            self.cancelNote(null, plot);
             // TODO: Use growl style.
             alert('Permission denied.');
           } else throw new Error(err);
@@ -1193,7 +1204,7 @@ define(['views/dashItem', 'plot_booter',
 
       // cancel anchor
       $('.note-cancel', self.noteWindow).bind('click', function (e) {
-        self.cancelNote(null);
+        self.cancelNote(null, plot);
       });
 
       // remove channel x's
@@ -1228,15 +1239,24 @@ define(['views/dashItem', 'plot_booter',
       li.remove();
     },
 
-    cancelNote: function (e, fade) {
-      if (this.noteWindow) {
+    cancelNote: function (e, plot, fade, neighbor) {
+      var self = this;
+      if (self.noteWindow) {
         if (fade)
-          this.noteWindow.fadeOut(200, _.bind(this.clearNoteWindow, this));
-        else this.clearNoteWindow();
+          self.noteWindow.fadeOut(200, _.bind(self.clearNoteWindow, self));
+        else self.clearNoteWindow();
       }
-      this.noteCanvas.hide();
-      this.clearNoteBox();
-      this.noteBox = null;
+      self.noteCanvas.hide();
+      self.clearNoteBox();
+      self.noteBox = null;
+      
+      if (neighbor) return;
+      var otherGraphs = self.model.tabModel.graphModels;
+      _.each(otherGraphs, function (gm) {
+        if (gm.view.id !== self.id) {
+          gm.view.cancelNote(e, null, fade, self);
+        }
+      });
     },
 
     clearNoteBox: function () {
