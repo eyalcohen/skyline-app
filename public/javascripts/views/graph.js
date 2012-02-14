@@ -219,7 +219,7 @@ define(['views/dashItem', 'plot_booter',
               channel.displayUnits || channel.units);
           if (compat) {
             r += ' (<select>';
-            compat.units.forEach(function(u) {
+            compat.units.forEach(function (u) {
               if (u === compat.selected)
                 r += '<option selected>';
               else
@@ -306,20 +306,29 @@ define(['views/dashItem', 'plot_booter',
       var self = this;
       if (!self.plot)
         self.createPlot();
+
       var emptyDiv = $('.empty-graph', self.content);
-      var channels = self.model.get('channels');
+      var channels = [];
+      _.each(self.model.get('channels'), function (c) {
+        channels.push($.extend(true, {}, c));
+      });
+
       if (channels.length === 0 && emptyDiv.length === 0) {
         App.engine('empty_graph.jade').appendTo(self.content);
-        $('.flot-base, .flot-overlay', self.plot.getPlaceholder()).hide();
-        $('.graph', self.content).hide();
-        self.plot.getOptions().crosshair.mode = null;
       } else if (channels.length > 0 && emptyDiv.length > 0) {
         emptyDiv.remove();
-        $('.flot-base, .flot-overlay', self.plot.getPlaceholder()).show();
-        $('.graph', self.content).show();
         self.resize(true);
-        self.plot.getOptions().crosshair.mode = 'x';
       }
+
+      if (channels.length === 0) {
+        channels.push({ channelName: 'empty' });
+        _.each(self.plot.getYAxes(),
+              function (a) { a.options.show = false; });
+      } else {
+        _.each(self.plot.getYAxes(),
+              function (a) { a.options.show = null; });
+      }
+
       var opts = self.plot.getOptions();
       var series = [];
       _.each(channels, function (channel, i) {
@@ -357,7 +366,7 @@ define(['views/dashItem', 'plot_booter',
       self.plot.draw();
     },
 
-    calculateSeriesData: function(channel) {
+    calculateSeriesData: function (channel) {
       var conv = App.units.findConversion(channel.units,
           channel.displayUnits || channel.units);
       var samples = this.model.sampleSet[channel.channelName] || [];
@@ -386,10 +395,11 @@ define(['views/dashItem', 'plot_booter',
       return { data: data, minMax: minMax };
     },
 
-    updateSeriesColors: function(series) {
+    updateSeriesColors: function (series) {
       var self = this;
       var channels = self.model.get('channels');
-      series.forEach(function(s, i) {
+      if (channels.length === 0) return;
+      series.forEach(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = self.highlightedChannel === channel.channelName;
         var color = self.colors[channel.colorNum % self.colors.length];
@@ -409,21 +419,21 @@ define(['views/dashItem', 'plot_booter',
       });
     },
 
-    plotSetupGridHook: function() {
+    plotSetupGridHook: function () {
       if (!this.plot) return;
       var xopts = this.plot.getAxes().xaxis.options;
       var xmin = xopts.min, xmax = xopts.max;
       var yAxes = this.plot.getYAxes();
       // Automatically change Y-axis bounds based on visible data.
-      yAxes.forEach(function(axis) {
+      yAxes.forEach(function (axis) {
         axis.datamin = Infinity;
         axis.datamax = -Infinity;
       });
       // TODO: this is ugly, and probably slow.
-      this.plot.getData().forEach(function(series) {
+      this.plot.getData().forEach(function (series) {
         var max = series.yaxis.datamax, min = series.yaxis.datamin;
         var prevTime = null;
-        series.data.forEach(function(p) {
+        series.data.forEach(function (p) {
           if (p && prevTime && p[0] >= xmin && prevTime <= xmax) {
             max = Math.max(max, p[1]);
             min = Math.min(min, p[2] == null ? p[1] : p[2]);
@@ -433,7 +443,7 @@ define(['views/dashItem', 'plot_booter',
         series.yaxis.datamax = max;
         series.yaxis.datamin = min;
       });
-      yAxes.forEach(function(axis) {
+      yAxes.forEach(function (axis) {
         if (!(isFinite(axis.datamin) && isFinite(axis.datamax))) {
           axis.datamin = 0; axis.datamax = 1;
         } else if (axis.datamin == axis.datamax) {
@@ -450,7 +460,7 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    plotDrawHook: function() {
+    plotDrawHook: function () {
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
@@ -471,7 +481,7 @@ define(['views/dashItem', 'plot_booter',
         self.eventIcons.remove();
       var events =
           _.stableSort(_.pluck(self.model.get('events'), 'attributes'),
-          function(s1, s2) {
+          function (s1, s2) {
         return (s2.end - s2.beg) - (s1.end - s1.beg);
       });
       _.each(events, function (not) {
@@ -571,14 +581,14 @@ define(['views/dashItem', 'plot_booter',
           _.bind(this.addNoteChannelFromLabel, this));
     },
 
-    getVisibleTime: function() {
+    getVisibleTime: function () {
       if (!this.plot) return null;
       var xopts = this.plot.getAxes().xaxis.options;
       return { beg: xopts.min * 1000, end: xopts.max * 1000,
                width: this.plot.width() };
     },
 
-    setVisibleTime: function(beg, end) {
+    setVisibleTime: function (beg, end) {
       var xopts = this.plot.getAxes().xaxis.options;
       beg /= 1000; end /= 1000;
       if (beg != xopts.min || end != xopts.max) {
@@ -589,7 +599,7 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    mouseHoverTime: function(time, mouse, graph) {
+    mouseHoverTime: function (time, mouse, graph) {
       var self = this;
       if (time != null)
         time = time / 1e3;
@@ -621,7 +631,7 @@ define(['views/dashItem', 'plot_booter',
         var valueHTML = '';
         if (time != null &&
             time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
-          var hp = _.detect(series.data, function(p, i) {
+          var hp = _.detect(series.data, function (p, i) {
             var prev = series.data[i-1];
             return prev && p && prev[0] <= time && time < p[0] && p;
           });
@@ -955,7 +965,7 @@ define(['views/dashItem', 'plot_booter',
             '&end=' + Math.ceil(viewRange.end) +
             (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
             (resample && minmax ? '&minmax' : '') +
-            channels.map(function(c){return '&chan=' + c.channelName}).join('');
+            channels.map(function (c){return '&chan=' + c.channelName}).join('');
         window.location.href = href;
       });
       return self;
