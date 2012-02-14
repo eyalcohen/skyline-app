@@ -1190,7 +1190,8 @@ var createDnodeConnection = function (remote, conn) {
     fetchChannelTree: ensureAuth(fetchChannelTree),
     fetchVehicleConfig: ensureAuth(fetchVehicleConfig, ['config']),
     saveVehicleConfig: ensureAuth(saveVehicleConfig, ['config']),
-    addNote: ensureAuth(insertSamples, ['note']),
+    // addNote: ensureAuth(insertSamples, ['note']),
+    addNote: ensureAuth(insertSamples),
 
     cancelSubscribeSamples: cancelSubscribeSamples,
     saveLink: saveLink,

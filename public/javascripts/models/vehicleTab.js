@@ -79,22 +79,23 @@ define(function (fn) {
         this.view.render();
       });
 
+      var self = this;
       this.eventCollection = new App.collections.EventCollection(
-          _.extend({}, this.modelArgs, {
-        dependents: [this.graphModels, this.mapModel,
-            this.eventsModel, this.timelineModel],
-      })).bind('reset', function () {
-        _.each(_.flatten(this.dependents), _.bind(function (dep) {
+          _.extend({}, this.modelArgs, {})).bind('reset', function () {
+        var dependents = [self.graphModels, self.mapModel,
+            self.eventsModel, self.timelineModel];
+        _.each(_.flatten(dependents), _.bind(function (dep) {
           if (this.models.length === 0)
             dep.trigger('change:events');
           else
             dep.set({ events: this.models });
         }, this));
       });
-      this.eventCollection.fetch();
 
       if (!App.stateMonitor.isRestoring)
-        this.addGraph('MASTER');
+        this.addGraph('MASTER', true);
+
+      this.eventCollection.fetch();
 
       return this;
     },
@@ -106,8 +107,8 @@ define(function (fn) {
       delete App.vehicleTabModels[this.tabId];
     },
 
-    addGraph: function (id) {
-      var isMaster = id == 'MASTER';
+    addGraph: function (id, noreset) {
+      var isMaster = id === 'MASTER';
       var graphModel = new App.models.GraphModel(
             _.extend({}, this.modelArgs, {
         title: isMaster ? 'Graphs' : null,
@@ -117,20 +118,20 @@ define(function (fn) {
         id: id,
       })).bind('change:events', function () {
         if (this.view.plot)
-          this.view.setupIcons();
+          this.view.setupIcons(id);
       });
+      if (!noreset) this.resetEvents();
       this.graphModels.push(graphModel);
       this.view.arrangeGraphs();
       App.publish('WindowResize');
     },
 
     removeGraph: function (id) {
-      var graphModel = _.find(this.graphModels, function (g) {
-        return g.get('id') == id;
-      });
-      graphModel.destroy();
       this.graphModels = _.reject(this.graphModels, function (g) {
-        return g.get('id') == id;
+        if (g.get('id') === id) {
+          g.destroy();
+          return true;
+        } else return false;
       });
       this.view.arrangeGraphs();
       App.publish('WindowResize');

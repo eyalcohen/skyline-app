@@ -475,8 +475,9 @@ define(['views/dashItem', 'plot_booter',
       this.positionIcons();
     },
 
-    setupIcons: function () {
+    setupIcons: function (dfdf) {
       var self = this;
+      // console.log(dfdf, self.eventIcons.length);
       if (self.eventIcons.length > 0)
         self.eventIcons.remove();
       var events =
