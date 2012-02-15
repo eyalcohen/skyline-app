@@ -18,7 +18,7 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
 
     render: function () {
       this.el = App.engine('logout.jade', {
-        email: App.user.emails[0].value,
+        email: App.user.primaryEmail,
         name: App.user.displayName
       }).appendTo(App.regions.menu);
       this.delegateEvents();

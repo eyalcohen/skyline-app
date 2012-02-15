@@ -906,7 +906,7 @@ var createDnodeConnection = function (remote, conn) {
           // BUG(?): Without toString, err contents is stripped.
           return cb(new Error('User and Session do NOT match!').toString());
         delete user.openId;
-        // delete user._id;
+        delete user.pin;
         userDb.getUserVehicleData(user, function (err, data) {
           if (err) return cb(err);
           delete user.vehicles;
@@ -1250,7 +1250,7 @@ if (!module.parent) {
               data.session = sess;
               cb(null, true);
             });
-            // TODO: Keep the session alive on an inerval.
+            // TODO: Keep the session alive on with a timeout.
           });
       log("Express server listening on port", app.address().port);
     }

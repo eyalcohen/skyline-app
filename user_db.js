@@ -75,10 +75,12 @@ UserDb.prototype.findOrCreateUserFromOpenId = function (props, cb) {
         if (err) return cb(err);
         _.extend(props, {
           _id: id,
+          pin: makeUserPin(),
           created: new Date,
           vehicles: [],
           fleets: [],
         });
+        props.primaryEmail = props.emails[0].value;
         users.insert(props, { safe: true },
                     function (err, inserted) {
           cb(err, inserted[0]);
@@ -238,10 +240,12 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
     function (err, user) {
       var next = this;
       // Find teams that contain the user
-      // or that contain the user's domain name
-      var userDomain = user.emails[0].value.split('@')[1];
+      // or that contain a user domain name.
+      var userDomains = _.map(user.emails, function (email) {
+        return email.value.split('@')[1];
+      });
       self.collections.teams.find({ $or : [{ users : user._id },
-            { domains : userDomain }] }).toArray(function (err, teams) {
+            { domains: { $in : userDomains } }] }).toArray(function (err, teams) {
         if (err) return next(err);
         // Gather teams' vehicles and fleets.
         if (teams.length > 0) {
@@ -437,16 +441,31 @@ function createUniqueId_32(collection, cb) {
 
 
 /**
+  * Create a pin of length 4.
+  * (Using an actual number limits the
+  * possible value to > 1000)
+  */
+function makeUserPin() {
+  var pin = '';
+  var possible = '0123456789';
+  for (var i = 0; i < 4; ++i)
+    pin += possible.charAt(Math.floor(
+          Math.random() * possible.length));
+  return pin;
+}
+
+
+/**
   * Create a string identifier
   * for use in a URL at a given length.
   */
 function makeURLKey(length) {
-  var text = '';
+  var key = '';
   var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
       'abcdefghijklmnopqrstuvwxyz0123456789';
-  for (var i = 0; i < length; i++)
-    text += possible.charAt(Math.floor(
+  for (var i = 0; i < length; ++i)
+    key += possible.charAt(Math.floor(
           Math.random() * possible.length));
-  return text;
+  return key;
 }
 

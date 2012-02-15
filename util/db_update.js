@@ -62,8 +62,7 @@ Step(
   // Add newly formatted vehicles.
   function (err) {
     // err if cols do not exist - but that's okay
-    log('\nDeleted old indexes.');
-    log('\nDeleted all sessions, users, and vehicles.');
+    log('\nDeleted all sessions, users, and vehicles and their indexes.');
     var next = this;
     // Manually define vehicles because we want to add more data
     // than what is contained in the original vehicles.
@@ -80,7 +79,6 @@ Step(
       { "_id" : 1636129031, "created" : Date("2012-01-25T21:56:10.065Z"), "title" : "Sander's Laptop", "description" : "I am useless - delete me and my data", "nickname" : "garbage" },
       { "_id" : 1554149089, "created" : Date("2012-01-27T18:02:11.517Z"), "title" : "2011 Fisker Karma", "description" : "Demo vehicle used for the first Fisker meeting", "nickname" : "karma" }
     ];
-    log('\nAdding ' + vehicles.length + ' new vehicles...');
     if (vehicles.length > 0) {
       var _next = _.after(vehicles.length, next);
       _.each(vehicles, function (veh) {
@@ -97,13 +95,13 @@ Step(
   // Laguna Seca and Isle of Man data.
   function () {
     userDb.createFleet({
-      title: 'Mission Motors Active',
+      title: 'MM Active',
       description: 'Mission Motors vehicles that are actively reporting data to Skyline',
       nickname: 'mm-active',
       vehicles: [588530419, 130960143],
     }, this.parallel());
     userDb.createFleet({
-      title: 'Mission Motors Canned',
+      title: 'MM Canned',
       description: 'Mission Motors vehicles containing old canned data',
       nickname: 'mm-canned',
       vehicles: [2033779098, 3094281482],
@@ -117,7 +115,7 @@ Step(
     log('\nCreated fleet: ' + inspect(cannedFleet));
     var next = this;
     userDb.createTeam({
-      title: 'Mission Motors Internal',
+      title: 'Mission Motors',
       description: 'All Mission Motors employees',
       nickname: 'mish-mos',
       domains: ['ridemission.com'],
@@ -138,11 +136,11 @@ Step(
         fleetId: cannedFleet._id, 
       };
       log('\nAdded access: ' + inspect(one));
-      userDb.addAccess(one, function (err) {
+      userDb.addAccess(one, { note: true }, function (err) {
         if (err) next(err);
         else {
           log('\nAdded access: ' + inspect(two));
-          userDb.addAccess(two, next);
+          userDb.addAccess(two, { note: true }, next);
         }
       });
     });
@@ -152,44 +150,27 @@ Step(
   // Finding notes...
   function (err) {
     errCheck(err, 'addAccess()');
-    log('\nLooking for notes...');
-    // MongoDB driver throws timeout error if
-    // all collections are searched... so 
-    // just looking at ones that I know have notes, bleh.
-    var noteCols = ['30000000','5000000'];
-    var notes = [];
-    var _next = _.after(noteCols.length, this);
-    _.each(noteCols, function (colStr) {
-      sampleDb.realCollections[colStr].find({ chn: '_note' })
-              .toArray(function (err, ns) {
-        if (ns) _.each(ns, function (n) {
-          n.colStr = colStr;
-          notes.push(n);
-        });
-        _next(err, notes);
+    var colls = _.values(sampleDb.realCollections);
+    var _next = _.after(colls.length, this);
+    _.each(colls, function (collection) {
+      collection.find({ chn: '_note' }).toArray(function (err, ns) {
+        if (ns && ns.length > 0) {
+          var __next = _.after(ns.length, _next);
+          _.each(ns, function (n) {
+            collection.remove({ _id: n._id }, function (err) {
+              errCheck(err, 'removeNote(' + n._id + ')');
+              log('\nRemoved note: ' + inspect(n));
+              __next();
+            });
+          });
+        } else _next(err);
       });
     });
   },
-  // Deleting notes...
-  function (err, notes) {
+  // Rename appstates collection to links
+  function (err) {
     var next = this;
     errCheck(err, 'findNotes()');
-    log('Found ' + notes.length + ' notes.');
-    if (notes.length > 0) {
-      var _next = _.after(notes.length, next);
-      _.each(notes, function (note) {
-        sampleDb.realCollections[note.colStr]
-                .remove({ _id: note._id }, function (err) {
-          errCheck(err, 'removeNote(' + note._id + ')');
-          log('\nRemoved note: ' + inspect(note));
-          _next();
-        });
-      });
-    } else next();
-  },
-  // Rename appstates collection to links
-  function () {
-    var next = this;
     userDb.db.collection('appstates', function (err, col) {
       if (err) next(err);
       else {
@@ -208,9 +189,3 @@ Step(
     errCheck(err, 'renameCollection()', true);
   }
 );
-
-
-
-
-
-
