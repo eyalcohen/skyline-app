@@ -299,12 +299,13 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
  * Default Access:
  *   {
  *     created: new Date,
- *     lastAccess: null,
+ *     // lastAccess: null, -- not used... could reconsider, but it's very
+                               hard to update this value in practice
  *     admin: false, -- manage other users.
  *     config: false, -- edit vehicle config files
  *     insert: false, -- insert sample
- *     comment: false, -- add comments
- *     channels: ['/'], -- access specific channels (currently IGNORED)
+ *     note: false, -- add comments
+ *     chans: ['/'], -- access specific channels (currently IGNORED)
  *  }
  */
 UserDb.prototype.addAccess = function (ids, opts, cb) {
