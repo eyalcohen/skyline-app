@@ -29,7 +29,7 @@
           - rows.forEach(function (row, i) {
           -  row = row.attributes
           -  var config = row.access.config
-            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.doc.title)
+            tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.doc.title, title=row.doc.description)
               td.nowrap(style="font-weight:bold;")
                 =row.doc.title
                 - if (config) {
