@@ -54,7 +54,7 @@ define(['views/dashItem'], function (DashItemView) {
       // cursor
       this.cursor = new google.maps.Marker({
         map: null,  // Hidden for now.
-        icon: '/images/mapCursorMarker.png',
+        icon: '/graphics/map-cursor.png',
         zIndex: 1000001,
         clickable: false,
       });
