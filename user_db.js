@@ -300,7 +300,7 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
  *   {
  *     created: new Date,
  *     // lastAccess: null, -- not used... could reconsider, but it's very
-                               hard to update this value in practice
+ *                             hard to update this value in practice
  *     admin: false, -- manage other users.
  *     config: false, -- edit vehicle config files
  *     insert: false, -- insert sample
@@ -340,8 +340,8 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
       if (!grantee) return cb(new Error('No grantee found.'));
       if (!target) return cb(new Error('No target found.'));
       // This might need some more thought.
-      // If access already exists for on this grantee
-      // for this target, we replace it with the new one.
+      // If access already exists for this grantee
+      // on this target, we replace it with the new one.
       // Consider the case where a user's access in down/upgraded...
       var duplicateIndex;
       _.find(grantee[targetType], function (acc, i) {
@@ -366,7 +366,7 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
 /*
  * Determine whether or not user has access read
  * to a vehicle. This will be true simply if the vehicle
- * exists in req's vehicle list.
+ * exists in the given vehicles list.
  * Specify a list of keys to check access
  * on a specific (combination of) flag(s).
  *
@@ -428,7 +428,7 @@ function createId_32() {
 
 /*
  * Create a 32-bit identifier for a
- * document ensuring that it is unuque
+ * document ensuring that it's unique
  * for the given collection.
  */
 function createUniqueId_32(collection, cb) {
