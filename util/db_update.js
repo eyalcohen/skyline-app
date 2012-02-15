@@ -74,7 +74,7 @@ Step(
       { "_id" : 3094281482, "created" : Date("2011-10-12T19:05:33.077Z"), "title" : "2011 Mission R", "description" : "2011 TTXGP / FIM e-Power race vehicle at Lagnua Seca", "nickname" : "lagunaseca" },
       { "_id" : 11592701, "created" : Date("2011-11-28T18:35:59.589Z"), "title" : "Kevin's Home Desktop", "description" : "I am useless - delete me and my data", "nickname" : "garbage" },
       { "_id" : 130960143, "created" : Date("2011-11-30T15:49:32.810Z"), "title" : "Monarch 2", "description" : "Vehicle delivered to Monarch", "nickname" : "monarch2" },
-      { "_id" : 588530419, "created" : Date("2011-11-30T19:53:44.363Z"), "title" : "2012 Mission Gen3", "description" : "Everything Gen3", "nickname" : "gen3" },
+      { "_id" : 588530419, "created" : Date("2011-11-30T19:53:44.363Z"), "title" : "2012 Mission Gen3", "description" : "Everything Gen3 Street", "nickname" : "gen3" },
       { "_id" : 949580622, "created" : Date("2011-12-02T16:47:09.615Z"), "title" : "Kevin's Laptop", "description" : "I am useless - delete me and my data", "nickname" : "garbage" },
       { "_id" : 1636129031, "created" : Date("2012-01-25T21:56:10.065Z"), "title" : "Sander's Laptop", "description" : "I am useless - delete me and my data", "nickname" : "garbage" },
       { "_id" : 1554149089, "created" : Date("2012-01-27T18:02:11.517Z"), "title" : "2011 Fisker Karma", "description" : "Demo vehicle used for the first Fisker meeting", "nickname" : "karma" }
