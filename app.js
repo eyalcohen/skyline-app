@@ -112,12 +112,6 @@ function requestMimeType(req) {
 
 /////////////// Configuration
 
-// if (process.env.NODE_ENV && process.env.NODE_ENV == 'production')
-//   var app = module.exports = express.createServer({
-//     key: fs.readFileSync(__dirname + '/keys/production/privatekey.pem'),
-//     cert: fs.readFileSync(__dirname + '/keys/production/certificate.pem'),
-//   });
-// else
 var app = module.exports = express.createServer();
 
 app.configure('development', function () {
@@ -196,7 +190,7 @@ app.configure(function () {
   log('browserify took: ' + (Date.now() - start) + 'ms.');
 });
 
-// Passport authentication cruft
+// Passport session cruft
 
 passport.serializeUser(function (user, cb) {
   cb(null, user._id.toString());
@@ -208,18 +202,6 @@ passport.deserializeUser(function (id, cb) {
     cb(err, user);
   });
 });
-
-passport.use(new GoogleStrategy({
-    returnURL: 'http://localhost:8080/auth/google/return',
-    realm: 'http://localhost:8080/'
-  },
-  function (identifier, profile, done) {
-    profile.openId = identifier;
-    userDb.findOrCreateUserFromOpenId(profile, function (err, user) {
-      done(err, user);
-    });
-  }
-));
 
 
 ////////////// Web Routes
@@ -233,7 +215,23 @@ app.get('/', function (req, res) {
 // Redirect the user to Google for authentication.
 // When complete, Google will redirect the user
 // back to the application at /auth/google/return.
-app.get('/auth/google', passport.authenticate('google'));
+// ** The passport strategy initialization must
+// happen here becuase hostname needs to be snarfed from req.
+app.get('/auth/google', function (req, res, next) {
+  var home = 'http://' + req.headers.host + '/';
+  passport.use(new GoogleStrategy({
+      returnURL: home + 'auth/google/return',
+      realm: home,
+    },
+    function (identifier, profile, done) {
+      profile.openId = identifier;
+      userDb.findOrCreateUserFromOpenId(profile, function (err, user) {
+        done(err, user);
+      });
+    }
+  ));
+  passport.authenticate('google')(req, res, next);
+});
 
 // Google will redirect the user to this URL
 // after authentication. Finish the process by
@@ -242,8 +240,10 @@ app.get('/auth/google', passport.authenticate('google'));
 // ** successRedirect is the referer becuase
 // we might want to snarf query parameters from header
 // when the initial request was made, e.g., sharing a link.
+// TODO: query params are not available when user is
+// not signed into google, i.e., when they must sign in first.
 app.get('/auth/google/return', function (req, res, next) {
-  passport.authenticate('google', { successRedirect: req.headers.referer,
+  passport.authenticate('google', { successRedirect: req.headers.referer || '/',
                                     failureRedirect: '/' })(req, res, next);
 });
 
@@ -1208,11 +1208,11 @@ if (!module.parent) {
       log('Connecting to SampleDb:', argv.db);
       mongodb.connect(argv.db, { server: { poolSize: 4 } }, this);
     }, function (err, db) {
-      if (err) { this(err); return; }
+      if (err) return this(err);
       new UserDb(db, { ensureIndexes: true }, this.parallel());
       new SampleDb(db, { ensureIndexes: true }, this.parallel());
     }, function (err, newUserDb, newSampleDb) {
-      if (err) { this(err); return; }
+      if (err) return this(err);
       userDb = newUserDb;
       sampleDb = newSampleDb;
       this();
@@ -1220,7 +1220,7 @@ if (!module.parent) {
 
     // Listen:
     function (err) {
-      if (err) { this(err); return; }
+      if (err) return this(err);
       app.listen(argv.port);
       dnode(createDnodeConnection)
           .use(dnodeLogMiddleware)
