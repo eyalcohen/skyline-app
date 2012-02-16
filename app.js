@@ -130,7 +130,8 @@ function rawBody(rawMimeTypes) {
   return function (req, res, next) {
     if ('GET' == req.method || 'HEAD' == req.method) return next();
     var mimeType = (req.headers['content-type'] || '').split(';')[0];
-    if (_.contains(rawMimeTypes, mimeType) && !req.body) {
+    if (_.contains(rawMimeTypes, mimeType)
+        && (!req.body || _.isEmpty(req.body))) {
       // req.setEncoding(null);
       var bufs = Buffers();
       req.on('data', function (chunk) { bufs.push(chunk); });
@@ -575,8 +576,8 @@ app.put('/samples', function (req, res) {
     // get the cycle's vehicle
     function getVehicle() {
       userDb.collections.vehicles.findOne({ _id: vehicleId }, this);
-      // findVehicleByIntId(vehicleId, this);
-    }, function (veh_) {
+    }, function (err, veh_) {
+      if (err) return this(err);
       veh = veh_;
       if (!veh)
         fail('VEHICLE_NOT_FOUND');
@@ -586,7 +587,7 @@ app.put('/samples', function (req, res) {
     // save the cycle locally for now
     function (err) {
       if (err) return this(err);
-      var fileName = vehicleId + (new Date()).valueOf() + '.js';
+      var fileName = vehicleId + '_' + (new Date()).valueOf() + '.js';
       fs.mkdir(__dirname + '/samples', '0755', function (err) {
         /* Transform Buffers into arrays so they get stringified pretty. */
         var newSamples = traverse(uploadSamples).map(function (o) {

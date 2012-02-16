@@ -409,6 +409,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
                 modified.ovr = _.clone(original.ovr);
                 modified.min = _.clone(original.min);
                 modified.max = _.clone(original.max);
+                
                 for (var i = 0; i < syntheticSamplesPerRow; ++i) {
                   if (synSample.sum[i] != null) {
                     modified.sum[i] = def0(modified.sum[i]) + synSample.sum[i];
@@ -425,7 +426,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
                                             function(err, o) {
                   if (o) {
                     // Update succeeded!
-                    //console.timeEnd('insertSyn');
+                    // console.timeEnd('insertSyn');
                     cb();
                   } else {
                     // If o is null, then the sample was modified by somebody
