@@ -7,7 +7,7 @@ var log = require('console').log;
 var mongodb = require('mongodb');
 var util = require('util'), error = util.error,
     debug = util.debug, inspect = util.inspect;
-var Step = require('Step');
+var Step = require('step');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 
