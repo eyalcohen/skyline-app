@@ -203,6 +203,23 @@ passport.deserializeUser(function (id, cb) {
   });
 });
 
+// TODO: Find a way to update the passport
+// strategy basednon req.headers.host
+var home = process.env.NODE_ENV !== 'production' ?
+    'http://localhost' : 'http://skyline.ridemission.com';
+home += ':8080';
+passport.use(new GoogleStrategy({
+    returnURL: home + '/auth/google/return',
+    realm: home,
+  },
+  function (identifier, profile, done) {
+    profile.openId = identifier;
+    userDb.findOrCreateUserFromOpenId(profile, function (err, user) {
+      done(err, user);
+    });
+  }
+));
+
 
 ////////////// Web Routes
 
@@ -221,18 +238,18 @@ app.get('/auth/google', function (req, res, next) {
   // add referer to session so we can use it on return.
   // This way we can preserve query params in links.
   req.session.referer = req.headers.referer;  
-  var home = 'http://' + req.headers.host + '/';
-  passport.use(new GoogleStrategy({
-      returnURL: home + 'auth/google/return',
-      realm: home,
-    },
-    function (identifier, profile, done) {
-      profile.openId = identifier;
-      userDb.findOrCreateUserFromOpenId(profile, function (err, user) {
-        done(err, user);
-      });
-    }
-  ));
+  // var home = 'http://' + req.headers.host + '/';
+  // passport.use(new GoogleStrategy({
+  //     returnURL: home + 'auth/google/return',
+  //     realm: home,
+  //   },
+  //   function (identifier, profile, done) {
+  //     profile.openId = identifier;
+  //     userDb.findOrCreateUserFromOpenId(profile, function (err, user) {
+  //       done(err, user);
+  //     });
+  //   }
+  // ));
   passport.authenticate('google')(req, res, next);
 });
 
