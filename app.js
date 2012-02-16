@@ -1243,7 +1243,7 @@ if (!module.parent) {
                 return cb(err);
               }
               if (!sess) {
-                log("Error: Invalid session", '(sid:' + sid + ')');
+                // log("Error: Invalid session", '(sid:' + sid + ')');
                 return cb(new Error('Could not find session.'));
               }
               log("Session opened", '(sid:' + sid + ')');
