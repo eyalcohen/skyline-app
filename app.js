@@ -281,6 +281,7 @@ app.get('/s/:key', function (req, res) {
 
 app.get('/export/:vintid/data.csv', function (req, res, next) {
   // TODO: access control.
+  // TODO: verify vehicle.
 
   function numParam(name, required) {
     var v = req.query[name];
@@ -308,7 +309,7 @@ app.get('/export/:vintid/data.csv', function (req, res, next) {
   //   $duration: Duration in seconds, e.g. '0.01234'.
   // Example: curl 'http://localhost:8080/export/1772440972/data.csv?beg=1309914019674000&end=1309916383000000&chan=$beginDate&chan=$beginTime&chan=$beginAbsTime&chan=$duration&chan=$beginRelTime&chan=$endRelTime&chan=gps.speed_m_s&chan=gps.latitude_deg&chan=gps.longitude_deg&chan=gps.altitude_m&chan=accel.x_m_s2&minDuration=10000000&minmax'
   try {
-    var vehicleId = req.vehicle._id;
+    var vehicleId = Number(req.params.vintid);
     var resample = numParam('resample');
     var beginTime = numParam('beg', resample != null);
     var endTime = numParam('end', resample != null);
