@@ -67,7 +67,6 @@ var UserDb = exports.UserDb = function (db, options, cb) {
  */
 UserDb.prototype.findOrCreateUserFromOpenId = function (props, cb) {
   var users = this.collections.users;
-  console.log(props.primaryEmail);
   props.primaryEmail = props.emails[0].value;
   users.findOne({ primaryEmail: props.primaryEmail },
                 function (err, user) {
