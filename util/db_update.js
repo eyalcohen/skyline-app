@@ -34,7 +34,8 @@ Step(
     var next = this;
     mongodb.connect(argv.db, {
                       server: { poolSize: 4 },
-                      db: { native_parser: false },
+                      db: { native_parser: false,
+                            reaperTimeout: 600000 },
                     }, function (err, db) {
       errCheck(err, 'connect('+argv.db+')');
       new UserDb(db, { ensureIndexes: false }, next.parallel());
@@ -150,6 +151,7 @@ Step(
   // Finding notes...
   function (err) {
     errCheck(err, 'addAccess()');
+    log('\nLooking for notes...');
     var colls = _.values(sampleDb.realCollections);
     var _next = _.after(colls.length, this);
     _.each(colls, function (collection) {
