@@ -338,7 +338,7 @@ Four database schemas are used for handling data interaction: Users, Teams, Vehi
 
     {
       _id: Number [INDEX], -- A unique identifier for this User (unsigned 32-bit int)
-      openId: String [INDEX], -- e.g., "https://www.google.com/accounts/o8/id?id=AItOawndPKDzSXJD7n3FoyfmkCdxntSc4QrqVGM",
+      openId: String, -- e.g., "https://www.google.com/accounts/o8/id?id=AItOawndPKDzSXJD7n3FoyfmkCdxntSc4QrqVGM",
       pin: String, -- An auto-generated 4-digit string used to authenticate this User from a telemetry device (tablet or other)
       displayName: String, -- The name of this User, suitable for display
       name: Object

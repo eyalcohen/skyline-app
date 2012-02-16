@@ -28,7 +28,7 @@ var UserDb = exports.UserDb = function (db, options, cb) {
   var collections = {
     sessions: { index: { created: 1 }, },
     links: { index: { created: 1, key: 1 } },
-    users: { index: { created: 1, openId: 1 } },
+    users: { index: { created: 1, primaryEmail: 1 } },
     teams: { index: { created: 1 } },
     vehicles: { index: { created: 1 } },
     fleets: { index: { created: 1 } },
@@ -62,12 +62,14 @@ var UserDb = exports.UserDb = function (db, options, cb) {
 
 
 /*
- * Finds a user by its openId. If it does not exist
+ * Finds a user by its primaryEmail. If it does not exist
  * create one using the given props.
  */
 UserDb.prototype.findOrCreateUserFromOpenId = function (props, cb) {
   var users = this.collections.users;
-  users.findOne({ openId: props.openId },
+  console.log(props.primaryEmail);
+  props.primaryEmail = props.emails[0].value;
+  users.findOne({ primaryEmail: props.primaryEmail },
                 function (err, user) {
     if (err) return cb(err);
     if (!user)
@@ -80,7 +82,6 @@ UserDb.prototype.findOrCreateUserFromOpenId = function (props, cb) {
           vehicles: [],
           fleets: [],
         });
-        props.primaryEmail = props.emails[0].value;
         users.insert(props, { safe: true },
                     function (err, inserted) {
           cb(err, inserted[0]);
