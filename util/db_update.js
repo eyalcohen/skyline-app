@@ -19,11 +19,11 @@ var argv = optimist
     .default('db', 'mongo:///service-samples')
     .argv;
 
-function errCheck(err, op, done) {
+function errCheck(err, op) {
   if (err) {
     error('Error during ' + op + ':\n' + err.stack);
     process.exit(1);
-  } else if (done) process.exit(0);
+  };
 }
 
 
@@ -186,6 +186,8 @@ Step(
   },
   // Done.
   function (err) {
-    errCheck(err, 'renameCollection()', true);
+    errCheck(err, 'renameCollection()');
+    log('\nAll done!\n');
+    process.exit(0);
   }
 );

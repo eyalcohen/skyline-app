@@ -216,8 +216,11 @@ app.get('/', function (req, res) {
 // When complete, Google will redirect the user
 // back to the application at /auth/google/return.
 // ** The passport strategy initialization must
-// happen here becuase hostname needs to be snarfed from req.
+// happen here becuase host needs to be snarfed from req.
 app.get('/auth/google', function (req, res, next) {
+  // add referer to session so we can use it on return.
+  // This way we can preserve query params in links.
+  req.session.referer = req.headers.referer;  
   var home = 'http://' + req.headers.host + '/';
   passport.use(new GoogleStrategy({
       returnURL: home + 'auth/google/return',
@@ -237,13 +240,8 @@ app.get('/auth/google', function (req, res, next) {
 // after authentication. Finish the process by
 // verifying the assertion. If valid, the user will be
 // logged in. Otherwise, authentication has failed.
-// ** successRedirect is the referer becuase
-// we might want to snarf query parameters from header
-// when the initial request was made, e.g., sharing a link.
-// TODO: query params are not available when user is
-// not signed into google, i.e., when they must sign in first.
 app.get('/auth/google/return', function (req, res, next) {
-  passport.authenticate('google', { successRedirect: req.headers.referer || '/',
+  passport.authenticate('google', { successRedirect: req.session.referer || '/',
                                     failureRedirect: '/' })(req, res, next);
 });
 
