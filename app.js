@@ -221,7 +221,7 @@ app.get('/', function (req, res) {
 app.get('/auth/google', function (req, res, next) {
   // add referer to session so we can use it on return.
   // This way we can preserve query params in links.
-  req.session.referer = req.headers.referer;  
+  req.session.referer = req.headers.referer;
   var home = 'http://' + req.headers.host + '/';
   passport.use(new GoogleStrategy({
       returnURL: home + 'auth/google/return',
@@ -901,14 +901,14 @@ var createDnodeConnection = function (remote, conn) {
     var userId = req.session.passport.user;
     if (userId) {
       userDb.findUserById(userId, function (err, user) {
-        if (err) return cb(err);
+        if (err) return cb(err.toString());
         if (!user)
           // BUG(?): Without toString, err contents is stripped.
           return cb(new Error('User and Session do NOT match!').toString());
         delete user.openId;
         delete user.pin;
         userDb.getUserVehicleData(user, function (err, data) {
-          if (err) return cb(err);
+          if (err) return cb(err.toString());
           delete user.vehicles;
           delete user.fleets;
           user.data = {
@@ -953,17 +953,25 @@ var createDnodeConnection = function (remote, conn) {
 
   function fetchVehicles(cb) {
     if (req.user.data.vehicles.length > 0) {
-      var _cb = _.after(req.user.data.vehicles.length, cb);
+      var _done = _.after(req.user.data.vehicles.length, done);
       _.each(req.user.data.vehicles, function (veh) {
         sampleDb.fetchSamples(veh._id, '_wake', {},
                               function (err, cycles) {
           if (err) return cb(err);
           if (cycles && cycles.length > 0)
             veh.lastCycle = _.last(cycles);
-          _cb(null, req.user.data.vehicles);
+          else veh.lastCycle = { beg: 0, end: 0 };
+          _done();
         });
       });
     } else cb(null, []);
+
+    function done() {
+      cb(null, req.user.data.vehicles.sort(function (a, b) {
+        console.log(b.lastCycle.end, a.lastCycle.end);
+        return b.lastCycle.end - a.lastCycle.end;
+      }));
+    }
   }
 
   // TMP: use subscriptions from client end

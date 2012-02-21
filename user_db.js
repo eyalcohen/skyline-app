@@ -179,6 +179,10 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
     fleets: [],
     vehicles: [],
   };
+
+  /*
+   * Get the given owner's (user or team) vehicles and fleets.
+   */
   function _getVehicles(owner, isTeam, cb) {
     if ('function' === typeof isTeam) {
       cb = isTeam;
@@ -191,7 +195,7 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
         access: access,
       };
       if (isTeam) veh.teamId = owner._id;
-      data.vehicles.push(veh);
+      push(veh);
     });
     // Get fleet vehicles.
     if (owner.fleets.length > 0) {
@@ -208,7 +212,7 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
               access: access,
             };
             if (isTeam) veh.teamId = owner._id;
-            data.vehicles.push(veh);
+            push(veh);
           });
           // Add fleets to user data only if
           // owner is the user and not a team.
@@ -223,6 +227,24 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
       });
     } else cb(null, owner);
   }
+
+  /*
+   * Push a vehicle list object into user data
+   * or update an existing one with lower permissions.
+   */
+  function push(vehicle) {
+    var dup = _.find(data.vehicles, function (veh) {
+      return vehicle._id === veh._id;
+    });
+    if (dup) {
+      _.each(vehicle.access, function (val, key) {
+        // TODO: add handling for channels or other types
+        // of keys in case they're added in the future.
+        if (val === true) dup.access[key] = val;
+      });
+    } else data.vehicles.push(vehicle);
+  }
+
   // Scrape for user's vehicles.
   Step(
     // Get user.
@@ -231,6 +253,7 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
         self.findUserById(userId, this);
       else return userId;
     },
+    // Get user's vehicles and fleets.
     function (err, user) {
       if (err) return cb(err);
       if (!user) return cb(new Error('Failed to find user.'));
@@ -268,7 +291,6 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
     // Fetch all the vehicles.
     function (err) {
       var next = this;
-      // console.log(data.vehicles);
       if (data.vehicles.length > 0) {
         var _next = _.after(data.vehicles.length, next);
         _.each(data.vehicles, function (veh) {
@@ -342,22 +364,17 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
       // This might need some more thought.
       // If access already exists for this grantee
       // on this target, we replace it with the new one.
-      // Consider the case where a user's access in down/upgraded...
-      var duplicateIndex;
-      _.find(grantee[targetType], function (acc, i) {
-        if (opts.targetId === acc.targetId) {
-          duplicateIndex = i;
-          return true;
-        } else return false;
+      // Consider the case where a user's access is down/upgraded...
+      var dup = _.find(grantee[targetType], function (acc) {
+        return opts.targetId === acc.targetId;
       });
-      if (duplicateIndex)
-        grantee[targetType].splice(duplicateIndex, 1);
-      grantee[targetType].push(opts);
+      if (dup)
+        grantee[targetType][grantee[targetType].indexOf(dup)] = opts;
+      else grantee[targetType].push(opts);
       var update = {};
       update[targetType] = grantee[targetType];
       self.collections[granteeType].update({ _id: Number(granteeId) },
-                                    { $set: update }, { safe: true },
-                                    function (err) { cb(err); });
+                                          { $set: update }, { safe: true }, cb);
     }
   );
 }

@@ -15,6 +15,18 @@ define(['views/dashItem'],
 
     render: function (opts) {
       opts = opts || {};
+      if (DEMO && !this.collection.models[0].attributes.title) {
+        _.each(this.collection.models, function (m) {
+          var end = Math.round((Date.now() - (Math.random() * 60*60*24*1000)) * 1000);
+          m.attributes.lastCycle = {
+            beg: end - Math.random() * 60*10*1000*1000,
+            end: end,
+          };
+        });
+        this.collection.models.sort(function (a, b) {
+          return b.attributes.lastCycle.end - a.attributes.lastCycle.end;
+        });
+      }
       _.defaults(opts, {
         title: this.options.title,
         loading: false,

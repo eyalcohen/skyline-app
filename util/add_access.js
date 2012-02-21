@@ -20,6 +20,8 @@ var argv = optimist
     .default('teamId')
     .boolean('admin')
     .boolean('config')
+    .boolean('insert')
+    .boolean('note')
     .argv;
 
 function errCheck(err, op, done) {
@@ -59,6 +61,8 @@ mongodb.connect(argv.db, {
       var opts = {
         admin: argv.admin,
         config: argv.config,
+        insert: argv.insert,
+        note: argv.note,
       };
       userDb.addAccess(ids, opts, function (err) {
         errCheck(err, 'addAccess('+inspect(ids)+')', true);

@@ -17,9 +17,15 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
     },
 
     render: function () {
+      var email;
+      var name;
+      if (DEMO) {
+        email = 'john.doe@ridemission.com';
+        name = 'John Doe';
+      }
       this.el = App.engine('logout.jade', {
-        email: App.user.primaryEmail,
-        name: App.user.displayName
+        email: email || App.user.primaryEmail,
+        name: name || App.user.displayName,
       }).appendTo(App.regions.menu);
       this.delegateEvents();
       return this;

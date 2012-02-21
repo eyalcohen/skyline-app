@@ -46,14 +46,43 @@ define(['views/dashItem'], function (DashItemView) {
         end: parseInt($('[data-time-end]', parentRow).attr('data-time-end')),
       };
       var props = this.getProps(parentRow);
+      var channels = $('[data-channels]', parentRow).attr('data-channels');
+      if (channels)
+        channels = JSON.parse(channels);
       if (this.model.get('singleVehicle')) {
         App.publish('UnPreviewEvent-' + props.id);
         this.model.get('tabModel').set({ visibleTime: timeRange });
         App.publish('PreviewEvent-' + props.id, [timeRange]);
+        if (channels) {
+          var graphId = App.util.makeId();
+          var tabId = this.model.get('tabId');
+          App.publish('GraphRequested-' + tabId, [graphId]);
+          fetchChannels(channels, this.model.get('vehicleId'), tabId, graphId);
+        }
       } else {
         var tabId = App.util.makeId();
-        App.publish('VehicleRequested', [props.id, tabId, props.title, timeRange]);
+        App.publish('VehicleRequested', [props.id, tabId, props.title,
+                    timeRange, false, function () {
+          fetchChannels(channels, props.id, tabId, 'MASTER');
+        }]);
       }
+
+      function fetchChannels(chans, vId, tId, gId) {
+        console.log(chans, vId, tId, gId);
+        if (!chans || chans.length === 0) return;
+        _.each(chans, function (channelName, i) {
+          App.publish('FetchChannelInfo-' + vId,
+                      [channelName, function (channel) {
+            if (!channel) return;
+            channel.yaxisNum = (i % 2) + 1;
+            channel.title = channel.humanName || channel.shortName;
+            if (channel.units)
+              channel.title += ' (' + channel.units + ')';
+            App.publish('ChannelRequested-' + tId + '-' + gId, [channel]);
+          }]);
+        });
+      }
+
       return this;
     },
 

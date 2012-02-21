@@ -108,6 +108,7 @@ define(function (fn) {
     },
 
     addGraph: function (id, noreset) {
+      console.log(id);
       var isMaster = id === 'MASTER';
       var graphModel = new App.models.GraphModel(
             _.extend({}, this.modelArgs, {

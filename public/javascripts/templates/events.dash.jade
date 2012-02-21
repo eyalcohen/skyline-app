@@ -34,6 +34,7 @@
             - row = row.attributes;
             - var title = row.vehicle ? row.vehicle.doc.title : 'inherit'
             - var info = App.util.getBlurb(row.meta.info, 60)
+            - var channels = JSON.stringify(row.val.channels)
             - var replies = row.replies && row.replies.length > 0 ? row.replies.length : null;
             - if (replies > 1) {
             -   replies = ' (' + replies + ' replies)'
@@ -50,7 +51,7 @@
               - var occured = row.latest ? row.latest * 1e3 : row.beg;
               td(style="font-style:italic;")= info
                 span.row-replies= replies
-              td.nowrap(data-occured=occured, data-time=row.beg, data-time-end=row.end)
+              td.nowrap(data-occured=occured, data-time=row.beg, data-time-end=row.end, data-channels=channels)
                 | -
               td.nowrap(data-duration=(row.end-row.beg))
                 | -

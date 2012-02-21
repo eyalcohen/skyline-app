@@ -2,6 +2,9 @@
  * Copyright 2011 Mission Motors
  */
 
+// can set with hash tag
+window.DEMO = false;
+
 // include global server-client shared resources
 window._ = require('underscore');
 window.Step = require('step');
@@ -69,6 +72,8 @@ requirejs(['libs/domReady',
               App.logout = new views.LogoutView();
               App.subscribe('UserWasAuthenticated', App.build);
               authorize(false);
+
+              window.DEMO = window.DEMO || App.util.HashSearch.keyExists('demo');
             });
           } catch (err) {
             console.error('Error in App.start: ' + err + '\n' + err.stack);

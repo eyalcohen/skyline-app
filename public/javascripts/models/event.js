@@ -12,6 +12,9 @@ define(function () {
       // (2+ seconds!) to generate the events list.  We don't need
       // the reference, so get rid of it.
       delete this.collection;
+      
+      function round(v) {
+        return Math.round(v * 1000) / 1000;}
 
       switch (args.type) {
         case '_drive':
@@ -19,8 +22,8 @@ define(function () {
             icon: '/graphics/marker.png',
             color: '#9dfbf3',
             desc: 'Cycle',
-            info: args.val.drive_km + ' km' + ', '
-                + args.val.drive_kWh + ' kWh',
+            info: round(args.val.drive_km) + ' km' + ', '
+                + round(args.val.drive_kWh) + ' kWh',
           };
           break;
         case '_charge':
@@ -28,8 +31,8 @@ define(function () {
             icon: '/graphics/charge.png',
             color: '#9dfba0',
             desc: 'Charge',
-            info: args.val.charge_kWh + ' kWh' + ', ' +
-                args.val.wall_A + ' A, ' + args.val.wall_V + ' V',
+            info: round(args.val.charge_kWh) + ' kWh' + ', ' +
+                round(args.val.wall_A) + ' A, ' + round(args.val.wall_V) + ' V',
           };
           break;
         case '_error':

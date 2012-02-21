@@ -54,7 +54,7 @@ define(function (fn) {
               ' has never been seen before!');
         } else {
           self.data = data;
-          self.channelMap = {};  // Map from channel name to schema.
+          self.channelMap = {}; // Map from channel name to schema.
           (self.data || []).forEach(function traverseDesc(desc) {
             if (desc.channelName)
               self.channelMap[desc.channelName] = desc;

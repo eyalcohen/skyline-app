@@ -1182,7 +1182,8 @@ define(['views/dashItem', 'plot_booter',
             } else {
               msg.text('Your reply has been posted.').show();
               $('.note-text', self.noteWindow).val('').blur().focus();
-              var reply = $('<h2 class="note-user-reply">' + App.user.displayName
+              var reply = $('<h2 class="note-user-reply">'
+                          + (DEMO ? 'John Doe' : App.user.displayName)
                           + '<span class="note-content-date">' + ' '
                           + App.util.getRelativeTime(_note.val.date) + '</span></h2>'
                           + '<p class="note-body">' + _note.val.text + '</p>');

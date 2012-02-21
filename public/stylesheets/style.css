@@ -871,10 +871,10 @@ tr.dark:hover, tr.light:hover {
 }
 
 th, td {
-  -webkit-user-select: none;
+/*  -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
-  min-height: 30px;
+*/  min-height: 30px;
 }
 
 th {
