@@ -68,7 +68,6 @@ define(['views/dashItem'], function (DashItemView) {
       }
 
       function fetchChannels(chans, vId, tId, gId) {
-        console.log(chans, vId, tId, gId);
         if (!chans || chans.length === 0) return;
         _.each(chans, function (channelName, i) {
           App.publish('FetchChannelInfo-' + vId,

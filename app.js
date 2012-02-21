@@ -968,7 +968,6 @@ var createDnodeConnection = function (remote, conn) {
 
     function done() {
       cb(null, req.user.data.vehicles.sort(function (a, b) {
-        console.log(b.lastCycle.end, a.lastCycle.end);
         return b.lastCycle.end - a.lastCycle.end;
       }));
     }
