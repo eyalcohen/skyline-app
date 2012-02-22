@@ -52,7 +52,7 @@
               td.nowrap(colspan="2", data-time=row.lastCycle ? row.lastCycle.end : null, data-cycle=JSON.stringify(row.lastCycle))
                 | -
               td(align="right")
-                - if (row.lastCycle || DEMO) {
+                - if (row.lastCycle.beg !== 0 || DEMO) {
                   div.open-vehicle(role="button", title="See vehicle data")
                     div
                     span Open

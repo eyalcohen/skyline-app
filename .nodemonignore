@@ -17,4 +17,5 @@ public/vconfig
 samples
 example-data
 debug
+log
 .DS_Store

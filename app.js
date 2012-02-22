@@ -222,7 +222,8 @@ app.get('/auth/google', function (req, res, next) {
   // add referer to session so we can use it on return.
   // This way we can preserve query params in links.
   req.session.referer = req.headers.referer;
-  var home = 'http://' + req.headers.host + '/';
+  var host = req.headers.host.split(':')[0];
+  var home = 'http://' + host + ':' + argv.port + '/'
   passport.use(new GoogleStrategy({
       returnURL: home + 'auth/google/return',
       realm: home,
@@ -243,7 +244,7 @@ app.get('/auth/google', function (req, res, next) {
 // logged in. Otherwise, authentication has failed.
 app.get('/auth/google/return', function (req, res, next) {
   passport.authenticate('google', { successRedirect: req.session.referer || '/',
-                                    failureRedirect: '/' })(req, res, next);
+                                    failureRedirect: req.session.referer || '/' })(req, res, next);
 });
 
 // We logout via an ajax request.
