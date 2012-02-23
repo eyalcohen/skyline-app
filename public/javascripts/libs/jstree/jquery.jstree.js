@@ -3474,7 +3474,8 @@
  */
 (function ($) {
 	$.expr[':'].jstree_contains = function(a,i,m){
-		return (a.textContent || a.innerText || "").toLowerCase().indexOf(m[3].toLowerCase())>=0;
+    return (a.textContent || a.innerText || "").toLowerCase().indexOf(m[3].toLowerCase())>=0;
+    // return (new RegExp(m[3], 'i')).test(a.textContent || a.innerText || "");
 	};
 	$.expr[':'].jstree_title_contains = function(a,i,m) {
 		return (a.getAttribute("title") || "").toLowerCase().indexOf(m[3].toLowerCase())>=0;
@@ -3501,14 +3502,15 @@
 			show_only_matches : false
 		},
 		_fn : {
-			search : $.debounce(500, function (str, skip_async) {
-				if($.trim(str) === "") { this.clear_search(); return; }
+			search : $.debounce(250, function (str, skip_async) {
+			  var started = Date.now();
+				if($.trim(str) === "" || $.trim(str).length < 3) { this.clear_search(); return; }
+				if($.trim(str).length < 3) { return; }
 				var s = this.get_settings().search, 
 					t = this,
 					error_func = function () { },
 					success_func = function () { };
 				this.data.search.str = str;
-
 				if(!skip_async && s.ajax !== false && this.get_container_ul().find("li.jstree-closed:not(:has(ul)):eq(0)").length > 0) {
 					this.search.supress_callback = true;
 					error_func = function () { };
@@ -3533,6 +3535,7 @@
 				this.data.search.result.addClass("jstree-search").parent().parents(".jstree-closed").each(function () {
 					t.open_node(this, false, true);
 				});
+				console.log('Search took ' + ((Date.now() - started) / 1000) + ' seconds.');
 				this.__callback({ nodes : this.data.search.result, str : str });
 			}),
 			clear_search : function (str) {
