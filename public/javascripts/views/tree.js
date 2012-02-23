@@ -142,8 +142,16 @@ define(['views/dashItem',
           function (e, data) {
         self.resize();
       }).bind('search.jstree', function (e, data) {
-        console.warn('Found ' + data.rslt.nodes.length +
-            ' nodes matching "' + data.rslt.str + '".');
+        _.each(data.rslt.nodes, function (n) {
+          var item = $($(n).parent());
+          if (item.attr('rel') === 'root') {
+            // show the children too
+            var kids = $('ul > li', item);
+            _.each(kids, function (k) {
+              $(k).show();
+            });
+          }
+        });
         self.resize();
       }).bind('click.jstree', _.bind(self.nodeClickHandler, self));
       return self;

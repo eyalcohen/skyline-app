@@ -92,8 +92,7 @@ define(function (fn) {
         }, this));
       });
 
-      if (!App.stateMonitor.isRestoring)
-        this.addGraph('MASTER', true);
+      this.addGraph('MASTER', true);
 
       this.eventCollection.fetch();
 

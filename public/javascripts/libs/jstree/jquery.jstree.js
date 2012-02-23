@@ -25,6 +25,47 @@
  * jsTree core
  */
 (function ($) {
+  
+  $.throttle = function(e, f, j, i) {
+    var h, d = 0;
+    if (typeof f !== "boolean") {
+      i = j;
+      j = f;
+      f = undefined
+    }
+    function g() {
+      var o = this,
+        m = +new Date() - d,
+        n = arguments;
+
+      function l() {
+        d = +new Date();
+        j.apply(o, n)
+      }
+      function k() {
+        h = undefined
+      }
+      if (i && !h) {
+        l()
+      }
+      h && clearTimeout(h);
+      if (i === undefined && m > e) {
+        l()
+      } else {
+        if (f !== true) {
+          h = setTimeout(i ? k : l, i === undefined ? e - m : e)
+        }
+      }
+    }
+    if ($.guid) {
+      g.guid = j.guid = j.guid || $.guid++
+    }
+    return g
+  };
+  $.debounce = function(d, e, f) {
+      return f === undefined ? $.throttle(d, e, false) : $.throttle(d, f, e !== false)
+  }
+  
 	// Common functions not related to jsTree 
 	// decided to move them to a `vakata` "namespace"
 	$.vakata = {};
@@ -3460,7 +3501,7 @@
 			show_only_matches : false
 		},
 		_fn : {
-			search : function (str, skip_async) {
+			search : $.debounce(500, function (str, skip_async) {
 				if($.trim(str) === "") { this.clear_search(); return; }
 				var s = this.get_settings().search, 
 					t = this,
@@ -3493,7 +3534,7 @@
 					t.open_node(this, false, true);
 				});
 				this.__callback({ nodes : this.data.search.result, str : str });
-			},
+			}),
 			clear_search : function (str) {
 				this.data.search.result.removeClass("jstree-search");
 				this.__callback(this.data.search.result);
@@ -4574,3 +4615,54 @@
 //*/
 
 })();
+
+
+/*
+ * jQuery throttle / debounce - v1.1 - 3/7/2010
+ * http://benalman.com/projects/jquery-throttle-debounce-plugin/
+ * 
+ * Copyright (c) 2010 "Cowboy" Ben Alman
+ * Dual licensed under the MIT and GPL licenses.
+ * http://benalman.com/about/license/
+ */
+// (function($) {
+//     $.throttle  = function(e, f, j, i) {
+//         var h, d = 0;
+//         if (typeof f !== "boolean") {
+//             i = j;
+//             j = f;
+//             f = c
+//         }
+//         function g() {
+//             var o = this,
+//                 m = +new Date() - d,
+//                 n = arguments;
+// 
+//             function l() {
+//                 d = +new Date();
+//                 j.apply(o, n)
+//             }
+//             function k() {
+//                 h = c
+//             }
+//             if (i && !h) {
+//                 l()
+//             }
+//             h && clearTimeout(h);
+//             if (i === c && m > e) {
+//                 l()
+//             } else {
+//                 if (f !== true) {
+//                     h = setTimeout(i ? k : l, i === c ? e - m : e)
+//                 }
+//             }
+//         }
+//         if ($.guid) {
+//             g.guid = j.guid = j.guid || $.guid++
+//         }
+//         return g
+//     };
+//     $.debounce = function(d, e, f) {
+//         return f === c ? a(d, e, false) : a(d, f, e !== false)
+//     }
+// })(jQuery);

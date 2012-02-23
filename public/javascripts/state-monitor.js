@@ -31,7 +31,8 @@ define(function () {
         App.publish('VehicleRequested',
             [tab.i, tabId, tab.t, visibleTime, !tab.v, function () {
               _.each(tab.g, function (channels, graphId) {
-                App.publish('GraphRequested-' + tabId, [graphId]);
+                if (graphId !== 'MASTER')
+                  App.publish('GraphRequested-' + tabId, [graphId]);
                 if (channels)
                   _.each(channels, function (opts, channelName) {
                     App.publish('FetchChannelInfo-' + tab.i,
