@@ -59,19 +59,26 @@ define(['jquery',
       this.content.is(':visible') ?
         this.minimize(target) :
         this.maximize(target);
+      App.publish('WindowResize');
       return this;
     },
 
     minimize: function () {
-      this.content.hide('fast');
-      this.toggler.text('+').attr('title', 'expand');
+      this.content.hide();
+      this.toggler.text('+').attr('title', 'Show');
       this.trigger('toggled', 'close');
+      this.content.attr('data-height-mode', 'hidden');
+      var sibs = $(this.el).parent().siblings().children();
+      $('.dashboard-item-content', sibs).attr('data-height-mode', 'full');
     },
 
     maximize: function () {
-      this.content.show('fast');
-      this.toggler.text('-').attr('title', 'shrink');
+      this.content.show();
+      this.toggler.text('–').attr('title', 'Hide');
       this.trigger('toggled', 'open');
+      this.content.attr('data-height-mode', '');
+      var sibs = $(this.el).parent().siblings().children();
+      $('.dashboard-item-content', sibs).attr('data-height-mode', '');
     },
 
     search: function (e) {},
@@ -85,10 +92,21 @@ define(['jquery',
             $('.' + this.options.target).offset() :
             this.el.offset();
       if (this.options.height !== null && this.options.height !== undefined) {
-        var dest = 'string' === typeof this.options.height ?
-            { height: parseInt(this.options.height) } :
-            { height: Math.floor((win.height() - 76 - 57)
-                * this.options.height / 100 - this.options.bottomPad) };
+        var dest;
+        if (this.content.attr('data-height-mode') === 'full') {
+          // HACK: account for the timeline's fixed height
+          var extra = this.el.parent().parent().hasClass('dashboard-right') ? 63 : 0;
+          dest = 'string' === typeof this.options.height ?
+              { height: parseInt(this.options.height) } :
+              { height: win.height() - this.offset.top - 39 - 19 + 20 - extra};
+        } else if (this.content.attr('data-height-mode') === 'hidden')
+          dest = { height: 0 };
+        else {
+          dest = 'string' === typeof this.options.height ?
+              { height: parseInt(this.options.height) } :
+              { height: Math.floor((win.height() - 76 - 57 + 20 )
+                  * this.options.height / 100 - this.options.bottomPad) };
+        }
         if (this.options.animate && this.options.height !== 0) {
           this.content.animate(dest, 'fast');
         } else {
@@ -96,7 +114,7 @@ define(['jquery',
           this.options.animate = false; // keep this off for now...
         }
       } else {
-        this.content.height(win.height() - this.offset.top - 39);
+        this.content.height(win.height() - this.offset.top - 39 + 20);
       }
       this.addScroll();
     },

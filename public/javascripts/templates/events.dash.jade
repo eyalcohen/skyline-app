@@ -1,8 +1,11 @@
 .dashboard-item
+  - if (singleVehicle) {
+    // .resize-vertical
+  - }
   .dashboard-item-header
     - if (shrinkable) {
-      a.dashboard-link.toggler(href="javascript:;", title="shrink")
-        | -
+      a.dashboard-link.toggler(href="javascript:;", title="Hide")
+        | –
     - }
     h1.dashboard-item-header-txt
       =title

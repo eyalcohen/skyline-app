@@ -148,16 +148,18 @@ footer {
   background: #333;
   width: 100%;
   height: 20px;
-  
+
   display: -webkit-box;
   display: -moz-box;
   display: box;
   -webkit-box-orient: horizontal;
   box-orient: horizontal;
   -moz-box-orient: horizontal;
-  
+
   position: absolute;
   bottom: 0;
+  z-index: 1;
+  display: none;
 }
 
 table {
@@ -653,13 +655,10 @@ span.landing-copy {
 }
 
 .resize-vertical {
-  background: gray;
-  width: 29px;
-  height: 1px;
+  width: 100%;
+  height: 5px;
   position: absolute;
-  border-top: 1px dotted gray;
-  border-bottom: 1px dotted gray;
-  cursor: pointer;
+  cursor: ns-resize;
 }
 
 .resize-horizontal {
@@ -822,6 +821,21 @@ h1.dashboard-item-header-txt {
   margin: 0 50% 0 0;
   white-space: nowrap;
   padding: 3px 0 0;
+}
+
+a.dashboard-link {
+  float: right;
+  font-size: 18px;
+  color: white;
+  padding: 0 2px;
+}
+
+a.dashboard-link:hover {
+  color: white;
+}
+
+a.dashboard-link:active {
+  color: gray;
 }
 
 .dashboard-item-content {

@@ -20,10 +20,12 @@ define(function (fn) {
 
       App.vehicleTabModels[this.tabId] = this;
 
-      _.bindAll(this, 'destroy', 'addGraph', 'removeGraph');
+      _.bindAll(this, 'destroy', 'addGraph', 'removeGraph', 'verticalResize');
       App.subscribe('GraphRequested-' + this.tabId, this.addGraph);
       App.subscribe('GraphUnrequested-' + this.tabId, this.removeGraph);
       App.subscribe('VehicleUnrequested-' + this.tabId, this.destroy);
+
+      App.subscribe('VerticalResize-' + this.tabId, this.verticalResize);
 
       // This is purely for the benefit of StateMonitor.
       this.bind('change:visibleTime', function(model, visibleTime) {
@@ -60,12 +62,14 @@ define(function (fn) {
         title: 'Location',
         parent: '.' + this.targetClass + ' div .dashboard-left .bottom',
         height: 60,
+        shrinkable: true,
       })).bind('change:events', function () {});
 
       this.eventsModel = new App.models.EventsModel(_.extend({}, this.modelArgs, {
         title: 'Vehicle Events',
         parent: '.' + this.targetClass + ' div .dashboard-right .bottom',
         height: 30,
+        shrinkable: true,
       })).bind('change:events', function () {
         this.view.render();
       });
@@ -138,6 +142,10 @@ define(function (fn) {
 
     resetEvents: function () {
       this.eventCollection.fetch();
+    },
+
+    verticalResize: function (view, delta) {
+      
     },
 
   });

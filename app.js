@@ -67,8 +67,6 @@ var SampleDb = require('./sample_db.js').SampleDb;
 
 var compatibility = require('./compatibility.js');
 
-var db, User, Vehicle, AppState;
-
 var pubsub = require('./minpubsub');
 var jadeify = require('jadeify');
 
@@ -219,11 +217,11 @@ app.get('/', function (req, res) {
 // ** The passport strategy initialization must
 // happen here becuase host needs to be snarfed from req.
 app.get('/auth/google', function (req, res, next) {
-  // add referer to session so we can use it on return.
+  // Add referer to session so we can use it on return.
   // This way we can preserve query params in links.
   req.session.referer = req.headers.referer;
   var host = req.headers.host.split(':')[0];
-  var home = 'http://' + host + ':' + argv.port + '/'
+  var home = 'http://' + host + ':' + argv.port + '/';
   passport.use(new GoogleStrategy({
       returnURL: home + 'auth/google/return',
       realm: home,
