@@ -209,7 +209,9 @@ setInterval(function() {
 }, 1000);
 function pollFrontend(frontend) {
   var req = http.get({ host: frontend.host, port: frontend.port,
-                       path: '/status/load' }, function(res) {
+                    path: '/status/load', headers: {'cookie': frontend.cookies } },
+                    function(res) {
+    frontend.cookies = cleanCookies(res.headers['set-cookie']);
     res.setEncoding('utf8');
     res.on('data', function(chunk) {
       var n = Number(chunk);
@@ -229,4 +231,20 @@ function pollFrontend(frontend) {
     req.abort();
     setLoadAvg(frontend, null, 'timeout');
   }, 750);
+}
+
+function cleanCookies(cookies) {
+  var clean = [];
+  cookies.forEach(function (c) {
+    var cookie = '';
+    var parts = c.split('; ');
+    parts.forEach(function (p) {
+      if (p.indexOf('path') === -1
+          && p.indexOf('expires') === -1
+          && p.indexOf('=') !== -1)
+        cookie += p;
+    });
+    clean.push(cookie);
+  });
+  return clean;
 }

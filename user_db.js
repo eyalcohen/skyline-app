@@ -26,12 +26,12 @@ var UserDb = exports.UserDb = function (db, options, cb) {
   self.collections = {};
 
   var collections = {
-    sessions: { index: { created: 1 }, },
-    links: { index: { created: 1, key: 1 } },
     users: { index: { created: 1, primaryEmail: 1 } },
     teams: { index: { created: 1 } },
     vehicles: { index: { created: 1 } },
     fleets: { index: { created: 1 } },
+    links: { index: { created: 1, key: 1 } },
+    sessions: {},
   };
 
   Step(
@@ -49,8 +49,9 @@ var UserDb = exports.UserDb = function (db, options, cb) {
       if (options.ensureIndexes) {
         var parallel = this.parallel;
         _.each(cols, function (col) {
-          col.ensureIndex(collections[col.collectionName].index,
-                          parallel());
+          var index = collections[col.collectionName].index;
+          if (index)
+            col.ensureIndex(index, parallel());
         });
       } else this();
     },

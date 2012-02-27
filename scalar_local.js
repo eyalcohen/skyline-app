@@ -16,8 +16,10 @@ var argv = optimist
       .default('port', 8080)
     .describe('static', 'List of host:port to redirect static requests to')
       .default('static', '9000 9001')
+      // .default('static', '9000')
     .describe('api', 'List of host:port to redirect API requests to')
       .default('api', '9010 9011 9012 9013 9014 9015')
+      // .default('api', '9010')
     .argv;
 
 function parseFrontends(arg) {

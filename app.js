@@ -902,8 +902,7 @@ var createDnodeConnection = function (remote, conn) {
       userDb.findUserById(userId, function (err, user) {
         if (err) return cb(err.toString());
         if (!user)
-          // BUG(?): Without toString, err contents is stripped.
-          return cb(new Error('User and Session do NOT match!').toString());
+          return cb('User and Session do NOT match!');
         delete user.openId;
         delete user.pin;
         userDb.getUserVehicleData(user, function (err, data) {
