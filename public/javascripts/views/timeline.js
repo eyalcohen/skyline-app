@@ -287,6 +287,9 @@ define(['views/dashItem', 'plot_booter'],
       $('.day-scale', self.el).click(function (e) {
         zoomToRange(60*60*24*1e3);
       });
+      $('.week-scale', self.el).click(function (e) {
+        zoomToRange(60*60*24*7*1e3);
+      });
       $('.month-scale', self.el).click(function (e) {
         zoomToRange(60*60*24*7*4*1e3);
       });

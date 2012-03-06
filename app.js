@@ -1240,12 +1240,11 @@ if (!module.parent) {
             }
           })
           .server.socket.set('authorization', function (data, cb) {
-            if (!data || !data.headers || !data.headers.cookie) {
-              log('\n\n' + inspect(data) + '\n');
-              return cb(new Error('Headers are not valid.'));
-            } else log('\n\n' + data.headers.cookie + '\n');
+            if (!data || !data.headers || !data.headers.cookie)
+              return cb(new Error('No cookie.'));
             var cookies = connect.utils.parseCookie(data.headers.cookie);
             var sid = cookies['connect.sid'];
+            if (!sid) return cb(new Error('No session identifier in cookie.'));
             app.settings.sessionStore.load(sid, function (err, sess) {
               if (err) return cb(err);
               if (!sess) return cb(new Error('Could not find session.'));
