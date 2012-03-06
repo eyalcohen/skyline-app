@@ -40,10 +40,12 @@ define(['jquery',
         this.content.hide();
         this.el.show();
         this.resize();
-        this.content.show();
+        if (this.options.weight !== 0)
+          this.content.show();
+        if (this.options.shrinkable)
+          $('.dashboard-item-header', this.el).css({ cursor: 'ns-resize' });
         this.addScroll(cb);
       }
-      this.el.data({ view: this });
     },
 
     destroy: function () {
@@ -99,10 +101,42 @@ define(['jquery',
       var oh = this.options.height;
 
       if ('number' === typeof oh) {
-        if (delta && this.options.weight)
-          oh += Math.round(delta * this.options.weight / 100);
-        this.options.height = Math.round(oh);
-        this.content.height(this.options.height - hh);
+        if (delta && this.options.weight) {
+          if (this.options.type === 'graph') {
+            if (this.options.tabModel.graphModels.length === 1)
+              oh += Math.round(delta * this.options.weight / 100);
+            else {
+              var j = this.options.tabModel.graphModels.indexOf(this.model) % 2;
+              if (j > 0)
+                oh += Math.floor(delta * this.options.weight / 100);
+              else
+                oh += Math.round(delta * this.options.weight / 100);
+            }
+          } else oh += Math.round(delta * this.options.weight / 100);
+          this.options.height = Math.round(oh);
+          this.content.height(this.options.height - hh);
+
+          // Last check to get it right!
+          if (this.options.type === 'map'
+              || this.options.id === 'MASTER') {
+            var _this = this;
+            _.delay(function () {
+              var p = _this.el.parent().parent();
+              var k = p.children();
+              var ch = 0;
+              _.each(k, function (c) {
+                ch += $(c).height();
+              });
+              var er = Math.floor($(window).height() - _this.offset.top - ch);
+              oh += er;
+              _this.options.height = Math.round(oh);
+              _this.content.height(_this.options.height - hh);
+            }, 1000);
+          }
+        } else {
+          this.options.height = Math.round(oh);
+          this.content.height(this.options.height - hh);
+        }
       } else if ('full' === oh) {
         this.content.height(total - hh);
       } else {

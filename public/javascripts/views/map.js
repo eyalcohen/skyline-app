@@ -15,7 +15,7 @@ define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'mousedown .resize-vertical': 'adjustHeight',
+      'mousedown .dashboard-item-header': 'adjustHeight',
     },
 
     render: function (opts) {

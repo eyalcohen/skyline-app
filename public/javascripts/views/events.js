@@ -6,7 +6,7 @@ define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'mousedown .resize-vertical': 'adjustHeight',
+      'mousedown .dashboard-item-header': 'adjustHeight',
       'click .open-vehicle': 'open',
       'mouseenter tr[data-title]': 'preview',
       'mouseleave tr[data-title]': 'unpreview',
@@ -19,6 +19,7 @@ define(['views/dashItem'], function (DashItemView) {
         loading: false,
         singleVehicle: this.model.get('singleVehicle'),
         shrinkable: this.options.shrinkable,
+        shrunk: this.options.weight === 0,
         rows: this.model.get('events'),
       });
       if (this.el.length) {

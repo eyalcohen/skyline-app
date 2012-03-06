@@ -655,10 +655,12 @@ span.landing-copy {
 }
 
 .resize-vertical {
-  width: 100%;
-  height: 5px;
+  color: white;
   position: absolute;
-  cursor: ns-resize;
+  left: 50%;
+  font-weight: bold;
+  font-size: 12px;
+  margin-top: -2px;
 }
 
 .resize-horizontal {
@@ -803,6 +805,8 @@ input.dashboard-search:focus {
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
+
+  height: 17px;
 }
 
 .sub-header {
