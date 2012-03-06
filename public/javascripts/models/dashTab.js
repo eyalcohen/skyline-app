@@ -23,6 +23,7 @@ define(function (fn) {
         parent: '.dashboard-left',
         events: [],
         singleVehicle: false,
+        height: 'full',
       }).bind('change:events', function () {
         this.view.render();
       });
@@ -42,6 +43,7 @@ define(function (fn) {
       this.vehicleCollection = new App.collections.VehicleCollection({
         title: 'Vehicles',
         parent: '.dashboard-right',
+        height: 'full',
       });
       this.vehicleCollection.fetch();
 

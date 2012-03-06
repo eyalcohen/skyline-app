@@ -6,6 +6,7 @@ define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
+      'mousedown .resize-vertical': 'adjustHeight',
       'click .open-vehicle': 'open',
       'mouseenter tr[data-title]': 'preview',
       'mouseleave tr[data-title]': 'unpreview',

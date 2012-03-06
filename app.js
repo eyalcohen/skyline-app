@@ -1240,24 +1240,22 @@ if (!module.parent) {
             }
           })
           .server.socket.set('authorization', function (data, cb) {
+            if (!data || !data.headers || !data.headers.cookie) {
+              log('\n\n' + inspect(data) + '\n');
+              return cb(new Error('Headers are not valid.'));
+            } else log('\n\n' + data.headers.cookie + '\n');
             var cookies = connect.utils.parseCookie(data.headers.cookie);
             var sid = cookies['connect.sid'];
             app.settings.sessionStore.load(sid, function (err, sess) {
-              if (err) {
-                log("Error: Failed finding session", '(' + sid + ')');
-                return cb(err);
-              }
-              if (!sess) {
-                // log("Error: Invalid session", '(sid:' + sid + ')');
-                return cb(new Error('Could not find session.'));
-              }
-              log("Session opened", '(sid:' + sid + ')');
+              if (err) return cb(err);
+              if (!sess) return cb(new Error('Could not find session.'));
+              log('Session opened', '(sid:' + sid + ')');
               data.session = sess;
               cb(null, true);
             });
             // TODO: Keep the session alive on with a timeout.
           });
-      log("Express server listening on port", app.address().port);
+      log('Express server listening on port', app.address().port);
     }
   );
 }

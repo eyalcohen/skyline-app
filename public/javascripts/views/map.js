@@ -15,7 +15,7 @@ define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'mousedown .resize-vertical': 'resizeVertical',
+      'mousedown .resize-vertical': 'adjustHeight',
     },
 
     render: function (opts) {
@@ -320,8 +320,8 @@ define(['views/dashItem'], function (DashItemView) {
       return this;
     },
 
-    resize: function () {
-      this._super('resize');
+    resize: function (delta) {
+      this._super('resize', delta);
       if (this.map) {
         google.maps.event.trigger(this.map, 'resize');
         if (this.mapBounds) {
@@ -329,30 +329,6 @@ define(['views/dashItem'], function (DashItemView) {
           // this.map.setCenter(this.mapBounds.getCenter());
         }
       }
-    },
-
-    resizeVertical: function (e) {
-      // var self = this;
-      // var doc = $(document);
-      // var y = e.pageY;
-      // var oh = $(window).height() - 76 - 57 + 20;
-      // 
-      // function move(e) {
-      //   var delta = y - e.pageY;
-      //   y = e.pageY;
-      //   // App.publish('VerticalResize-' + self.options.tabId,
-      //   //             [self, delta]);        
-      //   // self.options.height = (parseInt(self.options.height) + delta) + 'px';
-      //   self.options.height = 100 * (self.options.bottomPad + self.el.height() + delta) / oh;
-      //   console.log(self.options.height);
-      //   self.resize();
-      // }
-      // 
-      // doc.bind('mousemove', move)
-      //             .bind('mouseup', function (e) {
-      //   doc.unbind('mousemove', move)
-      //              .unbind('mouseup', arguments.callee);
-      // });
     },
 
   });

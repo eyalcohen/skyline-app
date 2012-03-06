@@ -77,8 +77,8 @@ define(['views/dashItem', 'plot_booter',
       this.draw();
     },
 
-    resize: function (skipDraw) {
-      this._super('resize');
+    resize: function (delta, skipDraw) {
+      this._super('resize', delta);
       if (this.plot) {
         var width = this.content.width();
         var height = this.content.height();
@@ -295,7 +295,7 @@ define(['views/dashItem', 'plot_booter',
         do {
           markings.push({
             xaxis: { from: i, to: i + 2*24*60*60*1000 },
-            color: '#fcfcfc',
+            color: 'rgba(252, 252, 252, 0.5)',
           });
           i += 7 * 24 * 60 * 60 * 1000;
         } while (i < axes.xaxis.max);
@@ -318,7 +318,7 @@ define(['views/dashItem', 'plot_booter',
         App.engine('empty_graph.jade').appendTo(self.content);
       } else if (channels.length > 0 && emptyDiv.length > 0) {
         emptyDiv.remove();
-        self.resize(true);
+        self.resize(null, true);
       }
 
       if (channels.length === 0) {

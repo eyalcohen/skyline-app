@@ -841,7 +841,7 @@ a.dashboard-link:active {
 .dashboard-item-content {
   position: relative;
   z-index: 1;
-  min-height: 34px;
+/*  min-height: 34px;*/
 }
 
 .dashboard-item-content:focus {

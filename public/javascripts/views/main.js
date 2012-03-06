@@ -2,17 +2,22 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['jquery'], function($) {
+define(['jquery'], function ($) {
   return Backbone.View.extend({
 
-    initialize: function(args) {
+    initialize: function (args) {
       _.bindAll(this, 'resize', 'destroy', 'startHistory', 'loadVehicle');
       this.startHistory = _.after(2, _.once(this.startHistory));
       App.subscribe('AppReady', this.startHistory);
       App.subscribe('NotAuthenticated', this.destroy);
       App.subscribe('VehicleRequested', this.loadVehicle);
-      $(window).resize(_.debounce(function(e) {
-        App.publish('WindowResize');
+
+      var self = this;
+      self.windowHeight = $(window).height();
+      $(window).resize(_.debounce(function (e) {
+        var wh = $(window).height();
+        App.publish('WindowResize', [wh - self.windowHeight]);
+        self.windowHeight = wh;
       }, 100));
       return this;
     },
@@ -21,7 +26,7 @@ define(['jquery'], function($) {
       'resize window': 'resize',
     },
 
-    render: function() {
+    render: function () {
       App.dashTabModel = new App.models.DashTabModel({
         targetClass: 'dashboard',
       });
@@ -29,12 +34,12 @@ define(['jquery'], function($) {
       $('.tabs, .folder').show();
     },
 
-    resize: function(e) {
+    resize: function (e) {
       App.publish('WindowResize');
       return this;
     },
 
-    destroy: function() {
+    destroy: function () {
       App.unsubscribe('AppReady', this.startHistory);
       App.unsubscribe('NotAuthenticated', this.destroy);
       App.unsubscribe('VehicleRequested', this.load);
@@ -42,13 +47,13 @@ define(['jquery'], function($) {
       return this;
     },
 
-    startHistory: function() {
+    startHistory: function () {
       Backbone.history.start({
           pushState: true,
       });
     },
 
-    loadVehicle: function(vehicleId, tabId, vehicleTitle, visibleTime, hide, cb) {
+    loadVehicle: function (vehicleId, tabId, vehicleTitle, visibleTime, hide, cb) {
       var targetClass = 'target-' + tabId;
       var active = hide ? false : true;
       new App.models.VehicleTabModel({

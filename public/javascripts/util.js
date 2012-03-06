@@ -4,11 +4,12 @@
 
 define({
 
-  makeId: function () {
+  makeId: function (len) {
+    if (!len) len = 5;
     var text = '';
     var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'+
         'abcdefghijklmnopqrstuvwxyz0123456789';
-    for( var i=0; i < 5; i++ )
+    for( var i=0; i < len; i++ )
       text += possible.charAt(Math.floor(
             Math.random() * possible.length));
     return text;

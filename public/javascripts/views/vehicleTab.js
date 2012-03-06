@@ -21,21 +21,34 @@ define(['views/folderItem'], function (FolderItemView) {
       return this;
     },
 
-    arrangeGraphs: function () {
+    arrangeGraphs: function (total, delta, resize) {
+      if (total === 0) return;
+      if (delta === 0) return;
       var graphModels = this.model.graphModels;
       var num = graphModels.length;
-      var graphHeight = Math.floor(70 / num);
-      var heightRem = 70 % num;
-      var graphPad = Math.floor(63 / num);
-      var padRem = 63 % num;
-      _.each(graphModels, function (g, i) {
-        g.view.options.height = graphHeight;
-        g.view.options.bottomPad = graphPad;
-        if (i === 0) {
-          g.view.options.height += heightRem;
-          g.view.options.bottomPad += padRem;
-        }
-      });
+      if (delta) {
+        var graphHeightSub = Math.floor(delta / num);
+        var heightRemSub = delta - (num * graphHeightSub);
+        _.each(graphModels, function (g, i) {
+          g.view.options.height -= graphHeightSub;
+          if (i === 0)
+            g.view.options.height -= heightRemSub;
+          if (resize)
+            g.view.resize();
+        });
+      } else {
+        total -= 1;
+        total -= 20;
+        var graphHeight = Math.floor(total / num);
+        var heightRem = total - (num * graphHeight);
+        _.each(graphModels, function (g, i) {
+          g.view.options.height = graphHeight;
+          if (i === 0)
+            g.view.options.height += heightRem + 20;
+          if (resize)
+            g.view.resize();
+        });
+      }
     },
 
   });
