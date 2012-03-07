@@ -117,21 +117,18 @@ define(['jquery',
           this.content.height(this.options.height - hh);
 
           // Last check to get it right!
-          if (this.options.type === 'map'
-              || this.options.id === 'MASTER') {
+          if (this.options.id === 'MASTER') {
             var _this = this;
             _.delay(function () {
               var p = _this.el.parent().parent();
               var k = p.children();
               var ch = 0;
-              _.each(k, function (c) {
-                ch += $(c).height();
-              });
+              _.each(k, function (c) { ch += $(c).height(); });
               var er = Math.floor($(window).height() - _this.offset.top - ch);
               oh += er;
               _this.options.height = Math.round(oh);
               _this.content.height(_this.options.height - hh);
-            }, 1000);
+            }, 100);
           }
         } else {
           this.options.height = Math.round(oh);
