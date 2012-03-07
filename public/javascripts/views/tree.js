@@ -341,6 +341,7 @@ define(['views/dashItem',
     },
 
     nodeDroppedExternalHandler: function (data) {
+      if (!this.el.is(':visible')) return;
       if (data.r.hasClass('axisTarget')) {
         var targetGraphId = data.r.data('id');
         if (!targetGraphId) return;
@@ -360,6 +361,7 @@ define(['views/dashItem',
     },
 
     nodeDraggedExternalHandler: function (data, cb) {
+      if (!this.el.is(':visible')) return;
       App.publish('DragStart-' + this.model.get('tabId'));
       if (data.r.hasClass('axisTarget')) {
         data.r.data('dragover').call(data.r);
