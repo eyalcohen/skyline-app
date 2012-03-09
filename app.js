@@ -207,7 +207,6 @@ passport.use(new LocalStrategy(
   function (email, password, done) {
     userDb.collections.users.findOne({ primaryEmail: email },
                                     function (err, user) {
-      console.log(err, user);
       if (err) return done(err);
       if (!user) return done(null, false);
       if ('local' !== user.provider)
