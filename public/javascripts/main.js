@@ -90,11 +90,17 @@ requirejs(['libs/domReady',
                   type: 'error',
                 }]);
               } else if ('Session has no User.') {
-                App.publish('NotAuthenticated', [{
+                var opts = {
                   first: !reconnect,
-                  report: 'Skyline manages Users with Google Account information.',
+                  report: '',
                   type: 'message',
-                }]);
+                };
+                if(App.util.HashSearch.keyExists('oops')) {
+                  opts.report = 'Incorrect email or password.';
+                  opts.type = 'error';
+                  App.router.navigate('', { replace: true });
+                }
+                App.publish('NotAuthenticated', [opts]);
               } else console.warn(err);
               App.loading.stop();
             } else {

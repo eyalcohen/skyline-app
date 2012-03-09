@@ -1,15 +1,5 @@
 # # this is my ignore file with a nice comment at the top
-# 
-# /vendor/*     # ignore all external submodules
-# /public/*     # static files
-# ./README.md   # a specific file
-# *.css         # ignore any CSS files too
-# *.csv         # ignore csv files
-# *.bin
-# 
-# *.proto
-# *.cc
-# *.h
+.DS_Store
 .git
 cycles
 uploads
@@ -18,4 +8,4 @@ samples
 example-data
 debug
 log
-.DS_Store
+

@@ -368,10 +368,38 @@ div.login {
   box-orient: vertical;
 
   position: relative;
+  width: 350px;
+}
+
+form.signin-form {
+  margin: 0;
+}
+
+form.signin-form input:not([type=submit]) {
+  width: 342px;
+}
+
+div.or-bar {
+  position: relative;
+  height: 0;
+  border-bottom: 1px solid #ccc;
+  width: 100%;
+  border-top: 1px solid #ccc;
+  margin: 30px 0;
+}
+
+div.or-txt {
+  position: absolute;
+  top: -8px;
+  left: 42%;
+  background: white;
+  padding: 0 15px;
+  font-style: italic;
+  color: gray;
 }
 
 h2.message, h2.error {
-  width: 268px;
+  width: 328px;
   margin: 0 0 15px;
   color: #404040;
   padding: 10px;
@@ -394,7 +422,7 @@ h2.error {
   white-space: nowrap;
 }
 
-div.login-form {
+/*div.login-form {
   padding: 10px 20px 15px;
   width: 248px;
   background: white;
@@ -416,12 +444,12 @@ div.login-form form {
 div.login-form td {
   padding: 0;
   border-top: none;
-}
+}*/
 
 label {
   font-size: 11px;
   padding: 0 0 2px 0;
-  color: gray;
+  color: #666;
 }
 
 label.export-label {
@@ -435,13 +463,30 @@ input[type=text],
 input[type=password] {
   background: #FBFBFB;
   font-size: 14px;
-  margin: 2px 6px 12px 0;
+  margin: 2px 0 12px 0;
   padding: 3px;
   width: 97%;
   height: auto;
   color: #404040;
   border: 1px solid #CCC;
   font-weight: bold;
+
+  -moz-transition-timing-function: ease-out;
+  -moz-transition-duration: 100ms;
+  -webkit-transition-timing-function: ease-out;
+  -webkit-transition-duration: 100ms;
+  transition-timing-function: ease-out;
+  transition-duration: 100ms;
+}
+
+input[type=text]:focus,
+input[type=password]:focus {
+  background: #F8F8F8 !important;
+
+  -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.35);
 }
 
 .placeholder {
@@ -525,10 +570,14 @@ input[type=submit]:focus {
 
 a.google-button {
   font-size: 14px;
-  font-weight: normal;
-  padding: 8px 0;
+  font-weight: bold;
+  padding: 4px 0;
   margin: 0 auto;
   display: block;
+
+  -webkit-text-shadow: 0px 1px white;
+  -moz-text-shadow: 0px 1px white;
+  text-shadow: 0px 1px white;
 }
 
 div[role=button].disabled {
@@ -576,11 +625,11 @@ input::-moz-focus-inner, textarea::-moz-focus-inner {
   border: none;
 }
 
-input.cs-input-alert {
+input.input-alert {
   border: 1px solid rgba(255,0,0,0.4) !important;
 }
 
-input.cs-button-alert[type=submit] {
+input.button-alert[type=submit] {
   color: red !important;
 }
 

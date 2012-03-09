@@ -4,11 +4,10 @@ D=`dirname $0`
 
 host=${1:-localhost:8080}
 
-read -p 'Email? ' -e email
-read -p 'Password? ' -s password ; echo
-read -p 'Make? ' -e make
-read -p 'Model? ' -e model
-read -p 'Year? ' -e year
+read -p 'New Vehicle Title, e.g., "2011 Chevy Volt"? ' -e title
+read -p 'New Vehicle Description, e.g., "My city commuter"? ' -e description
+read -p 'New Vehicle Nickname, e.g., "myvolt"? ' -e nickname
 
 enc() { $D/url_encode.js "$@" ; }
-curl --data-urlencode "password=$password" "http://$host/vehiclecreate/"`enc "$email"`/`enc "$make"`/`enc "$model"`/`enc "$year"` ; echo
+
+curl "http://$host/create/vehicle/"`enc "$title"`/`enc "$description"`/`enc "$nickname"` ; echo

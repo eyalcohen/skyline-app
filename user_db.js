@@ -10,6 +10,7 @@
  * when looking for these documents by _id.
  */
 
+var crypto = require('crypto');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var util = require('util');
@@ -66,9 +67,17 @@ var UserDb = exports.UserDb = function (db, options, cb) {
  * Finds a user by its primaryEmail. If it does not exist
  * create one using the given props.
  */
-UserDb.prototype.findOrCreateUserFromOpenId = function (props, cb) {
+UserDb.prototype.findOrCreateUserFromPrimaryEmail =
+    function (props, cb) {
   var users = this.collections.users;
-  props.primaryEmail = props.emails[0].value;
+  if (!props.primaryEmail)
+    if (props.emails)
+      props.primaryEmail = props.emails[0].value;
+    else return cb(new Error('User profile missing email address'));
+  if (props.password) {
+    props.salt = makeSalt();
+    props.password = encryptPassword(props.password, props.salt);
+  }
   users.findOne({ primaryEmail: props.primaryEmail },
                 function (err, user) {
     if (err) return cb(err);
@@ -412,6 +421,15 @@ UserDb.haveAccess = function (vehicleId, vehicles, accessKeys) {
 
 
 /*
+ * Determine whether or not the given string is
+ * the user's actual password.
+ */
+UserDb.authenticateLocalUser = function (user, str) {
+  return encryptPassword(str, user.salt) === user.password;
+}
+
+
+/*
  * Inserts a document into a collecting
  * adding `_id` and `created` keys if they
  * don't exist in the given props.
@@ -433,6 +451,24 @@ function createDoc(collection, props, cb) {
       insert();
     });
   } else insert();  
+}
+
+
+/*
+ * Make some random salt for a password.
+ */
+function makeSalt() {
+  return Math.round((new Date().valueOf() * Math.random())) + '';
+}
+
+
+/*
+ * Make some random salt for a password.
+ */
+function encryptPassword(password, salt) {
+  return crypto.createHmac('sha1', salt)
+               .update(password)
+               .digest('hex');
 }
 
 

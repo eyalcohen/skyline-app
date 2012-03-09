@@ -12,15 +12,15 @@ define(['jquery'], function ($) {
     },
 
     setup: function () {
-      this.email = $('input[name="user[email]"]', this.el);
-      this.password = $('input[name="user[password]"]', this.el);
+      this.email = $('input[name="username"]', this.el);
+      this.password = $('input[name="password"]', this.el);
       return this;
     },
 
     events: {
-      // 'click #login': 'signin',
-      'keyup input[name="user[email]"]': 'checkInput',
-      'keyup input[name="user[password]"]': 'checkInput',
+      'click #signin': 'signin',
+      'keyup input[name="username"]': 'checkInput',
+      'keyup input[name="password"]': 'checkInput',
     },
 
     render: function (opts) {
@@ -31,7 +31,8 @@ define(['jquery'], function ($) {
         password: '',
         report: '',
         type: 'error',
-        missing: []
+        missing: {},
+        have: {}
       });
       var nofade;
       if (this.el.length) {
@@ -40,14 +41,13 @@ define(['jquery'], function ($) {
       }
       this.el = App.engine('login.jade', opts)
                    .appendTo(App.regions.main);
-      if (!nofade) {
+      if (!nofade)
         this.el.hide().fadeIn('fast');
-      }
       this.setup();
       this.delegateEvents();
-      this.email.val().trim() === '' ?
-        this.email.focus() :
-        this.password.focus();
+      if('' === this.email.val().trim())
+        this.email.focus();
+      else this.password.focus();
       return this;
     },
 
@@ -56,47 +56,33 @@ define(['jquery'], function ($) {
       this.el = false;
     },
 
-    // Currently this is not being used 
-    // cause are not offering username 
-    // and password logins... just google
-
-    // signin: function (e) {
-    //   e.preventDefault();
-    //   App.api.signin(this.email.val(),
-    //       this.password.val(),
-    //       _.bind(function (err, user) {
-    //     if (err !== null) {
-    //       switch (err.code) {
-    //         case 'MISSING_FIELD':
-    //           App.publish('NotAuthenticated', [{
-    //             email: err.email,
-    //             password: err.password,
-    //             report: err.message,
-    //             missing: err.missing
-    //           }]);
-    //           break;
-    //         case 'BAD_AUTH':
-    //           App.publish('NotAuthenticated', [{
-    //             email: err.email,
-    //             report: err.message
-    //           }]);
-    //           break;
-    //       }
-    //       return false;
-    //     }
-    //     App.user = user;
-    //     this.el.fadeOut('fast', _.bind(function () {
-    //       App.publish('UserWasAuthenticated');
-    //     }, this));
-    //   }, this));
-    //   return this;
-    // },
+    signin: function (e) {
+      var missing = {};
+      var have = {};
+      var email = this.email.val().trim();
+      var password = this.password.val().trim();
+      if ('' === email)
+        missing.email = true
+      else have.email = email;
+      if ('' === password)
+        missing.password = true;
+      else have.password = password;
+      if (!_.isEmpty(missing)) {
+        e.preventDefault();
+        App.publish('NotAuthenticated', [{
+          report: 'Both fields are required.',
+          type: 'error',
+          missing: missing,
+          have: have,
+        }]);
+        return false;
+      } else return true;
+    },
 
     checkInput: function (e) {
       var el = $(e.target);
-      if (el.val().trim() !== '') {
-        el.removeClass('cs-input-alert');
-      }
+      if (el.val().trim() !== '')
+        el.removeClass('input-alert');
       return this;
     },
 

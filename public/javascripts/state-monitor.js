@@ -229,7 +229,6 @@ define(function () {
   function update(state, save) {
     var frag = encode(state);
     frag = frag !== '' ? '/?' + frag : '/';
-    // console.log('updateURI(', save ? 'push' : 'replace', ')...');
     App.router.navigate(frag, { replace: !save });
   }
 

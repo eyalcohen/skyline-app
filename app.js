@@ -72,6 +72,7 @@ var jadeify = require('jadeify');
 
 var passport = require('passport');
 var GoogleStrategy = require('passport-google').Strategy;
+var LocalStrategy = require('passport-local').Strategy;
 
 
 /////////////// Helpers
@@ -202,13 +203,36 @@ passport.deserializeUser(function (id, cb) {
   });
 });
 
+passport.use(new LocalStrategy(
+  function (email, password, done) {
+    userDb.collections.users.findOne({ primaryEmail: email },
+                                    function (err, user) {
+      console.log(err, user);
+      if (err) return done(err);
+      if (!user) return done(null, false);
+      if ('local' !== user.provider)
+        return done(null, false);
+      if (!UserDb.authenticateLocalUser(user, password))
+        return done(null, false);
+      return done(null, user);
+    });
+  }
+));
 
 ////////////// Web Routes
 
 // Home
-
 app.get('/', function (req, res) {
   res.render('index');
+});
+
+// Basic password authentication
+app.post('/login', function (req, res, next) {
+  var referer = req.headers.referer;
+  passport.authenticate('local', {
+    successRedirect: referer,
+    failureRedirect: referer + '#oops'
+  })(req, res, next);
 });
 
 // Redirect the user to Google for authentication.
@@ -227,8 +251,8 @@ app.get('/auth/google', function (req, res, next) {
       realm: home,
     },
     function (identifier, profile, done) {
-      profile.openId = identifier;
-      userDb.findOrCreateUserFromOpenId(profile, function (err, user) {
+      profile.provider = 'google';
+      userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
         done(err, user);
       });
     }
@@ -241,8 +265,10 @@ app.get('/auth/google', function (req, res, next) {
 // verifying the assertion. If valid, the user will be
 // logged in. Otherwise, authentication has failed.
 app.get('/auth/google/return', function (req, res, next) {
-  passport.authenticate('google', { successRedirect: req.session.referer || '/',
-                                    failureRedirect: req.session.referer || '/' })(req, res, next);
+  passport.authenticate('google', {
+    successRedirect: req.session.referer || '/',
+    failureRedirect: req.session.referer || '/'
+  })(req, res, next);
 });
 
 // We logout via an ajax request.
@@ -278,7 +304,6 @@ app.get('/s/:key', function (req, res) {
 ////////////// API
 
 // Export as CSV for webapp.
-
 app.get('/export/:vintid/data.csv', function (req, res, next) {
   // TODO: access control.
   // TODO: verify vehicle.
@@ -455,6 +480,22 @@ app.get('/export/:vintid/data.csv', function (req, res, next) {
     next
   );
 });
+
+
+// Create a user
+app.post('/create/user/:email', function (req, res) {
+  var props = {
+    primaryEmail: req.params.email,
+    displayName: req.body.fullName,
+    password: req.body.password,
+    provider: 'local',
+  };
+  userDb.findOrCreateUserFromPrimaryEmail(props, function (err, user) {
+    if (err) return res.send({ status: 'error', message: err }, 400);
+    res.send({ status: 'success', data: user });
+  });
+});
+
 
 // Create a vehicle
 // ** In practice, this route is only ever
@@ -903,7 +944,6 @@ var createDnodeConnection = function (remote, conn) {
         if (err) return cb(err.toString());
         if (!user)
           return cb('User and Session do NOT match!');
-        delete user.openId;
         delete user.pin;
         userDb.getUserVehicleData(user, function (err, data) {
           if (err) return cb(err.toString());
