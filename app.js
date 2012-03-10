@@ -8,6 +8,12 @@ var argv = optimist
     .describe('help', 'Get help')
     .describe('port', 'Port to listen on')
       .default('port', 8080)
+    .describe('scalarPort', 'Port scalar is listening on')
+      .default('scalarPort', 8080)
+    .describe('scalar', 'Boolean - is scalar routing to port')
+      .boolean('scalar')
+    .describe('tls', 'Boolean - is scalar using TLS')
+      .boolean('tls')
     .describe('db', 'MongoDb URL to connect to')
       .default('db', 'mongo:///service-samples')
     .argv;
@@ -20,7 +26,6 @@ if (argv._.length || argv.help) {
 /**
  * Module dependencies.
  */
-
 var log = require('./log.js').log;
 var logTimestamp = require('./log.js').logTimestamp;
 var express = require('express');
@@ -112,14 +117,27 @@ function requestMimeType(req) {
 /////////////// Configuration
 
 var app = module.exports = express.createServer();
+// var privateKey = fs.readFileSync('./keys/privatekey.pem').toString();
+// var intermediate = fs.readFileSync('./keys/intermediate.pem').toString();
+// var certificate = fs.readFileSync('./keys/certificate.pem').toString();
+// var app = module.exports = express.createServer({
+//   key: privateKey,
+//   cert: certificate,
+//   ca: intermediate,
+// });
 
 app.configure('development', function () {
+  var protocol = argv.scalar && argv.tls ? 'https' : 'http';
+  var port = argv.scalar ? argv.scalarPort : argv.port;
+  app.set('hostname', protocol + '://localhost:' + port);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
 
 
 app.configure('production', function () {
+  var protocol = argv.scalar && argv.tls ? 'https' : 'http';
+  app.set('hostname', protocol + '://skyline.ridemission.com');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = true;
 });
@@ -166,7 +184,7 @@ app.configure(function () {
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one week
     secret: 'hum7a5t1c',
-    store: app.set('sessionStore'),
+    store: app.settings.sessionStore,
   }));
   app.use(passport.initialize());
   app.use(passport.session());
@@ -217,6 +235,19 @@ passport.use(new LocalStrategy(
     });
   }
 ));
+console.log(app.settings.hostname, '****************************');
+passport.use(new GoogleStrategy({
+    returnURL: app.settings.hostname + '/auth/google/return',
+    realm: app.settings.hostname,
+  },
+  function (identifier, profile, done) {
+    profile.provider = 'google';
+    userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
+      done(err, user);
+    });
+  }
+));
+
 
 ////////////// Web Routes
 
@@ -237,25 +268,10 @@ app.post('/login', function (req, res, next) {
 // Redirect the user to Google for authentication.
 // When complete, Google will redirect the user
 // back to the application at /auth/google/return.
-// ** The passport strategy initialization must
-// happen here becuase host needs to be snarfed from req.
 app.get('/auth/google', function (req, res, next) {
   // Add referer to session so we can use it on return.
   // This way we can preserve query params in links.
   req.session.referer = req.headers.referer;
-  var host = req.headers.host.split(':')[0];
-  var home = 'http://' + host + ':' + argv.port + '/';
-  passport.use(new GoogleStrategy({
-      returnURL: home + 'auth/google/return',
-      realm: home,
-    },
-    function (identifier, profile, done) {
-      profile.provider = 'google';
-      userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
-        done(err, user);
-      });
-    }
-  ));
   passport.authenticate('google')(req, res, next);
 });
 

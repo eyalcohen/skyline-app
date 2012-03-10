@@ -3,7 +3,7 @@
  */
 
 var mapsLoadNotifier = _.clone(Backbone.Events);
-requirejs(['async!http://maps.google.com/maps/api/js?' +
+requirejs(['async!https://maps.google.com/maps/api/js?' +
               'libraries=geometry&sensor=false!callback'],
           function() {
   var notifier = mapsLoadNotifier;

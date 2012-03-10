@@ -21,6 +21,8 @@ var argv = optimist
       .default('static', '9000 9001')
     .describe('api', 'List of host:port to redirect API requests to')
       .default('api', '9010 9011')
+    .describe('tls', 'Boolean - Use TLS')
+      .boolean('tls')
     .argv;
 
 if (argv._.length || argv.help) {
@@ -31,6 +33,7 @@ if (argv._.length || argv.help) {
 var bouncy = require('bouncy');
 var fs = require('fs');
 var http = require('http');
+var https = require('https');
 var color = require('cli-color');
 var util = require('util'), inspect = util.inspect;
 var log = require('./log.js').log;
@@ -60,14 +63,21 @@ var staticI = 0;
 var apiSessions = {};  // Mapping from sessionid to port.  TODO: expire sessions?
 
 log('Waiting to bounce requests to ' + argv.port);
-var bouncyServer = bouncy({
+var opts = {
   callback: handleRequest,
   onConnectionError: function(e, connection) {
     log(color.red('CONNECTION ERROR') + ' from ' +
         connection.remoteAddress + ':' + connection.remotePort + ': ' +
         (e.stack || e));
   },
-});
+};
+
+if (argv.tls) {
+  opts.key = fs.readFileSync(__dirname + '/keys/privatekey.pem');
+  opts.cert = fs.readFileSync(__dirname + '/keys/certificate.pem');
+  opts.ca = fs.readFileSync(__dirname + '/keys/intermediate.pem');
+}
+var bouncyServer = bouncy(opts);
 bouncyServer.listen(argv.port);
 bouncyServer.on('error', function(e) {
   log(color.red('SERVER ERROR') + ': ' + (e.stack || e));
