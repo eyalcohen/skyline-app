@@ -235,18 +235,18 @@ passport.use(new LocalStrategy(
     });
   }
 ));
-console.log(app.settings.hostname, '****************************');
-passport.use(new GoogleStrategy({
-    returnURL: app.settings.hostname + '/auth/google/return',
-    realm: app.settings.hostname,
-  },
-  function (identifier, profile, done) {
-    profile.provider = 'google';
-    userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
-      done(err, user);
-    });
-  }
-));
+
+// passport.use(new GoogleStrategy({
+//     returnURL: app.settings.hostname + '/auth/google/return',
+//     realm: app.settings.hostname,
+//   },
+//   function (identifier, profile, done) {
+//     profile.provider = 'google';
+//     userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
+//       done(err, user);
+//     });
+//   }
+// ));
 
 
 ////////////// Web Routes
@@ -265,15 +265,42 @@ app.post('/login', function (req, res, next) {
   })(req, res, next);
 });
 
+
 // Redirect the user to Google for authentication.
 // When complete, Google will redirect the user
 // back to the application at /auth/google/return.
+// ** The passport strategy initialization must
+// happen here becuase host needs to be snarfed from req.
 app.get('/auth/google', function (req, res, next) {
   // Add referer to session so we can use it on return.
   // This way we can preserve query params in links.
   req.session.referer = req.headers.referer;
+  var host = req.headers.host.split(':')[0];
+  var home = 'http://' + host + ':' + argv.port + '/';
+  passport.use(new GoogleStrategy({
+      returnURL: home + 'auth/google/return',
+      realm: home,
+    },
+    function (identifier, profile, done) {
+      profile.provider = 'google';
+      userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
+        done(err, user);
+      });
+    }
+  ));
   passport.authenticate('google')(req, res, next);
 });
+
+
+// // Redirect the user to Google for authentication.
+// // When complete, Google will redirect the user
+// // back to the application at /auth/google/return.
+// app.get('/auth/google', function (req, res, next) {
+//   // Add referer to session so we can use it on return.
+//   // This way we can preserve query params in links.
+//   req.session.referer = req.headers.referer;
+//   passport.authenticate('google')(req, res, next);
+// });
 
 // Google will redirect the user to this URL
 // after authentication. Finish the process by
