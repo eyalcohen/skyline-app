@@ -19,6 +19,8 @@ var argv = optimist
       .default('port', 8080)
     .describe('httpsPort', 'Port to listen for https connections on')
       .default('httpsPort', 8443)
+    .describe('redirectNoPort', 'Don\'t include port for http->https redirects')
+      .boolean('redirectNoPort')
     .describe('static', 'List of host:port to redirect static requests to')
       .default('static', '9000 9001')
     .describe('api', 'List of host:port to redirect API requests to')
@@ -30,13 +32,15 @@ if (argv._.length || argv.help) {
   process.exit(1);
 }
 
+var _ = require('underscore');
 var bouncy = require('bouncy');
+var color = require('cli-color');
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-var color = require('cli-color');
-var util = require('util'), inspect = util.inspect;
 var log = require('./log.js').log;
+var url = require('url');
+var util = require('util'), inspect = util.inspect;
 
 var staticRE =
     RegExp(fs.readdirSync(__dirname + '/public').map(function(fname) {
@@ -45,6 +49,7 @@ var staticRE =
     }).join('|'));
 var socketIORE = /^\/socket.io\//,
     socketIOExistingRE = /^\/socket.io\/[0-9]+\/[^/]+\/([0-9]+)(?:\?.*)?$/;
+var redirectRE = /^\/(?:\?.*)?$/;  // Redirect http -> https.
 
 function parseFrontends(arg) {
   return String(arg).split(' ').map(function(hp) {
@@ -121,7 +126,19 @@ function makeBouncyServer(port, tls) {
       req.destroy();
     });
 
-    if (staticRE.test(req.url)) {
+    if (!tls && argv.httpsPort && redirectRE.test(req.url)) {
+      var res = bounce.respond();
+      var host = req.headers.host.match(/^(.*?)(:[0-9]+)?$/)[1];
+      var newUrl = url.format({
+        protocol: 'https:',
+        hostname: host,
+        port: argv.redirectNoPort ? null : argv.httpsPort,
+        pathname: req.url,
+      });
+      logRedirect('https redirect', req, newUrl);
+      res.writeHead(301, 'Please use https', { Location: newUrl });
+      res.end();
+    } else if (staticRE.test(req.url)) {
       // Find a healthy destination to talk to.
       var frontend = null;
       for (var i = 0, len = staticFrontends.length; i < len; ++i) {
@@ -166,6 +183,17 @@ function makeBouncyServer(port, tls) {
       safeBounce(frontend);
     }
   }
+
+  function logRedirect(method, req, frontend) {
+    var dest =
+        _.isObject(frontend) ? (frontend.host || '') + ':' + frontend.port :
+        frontend ? frontend :
+        'unknown!';
+    log((tls ? color.blue('https') : color.magenta('http')) + ' ' +
+        color.red(method) + ' ' +
+        color.yellow(req.client.remoteAddress + ' ' + req.url) + ' ' +
+        dest);
+  }
 }
 
 if (argv.port)
@@ -186,14 +214,6 @@ function bestApiFrontend() {
   if (bestFrontend)
     bestFrontend.penalty += 0.05;
   return bestFrontend;
-}
-
-function logRedirect(method, req, frontend) {
-  var dest = 'unknown!';
-  if (frontend) dest = (frontend.host || '') + ':' + frontend.port;
-  log(color.red(method) + ' ' +
-      color.yellow(req.client.remoteAddress + ' ' + req.url) + ' ' +
-      dest);
 }
 
 function setLoadAvg(frontend, loadAvg, message) {
