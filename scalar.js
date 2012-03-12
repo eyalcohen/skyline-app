@@ -68,11 +68,12 @@ var staticI = 0;
 var apiSessions = {};  // Mapping from sessionid to port.  TODO: expire sessions?
 
 function makeBouncyServer(port, tls) {
-  log('Waiting to bounce '+ (tls ? 'https' : 'http') +' requests to ' + port);
+  var coloredProtocol = (tls ? color.blue('https') : color.magenta('http'));
+  log(coloredProtocol + ': ' + 'Waiting to bounce requests to ' + port);
   var bouncyServer = bouncy({
     callback: handleRequest,
     onConnectionError: function(e, connection) {
-      log(color.red('CONNECTION ERROR') + ' from ' +
+      log(coloredProtocol + ' ' + color.red('CONNECTION ERROR') + ' from ' +
           connection.remoteAddress + ':' + connection.remotePort + ': ' +
           (e.stack || e));
     },
@@ -82,7 +83,8 @@ function makeBouncyServer(port, tls) {
   });
   bouncyServer.listen(port);
   bouncyServer.on('error', function(e) {
-    log(color.red('SERVER ERROR') + ': ' + (e.stack || e));
+    log(coloredProtocol + ' ' + color.red('SERVER ERROR') + ': ' +
+        (e.stack || e));
   });
 
   function handleRequest(req, bounce) {
@@ -104,9 +106,9 @@ function makeBouncyServer(port, tls) {
         onerror(e);
       }
       function onerror(e) {
-        log(color.red('error ') + 'connecting to ' +
-                color.yellow((frontend.host || '') + ':' + frontend.port) +
-                ': ' + (e.stack || e));
+        log(coloredProtocol + ' ' + color.red('error ') + 'connecting to ' +
+            color.yellow((frontend.host || '') + ':' + frontend.port) +
+            ': ' + (e.stack || e));
         setLoadAvg(frontend, null, e);
         var res = bounce.respond();
         var url = (tls ? 'https://' : 'http://') + req.headers.host + req.url;
@@ -120,9 +122,9 @@ function makeBouncyServer(port, tls) {
     // https://github.com/yorickvP/bouncy/commit/26412d586cbb5023e6256c2384828bde11886f1a
     req.on('error', function(e) {
       var conn = req.connection || {};
-      log(color.red('request error ') + 'from host ' +
-              color.yellow(conn.remoteAddress || 'unknown') +
-              ': ' + (e.stack || e));
+      log(coloredProtocol + ' ' + color.red('request error ') + 'from host ' +
+          color.yellow(conn.remoteAddress || 'unknown') +
+          ': ' + (e.stack || e));
       req.destroy();
     });
 
@@ -164,14 +166,14 @@ function makeBouncyServer(port, tls) {
           if (m) {
             var sid = m[1];
             apiSessions[sid] = frontend;
-            log(color.red('socket.io connected') + ' ' +
+            log(coloredProtocol + ' ' + color.red('socket.io connected') + ' ' +
                 color.yellow(req.client.remoteAddress + ' ' + sid) + ' ' +
                 (frontend.host || '') + ':' + frontend.port);
           }
         });
       } else {
         // This is an established socket.io connection.
-        // Get the session id from the url, and bounce to the appropriate backend.
+        // Get session id from the url, and bounce to the appropriate backend.
         var sid = m[1];
         var frontend = apiSessions[sid];
         logRedirect('socket.io', req, frontend);
@@ -189,7 +191,7 @@ function makeBouncyServer(port, tls) {
         _.isObject(frontend) ? (frontend.host || '') + ':' + frontend.port :
         frontend ? frontend :
         'unknown!';
-    log((tls ? color.blue('https') : color.magenta('http')) + ' ' +
+    log(coloredProtocol + ' ' +
         color.red(method) + ' ' +
         color.yellow(req.client.remoteAddress + ' ' + req.url) + ' ' +
         dest);
