@@ -131,11 +131,7 @@ Step(
     if (err)
       debug('error: ' + err + '\n' + err.stack);
     if (argv.subscribe == null) {
-      // Flush stdout.
-      process.stdout.once('close', function() {
-        process.exit(0);
-      });
-      process.stdout.destroySoon();
+      process.exit(0);
     }
   }
 );

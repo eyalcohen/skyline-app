@@ -7,6 +7,7 @@ var Step = require('step');
 var util = require('util'), debug = util.debug, inspect = util.inspect;
 var log = console.log;
 var _ = require('underscore');
+_.mixin(require('underscore.string'));
 var printSamples = require('./print_samples.js').printSamples;
 var SampleDb = require('../sample_db.js').SampleDb;
 
@@ -19,12 +20,13 @@ var argv = optimist
       // .default('date', 'new Date(%(Time)s + 7*60*60*1000)')
     .describe('maxdur', 'Maximum sample duration.')
       .default('maxdur', 0.25)
+    .describe('addChannel', 'Add fixed-value channel: --addChannel=name=value')
     .argv;
 
 function errStep(op) {
   return function(err) {
     if (err) {
-      debug('Error during ' + op + ':\n' + err.stack);
+      debug('Error during ' + op + ':\n' + (err.stack || err));
       process.exit(1);
     }
     if (_.isFunction(this))
@@ -36,8 +38,8 @@ if (argv.ignore == null)
   argv.ignore = [];
 else if (!_.isArray(argv.ignore))
   argv.ignore = [ argv.ignore ];
-argv.ignore.push(argv.date);
-argv.ignore.push(argv.time);
+
+var firstBeg = Infinity, lastEnd = -Infinity;
 
 Step(
   function readCsv() {
@@ -64,16 +66,25 @@ Step(
                   ' > maxdur ' + argv.maxdur);
           dur = argv.maxdur * 1e6;
         }
-        if (dur <= 0)
-          errStep('Line ' + line + ': time went backward')(new Error);
+        if (dur <= 0) {
+          debug('Line ' + line + ': time went backward');
+          return;
+        }
         var beg = end - dur;
+        firstBeg = Math.min(firstBeg, beg);
+        lastEnd = Math.max(lastEnd, end);
         prevEnd = end;
         _.each(data, function(value, key) {
           if (!_.contains(argv.ignore, key) && value != null && value != '') {
             if (!sampleSet[key]) sampleSet[key] = [];
-            // Strip anything after a colon.
-            value = value.match(/^([^:]*)/)[1];
-            sampleSet[key].push({ beg: beg, end: end, val: Number(value) });
+            value = value.match(/^([^:]*)/)[1]; // Strip anything after a colon.
+            if (value.match(/^(NaN|)$/i))
+              return;  // Ignore blanks and NaNs.
+            var val = Number(value);
+            if (isNaN(val))
+              errStep('Line ' + line + ': could not parse column ' + key +
+                      ': "' + value + '"')(true);
+            sampleSet[key].push({ beg: beg, end: end, val: val });
           }
         });
       })
@@ -84,6 +95,16 @@ Step(
   }, errStep('readCsv'),
 
   function writeSamples(err, columns, sampleSet) {
+    // Add channels.
+    if (!_.isArray(argv.addChannel))
+      argv.addChannel = argv.addChannel ? [ argv.addChannel ] : [];
+    argv.addChannel.forEach(function(chan) {
+      var m = chan.match(/^(.+) *= *([^=]+)$/);
+      errStep("Can't parse --addChannel '" + chan + "'")(!m);
+      var val = eval('(' + m[2] + ')');
+      sampleSet[m[1]] = [ { beg: firstBeg, end: lastEnd, val: val } ];
+    });
+
     // Merge samples.
     debug('Merging samples.');
     _.forEach(sampleSet, SampleDb.mergeOverlappingSamples);
@@ -110,15 +131,18 @@ Step(
       schema.push(v);
     });
 
+    debug('Printing samples.');
     printSamples(sampleSet, this);
   }, errStep('writeSamples'),
 
   function() {
     debug('Done!');
-    // Flush stdout.
-    process.stdout.once('close', function() {
-      process.exit(0);
-    });
-    process.stdout.destroySoon();
+    /*
+    setTimeout(this, 1000);  // Ugh
+  },
+
+  function() {
+  */
+    process.exit(0);
   }
 )
