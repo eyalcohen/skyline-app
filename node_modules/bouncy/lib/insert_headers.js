@@ -9,6 +9,7 @@ module.exports = function (bufs, headers) {
             bytesAdded += b.length;
         }
     }
+    if (insert.length === 0) return 0;
     
     var w = new Buffer(4);
     var ix = [], jx = [];

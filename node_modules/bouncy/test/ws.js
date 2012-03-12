@@ -1,7 +1,7 @@
 var test = require('tap').test;
 var bouncy = require('../');
 var ws = require('websocket-server');
-var wc = require('websocket-client').WebSocket;
+var wc = require('wsclient');
 
 test('ws', function (t) {
     t.plan(4);
@@ -14,12 +14,6 @@ test('ws', function (t) {
             t.equal(msg, msgs.shift());
             c.send(msg.split('').reverse().join(''));
             if (msgs.length === 0) c.close();
-        });
-        
-        c.on('close', function () {
-            s0.close();
-            s1.close();
-            t.end();
         });
     });
     
@@ -35,7 +29,9 @@ test('ws', function (t) {
     function connect () {
         if (++connected !== 2) return;
         
-        var c = new wc('ws://localhost:' + p1 + '/', 'biff');
+        var c = wc.websocket('ws://localhost:' + p1 + '/');
+        c.connect();
+        
         c.on('open', function () {
             c.send('beepity');
             setTimeout(function () {
@@ -44,15 +40,14 @@ test('ws', function (t) {
         });
         
         c.on('close', function () {
+            s0.close();
+            s1.close();
+            t.end();
         });
         
         var msgs = [ 'ytipeeb', 'poob' ];
-        c.on('data', function (buf) {
+        c.on('message', function (buf) {
             t.equal(buf.toString(), msgs.shift());
-        });
-        
-        c.on('end', function () {
-            t.end();
         });
     }
 });
