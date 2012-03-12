@@ -851,7 +851,7 @@ SampleDb.prototype.fetchSamples =
     options = {};
   }
   _.defaults(options, {
-    type: 'merged',  // or 'real' or synthetic
+    type: 'merged',  // or 'real' or 'synthetic'
     beginTime: null, endTime: null,
     minDuration: 0,
     getMinMax: false,

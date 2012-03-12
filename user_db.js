@@ -27,12 +27,14 @@ var UserDb = exports.UserDb = function (db, options, cb) {
   self.collections = {};
 
   var collections = {
-    users: { index: { created: 1, primaryEmail: 1 } },
-    teams: { index: { created: 1 } },
-    vehicles: { index: { created: 1 } },
-    fleets: { index: { created: 1 } },
-    links: { index: { created: 1, key: 1 } },
-    sessions: {},
+    users: { indexes: [
+      { created: 1, primaryEmail: 1 },  // For displaying list?
+      { primaryEmail: 1 },  // For finding user by primaryEmail.
+    ] },
+    teams: { indexes: [ { created: 1 } ] },
+    vehicles: { indexes: [ { created: 1 } ] },
+    fleets: { indexes: [ { created: 1 } ] },
+    links: { indexes: [ { created: 1, key: 1 } ] },
   };
 
   Step(
@@ -50,9 +52,9 @@ var UserDb = exports.UserDb = function (db, options, cb) {
       if (options.ensureIndexes) {
         var parallel = this.parallel;
         _.each(cols, function (col) {
-          var index = collections[col.collectionName].index;
-          if (index)
-            col.ensureIndex(index, parallel());
+          (collections[col.collectionName].indexes || []).forEach(function(i) {
+            col.ensureIndex(i, parallel());
+          });
         });
       } else this();
     },
