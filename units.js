@@ -156,7 +156,7 @@ exports.units = {
   ],
   'velocity': [
     { unit: 'm/s', long: 'meters per second' },
-    { unit: 'mph', long: 'miles per hour', alt: [ 'MPH '], factor: 0.44704 },
+    { unit: 'mph', long: 'miles per hour', alt: [ 'MPH' ], factor: 0.44704 },
     { unit: 'ft/s', long: 'feet per second', factor: 0.3048 },
     { unit: 'km/h', long: 'kilometers per hour', alt: [ 'kph', 'kmph' ],
       factor: 1e3/(60*60) },
