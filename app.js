@@ -8,12 +8,6 @@ var argv = optimist
     .describe('help', 'Get help')
     .describe('port', 'Port to listen on')
       .default('port', 8080)
-    .describe('scalarPort', 'Port scalar is listening on')
-      .default('scalarPort', 8080)
-    .describe('scalar', 'Boolean - is scalar routing to port')
-      .boolean('scalar')
-    .describe('tls', 'Boolean - is scalar using TLS')
-      .boolean('tls')
     .describe('db', 'MongoDb URL to connect to')
       .default('db', 'mongo:///service-samples')
     .argv;
@@ -41,6 +35,7 @@ var path = require('path');
 var CSV = require('csv');
 var traverse = require('traverse');
 var util = require('util'), inspect = util.inspect;
+var url = require('url');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Step = require('step');
@@ -127,17 +122,12 @@ var app = module.exports = express.createServer();
 // });
 
 app.configure('development', function () {
-  var protocol = argv.scalar && argv.tls ? 'https' : 'http';
-  var port = argv.scalar ? argv.scalarPort : argv.port;
-  app.set('hostname', protocol + '://localhost:' + port);
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = false;
 });
 
 
 app.configure('production', function () {
-  var protocol = argv.scalar && argv.tls ? 'https' : 'http';
-  app.set('hostname', protocol + '://skyline.ridemission.com');
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   Notify.active = true;
 });
@@ -236,18 +226,6 @@ passport.use(new LocalStrategy(
   }
 ));
 
-// passport.use(new GoogleStrategy({
-//     returnURL: app.settings.hostname + '/auth/google/return',
-//     realm: app.settings.hostname,
-//   },
-//   function (identifier, profile, done) {
-//     profile.provider = 'google';
-//     userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
-//       done(err, user);
-//     });
-//   }
-// ));
-
 
 ////////////// Web Routes
 
@@ -275,12 +253,13 @@ app.get('/auth/google', function (req, res, next) {
   // Add referer to session so we can use it on return.
   // This way we can preserve query params in links.
   req.session.referer = req.headers.referer;
-  var host = req.headers.host.split(':')[0];
-  var home = 'http://' + host + ':' + argv.port + '/';
-  passport.use(new GoogleStrategy({
-      returnURL: home + 'auth/google/return',
-      realm: home,
-    },
+  var myUrl = url.parse(req.headers.referer);
+  myUrl.search = myUrl.query = myUrl.hash = null;
+  myUrl.pathname = '/auth/google/return';
+  var returnURL = url.format(myUrl);
+  myUrl.pathname = '/';
+  var realm = url.format(myUrl);
+  passport.use(new GoogleStrategy({ returnURL: returnURL, realm: realm, },
     function (identifier, profile, done) {
       profile.provider = 'google';
       userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {

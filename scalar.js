@@ -15,14 +15,14 @@
 var optimist = require('optimist');
 var argv = optimist
     .describe('help', 'Get help')
-    .describe('port', 'Port to listen on')
+    .describe('port', 'Port to listen for http connnections on')
       .default('port', 8080)
+    .describe('httpsPort', 'Port to listen for https connections on')
+      .default('httpsPort', 8443)
     .describe('static', 'List of host:port to redirect static requests to')
       .default('static', '9000 9001')
     .describe('api', 'List of host:port to redirect API requests to')
       .default('api', '9010 9011')
-    .describe('tls', 'Boolean - Use TLS')
-      .boolean('tls')
     .argv;
 
 if (argv._.length || argv.help) {
@@ -62,113 +62,116 @@ var staticI = 0;
 
 var apiSessions = {};  // Mapping from sessionid to port.  TODO: expire sessions?
 
-log('Waiting to bounce requests to ' + argv.port);
-var opts = {
-  callback: handleRequest,
-  onConnectionError: function(e, connection) {
-    log(color.red('CONNECTION ERROR') + ' from ' +
-        connection.remoteAddress + ':' + connection.remotePort + ': ' +
-        (e.stack || e));
-  },
-};
-
-if (argv.tls) {
-  opts.key = fs.readFileSync(__dirname + '/keys/privatekey.pem');
-  opts.cert = fs.readFileSync(__dirname + '/keys/certificate.pem');
-  opts.ca = fs.readFileSync(__dirname + '/keys/intermediate.pem');
-}
-var bouncyServer = bouncy(opts);
-bouncyServer.listen(argv.port);
-bouncyServer.on('error', function(e) {
-  log(color.red('SERVER ERROR') + ': ' + (e.stack || e));
-});
-
-function handleRequest(req, bounce) {
-  function safeBounce(frontend, opts) {
-    if (!frontend) {
-      // None of the frontends are healthy, return a 503 Service Unavailable.
-      var res = bounce.respond();
-      res.writeHead(503, 'All frontends down');
-      res.end();
-      return;
-    }
-    try {
-      var opts = { emitter: { emit: onerror } };
-      var stream = frontend.host ?
-          bounce(frontend.host, frontend.port, opts) :
-          bounce(frontend.port, opts);
-      stream.on('error', onerror);
-    } catch (e) {
-      onerror(e);
-    }
-    function onerror(e) {
-      log(color.red('error ') + 'connecting to ' +
-              color.yellow((frontend.host || '') + ':' + frontend.port) +
-              ': ' + (e.stack || e));
-      setLoadAvg(frontend, null, e);
-      var res = bounce.respond();
-      var url = 'http://' + req.headers.host + req.url;
-      res.writeHead(302, 'Scalar could not connect to frontend',
-                    { Location: url });
-      res.end();
-    }
-    return stream;
-  }
-
-  // https://github.com/yorickvP/bouncy/commit/26412d586cbb5023e6256c2384828bde11886f1a
-  req.on('error', function(e) {
-    var conn = req.connection || {};
-    log(color.red('request error ') + 'from host ' +
-            color.yellow(conn.remoteAddress || 'unknown') +
-            ': ' + (e.stack || e));
-    req.destroy();
+function makeBouncyServer(port, tls) {
+  log('Waiting to bounce '+ (tls ? 'https' : 'http') +' requests to ' + port);
+  var bouncyServer = bouncy({
+    callback: handleRequest,
+    onConnectionError: function(e, connection) {
+      log(color.red('CONNECTION ERROR') + ' from ' +
+          connection.remoteAddress + ':' + connection.remotePort + ': ' +
+          (e.stack || e));
+    },
+    key: tls && fs.readFileSync(__dirname + '/keys/privatekey.pem'),
+    cert: tls && fs.readFileSync(__dirname + '/keys/certificate.pem'),
+    ca: tls && fs.readFileSync(__dirname + '/keys/intermediate.pem'),
+  });
+  bouncyServer.listen(port);
+  bouncyServer.on('error', function(e) {
+    log(color.red('SERVER ERROR') + ': ' + (e.stack || e));
   });
 
-  if (staticRE.test(req.url)) {
-    // Find a healthy destination to talk to.
-    var frontend = null;
-    for (var i = 0, len = staticFrontends.length; i < len; ++i) {
-      frontend = staticFrontends[staticI];
-      if (++staticI >= len) staticI = 0;
-      if (frontend.loadAvg != null) break;
+  function handleRequest(req, bounce) {
+    function safeBounce(frontend, opts) {
+      if (!frontend) {
+        // None of the frontends are healthy, return a 503 Service Unavailable.
+        var res = bounce.respond();
+        res.writeHead(503, 'All frontends down');
+        res.end();
+        return;
+      }
+      try {
+        var opts = { emitter: { emit: onerror } };
+        var stream = frontend.host ?
+            bounce(frontend.host, frontend.port, opts) :
+            bounce(frontend.port, opts);
+        stream.on('error', onerror);
+      } catch (e) {
+        onerror(e);
+      }
+      function onerror(e) {
+        log(color.red('error ') + 'connecting to ' +
+                color.yellow((frontend.host || '') + ':' + frontend.port) +
+                ': ' + (e.stack || e));
+        setLoadAvg(frontend, null, e);
+        var res = bounce.respond();
+        var url = (tls ? 'https://' : 'http://') + req.headers.host + req.url;
+        res.writeHead(302, 'Scalar could not connect to frontend',
+                      { Location: url });
+        res.end();
+      }
+      return stream;
     }
-    logRedirect('static', req, frontend);
-    safeBounce(frontend, { headers: { Connection: 'close' } });
-  } else if (socketIORE.test(req.url)) {
-    var m = req.url.match(socketIOExistingRE);
-    if (!m) {
-      // This is a new unhandshaken socket.io connection.
-      // Sniff the session id from the response.
-      var frontend = bestApiFrontend();
-      logRedirect('socket.io connect', req, frontend);
-      var stream = safeBounce(frontend, { headers: { Connection: 'close' } });
-      if (!stream) return;
 
-      stream.on('data', function(chunk) {
-        // Format: '<headers>\n\n<#>\n<sid>:<#>:<#>:<transports>'
-        var m = chunk.toString().match(/^([0-9]+):[0-9]+:[0-9]+:[^:]+$/m);
-        if (m) {
-          var sid = m[1];
-          apiSessions[sid] = frontend;
-          log(color.red('socket.io connected') + ' ' +
-              color.yellow(req.client.remoteAddress + ' ' + sid) + ' ' +
-              (frontend.host || '') + ':' + frontend.port);
-        }
-      });
+    // https://github.com/yorickvP/bouncy/commit/26412d586cbb5023e6256c2384828bde11886f1a
+    req.on('error', function(e) {
+      var conn = req.connection || {};
+      log(color.red('request error ') + 'from host ' +
+              color.yellow(conn.remoteAddress || 'unknown') +
+              ': ' + (e.stack || e));
+      req.destroy();
+    });
+
+    if (staticRE.test(req.url)) {
+      // Find a healthy destination to talk to.
+      var frontend = null;
+      for (var i = 0, len = staticFrontends.length; i < len; ++i) {
+        frontend = staticFrontends[staticI];
+        if (++staticI >= len) staticI = 0;
+        if (frontend.loadAvg != null) break;
+      }
+      logRedirect('static', req, frontend);
+      safeBounce(frontend, { headers: { Connection: 'close' } });
+    } else if (socketIORE.test(req.url)) {
+      var m = req.url.match(socketIOExistingRE);
+      if (!m) {
+        // This is a new unhandshaken socket.io connection.
+        // Sniff the session id from the response.
+        var frontend = bestApiFrontend();
+        logRedirect('socket.io connect', req, frontend);
+        var stream = safeBounce(frontend, { headers: { Connection: 'close' } });
+        if (!stream) return;
+
+        stream.on('data', function(chunk) {
+          // Format: '<headers>\n\n<#>\n<sid>:<#>:<#>:<transports>'
+          var m = chunk.toString().match(/^([0-9]+):[0-9]+:[0-9]+:[^:]+$/m);
+          if (m) {
+            var sid = m[1];
+            apiSessions[sid] = frontend;
+            log(color.red('socket.io connected') + ' ' +
+                color.yellow(req.client.remoteAddress + ' ' + sid) + ' ' +
+                (frontend.host || '') + ':' + frontend.port);
+          }
+        });
+      } else {
+        // This is an established socket.io connection.
+        // Get the session id from the url, and bounce to the appropriate backend.
+        var sid = m[1];
+        var frontend = apiSessions[sid];
+        logRedirect('socket.io', req, frontend);
+        safeBounce(frontend);
+      }
     } else {
-      // This is an established socket.io connection.
-      // Get the session id from the url, and bounce to the appropriate backend.
-      var sid = m[1];
-      var frontend = apiSessions[sid];
-      logRedirect('socket.io', req, frontend);
+      var frontend = bestApiFrontend();
+      logRedirect('api', req, frontend);
       safeBounce(frontend);
     }
-  } else {
-    var frontend = bestApiFrontend();
-    logRedirect('api', req, frontend);
-    safeBounce(frontend);
   }
 }
+
+if (argv.port)
+  makeBouncyServer(argv.port, false);
+if (argv.httpsPort)
+  makeBouncyServer(argv.httpsPort, true);
 
 function bestApiFrontend() {
   var bestLoad = Infinity, bestFrontend = null;
