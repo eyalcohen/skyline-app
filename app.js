@@ -226,6 +226,20 @@ passport.use(new LocalStrategy(
   }
 ));
 
+// Set up Google login strategy.
+// Horrible hack: we don't know the right URLs to use until we see a request,
+// so fill them in with dummy values for now, and fill them in for real
+// in app.get('/auth/google', ...).
+passport.use(new GoogleStrategy(
+  { returnURL: 'http://www.google.com/#q=Why+is+skyline+banned', realm: null },
+  function (identifier, profile, done) {
+    profile.provider = 'google';
+    userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
+      done(err, user);
+    });
+  }
+));
+
 
 ////////////// Web Routes
 
@@ -247,26 +261,29 @@ app.post('/login', function (req, res, next) {
 // Redirect the user to Google for authentication.
 // When complete, Google will redirect the user
 // back to the application at /auth/google/return.
-// ** The passport strategy initialization must
-// happen here becuase host needs to be snarfed from req.
 app.get('/auth/google', function (req, res, next) {
   // Add referer to session so we can use it on return.
   // This way we can preserve query params in links.
   req.session.referer = req.headers.referer;
+
+  // Hack: fill in returnUrl and realm for google auth.
   var myUrl = url.parse(req.headers.referer);
   myUrl.search = myUrl.query = myUrl.hash = null;
   myUrl.pathname = '/auth/google/return';
-  var returnURL = url.format(myUrl);
+  var returnUrl = url.format(myUrl);
   myUrl.pathname = '/';
   var realm = url.format(myUrl);
-  passport.use(new GoogleStrategy({ returnURL: returnURL, realm: realm, },
-    function (identifier, profile, done) {
-      profile.provider = 'google';
-      userDb.findOrCreateUserFromPrimaryEmail(profile, function (err, user) {
-        done(err, user);
-      });
-    }
-  ));
+  log('passport: ' + inspect(passport));
+  log("passport._strategies['google']: " +
+      inspect(passport._strategies['google']));
+  log('returnUrl: ' + returnUrl);
+  log('realm: ' + realm);
+  passport._strategies['google']._relyingParty.returnUrl = returnUrl;
+  passport._strategies['google']._relyingParty.realm = realm;
+  log('passport: ' + inspect(passport));
+  log("passport._strategies['google']: " +
+      inspect(passport._strategies['google']));
+
   passport.authenticate('google')(req, res, next);
 });
 
@@ -1315,6 +1332,8 @@ if (!module.parent) {
             });
             // TODO: Keep the session alive on with a timeout.
           });
+      if (!app.address())
+        log('Express server could not listen on port '+ argv.port +'!');
       log('Express server listening on port', app.address().port);
     }
   );

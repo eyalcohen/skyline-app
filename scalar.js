@@ -47,6 +47,7 @@ var staticRE =
       fname = fname.replace(/[\\^$*+?.()|{}\[\]]/, '\\$&');
       return '^/' + fname;
     }).join('|'));
+var authRE = /^\/auth\//;
 var socketIORE = /^\/socket.io\//,
     socketIOExistingRE = /^\/socket.io\/[0-9]+\/[^/]+\/([0-9]+)(?:\?.*)?$/;
 var redirectRE = /^\/(?:\?.*)?$/;  // Redirect http -> https.
@@ -149,6 +150,18 @@ function makeBouncyServer(port, tls) {
         if (frontend.loadAvg != null) break;
       }
       logRedirect('static', req, frontend);
+      safeBounce(frontend, { headers: { Connection: 'close' } });
+    } else if (authRE.test(req.url)) {
+      // HACK: direct all auth requests to the first healthy static frontend.
+      // This way the /auth/google request and the /auth/google/return requests
+      // hit the same server.
+      // Find the first healthy destination to talk to.
+      var frontend = null;
+      for (var i = 0, len = staticFrontends.length; i < len; ++i) {
+        frontend = staticFrontends[i];
+        if (frontend.loadAvg != null) break;
+      }
+      logRedirect('auth', req, frontend);
       safeBounce(frontend, { headers: { Connection: 'close' } });
     } else if (socketIORE.test(req.url)) {
       var m = req.url.match(socketIOExistingRE);
