@@ -80,7 +80,7 @@ function makeBouncyServer(port, tls) {
     },
     key: tls && fs.readFileSync(__dirname + '/keys/privatekey.pem'),
     cert: tls && fs.readFileSync(__dirname + '/keys/certificate.pem'),
-    ca: tls && fs.readFileSync(__dirname + '/keys/intermediate.pem'),
+    ca: tls && [ fs.readFileSync(__dirname + '/keys/intermediate.pem') ],
   });
   bouncyServer.listen(port);
   bouncyServer.on('error', function(e) {
