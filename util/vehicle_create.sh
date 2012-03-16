@@ -10,4 +10,4 @@ read -p 'New Vehicle Nickname, e.g., "myvolt"? ' -e nickname
 
 enc() { $D/url_encode.js "$@" ; }
 
-curl "http://$host/create/vehicle/"`enc "$title"`/`enc "$description"`/`enc "$nickname"` ; echo
+curl --data-urlencode '' "http://$host/create/vehicle/"`enc "$title"`/`enc "$description"`/`enc "$nickname"` ; echo
