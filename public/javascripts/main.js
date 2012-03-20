@@ -117,7 +117,8 @@ requirejs(['libs/domReady',
     build: function () {
       App.mainView = new App.views.MainView().render();
       App.loading.stop();
-      // // TODO: check if user is ADMIN first!
+      // This can be enabled when a user admin
+      // panel is needed in the future.
       // App.userCollection =
       //     new App.collections.UserCollection().fetch();
     },

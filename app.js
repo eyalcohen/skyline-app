@@ -112,14 +112,6 @@ function requestMimeType(req) {
 /////////////// Configuration
 
 var app = module.exports = express.createServer();
-// var privateKey = fs.readFileSync('./keys/privatekey.pem').toString();
-// var intermediate = fs.readFileSync('./keys/intermediate.pem').toString();
-// var certificate = fs.readFileSync('./keys/certificate.pem').toString();
-// var app = module.exports = express.createServer({
-//   key: privateKey,
-//   cert: certificate,
-//   ca: intermediate,
-// });
 
 app.configure('development', function () {
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
@@ -176,6 +168,7 @@ app.configure(function () {
     secret: 'hum7a5t1c',
     store: app.settings.sessionStore,
   }));
+  app.use(express.session.ignore.push('/status/load'));
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -287,16 +280,6 @@ app.get('/auth/google', function (req, res, next) {
   passport.authenticate('google')(req, res, next);
 });
 
-
-// // Redirect the user to Google for authentication.
-// // When complete, Google will redirect the user
-// // back to the application at /auth/google/return.
-// app.get('/auth/google', function (req, res, next) {
-//   // Add referer to session so we can use it on return.
-//   // This way we can preserve query params in links.
-//   req.session.referer = req.headers.referer;
-//   passport.authenticate('google')(req, res, next);
-// });
 
 // Google will redirect the user to this URL
 // after authentication. Finish the process by

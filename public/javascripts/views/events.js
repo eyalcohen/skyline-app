@@ -22,6 +22,7 @@ define(['views/dashItem'], function (DashItemView) {
         shrunk: this.options.weight === 0,
         rows: this.model.get('events'),
       });
+      
       if (this.el.length) {
         this.remove();
       }

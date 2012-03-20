@@ -14,14 +14,14 @@ var argv = optimist
     .describe('help', 'Get help')
     .describe('port', 'Port to listen on')
       .default('port', 8080)
+    .describe('httpsPort', 'Port to listen for https connections on')
+      .default('httpsPort', 8443)
     .describe('static', 'List of host:port to redirect static requests to')
       .default('static', '9000 9001')
       // .default('static', '9000')
     .describe('api', 'List of host:port to redirect API requests to')
       .default('api', '9010 9011 9012 9013 9014 9015')
       // .default('api', '9010')
-    .describe('tls', 'Boolean - Use TLS')
-      .boolean('tls')
     .argv;
 
 function parseFrontends(arg) {
@@ -41,12 +41,12 @@ try { fs.mkdirSync('log'); } catch(err) {}
 _.each(frontends, function (hp) {
   var logFile = 'log/frontend-' + hp.port + '.log';
   fs.writeFileSync(logFile, '644');
-  exec('node app.js' + (argv.tls ? ' --tls ' : ' ') + '--scalar --scalarPort=' + argv.port + ' --port=' + hp.port + ' >> ' + logFile + ' 2>&1');
+  exec('node app.js --port=' + hp.port + ' >> ' + logFile + ' 2>&1');
 });
 
 var logFile = 'log/scalar-' + argv.port + '.log';
 fs.writeFileSync(logFile, '644');
-exec('node scalar.js' + (argv.tls ? ' --tls ' : ' ') + '--port=' + argv.port + ' --static="'
+exec('node scalar.js --port=' + argv.port + ' --httpsPort=' + argv.httpsPort + ' --redirectNoPort --static="'
     + argv.static + '" --api="' + argv.api + '" >> ' + logFile + ' 2>&1');
 
 log('\n' + logTimestamp() + ' - ' + color.green('Skyline Scalar running on port ' + argv.port));
