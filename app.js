@@ -36,10 +36,11 @@ var CSV = require('csv');
 var traverse = require('traverse');
 var util = require('util'), inspect = util.inspect;
 var url = require('url');
+var zlib = require('zlib');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Step = require('step');
-var Buffers = require('buffers')
+var Buffers = require('buffers');
 var EventDescFileName = __dirname +
     '/../mission-java/common/src/main/protobuf/Events.desc';
 var WebUploadSamples, EventWebUpload;
@@ -161,7 +162,7 @@ app.configure(function () {
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.bodyParser());
-  app.use(rawBody(['application/octet-stream']));
+  app.use(rawBody(['application/octet-stream', 'application/x-gzip']));
   app.use(express.cookieParser());
   app.use(express.session({
     cookie: { maxAge: 86400 * 1000 * 7 }, // one week
@@ -590,36 +591,61 @@ app.post('/create/fleet/:title/:description/:nickname/:vehicles',
 // Handle sample upload request
 app.put('/samples', function (req, res) {
 
-  function fail(code) {
-    log('PUT /samples failed: ' + code);
-    res.send({ status: 'fail', data: { code: code } }, 400);
-  }
-
   // Parse to JSON.
-  var uploadSamples, mimeType = requestMimeType(req);
-  if (mimeType == 'application/octet-stream') {
-    var fileName = (new Date()).valueOf() + '.pbraw';
-    fs.mkdir(__dirname + '/samples', '0755', function (err) {
-      fs.writeFile(__dirname + '/samples/' + fileName,
-                  req.rawBody, null, function (err) {
-        if (err) log(err);
-        else
-          log('Saved to: ' + __dirname + '/samples/' + fileName);
-      });
-    });
+  var uploadSamples;
 
-    uploadSamples = WebUploadSamples.parse(new Buffer(req.rawBody, 'binary'));
-  } else if (mimeType == 'application/json') {
-    uploadSamples = req.body;
-  } else {
-    fail('BAD_ENCODING:' + mimeType);
-    return;
-  }
-
-  var usr, veh, fname, vehicleId = uploadSamples.vehicleId;
+  var usr, veh, fname, vehicleId;
   var sampleSet = {};
   var firstError;
   Step(
+    function parseSamples() {
+      var mimeType = requestMimeType(req);
+      if (mimeType == 'application/x-gzip') {
+        var fileName = (new Date()).valueOf() + '.pbraw.gz';
+        fs.mkdir(__dirname + '/samples', '0755', function (err) {
+          fs.writeFile(__dirname + '/samples/' + fileName,
+                      req.rawBody, null, function (err) {
+            if (err) log(err);
+            else
+              log('Saved to: ' + __dirname + '/samples/' + fileName);
+          });
+        });
+
+        var next = this;
+        Step(
+          function() {
+            zlib.unzip(new Buffer(req.rawBody, 'binary'), this);
+          }, function(err, unzipped) {
+            if (err) {
+              this(err);
+            } else {
+              uploadSamples = WebUploadSamples.parse(unzipped);
+              this();
+            }
+          }, next
+        );
+      } else if (mimeType == 'application/octet-stream') {
+        var fileName = (new Date()).valueOf() + '.pbraw';
+        fs.mkdir(__dirname + '/samples', '0755', function (err) {
+          fs.writeFile(__dirname + '/samples/' + fileName,
+                      req.rawBody, null, function (err) {
+            if (err) log(err);
+            else
+              log('Saved to: ' + __dirname + '/samples/' + fileName);
+          });
+        });
+
+        uploadSamples =
+            WebUploadSamples.parse(new Buffer(req.rawBody, 'binary'));
+        this();
+      } else if (mimeType == 'application/json') {
+        uploadSamples = req.body;
+        this();
+      } else {
+        throw ('BAD_ENCODING:' + mimeType);
+      }
+    },
+
     //// TODO: Integrate some kind of authentication.
     //// Public-key cryptography ?
     // get the cycle's user and authenticate ** LAGACY **
@@ -635,13 +661,15 @@ app.put('/samples', function (req, res) {
     //     this();
     // },
     // get the cycle's vehicle
-    function getVehicle() {
+    function getVehicle(err) {
+      if (err) return this(err);
+      vehicleId = uploadSamples.vehicleId;
       userDb.collections.vehicles.findOne({ _id: vehicleId }, this);
     }, function (err, veh_) {
       if (err) return this(err);
       veh = veh_;
       if (!veh)
-        fail('VEHICLE_NOT_FOUND');
+        throw 'VEHICLE_NOT_FOUND';
       else
         this();
     },
@@ -740,7 +768,7 @@ app.put('/samples', function (req, res) {
 
       // Check for errors.
       if (firstError) {
-        fail(firstError);
+        throw firstError;
         return;
       }
 
@@ -751,8 +779,9 @@ app.put('/samples', function (req, res) {
     // Any exceptions above end up here.
     function (err) {
       if (err) {
-        log('Error while processing PUT /samples request: ' + err.stack);
-        fail('INTERNAL_ERROR');
+        log('Error while processing PUT /samples request: ' +
+            (err.stack || err));
+        res.send({ status: 'fail', data: { code: (err.stack || err) } }, 400);
       } else {
         // Success!
         res.end();
