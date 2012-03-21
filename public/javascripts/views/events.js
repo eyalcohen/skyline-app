@@ -52,6 +52,9 @@ define(['views/dashItem'], function (DashItemView) {
         beg: parseInt($('[data-time]', parentRow).attr('data-time')),
         end: parseInt($('[data-time-end]', parentRow).attr('data-time-end')),
       };
+      var padding = 0.02 * (timeRange.end - timeRange.beg);
+      timeRange.beg -= padding;
+      timeRange.end += padding;
       var props = this.getProps(parentRow);
       var channels = $('[data-channels]', parentRow).attr('data-channels');
       if (channels)
