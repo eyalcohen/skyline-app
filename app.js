@@ -995,6 +995,8 @@ var createDnodeConnection = function (remote, conn) {
         if (err) return cb(err.toString());
         if (!user)
           return cb('User and Session do NOT match!');
+        delete user.password;
+        delete user.salt;
         delete user.pin;
         userDb.getUserVehicleData(user, function (err, data) {
           if (err) return cb(err.toString());
@@ -1123,6 +1125,11 @@ var createDnodeConnection = function (remote, conn) {
         _.each(notes, function (note) {
           userDb.findUserById(note.val.userId, function (err, usr) {
             if (err) return cb(err);
+            delete usr.password;
+            delete usr.salt;
+            delete usr.pin;
+            delete usr.vehicles;
+            delete usr.fleets;
             note.user = usr;
             _sort();
           });

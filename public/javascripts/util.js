@@ -159,7 +159,11 @@ define({
             params[unescape(keyVal[0])] = (typeof keyVal[1] != "undefined") ? unescape(keyVal[1]) : keyVal[1];
         }
     })();
- },
+  },
+
+  formatNoteText: function (str) {
+    return str.replace(/\n/g, '<br />');
+  },
 
 });
 

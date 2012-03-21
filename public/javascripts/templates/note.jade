@@ -21,11 +21,11 @@
     .note-content
       h2.note-user= note.user.displayName
         span.note-content-date= ' ' + App.util.getRelativeTime(note.val.date)
-      p.note-body= note.val.text
+      p.note-body= App.util.formatNoteText(note.val.text)
       - replies.forEach(function (r) {
         h2.note-user-reply= r.user.displayName
           span.note-content-date= ' ' + App.util.getRelativeTime(r.val.date)
-        p.note-body= r.val.text
+        p.note-body= App.util.formatNoteText(r.val.text)
       - })
   - }
   .note-add

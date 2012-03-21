@@ -29,6 +29,10 @@ define(['views/dashItem'], function (DashItemView) {
       var start = Date.now();
       this.el = App.engine('events.dash.jade', opts)
           .appendTo(this.options.parent);
+      $('.event-info', this.el).each(function () {
+        var b = $(this);
+        b.html(b.text());
+      });
       // console.log('events.dash.jade took', Date.now() - start);
       this._super('render');
       if (this.timer) {

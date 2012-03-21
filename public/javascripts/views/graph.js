@@ -1162,8 +1162,6 @@ define(['views/dashItem', 'plot_booter',
         if (!isNew)
           delete note.val.channels;
 
-        // TODO: Don't muck-up the original object
-        // so this is not needed.
         var _note = {
           beg: note.beg,
           end: note.end,
@@ -1281,8 +1279,13 @@ define(['views/dashItem', 'plot_booter',
         onRight: true,
       });
       opts.note = note;
-      return App.engine('note.jade', opts)
-          .css({ top: opts.top, left: opts.left });
+      var n =  App.engine('note.jade', opts)
+                  .css({ top: opts.top, left: opts.left });
+      $('.note-body', n).each(function () {
+        var b = $(this);
+        b.html(b.text());
+      });
+      return n;
     },
 
   });

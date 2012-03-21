@@ -57,7 +57,7 @@ div.dashboard-item
                 =title
               - }
               - var occured = row.latest ? row.latest * 1e3 : row.beg;
-              td(style="font-style:italic;")= info
+              td.event-info(style="font-style:italic;")= info
                 span.row-replies= replies
               td.nowrap(data-occured=occured, data-time=row.beg, data-time-end=row.end, data-channels=channels)
                 | -

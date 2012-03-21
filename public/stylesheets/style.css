@@ -154,8 +154,8 @@ footer {
   display: -moz-box;
   display: box;
   -webkit-box-orient: horizontal;
-  box-orient: horizontal;
   -moz-box-orient: horizontal;
+  box-orient: horizontal;
 
   position: absolute;
   bottom: 0;
