@@ -95,7 +95,8 @@ UserDb.prototype.findOrCreateUserFromPrimaryEmail =
         });
         users.insert(props, { safe: true },
                     function (err, inserted) {
-          cb(err, inserted[0]);
+          if (err) return cb(err);
+          cb(null, inserted[0]);
         });
       });
     else cb(null, user);
@@ -441,7 +442,8 @@ function createDoc(collection, props, cb) {
   function insert() {
     collection.insert(props, { safe: true },
                       function (err, inserted) {
-      cb(err, inserted[0]);
+      if (err) return cb(err);
+      cb(null, inserted[0]);
     });
   }
   if (!props.created) 

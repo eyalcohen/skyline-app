@@ -16,8 +16,8 @@ var SampleDb = require('../sample_db.js').SampleDb;
 
 var optimist = require('optimist');
 var argv = optimist
-    .default('db', 'mongo:///service-samples')
-    .demand('userId')
+    .default('db', 'mongo://localhost:27017/service-samples')
+    // .demand('userId')
     .argv;
 
 function errCheck(err, op) {
@@ -89,23 +89,23 @@ Step(
     sampleDb = sDb;
     // drop indexes
     userDb.collections.sessions.dropIndexes(this.parallel());
-    // userDb.collections.users.dropIndexes(this.parallel());
+    userDb.collections.users.dropIndexes(this.parallel());
     userDb.collections.vehicles.dropIndexes(this.parallel());
     userDb.collections.teams.dropIndexes(this.parallel());
     userDb.collections.fleets.dropIndexes(this.parallel());
     // drop collections
     userDb.collections.sessions.drop(this.parallel());
-    // userDb.collections.users.drop(this.parallel());
+    userDb.collections.users.drop(this.parallel());
     userDb.collections.vehicles.drop(this.parallel());
     userDb.collections.teams.drop(this.parallel());
     userDb.collections.fleets.drop(this.parallel());
   },
   // Add newly formatted vehicles.
   function (err) {
+
     // err if cols do not exist - but that's okay
     log('\nDeleted all sessions, users, and vehicles and their indexes.');
     var next = this;
-    
     if (vehicles.length > 0) {
       var _next = _.after(vehicles.length, next);
       _.each(vehicles, function (veh) {
@@ -251,59 +251,60 @@ Step(
     }, this);
   },
 
-  function (err, bikes) {
-    var self = this;
-    userDb.collections.users.findAndModify({ _id: argv.userId }, [],
-                              { $set: { vehicles: [], fleets: [] }},
-                              {}, function (err, usr) {      
-      errCheck(err, 'findingUser');
-      var one = {
-        userId: argv.userId,
-        fleetId: bikes._id,
-      };
-      var two = {
-        userId: argv.userId,
-        vehicleId: 1669705008,
-      };
-      log('\nAdded access: ' + inspect(one));
-      userDb.addAccess(one, { note: true }, function (err) {
-        errCheck(err);
-        log('\nAdded access: ' + inspect(two));
-        userDb.addAccess(two, { note: true }, self);
-      });
-    });
-  },
-
-  // Notes are associated with old users.
-  // Delete them all. They're not important yet.
-  // Finding notes...
-  // function (err) {
-  //   errCheck(err, 'addAccess()');
-  //   log('\nLooking for notes...');
-  //   var colls = _.values(sampleDb.realCollections);
-  //   var _next = _.after(colls.length, this);
-  //   _.each(colls, function (collection) {
-  //     collection.find({ chn: '_note' }).toArray(function (err, ns) {
-  //       if (ns && ns.length > 0) {
-  //         var __next = _.after(ns.length, _next);
-  //         _.each(ns, function (n) {
-  //           collection.remove({ _id: n._id }, function (err) {
-  //             errCheck(err, 'removeNote(' + n._id + ')');
-  //             log('\nRemoved note: ' + inspect(n));
-  //             __next();
-  //           });
-  //         });
-  //       } else _next(err);
+  // function (err, bikes) {
+  //   var self = this;
+  //   userDb.collections.users.findAndModify({ _id: argv.userId }, [],
+  //                             { $set: { vehicles: [], fleets: [] }},
+  //                             {}, function (err, usr) {      
+  //     errCheck(err, 'findingUser');
+  //     var one = {
+  //       userId: argv.userId,
+  //       fleetId: bikes._id,
+  //     };
+  //     var two = {
+  //       userId: argv.userId,
+  //       vehicleId: 1669705008,
+  //     };
+  //     log('\nAdded access: ' + inspect(one));
+  //     userDb.addAccess(one, { note: true }, function (err) {
+  //       errCheck(err);
+  //       log('\nAdded access: ' + inspect(two));
+  //       userDb.addAccess(two, { note: true }, self);
   //     });
   //   });
   // },
 
+  // Notes are associated with old users.
+  // Delete them all. They're not important yet.
+  // Finding notes...
+  function (err) {
+    errCheck(err, 'addAccess()');
+    log('\nLooking for notes...');
+    var colls = _.values(sampleDb.realCollections);
+    var _next = _.after(colls.length, this);
+    _.each(colls, function (collection) {
+      collection.find({ chn: '_note' }).toArray(function (err, ns) {
+        if (ns && ns.length > 0) {
+          var __next = _.after(ns.length, _next);
+          _.each(ns, function (n) {
+            collection.remove({ _id: n._id }, function (err) {
+              errCheck(err, 'removeNote(' + n._id + ')');
+              log('\nRemoved note: ' + inspect(n));
+              __next();
+            });
+          });
+        } else _next(err);
+      });
+    });
+  },
+
+  // Add some random events.
   function (err) {
     var _next = _.after(vehicles.length, this);
     errCheck(err, 'blah');
     var chns = ['_drive', '_charge', '_error', '_warning'];
-    _.each([ { _id: 130960143 } ], function (veh) {
-    // _.each(vehicles, function (veh) {
+    // _.each([ { _id: 130960143 } ], function (veh) {
+    _.each(vehicles, function (veh) {
       var samps = { _drive: [], _charge: [], _error: [], _warning: [] };
       for (var i = 0, len = Math.ceil(Math.random() * 10); i < len; ++i) {
         var c = pickone(chns);
