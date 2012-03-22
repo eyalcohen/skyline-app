@@ -2294,7 +2294,7 @@
 			// }
 
 			$.vakata.dnd.helper.css({ left : (e.pageX + $.vakata.dnd.helper_left) + "px", top : (e.pageY + $.vakata.dnd.helper_top) + "px" });
-			$(document).triggerHandler("drag.vakata", { "event" : e, "data" : $.vakata.dnd.user_data });
+			$(document).triggerHandler("dragg.vakata", { "event" : e, "data" : $.vakata.dnd.user_data });
 		},
 		drag_stop : function (e) {
 			if(sli) { clearInterval(sli); }
@@ -2500,7 +2500,7 @@
 							this._get_settings().dnd.from_external_drop_check(toExternal);
 						}
 					}, this))
-				.bind("drag.vakata", $.proxy(function (e, data) {
+				.bind("dragg.vakata", $.proxy(function (e, data) {
 						if (!data) return;
 						var toExternal = { o: $(data.data.obj), r: $(data.event.target) };
 						this._get_settings().dnd.from_external_drag_check(toExternal, function (ok) {
