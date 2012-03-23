@@ -63,12 +63,29 @@ define(['views/dashItem'], function (DashItemView) {
         App.publish('UnPreviewEvent-' + props.id);
         this.model.get('tabModel').set({ visibleTime: timeRange });
         App.publish('PreviewEvent-' + props.id, [timeRange]);
-        if (channels) {
-          var graphId = App.util.makeId();
-          var tabId = this.model.get('tabId');
-          App.publish('GraphRequested-' + tabId, [graphId]);
-          fetchChannels(channels, this.model.get('vehicleId'), tabId, graphId);
-        }
+        // Open a new graph and place
+        // the note's channels on it.
+        // Do nothing if ALL of the channels
+        // are already on-screen.
+        // NOTE: This is not bein used in favor of
+        // having letting the user add the channels
+        // from the note's list...
+        // if (channels) {
+        //   var currentChannels = this.model.get('tabModel')
+        //                             .getAllChannelNames();
+        //   var allDuplicate = true;
+        //   _.each(channels, function (channel) {
+        //     if (!_.find(currentChannels, function (currentChannel) {
+        //       return channel === currentChannel;
+        //     })) allDuplicate = false;
+        //   });
+        //   if (!allDuplicate) {
+        //     var graphId = App.util.makeId();
+        //     var tabId = this.model.get('tabId');
+        //     App.publish('GraphRequested-' + tabId, [graphId]);
+        //     fetchChannels(channels, this.model.get('vehicleId'), tabId, graphId);
+        //   }
+        // }
       } else {
         var tabId = App.util.makeId();
         App.publish('VehicleRequested', [props.id, tabId, props.title,

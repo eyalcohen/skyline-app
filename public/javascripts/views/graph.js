@@ -208,8 +208,8 @@ define(['views/dashItem', 'plot_booter',
         var channels = self.model.get('channels');
         var channel = channels[series.channelIndex];
         if (!channel) return;
-        var r = "<div " +
-            "graph-id='" + self.model.id + "'" +
+        var r = "<div class='label-wrap' " +
+            "data-graph-id='" + self.model.id + "'" +
             "data-channel-index='" + series.channelIndex + "' " +
             "data-channel-name='" + _.escape(channel.channelName) + "'>";
         r += '<span class="jstree-draggable" style="cursor:pointer">';
@@ -404,6 +404,7 @@ define(['views/dashItem', 'plot_booter',
         var channel = channels[s.channelIndex];
         var highlighted = self.highlightedChannel === channel.channelName;
         var color = self.colors[channel.colorNum % self.colors.length];
+        s.originalColor = color;
         if (self.highlightedChannel && !highlighted) {
           // Lighten color.
           color = $.color.parse(color);
@@ -1025,6 +1026,11 @@ define(['views/dashItem', 'plot_booter',
       var channel = this.model.get('channels')[channelIndex];
       App.publish('ChannelUnrequested-' + 
           this.options.tabId + '-' + this.options.id, [channel]);
+      // Update note channel list visible.
+      $('.note-channel-link', this.el).each(function () {
+        if ($(this).text() === channel.channelName)
+          $(this.nextElementSibling).hide();
+      });
     },
 
     addGraph: function (e) {
@@ -1273,19 +1279,62 @@ define(['views/dashItem', 'plot_booter',
     redrawNote: function () {},
 
     getNote: function (opts, note) {
+      var self = this;
       opts = opts || {};
       _.defaults(opts, {
         isNew: true,
         onRight: true,
       });
-      opts.note = note;
+      opts.note = $.extend(true, {}, note);
+      _.each(opts.note.val.channels, function (channel, i) {
+        opts.note.val.channels[i] = {
+          channelName: channel,
+          onScreen: self.channelOnScreen(channel),
+        };
+      });
       var n =  App.engine('note.jade', opts)
                   .css({ top: opts.top, left: opts.left });
       $('.note-body', n).each(function () {
         var b = $(this);
         b.html(b.text());
       });
+      $('.note-channel-link', n)
+      .click(function (e) {
+        var _this = $(this);
+        var check = $(this.nextElementSibling);
+        if (check.is(':visible'))
+          check.hide();
+        else check.show();
+        var target = _.find($('.tree li', self.model.get('tabModel').view.el),
+                            function (li) {
+          return $(li).attr('id') === _this.text();
+        });
+        if (target) $('a', target).click();
+      })
+      .bind('mouseenter', function (e) {
+        var text = $(this).text();
+        $('.legend tr', self.model.tabModel.view.el).each(function () {
+          if ($('.label-wrap', this).attr('data-channel-name') === text)
+            $(this).trigger('mouseenter');
+        });
+      })
+      .bind('mouseleave', function (e) {
+        var text = $(this).text();
+        $('.legend tr', self.model.tabModel.view.el).each(function () {
+          if ($('.label-wrap', this).attr('data-channel-name') === text)
+            $(this).trigger('mouseleave');
+        });
+      });
+
       return n;
+    },
+
+    channelOnScreen: function (channelName) {
+      return _.find(this.model.get('tabModel')
+                        .getAllChannelNames(),
+                    function (cn) {
+        return cn === channelName;
+      }) ? true : false;
     },
 
   });

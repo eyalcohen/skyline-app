@@ -967,9 +967,8 @@ var createDnodeConnection = function (remote, conn) {
   // This will be the initial http request seen by connect.
   var req;
 
+  // Handles currently being delivered to client (vehicleId, channelName).
   var subscriptions = {};
-  var user = null;  // Set once user is authenticated.
-  var authPending = null;  // If auth is pending, an array of functions to call once auth suceeds or fails.
 
   // Mostly serialize fetch operations - doing a bunch in parallel is
   // mysteriously slower than serially, and there's nothing to be gained by
@@ -1064,7 +1063,6 @@ var createDnodeConnection = function (remote, conn) {
     }
   }
 
-  // TMP: use subscriptions from client end
   function fetchEvents(opts, cb) {
     if (_.isFunction(opts)) {
       cb = opts;
@@ -1171,8 +1169,8 @@ var createDnodeConnection = function (remote, conn) {
   //// Methods that need authorization ////
 
   // Fetch samples.
-  // TODO: get rid of subscriptions, replace with 'wait until data available'
-  // option.
+  // TODO: get rid of subscriptions, 
+  // replace with 'wait until data available' option.
   function fetchSamples(vehicleId, channelName, options, cb) {
     if (!UserDb.haveAccess(vehicleId, req.user.data.vehicles))
       return cb('Permission denied.');

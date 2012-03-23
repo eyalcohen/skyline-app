@@ -169,6 +169,16 @@ define(function (fn) {
       this.view.arrangeGraphs(height, null, true);
     },
 
+    getAllChannelNames: function () {
+      var names = [];
+      _.each(this.graphModels,
+            function (gm) {
+        names = names.concat(_.pluck(gm.get('channels'),
+                                    'channelName'));
+      });
+      return names;
+    },
+
     resetEvents: function () {
       this.eventCollection.fetch();
     },

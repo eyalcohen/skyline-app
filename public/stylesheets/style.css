@@ -935,7 +935,7 @@ tr.dark {
 tr.dark:hover, tr.light:hover {
   background: rgba(174,182,154,0.2);
   /*background: rgba(194,254,6,0.5);*/
-/*  background: rgba(252,241,129,0.5);*/
+  /*background: rgba(252,241,129,0.5);*/
 }
 
 th, td {
@@ -1225,7 +1225,7 @@ div.preferences {
 .note {
   position: absolute;
   width: 300px;
-  z-index: 10001;
+  z-index: 2;
   background: rgba(51,51,51,0.95);
 
   -webkit-border-radius: 4px;
@@ -1381,30 +1381,46 @@ a.note-cancel:active {
   color: white;
   font-weight: bold;
   font-size: 10px;
+  cursor: default;
 }
 
 .note-channels > ul {
   margin: 0 0 0 15px;
 }
 
-.note-channels > ul > li {
+li.note-channel {
   list-style-type: none;
   display: block;
   color: white;
   font-size: 10px;
+  cursor: default;
 }
 
-.note-channels > ul > li > a {
+a.note-channel-link {
+  color: white;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+a.note-channel-link:hover {
+  text-decoration: underline;
+}
+
+a.note-channel-link:active {
+  color: gray;
+}
+
+a.note-channel-remove {
   color: white;
   font-weight: bold;
   cursor: pointer;
 }
 
-.note-channels > ul > li > a:hover {
+a.note-channel-remove:hover {
   color: red;
 }
 
-.note-channels > ul > li > a:active {
+a.note-channel-remove:active {
   color: black;
 }
 

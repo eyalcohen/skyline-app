@@ -342,22 +342,41 @@ define(['views/dashItem',
 
     nodeDroppedExternalHandler: function (data) {
       if (!this.el.is(':visible')) return;
+      var self = this;
+      var channel;
       if (data.r.hasClass('axisTarget')) {
         var targetGraphId = data.r.data('id');
         if (!targetGraphId) return;
         var yaxisNum = data.r.data('axis.n');
-        var sourceGraphId = data.o.parent().attr('graph-id');
-        var sourceGraphModel = _.find(this.model.tabModel.graphModels,
-            function(g) { return g.id == sourceGraphId; });
-        var channelIndex = Number(data.o.parent().attr('data-channel-index'));
-        var channel = sourceGraphModel.get('channels')[channelIndex];
-        App.publish('ChannelDropped-' + targetGraphId);
-        $('.label-closer', data.o.parent().parent().parent()).click();
-        channel.yaxisNum = yaxisNum;
-        App.publish('ChannelRequested-' + 
-            this.model.get('tabId') + '-' + targetGraphId, [channel]);
+        var sourceGraphId = data.o.parent().attr('data-graph-id');
+        if (sourceGraphId) {
+          var sourceGraphModel = _.find(self.model.tabModel.graphModels,
+              function (g) { return g.id == sourceGraphId; });
+          var channelIndex = Number(data.o.parent().attr('data-channel-index'));
+          channel = sourceGraphModel.get('channels')[channelIndex];
+          App.publish('ChannelDropped-' + targetGraphId);
+          $('.label-closer', data.o.parent().parent().parent()).click();
+          done();
+        } else {
+          var vehicleId = self.model.get('vehicleId');
+          var channelName = data.o.parent().data('channel-name');
+          $(data.o.get(0).nextElementSibling).show();
+          App.publish('FetchChannelInfo-' + vehicleId,
+              [channelName, function (chan) {
+            channel = chan;
+            channel.title = channel.humanName || channel.shortName;
+            if (channel.units)
+              channel.title += ' (' + channel.units + ')';
+            done();
+          }]);
+        }
+        function done() {
+          channel.yaxisNum = yaxisNum;
+          App.publish('ChannelRequested-' + 
+              self.model.get('tabId') + '-' + targetGraphId, [channel]);
+        }
       }
-      App.publish('DragEnd-' + this.model.get('tabId'));
+      App.publish('DragEnd-' + self.model.get('tabId'));
     },
 
     nodeDraggedExternalHandler: function (data, cb) {
