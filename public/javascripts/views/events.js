@@ -63,13 +63,14 @@ define(['views/dashItem'], function (DashItemView) {
         App.publish('UnPreviewEvent-' + props.id);
         this.model.get('tabModel').set({ visibleTime: timeRange });
         App.publish('PreviewEvent-' + props.id, [timeRange]);
+        App.publish('OpenNote-' + props.id, [parentRow.attr('data-id')]);
         // Open a new graph and place
         // the note's channels on it.
         // Do nothing if ALL of the channels
         // are already on-screen.
         // NOTE: This is not bein used in favor of
-        // having letting the user add the channels
-        // from the note's list...
+        // letting the user add the channels
+        // from the note's list (less intrusive)
         // if (channels) {
         //   var currentChannels = this.model.get('tabModel')
         //                             .getAllChannelNames();

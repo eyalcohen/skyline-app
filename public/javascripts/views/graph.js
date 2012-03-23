@@ -11,13 +11,14 @@ define(['views/dashItem', 'plot_booter',
       _.bindAll(this, 'destroy', 'highlightedChannelChanged',
                 'showEvent', 'hideEvent',
                 'mouseHoverTime', 'addYaxesBoundsForDrops',
-                'removeYaxesBoundsForDrops', 'ensureLegend');
+                'removeYaxesBoundsForDrops', 'ensureLegend', 'openNote');
       var tabId = args.tabId;
       var id = args.id;
       this.model.tabModel.bind('change:highlightedChannel',
                                this.highlightedChannelChanged);
       App.subscribe('PreviewEvent-' + tabId, this.showEvent);
       App.subscribe('UnPreviewEvent-' + tabId, this.hideEvent);
+      App.subscribe('OpenNote-' + tabId, this.openNote);
       App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
       App.subscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
       App.subscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
@@ -477,7 +478,7 @@ define(['views/dashItem', 'plot_booter',
       this.positionIcons();
     },
 
-    setupIcons: function (dfdf) {
+    setupIcons: function () {
       var self = this;
       if (self.eventIcons.length > 0)
         self.eventIcons.remove();
@@ -487,7 +488,8 @@ define(['views/dashItem', 'plot_booter',
         return (s2.end - s2.beg) - (s1.end - s1.beg);
       });
       _.each(events, function (not) {
-        var icon = $('<img>')
+        var icon = $('<img ' + (not.type === '_note' && self.id === 'MASTER' ?
+                    'id="' + not.id + '"' : '') + '>')
             .attr({ src: not.meta.icon })
             .css({ bottom: 20 })
             .addClass('timeline-icon')
@@ -1067,7 +1069,7 @@ define(['views/dashItem', 'plot_booter',
 
     drawNote: function (e, plot, neighbor) {
       var self = this;
-      self.noteCtx.fillStyle = 'rgba(0,0,0,0.25)';
+      self.noteCtx.fillStyle = 'rgba(255,255,0,0.2)';
       self.clearNoteBox();
       self.noteBox.w = neighbor ? -neighbor.noteBox.w :
           self.getMouse(e, self.plot).x - self.noteBox.x;
@@ -1120,6 +1122,20 @@ define(['views/dashItem', 'plot_booter',
         top: mouse.y + 3,
         left: onRight ? rightEdge + 15 : leftEdge - 315,
       }, note).hide().appendTo(self.el).fadeIn(200);
+
+      // Add scroll bar to note text content if
+      // greater than 200px tall.
+      var noteContent = $('.note-content', self.noteWindow);
+      if (noteContent.height() > 200)
+         noteContent.css({'overflow-y': 'scroll', 'max-height': '200px'});
+
+      // Ensure that the note window does not
+      // end up off the screen.
+      var winHeight = $(window).height();
+      var noteYOffset = parseInt(self.el.offset().top) + mouse.y + 3;
+      var windowOverlap = noteYOffset + self.noteWindow.height() - winHeight;
+      if (windowOverlap > 0)
+        self.noteWindow.css({ top: mouse.y + 3 - windowOverlap - 10 });
 
       var body = $('.note-text', self.noteWindow);
       var msg = $('.note-message', self.noteWindow);
@@ -1325,8 +1341,11 @@ define(['views/dashItem', 'plot_booter',
             $(this).trigger('mouseleave');
         });
       });
-
       return n;
+    },
+
+    openNote: function (nId) {
+      $('#' + nId).click();
     },
 
     channelOnScreen: function (channelName) {

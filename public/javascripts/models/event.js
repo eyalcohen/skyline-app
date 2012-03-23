@@ -58,6 +58,7 @@ define(function () {
             desc: 'Note',
             info: args.val.text,
           }
+          this.attributes.id = App.util.makeId(12);
           break;
       }
       if (args.vehicle) {
