@@ -38,7 +38,7 @@
             li.note-channel(data-channel-name=c.channelName)
               - if (isNew)
                 = c.channelName
-                a.note-channel-remove(href="javascript:;", title="Remove channel") &nbsp;(x)
+                a.note-channel-remove(href="javascript:;", title="Remove channel") &nbsp;(&#x2717;)
               - else {
                 a.note-channel-link.jstree-draggable= c.channelName
                 span(style="color:lightgreen; display: " + (c.onScreen ? "inline;" : "none;"))

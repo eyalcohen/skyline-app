@@ -933,7 +933,7 @@ tr.dark {
 }
 
 tr.dark:hover, tr.light:hover {
-  background: rgba(174,182,154,0.2);
+  background: rgba(174,182,154,0.5);
   /*background: rgba(194,254,6,0.5);*/
   /*background: rgba(252,241,129,0.5);*/
 }
@@ -943,6 +943,7 @@ th, td {
   -moz-user-select: text;
   user-select: text;
   min-height: 30px;
+  cursor: default;
 }
 
 th {
@@ -1412,7 +1413,7 @@ a.note-channel-link:active {
 
 a.note-channel-remove {
   color: white;
-  font-weight: bold;
+  font-weight: normal;
   cursor: pointer;
 }
 

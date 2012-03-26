@@ -4,10 +4,16 @@
 
 define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
+    // initialize: function (args) {
+    //   this._super('initialize', args);
+
+    // },
+
     events: {
       'click .toggler': 'toggle',
       'mousedown .dashboard-item-header': 'adjustHeight',
-      'click .open-vehicle': 'open',
+      // 'click .open-vehicle': 'open',
+      // 'click tr[data-title]': 'open',
       'mouseenter tr[data-title]': 'preview',
       'mouseleave tr[data-title]': 'unpreview',
     },
@@ -43,6 +49,12 @@ define(['views/dashItem'], function (DashItemView) {
       this.setDuration();
       if (!opts.loading)
         App.publish('AppReady');
+
+      if (this.model.get('singleVehicle'))
+        $('tr[data-title]', this.el).click(_.bind(this.open, this));
+      else
+        $('.open-vehicle', this.el).click(_.bind(this.open, this));
+
       return this;
     },
 
@@ -53,15 +65,17 @@ define(['views/dashItem'], function (DashItemView) {
         end: parseInt($('[data-time-end]', parentRow).attr('data-time-end')),
       };
       var padding = 0.02 * (timeRange.end - timeRange.beg);
-      timeRange.beg -= padding;
-      timeRange.end += padding;
+      var visibleRange = {
+        beg: timeRange.beg - padding,
+        end: timeRange.end + padding,
+      };
       var props = this.getProps(parentRow);
       var channels = $('[data-channels]', parentRow).attr('data-channels');
       if (channels)
         channels = JSON.parse(channels);
       if (this.model.get('singleVehicle')) {
         App.publish('UnPreviewEvent-' + props.id);
-        this.model.get('tabModel').set({ visibleTime: timeRange });
+        this.model.get('tabModel').set({ visibleTime: visibleRange });
         App.publish('PreviewEvent-' + props.id, [timeRange]);
         App.publish('OpenNote-' + props.id, [parentRow.attr('data-id')]);
         // Open a new graph and place
@@ -92,6 +106,7 @@ define(['views/dashItem'], function (DashItemView) {
         App.publish('VehicleRequested', [props.id, tabId, props.title,
                     timeRange, false, function () {
           fetchChannels(channels, props.id, tabId, 'MASTER');
+          App.publish('OpenNote-' + props.id, [parentRow.attr('data-id')]);
         }]);
       }
 

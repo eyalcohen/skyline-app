@@ -37,6 +37,7 @@ define(['views/dashItem', 'plot_booter',
                                  this.highlightedChannelChanged);
       App.unsubscribe('PreviewEvent-' + tabId, this.showEvent);
       App.unsubscribe('UnPreviewEvent-' + tabId, this.hideEvent);
+      App.unsubscribe('OpenNote-' + tabId, this.openNote);
       App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
       App.unsubscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
       App.unsubscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
@@ -79,22 +80,26 @@ define(['views/dashItem', 'plot_booter',
     },
 
     resize: function (delta, skipDraw) {
-      this._super('resize', delta);
-      if (this.plot) {
-        var width = this.content.width();
-        var height = this.content.height();
+      var self = this;
+      self._super('resize', delta);
+      if (self.plot) {
+        var width = self.content.width();
+        var height = self.content.height();
         if (width === 0)
-          width = this.plot.getPlaceholder().closest('[data-width]').width();
-        this.plot.getPlaceholder().css({
+          width = self.plot.getPlaceholder().closest('[data-width]').width();
+        self.plot.getPlaceholder().css({
           width: width,
           height: height,
         });
-        this.plot.setCanvasDimensions(width, height);
-        this.noteCanvas.attr({ width: width, height: height });
+        self.plot.setCanvasDimensions(width, height);
+        self.noteCanvas.attr({ width: width, height: height });
         if (!skipDraw) {
-          this.plot.setupGrid();
-          this.plot.draw();
-          this.redrawNote();
+          self.plot.setupGrid();
+          self.plot.draw();
+          var allGraphs = self.model.tabModel.graphModels;
+          _.each(allGraphs, function (gm) {
+              gm.view.redrawNote();
+          });
         }
       }
     },
@@ -785,7 +790,7 @@ define(['views/dashItem', 'plot_booter',
       }
     },
 
-    showEvent: function (range, other) {
+    showEvent: function (range) {
       var xaxis = this.plot.getXAxes()[0];
       var leftSide = Math.max(xaxis.p2c(range.beg / 1e3), 0);
       var rightSide = Math.min(xaxis.p2c(range.end / 1e3), this.plot.width());
@@ -1036,7 +1041,21 @@ define(['views/dashItem', 'plot_booter',
     },
 
     addGraph: function (e) {
-      App.publish('GraphRequested-' + this.options.tabId, [App.util.makeId()]);
+      var self = this;
+      App.publish('GraphRequested-' + this.options.tabId,
+                  [App.util.makeId(), null, function () {
+        var otherGraphs = self.model.tabModel.graphModels;
+        _.each(otherGraphs, function (gm) {
+          if (gm.view.id !== self.id) {
+            if (!gm.view.noteBox) {
+              gm.view.noteCanvas.show();
+              gm.view.noteBox = self.noteBox;
+              gm.view.redrawNote();
+            }
+          }
+        });
+
+      }]);
     },
 
     removeGraph: function (e) {
@@ -1044,6 +1063,8 @@ define(['views/dashItem', 'plot_booter',
         App.publish('ChannelUnrequested-' + 
             this.options.tabId + '-' + this.options.id, [channel]);
       }, this));
+      if (this.noteWindow)
+        this.cancelNote();
       App.publish('GraphUnrequested-' + this.options.tabId, [this.options.id]);
     },
 
@@ -1123,19 +1144,7 @@ define(['views/dashItem', 'plot_booter',
         left: onRight ? rightEdge + 15 : leftEdge - 315,
       }, note).hide().appendTo(self.el).fadeIn(200);
 
-      // Add scroll bar to note text content if
-      // greater than 200px tall.
-      var noteContent = $('.note-content', self.noteWindow);
-      if (noteContent.height() > 200)
-         noteContent.css({'overflow-y': 'scroll', 'max-height': '200px'});
-
-      // Ensure that the note window does not
-      // end up off the screen.
-      var winHeight = $(window).height();
-      var noteYOffset = parseInt(self.el.offset().top) + mouse.y + 3;
-      var windowOverlap = noteYOffset + self.noteWindow.height() - winHeight;
-      if (windowOverlap > 0)
-        self.noteWindow.css({ top: mouse.y + 3 - windowOverlap - 10 });
+      self.fitNote(mouse.y + 3);
 
       var body = $('.note-text', self.noteWindow);
       var msg = $('.note-message', self.noteWindow);
@@ -1233,6 +1242,23 @@ define(['views/dashItem', 'plot_booter',
           _.bind(self.removeNoteChannel, self));
     },
 
+    fitNote: function (offset) {
+      var self = this;
+      // Add scroll bar to note text content if
+      // greater than 200px tall.
+      var noteContent = $('.note-content', self.noteWindow);
+      if (noteContent.height() > 200)
+         noteContent.css({'overflow-y': 'scroll', 'max-height': '200px'});
+
+      // Ensure that the note window does not
+      // end up off the screen.
+      var winHeight = $(window).height();
+      var noteYOffset = parseInt(self.el.offset().top) + offset;
+      var windowOverlap = noteYOffset + self.noteWindow.height() - winHeight;
+      if (windowOverlap > 0)
+        self.noteWindow.css({ top: offset - windowOverlap - 10 });
+    },
+
     addNoteChannelFromLabel: function (e) {
       var self = this;
       if (!self.noteBox) return;
@@ -1292,7 +1318,18 @@ define(['views/dashItem', 'plot_booter',
       this.noteWindow = null;
     },
 
-    redrawNote: function () {},
+    redrawNote: function () {
+      if (this.noteBox) {
+        this.noteBox.h = this.plot.getPlaceholder().height();
+        this.noteCtx.fillStyle = 'rgba(255,255,0,0.2)';
+        this.noteCtx.clearRect(this.noteBox.x, this.noteBox.y,
+                            this.noteBox.w, this.noteBox.h);
+        this.noteCtx.fillRect(this.noteBox.x, this.noteBox.y,
+                            this.noteBox.w, this.noteBox.h);
+      }
+      if (this.noteWindow)
+        this.fitNote(0);
+    },
 
     getNote: function (opts, note) {
       var self = this;
@@ -1345,6 +1382,8 @@ define(['views/dashItem', 'plot_booter',
     },
 
     openNote: function (nId) {
+      if (!nId)
+        this.cancelNote();
       $('#' + nId).click();
     },
 

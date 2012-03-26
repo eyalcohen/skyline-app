@@ -120,7 +120,7 @@ define(function (fn) {
       delete App.vehicleTabModels[this.tabId];
     },
 
-    addGraph: function (id, noreset) {
+    addGraph: function (id, noreset, cb) {
       var height = this.graphModels.length > 0 ?
                   this.graphModels[0].view.content.parent().parent().height() : 0;
       var isMaster = id === 'MASTER';
@@ -149,6 +149,7 @@ define(function (fn) {
         }
       });
       this.view.arrangeGraphs(height, null, true);
+      if (cb) cb();
     },
 
     removeGraph: function (id) {
