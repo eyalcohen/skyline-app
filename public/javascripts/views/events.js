@@ -4,16 +4,10 @@
 
 define(['views/dashItem'], function (DashItemView) {
   return DashItemView.extend({
-    // initialize: function (args) {
-    //   this._super('initialize', args);
-
-    // },
-
     events: {
       'click .toggler': 'toggle',
       'mousedown .dashboard-item-header': 'adjustHeight',
-      // 'click .open-vehicle': 'open',
-      // 'click tr[data-title]': 'open',
+      'click tr[data-title]': 'open',
       'mouseenter tr[data-title]': 'preview',
       'mouseleave tr[data-title]': 'unpreview',
     },
@@ -29,9 +23,8 @@ define(['views/dashItem'], function (DashItemView) {
         rows: this.model.get('events'),
       });
       
-      if (this.el.length) {
+      if (this.el.length)
         this.remove();
-      }
       var start = Date.now();
       this.el = App.engine('events.dash.jade', opts)
           .appendTo(this.options.parent);
@@ -49,11 +42,6 @@ define(['views/dashItem'], function (DashItemView) {
       this.setDuration();
       if (!opts.loading)
         App.publish('AppReady');
-
-      if (this.model.get('singleVehicle'))
-        $('tr[data-title]', this.el).click(_.bind(this.open, this));
-      else
-        $('.open-vehicle', this.el).click(_.bind(this.open, this));
 
       return this;
     },
@@ -128,9 +116,29 @@ define(['views/dashItem'], function (DashItemView) {
       return this;
     },
 
+    bounceArrow: function (row) {
+      var self = this;
+      var arrow = $('.arrow', row);
+      if (arrow.length === 0) return;
+      (function () {
+        arrow.animate({
+          left: '10px',
+          easing: 'easeOutExpo',
+        }, 200, function moveLeft() {
+          arrow.css({ left: 0 });
+        });
+      })();
+    },
+
     preview: function (e) {
-      if (!this.model.get('singleVehicle')) return;
       var parentRow = $(e.target).closest('tr');
+      $('td', parentRow).each(function () {
+        var _this = $(this);
+        if (!_this.hasClass('row-arrow'))
+          _this.css({'text-decoration': 'underline'});
+      });
+      this.bounceArrow(parentRow);
+      if (!this.model.get('singleVehicle')) return;
       var beg = parseInt($('[data-time]', parentRow).attr('data-time'));
       var end = parseInt($('[data-time-end]', parentRow).attr('data-time-end'));
       var props = this.getProps(parentRow);
@@ -139,8 +147,14 @@ define(['views/dashItem'], function (DashItemView) {
     },
 
     unpreview: function (e) {
+      var parentRow = $(e.target).closest('tr');
+      $('td', parentRow).each(function () {
+        var _this = $(this);
+        if (!_this.hasClass('row-arrow'))
+          _this.css({'text-decoration': 'none'});
+      });
       if (!this.model.get('singleVehicle')) return;
-      var props = this.getProps($(e.target).closest('tr'));
+      var props = this.getProps(parentRow);
       App.publish('UnPreviewEvent-' + props.id);
       return this;
     },

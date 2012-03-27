@@ -7,9 +7,9 @@ define(['views/dashItem'],
   return DashItemView.extend({
     events: {
       'click .toggler': 'toggle',
-      'mouseenter tr': 'showPanel',
-      'mouseleave tr': 'hidePanel',
-      'click .open-vehicle': 'open',
+      'mouseenter tr': 'enterRow',
+      'mouseleave tr': 'leaveRow',
+      'click tr[data-title]': 'open',
       'click .config-link': 'configure',
     },
 
@@ -49,25 +49,58 @@ define(['views/dashItem'],
       return this;
     },
 
-    showPanel: function (e) {
+    enterRow: function (e) {
       var tr = $(e.target).closest('tr');
+      var attrs = this.getRowAttributesFromChild(tr);
       $('.edit-panel', tr).css({ visibility: 'visible' });
+      if (attrs.lastCycle && attrs.lastCycle.beg !== 0) { 
+        $('td', tr).each(function () {
+          var _this = $(this);
+          if (!_this.hasClass('row-arrow'))
+            _this.css({'text-decoration': 'underline'});
+        });
+        this.bounceArrow(tr);
+      }
     },
 
-    hidePanel: function (e) {
+    leaveRow: function (e) {
       var tr = $(e.target).closest('tr');
+      var attrs = this.getRowAttributesFromChild(tr);
       $('.edit-panel', tr).css({ visibility: 'hidden' });
+      if (attrs.lastCycle && attrs.lastCycle.beg !== 0) {
+        $('td', tr).each(function () {
+          var _this = $(this);
+          if (!_this.hasClass('row-arrow'))
+            _this.css({'text-decoration': 'none'});
+        });
+      }
+    },
+
+    bounceArrow: function (row) {
+      var self = this;
+      var arrow = $('.arrow', row);
+      if (arrow.length === 0) return;
+      (function () {
+        arrow.animate({
+          left: '10px',
+          easing: 'easeOutExpo',
+        }, 200, function moveLeft() {
+          arrow.css({ left: 0 });
+        });
+      })();
     },
 
     open: function (e) {
       var attrs = this.getRowAttributesFromChild(e.target);
-      var tabId = App.util.makeId();
-      var timeRange = {
-        beg: attrs.lastCycle.beg,
-        end: attrs.lastCycle.end,
-      };
-      App.publish('VehicleRequested',
-          [attrs.id, tabId, attrs.title, timeRange]);
+      if (attrs.lastCycle && attrs.lastCycle.beg !== 0) {
+        var tabId = App.util.makeId();
+        var timeRange = {
+          beg: attrs.lastCycle.beg,
+          end: attrs.lastCycle.end,
+        };
+        App.publish('VehicleRequested',
+            [attrs.id, tabId, attrs.title, timeRange]);
+      }
       return this;
     },
 
@@ -84,7 +117,9 @@ define(['views/dashItem'],
 
     getRowAttributesFromChild: function (child) {
       var tr = $(child).closest('tr');
-      var items = tr.attr('id').split('_');
+      var id = tr.attr('id');
+      if (!id) return;
+      var items = id.split('_');
       var time = parseInt($('[data-time]', tr).attr('data-time'));
       return {
         id: parseInt(items[items.length - 1]),

@@ -63,12 +63,8 @@ div.dashboard-item
                 | -
               td.nowrap(data-duration=(row.end-row.beg))
                 | -
-              - if (!singleVehicle) {
-                td(align="right")
-                  div.open-vehicle(role="button", title="Go to event")
-                    div
-                    span Go
-              - }
+              td.row-arrow(align="right")
+                span.arrow &rarr;
           - })
     - }
 

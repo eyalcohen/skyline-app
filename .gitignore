@@ -7,3 +7,5 @@ public/vconfig/id/
 .monitor
 *-old.*
 *-old[0-9].*
+*.sublime-project
+*.sublime-workspace

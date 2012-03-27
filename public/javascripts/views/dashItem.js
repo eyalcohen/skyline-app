@@ -40,6 +40,10 @@ define(['jquery',
         this.content.hide();
         this.el.show();
         this.resize();
+        // HACK: seems like the DOM rendering is not
+        // always complete by the time we go to 
+        // resize... so wait a bit and do it again.
+        _.delay(this.resize, 500);
         if (this.options.weight !== 0)
           this.content.show();
         if (this.options.shrinkable)
