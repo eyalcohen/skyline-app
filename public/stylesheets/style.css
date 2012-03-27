@@ -831,6 +831,7 @@ input.dashboard-search {
 input.dashboard-search:focus {
   color: black;
   background: white;
+  border: none;
 }
 
 .dashboard-item {

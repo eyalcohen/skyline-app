@@ -24,8 +24,7 @@ define(function () {
       App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
       this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
       App.subscribe('ChannelRequested-' + tabId + '-' + id, this.addChannel);
-      App.subscribe('ChannelUnrequested-' + tabId + '-' + id,
-                    this.removeChannel);
+      App.subscribe('ChannelUnrequested-' + tabId + '-' + id, this.removeChannel);
       App.subscribe('FetchGraphedChannels-' + tabId, this.fetchGraphedChannels);
       App.sampleCache.bind('update-' + this.clientId, this.updateSampleSet);
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
@@ -126,7 +125,7 @@ define(function () {
     removeChannel: function (channel) {
       var self = this;
       var index = _.pluck(self.get('channels'), 'channelName')
-          .indexOf(channel.channelName);
+                          .indexOf(channel.channelName);
       if (index === -1) return;
       self.get('channels').splice(index, 1);
       // console.log('removeChannel(', channel, ')...');

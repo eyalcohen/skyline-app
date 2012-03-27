@@ -1,6 +1,6 @@
 (function ($) {
 
-  $.fn.placeholder = function () {  
+  $.fn.placeholder = function () {
 
     var placeholder = this;
   

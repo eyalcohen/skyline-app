@@ -514,6 +514,12 @@ define(['views/dashItem', 'plot_booter',
             .bind('click', function (e) {
               var not = $(e.target).data();
               if (not.type !== '_note') return;
+              if ($('.note').length > 0) {
+                _.each(self.model.tabModel.graphModels, function (gm) {
+                  if (gm.view.noteWindow)
+                      gm.view.cancelNote();
+                });
+              }
               var xaxis = self.plot.getXAxes()[0];
               var off = _.map(self.plot.offset(), function (o) {
                 return parseInt(o);
@@ -1059,13 +1065,35 @@ define(['views/dashItem', 'plot_booter',
     },
 
     removeGraph: function (e) {
-      _.each(this.model.get('channels'), _.bind(function (channel) {
-        App.publish('ChannelUnrequested-' + 
-            this.options.tabId + '-' + this.options.id, [channel]);
-      }, this));
+      var self = this;
+      var channels = [];
+      _.each(self.model.get('channels'), function (channel) {
+        channels.push($.extend(true, {}, channel));
+      });
+      _.each(channels, function (channel) {
+        App.publish('ChannelUnrequested-' +
+                    self.options.tabId + '-' + self.options.id, [channel]);
+      });
       if (this.noteWindow)
         this.cancelNote();
-      App.publish('GraphUnrequested-' + this.options.tabId, [this.options.id]);
+      if (self.options.id !== 'MASTER')
+        App.publish('GraphUnrequested-' +
+                    self.options.tabId, [self.options.id]);
+      else if (self.model.tabModel.graphModels.length > 1) {
+        var donor = self.model.tabModel.graphModels[1];
+        var donorChannels = [];
+        _.each(donor.get('channels'), function (channel) {
+          donorChannels.push($.extend(true, {}, channel));
+        });
+        _.each(donorChannels, function (channel) {
+          App.publish('ChannelRequested-' +
+                    self.options.tabId + '-' + self.options.id, [channel]);
+          App.publish('ChannelUnrequested-' +
+                      donor.get('tabId') + '-' + donor.get('id'), [channel]);
+        });
+        App.publish('GraphUnrequested-' +
+                    donor.get('tabId'), [donor.get('id')]);
+      }
     },
 
     getMouse: function (e, plot) {

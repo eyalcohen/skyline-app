@@ -42,7 +42,7 @@ define(['jquery'], function ($) {
     destroy: function () {
       App.unsubscribe('AppReady', this.startHistory);
       App.unsubscribe('NotAuthenticated', this.destroy);
-      App.unsubscribe('VehicleRequested', this.load);
+      App.unsubscribe('VehicleRequested', this.loadVehicle);
       $('.tabs, .folder').hide();
       return this;
     },
