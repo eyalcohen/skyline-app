@@ -48,6 +48,7 @@ define(['views/dashItem'], function (DashItemView) {
 
     open: function (e) {
       var parentRow = $(e.target).closest('tr');
+      if (!parentRow) return;
       var timeRange = {
         beg: parseInt($('[data-time]', parentRow).attr('data-time')),
         end: parseInt($('[data-time-end]', parentRow).attr('data-time-end')),
@@ -66,35 +67,14 @@ define(['views/dashItem'], function (DashItemView) {
         this.model.get('tabModel').set({ visibleTime: visibleRange });
         App.publish('PreviewEvent-' + props.id, [timeRange]);
         App.publish('OpenNote-' + props.id, [parentRow.attr('data-id')]);
-        // Open a new graph and place
-        // the note's channels on it.
-        // Do nothing if ALL of the channels
-        // are already on-screen.
-        // NOTE: This is not bein used in favor of
-        // letting the user add the channels
-        // from the note's list (less intrusive)
-        // if (channels) {
-        //   var currentChannels = this.model.get('tabModel')
-        //                             .getAllChannelNames();
-        //   var allDuplicate = true;
-        //   _.each(channels, function (channel) {
-        //     if (!_.find(currentChannels, function (currentChannel) {
-        //       return channel === currentChannel;
-        //     })) allDuplicate = false;
-        //   });
-        //   if (!allDuplicate) {
-        //     var graphId = App.util.makeId();
-        //     var tabId = this.model.get('tabId');
-        //     App.publish('GraphRequested-' + tabId, [graphId]);
-        //     fetchChannels(channels, this.model.get('vehicleId'), tabId, graphId);
-        //   }
-        // }
       } else {
         var tabId = App.util.makeId();
         App.publish('VehicleRequested', [props.id, tabId, props.title,
-                    timeRange, false, function () {
+                    visibleRange, false, function () {
           fetchChannels(channels, props.id, tabId, 'MASTER');
-          App.publish('OpenNote-' + props.id, [parentRow.attr('data-id')]);
+          _.delay(function () {
+            App.publish('OpenNote-' + tabId, [null, timeRange]); 
+          }, 1000);
         }]);
       }
 

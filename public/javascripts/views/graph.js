@@ -93,13 +93,13 @@ define(['views/dashItem', 'plot_booter',
         });
         self.plot.setCanvasDimensions(width, height);
         self.noteCanvas.attr({ width: width, height: height });
+        var allGraphs = self.model.tabModel.graphModels;
+        _.each(allGraphs, function (gm) {
+          gm.view.redrawNote();
+        });
         if (!skipDraw) {
           self.plot.setupGrid();
           self.plot.draw();
-          var allGraphs = self.model.tabModel.graphModels;
-          _.each(allGraphs, function (gm) {
-              gm.view.redrawNote();
-          });
         }
       }
     },
@@ -1152,6 +1152,13 @@ define(['views/dashItem', 'plot_booter',
         rightEdge = mouse.x;
       }
 
+      var channels = [];
+      var allGraphs = self.model.tabModel.graphModels;
+      _.each(allGraphs, function (gm) {
+        channels.push(_.pluck(gm.get('channels'), 'channelName'));
+      });
+
+
       var isNew = !e.note;
       var note = e.note ? e.note :
           {
@@ -1159,7 +1166,7 @@ define(['views/dashItem', 'plot_booter',
             end: xaxis.c2p(rightEdge) * 1e3,
             val: {
               userId: App.user._id,
-              channels: _.pluck(self.model.get('channels'), 'channelName'),
+              channels: _.flatten(channels),
             },
           };
 
@@ -1409,10 +1416,20 @@ define(['views/dashItem', 'plot_booter',
       return n;
     },
 
-    openNote: function (nId) {
-      if (!nId)
+    openNote: function (nId, timeRange) {
+      var self = this;
+      if (!nId && !timeRange)
         this.cancelNote();
-      $('#' + nId).click();
+      if (nId)
+        $('#' + nId).click();
+      else if (timeRange) {
+        $(_.find(self.eventIcons, function (icon) {
+          var data = $(icon).data();
+          return parseInt(data.beg) === parseInt(timeRange.beg);
+                  // && Math.round(data.end) === Math.round(timeRange.end);
+        })).click();
+      }
+
     },
 
     channelOnScreen: function (channelName) {

@@ -53,7 +53,7 @@ define(['views/dashItem'],
       var tr = $(e.target).closest('tr');
       var attrs = this.getRowAttributesFromChild(tr);
       $('.edit-panel', tr).css({ visibility: 'visible' });
-      if (attrs.lastCycle && attrs.lastCycle.beg !== 0) { 
+      if (attrs && attrs.lastCycle && attrs.lastCycle.beg !== 0) { 
         $('td', tr).each(function () {
           var _this = $(this);
           if (!_this.hasClass('row-arrow'))
@@ -67,7 +67,7 @@ define(['views/dashItem'],
       var tr = $(e.target).closest('tr');
       var attrs = this.getRowAttributesFromChild(tr);
       $('.edit-panel', tr).css({ visibility: 'hidden' });
-      if (attrs.lastCycle && attrs.lastCycle.beg !== 0) {
+      if (attrs && attrs.lastCycle && attrs.lastCycle.beg !== 0) {
         $('td', tr).each(function () {
           var _this = $(this);
           if (!_this.hasClass('row-arrow'))
@@ -92,7 +92,7 @@ define(['views/dashItem'],
 
     open: function (e) {
       var attrs = this.getRowAttributesFromChild(e.target);
-      if (attrs.lastCycle && attrs.lastCycle.beg !== 0) {
+      if (attrs && attrs.lastCycle && attrs.lastCycle.beg !== 0) {
         var tabId = App.util.makeId();
         var timeRange = {
           beg: attrs.lastCycle.beg,
