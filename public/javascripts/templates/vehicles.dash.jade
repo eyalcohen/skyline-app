@@ -32,7 +32,7 @@
           -  var rowStyle = row.lastCycle.beg !== 0 || DEMO ? '' : 'color: #666; cursor: default;';
             tr(id=row.htmlId, class=['dark','light'][i%2], data-title=row.doc.title, title=row.doc.description, style=rowStyle)
               td.nowrap(style="font-weight:bold;")
-                =row.doc.title
+                span=row.doc.title
                 - if (config) {
                   span.edit-panel
                     a.config-link(href="javascript:;", title="Manage vehicle data logging")

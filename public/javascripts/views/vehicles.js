@@ -56,8 +56,12 @@ define(['views/dashItem'],
       if (attrs && attrs.lastCycle && attrs.lastCycle.beg !== 0) { 
         $('td', tr).each(function () {
           var _this = $(this);
-          if (!_this.hasClass('row-arrow'))
-            _this.css({'text-decoration': 'underline'});
+          if (!_this.hasClass('row-arrow')) {
+            if (_this.children().length > 0)
+              $(this.firstElementChild).css({'text-decoration': 'underline'});
+            else
+              _this.css({'text-decoration': 'underline'});
+          }
         });
         this.bounceArrow(tr);
       }
@@ -70,8 +74,12 @@ define(['views/dashItem'],
       if (attrs && attrs.lastCycle && attrs.lastCycle.beg !== 0) {
         $('td', tr).each(function () {
           var _this = $(this);
-          if (!_this.hasClass('row-arrow'))
-            _this.css({'text-decoration': 'none'});
+          if (!_this.hasClass('row-arrow')) {
+            if (_this.children().length > 0)
+              $(this.firstElementChild).css({'text-decoration': 'none'});
+            else
+              _this.css({'text-decoration': 'none'});
+          }
         });
       }
     },
@@ -91,6 +99,7 @@ define(['views/dashItem'],
     },
 
     open: function (e) {
+      if ($(e.target).hasClass('config-link')) return;
       var attrs = this.getRowAttributesFromChild(e.target);
       if (attrs && attrs.lastCycle && attrs.lastCycle.beg !== 0) {
         var tabId = App.util.makeId();
@@ -107,8 +116,8 @@ define(['views/dashItem'],
     configure: function (e) {
       var attrs = this.getRowAttributesFromChild(e.target);
       App.api.fetchVehicleConfig(attrs.id, function (err, xml) {
-        if (err) throw err;
-        else App.editorView.open('<span style="font-weight:normal;">Configure Vehicle:</span> ' +
+        if (err) return alert(err.toString());
+        App.editorView.open('<span style="font-weight:normal;">Configure Vehicle:</span> ' +
             attrs.title + ' (' + attrs.id + ')', xml, function (data, cb) {
           App.api.saveVehicleConfig(attrs.id, data, cb);
         });
