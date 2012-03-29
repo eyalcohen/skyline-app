@@ -52,10 +52,10 @@ define(['jquery', 'libs/jquery.simplemodal-1.4.1'], function ($) {
       var self = this;
       var state = App.stateMonitor.getState();
       if (state === '')
-        openDialog('http://' + window.location.host);
+        openDialog('https://' + window.location.host);
       else
         App.api.saveLink(state, function (err, key) {
-          openDialog('http://' + window.location.host + '/s/' + key);
+          openDialog('https://' + window.location.host + '/s/' + key);
         });
       function openDialog(link) {
         App.engine('permalink.dialog.jade',
