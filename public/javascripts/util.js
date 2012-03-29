@@ -137,7 +137,7 @@ define({
         return params.hasOwnProperty(key);
     };
 
-    this.push= function () {
+    this.push = function () {
         var hashBuilder = [], key, value;
 
         for(key in params) if (params.hasOwnProperty(key)) {
@@ -162,7 +162,11 @@ define({
   },
 
   formatNoteText: function (str) {
-    return str.replace(/\n/g, '<br />');
+    var linkExp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    str = str.replace(/\n/g, '<br/>');
+    str = str.replace(/\s/g, '&nbsp;');
+    str = str.replace(linkExp,"<a href='$1' target='_blank'>$1</a>"); 
+    return str;
   },
 
 });

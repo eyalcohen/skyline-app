@@ -944,8 +944,6 @@ tr.dark {
 
 tr.dark:hover, tr.light:hover {
   background: rgba(174,182,154,0.5);
-  /*background: rgba(194,254,6,0.5);*/
-  /*background: rgba(252,241,129,0.5);*/
 }
 
 th, td {
@@ -1312,6 +1310,7 @@ h2.note-user-reply {
 .note-body {
   padding: 2px 5px 5px;
   color: #333;
+  overflow-x: auto;
 
   -webkit-user-select: text;
   -moz-user-select: text;

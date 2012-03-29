@@ -1033,17 +1033,26 @@ define(['views/dashItem', 'plot_booter',
     },
 
     removeChannel: function (e) {
+      var self = this;
       var labelParent = $(e.target).parent().parent();
       var label = $('.legendLabel > div', labelParent);
       var channelIndex = Number(label.attr('data-channel-index'));
-      var channel = this.model.get('channels')[channelIndex];
+      var channel = self.model.get('channels')[channelIndex];
       App.publish('ChannelUnrequested-' + 
-          this.options.tabId + '-' + this.options.id, [channel]);
+          self.options.tabId + '-' + self.options.id, [channel]);
       // Update note channel list visible.
-      $('.note-channel-link', this.el).each(function () {
-        if ($(this).text() === channel.channelName)
-          $(this.nextElementSibling).hide();
-      });
+      _.delay(function () {
+        var channelNames = self.model.get('tabModel').getAllChannelNames();
+        $('.note-channel-link', self.model.get('tabModel').view.el).each(function () {
+          var ncn = $(this).text();
+          if (_.find(channelNames, function (cn) {
+            return cn === ncn;
+          }))
+            $(this.nextElementSibling).show();
+          else
+            $(this.nextElementSibling).hide();
+        });
+      }, 100);
     },
 
     addGraph: function (e) {
@@ -1152,23 +1161,15 @@ define(['views/dashItem', 'plot_booter',
         rightEdge = mouse.x;
       }
 
-      var channels = [];
-      var allGraphs = self.model.tabModel.graphModels;
-      _.each(allGraphs, function (gm) {
-        channels.push(_.pluck(gm.get('channels'), 'channelName'));
-      });
-
-
       var isNew = !e.note;
-      var note = e.note ? e.note :
-          {
-            beg: xaxis.c2p(leftEdge) * 1e3,
-            end: xaxis.c2p(rightEdge) * 1e3,
-            val: {
-              userId: App.user._id,
-              channels: _.flatten(channels),
-            },
-          };
+      var note = e.note ? e.note : {
+        beg: xaxis.c2p(leftEdge) * 1e3,
+        end: xaxis.c2p(rightEdge) * 1e3,
+        val: {
+          userId: App.user._id,
+          channels: _.pluck(self.getAllChannels(), 'channelName'),
+        },
+      };
 
       self.noteChannels = note.val.channels;
 
@@ -1180,6 +1181,9 @@ define(['views/dashItem', 'plot_booter',
       }, note).hide().appendTo(self.el).fadeIn(200);
 
       self.fitNote(mouse.y + 3);
+
+      $('.note-content').scrollTo('max', 500, {
+                                  easing: App.easing.easeOutExpo });
 
       var body = $('.note-text', self.noteWindow);
       var msg = $('.note-message', self.noteWindow);
@@ -1222,11 +1226,16 @@ define(['views/dashItem', 'plot_booter',
         }
         loading.show();
 
-        note.val.text = $('.note-text', self.noteWindow).val();
+        note.val.text = $('<div>')
+                        .html(body.val())
+                        .text().trim();
+
         note.val.date = new Date().getTime();
 
         if (!isNew)
           delete note.val.channels;
+        else
+          note.val.channels = self.noteChannels;
 
         var _note = {
           beg: note.beg,
@@ -1235,27 +1244,48 @@ define(['views/dashItem', 'plot_booter',
         };
 
         App.api.addNote(self.model.get('vehicleId'),
-                              { _note: [ _note ] }, function (err) {
+                        { _note: [ _note ] }, function (err) {
           if (!err) {
             loading.hide();
+            var noteClass = isNew ? 'note-user' : 'note-user-reply';
+            var reply = $('<h2 class="' + noteClass + '">'
+                        + (DEMO ? 'John Doe' : App.user.displayName)
+                        + '<span class="note-content-date">' + ' '
+                        + App.util.getRelativeTime(_note.val.date) + '</span></h2>'
+                        + '<p class="note-body">' + App.util.formatNoteText(_note.val.text) + '</p>');
+            reply.appendTo($('.note-content', self.noteWindow));
+
             if (isNew) {
+              isNew = false;
               msg.text('Your comment has been posted.').show();
-              _.delay(function () {
-                self.cancelNote(null, plot, true);
-              }, 1e3);
+              body.attr('data-placeholder', 'Add reply here.');
+              $('.note-post', self.noteWindow).text('Reply');
+              $('.note-cancel', self.noteWindow).text('Close');
+              $('.note-channels li', self.noteWindow).each(function () {
+                var li = $(this);
+                var cn = li.attr('data-channel-name');
+                if (!cn) return;
+                var a = $('<a class="note-channel-link jstree-draggable">'
+                          + cn + '</a>');
+                var span = $('<span style="color:lightgreen;">&nbsp;&nbsp;&#x2713;</span>');
+                li.empty().append(a).append(span);
+                if (!self.channelOnScreen(cn))
+                  $('span', li).hide();
+              });
+              self.addNoteChannelEvents(self.noteWindow);
             } else {
               msg.text('Your reply has been posted.').show();
-              $('.note-text', self.noteWindow).val('').blur().focus();
-              var reply = $('<h2 class="note-user-reply">'
-                          + (DEMO ? 'John Doe' : App.user.displayName)
-                          + '<span class="note-content-date">' + ' '
-                          + App.util.getRelativeTime(_note.val.date) + '</span></h2>'
-                          + '<p class="note-body">' + _note.val.text + '</p>');
-              reply.appendTo($('.note-content', self.noteWindow));
-              _.delay(function () {
-                msg.fadeOut('slow');
-              }, 2e3);
             }
+            var header = $('.note-header > span', self.noteWindow);
+            var numReplies = $('.note-body', self.noteWindow).length;
+            header.html(header.html().replace(/.*at/, numReplies + ' comments at'));
+            body.val('').blur().focus();
+            _.delay(function () {
+              msg.fadeOut('slow');
+            }, 2e3);
+            $('.note-content').scrollTo('max', 500, {
+                                        easing: App.easing.easeOutExpo });
+            body.css({ height: '50px' });
             $('.timeline-icon', self.holder).remove();
             self.model.tabModel.resetEvents();
           } else if ('Permission denied.' === err) {
@@ -1279,6 +1309,7 @@ define(['views/dashItem', 'plot_booter',
 
     fitNote: function (offset) {
       var self = this;
+      if (!offset) offset = 0;
       // Add scroll bar to note text content if
       // greater than 200px tall.
       var noteContent = $('.note-content', self.noteWindow);
@@ -1290,7 +1321,7 @@ define(['views/dashItem', 'plot_booter',
       var winHeight = $(window).height();
       var noteYOffset = parseInt(self.el.offset().top) + offset;
       var windowOverlap = noteYOffset + self.noteWindow.height() - winHeight;
-      if (windowOverlap > 0)
+      if (windowOverlap > -10)
         self.noteWindow.css({ top: offset - windowOverlap - 10 });
     },
 
@@ -1305,12 +1336,13 @@ define(['views/dashItem', 'plot_booter',
           return channel === channelName; })) return;
       $('<li>')
           .html(channelName + '&nbsp;<a class="note-channel-remove"' +
-                'href="javascript:;" title="Remove channel">&nbsp;(X)</a>')
+                'href="javascript:;" title="Remove channel">&nbsp;(&#x2717;)</a>')
           .addClass('note-channel')
           .data('channel-name', channelName)
           .appendTo(noteChannelsList)
           .bind('click', _.bind(self.removeNoteChannel, self));
       self.noteChannels.push(channelName);
+      self.checkNoteChannelVis();
     },
 
     removeNoteChannel: function (e) {
@@ -1319,6 +1351,14 @@ define(['views/dashItem', 'plot_booter',
         return channel === li.data('channel-name');
       });
       li.remove();
+      this.checkNoteChannelVis();
+    },
+
+    checkNoteChannelVis: function () {
+      if (this.noteChannels.length === 0)
+        $('.note-channels', this.el).hide();
+      else
+        $('.note-channels', this.el).show();
     },
 
     cancelNote: function (e, plot, fade, neighbor) {
@@ -1363,7 +1403,7 @@ define(['views/dashItem', 'plot_booter',
                             this.noteBox.w, this.noteBox.h);
       }
       if (this.noteWindow)
-        this.fitNote(0);
+        this.fitNote();
     },
 
     getNote: function (opts, note) {
@@ -1385,8 +1425,17 @@ define(['views/dashItem', 'plot_booter',
       $('.note-body', n).each(function () {
         var b = $(this);
         b.html(b.text());
+      })
+      $('textarea.note-text', n).bind('keyup', function (e) {
+        _.delay(_.bind(self.fitNote, self), 100);
       });
-      $('.note-channel-link', n)
+      self.addNoteChannelEvents(n);
+      return n;
+    },
+
+    addNoteChannelEvents: function (ctx) {
+      var self = this;
+      $('.note-channel-link', ctx)
       .click(function (e) {
         var _this = $(this);
         var check = $(this.nextElementSibling);
@@ -1413,7 +1462,6 @@ define(['views/dashItem', 'plot_booter',
             $(this).trigger('mouseleave');
         });
       });
-      return n;
     },
 
     openNote: function (nId, timeRange) {
@@ -1422,14 +1470,22 @@ define(['views/dashItem', 'plot_booter',
         this.cancelNote();
       if (nId)
         $('#' + nId).click();
-      else if (timeRange) {
+      else if (timeRange)
         $(_.find(self.eventIcons, function (icon) {
           var data = $(icon).data();
-          return parseInt(data.beg) === parseInt(timeRange.beg);
-                  // && Math.round(data.end) === Math.round(timeRange.end);
+          return parseInt(data.beg) === parseInt(timeRange.beg)
+                && parseInt(data.end) === parseInt(timeRange.end);
         })).click();
-      }
+    },
 
+    getAllChannels: function () {
+      var self = this;
+      var channels = [];
+      var allGraphs = self.model.tabModel.graphModels;
+      _.each(allGraphs, function (gm) {
+        channels.push(gm.get('channels'));
+      });
+      return _.flatten(channels);
     },
 
     channelOnScreen: function (channelName) {

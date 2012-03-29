@@ -27,10 +27,12 @@
           span.note-content-date= ' ' + App.util.getRelativeTime(r.val.date)
         p.note-body= App.util.formatNoteText(r.val.text)
       - })
+  - } else {
+    .note-content
   - }
   .note-add
     textarea.note-text(placeholder=placeholderTxt)
-    .note-channels
+    .note-channels(style="display: " + (note.val.channels && note.val.channels.length > 0 ? '':'none'))
       span.note-channels-header Relevant Channels:
       ul
         - if (note.val.channels) {
