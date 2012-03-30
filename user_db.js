@@ -394,7 +394,7 @@ UserDb.prototype.addAccess = function (ids, opts, cb) {
 
 
 /*
- * Determine whether or not user has access read
+ * Determine whether or not user has access
  * to a vehicle. This will be true simply if the vehicle
  * exists in the given vehicles list.
  * Specify a list of keys to check access

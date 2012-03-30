@@ -35,6 +35,7 @@ define(['jquery',
         dynamic: true,
       });
       this.vehicleId = opts.vehicleId;
+      delete opts.model;
       this.el = App.engine(template, opts).appendTo('.folder').hide();
       this.tab = App.engine('tab.jade', opts).appendTo(opts.tabParent);
       var winWidth = $(window).width() - 10;
