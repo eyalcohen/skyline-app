@@ -28,6 +28,7 @@ define(['jquery',
         targetClass: this.options.targetClass,
         vehicleId: null,
         tabLeft: left,
+        tabRight: null,
         tabIndex: tabs.length,
         tabParent: '.tabs-dynamic',
         active: false,
@@ -56,13 +57,6 @@ define(['jquery',
 
     clickTab: function (e) {
       App.publish('ShowFolderItem-' + this.options.targetClass);
-      // if (this.vehicleId)
-      //   if (e)
-      //     App.router.go('vehicle/' + this.vehicleId, this.vehicleId);
-      //   else App.router.navigate('vehicle/' + this.vehicleId);
-      // // Don't click dash on first load
-      // // if vehicle or state is requested.
-      // else if (e) App.router.navigate('/');
     },
 
     show: function (e) {
@@ -106,9 +100,6 @@ define(['jquery',
       if (this.tab.hasClass('tab-active') && clicked) {
         var otherTab = $(tabs.get(targetIndex-1));
         App.publish('ShowFolderItem-' + otherTab.data('tabTarget'));
-        // var oid = otherTab.data('vehicleId');
-        // if (oid) App.router.go('vehicle/' + oid, oid);
-        // else App.router.navigate('/');
       }
       this.tab.remove();
       tabs = $('.tab-dynamic');
@@ -152,33 +143,6 @@ define(['jquery',
             .unbind('mouseup', arguments.callee);
       });
     },
-
-    // arrangeVertical: function (e) {
-    //   var target = $(e.target);
-    //   var top = $(target.siblings().get(0));
-    //   var bottom = $(target.siblings().get(1));
-    //   var target_top_orig = parseInt(target.offset().top);
-    //   var top_h_orig = top.height();
-    //   var bottom_h_orig = bottom.height();
-    //   var mouse_orig = { x: e.pageX, y: e.pageY };
-    //   var movehandle = _.debounce(function (e) {
-    //     var m = { x: e.pageX, y: e.pageY };
-    //     var th = top_h_orig + (m.y - mouse_orig.y);
-    //     var bh = bottom_h_orig - (m.y - mouse_orig.y);
-    //     if (th < 100 || bh < 100) return false;
-    //     top.height(th);
-    //     bottom.height(bh);
-    //     target.css({
-    //       top: target_top_orig + (m.y - mouse_orig.y) + 'px',
-    //     })
-    //     App.publish('WindowResize');
-    //   }, 0);
-    //   $(document).bind('mousemove', movehandle);
-    //   $(document).bind('mouseup', function (e) {
-    //     $(this).unbind('mousemove', movehandle)
-    //         .unbind('mouseup', arguments.callee);
-    //   });
-    // },
 
     resize: function (e) {
       return this;

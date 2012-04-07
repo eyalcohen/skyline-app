@@ -1062,14 +1062,13 @@ define(['views/dashItem', 'plot_booter',
         var otherGraphs = self.model.tabModel.graphModels;
         _.each(otherGraphs, function (gm) {
           if (gm.view.id !== self.id) {
-            if (!gm.view.noteBox) {
+            if (self.noteBox) {
               gm.view.noteCanvas.show();
               gm.view.noteBox = self.noteBox;
               gm.view.redrawNote();
             }
           }
         });
-
       }]);
     },
 

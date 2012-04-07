@@ -33,9 +33,8 @@ define(['views/dashItem',
       $('.dashboard-search', this.el).placeholder();
       // console.log('tree.dash.jade:', Date.now() - start);
       this._super('render');
-      if (!this.firstRender && !opts.loading && !opts.empty) {
+      if (!this.firstRender && !opts.loading && !opts.empty)
         this.draw();
-      }
       // console.log('render:', Date.now() - start);
       return this;
     },

@@ -5,10 +5,15 @@
 define(function () {
   return Backbone.Model.extend({
     initialize: function (args) {
-      if (!args || !args.email || !args.name.first || !args.name.last) {
-        throw new Error('InvalidConstructArgs');
-        return;
-      }
+      if ('function' === typeof args)
+        return false;
+      // if (!args || !args.email || !args.name.first || !args.name.last) {
+      //   throw new Error('InvalidConstructArgs');
+      //   return;
+      // }
+
+      delete this.collection;
+
       this.set({
         htmlId: 'user_' + args._id,
       });

@@ -39,7 +39,7 @@ pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
 html { /*overflow-y: scroll;*/ }
 a:hover, a:active { outline: none; }
-ul, ol { margin-left: 2em; }
+/*ul, ol { margin-left: 2em; }*/
 ol { list-style-type: decimal; }
 nav ul, nav li { margin: 0; list-style:none; list-style-image: none; }
 small { font-size: 85%; }
@@ -934,15 +934,23 @@ tr {
   cursor: pointer;
 }
 
-tr.light {
+.light {
   background: white;
 }
 
-tr.dark {
+.dark {
   background: rgba(187,231,213,0.25);
 }
 
-tr.dark:hover, tr.light:hover {
+.row-selected {
+  background: rgba(187,231,213,0.75);
+}
+
+.row-selected {
+  font-weight: bold;
+}
+
+.dark:hover, .light:hover {
   background: rgba(174,182,154,0.5);
 }
 
@@ -1223,6 +1231,99 @@ div.preferences {
 .tree {
   width: 100%;
   height: 100%;
+}
+
+.jstree > ul > li {
+  margin-left: 10px !important;
+}
+
+.finder {
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-pack: end;
+
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-pack: end;
+
+  display: box;
+  box-orient: horizontal;
+  box-pack: end;
+}
+
+.finder .sidebar {
+  width: 150px;
+  /*height: 10000px;
+  overflow: hidden;*/
+  border-right: 1px solid #333;
+  background: #FBFBF2;
+}
+
+.finder .sidebar ul {
+  margin: none;
+  padding: none;
+}
+
+.finder .sidebar li {
+  list-style-type: none;
+  display: block;
+  height: 20px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.finder .sidebar li a {
+  line-height: 20px;
+  padding-left: 10px;
+  color: #333;
+}
+
+.finder .sidebar li a:hover {
+  color: #333;
+  text-decoration: underline;
+}
+
+.finder .sidebar li span.arrow {
+  position: static;
+  float: right;
+  padding-right: 20px;
+  line-height: 20px;
+}
+
+.finder .sidebar-header {
+  line-height: 24px;
+  padding-left: 5px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.finder .tree-wrap {
+  width: auto;
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  box-flex: 1;
+}
+
+.finder .jstree > ul > li {
+  margin-left: 20px;
+}
+
+li[data-type="vehicles"] > a > .jstree-icon {
+  background-image: url(/javascripts/libs/jstree/themes/apple/vehicle.png) !important;
+}
+li[data-type="users"] > a > .jstree-icon {
+  background-image: url(/javascripts/libs/jstree/themes/apple/user.png) !important;
+}
+li[data-type="teams"] > a > .jstree-icon {
+  background-image: url(/javascripts/libs/jstree/themes/apple/team.png) !important;
+}
+li[data-type="fleets"] > a > .jstree-icon {
+  background-image: url(/javascripts/libs/jstree/themes/apple/fleet.png) !important;
+}
+
+.jstree-2nd-col {
+  position: absolute;
+  left: 250px;
 }
 
 .row-replies {

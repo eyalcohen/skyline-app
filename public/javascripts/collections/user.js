@@ -14,10 +14,9 @@ define(['models/user'], function (model) {
         var rows = [];
         _.each(this.models, function (m) {
           rows.push({
-            email: m.attributes.email,
-            first: m.attributes.name.first,
-            last: m.attributes.name.last,
-            htmlId: m.attributes.htmlId,
+            email: m.attributes.primaryEmail,
+            first: m.attributes.displayName,
+            // htmlId: m.attributes.htmlId,
           });
         });
         this.view.render({rows: rows});

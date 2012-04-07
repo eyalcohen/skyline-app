@@ -1,5 +1,6 @@
 - var dynamicClass = dynamic ? 'tab-dynamic' : '';
-div.tab(style="left:"+tabLeft+"px;", data-tab-target=targetClass, data-tab-index=tabIndex, data-id=vehicleId, class=dynamicClass)
+- var position = (tabRight ? 'right:' + tabRight : 'left:' + tabLeft)  + 'px;';
+div.tab(style=position, data-tab-target=targetClass, data-tab-index=tabIndex, data-id=vehicleId, class=dynamicClass)
   a(href="javascript:;")
     div.tab-side
       img(src="/graphics/tab-left-side-inactive.png", alt="/graphics/tab-left-side-inactive.png")

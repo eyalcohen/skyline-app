@@ -1747,6 +1747,11 @@
 								if(obj === -1 || !obj) { this.get_container().children("ul").empty().append(d.children()); }
 								else { obj.append(d).children("a.jstree-loading").removeClass("jstree-loading"); obj.removeData("jstree_is_loading"); }
 								this.clean_node(obj);
+								//////////////////////// INSERT HERE!
+								// $("li", this.get_container()).each(function () {
+								// 	var _this = $(this);
+								// 	$('<span class="jstree-2nd-col">Bill Joe</span>').prependTo(_this);
+								// });
 								if(s_call) { s_call.call(this); }
 							}
 						}, this));

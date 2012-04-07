@@ -1037,24 +1037,20 @@ var createDnodeConnection = function (remote, conn) {
   // on those specific vehicles unless we're fetching
   // events for a specific client-side defined vehicle.
 
-  function fetchUsers(cb) {
-    cb(null, []);
-  }
-
   function fetchVehicles(cb) {
-    if (req.user.data.vehicles.length > 0) {
-      var _done = _.after(req.user.data.vehicles.length, done);
-      _.each(req.user.data.vehicles, function (veh) {
-        sampleDb.fetchSamples(veh._id, '_wake', {},
-                              function (err, cycles) {
-          if (err) return cb(err);
-          if (cycles && cycles.length > 0)
-            veh.lastCycle = _.last(cycles);
-          else veh.lastCycle = { beg: 0, end: 0 };
-          _done();
-        });
+    if (req.user.data.vehicles.length === 0)
+      return cb(null, []);
+    var _done = _.after(req.user.data.vehicles.length, done);
+    _.each(req.user.data.vehicles, function (veh) {
+      sampleDb.fetchSamples(veh._id, '_wake', {},
+                            function (err, cycles) {
+        if (err) return cb(err);
+        if (cycles && cycles.length > 0)
+          veh.lastCycle = _.last(cycles);
+        else veh.lastCycle = { beg: 0, end: 0 };
+        _done();
       });
-    } else cb(null, []);
+    });
 
     function done() {
       cb(null, req.user.data.vehicles.sort(function (a, b) {
@@ -1163,7 +1159,268 @@ var createDnodeConnection = function (remote, conn) {
           cb(null, notifications);
         }
       }
-    ); 
+    );
+  }
+
+  function fetchFinderTree(type, cb) {
+    switch (type) {
+      case 'users':
+        // ensureAdmin(_.bind(fetchUserTree, this, cb));
+        fetchUserTree(cb);
+        break;
+      case 'vehicles':
+        fetchVehicleTree(cb);
+        break;
+      case 'teams':
+        fetchTeamTree(cb);
+        break;
+      case 'fleets':
+        fetchFleetTree(cb);
+        break;
+    }
+  } 
+
+  function fetchUserTree(cb) {
+    var self = this;
+    var accessList;
+    var tree = [];
+    Step(
+      function () {
+        userDb.getAccessList(this.parallel());
+        userDb.collections.users.find({}).toArray(this.parallel());
+      },
+      function (err, list, users) {
+        if (err) return cb(err);
+        var next = this;
+        accessList = list;
+        if (users.length === 0)
+          return cb(null, []);
+
+
+        var _next = _.after(users.length, next);
+        _.each(users, function (user) {
+          user.type = 'users';
+          var access = _.filter(accessList, function (acc) {
+            return acc.granteeType === 'users'
+                   && acc.granteeId === user._id;
+          });
+          tree.push(user);
+          if (access.length === 0)
+            return _next();
+          user.sub = [];
+          var __next = _.after(access.length, _next);
+          _.each(access, function (acc) {
+            userDb.collections[acc.targetType].findOne({ _id: acc.targetId },
+                                                        function (err, doc) {
+              if (err) return cb(err);
+              doc.type = acc.targetType;
+              user.sub.push(doc);
+              __next();
+            });
+          });
+        });
+      },
+      function (err) {
+        if (err) return cb(err);
+        cb(null, tree);
+      }
+    );
+  }
+
+  function fetchVehicleTree(cb) {
+    if (req.user.data.vehicles.length === 0)
+      return cb(null, []);
+    var accessList;
+    var tree = [];
+    Step(
+      function () {
+        userDb.getAccessList(this);
+      },
+      function (err, list) {
+        if (err) return cb(err);
+        var next = this;
+        accessList = list;
+        var _next = _.after(req.user.data.vehicles.length, next);
+        _.each(req.user.data.vehicles, function (veh) {
+          var veh = _.clone(veh);
+          veh.type = 'vehicles';
+          var access = _.filter(accessList, function (acc) {
+            return acc.targetType === 'vehicles'
+                   && acc.targetId === veh._id;
+          });
+          tree.push(veh);
+          if (access.length === 0)
+            return _next();
+          veh.sub = [];
+          var __next = _.after(access.length, _next);
+          _.each(access, function (acc) {
+            userDb.collections[acc.granteeType].findOne({ _id: acc.granteeId },
+                                                        function (err, doc) {
+              if (err) return cb(err);
+              doc.type = acc.granteeType;
+              delete doc.vehicles;
+              delete doc.fleets;
+              // TODO: get team members, admins, domains
+              // add them to the team's sub.
+              veh.sub.push(doc);
+              __next();
+            });
+          });
+        });
+      },
+      function (err) {
+        if (err) return cb(err);
+        var next = this;
+        var matchedFleets = [];
+        userDb.collections.fleets.find({}).toArray(function (err, fleets) {
+          if (err) return cb(err);
+          var _next = _.after(fleets.length, next);
+          _.each(fleets, function (fleet) {
+            _.each(tree, function (veh) {
+              var match = _.find(fleet.vehicles, function (id) {
+                                return id === veh._id; });
+              if (match) {
+                fleet.type = 'fleets';
+                if (!veh.sub) veh.sub = [];
+                veh.sub.push(fleet);
+                if (!_.find(matchedFleets, function (f) {
+                      return f._id === fleet._id; }))
+                  matchedFleets.push(fleet);
+              }
+            });
+            _next(null, matchedFleets);
+          });
+        });
+      },
+      function (err, fleets) {
+        if (err) return cb(err);
+        var next = this;
+        if (fleets.length === 0)
+          return next();
+        var _next = _.after(fleets.length, next);
+        _.each(fleets, function (fleet) {
+          var access = _.filter(accessList, function (acc) {
+            return acc.targetType === 'fleets'
+                   && acc.targetId === fleet._id;
+          });
+          if (access.length === 0)
+            return _next();
+          fleet.sub = [];
+          var __next = _.after(access.length, _next);
+          _.each(access, function (acc) {
+            userDb.collections[acc.granteeType].findOne({ _id: acc.granteeId },
+                                                        function (err, doc) {
+              if (err) return cb(err);
+              doc.type = acc.granteeType;
+              delete doc.vehicles;
+              delete doc.fleets;
+              // TODO: get team members, admins, domains
+              // add them to the team's sub.
+              fleet.sub.push(doc);
+              __next();
+            });
+          });
+        });
+      },
+      function (err) {
+        if (err) return cb(err);
+        cb(null, tree);
+      }
+    );
+  }
+
+  function fetchTeamTree(cb) {
+    var self = this;
+    var accessList;
+    var tree = [];
+    Step(
+      function () {
+        userDb.getAccessList(this.parallel());
+        userDb.collections.teams.find({}).toArray(this.parallel());
+      },
+      function (err, list, teams) {
+        if (err) return cb(err);
+        var next = this;
+        accessList = list;
+        if (teams.length === 0)
+          return cb(null, []);
+        var _next = _.after(teams.length, next);
+        _.each(teams, function (team) {
+          team.type = 'teams';
+          var access = _.filter(accessList, function (acc) {
+            return acc.granteeType === 'teams'
+                   && acc.granteeId === team._id;
+          });
+          tree.push(team);
+          if (access.length === 0)
+            return _next();
+          team.sub = [];
+          var __next = _.after(access.length, _next);
+          _.each(access, function (acc) {
+            userDb.collections[acc.targetType].findOne({ _id: acc.targetId },
+                                                        function (err, doc) {
+              if (err) return cb(err);
+              doc.type = acc.targetType;
+              team.sub.push(doc);
+              __next();
+            });
+          });
+        });
+      },
+      function (err) {
+        if (err) return cb(err);
+        cb(null, tree);
+      }
+    );
+  }
+
+  function fetchFleetTree(cb) {
+    var accessList;
+    var tree = [];
+    Step(
+      function () {
+        userDb.getAccessList(this.parallel());
+        userDb.collections.fleets.find({}).toArray(this.parallel());
+      },
+      function (err, list, fleets) {
+        if (err) return cb(err);
+        var next = this;
+        accessList = list;
+        if (fleets.length === 0)
+          return cb(null, []);
+        var _next = _.after(fleets.length, next);
+        _.each(fleets, function (fleet) {
+          fleet.type = 'fleets';
+          var access = _.filter(accessList, function (acc) {
+            return acc.targetType === 'fleets'
+                   && acc.targetId === fleet._id;
+          });
+          tree.push(fleet);
+          if (access.length === 0)
+            return _next();
+          fleet.sub = [];
+          var __next = _.after(access.length, _next);
+          _.each(access, function (acc) {
+            userDb.collections[acc.granteeType].findOne({ _id: acc.granteeId },
+                                                        function (err, doc) {
+              if (err) return cb(err);
+              doc.type = acc.granteeType;
+              delete doc.vehicles;
+              delete doc.fleets;
+              // TODO: get team members, admins, domains
+              // add them to the team's sub.
+              fleet.sub.push(doc);
+              __next();
+            });
+          });
+          // TODO: add fleet vehicles to sub
+        });
+      },
+      function (err) {
+        if (err) return cb(err);
+        cb(null, tree);
+      }
+    );
   }
 
   //// Methods that need authorization ////
@@ -1281,11 +1538,12 @@ var createDnodeConnection = function (remote, conn) {
 
   return {
     authorize: authorize,
-    fetchUsers: fetchUsers,
     fetchVehicles: fetchVehicles,
     fetchEvents: fetchEvents,
 
-    fetchSamples: ensureAuth(fetchSamples),    
+    fetchFinderTree: fetchFinderTree,
+
+    fetchSamples: ensureAuth(fetchSamples),
     insertSamples: ensureAuth(insertSamples, ['insert']),
     fetchChannelTree: ensureAuth(fetchChannelTree),
     fetchVehicleConfig: ensureAuth(fetchVehicleConfig, ['config']),

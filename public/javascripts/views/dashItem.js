@@ -33,8 +33,8 @@ define(['jquery',
         this.firstRender = false;
         this.el.show();
         this.offset = this.options.target ?
-            $('.' + this.options.target).offset() :
-            this.el.offset();
+                      $('.' + this.options.target).offset() :
+                      this.el.offset();
         this.resize();
       } else {
         this.content.hide();
@@ -155,9 +155,9 @@ define(['jquery',
     },
 
     adjustHeight: function (e) {
-      if (this.options.weight === 0)
-        return;
       var self = this;
+      if (self.options.weight === 0 || !self.options.tabModel)
+        return;
       var doc = $(document);
       var oy = e.pageY;
       var move = _.throttle(function (e) {

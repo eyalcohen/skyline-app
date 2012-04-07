@@ -15,12 +15,12 @@ define(function (fn) {
         title: 'Dashboard',
         active: true,
         tabClosable: false,
-        left: 30
+        left: 30,
       }, 'dash.jade');
 
       this.eventsModel = new App.models.EventsModel({
         title: 'Events',
-        parent: '.dashboard-left',
+        parent: '.dashboard .dashboard-left',
         events: [],
         singleVehicle: false,
         height: 'full',
@@ -42,7 +42,7 @@ define(function (fn) {
 
       this.vehicleCollection = new App.collections.VehicleCollection({
         title: 'Vehicles',
-        parent: '.dashboard-right',
+        parent: '.dashboard .dashboard-right',
         height: 'full',
       });
       this.vehicleCollection.fetch();

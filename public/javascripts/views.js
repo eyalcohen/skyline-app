@@ -16,6 +16,9 @@ define([
     'views/users',
     'views/vehicles',
     'views/vehicleTab',
+    'views/manageTab',
+    'views/finder',
+    'views/info'
     ], function () {
   return {
     DashTabView: arguments[0],
@@ -31,6 +34,9 @@ define([
     UsersView: arguments[10],
     VehiclesView: arguments[11],
     VehicleTabView: arguments[12],
+    ManageTabView: arguments[13],
+    FinderView: arguments[14],
+    InfoView: arguments[15],
   };
 });
 

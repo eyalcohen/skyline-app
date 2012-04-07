@@ -12,7 +12,10 @@ define([
     'models/tree',
     'models/user',
     'models/vehicle',
-    'models/vehicleTab'
+    'models/vehicleTab',
+    'models/manageTab',
+    'models/finder',
+    'models/info'
     ], function () {
   return {
     DashTabModel: arguments[0],
@@ -25,6 +28,9 @@ define([
     UserModel: arguments[7],
     VehicleModel: arguments[8],
     VehicleTabModel: arguments[9],
+    ManageTabModel: arguments[10],
+    FinderModel: arguments[11],
+    InfoModel: arguments[12],
   };
 });
 

@@ -326,6 +326,38 @@ UserDb.prototype.getUserVehicleData = function (userId, cb) {
 }
 
 
+UserDb.prototype.getAccessList = function (cb) {
+  var self = this;
+  var list = [];
+
+  function capture(gi, gt, tt, acc) {
+    acc.granteeId = gi;
+    acc.granteeType = gt;
+    acc.targetType = tt;
+    list.push(acc);
+  }
+  Step(
+    function () {
+      self.collections.users.find({}).toArray(this.parallel());
+      self.collections.teams.find({}).toArray(this.parallel());
+    },
+    function (err, users, teams) {
+      var next = this;
+      if (err) return cb(err);
+      _.each(users, function (user) {
+        _.each(user.vehicles, _.bind(capture, {}, user._id, 'users', 'vehicles'));
+        _.each(user.fleets, _.bind(capture, {}, user._id, 'users', 'fleets'));
+      });
+      _.each(teams, function (team) {
+        _.each(team.vehicles, _.bind(capture, {}, team._id, 'teams', 'vehicles'));
+        _.each(team.fleets, _.bind(capture, {}, team._id, 'teams', 'fleets'));
+      });
+      cb(null, list);
+    }
+  );
+}
+
+
 /*
  * Adds an access object for the given
  * `target` - either a vehicle or fleet to the given
