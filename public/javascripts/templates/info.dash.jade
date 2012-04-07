@@ -1,0 +1,24 @@
+.dashboard-item
+  .dashboard-item-header
+    - if (shrinkable) {
+      span.resize-vertical
+        | . . . . .
+      a.dashboard-link.toggler(href="javascript:;", title="Hide")
+        | –
+    - }
+    h1.dashboard-item-header-txt
+      =title
+  .dashboard-item-content
+    - if (waiting) {
+      p.dashboard-item-message
+        | Waiting...
+    - } else if (loading) {
+      p.dashboard-item-message
+        | Loading...
+    - } else if (empty) {
+      p.dashboard-item-message
+        | Nothing to map.
+    - } else {
+      .info
+    - }
+
