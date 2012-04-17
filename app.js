@@ -509,6 +509,7 @@ app.get('/export/:vintid/data.csv', function (req, res, next) {
 app.post('/create/user/:email', function (req, res) {
   var props = {
     primaryEmail: req.params.email,
+    emails: [ { value: req.params.email } ],
     displayName: req.body.fullName,
     password: req.body.password,
     provider: 'local',
