@@ -30,9 +30,11 @@ define(['jquery'], function ($) {
       App.dashTabModel = new App.models.DashTabModel({
         targetClass: 'dashboard',
       });
+      /*
       App.manageTabModel = new App.models.ManageTabModel({
         targetClass: 'manage',
       });
+      */
       App.editorView = new App.views.EditorView().render();
       $('.tabs, .folder').show();
     },
