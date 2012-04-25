@@ -213,7 +213,8 @@ define(function () {
       var o = obj, len = keys.length;
       _.each(keys, function (k, i) {
         // Put dots back after decoding commas.
-        k = decodeURIComponent(k).replace(/,/g, '.');
+        // k = decodeURIComponent(k).replace(/,/g, '.');
+        k = k.replace(/,/g, '.');
         if (i === len - 1) {
           var n = Number(v);
           if (v === 'true') o[k] = true;

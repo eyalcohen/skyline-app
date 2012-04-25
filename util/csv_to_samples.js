@@ -127,7 +127,7 @@ Step(
           order: order++,
         },
       };
-      if (m) v.val.units = m[2];
+      if (m) v.val.units = m[2].replace('_', '/');
       schema.push(v);
     });
 
