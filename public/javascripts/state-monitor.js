@@ -125,7 +125,7 @@ define(function () {
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
     if (!_.isArray(channel)) channel = [channel];
     _.each(channel, _.bind(function (c) {
-      var opts = c.units;
+      var opts = c.units || '';
       opts += '-' + (c.colorNum || 0);
       opts += '-' + (c.yaxisNum || 1);
       this.state[tabId].g[graphId][c.channelName] = opts;
@@ -152,7 +152,7 @@ define(function () {
     var opts = '';
     if (channel.displayUnits)
       opts += channel.displayUnits;
-    else opts += channel.units;
+    else opts += channel.units || '';
     opts += '-' + channel.colorNum;
     opts += '-' + channel.yaxisNum;
     this.state[tabId].g[graphId][channel.channelName] = opts;
@@ -235,7 +235,7 @@ define(function () {
   function parseChannelOptions(str) {
     var opts = str.split('-');
     return {
-      units: opts[0],
+      units: (opts[0] === 'undefined' || opts[0] === '') ? undefined : opts[0],
       colorNum: Number(opts[1] || 0),
       yaxisNum: Number(opts[2] || 1),
     }
