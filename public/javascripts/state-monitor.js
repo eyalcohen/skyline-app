@@ -204,7 +204,12 @@ define(function () {
     _.each(frags, function (f) {
       var parms = f.split('=');
       var keys = parms[0].split(objectDelimiter);
-      var v = decodeURIComponent(parms[1]);
+      // backbone.js already calls decodeURIComponent in
+      // Backbone.History.getFragment.  This is unfortunate, since it means
+      // that embedded '&' characters will get mangled, but it means we don't
+      // want to decode now:
+      // var v = decodeURIComponent(parms[1]);
+      var v = parms[1];
       var o = obj, len = keys.length;
       _.each(keys, function (k, i) {
         // Put dots back after decoding commas.
