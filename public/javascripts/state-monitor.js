@@ -124,13 +124,8 @@ define(function () {
 
   StateMonitor.prototype.addChannel = function (tabId, graphId, channel) {
     if (!_.isArray(channel)) channel = [channel];
-    _.each(channel, _.bind(function (c) {
-      var opts = c.units || '';
-      opts += '-' + (c.colorNum || 0);
-      opts += '-' + (c.yaxisNum || 1);
-      this.state[tabId].g[graphId][c.channelName] = opts;
-    }, this));
-    update(this.state);
+    var self = this;
+    _.each(channel, function (c) { self.updateOpts(tabId, graphId, c); });
   }
 
   StateMonitor.prototype.removeChannel = function (tabId, graphId, channel) {
@@ -149,12 +144,11 @@ define(function () {
   }
 
   StateMonitor.prototype.updateOpts = function (tabId, graphId, channel) {
-    var opts = '';
-    if (channel.displayUnits)
-      opts += channel.displayUnits;
-    else opts += channel.units || '';
-    opts += '-' + channel.colorNum;
-    opts += '-' + channel.yaxisNum;
+    var opts =
+        (channel.units || '') + '-' +
+        (channel.colorNum || 0) + '-' +
+        (channel.yaxisNum || 1) + '-' +
+        (channel.displayUnits || '');
     this.state[tabId].g[graphId][channel.channelName] = opts;
     update(this.state);
   }
@@ -244,6 +238,7 @@ define(function () {
       units: (opts[0] === 'undefined' || opts[0] === '') ? undefined : opts[0],
       colorNum: Number(opts[1] || 0),
       yaxisNum: Number(opts[2] || 1),
+      displayUnits: (opts[3] === '') ? undefined : opts[3],
     }
   }
 
