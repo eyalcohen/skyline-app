@@ -9,7 +9,7 @@ var argv = optimist
     .describe('port', 'Port to listen on')
       .default('port', 8080)
     .describe('db', 'MongoDb URL to connect to')
-      .default('db', 'mongo:///service-samples')
+      .default('db', 'mongodb://null:null@localhost:27017/service-samples')
     .argv;
 
 if (argv._.length || argv.help) {
@@ -20,60 +20,30 @@ if (argv._.length || argv.help) {
 /**
  * Module dependencies.
  */
-var log = require('./log.js').log;
-var logTimestamp = require('./log.js').logTimestamp;
+
 var express = require('express');
-var connect = require('connect');
 var jade = require('jade');
 var mongodb = require('mongodb');
-var mongoStore = require('connect-mongodb');
-var gzip = require('connect-gzip');
 var dnode = require('dnode');
-var color = require('cli-color');
+
 var fs = require('fs');
 var path = require('path');
-var CSV = require('csv');
-var traverse = require('traverse');
-var util = require('util'), inspect = util.inspect;
+var util = require('util');
 var url = require('url');
-var zlib = require('zlib');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Step = require('step');
-var Buffers = require('buffers');
-var EventDescFileName = __dirname +
-    '/../mission-java/common/src/main/protobuf/Events.desc';
-var WebUploadSamples, EventWebUpload;
-try {
-  var ProtobufSchema = require('protobuf_for_node').Schema;
-  var Event = new ProtobufSchema(fs.readFileSync(EventDescFileName));
-  WebUploadSamples = Event['event.WebUploadSamples'];
-  EventWebUpload = Event['event.EventWebUpload'];
-} catch (e) {
-  log('Could not load proto buf ' + EventDescFileName +
-      ', upload APIs won\'t work!');
-  log(e.stack || e);
-}
-var getrusage;
-try {
-  getrusage = require('getrusage');
-} catch (e) {
-  log('Could not load getrusage module, try: node_modules/build.sh');
-  log(e.stack || e);
-}
-var Notify = require('./notify');
-
-var UserDb = require('./user_db.js').UserDb;
-var SampleDb = require('./sample_db.js').SampleDb;
-
-var compatibility = require('./compatibility.js');
-
-var pubsub = require('./minpubsub');
-var jadeify = require('jadeify');
+var color = require('cli-color');
 
 var passport = require('passport');
 var GoogleStrategy = require('passport-google').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
+
+// var Notify = require('./notify');
+var UserDb = require('./user_db.js').UserDb;
+var SampleDb = require('./sample_db.js').SampleDb;
+
+var compatibility = require('./compatibility.js');
 
 
 /////////////// Helpers
@@ -112,7 +82,7 @@ function requestMimeType(req) {
 
 /////////////// Configuration
 
-var app = module.exports = express.createServer();
+var app = express();
 
 app.configure('development', function () {
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
