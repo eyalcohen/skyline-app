@@ -1,0 +1,17 @@
+{
+  "author": "Mission Motor Company (git://github.com/humcycles)",
+  "name": "skyline",
+  "version": "0.1.0-0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/sanderpick/skyline.git"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": "~0.8.x"
+  },
+  "scripts": {
+    "start": "main.js"
+  }
+}
