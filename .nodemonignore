@@ -1,10 +1,2 @@
-# # this is my ignore file with a nice comment at the top
-.DS_Store
-.git
-cycles
-uploads
-public/vconfig
-samples
-example-data
-debug
-log
+/public/*
+/.git
