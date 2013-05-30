@@ -1,4 +1,4 @@
-!!! 5
+doctype 5
 html(lang="en")
   head
     meta(charset="UTF-8")
@@ -7,14 +7,10 @@ html(lang="en")
     meta(name="description", content="")
     meta(name="author", content="")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    link(rel="shortcut icon", href="/favicon.ico")
-    link(rel="stylesheet", href="/stylesheets/style.css?v=2")
-    link(rel="stylesheet", href="/stylesheets/jquery.jscrollpane.css?v=2")
-    link(rel="stylesheet", href="/stylesheets/jquery.jscrollpane.mission.css?v=2")
-    link(rel="stylesheet", href="/stylesheets/osx.css?v=2")
+    link(rel="shortcut icon", href="/img/favicon.ico")
+    link(rel="stylesheet", href="/css/style.css")
+    link(rel="stylesheet", href="/css/osx.css")
     body
-    != body
-    script(src="/browserify.js")
-    // script(src="http://www.google.com/jsapi")
-    script(src="/javascripts/libs/require-jquery.js", data-main="/javascripts/main")
-
+      block content
+      script(type="text/javascript", charset="utf-8", src="/socket.io/socket.io.js")
+      script(type="text/javascript", charset="utf-8", data-main="/js/main", src="/js/libs/require/require.js")

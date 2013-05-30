@@ -1,6 +1,6 @@
 // Functionality for saving samples to the DB.
 
-var log = require('./log.js').log;
+// var log = require('./log.js').log;
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var util = require('util');
@@ -431,7 +431,7 @@ SampleDb.prototype.insertSamples = function(vehicleId, sampleSet, options, cb) {
                   } else {
                     // If o is null, then the sample was modified by somebody
                     // else before we managed to update, so try again.
-                    log('Update race in insertSamples.tryUpdate, retrying.');
+                    // log('Update race in insertSamples.tryUpdate, retrying.');
                     synCollection.findOne(query, tryUpdate);
                   }
                 });
@@ -514,8 +514,8 @@ SampleDb.prototype.addDurationHeuristicHack =
                             function(err, samples) {
             prevSampleSet[channelName] = samples;
             if (err)
-              log('Error in addDurationHeuristicHack while fetching: ' +
-                  (err.stack || err));
+              // log('Error in addDurationHeuristicHack while fetching: ' +
+                  // (err.stack || err));
             next();
           });
         }

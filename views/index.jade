@@ -1,17 +1,18 @@
-#loading
-#container
-  header
-    div
-      a(href="/")
-        img#logo(src="/graphics/skyline.png", alt="Skyline")
-    div
-      nav
-        ul
-  #main(role="main")
-    div.tabs
-      div.tabs-dynamic
-      div.tab-bar
-    div.folder
-  footer
+extends layout
 
-  
+block content
+  #loading
+  #container
+    header
+      div
+        a(href="/")
+          img#logo(src="/img/skyline.png", alt="Skyline")
+      div
+        nav
+          ul
+    #main(role="main")
+      div.tabs
+        div.tabs-dynamic
+        div.tab-bar
+      div.folder
+    footer

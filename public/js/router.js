@@ -2,8 +2,15 @@
  * Copyright 2011 Mission Motors
  */
 
-define(['jquery'], function ($) {
-  return Backbone.Router.extend({
+define([
+  'jQuery',
+  'Underscore',
+  'Backbone',
+  'mps'
+], function ($, _, Backbone, mps) {
+
+  // Our application URL router.
+  var Router = Backbone.Router.extend({
 
     initialize: function(options) {
       this.updateURLTime = _.debounce(this.updateURLTime, 500);
@@ -18,13 +25,12 @@ define(['jquery'], function ($) {
     },
 
     query: function (str) {
-      // Kills everything and
-      // loads all content from scratch.
-      // TODO: Be nicer.
-      App.publish('KillallTabs');
-      App.publish('ShowFolderItem-dashboard');
-      App.stateMonitor.resetState();
-      App.stateMonitor.setState(str);
+      // Kills everything and loads all content from scratch.
+
+      // App.publish('KillallTabs');
+      // App.publish('ShowFolderItem-dashboard');
+      // App.stateMonitor.resetState();
+      // App.stateMonitor.setState(str);
     },
 
     vehicle: function (id, q) {
@@ -32,7 +38,7 @@ define(['jquery'], function ($) {
       if (tab.length !== 0) {
         var tabId = tab.data('tabTarget')
                     .substr(tabId.indexOf('-') + 1);
-        App.publish('ShowFolderItem-target-' + tabId);
+        // App.publish('ShowFolderItem-target-' + tabId);
       } else {
         var tr = $('#vehicle_' + id);
         var items = tr.attr('id').split('_');
@@ -42,11 +48,12 @@ define(['jquery'], function ($) {
             JSON.parse($('[data-cycle]', tr).attr('data-cycle'));
         var tabId = App.util.makeId();
         var timeRange = { beg: lastCycle.beg, end: lastCycle.end };
-        App.publish('VehicleRequested', 
-                    [Number(id), tabId, title, timeRange, false]);
+        // App.publish('VehicleRequested', 
+        //             [Number(id), tabId, title, timeRange, false]);
       }
     },
 
   });
-});
 
+  return Router;
+});
