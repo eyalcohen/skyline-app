@@ -23,7 +23,9 @@
     "redis": "~0.8.3",
     "socket.io": "~0.9.14",
     "connect": "~2.7.10",
-    "cookie": "~0.1.0"
+    "cookie": "~0.1.0",
+    "delivery": "0.0.3",
+    "csv": "~0.3.2"
   },
   "devDependencies": {},
   "engines": {

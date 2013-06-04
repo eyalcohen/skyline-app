@@ -96,14 +96,17 @@ Step(
     app.set('views', __dirname + '/views');
     app.set('view engine', 'jade');
     app.set('sessionStore', new RedisStore({client: rc, maxAge: 2592000000}));
+    app.set('sessionSecret', 'hummmcycles');
+    app.set('sessionKey', 'express.sid');
+    app.set('cookieParser', express.cookieParser(app.get('sessionKey')));
     app.use(express.favicon(__dirname + '/public/gfx/favicon.ico'));
     app.use(express.logger('dev'));
     app.use(express.bodyParser());
-    app.use(express.cookieParser());
+    app.use(app.get('cookieParser'));
     app.use(express.session({
       store: app.get('sessionStore'),
-      secret: 'hummmcycles',
-      key: 'express.sid'
+      secret: app.get('sessionSecret'),
+      key: app.get('sessionKey')
     }));
     app.use(passport.initialize());
     app.use(passport.session());
@@ -167,74 +170,72 @@ Step(
 
           // HTTP server
           var server = http.createServer(app);
-          
+
           // Socket handling
-          var io = socketio.listen(server);
-          io.set('log level', 1);
-
-
-          // Configure sockets
-          // io.sockets.on('connection', function (socket) {
-
-          //   socket.client = new Client(socket, userDb, sampleDb);
-
-          //   socket.on('authorize', function (cb) {
-          //     console.log(socket.client);
-          //     cb({dude: 'yes'})
-
-          //   })
-          // });
-
-          
-          io.set('authorization', function (data, cb) {
-            if (data.headers.cookie) {
-              console.log(connect.utils)
-              data.cookie = connect.utils.parseCookie(data.headers.cookie);
-              data.sessionID = data.cookie['express.sid'];
-
-              // save the session store to the data object 
-              // (as required by the Session constructor)
-              data.sessionStore = app.get('sessionStore');
-              sessionStore.get(data.sessionID, function (err, session) {
-                if (err || !session) return cb('Error', false);
-
-                // Create a session object, passing data as request and our
-                // just acquired session data
-                data.session =
-                    new connect.middleware.session.Session(data, session);
-                cb(null, true);
-              });
-            } else return cb('No cookie transmitted.', false);
-          });
+          var sio = socketio.listen(server);
+          sio.set('log level', 1);
 
           // Start server
           server.listen(app.get('PORT'));
 
-          io.sockets.on('connection', function (socket) {
-            var hs = socket.handshake;
-            util.log('A socket with sessionID ' + hs.sessionID
-                + ' connected!');
+          // Socket auth
+          sio.set('authorization', function (data, cb) {
+            if (data.headers.cookie) {
+              app.get('cookieParser')(data, {}, function (err) {
+                if (err) return cb(err, false);
+                var cookie = data.cookies[app.get('sessionKey')];
 
-            // Setup an inteval that will keep our session fresh
+                // FIXME: Do this the unsign way.
+                var sid = cookie.split('.')[0].split(':')[1];
+
+                // Save the session store to the data object 
+                // (as required by the Session constructor).
+                data.sessionStore = app.get('sessionStore');
+                data.sessionStore.get(sid, function (err, session) {
+                  if (err || !session) return cb('Error', false);
+
+                  // Create a session object, passing data as request and our
+                  // just acquired session data.
+                  data.session =
+                      new connect.middleware.session.Session(data, session);
+                  cb(null, true);
+                });
+
+              });
+            } else return cb('No cookie transmitted.', false);
+          });
+
+          // Socket connect
+          sio.sockets.on('connection', function (socket) {
+            util.log('Socket connected');
+
+            // FIXME: Use a map or something...
+            socket.client = new Client(socket, userDb, sampleDb);
+            socket.on('api', function (cb) {
+              
+
+              // cb({api: socket.client});
+            });
+
+            // Setup an inteval that will keep our session fresh.
             var intervalID = setInterval(function () {
 
               // Reload the session (just in case something changed,
               // we don't want to override anything, but the age)
               // reloading will also ensure we keep an up2date copy
               // of the session with our connection.
-              hs.session.reload(function () { 
+              socket.handshake.session.reload(function () {
 
                 // "touch" it (resetting maxAge and lastAccess)
                 // and save it back again.
-                hs.session.touch().save();
+                socket.handshake.session.touch().save();
               });
             }, 60 * 1000);
 
             socket.on('disconnect', function () {
-              console.log('A socket with sessionID ' + hs.sessionID 
-                  + ' disconnected!');
+              util.log('Socket disconnected');
 
-              // clear the socket interval to stop refreshing the session
+              // clear the socket interval to stop refreshing the session.
               clearInterval(intervalID);
             });
          

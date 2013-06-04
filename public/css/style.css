@@ -168,9 +168,18 @@ table {
 }
 
 #main {
-  margin: 40px 0 0;
+  /*margin: 40px 0 0;*/
   width: 100%;
   height: 100%;
+}
+
+#dnd {
+  width: 100%;
+  height: 100%;
+}
+
+#dnd.dragging {
+  background: rgba(0,255,0,0.1);
 }
 
 nav {}
