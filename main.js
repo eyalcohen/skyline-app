@@ -209,13 +209,9 @@ Step(
           sio.sockets.on('connection', function (socket) {
             util.log('Socket connected');
 
-            // FIXME: Use a map or something...
+            // FIXME: Use a key map instead of attaching this
+            // direct to the socket.
             socket.client = new Client(socket, userDb, sampleDb);
-            socket.on('api', function (cb) {
-              
-
-              // cb({api: socket.client});
-            });
 
             // Setup an inteval that will keep our session fresh.
             var intervalID = setInterval(function () {

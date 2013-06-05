@@ -6,13 +6,14 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'router'
-], function ($, _, Backbone, Router) {
+  'router',
+  'rpc'
+], function ($, _, Backbone, Router, rpc) {
 
   var App = function () {
 
-    // Attach a socket connection.
-    this.socket = io.connect('http://localhost:8080');
+    // Save connection to server.
+    this.rpc = rpc.init();
   }
 
   return {

@@ -1379,8 +1379,8 @@ var groupSamplesByTime = SampleDb.groupSamplesByTime = function(sampleSet) {
  * @param doneCb{function(err)} Function called on completion.
  */
 var cursorIterate = function(cursor, rowCb, doneCb) {
-  var stream = cursor.streamRecords();
+  var stream = cursor.stream();
   stream.on('data', rowCb);
-  stream.on('end', function() { doneCb(null); });
+  stream.on('close', function() { doneCb(null); });
   stream.on('error', doneCb);
 }

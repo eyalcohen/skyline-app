@@ -2,7 +2,7 @@
 
 define([
   'Underscore',
-  'libs/spin/spin.min',
+  'lib/spin/spin.min',
   ], function (_, spin) {
 
   var defaults = {

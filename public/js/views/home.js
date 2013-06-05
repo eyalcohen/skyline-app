@@ -6,10 +6,9 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'Delivery',
   'mps',
   'util'
-], function ($, _, Backbone, Delivery, mps, rpc, util) {
+], function ($, _, Backbone, mps, rpc, util) {
 
   return Backbone.View.extend({
 
@@ -78,32 +77,35 @@ define([
       var files = e.originalEvent.dataTransfer.files;
       if (files.length === 0) return;
 
-      // Create a delivery object.
-      var delivery = new Delivery(this.app.socket);
-      
-      delivery.on('delivery.connect', function (delivery) {
-        delivery.send(files[0]);
-      });
+      // Just use the first one for now.
+      // TODO: drag drop multiple files -> datasets.
+      var file = files[0];
 
-      delivery.on('send.success', function (uuid) {
-        // console.log(uuid);
-      });
+      // Use a FileReader to read the file as a base64 string.
+      var reader = new FileReader();
+      reader.onload = _.bind(function () {
 
-      // var data = new FormData(this.postForm.get(0));
+        // Construct the payload to send.
+        var data = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          base64: reader.result.replace(/^[^,]*,/,''),
+        };
 
-      // Loop over each file, adding it the the display
-      // and from data object, if present.
-      // var list = [];
-      // _.each(files, function (file) {
-      //   list.push('<span>- ', file.name + ' ('
-      //       + util.addCommas(file.size) + ' bytes)', '</span>');
-      //   if (data && typeof file === 'object') data.append('file', file);
-      // });
-      // this.postFiles.html(list.join('')).show();
+        this.app.rpc.do('insertSamplesFromFile', data,
+            _.bind(function (err, res) {
+          if (err) return console.error(err);
 
-      // Use formData object if exists (dnd only)
-      
-      // console.log(files);
+          this.app.rpc.do('fetchSamples', res.did, res.channels[4], {},
+              function (err, samples) {
+            console.log(err, samples);
+          });
+          
+        }, this));
+
+      }, this);
+      reader.readAsDataURL(file);
 
       return false;
     },

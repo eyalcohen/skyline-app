@@ -3,7 +3,7 @@
  */
 
 define([
-  'libs/jquery/jquery.min'
+  'lib/jquery/jquery.min'
 ], function () {
 
   jQuery.fn.serializeObject = function () {
@@ -19,10 +19,10 @@ define([
     return o;
   };
 
-  require(['libs/jquery/jquery.autogrow',
-           'libs/jquery/jquery.scrollTo-min',
-           'libs/jquery/jquery.transloadit2',
-           'libs/jquery/jquery.fancybox'
+  require(['lib/jquery/jquery.autogrow',
+           'lib/jquery/jquery.scrollTo-min',
+           'lib/jquery/jquery.transloadit2',
+           'lib/jquery/jquery.fancybox'
           ]);
 
   return jQuery;

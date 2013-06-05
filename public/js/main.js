@@ -8,13 +8,12 @@ require.config({
 
   // Library paths:
   paths: {
-    jQuery: 'libs/jquery/jquery',
-    Underscore: 'libs/underscore/underscore',
-    Backbone: 'libs/backbone/backbone',
-    Modernizr: 'libs/modernizr/modernizr',
-    mps: 'libs/minpubsub/minpubsub',
-    Spin: 'libs/spin/spin',
-    Delivery: 'libs/delivery/delivery'
+    jQuery: 'lib/jquery/jquery',
+    Underscore: 'lib/underscore/underscore',
+    Backbone: 'lib/backbone/backbone',
+    Modernizr: 'lib/modernizr/modernizr',
+    mps: 'lib/minpubsub/minpubsub',
+    Spin: 'lib/spin/spin'
   },
 
   // Dependency mapping:
@@ -35,10 +34,7 @@ require.config({
     },
     Spin: {
       exports: 'Spin'
-    },
-    Delivery: {
-      exports: 'Delivery'
-    },
+    }
   }
 });
 
