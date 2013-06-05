@@ -13,7 +13,8 @@ require.config({
     Backbone: 'lib/backbone/backbone',
     Modernizr: 'lib/modernizr/modernizr',
     mps: 'lib/minpubsub/minpubsub',
-    Spin: 'lib/spin/spin'
+    Spin: 'lib/spin/spin',
+    excanvas: 'lib/excanvas/excanvas'
   },
 
   // Dependency mapping:
@@ -39,6 +40,6 @@ require.config({
 });
 
 // Application entry point:
-require(['app'], function (app) {
+require(['app', 'excanvas'], function (app) {
   app.init();
 });

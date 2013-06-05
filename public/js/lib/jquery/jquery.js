@@ -19,11 +19,21 @@ define([
     return o;
   };
 
-  require(['lib/jquery/jquery.autogrow',
-           'lib/jquery/jquery.scrollTo-min',
-           'lib/jquery/jquery.transloadit2',
-           'lib/jquery/jquery.fancybox'
-          ]);
+  require([
+    'lib/jquery/jquery.colorhelpers',
+    'lib/jquery/jquery.flot'
+  ], function () {
+    require([
+      'lib/jquery/jquery.flot.categories',
+      'lib/jquery/jquery.flot.crosshair',
+      'lib/jquery/jquery.flot.fillbetween',
+      'lib/jquery/jquery.flot.navigate',
+      'lib/jquery/jquery.flot.selection',
+      'lib/jquery/jquery.flot.stack',
+      'lib/jquery/jquery.flot.symbol',
+      'lib/jquery/jquery.flot.threshold'
+    ]);    
+  });
 
   return jQuery;
 });
