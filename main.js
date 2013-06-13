@@ -351,22 +351,9 @@ function routes() {
     res.redirect('/');
   });
 
-  // Go home
-  app.get('/vehicle', function (req, res) {
-    res.redirect('/');
-  });
-
-  // Allows sharing by vehicle
-  app.get('/vehicle/:id', function (req, res) {
+  // Graph
+  app.get('/:username/:did/:channel', function (req, res) {
     res.render('index');
-  });
-
-  // Alias to above
-  app.get('/s/:key', function (req, res) {
-    userDb.collections.links.findOne({key: req.params.key},
-        function (err, link) {
-      res.redirect('/?' + (err || !link ? '' : link.val));
-    });
   });
 
 }

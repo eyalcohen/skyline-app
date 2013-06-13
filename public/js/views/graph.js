@@ -7,108 +7,219 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'util'
-], function ($, _, Backbone, mps, rpc, util) {
+  'util',
+  'units',
+  'models/graph',
+  'text!../../../templates/graph.html'
+], function ($, _, Backbone, mps, util, units, Graph, template) {
 
   return Backbone.View.extend({
 
-    initialize: function (args) {
-      this._super('initialize', args);
-      _.bindAll(this, 'destroy', 'highlightedChannelChanged',
-                'showEvent', 'hideEvent',
-                'mouseHoverTime', 'addYaxesBoundsForDrops',
-                'removeYaxesBoundsForDrops', 'ensureLegend', 'openNote');
-      var tabId = args.tabId;
-      var id = args.id;
-      this.model.tabModel.bind('change:highlightedChannel',
-                               this.highlightedChannelChanged);
-      App.subscribe('PreviewEvent-' + tabId, this.showEvent);
-      App.subscribe('UnPreviewEvent-' + tabId, this.hideEvent);
-      App.subscribe('OpenNote-' + tabId, this.openNote);
-      App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
-      App.subscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
-      App.subscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
-      // This is a horribly crufty way to avoid drawing the legends every time
-      // the plot is redrawn but also ensure that it gets redawn when channels
-      // are dropped in.
-      this.ensureLegendRedraw = true;
-      App.subscribe('ChannelDropped-' + id, this.ensureLegend);
+    // The DOM target element for this page:
+    className: 'graph',
+
+    // Module entry point:
+    initialize: function (app, options) {
+
+      // Save app ref.
+      this.app = app;
+      this.options = options;
+
+      // Shell events:
+      this.on('rendered', this.setup, this);
+
+      // Client-wide subscriptions
+      this.subscriptions = [];
     },
 
-    destroy: function () {
-      this._super('destroy');
-      var tabId = this.options.tabId;
-      var id = this.options.id;
-      this.model.tabModel.unbind('change:highlightedChannel',
-                                 this.highlightedChannelChanged);
-      App.unsubscribe('PreviewEvent-' + tabId, this.showEvent);
-      App.unsubscribe('UnPreviewEvent-' + tabId, this.hideEvent);
-      App.unsubscribe('OpenNote-' + tabId, this.openNote);
-      App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
-      App.unsubscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
-      App.unsubscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
-      App.unsubscribe('ChannelDropped-' + id, this.ensureLegend);
+    // Draw our template from the profile JSON.
+    render: function (samples) {
+
+      this.model = new Graph(this.app, this);
+
+      // UnderscoreJS rendering.
+      this.template = _.template(template);
+      this.$el.html(this.template.call(this)).appendTo('#main');
+
+      // Initial sizing
+      this.$el.height($(window).height() - this.$el.offset().top);
+
+      // Done rendering ... trigger setup.
+      this.trigger('rendered');
+
+      return this;
     },
 
-    events: {
-      'click .toggler': 'toggle',
-      'click .fetchLatest': 'fetchLatest',
-      'click .followLatest': 'followLatest',
-      'click .export': 'exportCsv',
-      'click .add-graph': 'addGraph',
-      'click .graph-closer': 'removeGraph',
-    },
+    // Bind mouse events.
+    events: {},
 
-    render: function (opts, fn) {
-      opts = opts || {};
-      _.defaults(opts, {
-        title: this.options.title,
-        waiting: false,
-        loading: false,
-        empty: false,
-        shrinkable: false,
-      });
-      if (this.el.length) this.remove();
+    // Misc. setup.
+    setup: function () {
+
+      // Save refs
       this.plot = null;
-      this.el = App.engine('graph.dash.jade', opts)
-          .appendTo(this.options.parent);
-      this.mouseTime = $('.mouse-time', this.el);
-      this.mouseTimeTxt = $('span', this.mouseTime);
-      this.eventPreview = $('.event-preview', this.el);
+      // this.mouseTime = $('.mouse-time', this.el);
+      // this.mouseTimeTxt = $('span', this.mouseTime);
+      this.eventPreview = this.$('div.event-preview');
       this.eventIcons = [];
       this.minHoverDistance = 10;
       this.following = false;
       this.noteBox = null;
       this.noteWindow = null;
       this.editingNote = false;
-      this._super('render');
+
+      // Draw the canvas.
       this.draw();
+
+      ////////////
+
+      this.model.addChannel([
+      {
+        channelName: "dominant_wave_period",
+        humanName: "Dominant Wave Period",
+        shortName: "Dominant Wave Period",
+        title: "Dominant Wave Period",
+        type: "float",
+        units: "m"
+      },
+      {
+        channelName: "significant_wave_height",
+        humanName: "Significant Wave Height",
+        shortName: "Wave Height",
+        title: "Significant Wave Height",
+        type: "float",
+        units: "m"
+      },
+      {
+        channelName: "sea_surface_temperature",
+        humanName: "Sea Surface Temperature",
+        shortName: "Sea Surface Temperature",
+        title: "Sea Surface Temperature",
+        type: "float",
+        units: "C",
+        yaxisNum: 2
+      }
+      ]);
+      // "depth", "significant_wave_height", "dominant_wave_period", "sea_surface_temperature"
+      return this;
     },
 
-    resize: function (delta, skipDraw) {
-      var self = this;
-      self._super('resize', delta);
-      if (self.plot) {
-        var width = self.content.width();
-        var height = self.content.height();
-        if (width === 0)
-          width = self.plot.getPlaceholder().closest('[data-width]').width();
-        self.plot.getPlaceholder().css({
-          width: width,
-          height: height,
-        });
-        self.plot.setCanvasDimensions(width, height);
-        self.noteCanvas.attr({ width: width, height: height });
-        var allGraphs = self.model.tabModel.graphModels;
-        _.each(allGraphs, function (gm) {
-          gm.view.redrawNote();
-        });
-        if (!skipDraw) {
-          self.plot.setupGrid();
-          self.plot.draw();
-        }
-      }
+    // Similar to Backbone's remove method, but empties
+    // instead of removes the view's DOM element.
+    empty: function () {
+      this.$el.empty();
+      return this;
     },
+
+    // Kill this view.
+    destroy: function () {
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
+      this.undelegateEvents();
+      this.stopListening();
+      this.remove();
+    },
+
+    /////////////////////////////////// OLD
+
+    // initialize: function (app) {
+    //   this._super('initialize', args);
+    //   _.bindAll(this, 'destroy', 'highlightedChannelChanged',
+    //             'showEvent', 'hideEvent',
+    //             'mouseHoverTime', 'addYaxesBoundsForDrops',
+    //             'removeYaxesBoundsForDrops', 'ensureLegend', 'openNote');
+    //   var tabId = args.tabId;
+    //   var id = args.id;
+    //   this.model.tabModel.bind('change:highlightedChannel',
+    //                            this.highlightedChannelChanged);
+    //   App.subscribe('PreviewEvent-' + tabId, this.showEvent);
+    //   App.subscribe('UnPreviewEvent-' + tabId, this.hideEvent);
+    //   App.subscribe('OpenNote-' + tabId, this.openNote);
+    //   App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
+    //   App.subscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
+    //   App.subscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
+    //   This is a horribly crufty way to avoid drawing the legends every time
+    //   the plot is redrawn but also ensure that it gets redawn when channels
+    //   are dropped in.
+    //   this.ensureLegendRedraw = true;
+    //   App.subscribe('ChannelDropped-' + id, this.ensureLegend);
+    // },
+
+    // destroy: function () {
+    //   this._super('destroy');
+    //   var tabId = this.options.tabId;
+    //   var id = this.options.id;
+    //   this.model.tabModel.unbind('change:highlightedChannel',
+    //                              this.highlightedChannelChanged);
+    //   App.unsubscribe('PreviewEvent-' + tabId, this.showEvent);
+    //   App.unsubscribe('UnPreviewEvent-' + tabId, this.hideEvent);
+    //   App.unsubscribe('OpenNote-' + tabId, this.openNote);
+    //   App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
+    //   App.unsubscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
+    //   App.unsubscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
+    //   App.unsubscribe('ChannelDropped-' + id, this.ensureLegend);
+    // },
+
+    // events: {
+    //   'click .toggler': 'toggle',
+    //   'click .fetchLatest': 'fetchLatest',
+    //   'click .followLatest': 'followLatest',
+    //   'click .export': 'exportCsv',
+    //   'click .add-graph': 'addGraph',
+    //   'click .graph-closer': 'removeGraph',
+    // },
+
+    // render: function (opts, fn) {
+    //   opts = opts || {};
+    //   _.defaults(opts, {
+    //     title: this.options.title,
+    //     waiting: false,
+    //     loading: false,
+    //     empty: false,
+    //     shrinkable: false,
+    //   });
+    //   // if (this.el.length) this.remove();
+    //   this.plot = null;
+    //   // this.el = App.engine('graph.dash.jade', opts)
+    //   //     .appendTo(this.options.parent);
+    //   this.mouseTime = $('.mouse-time', this.el);
+    //   this.mouseTimeTxt = $('span', this.mouseTime);
+    //   this.eventPreview = $('.event-preview', this.el);
+    //   this.eventIcons = [];
+    //   this.minHoverDistance = 10;
+    //   this.following = false;
+    //   this.noteBox = null;
+    //   this.noteWindow = null;
+    //   this.editingNote = false;
+    //   // this._super('render');
+    //   this.draw();
+    // },
+
+    // resize: function (delta, skipDraw) {
+    //   var self = this;
+    //   self._super('resize', delta);
+    //   if (self.plot) {
+    //     var width = self.content.width();
+    //     var height = self.content.height();
+    //     if (width === 0)
+    //       width = self.plot.getPlaceholder().closest('[data-width]').width();
+    //     self.plot.getPlaceholder().css({
+    //       width: width,
+    //       height: height,
+    //     });
+    //     self.plot.setCanvasDimensions(width, height);
+    //     self.noteCanvas.attr({ width: width, height: height });
+    //     var allGraphs = self.model.tabModel.graphModels;
+    //     _.each(allGraphs, function (gm) {
+    //       gm.view.redrawNote();
+    //     });
+    //     if (!skipDraw) {
+    //       self.plot.setupGrid();
+    //       self.plot.draw();
+    //     }
+    //   }
+    // },
 
     createPlot: function () {
       var self = this;
@@ -129,7 +240,11 @@ define([
         "#96BDFF",  // Light blue
         "#D373FF",  // Light purple
       ];
-      var visibleTime = self.model.tabModel.get('visibleTime');
+      // var visibleTime = self.model.tabModel.get('visibleTime');
+      var visibleTime = {
+        beg: 1367540460000 * 1e3,
+        end: 1370299860000 * 1e3
+      };
       self.holder = $('.graph > div', self.content);
       self.plot = $.plot(self.holder, [], {
         xaxis: {
@@ -146,8 +261,8 @@ define([
             var span = (visible.end - visible.beg) / 1e3;
             var date = new Date(val);
             return span < 86400000 ?
-              App.util.toLocaleString(date, 'h:MM:ss TT') :
-              App.util.toLocaleString(date, 'm/d/yy');
+              util.toLocaleString(date, 'h:MM:ss TT') :
+              util.toLocaleString(date, 'm/d/yy');
           }
         },
         yaxis: {
@@ -203,10 +318,11 @@ define([
           bindEvents: [bindEventsHook],
         },
       });
-      self.plot.lockCrosshair(); // Disable default crosshair movement.
+
+      // self.plot.lockCrosshair(); // Disable default crosshair movement.
       $('.graph', self.content).data({
         plot: self.plot,
-        id: self.options.id,
+        // id: self.options.id,
       });
 
       self.noteCanvas =
@@ -228,7 +344,7 @@ define([
         r += channel.humanName || channel.shortName;
         r += '</span>';
         if (channel.units) {
-          var compat = App.units.findCompatibleUnits(
+          var compat = units.findCompatibleUnits(
               channel.displayUnits || channel.units);
           if (compat) {
             r += ' (<select>';
@@ -254,28 +370,28 @@ define([
       }
 
       function bindEventsHook(plot, eventHolder) {
-        plot.getPlaceholder().mousemove(function (e) {
-          var mouse = self.getMouse(e, plot);
-          var xaxis = plot.getXAxes()[0];
-          var time = xaxis.c2p(mouse.x);
-          // If we're hovering over the legend, don't do data mouseover.
-          if (inLegend(e.target))
-            mouse = null;
-          App.publish('MouseHoverTime-' + self.model.get('tabId'),
-                      [time * 1e3, mouse, self]);
-        })
-        .bind('mouseleave', function (e) {
-          App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
-        })
-        .mousewheel(function (e, delta) {
-          if (self.noteBox) return;
-          graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
-          return false;
-        })
-        .dblclick(function (e) {
-          if (self.noteBox) return;
-          graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
-        });
+        // plot.getPlaceholder().mousemove(function (e) {
+        //   var mouse = self.getMouse(e, plot);
+        //   var xaxis = plot.getXAxes()[0];
+        //   var time = xaxis.c2p(mouse.x);
+        //   // If we're hovering over the legend, don't do data mouseover.
+        //   if (inLegend(e.target))
+        //     mouse = null;
+        //   App.publish('MouseHoverTime-' + self.model.get('tabId'),
+        //               [time * 1e3, mouse, self]);
+        // })
+        // .bind('mouseleave', function (e) {
+        //   App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
+        // })
+        // .mousewheel(function (e, delta) {
+        //   if (self.noteBox) return;
+        //   graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
+        //   return false;
+        // })
+        // .dblclick(function (e) {
+        //   if (self.noteBox) return;
+        //   graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+        // });
 
         function graphZoomClick(e, factor, out) {
           var c = plot.offset();
@@ -327,7 +443,9 @@ define([
       });
 
       if (channels.length === 0 && emptyDiv.length === 0) {
-        App.engine('empty_graph.jade').appendTo(self.content);
+        $('<div class="empty-graph"><div><span>'
+            + 'Drop data channels here to display.</span></div></div>')
+            .appendTo(self.content);
       } else if (channels.length > 0 && emptyDiv.length > 0) {
         emptyDiv.remove();
         self.resize(null, true);
@@ -380,7 +498,7 @@ define([
     },
 
     calculateSeriesData: function (channel) {
-      var conv = App.units.findConversion(channel.units,
+      var conv = units.findConversion(channel.units,
           channel.displayUnits || channel.units);
       var samples = this.model.sampleSet[channel.channelName] || [];
       var data = [];

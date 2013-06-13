@@ -8,12 +8,12 @@ define([
   'Backbone',
   'mps',
   'util'
-], function ($, _, Backbone, mps, rpc, util) {
+], function ($, _, Backbone, mps, util, Graph) {
 
   return Backbone.View.extend({
 
     // The DOM target element for this page:
-    el: '#main',
+    id: 'dnd',
     uploading: false,
 
     // Module entry point:
@@ -41,8 +41,11 @@ define([
     // Misc. setup.
     setup: function () {
 
+      // Just attach this to the main div.
+      this.$el.appendTo('#main');
+
       // Safe el refs.
-      this.dropZone = this.$('#dnd');
+      this.dropZone = this.$el;
 
       // Drag & drop events.
       this.dropZone.on('dragover', _.bind(this.dragover, this))
@@ -97,11 +100,12 @@ define([
             _.bind(function (err, res) {
           if (err) return console.error(err);
 
-          this.app.rpc.do('fetchSamples', res.did, res.channels[4], {},
-              function (err, samples) {
-            console.log(err, samples);
-          });
-          
+          var tester = res.channels[4];
+          var route = ['/username', res.did, tester].join('/');
+          // console.log(res.channels)
+          // Go to the graph view.
+          this.app.router.navigate(route, {trigger: true});
+
         }, this));
 
       }, this);
@@ -124,7 +128,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
-      this.empty();
+      this.remove();
     },
 
     // Bind mouse events.

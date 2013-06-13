@@ -23,9 +23,14 @@
   Bucketing: same as synthetic buckets.
  */
 
-define(function () {
+define([
+  'Underscore',
+  'Backbone',
+  'shared'
+], function (_, Backbone, shared) {
 
-  function SampleCache() {
+  function SampleCache(app) {
+    this.app = app;
 
     /* Cache structure:
         cache = {
@@ -69,8 +74,8 @@ define(function () {
     // minPendingRequests and maxPendingRequests pending.
     this.pendingCacheEntries = [];
 
-    App.subscribe('DNodeReconnectUserAuthorized',
-                  _.bind(this.dnodeReconnected, this));
+    // App.subscribe('DNodeReconnectUserAuthorized',
+    //               _.bind(this.dnodeReconnected, this));
   }
   _.extend(SampleCache.prototype, Backbone.Events);
 
@@ -79,7 +84,7 @@ define(function () {
    * Fetches will be triggered as necessary, and an update event triggered.
    */
   SampleCache.prototype.setClientView =
-  function(clientId, vehicleId, channels, dur, beg, end, force) {
+      function(clientId, vehicleId, channels, dur, beg, end, force) {
     var client = defObj(this.clients, clientId);
     if (client.vehicleId === vehicleId && client.dur === dur &&
         client.beg === beg && client.end === end &&
@@ -189,7 +194,7 @@ define(function () {
    * Get a cache entry.  If it doesn't exist, create it.
    */
   SampleCache.prototype.getCacheEntry =
-  function(vehicleId, channelName, dur, buck, create) {
+      function(vehicleId, channelName, dur, buck, create) {
     var cacheKey = vehicleId + '-' + channelName;
     var d = create ? defObj : ifDef;
     var durEntry = d(d(this.cache, cacheKey), dur);
@@ -253,11 +258,11 @@ define(function () {
         client.channels.forEach(function(channelName) {
           // Hack: avoid fetching buckets which have no schema, thus must be
           // empty.
-          var validRanges = null;
-          App.publish('FetchChannelInfo-' + client.vehicleId,
-                      [channelName, function(desc){
-            if (desc) validRanges = desc.valid;
-          }]);
+          var validRanges = [{beg:0, end: 1e50}];
+          // App.publish('FetchChannelInfo-' + client.vehicleId,
+          //             [channelName, function(desc){
+          //   if (desc) validRanges = desc.valid;
+          // }]);
           forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
                                  function(buck, buckBeg, buckEnd) {
             var entry = self.getCacheEntry(client.vehicleId, channelName,
@@ -278,6 +283,7 @@ define(function () {
     // already pending.
     var priorities = _.keys(requestsByPriority).sort(function(a,b){return a-b});
     for (var prioI in priorities) {
+
       var requests = requestsByPriority[priorities[prioI]];
       for (var reqI in requests) {
         var req = requests[reqI];
@@ -318,25 +324,20 @@ define(function () {
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
-    App.api.fetchSamples(req.veh, req.chan, options, function(err, samples) {
+    // console.log(req.veh, req.chan, options)
+    self.app.rpc.do('fetchSamples', req.veh, req.chan, options,
+        function (err, samples) {
       if (err) {
-        console.error(
-            'SampleCache server call fetchSamples(' + req.veh + ', "' +
-            req.chan + '", ' + JSON.stringify(options) +
-            ') returned error: ' + err);
+        console.error(err);
         samples = null;
-        //// SWP: Without this belong crud the client 
-        //   keeps trying to get the samples forever.
         self.pendingCacheEntries.splice(
-            self.pendingCacheEntries.indexOf(entry), 1);
+        self.pendingCacheEntries.indexOf(entry), 1);
         delete entry.pending;
         self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
         self.cleanCache();
-        return;
-        ////
-      } else {
-        entry.syn = samples.some(function(s){return 'min' in s});
+        return;    
       }
+      entry.syn = samples.some(function(s){return 'min' in s});
       if (entry.samples)
         self.cacheSize -= entry.samples.length;
       entry.samples = samples;
@@ -350,6 +351,39 @@ define(function () {
       self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
       self.cleanCache();
     });
+
+    // self.app.rpc.do.fetchSamples(req.veh, req.chan, options, function(err, samples) {
+    //   if (err) {
+    //     console.error(
+    //         'SampleCache server call fetchSamples(' + req.veh + ', "' +
+    //         req.chan + '", ' + JSON.stringify(options) +
+    //         ') returned error: ' + err);
+    //     samples = null;
+    //     //// SWP: Without this the client 
+    //     //   keeps trying to get the samples forever.
+    //     self.pendingCacheEntries.splice(
+    //         self.pendingCacheEntries.indexOf(entry), 1);
+    //     delete entry.pending;
+    //     self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
+    //     self.cleanCache();
+    //     return;
+    //     ////
+    //   } else {
+    //     entry.syn = samples.some(function(s){return 'min' in s});
+    //   }
+    //   if (entry.samples)
+    //     self.cacheSize -= entry.samples.length;
+    //   entry.samples = samples;
+    //   if (samples)
+    //     self.cacheSize += samples.length;
+    //   // Delete this entry from the pending request array.
+    //   self.pendingCacheEntries.splice(
+    //       self.pendingCacheEntries.indexOf(entry), 1);
+    //   delete entry.pending;
+    //   self.fillPendingRequests();
+    //   self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
+    //   self.cleanCache();
+    // });
   }
 
   /**
@@ -357,7 +391,7 @@ define(function () {
    * which could be viewing this data.
    */
   SampleCache.prototype.triggerClientUpdates =
-  function(vehicleId, channelName, dur, beg, end) {
+      function(vehicleId, channelName, dur, beg, end) {
     for (var clientId in this.clients) {
       var client = this.clients[clientId];
       if (client.vehicleId === vehicleId &&
@@ -395,11 +429,11 @@ define(function () {
       delete client.updateTimeout;
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
-        var validRanges = null;
-        App.publish('FetchChannelInfo-' + client.vehicleId, [channelName,
-                    function(desc) {
-          if (desc) validRanges = desc.valid;
-        }]);
+        var validRanges = [{beg:0, end: 1e50}];
+        // App.publish('FetchChannelInfo-' + client.vehicleId, [channelName,
+        //             function(desc) {
+        //   if (desc) validRanges = desc.valid;
+        // }]);
         sampleSet[channelName] = self.getBestCachedData(
             client.vehicleId, channelName,
             client.dur, client.beg, client.end, validRanges);
@@ -414,7 +448,7 @@ define(function () {
    * higher-resolution or lower-resolution data.
    */
   SampleCache.prototype.getBestCachedData =
-  function(vehicleId, channelName, dur, beg, end, validRanges) {
+      function(vehicleId, channelName, dur, beg, end, validRanges) {
     var self = this;
     var buckDur = bucketSize(dur);
     var prevDur = getPrevDur(dur), nextDur = getNextDur(dur);
@@ -437,20 +471,20 @@ define(function () {
     // Samples which overlap from one bucket into another will end up
     // duplicated.  Remove duplicates.
     // TODO: make a mergeDuplicateSamples for speed?
-    App.shared.mergeOverlappingSamples(samples, channelName);
-    return App.shared.trimSamples(samples, beg, end);
+    shared.mergeOverlappingSamples(samples, channelName);
+    return shared.trimSamples(samples, beg, end);
   }
 
-  SampleCache.prototype.dnodeReconnected = function() {
-    // Any pending transactions are never going to complete.
-    this.pendingCacheEntries.forEach(function(e) {
-      delete e.pending;
-    });
-    this.pendingCacheEntries = [];
+  // SampleCache.prototype.dnodeReconnected = function() {
+  //   // Any pending transactions are never going to complete.
+  //   this.pendingCacheEntries.forEach(function(e) {
+  //     delete e.pending;
+  //   });
+  //   this.pendingCacheEntries = [];
 
-    // Re-issue fetches for client-visible regions.
-    this.fillPendingRequests();
-  }
+  //   // Re-issue fetches for client-visible regions.
+  //   this.fillPendingRequests();
+  // }
 
   SampleCache.prototype.cleanCache = function() {
     var self = this;
@@ -520,10 +554,10 @@ define(function () {
   var minCacheSize = 750000, maxCacheSize = 1000000;
   var entryCacheCost = 10;
 
-  var durations = [0].concat(App.shared.syntheticDurations),
+  var durations = [0].concat(shared.syntheticDurations),
       durationsRev = _.clone(durations).reverse();
   function bucketSize(dur)
-    { return dur === 0 ? 500 : dur * App.shared.syntheticSamplesPerRow * 10; }
+    { return dur === 0 ? 500 : dur * shared.syntheticSamplesPerRow * 10; }
 
   function defObj(obj, key)
     { return (key in obj) ? obj[key] : (obj[key] = {}); }

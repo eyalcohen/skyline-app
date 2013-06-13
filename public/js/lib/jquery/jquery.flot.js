@@ -1513,9 +1513,9 @@
                 drawAxisLabels();
             }
 
-            // HACK HACK HACK TODO: remove underscore dep.
+            
             // Skyline-specific: sort by z-order.
-            var sortedSeries = _.stableSort(series,
+            var sortedSeries = $.stableSort(series,
                     function(s1, s2) { return s1.zorder - s2.zorder });
             for (var i = 0; i < sortedSeries.length; ++i) {
                 executeHooks(hooks.drawSeries, [ctx, sortedSeries[i]]);

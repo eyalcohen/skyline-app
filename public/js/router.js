@@ -7,8 +7,9 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'views/home'
-], function ($, _, Backbone, mps, Home) {
+  'views/home',
+  'views/graph'
+], function ($, _, Backbone, mps, Home, Graph) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -19,6 +20,7 @@ define([
       this.app = app;
 
       // Page routes:
+      this.route(':username/:did/:channel', 'graph', this.graph);
       this.route('', 'home', this.home);
     },
 
@@ -28,10 +30,16 @@ define([
     },
 
     home: function () {
-
+      if (this.page)
+        this.page.destroy();
       this.page = new Home(this.app).render();
-
     },
+
+    graph: function (username, did, channel) {
+      if (this.page)
+        this.page.destroy();
+      this.page = new Graph(this.app, {vehicleId: did, channel: channel}).render();
+    }
 
     // query: function (str) {
     //   // Kills everything and loads all content from scratch.
