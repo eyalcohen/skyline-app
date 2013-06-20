@@ -7,9 +7,10 @@ define([
   'Underscore',
   'Backbone',
   'mps',
+  'util',
   'views/home',
   'views/graph'
-], function ($, _, Backbone, mps, Home, Graph) {
+], function ($, _, Backbone, mps, util, Home, Graph) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -38,7 +39,15 @@ define([
     graph: function (username, did, channel) {
       if (this.page)
         this.page.destroy();
-      this.page = new Graph(this.app, {vehicleId: did, channel: channel}).render();
+
+      this.page = new Graph(this.app, {
+        vehicleId: did,
+        channel: channel,
+        visibleTime: {
+          beg: util.getParameterByName('b'),
+          end: util.getParameterByName('e')
+        }
+      }).render();
     }
 
     // query: function (str) {

@@ -324,9 +324,9 @@ define([
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
-    // console.log(req.veh, req.chan, options)
     self.app.rpc.do('fetchSamples', req.veh, req.chan, options,
         function (err, samples) {
+      console.log(samples)
       if (err) {
         console.error(err);
         samples = null;
@@ -351,39 +351,6 @@ define([
       self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
       self.cleanCache();
     });
-
-    // self.app.rpc.do.fetchSamples(req.veh, req.chan, options, function(err, samples) {
-    //   if (err) {
-    //     console.error(
-    //         'SampleCache server call fetchSamples(' + req.veh + ', "' +
-    //         req.chan + '", ' + JSON.stringify(options) +
-    //         ') returned error: ' + err);
-    //     samples = null;
-    //     //// SWP: Without this the client 
-    //     //   keeps trying to get the samples forever.
-    //     self.pendingCacheEntries.splice(
-    //         self.pendingCacheEntries.indexOf(entry), 1);
-    //     delete entry.pending;
-    //     self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
-    //     self.cleanCache();
-    //     return;
-    //     ////
-    //   } else {
-    //     entry.syn = samples.some(function(s){return 'min' in s});
-    //   }
-    //   if (entry.samples)
-    //     self.cacheSize -= entry.samples.length;
-    //   entry.samples = samples;
-    //   if (samples)
-    //     self.cacheSize += samples.length;
-    //   // Delete this entry from the pending request array.
-    //   self.pendingCacheEntries.splice(
-    //       self.pendingCacheEntries.indexOf(entry), 1);
-    //   delete entry.pending;
-    //   self.fillPendingRequests();
-    //   self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
-    //   self.cleanCache();
-    // });
   }
 
   /**

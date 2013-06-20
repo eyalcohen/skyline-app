@@ -100,9 +100,9 @@ define([
             _.bind(function (err, res) {
           if (err) return console.error(err);
 
-          var tester = res.channels[4];
-          var route = ['/username', res.did, tester].join('/');
-          // console.log(res.channels)
+          var route = ['/username', res.did, res.channels[0]].join('/');
+          route += '?b=' + res.beg + '&e=' + res.end;
+
           // Go to the graph view.
           this.app.router.navigate(route, {trigger: true});
 

@@ -19,6 +19,10 @@ define([
 
       this.view = view;
       this.set('vehicleId', Number(this.view.options.vehicleId));
+      this.set('visibleTime', this.view.options.visibleTime || {
+        beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
+        end: Date.now() * 1e3,
+      });
 
       this.cache = new Cache(app);
       // if (!args) args = {};
@@ -41,11 +45,11 @@ define([
       // App.subscribe('ChannelUnrequested-' + tabId + '-' + id, this.removeChannel);
       // App.subscribe('FetchGraphedChannels-' + tabId, this.fetchGraphedChannels);
       this.cache.bind('update-' + this.clientId, _.bind(this.updateSampleSet, this));
-      // this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
-      //   this.tabModel.set({ visibleTime: visibleTime });
-      //   this.updateCacheSubscription();
-      // }, this));
-      // this.view.bind('VisibleWidthChange', this.updateCacheSubscription);
+      this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
+        this.set({visibleTime: visibleTime});
+        this.updateCacheSubscription();
+      }, this));
+      this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
       // this.view.render();
 
       return this;

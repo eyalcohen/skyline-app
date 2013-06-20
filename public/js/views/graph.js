@@ -10,7 +10,9 @@ define([
   'util',
   'units',
   'models/graph',
-  'text!../../../templates/graph.html'
+  'text!../../../templates/graph.html',
+  'plugins',
+  'flot_plugins'
 ], function ($, _, Backbone, mps, util, units, Graph, template) {
 
   return Backbone.View.extend({
@@ -71,36 +73,37 @@ define([
       // Draw the canvas.
       this.draw();
 
-      ////////////
+      // Add a channel (if requested) from URL.
+      this.model.addChannel({channelName: this.options.channel});
 
-      this.model.addChannel([
-      {
-        channelName: "dominant_wave_period",
-        humanName: "Dominant Wave Period",
-        shortName: "Dominant Wave Period",
-        title: "Dominant Wave Period",
-        type: "float",
-        units: "m"
-      },
-      {
-        channelName: "significant_wave_height",
-        humanName: "Significant Wave Height",
-        shortName: "Wave Height",
-        title: "Significant Wave Height",
-        type: "float",
-        units: "m"
-      },
-      {
-        channelName: "sea_surface_temperature",
-        humanName: "Sea Surface Temperature",
-        shortName: "Sea Surface Temperature",
-        title: "Sea Surface Temperature",
-        type: "float",
-        units: "C",
-        yaxisNum: 2
-      }
-      ]);
-      // "depth", "significant_wave_height", "dominant_wave_period", "sea_surface_temperature"
+      // this.model.addChannel([
+      // {
+      //   channelName: "dominant_wave_period",
+      //   humanName: "Dominant Wave Period",
+      //   shortName: "Dominant Wave Period",
+      //   title: "Dominant Wave Period",
+      //   type: "float",
+      //   units: "m"
+      // },
+      // {
+      //   channelName: "significant_wave_height",
+      //   humanName: "Significant Wave Height",
+      //   shortName: "Wave Height",
+      //   title: "Significant Wave Height",
+      //   type: "float",
+      //   units: "m"
+      // },
+      // {
+      //   channelName: "sea_surface_temperature",
+      //   humanName: "Sea Surface Temperature",
+      //   shortName: "Sea Surface Temperature",
+      //   title: "Sea Surface Temperature",
+      //   type: "float",
+      //   units: "C",
+      //   yaxisNum: 2
+      // }
+      // ]);
+
       return this;
     },
 
@@ -196,30 +199,31 @@ define([
     //   this.draw();
     // },
 
-    // resize: function (delta, skipDraw) {
-    //   var self = this;
-    //   self._super('resize', delta);
-    //   if (self.plot) {
-    //     var width = self.content.width();
-    //     var height = self.content.height();
-    //     if (width === 0)
-    //       width = self.plot.getPlaceholder().closest('[data-width]').width();
-    //     self.plot.getPlaceholder().css({
-    //       width: width,
-    //       height: height,
-    //     });
-    //     self.plot.setCanvasDimensions(width, height);
-    //     self.noteCanvas.attr({ width: width, height: height });
-    //     var allGraphs = self.model.tabModel.graphModels;
-    //     _.each(allGraphs, function (gm) {
-    //       gm.view.redrawNote();
-    //     });
-    //     if (!skipDraw) {
-    //       self.plot.setupGrid();
-    //       self.plot.draw();
-    //     }
-    //   }
-    // },
+    resize: function (delta, skipDraw) {
+      var self = this;
+      // self._super('resize', delta);
+      if (self.plot) {
+        var width = self.content.width();
+        var height = self.content.height();
+        if (width === 0)
+          width = self.plot.getPlaceholder().closest('[data-width]').width();
+        self.plot.getPlaceholder().css({
+          width: width,
+          height: height,
+        });
+        self.plot.setCanvasDimensions(width, height);
+        self.noteCanvas.attr({ width: width, height: height });
+        // var allGraphs = self.model.tabModel.graphModels;
+        // _.each(allGraphs, function (gm) {
+          // gm.view.redrawNote();
+        self.redrawNote();
+        // });
+        if (!skipDraw) {
+          self.plot.setupGrid();
+          self.plot.draw();
+        }
+      }
+    },
 
     createPlot: function () {
       var self = this;
@@ -240,11 +244,6 @@ define([
         "#96BDFF",  // Light blue
         "#D373FF",  // Light purple
       ];
-      // var visibleTime = self.model.tabModel.get('visibleTime');
-      var visibleTime = {
-        beg: 1367540460000 * 1e3,
-        end: 1370299860000 * 1e3
-      };
       self.holder = $('.graph > div', self.content);
       self.plot = $.plot(self.holder, [], {
         xaxis: {
@@ -252,8 +251,8 @@ define([
           utc: true,
           twelveHourClock: true,
           position: 'bottom',
-          min: visibleTime.beg / 1e3,
-          max: visibleTime.end / 1e3,
+          min: self.model.get('visibleTime').beg / 1e3,
+          max: self.model.get('visibleTime').end / 1e3,
           tickColor: '#f0f0f0',
           labelsInside: true,
           tickFormatter: function (val, axis) {
@@ -370,37 +369,38 @@ define([
       }
 
       function bindEventsHook(plot, eventHolder) {
-        // plot.getPlaceholder().mousemove(function (e) {
-        //   var mouse = self.getMouse(e, plot);
-        //   var xaxis = plot.getXAxes()[0];
-        //   var time = xaxis.c2p(mouse.x);
-        //   // If we're hovering over the legend, don't do data mouseover.
-        //   if (inLegend(e.target))
-        //     mouse = null;
-        //   App.publish('MouseHoverTime-' + self.model.get('tabId'),
-        //               [time * 1e3, mouse, self]);
-        // })
-        // .bind('mouseleave', function (e) {
-        //   App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
-        // })
-        // .mousewheel(function (e, delta) {
-        //   if (self.noteBox) return;
-        //   graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
-        //   return false;
-        // })
-        // .dblclick(function (e) {
-        //   if (self.noteBox) return;
-        //   graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
-        // });
+        plot.getPlaceholder().mousemove(function (e) {
+          var mouse = self.getMouse(e, plot);
+          var xaxis = plot.getXAxes()[0];
+          var time = xaxis.c2p(mouse.x);
+          // If we're hovering over the legend, don't do data mouseover.
+          if (inLegend(e.target))
+            mouse = null;
+          // App.publish('MouseHoverTime-' + self.model.get('tabId'),
+          //             [time * 1e3, mouse, self]);
+        })
+        .bind('mouseleave', function (e) {
+          // App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
+        })
+        .mousewheel(function (e) {
+          if (self.noteBox) return;
+          var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
+          graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
+          return false;
+        })
+        .dblclick(function (e) {
+          if (self.noteBox) return;
+          graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+        });
 
         function graphZoomClick(e, factor, out) {
           var c = plot.offset();
-          c.left = e.pageX - c.left;
-          c.top = e.pageY - c.top;
+          c.left = e.originalEvent.pageX - c.left;
+          c.top = e.originalEvent.pageY - c.top;
           if (out)
-            plot.zoomOut({ center: c, amount: factor });
+            plot.zoomOut({center: c, amount: factor});
           else
-            plot.zoom({ center: c, amount: factor });
+            plot.zoom({center: c, amount: factor});
         }
       }
 
@@ -596,7 +596,7 @@ define([
       var t = this.getVisibleTime();
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
-        this.trigger('VisibleTimeChange', { beg: t.beg, end: t.end });
+        this.trigger('VisibleTimeChange', {beg: t.beg, end: t.end});
         this.prevBeg = t.beg;
         this.prevEnd = t.end;
       }
@@ -666,11 +666,11 @@ define([
                   .trigger(deEvent);
             })
             .bind('mouseover', function (e) {
-              App.publish('PreviewEvent-' + self.model.get('tabId'),
-                          [{beg: not.beg, end: not.end}]);
+              // App.publish('PreviewEvent-' + self.model.get('tabId'),
+              //             [{beg: not.beg, end: not.end}]);
             })
             .bind('mouseout', function (e) {
-              App.publish('UnPreviewEvent-' + self.model.get('tabId'));
+              // App.publish('UnPreviewEvent-' + self.model.get('tabId'));
             });
             // .bind('mouseout', function (e) {
             //   var not = $(e.target).data();
@@ -1113,7 +1113,7 @@ define([
     enterLegend: function (e) {
       var row = $(e.target).closest('tr');
       var channelName = $('[data-channel-name]', row).attr('data-channel-name');
-      this.model.tabModel.set({ highlightedChannel: channelName });
+      // this.model.tabModel.set({ highlightedChannel: channelName });
     },
 
     leaveLegend: function (e) {
@@ -1123,7 +1123,7 @@ define([
         receiver = receiver.parentNode;
       if ($('[data-channel-name]', $(receiver).closest('tr')).length > 0)
         return;
-      this.model.tabModel.set({ highlightedChannel: null });
+      // this.model.tabModel.set({ highlightedChannel: null });
     },
 
     ensureLegend: function () {
