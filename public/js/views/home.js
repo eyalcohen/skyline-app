@@ -7,8 +7,10 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'util'
-], function ($, _, Backbone, mps, util, Graph) {
+  'util',
+  'text!../../../templates/home.html',
+  'Spin'
+], function ($, _, Backbone, mps, util, template, Spin) {
 
   return Backbone.View.extend({
 
@@ -32,6 +34,10 @@ define([
     // Draw our template from the profile JSON.
     render: function () {
 
+      // UnderscoreJS rendering.
+      this.template = _.template(template);
+      this.$el.html(this.template.call(this)).appendTo('#main');
+
       // Done rendering ... trigger setup.
       this.trigger('rendered');
 
@@ -41,8 +47,8 @@ define([
     // Misc. setup.
     setup: function () {
 
-      // Just attach this to the main div.
-      this.$el.appendTo('#main');
+      // Init the load indicator.
+      this.spin = new Spin(this.$('.spinner'));
 
       // Safe el refs.
       this.dropZone = this.$el;
@@ -70,6 +76,9 @@ define([
       e.stopPropagation();
       e.preventDefault();
 
+      // Start the spinner.
+      this.spin.start();
+
       // Stop drag styles.
       this.dropZone.removeClass('dragging');
 
@@ -96,14 +105,16 @@ define([
           base64: reader.result.replace(/^[^,]*,/,''),
         };
 
-        this.app.rpc.do('insertSamplesFromFile', data,
+        this.app.rpc.do('insertCSVSamples', data,
             _.bind(function (err, res) {
           if (err) return console.error(err);
 
-          var route = ['/username', res.did, res.channels[0]].join('/');
-          route += '?b=' + res.beg + '&e=' + res.end;
+          // Stop the spinner.
+          this.spin.stop();
 
           // Go to the graph view.
+          var route = ['/username', res.did].join('/');
+          route += '?b=' + res.beg + '&e=' + res.end;
           this.app.router.navigate(route, {trigger: true});
 
         }, this));

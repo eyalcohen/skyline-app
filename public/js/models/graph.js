@@ -14,32 +14,17 @@ define([
   return Backbone.Model.extend({
 
     initialize: function (app, view) {
-
-      this.clientId = util.rid32();
-
+      this.app = app;
       this.view = view;
+      this.clientId = util.rid32();
       this.set('vehicleId', Number(this.view.options.vehicleId));
       this.set('visibleTime', this.view.options.visibleTime || {
         beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
         end: Date.now() * 1e3,
       });
-
       this.cache = new Cache(app);
-      // if (!args) args = {};
-      // _.extend(args, { model: this });
-      // this.tabModel = args.tabModel;
-      // this.view = new App.views.GraphView(args);
       this.set({channels: []});
-      // Note: Backbone's .set method does a deep comparison of the old
-      // data to the new data, which is expensive for large datasets.  Don't
-      // use .set for sampleSet to avoid this overhead.
       this.sampleSet = {};  // Map from channelName to data.
-      // var tabId = args.tabId, id = args.id;
-      // this.clientId = tabId + '-graph-' + id;
-      // _.bindAll(this, 'destroy', 'updateCacheSubscription',
-      //     'visibleTimeChanged', 'addChannel', 'removeChannel',
-      //     'fetchGraphedChannels', 'updateSampleSet');
-      // App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
       // this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
       // App.subscribe('ChannelRequested-' + tabId + '-' + id, this.addChannel);
       // App.subscribe('ChannelUnrequested-' + tabId + '-' + id, this.removeChannel);
@@ -50,7 +35,18 @@ define([
         this.updateCacheSubscription();
       }, this));
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
-      // this.view.render();
+
+      // Get channels.
+      this.app.rpc.do('fetchSamples', this.get('vehicleId'), '_schema',
+          {}, _.bind(function (err, samples) {
+        if (err) return console.error(err);
+        if (!samples) return console.error('No _schema samples found');
+        this.set('schemas', samples);
+        _.each(this.get('schemas'), _.bind(function (schema, i) {
+          if (i < 10)
+            this.addChannel(schema.val);
+        }, this));
+      }, this));
 
       return this;
     },
@@ -132,6 +128,9 @@ define([
           for (var c = 0; _.include(usedColors, c); ++c) { }
           channel.colorNum = c;
         }
+        if (!channel.title) channel.title = channel.channelName;
+        if (!channel.humanName) channel.humanName = channel.channelName;
+        if (!channel.shortName) channel.shortName = channel.channelName;
         self.get('channels').push(channel);
         console.log('addChannel(', channel, ')...');
       });

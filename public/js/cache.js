@@ -326,7 +326,6 @@ define([
     };
     self.app.rpc.do('fetchSamples', req.veh, req.chan, options,
         function (err, samples) {
-      console.log(samples)
       if (err) {
         console.error(err);
         samples = null;

@@ -9,7 +9,8 @@ require.config({
   // Library paths:
   paths: {
     jQuery: 'lib/jquery/jquery',
-    Underscore: 'lib/underscore/underscore',
+    Underscore: 'lib/underscore/underscore.src',
+    UnderscoreString: 'lib/underscore/underscore.string.src',
     Backbone: 'lib/backbone/backbone',
     Modernizr: 'lib/modernizr/modernizr',
     mps: 'lib/minpubsub/minpubsub',
@@ -23,6 +24,9 @@ require.config({
   shim: {
     Underscore: {
       exports: '_'
+    },
+    UnderscoreString: {
+      deps: ['Underscore']
     },
     Backbone: {
       deps: ['jQuery', 'Underscore'],
@@ -48,6 +52,9 @@ require.config({
 });
 
 // Application entry point:
-require(['app', 'excanvas'], function (app) {
-  app.init();
-});
+require([
+  'app',
+  'UnderscoreString',
+  'plugins',
+  'excanvas'
+], function (app) { app.init(); });

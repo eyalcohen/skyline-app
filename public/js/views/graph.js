@@ -11,7 +11,6 @@ define([
   'units',
   'models/graph',
   'text!../../../templates/graph.html',
-  'plugins',
   'flot_plugins'
 ], function ($, _, Backbone, mps, util, units, Graph, template) {
 
@@ -72,37 +71,6 @@ define([
 
       // Draw the canvas.
       this.draw();
-
-      // Add a channel (if requested) from URL.
-      this.model.addChannel({channelName: this.options.channel});
-
-      // this.model.addChannel([
-      // {
-      //   channelName: "dominant_wave_period",
-      //   humanName: "Dominant Wave Period",
-      //   shortName: "Dominant Wave Period",
-      //   title: "Dominant Wave Period",
-      //   type: "float",
-      //   units: "m"
-      // },
-      // {
-      //   channelName: "significant_wave_height",
-      //   humanName: "Significant Wave Height",
-      //   shortName: "Wave Height",
-      //   title: "Significant Wave Height",
-      //   type: "float",
-      //   units: "m"
-      // },
-      // {
-      //   channelName: "sea_surface_temperature",
-      //   humanName: "Sea Surface Temperature",
-      //   shortName: "Sea Surface Temperature",
-      //   title: "Sea Surface Temperature",
-      //   type: "float",
-      //   units: "C",
-      //   yaxisNum: 2
-      // }
-      // ]);
 
       return this;
     },
@@ -385,7 +353,7 @@ define([
         .mousewheel(function (e) {
           if (self.noteBox) return;
           var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
-          graphZoomClick(e, e.shiftKey ? 2 : 1.25, delta < 0);
+          graphZoomClick(e, e.shiftKey ? 1.5 : 1.1, delta < 0);
           return false;
         })
         .dblclick(function (e) {
@@ -750,9 +718,8 @@ define([
         self.mouseTime.show();
         // TODO: finer than 1 second granularity.
         var date = new Date(Math.round(time));
-        self.mouseTimeTxt.text(
-                App.util.toLocaleString(
-                date, 'dddd m/d/yy h:MM:ss TT Z'));
+        self.mouseTimeTxt.text(util.toLocaleString(date,
+            'dddd m/d/yy h:MM:ss TT Z'));
       } else {
         self.mouseTime.hide();
       }
@@ -1139,7 +1106,7 @@ define([
         if (series[i].channelName === channelName) {
           var channel = channels[series[i].channelIndex];
           channel.displayUnits = newUnits;
-          App.stateMonitor.updateOpts(this.options.tabId, this.options.id, channel);
+          // App.stateMonitor.updateOpts(this.options.tabId, this.options.id, channel);
           var data = this.calculateSeriesData(channel);
           series[i].data = data.data;
           // HACK
@@ -1162,8 +1129,8 @@ define([
       var label = $('.legendLabel > div', labelParent);
       var channelIndex = Number(label.attr('data-channel-index'));
       var channel = self.model.get('channels')[channelIndex];
-      App.publish('ChannelUnrequested-' + 
-          self.options.tabId + '-' + self.options.id, [channel]);
+      // App.publish('ChannelUnrequested-' + 
+      //     self.options.tabId + '-' + self.options.id, [channel]);
       // Update note channel list visible.
       _.delay(function () {
         var channelNames = self.model.get('tabModel').getAllChannelNames();

@@ -996,7 +996,7 @@ SampleDb.buildChannelTree = function(samples) {
         sortSamplesByTime(same);
         s = _.last(same);  // Use the latest.
         // Copy channelName and such in.
-        desc = { shortName: shortName };
+        desc = {shortName: shortName};
         _.extend(desc, s.val);
         delete desc.sampleDuration;
         delete desc.sampleCount;
