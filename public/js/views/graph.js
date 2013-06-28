@@ -52,12 +52,15 @@ define([
     },
 
     // Bind mouse events.
-    events: {},
+    events: {
+      'click .graph-channels li': 'channelClick',
+    },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs
+      this.panel = this.$('.graph-channels > ul');
       this.plot = null;
       // this.mouseTime = $('.mouse-time', this.el);
       // this.mouseTimeTxt = $('span', this.mouseTime);
@@ -71,6 +74,9 @@ define([
 
       // Draw the canvas.
       this.draw();
+
+      // Do resize on window change.
+      $(window).resize(_.debounce(_.bind(this.resize, this), 50));
 
       return this;
     },
@@ -90,6 +96,23 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.remove();
+    },
+
+    addChannelToPanel: function (channel) {
+      var li = $('<li>' + channel.val.channelName + '</li>');
+      li.data('channel', channel);
+      li.appendTo(this.panel);
+    },
+
+    channelClick: function (e) {
+      var li = $(e.target);
+      if (li.hasClass('active')) {
+        li.removeClass('active');
+        this.model.removeChannel(li.data('channel').val);
+      } else {
+        li.addClass('active');
+        this.model.addChannel(li.data('channel').val);
+      }
     },
 
     /////////////////////////////////// OLD
@@ -167,29 +190,20 @@ define([
     //   this.draw();
     // },
 
-    resize: function (delta, skipDraw) {
-      var self = this;
-      // self._super('resize', delta);
-      if (self.plot) {
-        var width = self.content.width();
-        var height = self.content.height();
-        if (width === 0)
-          width = self.plot.getPlaceholder().closest('[data-width]').width();
-        self.plot.getPlaceholder().css({
+    resize: function () {
+      if (this.plot) {
+        var width = $(window).width() - this.holder.offset().left;
+        var height = $(window).height() - this.holder.offset().top;
+        this.$el.css({height: height});
+        this.plot.getPlaceholder().css({
           width: width,
           height: height,
         });
-        self.plot.setCanvasDimensions(width, height);
-        self.noteCanvas.attr({ width: width, height: height });
-        // var allGraphs = self.model.tabModel.graphModels;
-        // _.each(allGraphs, function (gm) {
-          // gm.view.redrawNote();
-        self.redrawNote();
-        // });
-        if (!skipDraw) {
-          self.plot.setupGrid();
-          self.plot.draw();
-        }
+        this.plot.setCanvasDimensions(width, height);
+        this.noteCanvas.attr({width: width, height: height});
+        this.redrawNote();
+        this.plot.setupGrid();
+        this.plot.draw();
       }
     },
 
@@ -212,7 +226,7 @@ define([
         "#96BDFF",  // Light blue
         "#D373FF",  // Light purple
       ];
-      self.holder = $('.graph > div', self.content);
+      self.holder = $('.graph-outer', self.content);
       self.plot = $.plot(self.holder, [], {
         xaxis: {
           mode: 'time',

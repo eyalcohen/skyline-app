@@ -43,8 +43,8 @@ define([
         if (!samples) return console.error('No _schema samples found');
         this.set('schemas', samples);
         _.each(this.get('schemas'), _.bind(function (schema, i) {
-          if (i < 10)
-            this.addChannel(schema.val);
+          // if (i < 10) this.addChannel(schema.val);
+          this.view.addChannelToPanel(schema);
         }, this));
       }, this));
 
@@ -139,17 +139,17 @@ define([
       return self;
     },
 
-    // removeChannel: function (channel) {
-    //   var self = this;
-    //   var index = _.pluck(self.get('channels'), 'channelName')
-    //                       .indexOf(channel.channelName);
-    //   if (index === -1) return;
-    //   self.get('channels').splice(index, 1);
-    //   // console.log('removeChannel(', channel, ')...');
-    //   self.updateCacheSubscription();
-    //   App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
-    //   return self;
-    // },
+    removeChannel: function (channel) {
+      var self = this;
+      var index = _.pluck(self.get('channels'), 'channelName')
+                          .indexOf(channel.channelName);
+      if (index === -1) return;
+      self.get('channels').splice(index, 1);
+      console.log('removeChannel(', channel, ')...');
+      self.updateCacheSubscription();
+      // App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
+      return self;
+    },
 
     fetchGraphedChannels: function(cb) {
       cb(this.get('channels'));
