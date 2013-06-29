@@ -14,6 +14,9 @@ define([
 
     // Save connection to server.
     this.rpc = rpc.init();
+
+    // TODO: Do this only on localhost.
+    window.rpc = rpc;
   }
 
   return {

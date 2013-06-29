@@ -120,7 +120,6 @@ define([
         if (_.pluck(self.get('channels'), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
-        // channel = _.clone(channel);
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
         if (!channel.colorNum) {

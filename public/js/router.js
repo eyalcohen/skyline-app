@@ -9,8 +9,9 @@ define([
   'mps',
   'util',
   'views/home',
+  'views/profile',
   'views/graph'
-], function ($, _, Backbone, mps, util, Home, Graph) {
+], function ($, _, Backbone, mps, util, Home, Profile, Graph) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -22,6 +23,7 @@ define([
 
       // Page routes:
       this.route(':username/:did', 'graph', this.graph);
+      this.route(':username', 'profile', this.profile);
       this.route('', 'home', this.home);
     },
 
@@ -34,6 +36,12 @@ define([
       if (this.page)
         this.page.destroy();
       this.page = new Home(this.app).render();
+    },
+
+    profile: function () {
+      if (this.page)
+        this.page.destroy();
+      this.page = new Profile(this.app).render();
     },
 
     graph: function (username, did) {

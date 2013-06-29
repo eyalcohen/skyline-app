@@ -15,7 +15,7 @@ define([
   return Backbone.View.extend({
 
     // The DOM target element for this page:
-    id: 'dnd',
+    id: 'home',
     uploading: false,
 
     // Module entry point:

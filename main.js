@@ -351,6 +351,11 @@ function routes() {
     res.redirect('/');
   });
 
+  // Profile
+  app.get('/:username', function (req, res) {
+    res.render('index');
+  });
+
   // Graph
   app.get('/:username/:did', function (req, res) {
     res.render('index');
