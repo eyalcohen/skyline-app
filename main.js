@@ -11,7 +11,7 @@ var argv = optimist
     .describe('port', 'Port to listen on')
       .default('port', 8080)
     .describe('dburi', 'MongoDB URI to connect to')
-      .default('dburi', 'mongodb://localhost:27017/service-samples')
+      .default('dburi', 'mongodb://localhost:27017/skyline')
     .describe('index', 'Ensure indexes on MongoDB collections'
         + '(always `true` in production)')
       .boolean('index')

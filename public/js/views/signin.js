@@ -1,5 +1,5 @@
 /*
- * Login view
+ * Signin view
  */
 
 define([
@@ -8,13 +8,11 @@ define([
   'Backbone',
   'Modernizr',
   'mps',
-  'rpc',
+  'rest',
   'util',
   'text!../../../templates/signin.html',
-  'swfobject',
   'Spin'
-], function ($, _, Backbone, Modernizr, mps, rpc, util, template,
-    swfobject, Spin) {
+], function ($, _, Backbone, Modernizr, mps, rest, util, template, Spin) {
 
   return Backbone.View.extend({
     
@@ -69,11 +67,6 @@ define([
         top: 'auto', // Top position relative to parent in px
         left: 'auto' // Left position relative to parent in px
       });
-
-      // Embed the background video.
-      swfobject.embedSWF(
-          '/swf/roll.swf', 'roll', '100%', '100%', 10,
-          '', {}, {menu: 'false'}, {});
 
       // Show the spinner when connecting.
       this.$('.signin-strategy-btn').click(_.bind(function (e) {
@@ -201,7 +194,7 @@ define([
       this.spin.start();
 
       // Do the API request.
-      rpc.post('/api/members/auth', payload, _.bind(function (err, data) {
+      rest.post('/api/members/auth', payload, _.bind(function (err, data) {
         if (err) {
 
           // Stop spinner.
@@ -270,7 +263,7 @@ define([
       this.spin.start();
 
       // Do the API request.
-      rpc.post('/api/members', payload, _.bind(function (err, data) {
+      rest.post('/api/members', payload, _.bind(function (err, data) {
         if (err) {
 
           // Stop spinner.

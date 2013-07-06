@@ -137,19 +137,50 @@ header {
 }
 
 header > div {
+  width: 800px;
   margin: 0 auto;
 }
 
-/*header > div:nth-child(1) {
-  -webkit-box-flex: 1;
-  -moz-box-flex: 1;
-  box-flex: 1;
-  margin: 0 0 0 10px;
-}*/
+div.header-logo {
+  
+}
 
-/*header > div:nth-child(2) {
-  margin: 0 10px 0 0;
-}*/
+div.member-box {
+  width: 175px;
+  float: right;
+  white-space: nowrap;
+}
+
+a.header-avatar {
+  float: left;
+  width: 50px;
+  height: 50px;
+  display: inline-block;
+  background: none;
+}
+
+a.header-avatar img {
+  display: block;
+}
+
+a.header-avatar:hover {
+  opacity: 0.8;
+  background: none;
+}
+
+a#signin {
+  float: right;
+  height: auto;
+  font-size: 10px;
+  line-height: 18px;
+  min-width: auto;
+}
+
+div.member-box {
+  width: 175px;
+  float: right;
+  white-space: nowrap;
+}
 
 footer {
   background: #333;
@@ -544,7 +575,7 @@ input[type=submit] {
   -webkit-user-select: none;
   user-select: none;
 
-  cursor: default;
+  cursor: pointer;
 
   -moz-transition-timing-function: ease-out;
   -moz-transition-duration: 100ms;

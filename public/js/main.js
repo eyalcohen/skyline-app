@@ -12,7 +12,7 @@ require.config({
     Underscore: 'lib/underscore/underscore.src',
     UnderscoreString: 'lib/underscore/underscore.string.src',
     Backbone: 'lib/backbone/backbone',
-    Modernizr: 'lib/modernizr/modernizr',
+    Modernizr: 'lib/modernizr/modernizr.src',
     mps: 'lib/minpubsub/minpubsub',
     Spin: 'lib/spin/spin',
     excanvas: 'lib/excanvas/excanvas',
