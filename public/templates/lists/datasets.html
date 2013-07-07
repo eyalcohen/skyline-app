@@ -1,7 +1,5 @@
 <%
   var user = this.app.profile.user;
-  var gravatar = user ? 'https://www.gravatar.com/avatar/'
-      + user.gravatar + '?s=32&d=mm': null;
 %>
 
 <span class="section-heading">Datasets</span>
@@ -9,19 +7,21 @@
   A <span style="font-style:italic;">dataset</span> is a collection of related channels.
 </span>
 <% if (user && user.id === this.parentView.model.get('id')) { %>
-  <div class="dnd dataset">
+  <div class="dnd dataset list-header">
     <span class="dnd-instructions">
-      Create your first dataset by dragging &amp; dropping or selecting a file.
+      Create a dataset by dragging &amp; dropping or selecting a CSV file.
     </span>
     <div id="datasets_spin"></div>
   </div>
 <% } else { %>
-  <a href="javascript:;" class="datasets-signin">
-    <span class="empty-list">Sign in to comment.</span>
-  </a>
+  <div class="list-header"></div>
 <% } %>
 <% if (this.collection.models.length > 0) { %>
   <% _.each(this.collection.models, _.bind(function(row) { %>
     <%= this.row(row) %>
   <% }, this)); %>
+<% } else { %>
+  <span class="section-instructions empty-feed">
+    You don't have any datasets yet.
+  </span>
 <% } %>

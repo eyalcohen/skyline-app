@@ -30,10 +30,13 @@ define([
       else
         this.wrap = $(this.options.wrap);
 
+      if (this.model)
+        this.model.on('change:id', _.bind(this.render, this, true, true, true));
+
       return this;
     },
 
-    render: function (single, prepend) {
+    render: function (single, prepend, re) {
       this.$el.html(this.template.call(this));
       if (this.model.collection) {
         var d = this.model.collection.indexOf(this.model) * 30;
@@ -41,7 +44,7 @@ define([
           this.$el.show();
         }, this), single ? 0 : d);
       } else this.$el.show();
-      if (single)
+      if (single && !re)
         if (prepend) {
           if (this.parentView.$('.list-header').length !== 0)
             this.$el.insertAfter(this.parentView.$('.list-header'));
@@ -53,12 +56,13 @@ define([
           else
             this.$el.appendTo(this.wrap);
         }
+      this.time = null;
       this.trigger('rendered');
       return this;
     },
 
     setup: function () {
-      if (!this.model.get('created'))
+      if (!this.model.get('updated'))
         this.model.created = Date.now();
       this.$('.currency').each(function () {
         var str = util.addCommas($(this).text());
@@ -84,7 +88,7 @@ define([
       if (!this.model) return;
       if (!this.time)
         this.time = this.$('time.created:first');
-      this.time.text(util.getRelativeTime(this.model.get('created')));
+      this.time.text(util.getRelativeTime(this.model.get('updated')));
     },
 
   });

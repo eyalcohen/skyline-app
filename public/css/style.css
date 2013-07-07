@@ -78,11 +78,11 @@ a:hover { color: #036; }
 
 @font-face {
   font-family: 'fontello';
-  src: url('../font/fontello.eot?12452313');
-  src: url('../font/fontello.eot?12452313#iefix') format('embedded-opentype'),
-       url('../font/fontello.woff?12452313') format('woff'),
-       url('../font/fontello.ttf?12452313') format('truetype'),
-       url('../font/fontello.svg?12452313#fontello') format('svg');
+  src: url('../font/fontello.eot?94733943');
+  src: url('../font/fontello.eot?94733943#iefix') format('embedded-opentype'),
+       url('../font/fontello.woff?94733943') format('woff'),
+       url('../font/fontello.ttf?94733943') format('truetype'),
+       url('../font/fontello.svg?94733943#fontello') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -92,7 +92,7 @@ a:hover { color: #036; }
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?12452313#fontello') format('svg');
+    src: url('../font/fontello.svg?94733943#fontello') format('svg');
   }
 }
 */
@@ -128,8 +128,173 @@ a:hover { color: #036; }
   /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
  
+.icon-logout-1:before { content: '\e801'; } /* '' */
 .icon-logout:before { content: '\e800'; } /* '' */
+.icon-logout-2:before { content: '\e802'; } /* '' */
 
+/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––– animations */
+
+@-webkit-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+@-moz-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+@-o-keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+@keyframes fadeIn {
+  0% {
+    opacity:0;
+  }
+  100% {
+    opacity:1;
+  }
+}
+
+@-webkit-keyframes fadeOut {
+  0% {
+    opacity:1;
+  }
+  100% {
+    opacity:0;
+  }
+}
+@-moz-keyframes fadeOut {
+  0% {
+    opacity:1;
+  }
+  100% {
+    opacity:0;
+  }
+}
+@-o-keyframes fadeOut {
+  0% {
+    opacity:1;
+  }
+  100% {
+    opacity:0;
+  }
+}
+@keyframes fadeOut {
+  0% {
+    opacity:1;
+  }
+  100% {
+    opacity:0;
+  }
+}
+
+@-webkit-keyframes fadeInUp {
+  0% {
+    opacity:0; 
+    -webkit-transform:translateY(20px)
+  }
+  100% {
+    opacity:1;
+    -webkit-transform:translateY(0)
+  }
+}
+@-moz-keyframes fadeInUp {
+  0% {
+    opacity:0;
+    -moz-transform:translateY(20px)
+  }
+  100% {
+    opacity:1;
+    -moz-transform:translateY(0)
+  }
+}
+@-o-keyframes fadeInUp {
+  0% {
+    opacity:0;
+    -o-transform:translateY(20px)
+  }
+  100% {
+    opacity:1;
+    -o-transform:translateY(0)
+  }
+}
+@keyframes fadeInUp {
+  0% {
+    opacity:0;
+    transform:translateY(20px)
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0)
+  }
+}
+
+@-webkit-keyframes fadeInDown {
+  0% {
+    opacity:0; 
+    -webkit-transform:translateY(-20px)
+  }
+  100% {
+    opacity:1;
+    -webkit-transform:translateY(0)
+  }
+}
+@-moz-keyframes fadeInDown {
+  0% {
+    opacity:0;
+    -moz-transform:translateY(-20px)
+  }
+  100% {
+    opacity:1;
+    -moz-transform:translateY(0)
+  }
+}
+@-o-keyframes fadeInDown {
+  0% {
+    opacity:0;
+    -o-transform:translateY(-20px)
+  }
+  100% {
+    opacity:1;
+    -o-transform:translateY(0)
+  }
+}
+@keyframes fadeInDown {
+  0% {
+    opacity:0;
+    transform:translateY(-20px)
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0)
+  }
+}
+
+.fade-in {
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+}
+
+.fade-out {
+  -webkit-animation-name: fadeOut;
+  -moz-animation-name: fadeOut;
+  -o-animation-name: fadeOut;
+  animation-name: fadeOut;
+}
 
 /*
     // ========================================== \\
@@ -139,10 +304,7 @@ a:hover { color: #036; }
     \\ ========================================== //
 */
 
-html {
-  overflow: hidden;
-  height: 100%;
-}
+html {}
 
 body {
   background: white;
@@ -154,8 +316,6 @@ body {
   -moz-font-smoothing: antialiased;
   font-smoothing: antialiased;
   color: black;
-  overflow-y: hidden;
-  height: 100%;
 }
 
 a {
@@ -172,8 +332,6 @@ canvas {
 
 #container {
   padding: 0;
-  height: 100%;
-  overflow: hidden;
 }
 
 header {
@@ -203,7 +361,7 @@ div.header-logo {
 }
 
 div.user-box {
-  width: 60px;
+  width: 56px;
   margin-top: 5px;
   float: right;
   white-space: nowrap;
@@ -2193,12 +2351,80 @@ a.label-closer:hover {
   font-size: 12px;
 }
 
+.datasets {
+  margin: 0 0 20px 0;
+}
+
+.dataset {
+  width: 518px;
+  padding: 20px;
+  margin-bottom: 2px;
+  position: relative;
+  display: none;
+  border-bottom: 1px solid #e6e6e6;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+} 
+
+.dataset-inner {
+  margin-left: -20px;
+  background-image: url(../img/data.png);
+  background-repeat: no-repeat;
+  background-position: 0px 4px;
+}
+
+a.dataset-title {
+  margin: 0 0 10px 30px;
+  font-size: 24px;
+  line-height: 24px;
+  color: #666;
+}
+
+a.dataset-title:hover {
+  color: #4d4d4d;
+  text-decoration: underline;
+}
+
+.dataset-time {
+  color: #b3b3b3;
+}
+
+.dataset-stats {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  color: #666;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.dataset-created {
+  white-space: nowrap;
+  font-size: 11px;
+  font-style: normal;
+  color: #b3b3b3;
+}
+
 .dnd {
-  width: 558px;
-  height: 60px;
   margin-top: 15px;
   border: 1px dashed #b3b3b3;
   position: relative;
+  background: #f9f9f9;
 }
 
 .dnd.dragging {
@@ -2209,45 +2435,12 @@ a.label-closer:hover {
   display: block;
   text-align: center;
   width: 100%;
-  line-height: 60px;
+  line-height: 30px;
   font-size: 13px;
   color: #666;
 }
 
-.datasets {
-  margin: 0 0 30px 0;
-}
-
-.dataset {
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#dataset_spin {
+#datasets_spin {
   width: 100%;
   height: 100%;
   top: 0;

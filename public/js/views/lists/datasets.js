@@ -17,7 +17,6 @@ define([
   return List.extend({
     
     el: '.datasets',
-    uploading: false,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -35,7 +34,7 @@ define([
       //     .bind('dataset.new', _.bind(this.collect, this));
 
       // Reset the collection.
-      this.collection.reset(this.parentView.model.get('datasets'));
+      this.collection.reset(this.app.profile.content.datasets.items);
     },
 
     setup: function () {
@@ -45,7 +44,7 @@ define([
       this.spin.target.hide();
 
       // Safe el refs.
-      this.dropZone = this.$('.dnd');
+      this.dropZone = this.$('.dnd').show();
 
       // Drag & drop events.
       this.dropZone.on('dragover', _.bind(this.dragover, this))
@@ -93,9 +92,6 @@ define([
       // Stop drag styles.
       this.dropZone.removeClass('dragging');
 
-      // Don't do anything if already doing it.
-      if (this.uploading) return false;
-
       // Get the files, if any.
       var files = e.originalEvent.dataTransfer.files;
       if (files.length === 0) return;
@@ -115,24 +111,54 @@ define([
         }
 
         // Construct the payload to send.
-        var data = {
-          name: file.name,
-          size: file.size,
-          type: file.type,
+        var payload = {
+          title: _.str.strLeft(file.name, '.'),
+          file: {
+            size: file.size,
+            type: file.type,
+          },
           base64: reader.result.replace(/^[^,]*,/,''),
         };
 
-        this.app.rpc.do('insertCSVSamples', data,
+        // Mock dataset.
+        var data = {
+          id: -1,
+          author: this.app.profile.user,
+          updated: new Date().toISOString(),
+          title: _.str.strLeft(file.name, '.'),
+          file: {
+            size: file.size,
+            type: file.type,
+          },
+          meta: {
+            beg: 0,
+            end: 0,
+            channel_cnt: 0,
+          }
+        };
+
+        // Optimistically add dataset to page.
+        this.collection.unshift(data);
+
+        // Create the dataset.
+        this.app.rpc.do('insertCSVSamples', payload,
             _.bind(function (err, res) {
-          if (err) return console.error(err);
 
           // Stop the spinner.
           this.spin.stop();
 
-          // Go to the graph view.
-          var route = ['/sanderpick', res.did].join('/');
-          route += '?b=' + res.beg + '&e=' + res.end;
-          this.app.router.navigate(route, {trigger: true});
+          if (err) {
+
+            // Remove row.
+            this.collection.pop();
+            return console.error(err);
+          }
+
+          // Update the dataset id.
+          var dataset = this.collection.get(-1);
+          dataset.set('client_id', res.client_id);
+          dataset.set('meta', res.meta);
+          dataset.set('id', res.id);
 
         }, this));
 

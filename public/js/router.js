@@ -26,7 +26,7 @@ define([
       this.app = app;
 
       // Page routes
-      this.route(':username/:id', 'graph', this.graph);
+      this.route(':username/:id', 'dataset', this.graph);
       this.route(':username', 'profile', this.profile);
       this.route('', 'home', this.home);
 
@@ -47,6 +47,7 @@ define([
     },
 
     routes: {
+
       // Catch all
       '*actions': 'default'
     },
@@ -110,7 +111,8 @@ define([
     dataset: function (username, id) {
       var key = [username, id].join('/');
       this.render('/service/dataset.profile/' + key, _.bind(function () {
-        this.page = new Dataset(this.app).render(true);
+        console.log(this.app.profile)
+        // this.page = new Dataset(this.app).render(true);
       }, this));
 
       // this.page = new Graph(this.app, {

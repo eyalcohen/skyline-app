@@ -11,5 +11,9 @@ define([
 
     _path: 'api/datasets/',
 
+    size: function () {
+      return util.addCommas(Math.round(this.get('file').size / 1000));
+    }
+
   });
 });
