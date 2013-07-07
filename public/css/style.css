@@ -192,17 +192,19 @@ header {
   border-bottom: 1px solid #808080;
 }
 
-header > div {
+#header {
   width: 800px;
+  height: 40px;
   margin: 0 auto;
 }
 
 div.header-logo {
-  padding-top: 10px;
+  padding-top: 14px;
 }
 
 div.user-box {
   width: 60px;
+  margin-top: 5px;
   float: right;
   white-space: nowrap;
 }
@@ -228,11 +230,21 @@ a.header-avatar:hover {
 }
 
 a.header-action {
+  position: relative;
+  display: block;
   text-align: center;
   line-height: 32px;
   font-size: 14px;
-  padding: 0 0 0 10px;
+  margin: 0 0 0 40px;
   color: #808080;
+}
+
+a.header-action:hover {
+  color: #b3b3b3;
+}
+
+a.header-action:active {
+  top: 1px;
 }
 
 a#signin {
@@ -240,7 +252,7 @@ a#signin {
 }
 
 .signin {
-  width: 500px;
+  width: 400px;
   position: relative;
   overflow: hidden;
   background: #e6e6e6;
@@ -257,7 +269,7 @@ a#signin {
 
 .signin-inner input[type="text"],
 .signin-inner input[type="password"] {
-  width: 374px;
+  width: 274px;
 }
 
 .signin-inner td {
@@ -2163,8 +2175,10 @@ a.label-closer:hover {
 
 .section-heading {
   font-size: 14px;
-  font-weight: bold;
-  color: #222;
+  color: #808080;
+  text-transform: uppercase;
+  font-weight: lighter;
+  line-height: 20px;
 }
 
 .section-description {
@@ -2180,7 +2194,7 @@ a.label-closer:hover {
 }
 
 .dnd {
-  width: 460px;
+  width: 558px;
   height: 60px;
   margin-top: 15px;
   border: 1px dashed #b3b3b3;

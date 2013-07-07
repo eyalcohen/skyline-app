@@ -50,15 +50,15 @@ define([
 
       // Init the load indicator.
       this.spin = new Spin(this.$('#signin_spin'), {
-        lines: 5, // The number of lines to draw
+        lines: 17, // The number of lines to draw
         length: 12, // The length of each line
-        width: 8, // The line thickness
-        radius: 24, // The radius of the inner circle
+        width: 4, // The line thickness
+        radius: 18, // The radius of the inner circle
         corners: 1, // Corner roundness (0..1)
         rotate: 0, // The rotation offset
         direction: 1, // 1: clockwise, -1: counterclockwise
-        color: '#000', // #rgb or #rrggbb
-        speed: 1, // Rounds per second
+        color: '#808080', // #rgb or #rrggbb
+        speed: 1.5, // Rounds per second
         trail: 60, // Afterglow percentage
         shadow: false, // Whether to render a shadow
         hwaccel: false, // Whether to use hardware acceleration
