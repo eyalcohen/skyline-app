@@ -1,17 +1,17 @@
 /*
- * Comment Row view
+ * Dataset Row view
  */
 
 define([
   'jQuery',
   'Underscore',
   'views/boiler/row',
-  'text!../../../templates/rows/comment.html'
+  'text!../../../templates/rows/dataset.html'
 ], function ($, _, Row, template) {
   return Row.extend({
 
     attributes: function () {
-      return _.defaults({class: 'comment'},
+      return _.defaults({class: 'dataset'},
           Row.prototype.attributes.call(this));
     },
 

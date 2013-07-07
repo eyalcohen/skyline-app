@@ -6,13 +6,10 @@ block content
       div#header
         - if (user)
           div.user-box
-            div.divider-vertical
             a#header_avatar.header-avatar(href="/" + user.username)
-              img(src="https://www.gravatar.com/avatar/" + user.gravatar + "?s=50&d=https%3A%2F%2Fd271mvlc6gc7bl.cloudfront.net%2Fmain%2Fimg%2Favatar_100.png", width="50", height="50")
-            div.divider-vertical
+              img(src="https://www.gravatar.com/avatar/" + user.gravatar + "?s=30&d=mm", width="30", height="30")
             a#logout.header-action(href="/logout")
-              span.icon-logout-1
-            div.divider-vertical
+              span.icon-logout
         - else
           a#signin.button(href="javascript:;") Sign in
         div.header-logo

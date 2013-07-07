@@ -1,5 +1,5 @@
 /*
- * Comments List view
+ * Datasets List view
  */
 
 define([
@@ -9,13 +9,13 @@ define([
   'mps',
   'rpc',
   'util',
-  'text!../../../templates/lists/comments.html',
-  'collections/comments',
-  'views/rows/comment'
+  'text!../../../templates/lists/datasets.html',
+  'collections/datasets',
+  'views/rows/dataset'
 ], function ($, _, List, mps, rpc, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.comments',
+    el: '.datasets',
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -29,11 +29,11 @@ define([
       this.subscriptions = [];
 
       // Socket subscriptions
-      this.app.socket.subscribe('post-' + this.parentView.model.id)
-          .bind('comment.new', _.bind(this.collect, this));
+      // this.app.socket.subscribe('post-' + this.parentView.model.id)
+      //     .bind('dataset.new', _.bind(this.collect, this));
 
       // Reset the collection.
-      this.collection.reset(this.parentView.model.get('comments'));
+      this.collection.reset(this.parentView.model.get('datasets'));
     },
 
     setup: function () {

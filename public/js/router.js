@@ -95,7 +95,7 @@ define([
     },
 
     profile: function (username) {
-      this.render('/service/member.profile/' + username,
+      this.render('/service/user.profile/' + username,
           _.bind(function () {
         this.page = new Profile(this.app).render();
       }, this));

@@ -1,5 +1,11 @@
 // Functionality for saving samples to the DB.
 
+var _ = require('underscore');
+_.mixin(require('underscore.string'));
+var util = require('util');
+var debug = util.debug, inspect = util.inspect;
+var Step = require('step');
+
 /**
  * Description of samples.  A sample is an Object with the following fields:
  *   veh: vehicleId.  (Often implicit.)
@@ -67,12 +73,6 @@
  *       date: date - comment time/date.
  *     }
  */
-
-var _ = require('underscore');
-_.mixin(require('underscore.string'));
-var util = require('util');
-var debug = util.debug, inspect = util.inspect;
-var Step = require('step');
 
 var SampleDb = exports.SampleDb = function(db, options, cb) {
   var self = this;

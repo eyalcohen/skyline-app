@@ -8,9 +8,11 @@ define([
   'Backbone',
   'mps',
   'util',
+  'models/user',
   'text!../../../templates/profile.html',
+  'views/lists/datasets',
   'Spin'
-], function ($, _, Backbone, mps, util, template, Spin) {
+], function ($, _, Backbone, mps, util, User, template, Datasets, Spin) {
 
   return Backbone.View.extend({
 
@@ -34,6 +36,12 @@ define([
     // Draw our template from the profile JSON.
     render: function () {
 
+      // Use a model for the main content.
+      this.model = new User(this.app.profile.content.page);
+
+      // Set page title
+      this.app.title(this.model.get('displayName'));
+
       // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('#main');
@@ -43,6 +51,9 @@ define([
 
       return this;
     },
+
+    // Bind mouse events.
+    events: {},
 
     // Misc. setup.
     setup: function () {
@@ -58,6 +69,9 @@ define([
       this.dropZone.on('dragover', _.bind(this.dragover, this))
           .on('dragleave', _.bind(this.dragout, this))
           .on('drop', _.bind(this.drop, this));
+
+      // Render datasets.
+      // this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
 
       return this;
     },
@@ -148,9 +162,6 @@ define([
       this.stopListening();
       this.remove();
     },
-
-    // Bind mouse events.
-    events: {},
 
   });
 });

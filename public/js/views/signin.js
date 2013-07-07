@@ -69,8 +69,8 @@ define([
       });
 
       // Show the spinner when connecting.
-      this.$('.signin-strategy-btn').click(_.bind(function (e) {
-        this.$('.signin-action-inner').empty();
+      this.$('.google-button').click(_.bind(function (e) {
+        this.$('.signin-inner > div').hide();
         this.spin.start();
       }, this));
 
@@ -92,36 +92,6 @@ define([
       // Save refs.
       this.signinForm = $('#signin_form');
       this.signupForm = $('#signup_form');
-      this.signinLink = $('#signin_link');
-      this.signupLink = $('#signup_link');
-
-      // Handle switching between forms.
-      $('a', this.signupLink).click(_.bind(function (e) {
-        this.signinForm.animate({
-          opacity: [0, 'easeOutExpo'],
-          left: ['-=300', 'linear']
-        }, 150, _.bind(function () {
-          this.signinForm.hide();
-          this.signinForm.css({opacity: 1, left: 0});
-          this.signupForm.fadeIn('fast');
-          this.focus();
-        }, this));
-        this.signupLink.hide();
-        this.signinLink.show();
-      }, this));
-      $('a', this.signinLink).click(_.bind(function (e) {
-        this.signupForm.animate({
-          opacity: [0, 'easeOutExpo'],
-          left: ['+=300', 'linear']
-        }, 150, _.bind(function () {
-          this.signupForm.hide();
-          this.signupForm.css({opacity: 1, left: 0});
-          this.signinForm.fadeIn('fast');
-          this.focus();
-        }, this));
-        this.signinLink.hide();
-        this.signupLink.show();
-      }, this));
 
       // Handle error display.
       this.$('input[type="text"], input[type="password"]').blur(function (e) {
@@ -131,7 +101,9 @@ define([
       });
 
       // Focus cursor.
-      this.focus();
+      _.delay(_.bind(function () {
+        this.focus();
+      }, this), 0);
 
       return this;
     },
@@ -190,16 +162,16 @@ define([
       }
 
       // All good, show spinner.
-      this.$('.signin-action-inner > div').hide();
+      this.$('.signin-inner > div').hide();
       this.spin.start();
 
       // Do the API request.
-      rest.post('/api/members/auth', payload, _.bind(function (err, data) {
+      rest.post('/api/users/auth', payload, _.bind(function (err, data) {
         if (err) {
 
           // Stop spinner.
           this.spin.stop();
-          this.$('.signin-action-inner > div').show();
+          this.$('.signin-inner > div').show();
 
           // Set the error display.
           errorMsg.text(err);
@@ -259,16 +231,16 @@ define([
       }
 
       // All good, show spinner.
-      this.$('.signin-action-inner > div').hide();
+      this.$('.signin-inner > div').hide();
       this.spin.start();
 
       // Do the API request.
-      rest.post('/api/members', payload, _.bind(function (err, data) {
+      rest.post('/api/users', payload, _.bind(function (err, data) {
         if (err) {
 
           // Stop spinner.
           this.spin.stop();
-          this.$('.signin-action-inner > div').show();
+          this.$('.signin-inner > div').show();
 
           // Set the error display.
           errorMsg.text(err);

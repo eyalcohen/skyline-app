@@ -1,10 +1,10 @@
 /*
- * Comments collection.
+ * Datasets collection.
  */
 
 define([
   'collections/boiler/list',
-  'models/comment'
+  'models/dataset'
 ], function (List, Model) {
   return List.extend({
 
