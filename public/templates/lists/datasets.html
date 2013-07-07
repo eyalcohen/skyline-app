@@ -1,30 +1,25 @@
 <%
-  var member = this.app.profile.member;
-  var gravatar = member ? 'https://www.gravatar.com/avatar/'
-      + member.gravatar + '?s=32&d='
-      + encodeURIComponent(this.app.cloudFrontURL + '/main/img/avatar_100.png')
-      : null;
+  var user = this.app.profile.user;
+  var gravatar = user ? 'https://www.gravatar.com/avatar/'
+      + user.gravatar + '?s=32&d=mm': null;
 %>
 
-<div id="comment_input" class="list-header">
-  <% if (member) { %>
-    <div class="comment">
-      <span class="comment-avatar navigate">
-        <img src=<%= gravatar %> width="32" height="32" />
-      </span>
-      <div class="comment-body">
-        <form enctype="multipart/form-data" method="POST" class="comment-input-form">
-          <textarea name="body" class="comment-input" 
-              placeholder="Write a comment ..."></textarea>
-        </form>
-      </div>
-    </div>
-  <% } else { %>
-    <a href="javascript:;" class="comments-signin">
-      <span class="empty-list">Sign in to comment.</span>
-    </a>
-  <% } %>
-</div>
+<span class="section-heading">Datasets</span>
+<span class="section-description">
+  A <span style="font-style:italic;">dataset</span> is a collection of related channels.
+</span>
+<% if (user && user.id === this.parentView.model.get('id')) { %>
+  <div class="dnd dataset">
+    <span class="dnd-instructions">
+      Create your first dataset by dragging &amp; dropping or selecting a file.
+    </span>
+    <div id="datasets_spin"></div>
+  </div>
+<% } else { %>
+  <a href="javascript:;" class="datasets-signin">
+    <span class="empty-list">Sign in to comment.</span>
+  </a>
+<% } %>
 <% if (this.collection.models.length > 0) { %>
   <% _.each(this.collection.models, _.bind(function(row) { %>
     <%= this.row(row) %>

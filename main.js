@@ -41,9 +41,10 @@ var color = require('cli-color');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Connection = require('./lib/db.js').Connection;
+var Client = require('./lib/client.js').Client;
+var Samples = require('./lib/samples.js').Samples
 var resources = require('./lib/resources');
 var service = require('./lib/service');
-var Client = require('./lib/client.js').Client;
 
 // Setup Environments
 var app = express();
@@ -139,7 +140,11 @@ Step(
           app.set('connection', connection);
 
           // Init resources.
-          resources.init(app, this);
+          resources.init(app, this.parallel());
+
+          // Create samples.
+          app.set('samples', new Samples(app, this.parallel()));
+
         },
         function (err) {
           if (err) return console.error(err);
@@ -190,7 +195,7 @@ Step(
 
             // FIXME: Use a key map instead of attaching this
             // direct to the socket.
-            socket.client = new Client(socket);
+            socket.client = new Client(socket, app.get('samples'));
 
             // Setup an inteval that will keep our session fresh.
             var intervalID = setInterval(function () {
