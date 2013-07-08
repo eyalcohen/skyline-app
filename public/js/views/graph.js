@@ -38,6 +38,14 @@ define([
 
       this.model = new Graph(this.app, this);
 
+      var dataset = this.app.profile.content.page;
+      mps.publish('title/set', ['"' + dataset.title + '", '
+          + util.addCommas(Math.round(dataset.file.size / 1e3)) + ' KB, '
+          + dataset.meta.channel_cnt
+          + (dataset.meta.channel_cnt > 1 ? ' channels': ' channel')
+          + ', ' + new Date(dataset.meta.beg/1e3).format()
+          + ' - ' + new Date(dataset.meta.end/1e3).format()]);
+
       // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('#main');
@@ -921,7 +929,7 @@ define([
       if (e) e.preventDefault();
       var self = this;
       App.sampleCache.refetchLatest(self.model.tabModel.treeModel,
-                                    self.model.get('vehicleId'),
+                                    self.model.get('datasetId'),
                                     function (newTimeRange) {
         //* Note: for testing only!
         // if (!newTimeRange) {
@@ -1080,7 +1088,7 @@ define([
         // client-side... this way we can show a loading icon while the
         // user waits for the server to package everything up.
         var href = '/export/' +
-            self.model.get('vehicleId') + '/data.csv' +
+            self.model.get('datasetId') + '/data.csv' +
             '?beg=' + Math.floor(viewRange.beg) +
             '&end=' + Math.ceil(viewRange.end) +
             (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
@@ -1347,7 +1355,7 @@ define([
           val: note.val,
         };
 
-        App.api.addNote(self.model.get('vehicleId'),
+        App.api.addNote(self.model.get('datasetId'),
                         { _note: [ _note ] }, function (err) {
           if (!err) {
             loading.hide();

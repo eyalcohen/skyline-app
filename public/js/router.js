@@ -60,6 +60,7 @@ define([
         if (!this.header)
           this.header = new Header(this.app).render();
         else this.header.render();
+        this.header.unwiden();
 
         // Callback to route.
         cb();
@@ -111,17 +112,10 @@ define([
     dataset: function (username, id) {
       var key = [username, id].join('/');
       this.render('/service/dataset.profile/' + key, _.bind(function () {
-        console.log(this.app.profile)
-        // this.page = new Dataset(this.app).render(true);
+        // this.page = new Dataset(this.app).render();
+        this.page = new Graph(this.app).render();
+        this.header.widen();
       }, this));
-
-      // this.page = new Graph(this.app, {
-      //   datasetId: _.str.strLeft(id, '?'),
-      //   visibleTime: {
-      //     beg: util.getParameterByName('b'),
-      //     end: util.getParameterByName('e')
-      //   }
-      // }).render();
     },
 
     default: function (actions) {

@@ -11,12 +11,12 @@ define([
   'util',
   'text!../../../templates/lists/datasets.html',
   'collections/datasets',
-  'views/rows/dataset',
-  'Spin'
+  'views/rows/dataset'
 ], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
   return List.extend({
     
     el: '.datasets',
+    working: false,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -38,10 +38,6 @@ define([
     },
 
     setup: function () {
-
-      // Init the load indicator.
-      this.spin = new Spin(this.$('#datasets_spin'));
-      this.spin.target.hide();
 
       // Safe el refs.
       this.dropZone = this.$('.dnd').show();
@@ -86,8 +82,9 @@ define([
       e.stopPropagation();
       e.preventDefault();
 
-      // Start the spinner.
-      this.spin.start();
+      // Prevent multiple uploads at the same time.
+      if (this.working) return false;
+      this.working = true;
 
       // Stop drag styles.
       this.dropZone.removeClass('dragging');
@@ -105,10 +102,8 @@ define([
       reader.onload = _.bind(function () {
 
         // Check file type... only want CSVs.
-        if (file.type !== 'text/csv') {
-          this.spin.stop();
+        if (file.type !== 'text/csv')
           return false;
-        }
 
         // Construct the payload to send.
         var payload = {
@@ -144,9 +139,6 @@ define([
         this.app.rpc.do('insertCSVSamples', payload,
             _.bind(function (err, res) {
 
-          // Stop the spinner.
-          this.spin.stop();
-
           if (err) {
 
             // Remove row.
@@ -159,6 +151,9 @@ define([
           dataset.set('client_id', res.client_id);
           dataset.set('meta', res.meta);
           dataset.set('id', res.id);
+
+          // Ready for more.
+          this.working = false;
 
         }, this));
 

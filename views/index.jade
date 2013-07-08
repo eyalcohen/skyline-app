@@ -3,7 +3,7 @@ extends layout
 block content
   #container
     header
-      div#header
+      div#header(class=(typeof wide !== 'undefined' ? "wide": ""))
         - if (user)
           div.user-box
             a#header_avatar.header-avatar(href="/" + user.username)
@@ -15,5 +15,6 @@ block content
         div.header-logo
           a(href="/")
             img#logo(src="/img/login_logo.png", height="10")
+        span.header-title
     #main(role="main")
     footer

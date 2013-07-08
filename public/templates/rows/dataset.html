@@ -5,6 +5,7 @@
   var link = this.model.get('id') !== -1 ? 
       [this.model.get('author').username, this.model.get('id')].join('/'): '#';
 %>
+<div class="dataset-spin"></div>
 <div class="dataset-inner">
   <a href="<%= link %>" 
         class="dataset-title navigate">

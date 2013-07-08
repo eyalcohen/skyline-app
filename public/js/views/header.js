@@ -49,6 +49,8 @@ define([
         // Shell subscriptions.
         this.subscriptions.push(mps.subscribe('user/delete',
             _.bind(this.logout, this)));
+        this.subscriptions.push(mps.subscribe('title/set',
+            _.bind(this.title, this)));
       }
     },
 
@@ -58,6 +60,14 @@ define([
       'click #signin': 'signin',
       'click #header_avatar': 'avatar',
       'click #settings': 'settings'
+    },
+
+    widen: function () {
+      this.$el.addClass('wide');
+    },
+
+    unwiden: function () {
+      this.$el.removeClass('wide');
     },
 
     home: function (e) {
@@ -95,6 +105,10 @@ define([
       this.$('div.user-box').remove();
       $('<a id="signin" class="button">Sign in</a>').appendTo(this.$el);
 
+    },
+
+    title: function (str) {
+      this.$('.header-title').html(str);
     }
 
   });

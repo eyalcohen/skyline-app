@@ -1,12 +1,12 @@
 /*!
  * Copyright 2011 Mission Motors
  *
- * SampleDb interface and results cache.
+ * Samples interface and results cache.
  *
  * Usage:
  *
  * A client (say, a graph), should keep its viewed region up to date with:
- *   setClientView(clientId, vehicleId, channels, dur, beg, end);
+ *   setClientView(clientId, datasetId, channels, dur, beg, end);
  * clientId is a string unique to this client.  Whenever the viewed region,
  * channels, or duration (zoom) change, call setClientView to update them.
  *
@@ -34,7 +34,7 @@ define([
 
     /* Cache structure:
         cache = {
-          <vehicleId> + '-' + <channelName>: {
+          <datasetId> + '-' + <channelName>: {
             <dur>: {
               <bucket>: {
                   last: 123,  // Date.now() of last access.
@@ -59,7 +59,7 @@ define([
     /* Client registry:
       clients = {
         <clientId>: {
-          vehicleId: <vehicleId>,
+          datasetId: <datasetId>,
           channels: [ <channelNames...> ],
           dur: <duration_us>,
           beg: <beginTime_us>,
@@ -84,13 +84,13 @@ define([
    * Fetches will be triggered as necessary, and an update event triggered.
    */
   SampleCache.prototype.setClientView =
-      function(clientId, vehicleId, channels, dur, beg, end, force) {
+      function(clientId, datasetId, channels, dur, beg, end, force) {
     var client = defObj(this.clients, clientId);
-    if (client.vehicleId === vehicleId && client.dur === dur &&
+    if (client.datasetId === datasetId && client.dur === dur &&
         client.beg === beg && client.end === end &&
         _.isEqual(client.channels, channels))
       return;  // Nothing to do!
-    client.vehicleId = vehicleId;
+    client.datasetId = datasetId;
     client.channels = channels;
     client.dur = dur;
     client.beg = beg;
@@ -135,10 +135,10 @@ define([
   }
 
   /**
-   * Invalidate the latest samples for a vehicle and refetch them.
+   * Invalidate the latest samples for a dataset and refetch them.
    * This is a total hack to do real-time updates!
    */
-  SampleCache.prototype.refetchLatest = function(treeModel, vehicleId,
+  SampleCache.prototype.refetchLatest = function(treeModel, datasetId,
                                                  callback) {
     var self = this;
 
@@ -168,7 +168,7 @@ define([
           // Nothing changed!
           return;
         }
-        self.refetchOverlapping(vehicleId, channelName, before, after);
+        self.refetchOverlapping(datasetId, channelName, before, after);
         if (ranges['before'].end)
           changeBeg = Math.min(changeBeg, ranges['before'].end);
         else if (ranges['after'].beg)
@@ -194,8 +194,8 @@ define([
    * Get a cache entry.  If it doesn't exist, create it.
    */
   SampleCache.prototype.getCacheEntry =
-      function(vehicleId, channelName, dur, buck, create) {
-    var cacheKey = vehicleId + '-' + channelName;
+      function(datasetId, channelName, dur, buck, create) {
+    var cacheKey = datasetId + '-' + channelName;
     var d = create ? defObj : ifDef;
     var durEntry = d(d(this.cache, cacheKey), dur);
     var entry = durEntry && durEntry[buck];
@@ -259,20 +259,20 @@ define([
           // Hack: avoid fetching buckets which have no schema, thus must be
           // empty.
           var validRanges = [{beg:0, end: 1e50}];
-          // App.publish('FetchChannelInfo-' + client.vehicleId,
+          // App.publish('FetchChannelInfo-' + client.datasetId,
           //             [channelName, function(desc){
           //   if (desc) validRanges = desc.valid;
           // }]);
           forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
                                  function(buck, buckBeg, buckEnd) {
-            var entry = self.getCacheEntry(client.vehicleId, channelName,
+            var entry = self.getCacheEntry(client.datasetId, channelName,
                                            dur, buck, false);
             if (entry && !entry.refetch && (entry.samples || entry.pending))
               return;
             var priority = basePriority +
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
-                veh: client.vehicleId, chan: channelName, dur: dur,
+                veh: client.datasetId, chan: channelName, dur: dur,
                 buck: buck });
           });
         });
@@ -357,10 +357,10 @@ define([
    * which could be viewing this data.
    */
   SampleCache.prototype.triggerClientUpdates =
-      function(vehicleId, channelName, dur, beg, end) {
+      function(datasetId, channelName, dur, beg, end) {
     for (var clientId in this.clients) {
       var client = this.clients[clientId];
-      if (client.vehicleId === vehicleId &&
+      if (client.datasetId === datasetId &&
           -1 !== client.channels.indexOf(channelName) &&
           client.dur <= dur &&
           (end > client.beg || beg < client.end)) {
@@ -396,12 +396,12 @@ define([
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
         var validRanges = [{beg:0, end: 1e50}];
-        // App.publish('FetchChannelInfo-' + client.vehicleId, [channelName,
+        // App.publish('FetchChannelInfo-' + client.datasetId, [channelName,
         //             function(desc) {
         //   if (desc) validRanges = desc.valid;
         // }]);
         sampleSet[channelName] = self.getBestCachedData(
-            client.vehicleId, channelName,
+            client.datasetId, channelName,
             client.dur, client.beg, client.end, validRanges);
       });
       self.trigger('update-' + clientId, sampleSet);
@@ -414,7 +414,7 @@ define([
    * higher-resolution or lower-resolution data.
    */
   SampleCache.prototype.getBestCachedData =
-      function(vehicleId, channelName, dur, beg, end, validRanges) {
+      function(datasetId, channelName, dur, beg, end, validRanges) {
     var self = this;
     var buckDur = bucketSize(dur);
     var prevDur = getPrevDur(dur), nextDur = getNextDur(dur);
@@ -422,14 +422,14 @@ define([
     var buckets = [];
     forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
         function(buck, buckBeg, buckEnd) {
-      var entry = self.getCacheEntry(vehicleId, channelName, dur, buck, false);
+      var entry = self.getCacheEntry(datasetId, channelName, dur, buck, false);
       if (entry && entry.samples) {
         buckets.push(entry.samples);
       } else if (nextDur != null) {
         // TODO: this would be more efficient and correct if we tried to fill
         // entire gaps, rather than a single bucket at a time.
         buckets.push(
-            self.getBestCachedData(vehicleId, channelName, nextDur,
+            self.getBestCachedData(datasetId, channelName, nextDur,
                                    buckBeg, buckEnd, validRanges));
       }
     });
@@ -500,8 +500,8 @@ define([
    * Invalidate all buckets which overlap a time range.
    */
   SampleCache.prototype.refetchOverlapping =
-      function(vehicleId, channelName, beg, end) {
-    var cacheKey = vehicleId + '-' + channelName;
+      function(datasetId, channelName, beg, end) {
+    var cacheKey = datasetId + '-' + channelName;
     var cacheLine = ifDef(this.cache, cacheKey);
     if (cacheLine) durations.forEach(function(dur) {
       var buckDur = bucketSize(dur);

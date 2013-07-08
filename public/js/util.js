@@ -43,7 +43,6 @@ define([
       }
 
       // Passing date through Date applies Date.parse, if necessary
-      console.log(date)
       date = date ? new Date(date) : new Date;
       if (isNaN(date)) throw SyntaxError("invalid date");
 

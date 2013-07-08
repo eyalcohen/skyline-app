@@ -17,8 +17,8 @@ define([
       this.app = app;
       this.view = view;
       this.clientId = util.rid32();
-      this.set('vehicleId', Number(this.view.options.vehicleId));
-      this.set('visibleTime', this.view.options.visibleTime || {
+      this.set('datasetId', Number(this.app.profile.content.page.id));
+      this.set('visibleTime', this.app.profile.content.page.meta || {
         beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
         end: Date.now() * 1e3,
       });
@@ -37,7 +37,7 @@ define([
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
 
       // Get channels.
-      this.app.rpc.do('fetchSamples', this.get('vehicleId'), '_schema',
+      this.app.rpc.do('fetchSamples', this.get('datasetId'), '_schema',
           {}, _.bind(function (err, samples) {
         if (err) return console.error(err);
         if (!samples) return console.error('No _schema samples found');
@@ -93,7 +93,7 @@ define([
         this.prevRange = expandRange(viewRange, 0.25);
       }
       this.cache.setClientView(
-          this.clientId, this.get('vehicleId'),
+          this.clientId, this.get('datasetId'),
           _.pluck(this.get('channels'), 'channelName'),
           dur, this.prevRange.beg, this.prevRange.end);
     },
