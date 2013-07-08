@@ -73,10 +73,10 @@ Step(
     if ('production' === app.get('env')) {
 
       // App params
-      app.set('MONGO_URI', argv.dburi);
-      app.set('REDIS_HOST', 'localhost');
+      app.set('MONGO_URI', 'mongodb://nodejitsu:f2e77e43977260c735e7c8480d5e16e1@dharma.mongohq.com:10053/nodejitsudb2724318674');
+      app.set('REDIS_HOST', 'nodejitsudb3891131624.redis.irstack.com');
       app.set('REDIS_PORT', 6379);
-      app.set('REDIS_PASS', 'TODO');
+      app.set('REDIS_PASS', 'nodejitsudb3891131624.redis.irstack.com:f327cfe980c971946e80b8e975fbebb4');
 
       // Redis connect
       var rc = redis.createClient(app.get('REDIS_PORT'),
