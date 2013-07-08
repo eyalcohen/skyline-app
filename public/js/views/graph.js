@@ -43,8 +43,9 @@ define([
           + util.addCommas(Math.round(dataset.file.size / 1e3)) + ' KB, '
           + dataset.meta.channel_cnt
           + (dataset.meta.channel_cnt > 1 ? ' channels': ' channel')
-          + ', ' + new Date(dataset.meta.beg/1e3).format()
-          + ' - ' + new Date(dataset.meta.end/1e3).format()]);
+          + ', ' + (new Date(dataset.meta.beg/1e3).format())
+          + ' - ' + (new Date(dataset.meta.end/1e3).format())
+          + ' by ' + dataset.author.displayName]);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);

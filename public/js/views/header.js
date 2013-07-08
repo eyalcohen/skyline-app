@@ -46,12 +46,14 @@ define([
       // Do this here intead of init ... re-renders often.
       if (this.app.profile && this.app.profile.user) {
         
-        // Shell subscriptions.
+        // For logout...
         this.subscriptions.push(mps.subscribe('user/delete',
             _.bind(this.logout, this)));
-        this.subscriptions.push(mps.subscribe('title/set',
-            _.bind(this.title, this)));
       }
+
+      // For graph titles...
+      this.subscriptions.push(mps.subscribe('title/set',
+            _.bind(this.title, this)));
     },
 
     // Bind mouse events.
@@ -108,6 +110,7 @@ define([
     },
 
     title: function (str) {
+      console.log(str)
       this.$('.header-title').html(str);
     }
 

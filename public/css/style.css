@@ -432,8 +432,12 @@ a.header-action:active {
   top: 1px;
 }
 
-a#signin {
+#header a#signin {
   float: right;
+}
+
+#header.wide a#signin {
+  margin-right: 20px;
 }
 
 .signin {

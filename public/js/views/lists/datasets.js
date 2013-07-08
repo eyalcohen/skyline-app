@@ -30,8 +30,7 @@ define([
       this.subscriptions = [];
 
       // Socket subscriptions
-      // this.app.socket.subscribe('post-' + this.parentView.model.id)
-      //     .bind('dataset.new', _.bind(this.collect, this));
+      this.app.rpc.socket.on('dataset.new', _.bind(this.collect, this));
 
       // Reset the collection.
       this.collection.reset(this.app.profile.content.datasets.items);
@@ -57,7 +56,8 @@ define([
 
     // Collect new datasets from socket events.
     collect: function (dataset) {
-      this.collection.unshift(dataset);
+      if (dataset.author.id === this.parentView.model.id)
+        this.collection.unshift(dataset);
     },
 
     signin: function (e) {

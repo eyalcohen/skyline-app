@@ -39,7 +39,7 @@ define([
     render: function (single, prepend, re) {
       this.$el.html(this.template.call(this));
       if (this.model.collection) {
-        var d = this.model.collection.indexOf(this.model) * 30;
+        var d = this.model.collection.indexOf(this.model) * 0;
         _.delay(_.bind(function () {
           this.$el.show();
         }, this), single ? 0 : d);

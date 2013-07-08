@@ -32,6 +32,7 @@ var redis = require('redis');
 var RedisStore = require('connect-redis')(express);
 var jade = require('jade');
 var passport = require('passport');
+var psio = require('passport.socketio');
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
@@ -163,31 +164,14 @@ Step(
           server.listen(app.get('PORT'));
 
           // Socket auth
-          sio.set('authorization', function (data, cb) {
-            if (data.headers.cookie) {
-              app.get('cookieParser')(data, {}, function (err) {
-                if (err) return cb(err, false);
-                var cookie = data.cookies[app.get('sessionKey')];
-
-                // FIXME: Do this the unsign way.
-                var sid = cookie.split('.')[0].split(':')[1];
-
-                // Save the session store to the data object 
-                // (as required by the Session constructor).
-                data.sessionStore = app.get('sessionStore');
-                data.sessionStore.get(sid, function (err, session) {
-                  if (err || !session) return cb('Error', false);
-
-                  // Create a session object, passing data as request and our
-                  // just acquired session data.
-                  data.session =
-                      new connect.middleware.session.Session(data, session);
-                  cb(null, true);
-                });
-
-              });
-            } else return cb('No cookie transmitted.', false);
-          });
+          sio.set('authorization', psio.authorize({
+            cookieParser: express.cookieParser,
+            key: app.get('sessionKey'),
+            secret: app.get('sessionSecret'),
+            store: app.get('sessionStore'),
+            fail: function(data, accept) { accept(null, true); },
+            success: function(data, accept) { accept(null, true); }
+          }));
 
           // Socket connect
           sio.sockets.on('connection', function (socket) {
@@ -197,26 +181,8 @@ Step(
             // direct to the socket.
             socket.client = new Client(socket, app.get('samples'));
 
-            // Setup an inteval that will keep our session fresh.
-            var intervalID = setInterval(function () {
-
-              // Reload the session (just in case something changed,
-              // we don't want to override anything, but the age)
-              // reloading will also ensure we keep an up2date copy
-              // of the session with our connection.
-              socket.handshake.session.reload(function () {
-
-                // "touch" it (resetting maxAge and lastAccess)
-                // and save it back again.
-                socket.handshake.session.touch().save();
-              });
-            }, 60 * 1000);
-
             socket.on('disconnect', function () {
               util.log('Socket disconnected');
-
-              // clear the socket interval to stop refreshing the session.
-              clearInterval(intervalID);
             });
 
             util.log('Web server listening on port ' + app.get('PORT'));

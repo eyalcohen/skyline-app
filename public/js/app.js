@@ -18,7 +18,7 @@ define([
     this.rpc = rpc.init();
 
     // App model subscriptions.
-    mps.subscribe('member/delete', _.bind(this.logout, this))
+    mps.subscribe('member/delete', _.bind(this.logout, this));
 
     // TODO: Do this only on localhost.
     window._rpc = rpc;
@@ -57,6 +57,6 @@ define([
       app.router = new Router(app);
       Backbone.history.start({pushState: true});
     }
-    
+
   };
 });

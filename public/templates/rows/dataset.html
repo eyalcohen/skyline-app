@@ -1,7 +1,4 @@
 <%
-  var gravatar = 'https://www.gravatar.com/avatar/'
-      + this.model.get('author').gravatar + '?s=32&d=mm';
-
   var link = this.model.get('id') !== -1 ? 
       [this.model.get('author').username, this.model.get('id')].join('/'): '#';
 %>
