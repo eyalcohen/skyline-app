@@ -7,8 +7,15 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'views/home'
-], function ($, _, Backbone, mps, Home) {
+  'rest',
+  'util',
+  'views/signin',
+  'views/header',
+  'views/home',
+  'views/profile',
+  'views/graph'
+], function ($, _, Backbone, mps, rest, util, Signin, Header, Home,
+      Profile, Graph) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -18,49 +25,102 @@ define([
       // Save app reference.
       this.app = app;
 
-      // Page routes:
+      // Page routes
+      this.route(':username/:id', 'dataset', this.graph);
+      this.route(':username', 'profile', this.profile);
       this.route('', 'home', this.home);
+
+      // Fullfill navigation request from mps.
+      mps.subscribe('navigate', _.bind(function (path) {
+        this.navigate(path, {trigger: true});
+      }, this));
+
+      // Kill the notifications view.
+      mps.subscribe('user/delete', _.bind(function () {
+
+      }, this));
+
+      // Show the signin modal.
+      mps.subscribe('user/signin/open', _.bind(function () {
+        this.signin = new Signin(this.app).render();
+      }, this));
     },
 
     routes: {
-      // Catch all:
+
+      // Catch all
       '*actions': 'default'
     },
 
-    home: function () {
+    render: function (service, cb) {
 
-      this.page = new Home(this.app).render();
+      function _render() {
 
+        // Render page elements.
+        if (!this.header)
+          this.header = new Header(this.app).render();
+        else this.header.render();
+        this.header.unwiden();
+
+        // Callback to route.
+        cb();
+      }
+
+      // Kill the page view if it exists.
+      if (this.page)
+        this.page.destroy();
+
+      if (typeof service === 'function') {
+        cb = service;
+        return _render.call(this);
+      }
+
+      // Check if a profile exists already.
+      var query = {};
+
+      // Get a profile, if needed.
+      rest.get(service, query,
+          _.bind(function (err, pro) {
+        if (err) return console.error(err);
+
+        // Set the profile.
+        this.app.update(pro);
+        _render.call(this);
+
+      }, this));
     },
 
-    // query: function (str) {
-    //   // Kills everything and loads all content from scratch.
+    home: function () {
+      this.render('/service/home.profile', _.bind(function () {
+        this.page = new Home(this.app).render();
+      }, this));
+    },
 
-    //   App.publish('KillallTabs');
-    //   App.publish('ShowFolderItem-dashboard');
-    //   App.stateMonitor.resetState();
-    //   App.stateMonitor.setState(str);
-    // },
+    profile: function (username) {
+      this.render('/service/user.profile/' + username,
+          _.bind(function () {
+        this.page = new Profile(this.app).render();
+      }, this));
+    },
 
-    // vehicle: function (id, q) {
-    //   var tab = $('[data-id="' + id + '"]');
-    //   if (tab.length !== 0) {
-    //     var tabId = tab.data('tabTarget')
-    //                 .substr(tabId.indexOf('-') + 1);
-    //     mps.publish('ShowFolderItem-target-' + tabId);
-    //   } else {
-    //     var tr = $('#vehicle_' + id);
-    //     var items = tr.attr('id').split('_');
-    //     var time = parseInt($('[data-time]', tr).attr('data-time'));
-    //     var title = tr.attr('data-title');
-    //     var lastCycle = time === 0 ? null :
-    //         JSON.parse($('[data-cycle]', tr).attr('data-cycle'));
-    //     var tabId = App.util.makeId();
-    //     var timeRange = { beg: lastCycle.beg, end: lastCycle.end };
-    //     mps.publish('VehicleRequested', 
-    //                 [Number(id), tabId, title, timeRange, false]);
-    //   }
-    // },
+    settings: function () {
+      this.render('/service/settings.profile', _.bind(function () {
+        this.page = new Settings(this.app).render();
+      }, this));
+    },
+
+    dataset: function (username, id) {
+      var key = [username, id].join('/');
+      this.render('/service/dataset.profile/' + key, _.bind(function () {
+        // this.page = new Dataset(this.app).render();
+        this.page = new Graph(this.app).render();
+        this.header.widen();
+      }, this));
+    },
+
+    default: function (actions) {
+      console.warn('No route:', actions);
+    }
 
   });
 

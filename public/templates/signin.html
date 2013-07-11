@@ -1,0 +1,77 @@
+<div id="signin_spin"></div>
+<div class="signin-inner">
+  <div>
+    <div class="signin-strategies">
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <a href="/auth/google" class="button google-button">
+                 <img src="/img/google_24.png" />
+                <span style="vertical-align: 7px; padding: 10px;">
+                  Sign In with Google Account</span>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="or-bar"><div class="or-txt">Or sign in</div></div>
+    <div class="signin-forms">
+      <form id="signin_form" enctype="multipart/form-data" method="POST">
+        <table>
+          <tbody>
+            <tr>
+              <td colspan="2">
+                <input name="username" type="text" placeholder="Username" />
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <input name="password" type="password" placeholder="Password" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span class="signin-error"></span>
+              </td>
+              <td>
+                <input id="signin" type="submit" value="Sign in" style="float:right;" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </form>
+      <div class="or-bar"><div class="or-txt">Or create an account</div></div>
+      <form id="signup_form" enctype="multipart/form-data" method="POST">
+        <table>
+          <tbody>
+            <tr>
+              <td colspan="2">
+                <input name="newusername" type="text" placeholder="Choose a username" />
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <input name="newemail" type="text" placeholder="Your email (private)" />
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <input name="newpassword" type="password" placeholder="Choose a password" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span class="signin-error"></span>
+              </td>
+              <td>
+                <input id="signup" type="submit" value="Sign up" style="float:right;" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </form>
+    </div>
+  </div>
+</div>
