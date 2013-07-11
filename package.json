@@ -32,5 +32,6 @@
   },
   "scripts": {
     "start": "main.js"
-  }
+  },
+  "subdomain": "skyline"
 }
