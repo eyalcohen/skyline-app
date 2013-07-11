@@ -7,13 +7,15 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'util'
-], function ($, _, Backbone, mps, rpc, util) {
+  'util',
+  'text!../../../templates/home.html',
+  'Spin'
+], function ($, _, Backbone, mps, util, template, Spin) {
 
   return Backbone.View.extend({
 
     // The DOM target element for this page:
-    el: '#main',
+    id: 'home',
     uploading: false,
 
     // Module entry point:
@@ -32,6 +34,10 @@ define([
     // Draw our template from the profile JSON.
     render: function () {
 
+      // UnderscoreJS rendering.
+      this.template = _.template(template);
+      this.$el.html(this.template.call(this)).appendTo('#main');
+
       // Done rendering ... trigger setup.
       this.trigger('rendered');
 
@@ -41,8 +47,11 @@ define([
     // Misc. setup.
     setup: function () {
 
+      // Init the load indicator.
+      this.spin = new Spin(this.$('.spinner'));
+
       // Safe el refs.
-      this.dropZone = this.$('#dnd');
+      this.dropZone = this.$el;
 
       // Drag & drop events.
       this.dropZone.on('dragover', _.bind(this.dragover, this))
@@ -66,6 +75,9 @@ define([
     drop: function (e) {
       e.stopPropagation();
       e.preventDefault();
+
+      // Start the spinner.
+      this.spin.start();
 
       // Stop drag styles.
       this.dropZone.removeClass('dragging');
@@ -93,15 +105,18 @@ define([
           base64: reader.result.replace(/^[^,]*,/,''),
         };
 
-        this.app.rpc.do('insertSamplesFromFile', data,
+        this.app.rpc.do('insertCSVSamples', data,
             _.bind(function (err, res) {
           if (err) return console.error(err);
 
-          this.app.rpc.do('fetchSamples', res.did, res.channels[4], {},
-              function (err, samples) {
-            console.log(err, samples);
-          });
-          
+          // Stop the spinner.
+          this.spin.stop();
+
+          // Go to the graph view.
+          var route = ['/username', res.did].join('/');
+          route += '?b=' + res.beg + '&e=' + res.end;
+          this.app.router.navigate(route, {trigger: true});
+
         }, this));
 
       }, this);
@@ -124,7 +139,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
-      this.empty();
+      this.remove();
     },
 
     // Bind mouse events.

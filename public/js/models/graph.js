@@ -7,57 +7,63 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'util'
-], function ($, _, Backbone, mps, rpc, util) {
+  'util',
+  'cache'
+], function ($, _, Backbone, mps, util, Cache) {
 
   return Backbone.Model.extend({
 
-    initialize: function (args) {
-      if (!args) args = {};
-      _.extend(args, { model: this });
-      this.tabModel = args.tabModel;
-      this.view = new App.views.GraphView(args);
-      this.set({
-        channels: [],
+    initialize: function (app, view) {
+      this.app = app;
+      this.view = view;
+      this.clientId = util.rid32();
+      this.set('datasetId', Number(this.app.profile.content.page.id));
+      this.set('visibleTime', this.app.profile.content.page.meta || {
+        beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
+        end: Date.now() * 1e3,
       });
-      // Note: Backbone's .set method does a deep comparison of the old
-      // data to the new data, which is expensive for large datasets.  Don't
-      // use .set for sampleSet to avoid this overhead.
+      this.cache = new Cache(app);
+      this.set({channels: []});
       this.sampleSet = {};  // Map from channelName to data.
-      var tabId = args.tabId, id = args.id;
-      this.clientId = tabId + '-graph-' + id;
-      _.bindAll(this, 'destroy', 'updateCacheSubscription',
-          'visibleTimeChanged', 'addChannel', 'removeChannel',
-          'fetchGraphedChannels', 'updateSampleSet');
-      App.subscribe('VehicleUnrequested-' + tabId, this.destroy);
-      this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
-      App.subscribe('ChannelRequested-' + tabId + '-' + id, this.addChannel);
-      App.subscribe('ChannelUnrequested-' + tabId + '-' + id, this.removeChannel);
-      App.subscribe('FetchGraphedChannels-' + tabId, this.fetchGraphedChannels);
-      App.sampleCache.bind('update-' + this.clientId, this.updateSampleSet);
+      // this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
+      // App.subscribe('ChannelRequested-' + tabId + '-' + id, this.addChannel);
+      // App.subscribe('ChannelUnrequested-' + tabId + '-' + id, this.removeChannel);
+      // App.subscribe('FetchGraphedChannels-' + tabId, this.fetchGraphedChannels);
+      this.cache.bind('update-' + this.clientId, _.bind(this.updateSampleSet, this));
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
-        this.tabModel.set({ visibleTime: visibleTime });
+        this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
       }, this));
-      this.view.bind('VisibleWidthChange', this.updateCacheSubscription);
-      this.view.render();
+      this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
+
+      // Get channels.
+      this.app.rpc.do('fetchSamples', this.get('datasetId'), '_schema',
+          {}, _.bind(function (err, samples) {
+        if (err) return console.error(err);
+        if (!samples) return console.error('No _schema samples found');
+        this.set('schemas', samples);
+        _.each(this.get('schemas'), _.bind(function (schema, i) {
+          // if (i < 10) this.addChannel(schema.val);
+          this.view.addChannelToPanel(schema);
+        }, this));
+      }, this));
 
       return this;
     },
 
-    destroy: function () {
-      var tabId = this.get('tabId'), id = this.get('id');
-      App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
-      this.tabModel.unbind('change:visibleTime', this.visibleTimeChanged);
-      App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, this.addChannel);
-      App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id,
-                      this.removeChannel);
-      App.unsubscribe('FetchGraphedChannels-' + tabId,
-                      this.fetchGraphedChannels);
-      App.sampleCache.unbind('update-' + this.clientId, this.updateSampleSet);
-      App.sampleCache.endClient(this.clientId);
-      this.view.destroy();
-    },
+    // destroy: function () {
+    //   var tabId = this.get('tabId'), id = this.get('id');
+    //   App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
+    //   this.tabModel.unbind('change:visibleTime', this.visibleTimeChanged);
+    //   App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, this.addChannel);
+    //   App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id,
+    //                   this.removeChannel);
+    //   App.unsubscribe('FetchGraphedChannels-' + tabId,
+    //                   this.fetchGraphedChannels);
+    //   App.sampleCache.unbind('update-' + this.clientId, this.updateSampleSet);
+    //   App.sampleCache.endClient(this.clientId);
+    //   this.view.destroy();
+    // },
 
     updateCacheSubscription: function () {
       var viewRange = this.view.getVisibleTime();
@@ -67,7 +73,7 @@ define([
       // data.
       if (viewRange.width <= 0) return;
       viewRange.width = Math.max(viewRange.width, 2000);
-      var dur = App.sampleCache.getBestGraphDuration(
+      var dur = this.cache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
       // Expand effective view range slightly, so that when scrolling we fetch
       // more data before it's needed.
@@ -86,8 +92,8 @@ define([
         this.prevDur = dur;
         this.prevRange = expandRange(viewRange, 0.25);
       }
-      App.sampleCache.setClientView(
-          this.clientId, this.get('vehicleId'),
+      this.cache.setClientView(
+          this.clientId, this.get('datasetId'),
           _.pluck(this.get('channels'), 'channelName'),
           dur, this.prevRange.beg, this.prevRange.end);
     },
@@ -114,7 +120,6 @@ define([
         if (_.pluck(self.get('channels'), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
-        // channel = _.clone(channel);
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
         if (!channel.colorNum) {
@@ -122,11 +127,14 @@ define([
           for (var c = 0; _.include(usedColors, c); ++c) { }
           channel.colorNum = c;
         }
+        if (!channel.title) channel.title = channel.channelName;
+        if (!channel.humanName) channel.humanName = channel.channelName;
+        if (!channel.shortName) channel.shortName = channel.channelName;
         self.get('channels').push(channel);
-        // console.log('addChannel(', channel, ')...');
+        console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription();
-      App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
+      // App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
       return self;
     },
 
@@ -136,9 +144,9 @@ define([
                           .indexOf(channel.channelName);
       if (index === -1) return;
       self.get('channels').splice(index, 1);
-      // console.log('removeChannel(', channel, ')...');
+      console.log('removeChannel(', channel, ')...');
       self.updateCacheSubscription();
-      App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
+      // App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
       return self;
     },
 

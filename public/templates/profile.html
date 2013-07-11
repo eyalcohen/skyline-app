@@ -1,0 +1,30 @@
+<%
+
+  // Save model attributes
+  var data = this.model.attributes;
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + data.gravatar + '?s=200&d=mm';
+
+%>
+
+<div class="page">
+  <div class="page-left">
+    <div class="profile-avatar">
+      <img src="<%= gravatar %>"
+          width="200" height="200" />
+    </div>
+    <span class="section-heading"><%= data.displayName %></span>
+  </div>
+  <div class="page-right">
+    <div class="datasets"></div>
+    <span class="section-heading">Views</span>
+    <span class="section-description">
+      A <span style="font-style:italic;">view</span> is one or more channels from one or more datasets with a start and end time.
+    </span>
+    <span class="section-instructions">
+      You don't have any views yet.
+    </span>
+  </div>
+</div>

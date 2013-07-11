@@ -1,0 +1,26 @@
+<%
+  var user = this.app.profile.user;
+%>
+
+<span class="section-heading">Datasets</span>
+<span class="section-description">
+  A <span style="font-style:italic;">dataset</span> is a collection of related channels.
+</span>
+<% if (user && user.id === this.parentView.model.get('id')) { %>
+  <div class="dnd dataset list-header">
+    <span class="dnd-instructions">
+      Create a dataset by dragging &amp; dropping or selecting a CSV file.
+    </span>
+  </div>
+<% } else { %>
+  <div class="list-header"></div>
+<% } %>
+<% if (this.collection.models.length > 0) { %>
+  <% _.each(this.collection.models, _.bind(function(row) { %>
+    <%= this.row(row) %>
+  <% }, this)); %>
+<% } else { %>
+  <span class="section-instructions empty-feed">
+    You don't have any datasets yet.
+  </span>
+<% } %>

@@ -1,12 +1,12 @@
 /*!
  * Copyright 2011 Mission Motors
  *
- * SampleDb interface and results cache.
+ * Samples interface and results cache.
  *
  * Usage:
  *
  * A client (say, a graph), should keep its viewed region up to date with:
- *   setClientView(clientId, vehicleId, channels, dur, beg, end);
+ *   setClientView(clientId, datasetId, channels, dur, beg, end);
  * clientId is a string unique to this client.  Whenever the viewed region,
  * channels, or duration (zoom) change, call setClientView to update them.
  *
@@ -23,13 +23,18 @@
   Bucketing: same as synthetic buckets.
  */
 
-define(function () {
+define([
+  'Underscore',
+  'Backbone',
+  'shared'
+], function (_, Backbone, shared) {
 
-  function SampleCache() {
+  function SampleCache(app) {
+    this.app = app;
 
     /* Cache structure:
         cache = {
-          <vehicleId> + '-' + <channelName>: {
+          <datasetId> + '-' + <channelName>: {
             <dur>: {
               <bucket>: {
                   last: 123,  // Date.now() of last access.
@@ -54,7 +59,7 @@ define(function () {
     /* Client registry:
       clients = {
         <clientId>: {
-          vehicleId: <vehicleId>,
+          datasetId: <datasetId>,
           channels: [ <channelNames...> ],
           dur: <duration_us>,
           beg: <beginTime_us>,
@@ -69,8 +74,8 @@ define(function () {
     // minPendingRequests and maxPendingRequests pending.
     this.pendingCacheEntries = [];
 
-    App.subscribe('DNodeReconnectUserAuthorized',
-                  _.bind(this.dnodeReconnected, this));
+    // App.subscribe('DNodeReconnectUserAuthorized',
+    //               _.bind(this.dnodeReconnected, this));
   }
   _.extend(SampleCache.prototype, Backbone.Events);
 
@@ -79,13 +84,13 @@ define(function () {
    * Fetches will be triggered as necessary, and an update event triggered.
    */
   SampleCache.prototype.setClientView =
-  function(clientId, vehicleId, channels, dur, beg, end, force) {
+      function(clientId, datasetId, channels, dur, beg, end, force) {
     var client = defObj(this.clients, clientId);
-    if (client.vehicleId === vehicleId && client.dur === dur &&
+    if (client.datasetId === datasetId && client.dur === dur &&
         client.beg === beg && client.end === end &&
         _.isEqual(client.channels, channels))
       return;  // Nothing to do!
-    client.vehicleId = vehicleId;
+    client.datasetId = datasetId;
     client.channels = channels;
     client.dur = dur;
     client.beg = beg;
@@ -130,10 +135,10 @@ define(function () {
   }
 
   /**
-   * Invalidate the latest samples for a vehicle and refetch them.
+   * Invalidate the latest samples for a dataset and refetch them.
    * This is a total hack to do real-time updates!
    */
-  SampleCache.prototype.refetchLatest = function(treeModel, vehicleId,
+  SampleCache.prototype.refetchLatest = function(treeModel, datasetId,
                                                  callback) {
     var self = this;
 
@@ -163,7 +168,7 @@ define(function () {
           // Nothing changed!
           return;
         }
-        self.refetchOverlapping(vehicleId, channelName, before, after);
+        self.refetchOverlapping(datasetId, channelName, before, after);
         if (ranges['before'].end)
           changeBeg = Math.min(changeBeg, ranges['before'].end);
         else if (ranges['after'].beg)
@@ -189,8 +194,8 @@ define(function () {
    * Get a cache entry.  If it doesn't exist, create it.
    */
   SampleCache.prototype.getCacheEntry =
-  function(vehicleId, channelName, dur, buck, create) {
-    var cacheKey = vehicleId + '-' + channelName;
+      function(datasetId, channelName, dur, buck, create) {
+    var cacheKey = datasetId + '-' + channelName;
     var d = create ? defObj : ifDef;
     var durEntry = d(d(this.cache, cacheKey), dur);
     var entry = durEntry && durEntry[buck];
@@ -253,21 +258,21 @@ define(function () {
         client.channels.forEach(function(channelName) {
           // Hack: avoid fetching buckets which have no schema, thus must be
           // empty.
-          var validRanges = null;
-          App.publish('FetchChannelInfo-' + client.vehicleId,
-                      [channelName, function(desc){
-            if (desc) validRanges = desc.valid;
-          }]);
+          var validRanges = [{beg:0, end: 1e50}];
+          // App.publish('FetchChannelInfo-' + client.datasetId,
+          //             [channelName, function(desc){
+          //   if (desc) validRanges = desc.valid;
+          // }]);
           forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
                                  function(buck, buckBeg, buckEnd) {
-            var entry = self.getCacheEntry(client.vehicleId, channelName,
+            var entry = self.getCacheEntry(client.datasetId, channelName,
                                            dur, buck, false);
             if (entry && !entry.refetch && (entry.samples || entry.pending))
               return;
             var priority = basePriority +
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
-                veh: client.vehicleId, chan: channelName, dur: dur,
+                veh: client.datasetId, chan: channelName, dur: dur,
                 buck: buck });
           });
         });
@@ -278,6 +283,7 @@ define(function () {
     // already pending.
     var priorities = _.keys(requestsByPriority).sort(function(a,b){return a-b});
     for (var prioI in priorities) {
+
       var requests = requestsByPriority[priorities[prioI]];
       for (var reqI in requests) {
         var req = requests[reqI];
@@ -318,25 +324,19 @@ define(function () {
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
-    App.api.fetchSamples(req.veh, req.chan, options, function(err, samples) {
+    self.app.rpc.do('fetchSamples', req.veh, req.chan, options,
+        function (err, samples) {
       if (err) {
-        console.error(
-            'SampleCache server call fetchSamples(' + req.veh + ', "' +
-            req.chan + '", ' + JSON.stringify(options) +
-            ') returned error: ' + err);
+        console.error(err);
         samples = null;
-        //// SWP: Without this belong crud the client 
-        //   keeps trying to get the samples forever.
         self.pendingCacheEntries.splice(
-            self.pendingCacheEntries.indexOf(entry), 1);
+        self.pendingCacheEntries.indexOf(entry), 1);
         delete entry.pending;
         self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
         self.cleanCache();
-        return;
-        ////
-      } else {
-        entry.syn = samples.some(function(s){return 'min' in s});
+        return;    
       }
+      entry.syn = samples.some(function(s){return 'min' in s});
       if (entry.samples)
         self.cacheSize -= entry.samples.length;
       entry.samples = samples;
@@ -357,10 +357,10 @@ define(function () {
    * which could be viewing this data.
    */
   SampleCache.prototype.triggerClientUpdates =
-  function(vehicleId, channelName, dur, beg, end) {
+      function(datasetId, channelName, dur, beg, end) {
     for (var clientId in this.clients) {
       var client = this.clients[clientId];
-      if (client.vehicleId === vehicleId &&
+      if (client.datasetId === datasetId &&
           -1 !== client.channels.indexOf(channelName) &&
           client.dur <= dur &&
           (end > client.beg || beg < client.end)) {
@@ -395,13 +395,13 @@ define(function () {
       delete client.updateTimeout;
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
-        var validRanges = null;
-        App.publish('FetchChannelInfo-' + client.vehicleId, [channelName,
-                    function(desc) {
-          if (desc) validRanges = desc.valid;
-        }]);
+        var validRanges = [{beg:0, end: 1e50}];
+        // App.publish('FetchChannelInfo-' + client.datasetId, [channelName,
+        //             function(desc) {
+        //   if (desc) validRanges = desc.valid;
+        // }]);
         sampleSet[channelName] = self.getBestCachedData(
-            client.vehicleId, channelName,
+            client.datasetId, channelName,
             client.dur, client.beg, client.end, validRanges);
       });
       self.trigger('update-' + clientId, sampleSet);
@@ -414,7 +414,7 @@ define(function () {
    * higher-resolution or lower-resolution data.
    */
   SampleCache.prototype.getBestCachedData =
-  function(vehicleId, channelName, dur, beg, end, validRanges) {
+      function(datasetId, channelName, dur, beg, end, validRanges) {
     var self = this;
     var buckDur = bucketSize(dur);
     var prevDur = getPrevDur(dur), nextDur = getNextDur(dur);
@@ -422,14 +422,14 @@ define(function () {
     var buckets = [];
     forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
         function(buck, buckBeg, buckEnd) {
-      var entry = self.getCacheEntry(vehicleId, channelName, dur, buck, false);
+      var entry = self.getCacheEntry(datasetId, channelName, dur, buck, false);
       if (entry && entry.samples) {
         buckets.push(entry.samples);
       } else if (nextDur != null) {
         // TODO: this would be more efficient and correct if we tried to fill
         // entire gaps, rather than a single bucket at a time.
         buckets.push(
-            self.getBestCachedData(vehicleId, channelName, nextDur,
+            self.getBestCachedData(datasetId, channelName, nextDur,
                                    buckBeg, buckEnd, validRanges));
       }
     });
@@ -437,20 +437,20 @@ define(function () {
     // Samples which overlap from one bucket into another will end up
     // duplicated.  Remove duplicates.
     // TODO: make a mergeDuplicateSamples for speed?
-    App.shared.mergeOverlappingSamples(samples, channelName);
-    return App.shared.trimSamples(samples, beg, end);
+    shared.mergeOverlappingSamples(samples, channelName);
+    return shared.trimSamples(samples, beg, end);
   }
 
-  SampleCache.prototype.dnodeReconnected = function() {
-    // Any pending transactions are never going to complete.
-    this.pendingCacheEntries.forEach(function(e) {
-      delete e.pending;
-    });
-    this.pendingCacheEntries = [];
+  // SampleCache.prototype.dnodeReconnected = function() {
+  //   // Any pending transactions are never going to complete.
+  //   this.pendingCacheEntries.forEach(function(e) {
+  //     delete e.pending;
+  //   });
+  //   this.pendingCacheEntries = [];
 
-    // Re-issue fetches for client-visible regions.
-    this.fillPendingRequests();
-  }
+  //   // Re-issue fetches for client-visible regions.
+  //   this.fillPendingRequests();
+  // }
 
   SampleCache.prototype.cleanCache = function() {
     var self = this;
@@ -500,8 +500,8 @@ define(function () {
    * Invalidate all buckets which overlap a time range.
    */
   SampleCache.prototype.refetchOverlapping =
-      function(vehicleId, channelName, beg, end) {
-    var cacheKey = vehicleId + '-' + channelName;
+      function(datasetId, channelName, beg, end) {
+    var cacheKey = datasetId + '-' + channelName;
     var cacheLine = ifDef(this.cache, cacheKey);
     if (cacheLine) durations.forEach(function(dur) {
       var buckDur = bucketSize(dur);
@@ -520,10 +520,10 @@ define(function () {
   var minCacheSize = 750000, maxCacheSize = 1000000;
   var entryCacheCost = 10;
 
-  var durations = [0].concat(App.shared.syntheticDurations),
+  var durations = [0].concat(shared.syntheticDurations),
       durationsRev = _.clone(durations).reverse();
   function bucketSize(dur)
-    { return dur === 0 ? 500 : dur * App.shared.syntheticSamplesPerRow * 10; }
+    { return dur === 0 ? 500 : dur * shared.syntheticSamplesPerRow * 10; }
 
   function defObj(obj, key)
     { return (key in obj) ? obj[key] : (obj[key] = {}); }
