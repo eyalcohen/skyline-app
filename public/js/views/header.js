@@ -110,7 +110,6 @@ define([
     },
 
     title: function (str) {
-      console.log(str)
       this.$('.header-title').html(str);
     }
 

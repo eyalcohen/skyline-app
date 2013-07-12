@@ -13,7 +13,7 @@ define([
     init: function () {
 
       // Attach a socket connection.
-      this.socket = io.connect('http://localhost:8080');
+      this.socket = io.connect('/');
 
       return this;
     },
