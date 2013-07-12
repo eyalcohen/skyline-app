@@ -96,7 +96,7 @@ Step(
     app.set('sessionSecret', 'hummmcycles');
     app.set('sessionKey', 'express.sid');
     app.set('cookieParser', express.cookieParser(app.get('sessionKey')));
-    app.use(express.favicon(__dirname + '/public/gfx/favicon.ico'));
+    app.use(express.favicon(__dirname + '/public/img/favicon.ico'));
     app.use(express.logger('dev'));
     app.use(express.bodyParser());
     app.use(app.get('cookieParser'));

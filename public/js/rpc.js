@@ -13,7 +13,7 @@ define([
     init: function () {
 
       // Attach a socket connection.
-      this.socket = io.connect();
+      this.socket = io.connect(window.location.origin);
 
       return this;
     },
