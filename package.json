@@ -33,7 +33,7 @@
     "node": "~0.8.x"
   },
   "scripts": {
-    "start": "./main.js"
+    "start": "node main.js"
   },
   "subdomain": "skyline"
 }
