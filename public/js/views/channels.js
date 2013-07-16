@@ -23,6 +23,7 @@ define([
       // Save app ref.
       this.app = app;
       this.options = options;
+      this.parentView = options.parentView;
 
       // Shell events:
       this.on('rendered', this.setup, this);
@@ -114,7 +115,8 @@ define([
     },
 
     renderChannel: function (dataset, channel) {
-      var li = $('<li>' + _.str.strLeft(channel.val.channelName, '__') + '</li>');
+      var li = $('<li id="' + channel.val.channelName + '">'
+          + _.str.strLeft(channel.val.channelName, '__') + '</li>');
       li.data('channel', channel);
       li.data('dataset', dataset);
       li.appendTo(this.$('ul#' + dataset.id));
@@ -125,13 +127,13 @@ define([
       var li = $(e.target);
       if (li.hasClass('active')) {
         li.removeClass('active');
-        this.options.parentView.graph.model.removeChannel(
+        this.parentView.graph.model.removeChannel(
           Number(li.data('dataset').id),
           li.data('channel').val
         );
       } else {
         li.addClass('active');
-        this.options.parentView.graph.model.addChannel(
+        this.parentView.graph.model.addChannel(
           Number(li.data('dataset').id),
           li.data('channel').val
         );

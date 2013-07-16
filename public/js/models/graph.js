@@ -142,6 +142,12 @@ define([
     removeChannel: function (datasetId, channel) {
       var self = this;
       var client = this.getOrCreateClient(datasetId);
+      // if (_.isString(channel)) {
+      //   channel = _.find(client.channels, function (c) {
+      //     return c.channelName === channel;
+      //   });
+        
+      // }
       var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);
       if (index === -1) return;
