@@ -16,56 +16,38 @@ define([
     initialize: function (app, view) {
       this.app = app;
       this.view = view;
-      this.clientId = util.rid32();
-      this.set('datasetId', Number(this.app.profile.content.page.id));
+      this.clients = [];
+      // this.clientId = util.rid32();
+      // this.set('datasetId', Number(this.app.profile.content.page.id));
       this.set('visibleTime', this.app.profile.content.page.meta || {
         beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
         end: Date.now() * 1e3,
       });
-      this.cache = new Cache(app);
+      this.cache = new Cache(this.app);
       this.set({channels: []});
-      this.sampleSet = {};  // Map from channelName to data.
-      // this.tabModel.bind('change:visibleTime', this.visibleTimeChanged);
-      // App.subscribe('ChannelRequested-' + tabId + '-' + id, this.addChannel);
-      // App.subscribe('ChannelUnrequested-' + tabId + '-' + id, this.removeChannel);
-      // App.subscribe('FetchGraphedChannels-' + tabId, this.fetchGraphedChannels);
-      this.cache.bind('update-' + this.clientId, _.bind(this.updateSampleSet, this));
+      this.sampleSet = {};
+      
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
       }, this));
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
 
-      // Get channels.
-      this.app.rpc.do('fetchSamples', this.get('datasetId'), '_schema',
-          {}, _.bind(function (err, samples) {
-        if (err) return console.error(err);
-        if (!samples) return console.error('No _schema samples found');
-        this.set('schemas', samples);
-        _.each(this.get('schemas'), _.bind(function (schema, i) {
-          // if (i < 10) this.addChannel(schema.val);
-          this.view.addChannelToPanel(schema);
-        }, this));
-      }, this));
-
       return this;
     },
 
-    // destroy: function () {
-    //   var tabId = this.get('tabId'), id = this.get('id');
-    //   App.unsubscribe('VehicleUnrequested-' + tabId, this.destroy);
-    //   this.tabModel.unbind('change:visibleTime', this.visibleTimeChanged);
-    //   App.unsubscribe('ChannelRequested-'+ tabId + '-' + id, this.addChannel);
-    //   App.unsubscribe('ChannelUnrequested-' + tabId + '-' + id,
-    //                   this.removeChannel);
-    //   App.unsubscribe('FetchGraphedChannels-' + tabId,
-    //                   this.fetchGraphedChannels);
-    //   App.sampleCache.unbind('update-' + this.clientId, this.updateSampleSet);
-    //   App.sampleCache.endClient(this.clientId);
-    //   this.view.destroy();
-    // },
+    getOrCreateClient: function (datasetId) {
+      var client = _.find(this.clients, function (c) {
+        return c.datasetId === datasetId;
+      });
+      if (client) return client;
+      client = {id: util.rid32(), datasetId: datasetId, channels: []};
+      this.clients.push(client);
+      this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, datasetId));
+      return client;
+    },
 
-    updateCacheSubscription: function () {
+    updateCacheSubscription: function (client) {
       var viewRange = this.view.getVisibleTime();
       if (!viewRange) return;
       // When the tab holding the graph is hidden, the graph width becomes
@@ -92,22 +74,41 @@ define([
         this.prevDur = dur;
         this.prevRange = expandRange(viewRange, 0.25);
       }
-      this.cache.setClientView(
-          this.clientId, this.get('datasetId'),
-          _.pluck(this.get('channels'), 'channelName'),
-          dur, this.prevRange.beg, this.prevRange.end);
+
+      if (!_.isObject(client))
+        _.each(this.clients, _.bind(function (c) {
+          set.call(this, c);
+        }, this));
+      else set.call(this, client);
+
+      function set(c) {
+        this.cache.setClientView(
+            c.id, c.datasetId,
+            _.pluck(c.channels, 'channelName'),
+            dur, this.prevRange.beg, this.prevRange.end);
+      }
     },
 
     visibleTimeChanged: function (model, visibleTime) {
       this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
     },
 
-    addChannel: function (channels) {
+    getChannels: function () {
+      var channels = [];
+      _.each(this.clients, function (client) {
+        _.each(client.channels, function (c) {
+          channels.push(c);
+        });
+      });
+      return channels;
+    },
+
+    addChannel: function (datasetId, channels) {
       var self = this;
       channels = _.isArray(channels) ? channels : [channels];
 
       var numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
-      _.each(self.get('channels'), function (channel) {
+      _.each(self.getChannels(), function (channel) {
         if (!channel.yaxisNum) return;
         if (channel.yaxisNum === 1)
           numSeriesLeftAxis++;
@@ -116,46 +117,48 @@ define([
       });
       var yAxisNumToUse = numSeriesLeftAxis > numSeriesRightAxis ? 2 : 1;
 
+      var client = this.getOrCreateClient(datasetId);
       _.each(channels, function (channel) {
-        if (_.pluck(self.get('channels'), 'channelName')
+        if (_.pluck(client.channels, 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
         if (!channel.colorNum) {
-          var usedColors = _.pluck(self.get('channels'), 'colorNum');
+          var usedColors = _.pluck(self.getChannels(), 'colorNum');
           for (var c = 0; _.include(usedColors, c); ++c) { }
           channel.colorNum = c;
         }
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
-        self.get('channels').push(channel);
+        client.channels.push(channel);
         console.log('addChannel(', channel, ')...');
       });
-      self.updateCacheSubscription();
-      // App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
+      self.updateCacheSubscription(client);
       return self;
     },
 
-    removeChannel: function (channel) {
+    removeChannel: function (datasetId, channel) {
       var self = this;
-      var index = _.pluck(self.get('channels'), 'channelName')
+      var client = this.getOrCreateClient(datasetId);
+      var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);
       if (index === -1) return;
-      self.get('channels').splice(index, 1);
+      client.channels.splice(index, 1);
       console.log('removeChannel(', channel, ')...');
-      self.updateCacheSubscription();
-      // App.publish('GraphedChannelsChanged-' + self.get('tabId'), []);
+      self.updateCacheSubscription(client);
       return self;
     },
 
     fetchGraphedChannels: function(cb) {
-      cb(this.get('channels'));
+      cb(this.getChannels());
     },
 
-    updateSampleSet: function (sampleSet) {
-      this.sampleSet = sampleSet;
+    updateSampleSet: function (datasetId, sampleSet) {
+      _.each(sampleSet, _.bind(function (ss, cn) {
+        this.sampleSet[cn] = ss;
+      }, this));
       this.view.draw();
     },
 

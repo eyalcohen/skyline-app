@@ -382,12 +382,13 @@ header {
 
 #header .header-title {
   display: none;
-  float: left;
-  margin-left: 10px;
+  /*float: left;*/
+  margin-left: 119px;
   padding-top: 13px;
   color: #666;
   font-size: 14px;
   font-style: italic;
+  white-space: nowrap;
 }
 
 #header.wide .header-title {
@@ -1262,7 +1263,7 @@ p.dashboard-item-message {
 }
 
 tr {
-  cursor: pointer;
+  /*cursor: pointer;*/
 }
 
 .light {
@@ -1865,83 +1866,6 @@ a.note-channel-remove:active {
   color: black;
 }
 
-/*.graph,
-.timeline {
-  width: 100%;
-  height: 100%;
-
-  display: -webkit-box;
-  -webkit-box-orient: horizontal;
-  -webkit-box-pack: center;
-  -webkit-box-align: center;
-
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  -moz-box-pack: center;
-  -moz-box-align: center;
-
-  display: box;
-  box-orient: horizontal;
-  box-pack: center;
-  box-align: center;
-
-  overflow: hidden;
-}
-
-.graph > div {
-  width: 100%;
-  height: 100%;
-  top: 0;
-}
-
-.empty-graph {
-  width: 100%;
-  height: 100%;
-
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -1;
-
-  display: -moz-box;
-  display: -webkit-box;
-  display: box;
-
-  -moz-box-pack: center;
-  -webkit-box-pack: center;
-  box-pack: center;
-}
-
-.empty-graph > div {
-  height: 100%;
-  margin: 0 auto;
-  width: 100%;
-  text-align: center;
-
-  display: -moz-box;
-  display: -webkit-box;
-  display: box;
-
-  -moz-box-pack: center;
-  -webkit-box-pack: center;
-  box-pack: center;
-
-  -moz-box-orient: vertical;
-  -webkit-box-orient: vertical;
-  box-orient: vertical;
-}
-
-.empty-graph > div > span {
-  color: gray;
-  font-size: 12px;
-  white-space: nowrap;
-  cursor: default;
-
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-}*/
-
 .graph-closer {
   background: gray;
   background-image: url(/graphics/graph-closer.png);
@@ -2195,64 +2119,149 @@ a.label-closer:hover {
 
 /********************************************************************/
 
-.graph {
+.view {
   background: white; 
   margin: 0;
   width: 100%;
   position: relative;
+  overflow: hidden;
 }
 
-.graph-channels {
+#channels {
+  position: relative;
   float: left;
   width: 15%;
   height: 100%;
 }
 
-.graph-channels ul {
+.channels-inner {
   height: 100%;
   border-right: 1px solid #808080;
   overflow-y: auto;
 }
 
-.graph-channels li {
+.channels-separator {
+  margin: 10px 0 -10px 0;
+  font-weight: lighter;
+  text-align: center;
+  text-transform: uppercase;
+  color: #4d4d4d;
+  font-size: 11px;
+  display: none;
+}
+
+#channels ul {
+  display: none;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+#channels li {
   border-bottom: 1px solid #b3b3b3;
   padding: 8px 15px;
   font-weight: bold;
   background: #f2f2f2;
   font-size: 10px;
   cursor: pointer;
+  overflow: hidden;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: moz-none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
-.graph-channels li:hover {
+#channels li:hover {
   background: white;
 }
 
-.graph-channels li:active {
+#channels li:active {
   -moz-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
 }
 
-.graph-channels li.active {
+#channels li.active {
   background: white;
   -moz-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
   box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
 }
 
-.graph-outer {
+#channels li.dataset-head {
+  text-transform: uppercase;
+  font-weight: bold;
+  color: white;
+  background: #b3b3b3;
+  border-bottom: 1px solid #808080;
+  text-align: center;
+  font-size: 9px;
+  padding-top: 1px;
+  padding-bottom: 0px;
+}
+
+#channels li.dataset-head {
+  border-top: 1px solid #808080;
+  margin-top: 20px;
+}
+
+#channels li.dataset-head:hover {
+  background: #808080;
+}
+
+#channels li.dataset-head:active {
+  -moz-box-shadow: inset 0 0 3px rgba(0, 0, 0, 1);
+  -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 1);
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 1);
+}
+
+#channels .channels-label {
+  position: absolute;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: white;
+  background: #666;
+  text-align: center;
+  font-size: 9px;
+  padding-top: 1px;
+  padding-bottom: 0px;
+  top: 0;
+  width: 100%;
+  border-bottom: 1px solid #808080;
+}
+
+#graphs {
   position: relative;
-  z-index: 1;
   margin-left: 15%;
   width: 85%;
   height: 100%;
 }
 
-.graph-outer:focus {
+.graph {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.graph:focus {
   outline: none;
 }
 
-.graph-outer::-moz-focus-inner {
+.graph::-moz-focus-inner {
   border: none;
 }
 

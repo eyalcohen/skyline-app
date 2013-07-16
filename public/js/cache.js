@@ -85,6 +85,7 @@ define([
    */
   SampleCache.prototype.setClientView =
       function(clientId, datasetId, channels, dur, beg, end, force) {
+        // console.log(arguments)
     var client = defObj(this.clients, clientId);
     if (client.datasetId === datasetId && client.dur === dur &&
         client.beg === beg && client.end === end &&
@@ -138,55 +139,55 @@ define([
    * Invalidate the latest samples for a dataset and refetch them.
    * This is a total hack to do real-time updates!
    */
-  SampleCache.prototype.refetchLatest = function(treeModel, datasetId,
-                                                 callback) {
-    var self = this;
+  // SampleCache.prototype.refetchLatest = function(treeModel, datasetId,
+  //                                                callback) {
+  //   var self = this;
 
-    // Find end time of last schema entry for all channels.
-    var channelRanges = {};
-    function findChannelRanges(beforeAfter) {
-      (treeModel.data || []).forEach(function process(treeEntry) {
-        (treeEntry.sub || []).forEach(process);
-        if (treeEntry.channelName) {
-          defObj(channelRanges, treeEntry.channelName)[beforeAfter] =
-              { beg: _.first(treeEntry.valid).beg,
-                end: _.last(treeEntry.valid).end };
-        }
-      });
-    }
-    findChannelRanges('before');
+  //   // Find end time of last schema entry for all channels.
+  //   var channelRanges = {};
+  //   function findChannelRanges(beforeAfter) {
+  //     (treeModel.data || []).forEach(function process(treeEntry) {
+  //       (treeEntry.sub || []).forEach(process);
+  //       if (treeEntry.channelName) {
+  //         defObj(channelRanges, treeEntry.channelName)[beforeAfter] =
+  //             { beg: _.first(treeEntry.valid).beg,
+  //               end: _.last(treeEntry.valid).end };
+  //       }
+  //     });
+  //   }
+  //   findChannelRanges('before');
 
-    // Refetch the channel tree.
-    treeModel.fetch(false, function() {
-      // Now invalidate everything that might have changed.
-      findChannelRanges('after');
-      var changeBeg = Infinity, changeEnd = -Infinity;
-      _.forEach(channelRanges, function(ranges, channelName) {
-        var before = ranges['before'].end || -Infinity;
-        var after = ranges['after'].end || Infinity;
-        if (before == after) {
-          // Nothing changed!
-          return;
-        }
-        self.refetchOverlapping(datasetId, channelName, before, after);
-        if (ranges['before'].end)
-          changeBeg = Math.min(changeBeg, ranges['before'].end);
-        else if (ranges['after'].beg)
-          changeBeg = Math.min(changeBeg, ranges['after'].beg);
-        if (ranges['after'].end)
-          changeEnd = Math.max(changeEnd, ranges['after'].end);
-      });
+  //   // Refetch the channel tree.
+  //   treeModel.fetch(false, function() {
+  //     // Now invalidate everything that might have changed.
+  //     findChannelRanges('after');
+  //     var changeBeg = Infinity, changeEnd = -Infinity;
+  //     _.forEach(channelRanges, function(ranges, channelName) {
+  //       var before = ranges['before'].end || -Infinity;
+  //       var after = ranges['after'].end || Infinity;
+  //       if (before == after) {
+  //         // Nothing changed!
+  //         return;
+  //       }
+  //       self.refetchOverlapping(datasetId, channelName, before, after);
+  //       if (ranges['before'].end)
+  //         changeBeg = Math.min(changeBeg, ranges['before'].end);
+  //       else if (ranges['after'].beg)
+  //         changeBeg = Math.min(changeBeg, ranges['after'].beg);
+  //       if (ranges['after'].end)
+  //         changeEnd = Math.max(changeEnd, ranges['after'].end);
+  //     });
 
-      // Refetch from the server and update graphs and such.
-      self.fillPendingRequests();
+  //     // Refetch from the server and update graphs and such.
+  //     self.fillPendingRequests();
 
-      if (callback)
-        if (isFinite(changeBeg) && isFinite(changeEnd))
-          callback({ beg: changeBeg, end: changeEnd });
-        else
-          callback(null);
-    });
-  }
+  //     if (callback)
+  //       if (isFinite(changeBeg) && isFinite(changeEnd))
+  //         callback({ beg: changeBeg, end: changeEnd });
+  //       else
+  //         callback(null);
+  //   });
+  // }
 
   //// Private: ////
 
@@ -242,7 +243,7 @@ define([
 
     // Generate a prioritized list of requests to make.
     var requestsByPriority = {};  // Map from priority to array of requests.
-    // A request is an object with: veh, chan, dur, buck, entry.
+    // A request is an object with: did, chan, dur, buck, entry.
     _.forEach(self.clients, function(client, clientId) {
       // Pre-fetch samples at next zoom level up.
       var nextDur = getNextDur(client.dur);
@@ -272,7 +273,7 @@ define([
             var priority = basePriority +
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
-                veh: client.datasetId, chan: channelName, dur: dur,
+                did: client.datasetId, chan: channelName, dur: dur,
                 buck: buck });
           });
         });
@@ -297,7 +298,7 @@ define([
              durI < durations.length; ++durI) {
           var biggerDur = durations[durI];
           var biggerBuck = Math.floor(buckBeg / bucketSize(biggerDur));
-          var biggerEntry = self.getCacheEntry(req.veh, req.chan, biggerDur,
+          var biggerEntry = self.getCacheEntry(req.did, req.chan, biggerDur,
                                                biggerBuck, false);
           if (biggerEntry && biggerEntry.syn === false) {
             covered = true;
@@ -314,7 +315,7 @@ define([
 
   SampleCache.prototype.issueRequest = function(req) {
     var self = this;
-    var entry = self.getCacheEntry(req.veh, req.chan, req.dur, req.buck, true);
+    var entry = self.getCacheEntry(req.did, req.chan, req.dur, req.buck, true);
     entry.pending = true;
     delete entry.refetch;
     self.pendingCacheEntries.push(entry);
@@ -324,7 +325,7 @@ define([
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
-    self.app.rpc.do('fetchSamples', req.veh, req.chan, options,
+    self.app.rpc.do('fetchSamples', req.did, req.chan, options,
         function (err, samples) {
       if (err) {
         console.error(err);
@@ -332,7 +333,7 @@ define([
         self.pendingCacheEntries.splice(
         self.pendingCacheEntries.indexOf(entry), 1);
         delete entry.pending;
-        self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
+        self.triggerClientUpdates(req.did, req.chan, req.dur, buckBeg, buckEnd);
         self.cleanCache();
         return;    
       }
@@ -347,7 +348,7 @@ define([
           self.pendingCacheEntries.indexOf(entry), 1);
       delete entry.pending;
       self.fillPendingRequests();
-      self.triggerClientUpdates(req.veh, req.chan, req.dur, buckBeg, buckEnd);
+      self.triggerClientUpdates(req.did, req.chan, req.dur, buckBeg, buckEnd);
       self.cleanCache();
     });
   }
@@ -459,8 +460,8 @@ define([
 
     // Create an array of all entries reverse sorted by age.
     var allEntryBuckets = [];
-    _.each(self.cache, function(vehChanEntry) {
-      _.each(vehChanEntry, function(durEntry) {
+    _.each(self.cache, function(dsChanEntry) {
+      _.each(dsChanEntry, function(durEntry) {
         allEntryBuckets.push(_.values(durEntry));
       });
     });
@@ -482,17 +483,17 @@ define([
     self.cacheSize = cacheSize;
 
     // Delete now-empty entries.
-    _.each(self.cache, function(vehChanEntry, vehChan) {
-      _.each(vehChanEntry, function(durEntry, dur) {
+    _.each(self.cache, function(dsChanEntry, dsChan) {
+      _.each(dsChanEntry, function(durEntry, dur) {
         _.each(durEntry, function(entry, bucket) {
           if (entry.last === -1)
             delete durEntry[bucket];
         });
         if (Object.keys(durEntry).length == 0)
-          delete vehChanEntry[dur];
+          delete dsChanEntry[dur];
       });
-      if (Object.keys(vehChanEntry).length == 0)
-        delete self.cache[vehChan];
+      if (Object.keys(dsChanEntry).length == 0)
+        delete self.cache[dsChan];
     });
   }
 

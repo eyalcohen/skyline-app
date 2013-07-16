@@ -13,9 +13,9 @@ define([
   'views/header',
   'views/home',
   'views/profile',
-  'views/graph'
+  'views/view'
 ], function ($, _, Backbone, mps, rest, util, Signin, Header, Home,
-      Profile, Graph) {
+      Profile, View) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -112,8 +112,7 @@ define([
     dataset: function (username, id) {
       var key = [username, id].join('/');
       this.render('/service/dataset.profile/' + key, _.bind(function () {
-        // this.page = new Dataset(this.app).render();
-        this.page = new Graph(this.app).render();
+        this.page = new View(this.app).render();
         this.header.widen();
       }, this));
     },

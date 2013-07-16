@@ -36,20 +36,12 @@ define([
     // Draw our template from the profile JSON.
     render: function (samples) {
 
+      // Init a model for this view.
       this.model = new Graph(this.app, this);
-
-      var dataset = this.app.profile.content.page;
-      mps.publish('title/set', ['"' + dataset.title + '", '
-          + util.addCommas(Math.round(dataset.file.size / 1e3)) + ' KB, '
-          + dataset.meta.channel_cnt
-          + (dataset.meta.channel_cnt > 1 ? ' channels': ' channel')
-          + ', ' + (new Date(dataset.meta.beg/1e3).format())
-          + ' - ' + (new Date(dataset.meta.end/1e3).format())
-          + ' by ' + dataset.author.displayName]);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('#main');
+      this.$el.html(this.template.call(this)).appendTo('#graphs');
 
       // Initial sizing
       this.$el.height($(window).height() - this.$el.offset().top);
@@ -69,11 +61,10 @@ define([
     setup: function () {
 
       // Save refs
-      this.panel = this.$('.graph-channels > ul');
       this.plot = null;
       // this.mouseTime = $('.mouse-time', this.el);
       // this.mouseTimeTxt = $('span', this.mouseTime);
-      this.eventPreview = this.$('div.event-preview');
+      this.eventPreview = this.$('.event-preview');
       this.eventIcons = [];
       this.minHoverDistance = 10;
       this.following = false;
@@ -107,22 +98,22 @@ define([
       this.remove();
     },
 
-    addChannelToPanel: function (channel) {
-      var li = $('<li>' + channel.val.channelName + '</li>');
-      li.data('channel', channel);
-      li.appendTo(this.panel);
-    },
+    // addChannelToPanel: function (channel) {
+    //   var li = $('<li>' + channel.val.channelName + '</li>');
+    //   li.data('channel', channel);
+    //   li.appendTo(this.panel);
+    // },
 
-    channelClick: function (e) {
-      var li = $(e.target);
-      if (li.hasClass('active')) {
-        li.removeClass('active');
-        this.model.removeChannel(li.data('channel').val);
-      } else {
-        li.addClass('active');
-        this.model.addChannel(li.data('channel').val);
-      }
-    },
+    // channelClick: function (e) {
+    //   var li = $(e.target);
+    //   if (li.hasClass('active')) {
+    //     li.removeClass('active');
+    //     this.model.removeChannel(li.data('channel').val);
+    //   } else {
+    //     li.addClass('active');
+    //     this.model.addChannel(li.data('channel').val);
+    //   }
+    // },
 
     /////////////////////////////////// OLD
 
@@ -147,21 +138,6 @@ define([
     //   are dropped in.
     //   this.ensureLegendRedraw = true;
     //   App.subscribe('ChannelDropped-' + id, this.ensureLegend);
-    // },
-
-    // destroy: function () {
-    //   this._super('destroy');
-    //   var tabId = this.options.tabId;
-    //   var id = this.options.id;
-    //   this.model.tabModel.unbind('change:highlightedChannel',
-    //                              this.highlightedChannelChanged);
-    //   App.unsubscribe('PreviewEvent-' + tabId, this.showEvent);
-    //   App.unsubscribe('UnPreviewEvent-' + tabId, this.hideEvent);
-    //   App.unsubscribe('OpenNote-' + tabId, this.openNote);
-    //   App.unsubscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
-    //   App.unsubscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
-    //   App.unsubscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
-    //   App.unsubscribe('ChannelDropped-' + id, this.ensureLegend);
     // },
 
     // events: {
@@ -201,13 +177,9 @@ define([
 
     resize: function () {
       if (this.plot) {
-        var width = $(window).width() - this.holder.offset().left;
-        var height = $(window).height() - this.holder.offset().top;
-        this.$el.css({height: height});
-        this.plot.getPlaceholder().css({
-          width: width,
-          height: height,
-        });
+        var width = $(window).width() - this.$el.offset().left;
+        var height = $(window).height() - this.$el.offset().top;
+        // this.$el.css({height: height});
         this.plot.setCanvasDimensions(width, height);
         this.noteCanvas.attr({width: width, height: height});
         this.redrawNote();
@@ -235,8 +207,7 @@ define([
         "#96BDFF",  // Light blue
         "#D373FF",  // Light purple
       ];
-      self.holder = $('.graph-outer', self.content);
-      self.plot = $.plot(self.holder, [], {
+      self.plot = $.plot(self.$el, [], {
         xaxis: {
           mode: 'time',
           utc: true,
@@ -310,20 +281,20 @@ define([
       });
 
       // self.plot.lockCrosshair(); // Disable default crosshair movement.
-      $('.graph', self.content).data({
-        plot: self.plot,
+      // $('.graph', self.content).data({
+        // plot: self.plot,
         // id: self.options.id,
-      });
+      // });
 
       self.noteCanvas =
           $('<canvas width="' + self.plot.getPlaceholder().width() +
             '" height="' + self.plot.getPlaceholder().height() +
             '" class="note-canvas">').
-          appendTo(self.holder);
+          appendTo(self.$el);
       self.noteCtx = self.noteCanvas.get(0).getContext('2d');
 
       function labelFormatter(label, series) {
-        var channels = self.model.get('channels');
+        var channels = self.model.getChannels();
         var channel = channels[series.channelIndex];
         if (!channel) return;
         var r = "<div class='label-wrap' " +
@@ -331,7 +302,7 @@ define([
             "data-channel-index='" + series.channelIndex + "' " +
             "data-channel-name='" + _.escape(channel.channelName) + "'>";
         r += '<span class="jstree-draggable" style="cursor:pointer">';
-        r += channel.humanName || channel.shortName;
+        r += _.str.strLeft(channel.humanName, '__') || channel.shortName;
         r += '</span>';
         if (channel.units) {
           var compat = units.findCompatibleUnits(
@@ -429,7 +400,7 @@ define([
 
       var emptyDiv = $('.empty-graph', self.content);
       var channels = [];
-      _.each(self.model.get('channels'), function (c) {
+      _.each(self.model.getChannels(), function (c) {
         channels.push($.extend(true, {}, c));
       });
 
@@ -519,7 +490,7 @@ define([
 
     updateSeriesColors: function (series) {
       var self = this;
-      var channels = self.model.get('channels');
+      var channels = self.model.getChannels();
       if (channels.length === 0) return;
       series.forEach(function (s, i) {
         var channel = channels[s.channelIndex];
@@ -574,10 +545,10 @@ define([
         }
       });
       
-      if (this.prevNumChannels !== this.model.get('channels').length
+      if (this.prevNumChannels !== this.model.getChannels().length
           || this.ensureLegendRedraw) {
         this.setupLegend();
-        this.prevNumChannels = this.model.get('channels').length;
+        this.prevNumChannels = this.model.getChannels().length;
       } else {
         this.setupLegend();
       }
@@ -614,7 +585,7 @@ define([
             .css({ bottom: 20 })
             .addClass('timeline-icon')
             .data(_.extend({}, not))
-            .appendTo(self.holder)
+            .appendTo(self.$el)
             .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel',
                 function (e) {
               if (e.type === 'mousedown' || 
@@ -651,7 +622,7 @@ define([
               dsEvent.pageX = xaxis.p2c(not.beg / 1e3) + off[1];
               dEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
               deEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
-              $('.flot-overlay', self.holder)
+              $('.flot-overlay', self.$el)
                   .trigger(dsEvent)
                   .trigger(dEvent)
                   .trigger(deEvent);
@@ -675,7 +646,7 @@ define([
             //   })();
             // });
       });
-      self.eventIcons = $('.timeline-icon', self.holder);
+      self.eventIcons = this.$('.timeline-icon');
       self.positionIcons();
     },
 
@@ -685,7 +656,7 @@ define([
       _.each(this.eventIcons, function (icon, i) {
         var $icon = $(icon);
         var left = xaxis.p2c($icon.data('beg') / 1e3) - 8;
-        if (left >= 0 && left <= self.holder.width()) {
+        if (left >= 0 && left <= self.$el.width()) {
           $icon.css({
             left: xaxis.p2c($icon.data('beg') / 1e3) - 8,
           });
@@ -700,7 +671,7 @@ define([
           this.ensureLegendRedraw = false;
       }, this));
       $('.label-closer', this.content)
-          .click(_.bind(this.removeChannel, this));
+          .click(_.bind(this.removeChannel, this)).hide();
       $('.legend tr', this.content)
           .bind('mouseenter', _.bind(this.enterLegend, this))
           .bind('mouseleave', _.bind(this.leaveLegend, this));
@@ -1003,7 +974,7 @@ define([
           { channelName: '$beginTime', title: 'Begin Time' },
           { channelName: '$beginRelTime', title: 'Begin Since Start', units: 's' },
           { channelName: '$endRelTime', title: 'End Since Start', units: 's' },
-        ].concat(self.model.get('channels'));
+        ].concat(self.model.getChannels());
       App.engine('export_csv.dialog.jade',
           { channels: channels }).appendTo(self.el).modal({
         appendTo: self.el,
@@ -1123,7 +1094,7 @@ define([
     unitsChange: function (e) {
       var newUnits = e.target.value;
       var channelName = $(e.target.parentNode).attr('data-channel-name');
-      var channels = this.model.get('channels');
+      var channels = this.model.getChannels();
       var series = this.plot.getData();
       for (var i = 0; i < series.length; ++i) {
         if (series[i].channelName === channelName) {
@@ -1151,7 +1122,7 @@ define([
       var labelParent = $(e.target).parent().parent();
       var label = $('.legendLabel > div', labelParent);
       var channelIndex = Number(label.attr('data-channel-index'));
-      var channel = self.model.get('channels')[channelIndex];
+      var channel = self.model.getChannels()[channelIndex];
       // App.publish('ChannelUnrequested-' + 
       //     self.options.tabId + '-' + self.options.id, [channel]);
       // Update note channel list visible.
@@ -1189,7 +1160,7 @@ define([
     removeGraph: function (e) {
       var self = this;
       var channels = [];
-      _.each(self.model.get('channels'), function (channel) {
+      _.each(self.model.getChannels(), function (channel) {
         channels.push($.extend(true, {}, channel));
       });
       _.each(channels, function (channel) {
@@ -1399,7 +1370,7 @@ define([
             $('.note-content').scrollTo('max', 500, {
                                         easing: App.easing.easeOutExpo });
             body.css({ height: '50px' });
-            $('.timeline-icon', self.holder).remove();
+            $('.timeline-icon', self.$el).remove();
             self.model.tabModel.resetEvents();
           } else if ('Permission denied.' === err) {
             self.cancelNote(null, plot);
