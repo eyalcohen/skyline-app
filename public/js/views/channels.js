@@ -15,6 +15,7 @@ define([
 
     // The DOM target element for this page:
     el: '#channels > div',
+    items: {},
 
     // Module entry point:
     initialize: function (app, options) {
@@ -52,6 +53,10 @@ define([
     // Misc. setup.
     setup: function () {
 
+      this.searcher = this.$('#channels_search');
+      this.searcher.bind('keyup', _.bind(this.search, this));
+      this.searcher.bind('search', _.bind(this.search, this));
+
       // Add datasets from profile JSON.
       this.renderDataset(this.app.profile.content.page, true);
       this.fetchChannels(this.app.profile.content.page);
@@ -64,17 +69,6 @@ define([
       }
 
       return this;
-    },
-
-    fetchChannels: function (dataset) {
-      this.app.rpc.do('fetchSamples', Number(dataset.id), '_schema',
-          {}, _.bind(function (err, samples) {
-        if (err) return console.error(err);
-        if (!samples) return console.error('No _schema samples found');
-        _.each(samples, _.bind(function (schema, i) {
-          this.renderChannel(dataset, schema);
-        }, this));
-      }, this));
     },
 
     // Similar to Backbone's remove method, but empties
@@ -94,6 +88,17 @@ define([
       this.remove();
     },
 
+    fetchChannels: function (dataset) {
+      this.app.rpc.do('fetchSamples', Number(dataset.id), '_schema',
+          {}, _.bind(function (err, samples) {
+        if (err) return console.error(err);
+        if (!samples) return console.error('No _schema samples found');
+        _.each(samples, _.bind(function (schema, i) {
+          this.renderChannel(dataset, schema);
+        }, this));
+      }, this));
+    },
+
     renderDataset: function (dataset, main) {
       var ul = $('<ul id="' + dataset.id + '"></ul>');
       var li = $('<li class="dataset-head">' +
@@ -102,7 +107,6 @@ define([
       ul.appendTo(this.$el)
       if (main) {
         li.hide();
-        ul.css('margin-top', '15px');
         $('<div class="channels-separator">Your Other Datasets</div>')
             .insertAfter(ul);
       }
@@ -114,6 +118,7 @@ define([
       li.data('channel', channel);
       li.data('dataset', dataset);
       li.appendTo(this.$('ul#' + dataset.id));
+      this.items[channel.val.channelName] = li;
     },
 
     channelClick: function (e) {
@@ -139,6 +144,14 @@ define([
       // Route to this dataset.
       this.app.router.navigate('/' + dataset.author.username
           + '/' + dataset.id, {trigger: true});
+    },
+
+    search: function (e) {
+      var str = this.searcher.val().trim().toLowerCase();
+      _.each(this.items, function (el, cn) {
+        if (str === '' || cn.indexOf(str) !== -1) el.show();
+        else el.hide();
+      });
     },
 
   });

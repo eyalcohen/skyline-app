@@ -797,7 +797,8 @@ label.export-label {
 }
 
 input[type=text],
-input[type=password] {
+input[type=password],
+input[type=search] {
   background: white;
   font-size: 12px;
   margin: 0 0 10px 0;
@@ -817,7 +818,8 @@ input[type=password] {
 }
 
 input[type=text]:focus,
-input[type=password]:focus {
+input[type=password]:focus,
+input[type=search]:focus {
   background: #F8F8F8 !important;
 
   -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
@@ -2241,6 +2243,32 @@ a.label-closer:hover {
   top: 0;
   width: 100%;
   border-bottom: 1px solid #808080;
+}
+
+#channels_search {
+  width: 100%;
+  margin-top: 15px;
+  margin-bottom: 0;
+  padding-left: 5px;
+  padding-right: 5px;
+  border: none;
+  background: #f8f8f8;
+
+  -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+}
+
+#channels_search:focus {
+  background: white !important;
+
+  -moz-box-shadow: 0 0 2px #98c1e6;
+  -webkit-box-shadow: 0 0 2px #98c1e6;
+  box-shadow: 0 0 2px #98c1e6;
 }
 
 #graphs {
