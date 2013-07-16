@@ -99,9 +99,9 @@ if (cluster.isMaster) {
 
         // App params
         app.set('MONGO_URI', 'mongodb://rider:hummmcycles@zoe.mongohq.com:10014/skyline');
-        app.set('REDIS_HOST', 'nodejitsudb3891131624.redis.irstack.com');
-        app.set('REDIS_PORT', 6379);
-        app.set('REDIS_PASS', 'nodejitsudb3891131624.redis.irstack.com:f327cfe980c971946e80b8e975fbebb4');
+        app.set('REDIS_HOST', 'crestfish.redistogo.com');
+        app.set('REDIS_PORT', 9084);
+        app.set('REDIS_PASS', '1b8a95ad4e582be0a56783b95392ce98');
 
         // Redis connect
         var clients = [
