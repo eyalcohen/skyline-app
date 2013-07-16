@@ -1199,6 +1199,7 @@ define([
     // Note handling.
 
     beginNote: function (e, plot) {
+      return;
       this.noteCanvas.show();
       if (this.noteBox) this.clearNoteBox();
       this.noteBox = {
@@ -1210,6 +1211,7 @@ define([
     },
 
     drawNote: function (e, plot, neighbor) {
+      return;
       var self = this;
       self.noteCtx.fillStyle = 'rgba(255,255,0,0.2)';
       self.clearNoteBox();
@@ -1229,6 +1231,7 @@ define([
     },
 
     endNote: function (e, plot) {
+      return;
       var self = this;
       if (self.noteWindow)
         self.clearNoteWindow();
