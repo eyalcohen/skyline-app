@@ -1916,9 +1916,11 @@ a.note-channel-remove:active {
 .mouse-time {
   position: absolute;
   left: 50%;
-  top: 10px;
-  background: rgba(0,0,0,0.2);
+  top: 0;
+  background: rgba(0,0,0,0.4);
   padding: 0 5px;
+  text-align: center;
+  min-width: 160px;
 }
 
 .mouse-time > span {

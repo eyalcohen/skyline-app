@@ -65,15 +65,15 @@ define([
 
       // Save refs
       this.plot = null;
-      this.mouseTime = this.$('.mouse-time');
+      this.mouseTime = this.parentView.$('.mouse-time');
       this.mouseTimeTxt = $('span', this.mouseTime);
-      this.eventPreview = this.$('.event-preview');
-      this.eventIcons = [];
+      // this.eventPreview = this.$('.event-preview');
+      // this.eventIcons = [];
       this.minHoverDistance = 10;
-      this.following = false;
-      this.noteBox = null;
-      this.noteWindow = null;
-      this.editingNote = false;
+      // this.following = false;
+      // this.noteBox = null;
+      // this.noteWindow = null;
+      // this.editingNote = false;
 
       // Draw the canvas.
       this.draw();
@@ -186,7 +186,7 @@ define([
         // this.$el.css({height: height});
         this.plot.setCanvasDimensions(width, height);
         this.noteCanvas.attr({width: width, height: height});
-        this.redrawNote();
+        // this.redrawNote();
         this.plot.setupGrid();
         this.plot.draw();
       }
