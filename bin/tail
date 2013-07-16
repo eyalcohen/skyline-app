@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+ssh -t skyline "tail -f /var/log/nodejs/nodejs.log"

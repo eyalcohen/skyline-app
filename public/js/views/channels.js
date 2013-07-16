@@ -103,7 +103,7 @@ define([
       if (main) {
         li.hide();
         ul.css('margin-top', '15px');
-        $('<div class="channels-separator">Other Datasets\' Channels</div>')
+        $('<div class="channels-separator">Your Other Datasets</div>')
             .insertAfter(ul);
       }
       ul.show();
