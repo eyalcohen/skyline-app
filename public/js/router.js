@@ -9,12 +9,13 @@ define([
   'mps',
   'rest',
   'util',
+  'views/error',
   'views/signin',
   'views/header',
   'views/home',
   'views/profile',
   'views/view'
-], function ($, _, Backbone, mps, rest, util, Signin, Header, Home,
+], function ($, _, Backbone, mps, rest, util, Error, Signin, Header, Home,
       Profile, View) {
 
   // Our application URL router.
@@ -35,7 +36,7 @@ define([
         this.navigate(path, {trigger: true});
       }, this));
 
-      // Kill the notifications view.
+      // Kill user specific views.
       mps.subscribe('user/delete', _.bind(function () {
 
       }, this));
@@ -54,7 +55,7 @@ define([
 
     render: function (service, cb) {
 
-      function _render() {
+      function _render(err) {
 
         // Render page elements.
         if (!this.header)
@@ -63,7 +64,7 @@ define([
         this.header.unwiden();
 
         // Callback to route.
-        cb();
+        cb(err);
       }
 
       // Kill the page view if it exists.
@@ -81,7 +82,10 @@ define([
       // Get a profile, if needed.
       rest.get(service, query,
           _.bind(function (err, pro) {
-        if (err) return console.error(err);
+        if (err) {
+          _render.call(this, err);
+          return this.page = new Error(this.app).render(err);
+        }
 
         // Set the profile.
         this.app.update(pro);
@@ -91,27 +95,31 @@ define([
     },
 
     home: function () {
-      this.render('/service/home.profile', _.bind(function () {
+      this.render('/service/home.profile', _.bind(function (err) {
+        if (err) return;
         this.page = new Home(this.app).render();
       }, this));
     },
 
     profile: function (username) {
       this.render('/service/user.profile/' + username,
-          _.bind(function () {
+          _.bind(function (err) {
+        if (err) return;
         this.page = new Profile(this.app).render();
       }, this));
     },
 
     settings: function () {
-      this.render('/service/settings.profile', _.bind(function () {
+      this.render('/service/settings.profile', _.bind(function (err) {
+        if (err) return;
         this.page = new Settings(this.app).render();
       }, this));
     },
 
     dataset: function (username, id) {
       var key = [username, id].join('/');
-      this.render('/service/dataset.profile/' + key, _.bind(function () {
+      this.render('/service/dataset.profile/' + key, _.bind(function (err) {
+        if (err) return;
         this.page = new View(this.app).render();
         this.header.widen();
       }, this));

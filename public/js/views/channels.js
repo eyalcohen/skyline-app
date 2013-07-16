@@ -99,13 +99,14 @@ define([
       var li = $('<li class="dataset-head">' +
           dataset.title + '</li>').appendTo(ul);
       li.data('dataset', dataset);
+      ul.appendTo(this.$el)
       if (main) {
         li.hide();
         ul.css('margin-top', '15px');
         $('<div class="channels-separator">Other Datasets\' Channels</div>')
             .insertAfter(ul);
       }
-      ul.appendTo(this.$el).show();
+      ul.show();
     },
 
     renderChannel: function (dataset, channel) {

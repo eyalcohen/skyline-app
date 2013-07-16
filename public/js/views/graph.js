@@ -95,6 +95,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      this.plot.getPlaceholder().remove();
       this.remove();
     },
 
@@ -191,18 +192,16 @@ define([
     createPlot: function () {
       var self = this;
       self.colors = [
-        "#28A128",  // Dark green
-        "#cb4b4b",  // Dark red
-        "#118CED",  // Dark blue
-        "#E8913F",  // Orange
-        "#9440ed",  // Dark purple
         "#27CDD6",  // Dark cyan
+        "#7A7A7A",  // Gray
+        "#cb4b4b",  // Dark red
+        "#76D676",  // Light green
         "#B2B848",  // Dark yellow
         "#8171E3",  // Violet
-        "#CC6ABE",  // Dark magenta
         "#47A890",  // Dark teal
-        "#7A7A7A",  // Gray
-        "#76D676",  // Light green
+        "#E8913F",  // Orange
+        "#118CED",  // Dark blue
+        "#28A128",  // Dark green
         "#FFA6A6",  // Pink
         "#96BDFF",  // Light blue
         "#D373FF",  // Light purple

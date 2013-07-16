@@ -2379,6 +2379,10 @@ a.label-closer:hover {
   line-height: 20px;
 }
 
+.section-heading.error {
+  color: red;
+}
+
 .section-description {
   display: block;
   color: #4d4d4d;

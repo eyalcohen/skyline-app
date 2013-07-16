@@ -55,5 +55,10 @@ define([
         this.app.router.navigate(path, {trigger: true});
     },
 
+    _remove: function () {
+      clearInterval(this.timer);
+      this.destroy();
+    },
+
   });
 });

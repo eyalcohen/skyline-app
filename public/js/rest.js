@@ -24,8 +24,8 @@ define([
           var err;
           try {
             err = JSON.parse(res.responseText);
-            err = err.error;
-          } catch (e) { err = res.statusText; }
+            err = res.status + ' - "' + err.error + '"';
+          } catch (e) { err = res.status + ' - "' + res.statusText + '"'; }
           cb(err);
         },
         contentType: 'application/json', 

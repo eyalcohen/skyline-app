@@ -60,6 +60,20 @@ define([
         this.collection.unshift(dataset);
     },
 
+    _remove: function (data) {
+      var index = -1;
+      var view = _.find(this.views, function (v) {
+        ++index
+        return v.model.id === data.id;
+      });
+
+      if (view) {
+        this.views.splice(index, 1);
+        view._remove();
+        this.collection.remove(view.model);
+      }
+    },
+
     signin: function (e) {
       e.preventDefault();
 
@@ -139,11 +153,14 @@ define([
         this.app.rpc.do('insertCSVSamples', payload,
             _.bind(function (err, res) {
 
-          if (err) {
+          if (err)
+            return console.error(err);
+
+          if (res.created === false) {
 
             // Remove row.
-            this.collection.pop();
-            return console.error(err);
+            this.working = false;
+            return this._remove({id: -1});
           }
 
           // Update the dataset id.
