@@ -13,6 +13,10 @@
   <% }, this)); %>
 <% } else { %>
   <span class="section-instructions empty-feed">
-    You don't have any views yet.
+    <% if (user && user.id === this.parentView.model.get('id')) { %>
+      You don't have any views yet.
+    <% } else { %>
+      <%= this.parentView.model.get('displayName') %> doesn't have any views yet.
+    <% } %>
   </span>
 <% } %>

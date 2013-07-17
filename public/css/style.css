@@ -326,6 +326,14 @@ a:focus {
   outline: none;
 }
 
+a.hover {
+  color: #036;
+}
+
+a.active {
+  background: #f2f2f2;
+}
+
 canvas {
   letter-spacing: 1px;
 }
@@ -2468,6 +2476,15 @@ a.label-closer:hover {
   margin-top: 10px;
   color: #4d4d4d;
   font-size: 12px;
+}
+
+input.file-chooser {
+  position: absolute;
+  opacity: 0.0001;
+  cursor: pointer;
+  width: 201px;
+  left: 261px;
+  top: 25px;
 }
 
 .datasets {

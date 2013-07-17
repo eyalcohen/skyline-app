@@ -39,7 +39,24 @@ define([
     setup: function () {
 
       // Safe el refs.
+      this.datasetForm = this.$('#dataset_form');
       this.dropZone = this.$('.dnd').show();
+
+      // Add mouse events for dummy file selector.
+      var dummy = this.$('#dataset_file_chooser_dummy');
+      this.$('#dataset_file_chooser').on('mouseover', function (e) {
+        dummy.addClass('hover');
+      })
+      .on('mouseout', function (e) {
+        dummy.removeClass('hover');
+      })
+      .on('mousedown', function (e) {
+        dummy.addClass('active');
+      })
+      .change(_.bind(this.drop, this));
+      $(document).on('mouseup', function (e) {
+        dummy.removeClass('active');
+      });
 
       // Drag & drop events.
       this.dropZone.on('dragover', _.bind(this.dragover, this))
@@ -104,11 +121,11 @@ define([
       this.dropZone.removeClass('dragging');
 
       // Get the files, if any.
-      var files = e.originalEvent.dataTransfer.files;
+      var files = e.target.files || e.originalEvent.dataTransfer.files;
       if (files.length === 0) return;
 
       // Just use the first one for now.
-      // TODO: drag drop multiple files -> datasets.
+      // TODO: multiple files -> datasets.
       var file = files[0];
 
       // Use a FileReader to read the file as a base64 string.

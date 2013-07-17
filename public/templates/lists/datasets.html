@@ -9,7 +9,17 @@
 <% if (user && user.id === this.parentView.model.get('id')) { %>
   <div class="dnd dataset list-header">
     <span class="dnd-instructions">
-      Create a dataset by dragging &amp; dropping or selecting a CSV file.
+      <form action="/api/datasets" enctype="multipart/form-data" method="POST" id="dataset_form">
+        Create a dataset by 
+        <% if (Modernizr.draganddrop) { %>
+          dragging &amp; dropping or 
+          <a id="dataset_file_chooser_dummy" class="file-chooser-dummy" href="javascript:;">selecting a CSV file</a>.
+          <input id="dataset_file_chooser" class="file-chooser" type="file" name="dataset_file" multiple="multiple" />
+        <% } else { %>
+          <a id="dataset_file_chooser_dummy" class="file-chooser-dummy" href="javascript:;">selecting a CSV file</a>.
+          <input id="dataset_file_chooser" class="file-chooser" type="file" name="dataset_file" multiple="multiple" style="left:78px;" />
+        <% } %>
+      </form>
     </span>
   </div>
 <% } else { %>
@@ -21,6 +31,10 @@
   <% }, this)); %>
 <% } else { %>
   <span class="section-instructions empty-feed">
-    You don't have any datasets yet.
+    <% if (user && user.id === this.parentView.model.get('id')) { %>
+      You don't have any datasets yet.
+    <% } else { %>
+      <%= this.parentView.model.get('displayName') %> doesn't have any datasets yet.
+    <% } %>
   </span>
 <% } %>
