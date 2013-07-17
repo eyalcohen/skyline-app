@@ -190,7 +190,7 @@ define([
         }
 
         // Route to profile.
-        var route = [this.app.profile.user.username, 'view', data.slug].join('/');
+        var route = [this.app.profile.user.username, 'views', data.slug].join('/');
         this.app.router.navigate('/' + route, {trigger: true});
 
         // Stop spinner.

@@ -28,8 +28,8 @@ define([
       this.app = app;
 
       // Page routes
-      this.route(':username/dataset/:id', 'dataset', this.dataset);
-      this.route(':username/view/:slug', 'view', this.view);
+      this.route(':username/datasets/:id', 'dataset', this.dataset);
+      this.route(':username/views/:slug', 'view', this.view);
       this.route(':username', 'profile', this.profile);
       this.route('', 'home', this.home);
 

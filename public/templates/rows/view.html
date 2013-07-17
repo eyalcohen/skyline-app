@@ -1,6 +1,6 @@
 <%
   var link = this.model.get('id') !== -1 ? 
-      [this.model.get('author').username, 'view', this.model.get('slug')].join('/'): '#';
+      [this.model.get('author').username, 'views', this.model.get('slug')].join('/'): '#';
 %>
 <div class="view-inner">
   <a href="<%= link %>" 
