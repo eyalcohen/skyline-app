@@ -1,5 +1,5 @@
 /*
- * View view
+ * Explore view
  */
 
 define([
@@ -9,8 +9,8 @@ define([
   'mps',
   'util',
   'units',
-  'models/view',
-  'text!../../../templates/view.html',
+  'models/explore',
+  'text!../../../templates/explore.html',
   'views/channels',
   'views/graph'
 ], function ($, _, Backbone, mps, util, units, View, template, Channels, Graph) {
@@ -18,7 +18,7 @@ define([
   return Backbone.View.extend({
 
     // The DOM target element for this page:
-    className: 'view',
+    className: 'explore',
 
     // Module entry point:
     initialize: function (app, options) {
@@ -41,14 +41,24 @@ define([
       this.model = new View(this.app, this);
 
       // Write the page title.
-      var dataset = this.app.profile.content.page;
-      mps.publish('title/set', ['"' + dataset.title + '", '
-          + util.addCommas(Math.round(dataset.file.size / 1e3)) + ' KB, '
-          + dataset.meta.channel_cnt
-          + (dataset.meta.channel_cnt > 1 ? ' channels': ' channel')
-          + ', ' + (new Date(dataset.meta.beg/1e3).format())
-          + ' - ' + (new Date(dataset.meta.end/1e3).format())
-          + ' by ' + dataset.author.displayName]);
+      var page = this.app.profile.content.page;
+      if (this.options && this.options.view)
+        mps.publish('title/set', ['"' + page.name + '", '
+            + page.meta.dataset_cnt
+            + (page.meta.dataset_cnt > 1 ? ' datasets': ' dataset')
+            + ', ' + page.meta.channel_cnt
+            + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
+            + ', ' + (new Date(page.meta.beg/1e3).format())
+            + ' - ' + (new Date(page.meta.end/1e3).format())
+            + ' by ' + page.author.displayName]);
+      else
+        mps.publish('title/set', ['"' + page.title + '", '
+            + util.addCommas(Math.round(page.file.size / 1e3)) + ' KB, '
+            + page.meta.channel_cnt
+            + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
+            + ', ' + (new Date(page.meta.beg/1e3).format())
+            + ' - ' + (new Date(page.meta.end/1e3).format())
+            + ' by ' + page.author.displayName]);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -70,7 +80,8 @@ define([
     setup: function () {
 
       // Render children views.
-      this.channels = new Channels(this.app, {parentView: this}).render();
+      this.channels = new Channels(this.app,
+          {parentView: this, view: this.options && this.options.view}).render();
       this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.

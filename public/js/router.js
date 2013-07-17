@@ -11,12 +11,13 @@ define([
   'util',
   'views/error',
   'views/signin',
+  'views/save',
   'views/header',
   'views/home',
   'views/profile',
-  'views/view'
-], function ($, _, Backbone, mps, rest, util, Error, Signin, Header, Home,
-      Profile, View) {
+  'views/explore'
+], function ($, _, Backbone, mps, rest, util, Error, Signin, Save,
+      Header, Home, Profile, Explore) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -27,7 +28,8 @@ define([
       this.app = app;
 
       // Page routes
-      this.route(':username/:id', 'dataset', this.graph);
+      this.route(':username/dataset/:id', 'dataset', this.dataset);
+      this.route(':username/view/:slug', 'view', this.view);
       this.route(':username', 'profile', this.profile);
       this.route('', 'home', this.home);
 
@@ -44,6 +46,14 @@ define([
       // Show the signin modal.
       mps.subscribe('user/signin/open', _.bind(function () {
         this.signin = new Signin(this.app).render();
+      }, this));
+
+      // Show the save modal.
+      mps.subscribe('view/save/open', _.bind(function () {
+        this.save = new Save(this.app, {
+          datasets: this.page.graph.model.getChannelsByDataset(),
+          meta: this.page.graph.getVisibleTime()
+        }).render();
       }, this));
     },
 
@@ -120,7 +130,16 @@ define([
       var key = [username, id].join('/');
       this.render('/service/dataset.profile/' + key, _.bind(function (err) {
         if (err) return;
-        this.page = new View(this.app).render();
+        this.page = new Explore(this.app).render();
+        this.header.widen();
+      }, this));
+    },
+
+    view: function (username, slug) {
+      var key = [username, slug].join('/');
+      this.render('/service/view.profile/' + key, _.bind(function (err) {
+        if (err) return;
+        this.page = new Explore(this.app, {view: true}).render();
         this.header.widen();
       }, this));
     },

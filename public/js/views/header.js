@@ -42,6 +42,9 @@ define([
       // Shell event.
       this.delegateEvents();
 
+      // Save refs.
+      this.saver = this.$('#save_view').hide();
+
       // Shell listeners / subscriptions.
       // Do this here intead of init ... re-renders often.
       if (this.app.profile && this.app.profile.user) {
@@ -54,6 +57,10 @@ define([
       // For graph titles...
       this.subscriptions.push(mps.subscribe('title/set',
             _.bind(this.title, this)));
+
+      // For save...
+      this.subscriptions.push(mps.subscribe('view/save/status',
+            _.bind(this.toggleSaveView, this)));
     },
 
     // Bind mouse events.
@@ -61,6 +68,7 @@ define([
       'click #logo': 'home',
       'click #signin': 'signin',
       'click #header_avatar': 'avatar',
+      'click #save_view': 'save',
       'click #settings': 'settings'
     },
 
@@ -94,6 +102,13 @@ define([
           {trigger: true});
     },
 
+    save: function (e) {
+      e.preventDefault();
+
+      // Render the save view.
+      mps.publish('view/save/open');
+    },
+
     settings: function (e) {
       e.preventDefault();
 
@@ -111,6 +126,11 @@ define([
 
     title: function (str) {
       this.$('.header-title').html(str);
+    },
+
+    toggleSaveView: function (show) {
+      if (show) this.saver.show();
+      else this.saver.hide();
     }
 
   });

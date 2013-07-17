@@ -58,13 +58,24 @@ define([
       this.searcher.bind('keyup', _.bind(this.search, this));
       this.searcher.bind('search', _.bind(this.search, this));
 
-      // Add datasets from profile JSON.
-      this.renderDataset(this.app.profile.content.page, true);
-      this.fetchChannels(this.app.profile.content.page);
-      if (this.app.profile.content.datasets.items.length > 0) {
-        _.each(this.app.profile.content.datasets.items, _.bind(function (ds) {
+      // Main dataset or view.
+      var page = this.app.profile.content.page;
+      if (this.options.view) {
+        this.renderDataset(null, true);
+        _.each(page.datasets, _.bind(function (ds) {
+          this.fetchChannels(ds, ds.channels);
+        }, this));
+      } else {
+        this.renderDataset(page, true);
+        this.fetchChannels(page);
+      }
+
+      // Other datasets.
+      var datasets = this.app.profile.content.datasets;
+      if (datasets.items.length > 0) {
+        _.each(datasets.items, _.bind(function (ds) {
           this.renderDataset(ds);
-          this.fetchChannels(ds)
+          this.fetchChannels(ds);
         }, this));
         this.$('.channels-separator').show();
       }
@@ -89,18 +100,23 @@ define([
       this.remove();
     },
 
-    fetchChannels: function (dataset) {
+    fetchChannels: function (dataset, channels) {
+      if (channels)
+        channels = _.pluck(channels, 'channelName');
       this.app.rpc.do('fetchSamples', Number(dataset.id), '_schema',
           {}, _.bind(function (err, samples) {
         if (err) return console.error(err);
         if (!samples) return console.error('No _schema samples found');
         _.each(samples, _.bind(function (schema, i) {
-          this.renderChannel(dataset, schema);
+          if (channels && !_.contains(channels, schema.val.channelName))
+            return;
+          this.renderChannel(dataset, schema, !!channels);
         }, this));
       }, this));
     },
 
     renderDataset: function (dataset, main) {
+      if (!dataset) dataset = {title: '', id: 'view_channels'};
       var ul = $('<ul id="' + dataset.id + '"></ul>');
       var li = $('<li class="dataset-head">' +
           dataset.title + '</li>').appendTo(ul);
@@ -114,13 +130,16 @@ define([
       ul.show();
     },
 
-    renderChannel: function (dataset, channel) {
+    renderChannel: function (dataset, channel, isPartOfView) {
+      if (this.$('li#' + channel.val.channelName).length > 0)
+        return;
       var li = $('<li id="' + channel.val.channelName + '">'
           + _.str.strLeft(channel.val.channelName, '__') + '</li>');
       li.data('channel', channel);
       li.data('dataset', dataset);
-      li.appendTo(this.$('ul#' + dataset.id));
+      li.appendTo(this.$('ul#' + (isPartOfView ? 'view_channels': dataset.id)));
       this.items[channel.val.channelName] = li;
+      if (isPartOfView) li.click();
     },
 
     channelClick: function (e) {

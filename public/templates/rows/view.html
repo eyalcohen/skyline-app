@@ -1,14 +1,13 @@
 <%
   var link = this.model.get('id') !== -1 ? 
-      [this.model.get('author').username, 'dataset', this.model.get('id')].join('/'): '#';
+      [this.model.get('author').username, 'view', this.model.get('slug')].join('/'): '#';
 %>
-<div class="dataset-spin"></div>
-<div class="dataset-inner">
+<div class="view-inner">
   <a href="<%= link %>" 
-        class="dataset-title navigate">
-    <%= this.model.get('title') %>
+        class="view-title navigate">
+    <%= this.model.get('name') %>
   </a>
-  <p class="dataset-time">
+  <p class="view-time">
     Last updated 
     <time class="created" 
         datetime="<%= this.model.get('updated') %>" 
@@ -17,8 +16,9 @@
     </time>.
   </p>
 </div>
-<div class="dataset-stats">
-  <%= this.model.size() %> KB |  
+<div class="view-stats">
+  <%= this.model.get('meta').dataset_cnt %> 
+  <%= this.model.get('meta').dataset_cnt > 1 ? 'datasets': 'dataset' %> | 
   <%= this.model.get('meta').channel_cnt %> 
   <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
 </div>

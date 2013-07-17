@@ -1,0 +1,18 @@
+<%
+  var user = this.app.profile.user;
+%>
+
+<span class="section-heading">Views</span>
+<span class="section-description">
+  A <span style="font-style:italic;">view</span> is one or more channels from one or more datasets with a start and end time.
+</span>
+<div class="list-header"></div>
+<% if (this.collection.models.length > 0) { %>
+  <% _.each(this.collection.models, _.bind(function(row) { %>
+    <%= this.row(row) %>
+  <% }, this)); %>
+<% } else { %>
+  <span class="section-instructions empty-feed">
+    You don't have any views yet.
+  </span>
+<% } %>

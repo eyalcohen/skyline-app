@@ -8,7 +8,7 @@ define([
 ], function (Backbone, util) {
   return Backbone.Model.extend({
 
-    _path: 'api/users/',
+    _path: 'api/users',
 
   });
 });

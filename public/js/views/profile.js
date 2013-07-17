@@ -10,8 +10,9 @@ define([
   'util',
   'models/user',
   'text!../../../templates/profile.html',
-  'views/lists/datasets'
-], function ($, _, Backbone, mps, util, User, template, Datasets) {
+  'views/lists/datasets',
+  'views/lists/views'
+], function ($, _, Backbone, mps, util, User, template, Datasets, Views) {
 
   return Backbone.View.extend({
 
@@ -56,8 +57,9 @@ define([
     // Misc. setup.
     setup: function () {
 
-      // Render datasets.
+      // Render datasets and views.
       this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
+      this.views = new Views(this.app, {parentView: this, reverse: true});
 
       return this;
     },
@@ -76,6 +78,8 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      this.datasets.destroy();
+      this.views.destroy();
       this.remove();
     },
 

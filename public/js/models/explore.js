@@ -9,7 +9,7 @@ define([
 ], function (_, Backbone, util) {
   return Backbone.Model.extend({
 
-    _path: 'api/views',
+    _path: 'api/views'
 
   });
 });

@@ -17,8 +17,6 @@ define([
       this.app = app;
       this.view = view;
       this.clients = [];
-      // this.clientId = util.rid32();
-      // this.set('datasetId', Number(this.app.profile.content.page.id));
       this.set('visibleTime', this.app.profile.content.page.meta || {
         beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
         end: Date.now() * 1e3,
@@ -103,6 +101,18 @@ define([
       return channels;
     },
 
+    getChannelsByDataset: function () {
+      var datasets = [];
+      _.each(this.clients, function (client) {
+        if (client.channels.length === 0) return;
+        datasets.push({
+          _id: Number(client.datasetId),
+          channels: client.channels,
+        });
+      });
+      return datasets;
+    },
+
     addChannel: function (datasetId, channels) {
       var self = this;
       channels = _.isArray(channels) ? channels : [channels];
@@ -136,24 +146,21 @@ define([
         console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription(client);
+      mps.publish('view/save/status', [true]);
       return self;
     },
 
     removeChannel: function (datasetId, channel) {
       var self = this;
       var client = this.getOrCreateClient(datasetId);
-      // if (_.isString(channel)) {
-      //   channel = _.find(client.channels, function (c) {
-      //     return c.channelName === channel;
-      //   });
-        
-      // }
       var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);
       if (index === -1) return;
       client.channels.splice(index, 1);
       console.log('removeChannel(', channel, ')...');
       self.updateCacheSubscription(client);
+      if (this.getChannels().length === 0)
+        mps.publish('view/save/status', [false]);
       return self;
     },
 
