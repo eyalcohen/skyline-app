@@ -1,16 +1,25 @@
 doctype 5
 html(lang="en")
   head
-    meta(charset="UTF-8")
-    meta(http-equiv="X-UA-Compatible", content="IE=edge,chrome=1")
-    title= 'Skyline'
+    - if (typeof title !== 'undefined')
+      title= title
+    - else
+      title Skyline
     meta(name="description", content="")
+    meta(name="keywords", content="")
     meta(name="author", content="")
-    meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    link(rel="shortcut icon", href="/img/favicon.ico")
-    link(rel="stylesheet", href="/css/fancybox.css")
-    link(rel="stylesheet", href="/css/style.css")
+    meta(charset="UTF-8")
+    <!--[if lt IE 9]><script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    link(rel="stylesheet", href="#{root}/css/fancybox.css")
+    link(rel="stylesheet", href="#{root}/css/fontello.css")
+    link(rel="stylesheet", href="#{root}/css/animation.css")
+    <!--[if IE 7]><link rel="stylesheet" href="#{root}/css/fontello-ie7.css"><![endif]-->
+    link(rel="stylesheet", href="#{root}/css/style.css")
+    link(rel="shortcut icon", href="#{root}/img/favicon.ico", type="image/x-icon")
     body
       block content
       script(type="text/javascript", charset="utf-8", src="/socket.io/socket.io.js")
-      script(type="text/javascript", charset="utf-8", data-main="/js/main", src="/js/lib/require/require.js")
+      - if (process.env.NODE_ENV === 'production')
+        script(type="text/javascript", src="#{root}/js/min.js")
+      - else
+        script(type="text/javascript", data-main="/js/main", src="/js/lib/require/require.js")

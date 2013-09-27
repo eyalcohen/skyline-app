@@ -1,3 +1,0 @@
-#!/bin/zsh
-sudo mongod --fork --logpath /var/log/mongod.log
-

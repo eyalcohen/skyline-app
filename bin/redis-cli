@@ -1,0 +1,4 @@
+#!/bin/zsh
+
+# redis://redistogo:1b8a95ad4e582be0a56783b95392ce98@crestfish.redistogo.com:9084/
+redis-cli -p 9084 -h crestfish.redistogo.com -a 1b8a95ad4e582be0a56783b95392ce98
