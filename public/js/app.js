@@ -17,8 +17,11 @@ define([
     // Save connection to server.
     this.rpc = rpc.init();
 
+    // Location of static assets
+    this.cfuri = 'https://d2t5v5bzkrqpjm.cloudfront.net';
+
     // App model subscriptions.
-    mps.subscribe('member/delete', _.bind(this.logout, this));
+    mps.subscribe('user/delete', _.bind(this.logout, this));
 
     // TODO: Do this only on localhost.
     window._rpc = rpc;
@@ -29,10 +32,17 @@ define([
   App.prototype.update = function (profile) {
 
     // Set the app profile.
-    if (this.profile)
+    if (this.profile) {
       this.profile.content = profile.content;
-    else
+      if (profile.user && !this.profile.user) {
+        this.profile.user = profile.user;
+        this.profile.notes = profile.notes;
+        return true;
+      }
+    } else
       this.profile = profile;
+
+    return false;
   }
 
   App.prototype.title = function (str) {
@@ -44,9 +54,8 @@ define([
   App.prototype.logout = function () {
 
     // Update app profile.
-    delete this.profile.member;
+    delete this.profile.user;
     delete this.profile.notes;
-    delete this.profile.transloadit;
   }
 
   return {

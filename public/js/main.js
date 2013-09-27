@@ -57,4 +57,7 @@ require([
   'UnderscoreString',
   'plugins',
   'excanvas'
-], function (app) { app.init(); });
+], function (app) {
+  window.__s = window.__s || '';
+  app.init();
+});

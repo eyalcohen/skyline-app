@@ -112,7 +112,8 @@ if (cluster.isMaster) {
         // App params
         app.set('ROOT_URI', [app.get('package').cloudfront,
             app.get('package').version].join('/'));
-        app.set('HOME_URI', 'https://www.skyline.io'); // or something
+        app.set('HOME_URI', [app.get('package').protocol,
+            app.get('package').domain].join('://'));
 
         // Job scheduling.
         app.set('SCHEDULE_JOBS', true);
@@ -137,8 +138,8 @@ if (cluster.isMaster) {
 
       // Mailer init
       app.set('mailer', new Mailer({
-        user: 'robot@skyline.io',
-        password: '...',
+        user: app.get('package').gmail.user,
+        password: app.get('package').gmail.password,
         host: 'smtp.gmail.com',
         ssl: true
       }, app.get('HOME_URI')));
@@ -178,6 +179,14 @@ if (cluster.isMaster) {
         app.use(slashes(false));
         app.use(app.router);
         app.use(express.errorHandler());
+
+        // Force HTTPS
+        if (app.get('package').protocol === 'https')
+          app.all('*', function (req, res, next) {
+            if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https')
+              return next();
+            res.redirect('https://' + req.headers.host + req.url);
+          });
       }
 
       if (!module.parent) {

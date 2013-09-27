@@ -4,7 +4,7 @@ block content
   #container
     header
       div#header(class=(typeof wide !== 'undefined' ? "wide": ""))
-        - if (user)
+        - if (typeof user !== 'undefined')
           div.user-box
             a#header_avatar.header-avatar(href="/" + user.username)
               img(src="https://www.gravatar.com/avatar/" + user.gravatar + "?s=30&d=mm", width="30", height="30")
