@@ -10,7 +10,7 @@ define([
   'util',
   'units',
   'models/graph',
-  'text!../../../templates/graph.html',
+  'text!../../templates/graph.html',
   'flot_plugins'
 ], function ($, _, Backbone, mps, util, units, Graph, template) {
 

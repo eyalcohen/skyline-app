@@ -9,7 +9,7 @@ define([
   'mps',
   'util',
   'models/user',
-  'text!../../../templates/profile.html',
+  'text!../../templates/profile.html',
   'views/lists/datasets',
   'views/lists/views'
 ], function ($, _, Backbone, mps, util, User, template, Datasets, Views) {

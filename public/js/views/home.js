@@ -8,7 +8,7 @@ define([
   'Backbone',
   'mps',
   'util',
-  'text!../../../templates/home.html',
+  'text!../../templates/home.html',
 ], function ($, _, Backbone, mps, util, template) {
 
   return Backbone.View.extend({

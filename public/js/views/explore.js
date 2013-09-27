@@ -10,7 +10,7 @@ define([
   'util',
   'units',
   'models/explore',
-  'text!../../../templates/explore.html',
+  'text!../../templates/explore.html',
   'views/channels',
   'views/graph'
 ], function ($, _, Backbone, mps, util, units, View, template, Channels, Graph) {

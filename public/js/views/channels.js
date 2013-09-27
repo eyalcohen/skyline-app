@@ -8,7 +8,7 @@ define([
   'Backbone',
   'mps',
   'util',
-  'text!../../../templates/channels.html'
+  'text!../../templates/channels.html'
 ], function ($, _, Backbone, mps, util, template) {
 
   return Backbone.View.extend({

@@ -10,7 +10,7 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/save.html',
+  'text!../../templates/save.html',
   'Spin'
 ], function ($, _, Backbone, Modernizr, mps, rest, util, template, Spin) {
 
