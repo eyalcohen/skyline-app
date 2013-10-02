@@ -133,7 +133,12 @@ define([
       reader.onload = _.bind(function () {
 
         // Check file type... only want CSVs.
-        if (file.type !== 'text/csv')
+        // TODO: The MIME type could be text/plain or application/vnd.ms-excel
+        // or a bunch of other options.  For now, switch to checking the
+        // extension and consider improved validation down the road, particularly
+        // as we add support for new file types
+        // if (file.type !== 'text/csv')
+        if (file.name.split('.').pop() !== "csv")
           return false;
 
         // Construct the payload to send.
