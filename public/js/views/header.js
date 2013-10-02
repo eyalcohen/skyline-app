@@ -67,7 +67,7 @@ define([
     events: {
       'click #logo': 'home',
       'click #signin': 'signin',
-      'click #header_avatar': 'avatar',
+      'click #username': 'username',
       'click #save_view': 'save',
       'click #settings': 'settings'
     },
@@ -129,8 +129,8 @@ define([
     },
 
     toggleSaveView: function (show) {
-      if (show) this.saver.show();
-      else this.saver.hide();
+      // if (show) this.saver.show();
+      // else this.saver.hide();
     }
 
   });

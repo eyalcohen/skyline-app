@@ -6,16 +6,17 @@ block content
       div#header(class=(typeof wide !== 'undefined' ? "wide": ""))
         - if (typeof user !== 'undefined')
           div.user-box
-            a#header_avatar.header-avatar(href="/" + user.username)
-              img(src="https://www.gravatar.com/avatar/" + user.gravatar + "?s=30&d=mm", width="30", height="30")
+            a#username.header-action(href="/" + user.username) #{user.displayName}
+            a#menu.header-action(href="javascript:;")
+              span.icon-menu-1
             a#logout.header-action(href="/logout")
               span.icon-logout
           a#save_view.button(href="javascript:;") Save view as
         - else
           a#signin.button(href="javascript:;") Sign in
         div.header-logo
-          a(href="/")
-            img#logo(src="#{root}/img/login_logo.png", height="10")
+          a(href="/") Skylin
+          img(src="#{root}/img/time.png", height="12")
         span.header-title
     #main(role="main")
     footer

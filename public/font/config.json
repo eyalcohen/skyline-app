@@ -3,7 +3,15 @@
   "css_prefix_text": "icon-",
   "css_use_suffix": false,
   "hinting": true,
+  "units_per_em": 1000,
+  "ascent": 850,
   "glyphs": [
+    {
+      "uid": "559647a6f430b3aeadbecd67194451dd",
+      "css": "menu-1",
+      "code": 59394,
+      "src": "fontawesome"
+    },
     {
       "uid": "2d76f2c8d13be40694ecadfea7fb83c3",
       "css": "logout",
