@@ -59,26 +59,26 @@ define([
       this.searcher.bind('search', _.bind(this.search, this));
 
       // Main dataset or view.
-      var page = this.app.profile.content.page;
-      if (this.options.view) {
-        this.renderDataset(null, true);
-        _.each(page.datasets, _.bind(function (ds) {
-          this.fetchChannels(ds, ds.channels);
-        }, this));
-      } else {
-        this.renderDataset(page, true);
-        this.fetchChannels(page);
-      }
+      // var page = this.app.profile.content.page;
+      // if (this.options.view) {
+      //   this.renderDataset(null, true);
+      //   _.each(page.datasets, _.bind(function (ds) {
+      //     this.fetchChannels(ds, ds.channels);
+      //   }, this));
+      // } else {
+      //   this.renderDataset(page, true);
+      //   this.fetchChannels(page);
+      // }
 
       // Other datasets.
-      var datasets = this.app.profile.content.datasets;
-      if (datasets.items.length > 0) {
-        _.each(datasets.items, _.bind(function (ds) {
-          this.renderDataset(ds);
-          this.fetchChannels(ds);
-        }, this));
-        this.$('.channels-separator').show();
-      }
+      // var datasets = this.app.profile.content.datasets;
+      // if (datasets.items.length > 0) {
+      //   _.each(datasets.items, _.bind(function (ds) {
+      //     this.renderDataset(ds);
+      //     this.fetchChannels(ds);
+      //   }, this));
+      //   this.$('.channels-separator').show();
+      // }
 
       return this;
     },

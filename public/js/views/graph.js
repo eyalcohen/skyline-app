@@ -47,7 +47,7 @@ define([
       this.$el.html(this.template.call(this)).appendTo('#graphs');
 
       // Initial sizing
-      this.$el.height($(window).height() - this.$el.offset().top);
+      // this.$el.height($(window).height() - this.$el.offset().top);
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -79,7 +79,8 @@ define([
       this.draw();
 
       // Do resize on window change.
-      $(window).resize(_.debounce(_.bind(this.resize, this), 50));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 20));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 100));
 
       return this;
     },
@@ -181,8 +182,8 @@ define([
 
     resize: function () {
       if (this.plot) {
-        var width = $(window).width() - this.$el.offset().left;
-        var height = $(window).height() - this.$el.offset().top;
+        var width = this.$el.parent().width();
+        var height = this.$el.parent().height();
         // this.$el.css({height: height});
         this.plot.setCanvasDimensions(width, height);
         this.noteCanvas.attr({width: width, height: height});

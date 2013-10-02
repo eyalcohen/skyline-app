@@ -65,7 +65,7 @@ define([
       this.$el.html(this.template.call(this)).appendTo('#main');
 
       // Initial sizing
-      this.$el.height($(window).height() - this.$el.offset().top);
+      this.$el.height($(window).height() - $('footer').height() - this.$el.offset().top);
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -80,8 +80,8 @@ define([
     setup: function () {
 
       // Render children views.
-      this.channels = new Channels(this.app,
-          {parentView: this, view: this.options && this.options.view}).render();
+      // this.channels = new Channels(this.app,
+      //     {parentView: this, view: this.options && this.options.view}).render();
       this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.
@@ -110,7 +110,7 @@ define([
     },
 
     resize: function () {
-      var height = $(window).height() - this.$el.offset().top;
+      var height = $(window).height() - $('footer').height() - this.$el.offset().top;
       this.$el.css({height: height});
     },
 

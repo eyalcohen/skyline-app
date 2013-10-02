@@ -1,3 +1,7 @@
 
+.icon-download:before { content: '\e804'; } /* '' */
+.icon-export:before { content: '\e805'; } /* '' */
+.icon-comment:before { content: '\e803'; } /* '' */
 .icon-menu-1:before { content: '\e802'; } /* '' */
+.icon-floppy:before { content: '\e801'; } /* '' */
 .icon-logout:before { content: '\e800'; } /* '' */

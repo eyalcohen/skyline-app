@@ -8,15 +8,16 @@ block content
           div.user-box
             a#username.header-action(href="/" + user.username) #{user.displayName}
             a#menu.header-action(href="javascript:;")
-              span.icon-menu-1
+              i.icon-menu-1
             a#logout.header-action(href="/logout")
-              span.icon-logout
+              i.icon-logout
           a#save_view.button(href="javascript:;") Save view as
         - else
           a#signin.button(href="javascript:;") Sign in
         div.header-logo
-          a(href="/") Skylin
-          img(src="#{root}/img/time.png", height="12")
+          a(href="/")
+            img(src="#{root}/img/time.png", width="13", height="12")
+            | Skylin
         span.header-title
     #main(role="main")
     footer
