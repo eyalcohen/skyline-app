@@ -9,11 +9,10 @@ define([
   'mps',
   'util',
   'units',
-  'models/explore',
   'text!../../templates/explore.html',
   'views/channels',
   'views/graph'
-], function ($, _, Backbone, mps, util, units, View, template, Channels, Graph) {
+], function ($, _, Backbone, mps, util, units, template, Channels, Graph) {
 
   return Backbone.View.extend({
 
@@ -38,7 +37,7 @@ define([
     render: function (samples) {
 
       // Use model to store view data.
-      this.model = new View(this.app, this);
+      this.model = new Backbone.Model;
 
       // Write the page title.
       var page = this.app.profile.content.page;
@@ -62,7 +61,7 @@ define([
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('#main');
+      this.$el.html(this.template.call(this)).appendTo('div.main');
 
       // Initial sizing
       this.$el.height($(window).height() - $('footer').height() - this.$el.offset().top);
@@ -104,7 +103,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
-      this.channels.destroy();
+      // this.channels.destroy();
       this.graph.destroy();
       this.remove();
     },

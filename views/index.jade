@@ -1,23 +1,22 @@
 extends layout
 
 block content
-  #container
+  div.container
     header
-      div#header(class=(typeof wide !== 'undefined' ? "wide": ""))
+      div(class=(typeof wide !== 'undefined' ? "header wide": "header"))
         - if (typeof user !== 'undefined')
           div.user-box
-            a#username.header-action(href="/" + user.username) #{user.displayName}
+            a#username.username.header-action(href="/" + user.username) #{user.displayName}
             a#menu.header-action(href="javascript:;")
               i.icon-menu-1
             a#logout.header-action(href="/logout")
               i.icon-logout
-          a#save_view.button(href="javascript:;") Save view as
         - else
-          a#signin.button(href="javascript:;") Sign in
+          a#signin.signin-button.button(href="javascript:;") Sign in
         div.header-logo
           a(href="/")
             img(src="#{root}/img/time.png", width="13", height="12")
             | Skylin
         span.header-title
-    #main(role="main")
+    div.main(role="main")
     footer

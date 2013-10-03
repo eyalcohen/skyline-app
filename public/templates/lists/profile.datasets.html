@@ -7,8 +7,8 @@
   A <span style="font-style:italic;">dataset</span> is a collection of related channels.
 </span>
 <% if (user && user.id === this.parentView.model.get('id')) { %>
-  <div class="dnd dataset list-header">
-    <span class="dnd-instructions">
+  <div class="profile-dnd profile-dataset list-header">
+    <span class="profile-dnd-instructions">
       <form action="/api/datasets" enctype="multipart/form-data" method="POST" id="dataset_form">
         Create a dataset by 
         <% if (Modernizr.draganddrop) { %>

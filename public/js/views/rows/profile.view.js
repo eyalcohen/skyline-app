@@ -1,18 +1,18 @@
 /*
- * Dataset Row view
+ * View Row view
  */
 
 define([
   'jQuery',
   'Underscore',
   'views/boiler/row',
-  'text!../../../templates/rows/dataset.html',
+  'text!../../../templates/rows/profile.view.html',
   'Spin'
 ], function ($, _, Row, template, Spin) {
   return Row.extend({
 
     attributes: function () {
-      return _.defaults({class: 'dataset'},
+      return _.defaults({class: 'profile-view'},
           Row.prototype.attributes.call(this));
     },
 
@@ -20,19 +20,12 @@ define([
       this.app = app;
       this.template = _.template(template);
       Row.prototype.initialize.call(this, options);
-
-      // When the id is set, we are done loading.
-      this.model.on('change:id', _.bind(function () {
-        
-        // Stop the spinner.
-        this.spin.stop();
-      }, this));
     },
 
     setup: function () {
 
       // Init the load indicator.
-      this.spin = new Spin(this.$('.dataset-spin'));
+      this.spin = new Spin(this.$('.profile-dataset-spin'));
       this.spin.target.hide();
 
       // Start the spinner.

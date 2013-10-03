@@ -9,13 +9,13 @@ define([
   'mps',
   'rpc',
   'util',
-  'text!../../../templates/lists/datasets.html',
+  'text!../../../templates/lists/profile.datasets.html',
   'collections/datasets',
-  'views/rows/dataset'
+  'views/rows/profile.dataset'
 ], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: '.datasets',
+    el: 'div.profile-datasets',
     working: false,
 
     initialize: function (app, options) {

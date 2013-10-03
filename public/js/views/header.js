@@ -10,7 +10,7 @@ define([
 ], function ($, _, Backbone, mps) {
   return Backbone.View.extend({
 
-    el: '#header',
+    el: 'div.header',
 
     initialize: function (app) {
 
@@ -43,7 +43,7 @@ define([
       this.delegateEvents();
 
       // Save refs.
-      this.saver = this.$('#save_view').hide();
+      // this.saver = this.$('#save_view').hide();
 
       // Shell listeners / subscriptions.
       // Do this here intead of init ... re-renders often.

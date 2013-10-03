@@ -44,10 +44,7 @@ define([
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('#graphs');
-
-      // Initial sizing
-      // this.$el.height($(window).height() - this.$el.offset().top);
+      this.$el.html(this.template.call(this)).appendTo('div.graphs');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -77,10 +74,13 @@ define([
 
       // Draw the canvas.
       this.draw();
+      this.resize(null, null, 2000);
 
       // Do resize on window change.
+      _.delay(_.bind(this.resize, this), 250);
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
-      $(window).resize(_.debounce(_.bind(this.resize, this), 100));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 150));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 300));
 
       return this;
     },
@@ -100,6 +100,7 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.plot.getPlaceholder().remove();
+      this.plot = null;
       this.remove();
     },
 
@@ -180,13 +181,12 @@ define([
     //   this.draw();
     // },
 
-    resize: function () {
+    resize: function (e, w, h) {
       if (this.plot) {
-        var width = this.$el.parent().width();
-        var height = this.$el.parent().height();
-        // this.$el.css({height: height});
+        var width = w || this.$el.parent().width();
+        var height = h || this.$el.parent().height();
         this.plot.setCanvasDimensions(width, height);
-        this.noteCanvas.attr({width: width, height: height});
+        // this.noteCanvas.attr({width: width, height: height});
         // this.redrawNote();
         this.plot.setupGrid();
         this.plot.draw();
@@ -289,12 +289,12 @@ define([
         // id: self.options.id,
       // });
 
-      self.noteCanvas =
-          $('<canvas width="' + self.plot.getPlaceholder().width() +
-            '" height="' + self.plot.getPlaceholder().height() +
-            '" class="note-canvas">').
-          appendTo(self.$el);
-      self.noteCtx = self.noteCanvas.get(0).getContext('2d');
+      // self.noteCanvas =
+      //     $('<canvas width="' + self.plot.getPlaceholder().width() +
+      //       '" height="' + self.plot.getPlaceholder().height() +
+      //       '" class="note-canvas">').
+      //     appendTo(self.$el);
+      // self.noteCtx = self.noteCanvas.get(0).getContext('2d');
 
       function labelFormatter(label, series) {
         var channels = self.model.getChannels();
