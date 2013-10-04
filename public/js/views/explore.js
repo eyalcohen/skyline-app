@@ -10,9 +10,9 @@ define([
   'util',
   'units',
   'text!../../templates/explore.html',
-  'views/channels',
+  'views/lists/datasets',
   'views/graph'
-], function ($, _, Backbone, mps, util, units, template, Channels, Graph) {
+], function ($, _, Backbone, mps, util, units, template, Datasets, Graph) {
 
   return Backbone.View.extend({
 
@@ -40,31 +40,32 @@ define([
       this.model = new Backbone.Model;
 
       // Write the page title.
-      var page = this.app.profile.content.page;
-      if (this.options && this.options.view)
-        mps.publish('title/set', ['"' + page.name + '", '
-            + page.meta.dataset_cnt
-            + (page.meta.dataset_cnt > 1 ? ' datasets': ' dataset')
-            + ', ' + page.meta.channel_cnt
-            + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
-            + ', ' + (new Date(page.meta.beg/1e3).format())
-            + ' - ' + (new Date(page.meta.end/1e3).format())
-            + ' by ' + page.author.displayName]);
-      else
-        mps.publish('title/set', ['"' + page.title + '", '
-            + util.addCommas(Math.round(page.file.size / 1e3)) + ' KB, '
-            + page.meta.channel_cnt
-            + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
-            + ', ' + (new Date(page.meta.beg/1e3).format())
-            + ' - ' + (new Date(page.meta.end/1e3).format())
-            + ' by ' + page.author.displayName]);
+      // var page = this.app.profile.content.page;
+      // if (this.options && this.options.view)
+      //   mps.publish('title/set', ['"' + page.name + '", '
+      //       + page.meta.dataset_cnt
+      //       + (page.meta.dataset_cnt > 1 ? ' datasets': ' dataset')
+      //       + ', ' + page.meta.channel_cnt
+      //       + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
+      //       + ', ' + (new Date(page.meta.beg/1e3).format())
+      //       + ' - ' + (new Date(page.meta.end/1e3).format())
+      //       + ' by ' + page.author.displayName]);
+      // else
+      //   mps.publish('title/set', ['"' + page.title + '", '
+      //       + util.addCommas(Math.round(page.file.size / 1e3)) + ' KB, '
+      //       + page.meta.channel_cnt
+      //       + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
+      //       + ', ' + (new Date(page.meta.beg/1e3).format())
+      //       + ' - ' + (new Date(page.meta.end/1e3).format())
+      //       + ' by ' + page.author.displayName]);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('div.main');
 
       // Initial sizing
-      this.$el.height($(window).height() - $('footer').height() - this.$el.offset().top);
+      this.$el.height($(window).height() - $('footer').height()
+          - this.$el.offset().top);
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -79,12 +80,11 @@ define([
     setup: function () {
 
       // Render children views.
-      // this.channels = new Channels(this.app,
-      //     {parentView: this, view: this.options && this.options.view}).render();
+      this.datasets = new Datasets(this.app, {parentView: this}).render();
       this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.
-      $(window).resize(_.debounce(_.bind(this.resize, this), 50));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 20));
 
       return this;
     },

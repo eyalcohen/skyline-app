@@ -1,5 +1,5 @@
 /*
- * Datasets List view
+ * Profile Datasets List view
  */
 
 define([
@@ -40,7 +40,7 @@ define([
 
       // Safe el refs.
       this.datasetForm = this.$('#dataset_form');
-      this.dropZone = this.$('.dnd').show();
+      this.dropZone = this.$('.profile-dnd').show();
 
       // Add mouse events for dummy file selector.
       var dummy = this.$('#dataset_file_chooser_dummy');
@@ -68,7 +68,7 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .datasets-signin': 'signin'
+      'click .profile-datasets-signin': 'signin'
     },
 
     // Collect new datasets from socket events.

@@ -1,5 +1,5 @@
 /*
- * Profile Views List view
+ * Datasets List view
  */
 
 define([
@@ -9,13 +9,13 @@ define([
   'mps',
   'rpc',
   'util',
-  'text!../../../templates/lists/profile.views.html',
-  'collections/views',
-  'views/rows/profile.view'
+  'text!../../../templates/lists/datasets.html',
+  'collections/datasets',
+  'views/rows/dataset'
 ], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: 'div.profile-views',
+    el: 'div.datasets',
     working: false,
 
     initialize: function (app, options) {
@@ -30,13 +30,15 @@ define([
       this.subscriptions = [];
 
       // Socket subscriptions
-      this.app.rpc.socket.on('view.new', _.bind(this.collect, this));
+      //
 
       // Reset the collection.
-      this.collection.reset(this.app.profile.content.views.items);
+      this.collection.reset(this.app.profile.content.datasets.items);
     },
 
     setup: function () {
+
+      // Safe el refs.
 
       return List.prototype.setup.call(this);
     },
@@ -44,12 +46,6 @@ define([
     // Bind mouse events.
     events: {
       
-    },
-
-    // Collect new views from socket events.
-    collect: function (view) {
-      if (view.author.id === this.parentView.model.id)
-        this.collection.unshift(view);
     },
 
     _remove: function (data) {

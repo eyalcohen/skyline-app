@@ -1,5 +1,5 @@
 /*
- * View Row view
+ * Profile View Row view
  */
 
 define([

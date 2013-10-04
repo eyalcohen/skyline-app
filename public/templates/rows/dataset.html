@@ -1,0 +1,13 @@
+<div class="dataset-avatar">
+  <img src="https://www.gravatar.com/avatar/<%= this.model.get('author').gravatar %>?s=23&d=mm"
+      width="23" height="23" />
+</div>
+<a class="dataset-button" href="javascript:;">
+  <span class="dataset-title">
+    <%= this.model.get('title') %>
+  </span>
+  <span class="dataset-stats">
+    <%= this.model.get('meta').channel_cnt %> 
+    <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
+  </span>
+</a>

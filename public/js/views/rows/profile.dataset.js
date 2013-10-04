@@ -1,5 +1,5 @@
 /*
- * Dataset Row view
+ * Profile Dataset Row view
  */
 
 define([

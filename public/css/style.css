@@ -228,7 +228,7 @@ html {}
 
 body {
   background: white;
-  font-family: 'Roboto Slab', serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   font-weight: 400;
   line-height: 20px;
@@ -488,7 +488,7 @@ input.button-alert[type=submit] {
 }
 
 .header.wide .header-logo {
-  margin-left: 40px;
+  margin-left: 20px;
 }
 
 .header .header-logo a {
@@ -556,6 +556,8 @@ a.header-action:active {
 
 .header a.signin-button {
   float: right;
+  line-height: 10px;
+  margin-top: 8px;
 }
 
 .header.wide a.signin-button {
@@ -983,6 +985,41 @@ a.control-button {
   font-size: 9px;
   font-weight: bold;
   white-space: nowrap;
+}
+
+/*.........................................................................*/
+
+.dataset {
+  float: left;
+  padding-right: 10px;
+}
+
+.dataset-avatar {
+  float: left;
+  height: 23px;
+  width: 23px;
+  background: #f9f9f9;
+  padding: 5px;
+}
+
+.dataset-avatar img {
+  border-radius: 2px;
+}
+
+.dataset-title {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #fff;
+  line-height: 22px;
+}
+
+.dataset-stats {
+  display: block;
+  margin-left: 43px;
+  line-height: 4px;
+  font-size: 9px;
+  text-transform: lowercase;
+  color: #fff;
 }
 
 /*.........................................................................*/

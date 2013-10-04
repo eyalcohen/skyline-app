@@ -71,7 +71,6 @@ define([
         if (!this.header)
           this.header = new Header(this.app).render();
         else this.header.render();
-        this.header.unwiden();
 
         // Callback to route.
         cb(err);
@@ -131,7 +130,6 @@ define([
       this.render('/service/dataset.profile/' + key, _.bind(function (err) {
         if (err) return;
         this.page = new Explore(this.app).render();
-        this.header.widen();
       }, this));
     },
 
@@ -140,7 +138,6 @@ define([
       this.render('/service/view.profile/' + key, _.bind(function (err) {
         if (err) return;
         this.page = new Explore(this.app, {view: true}).render();
-        this.header.widen();
       }, this));
     },
 
