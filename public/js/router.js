@@ -15,9 +15,9 @@ define([
   'views/header',
   'views/home',
   'views/profile',
-  'views/explore'
+  'views/chart'
 ], function ($, _, Backbone, mps, rest, util, Error, Signin, Save,
-      Header, Home, Profile, Explore) {
+      Header, Home, Profile, Chart) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -28,9 +28,9 @@ define([
       this.app = app;
 
       // Page routes
-      this.route(':username/datasets/:id', 'dataset', this.dataset);
       this.route(':username/views/:slug', 'view', this.view);
       this.route(':username', 'profile', this.profile);
+      this.route('chart', 'chart', this.chart);
       this.route('', 'home', this.home);
 
       // Fullfill navigation request from mps.
@@ -63,7 +63,7 @@ define([
       '*actions': 'default'
     },
 
-    render: function (service, cb) {
+    render: function (service, data, cb) {
 
       function _render(err) {
 
@@ -84,13 +84,13 @@ define([
         cb = service;
         return _render.call(this);
       }
-
-      // Check if a profile exists already.
-      var query = {};
+      if (typeof data === 'function') {
+        cb = data;
+        data = {};
+      }
 
       // Get a profile, if needed.
-      rest.get(service, query,
-          _.bind(function (err, pro) {
+      rest.get(service, data, _.bind(function (err, pro) {
         if (err) {
           _render.call(this, err);
           return this.page = new Error(this.app).render(err);
@@ -125,11 +125,11 @@ define([
       }, this));
     },
 
-    dataset: function (username, id) {
-      var key = [username, id].join('/');
-      this.render('/service/dataset.profile/' + key, _.bind(function (err) {
+    chart: function (username, id) {
+      var state = store.get('state');
+      this.render('/service/chart.profile/', {state: state}, _.bind(function (err) {
         if (err) return;
-        this.page = new Explore(this.app).render();
+        this.page = new Chart(this.app).render();
       }, this));
     },
 
@@ -137,7 +137,7 @@ define([
       var key = [username, slug].join('/');
       this.render('/service/view.profile/' + key, _.bind(function (err) {
         if (err) return;
-        this.page = new Explore(this.app, {view: true}).render();
+        this.page = new Chart(this.app, {view: true}).render();
       }, this));
     },
 

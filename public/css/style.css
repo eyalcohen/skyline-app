@@ -865,12 +865,11 @@ a.profile-view-title:hover {
 
 /*.........................................................................*/
 
-.explore {
+.chart {
   background: white; 
   margin: 0;
   width: 100%;
   position: relative;
-  overflow: hidden;
 
   -webkit-transition: height 0.25s;
   -moz-transition: height 0.25s;
@@ -991,7 +990,9 @@ a.control-button {
 
 .dataset {
   float: left;
-  padding-right: 10px;
+  padding-right: 40px;
+  margin-top: -1px;
+  height: 35px;
 }
 
 .dataset-avatar {
@@ -1000,6 +1001,8 @@ a.control-button {
   width: 23px;
   background: #f9f9f9;
   padding: 5px;
+  border-top: 1px solid #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
 }
 
 .dataset-avatar img {

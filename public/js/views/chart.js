@@ -1,5 +1,5 @@
 /*
- * Explore view
+ * Chart view
  */
 
 define([
@@ -9,7 +9,7 @@ define([
   'mps',
   'util',
   'units',
-  'text!../../templates/explore.html',
+  'text!../../templates/chart.html',
   'views/lists/datasets',
   'views/graph'
 ], function ($, _, Backbone, mps, util, units, template, Datasets, Graph) {
@@ -17,7 +17,7 @@ define([
   return Backbone.View.extend({
 
     // The DOM target element for this page:
-    className: 'explore',
+    className: 'chart',
 
     // Module entry point:
     initialize: function (app, options) {
@@ -80,7 +80,10 @@ define([
     setup: function () {
 
       // Render children views.
-      this.datasets = new Datasets(this.app, {parentView: this}).render();
+      this.datasets = new Datasets(this.app, {
+        datasets: [],
+        parentView: this
+      }).render();
       this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.

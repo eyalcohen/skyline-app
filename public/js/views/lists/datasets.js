@@ -33,7 +33,8 @@ define([
       //
 
       // Reset the collection.
-      this.collection.reset(this.app.profile.content.datasets.items);
+      // var items = store.get('state').datasets || [];
+      this.collection.reset([]);
     },
 
     setup: function () {

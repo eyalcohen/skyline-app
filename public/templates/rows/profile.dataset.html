@@ -1,11 +1,6 @@
-<%
-  var link = this.model.get('id') !== -1 ? 
-      [this.model.get('author').username, 'datasets', this.model.get('id')].join('/'): '#';
-%>
 <div class="profile-dataset-spin"></div>
 <div class="profile-dataset-inner">
-  <a href="<%= link %>" 
-        class="profile-dataset-title navigate">
+  <a href="/chart" class="profile-dataset-title navigate">
     <%= this.model.get('title') %>
   </a>
   <p class="profile-dataset-time">

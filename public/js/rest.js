@@ -34,8 +34,14 @@ define([
       if (data)
         if (type === 'POST')
           params.data = JSON.stringify(data);
-        else params.url += '?' + $.param(data);
-
+        else {
+          params.url += '?';
+          _.each(data, function (v, k) {
+            if (params.url[params.url.length - 1] !== '?')
+              params.url += '&';
+            params.url += k + '=' + encodeURIComponent(JSON.stringify(v));
+          });
+        }
       return $.ajax(params);
     },
 
