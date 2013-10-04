@@ -50,12 +50,9 @@ define([
       e.preventDefault();
 
       if (this.model.get('id') === -1) return false;
-
-      var key = [this.model.get('author').username, this.model.get('id')].join('/');
-
       store.set('state', {
         user_id: this.app.profile.user.id,
-        datasets: [key],
+        datasets: [this.model.get('id')],
       });
 
       // Route to wherever.
