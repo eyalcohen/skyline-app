@@ -138,7 +138,8 @@ define([
         // extension and consider improved validation down the road, particularly
         // as we add support for new file types
         // if (file.type !== 'text/csv')
-        if (file.name.split('.').pop() !== "csv")
+        var ext = file.name.split('.').pop()
+        if (ext !== 'csv' && ext !== 'xls')
           return false;
 
         // Construct the payload to send.
@@ -147,6 +148,7 @@ define([
           file: {
             size: file.size,
             type: file.type,
+            ext: ext
           },
           base64: reader.result.replace(/^[^,]*,/,''),
         };
@@ -172,7 +174,7 @@ define([
         this.collection.unshift(data);
 
         // Create the dataset.
-        this.app.rpc.do('insertCSVSamples', payload,
+        this.app.rpc.do('insertSamples', payload,
             _.bind(function (err, res) {
 
           if (err)
