@@ -30,7 +30,14 @@ define([
       this.on('rendered', this.setup, this);
 
       // Client-wide subscriptions
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('channel/add', _.bind(function (did, channel) {
+          this.graph.model.addChannel(did, channel);
+        }, this)),
+        mps.subscribe('channel/remove', _.bind(function (did, channel) {
+          this.graph.model.removeChannel(did, channel);
+        }, this))
+      ];
     },
 
     // Draw our template from the profile JSON.
@@ -80,10 +87,7 @@ define([
     setup: function () {
 
       // Render children views.
-      this.datasets = new Datasets(this.app, {
-        datasets: [],
-        parentView: this
-      }).render();
+      this.datasets = new Datasets(this.app, {parentView: this}).render();
       this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.

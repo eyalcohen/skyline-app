@@ -17,8 +17,9 @@ define([
       this.app = app;
       this.view = view;
       this.clients = [];
-      this.set('visibleTime', false //this.app.profile.content.datasets.length > 0
-          && this.app.profile.content.datasets.meta || {
+      this.set('visibleTime', this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length > 0
+          ? this.app.profile.content.datasets.items[0].meta: {
         beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
         end: Date.now() * 1e3,
       });

@@ -62,12 +62,7 @@ define([
     },
 
     setup: function () {
-      if (!this.model.get('updated'))
-        this.model.created = Date.now();
-      this.$('.currency').each(function () {
-        var str = util.addCommas($(this).text());
-        $(this).text('$' + str.trim());
-      });
+      if (!this.model.get('updated')) return;
       this.timer = setInterval(_.bind(this.when, this), 5000);
       this.when();
       return this;

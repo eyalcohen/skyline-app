@@ -9,6 +9,12 @@ define([
 ], function (_, Backbone, util) {
   return Backbone.Model.extend({
 
+    initialize: function () {
+
+      // Make ID a number;
+      this.set('id', Number(this.id), {silent: true});
+    },
+
     colors: [
       "#27CDD6",  // Dark cyan
       "#7A7A7A",  // Gray

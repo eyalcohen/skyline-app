@@ -41,6 +41,12 @@
       "css": "logout",
       "code": 59392,
       "src": "entypo"
+    },
+    {
+      "uid": "7184d8171b6a9b18eabbace94cca21db",
+      "css": "chart-line",
+      "code": 59398,
+      "src": "entypo"
     }
   ]
 }

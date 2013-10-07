@@ -986,13 +986,18 @@ a.control-button {
   white-space: nowrap;
 }
 
+.legend {
+  display: none;
+}
+
 /*.........................................................................*/
 
 .dataset {
+  position: relative;
   float: left;
-  padding-right: 40px;
   margin-top: -1px;
   height: 35px;
+  background: #0f0f0f;
 }
 
 .dataset-avatar {
@@ -1009,21 +1014,104 @@ a.control-button {
   border-radius: 2px;
 }
 
+a.dataset-button {
+  display: block;
+  height: 35px;
+  width: 200px;
+  margin-left: 33px;
+  padding-right: 40px;
+
+  -moz-transition-timing-function: ease-out;
+  -moz-transition-duration: 100ms;
+  -webkit-transition-timing-function: ease-out;
+  -webkit-transition-duration: 100ms;
+  transition-timing-function: ease-out;
+  transition-duration: 100ms;
+}
+
+a.dataset-button:active,
+.dataset.active a.dataset-button {
+  opacity: 0.9;
+}
+
 .dataset-title {
   margin-left: 10px;
   font-size: 12px;
   color: #fff;
-  line-height: 22px;
+  line-height: 23px;
 }
 
 .dataset-stats {
   display: block;
-  margin-left: 43px;
+  margin-left: 10px;
   line-height: 4px;
   font-size: 9px;
   text-transform: lowercase;
   color: #fff;
 }
+
+.dataset .channels {
+  display: none;
+  position: absolute;
+  z-index: 12;
+  left: 33px;
+  right: 0;
+  top: 35px;
+  background: rgba(249,249,249,0.8);
+  border-left: 1px solid #d0d0d0;
+  border-right: 1px solid #d0d0d0;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.dataset:hover .channels,
+.dataset.active .channels {
+  display: block;
+}
+
+.channel {
+  border-bottom: 1px solid #d0d0d0;
+}
+
+a.channel-button {
+  display: block;
+  padding: 5px 9px;
+  background: none;
+  white-space: nowrap;
+}
+
+.channel-title {
+  font-size: 11px;
+  color: #3f3f3f;
+}
+
+a.channel-button:hover {
+  background: #f9f9f9;
+}
+
+a.channel-button:active {
+  background: #f2f2f2;
+}
+
+a.channel-button:hover .channel-title {
+  color: #0f0f0f;
+}
+
+a.channel-button.active .channel-title {
+  /*color: #fff;*/
+}
+
 
 /*.........................................................................*/
 /*.........................................................................*/
