@@ -145,6 +145,7 @@ define([
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
         client.channels.push(channel);
+        mps.publish('channel/added', [channel]);
         console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription(client);
@@ -159,6 +160,7 @@ define([
                           .indexOf(channel.channelName);
       if (index === -1) return;
       client.channels.splice(index, 1);
+      mps.publish('channel/removed', [channel]);
       console.log('removeChannel(', channel, ')...');
       self.updateCacheSubscription(client);
       if (this.getChannels().length === 0)

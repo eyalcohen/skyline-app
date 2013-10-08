@@ -46,33 +46,9 @@ define([
       // Use model to store view data.
       this.model = new Backbone.Model;
 
-      // Write the page title.
-      // var page = this.app.profile.content.page;
-      // if (this.options && this.options.view)
-      //   mps.publish('title/set', ['"' + page.name + '", '
-      //       + page.meta.dataset_cnt
-      //       + (page.meta.dataset_cnt > 1 ? ' datasets': ' dataset')
-      //       + ', ' + page.meta.channel_cnt
-      //       + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
-      //       + ', ' + (new Date(page.meta.beg/1e3).format())
-      //       + ' - ' + (new Date(page.meta.end/1e3).format())
-      //       + ' by ' + page.author.displayName]);
-      // else
-      //   mps.publish('title/set', ['"' + page.title + '", '
-      //       + util.addCommas(Math.round(page.file.size / 1e3)) + ' KB, '
-      //       + page.meta.channel_cnt
-      //       + (page.meta.channel_cnt > 1 ? ' channels': ' channel')
-      //       + ', ' + (new Date(page.meta.beg/1e3).format())
-      //       + ' - ' + (new Date(page.meta.end/1e3).format())
-      //       + ' by ' + page.author.displayName]);
-
       // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('div.main');
-
-      // Initial sizing
-      this.$el.height($(window).height() - $('footer').height()
-          - this.$el.offset().top);
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -86,11 +62,16 @@ define([
     // Misc. setup.
     setup: function () {
 
+      // Save refs.
+      this.sidePanel = this.$('.side-panel');
+      this.lowerPanel = this.$('.lower-panel');
+
       // Render children views.
-      this.datasets = new Datasets(this.app, {parentView: this}).render();
+      this.datasets = new Datasets(this.app, {parentView: this});
       this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.
+      this.resize();
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
 
       return this;
@@ -110,13 +91,14 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
-      // this.channels.destroy();
+      this.datasets.destroy();
       this.graph.destroy();
       this.remove();
     },
 
     resize: function () {
       var height = $(window).height() - $('footer').height() - this.$el.offset().top;
+      height = Math.max(height, 605);
       this.$el.css({height: height});
     },
 

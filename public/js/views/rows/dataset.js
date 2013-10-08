@@ -29,11 +29,19 @@ define([
       // Save refs.
       this.button = this.$('a.dataset-button');
 
-      // Set background color.
-      this.button.css({backgroundColor: this.model.color()});
-
       // Toggle.
       this.button.click(_.bind(this.toggle, this));
+
+      // Expand / collapse.
+      this.$el.bind('mouseenter', _.bind(function (e) {
+        if (this.channels) {
+          this.channels.$el.show();
+          this.channels.expand(true);
+        }
+      }, this));
+      this.$el.bind('mouseleave', _.bind(function (e) {
+        if (this.channels) this.channels.collapse();
+      }, this));
 
       // Get channels for this dataset.
       this.fetchChannels();
@@ -48,8 +56,11 @@ define([
     toggle: function (e) {
       if (e) e.preventDefault();
       if (this.$el.hasClass('active')) {
+        if (this.channels) this.channels.active = false;
         this.$el.removeClass('active');
       } else {
+        if (this.channels)
+          this.channels.active = true;
         this.$el.addClass('active');
       }
       return false;
@@ -70,8 +81,13 @@ define([
         this.channels = new Channels(this.app, {
           items: channels,
           parentView: this
-        }).render();
+        });
       }, this));
+    },
+
+    destroy: function () {
+      this.channels.destroy();
+      return Row.prototype.destroy.call(this);
     },
 
     _remove: function () {

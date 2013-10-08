@@ -37,9 +37,6 @@ define([
     },
 
     setup: function () {
-
-      // Safe el refs.
-
       return List.prototype.setup.call(this);
     },
 

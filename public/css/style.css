@@ -952,6 +952,7 @@ a.control-button {
   top: 34px;
   bottom: 270px;
   width: 100%;
+  min-height: 300px;
 }
 
 .graph {
@@ -959,6 +960,7 @@ a.control-button {
   z-index: 1;
   width: 100%;
   height: 100% !important;
+  min-height: 300px;
 }
 
 .graph:focus {
@@ -997,7 +999,7 @@ a.control-button {
   float: left;
   margin-top: -1px;
   height: 35px;
-  background: #0f0f0f;
+  border-right: 1px solid #d0d0d0;
 }
 
 .dataset-avatar {
@@ -1008,6 +1010,7 @@ a.control-button {
   padding: 5px;
   border-top: 1px solid #d0d0d0;
   border-bottom: 1px solid #d0d0d0;
+  border-right: 1px solid #d0d0d0;
 }
 
 .dataset-avatar img {
@@ -1016,10 +1019,12 @@ a.control-button {
 
 a.dataset-button {
   display: block;
+  position: relative;
   height: 35px;
   width: 200px;
   margin-left: 33px;
   padding-right: 40px;
+  background: none;
 
   -moz-transition-timing-function: ease-out;
   -moz-transition-duration: 100ms;
@@ -1029,34 +1034,91 @@ a.dataset-button {
   transition-duration: 100ms;
 }
 
-a.dataset-button:active,
-.dataset.active a.dataset-button {
-  opacity: 0.9;
+a.dataset-button .dataset-button-bg {
+  display: none;
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  background: #3f3f3f;
+  width: 241px;
+  height: 100%;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .1s;
+  -moz-animation-duration: .1s;
+  -o-animation-duration: .1s;
+  animation-duration: .1s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.dataset.active a.dataset-button .dataset-button-bg {
+  display: block;
 }
 
 .dataset-title {
-  margin-left: 10px;
+  position: relative;
+  z-index: 1;
+  margin-left: 5px;
   font-size: 12px;
-  color: #fff;
+  color: #3f3f3f;
   line-height: 23px;
 }
 
 .dataset-stats {
+  position: relative;
+  z-index: 1;
   display: block;
-  margin-left: 10px;
+  margin-left: 6px;
   line-height: 4px;
   font-size: 9px;
   text-transform: lowercase;
+  color: #3f3f3f;
+}
+
+.dataset:active .dataset-title,
+.dataset:active .dataset-stats {
+  color: #0f0f0f;
+}
+
+.dataset.active .dataset-title,
+.dataset.active .dataset-stats {
   color: #fff;
 }
 
-.dataset .channels {
+a.dataset-add-button {
+  float: left;
+  color: #8f8f8f;
+  font-size: 16px;
+  line-height: 33px;
+  border-right: 1px solid #d0d0d0;
+  text-align: center;
+  width: 44px;
+  cursor: pointer;
+}
+
+a.dataset-add-button:hover {
+  color: #3f3f3f;
+}
+
+a.dataset-add-button:active {
+  background: #d0d0d0;
+}
+
+.channels {
   display: none;
   position: absolute;
   z-index: 12;
   left: 33px;
   right: 0;
   top: 35px;
+  width: 239px;
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
@@ -1075,18 +1137,33 @@ a.dataset-button:active,
   animation-fill-mode: both;
 }
 
-.dataset:hover .channels,
-.dataset.active .channels {
-  display: block;
+.channel {
+  display: none;
+  position: relative;
+  left: -1px;
+  width: 239px;
+  border-color: #d0d0d0;
+  border-style: solid;
+  border-left-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
 }
 
-.channel {
-  border-bottom: 1px solid #d0d0d0;
+.channel:hover {
+  background: #f9f9f9;
+}
+
+.channel:active {
+  background: #f2f2f2;
+}
+
+.channel.active {
+  top: -1px;
 }
 
 a.channel-button {
   display: block;
-  padding: 5px 9px;
+  padding: 5px 4px;
   background: none;
   white-space: nowrap;
 }
@@ -1096,20 +1173,12 @@ a.channel-button {
   color: #3f3f3f;
 }
 
-a.channel-button:hover {
-  background: #f9f9f9;
-}
-
-a.channel-button:active {
-  background: #f2f2f2;
-}
-
-a.channel-button:hover .channel-title {
+.channel:not(.active) a.channel-button:hover .channel-title {
   color: #0f0f0f;
 }
 
-a.channel-button.active .channel-title {
-  /*color: #fff;*/
+.channel.active .channel-title {
+  color: #fff;
 }
 
 

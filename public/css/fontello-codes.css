@@ -5,4 +5,6 @@
 .icon-menu-1:before { content: '\e802'; } /* '' */
 .icon-floppy:before { content: '\e801'; } /* '' */
 .icon-logout:before { content: '\e800'; } /* '' */
+.icon-list-add:before { content: '\e808'; } /* '' */
 .icon-chart-line:before { content: '\e806'; } /* '' */
+.icon-database:before { content: '\e807'; } /* '' */

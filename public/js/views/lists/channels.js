@@ -17,6 +17,7 @@ define([
     
     el: 'div.channels',
     working: false,
+    active: false,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -27,7 +28,11 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Client-wide subscriptions
-      this.subscriptions = [];
+      console.log(options.items.length)
+      this.subscriptions = [
+        mps.subscribe('channel/added', _.bind(this.added, this)),
+        mps.subscribe('channel/removed', _.bind(this.removed, this)),
+      ];
 
       // Socket subscriptions
       //
@@ -52,8 +57,36 @@ define([
       
     },
 
-    resize: function () {
-      this.$el.height($('div.graphs').height());
+    resize: function (active) {
+      if (this.active || active)
+        this.$el.height($('div.graphs').height());
+      else
+        this.$el.height('auto');
+    },
+
+    added: function (channel) {
+      if (!_.find(this.views, function (v) {
+        return v.model.id === channel.channelName;
+      })) return;
+      //
+    },
+
+    removed: function (channel) {
+      if (!_.find(this.views, function (v) {
+        return v.model.id === channel.channelName;
+      })) return;
+      //
+    },
+
+    expand: function (active) {
+      _.each(this.views, function (v) { v.expand(); });
+      this.resize(active);
+    },
+
+    collapse: function () {
+      if (!this.active)
+        _.each(this.views, function (v) { v.collapse(); });
+      this.resize();
     },
 
     _remove: function (data) {

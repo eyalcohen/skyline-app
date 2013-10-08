@@ -185,6 +185,7 @@ define([
       if (this.plot) {
         var width = w || this.$el.parent().width();
         var height = h || this.$el.parent().height();
+        height = Math.max(height, 300);
         this.plot.setCanvasDimensions(width, height);
         // this.noteCanvas.attr({width: width, height: height});
         // this.redrawNote();
@@ -195,21 +196,6 @@ define([
 
     createPlot: function () {
       var self = this;
-      self.colors = [
-        "#27CDD6",  // Dark cyan
-        "#7A7A7A",  // Gray
-        "#cb4b4b",  // Dark red
-        "#76D676",  // Light green
-        "#B2B848",  // Dark yellow
-        "#8171E3",  // Violet
-        "#47A890",  // Dark teal
-        "#E8913F",  // Orange
-        "#118CED",  // Dark blue
-        "#28A128",  // Dark green
-        "#FFA6A6",  // Pink
-        "#96BDFF",  // Light blue
-        "#D373FF",  // Light purple
-      ];
       self.plot = $.plot(self.$el, [], {
         xaxis: {
           mode: 'time',
@@ -500,7 +486,7 @@ define([
       series.forEach(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = self.highlightedChannel === channel.channelName;
-        var color = self.colors[channel.colorNum % self.colors.length];
+        var color = self.app.colors[channel.colorNum % self.app.colors.length];
         s.originalColor = color;
         if (self.highlightedChannel && !highlighted) {
           // Lighten color.
@@ -718,15 +704,15 @@ define([
         self.plot.clearCrosshair();
       else
         self.plot.setCrosshair({x: time});
-      if (time != null) {
-        self.mouseTime.show();
-        // TODO: finer than 1 second granularity.
-        var date = new Date(Math.round(time));
-        self.mouseTimeTxt.text(util.toLocaleString(date,
-            'dddd m/d/yy h:MM:ss TT Z'));
-      } else {
-        self.mouseTime.hide();
-      }
+      // if (time != null) {
+      //   self.mouseTime.show();
+      //   // TODO: finer than 1 second granularity.
+      //   var date = new Date(Math.round(time));
+      //   self.mouseTimeTxt.text(util.toLocaleString(date,
+      //       'dddd m/d/yy h:MM:ss TT Z'));
+      // } else {
+      //   self.mouseTime.hide();
+      // }
       if (time == null && self.highlightedChannel)
           self.parentView.model.set({ highlightedChannel: null });
 

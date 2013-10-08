@@ -43,10 +43,22 @@
       "src": "entypo"
     },
     {
+      "uid": "97bd5542ed3e143d2ee9b60e14487615",
+      "css": "list-add",
+      "code": 59400,
+      "src": "entypo"
+    },
+    {
       "uid": "7184d8171b6a9b18eabbace94cca21db",
       "css": "chart-line",
       "code": 59398,
       "src": "entypo"
+    },
+    {
+      "uid": "02ad0683eaa9826f396fa7ccf1f1fb25",
+      "css": "database",
+      "code": 59399,
+      "src": "linecons"
     }
   ]
 }

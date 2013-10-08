@@ -12,14 +12,23 @@ define([
 ], function ($, _, mps, Row, template, Spin) {
   return Row.extend({
 
+    active: false,
+
     attributes: function () {
-      return _.defaults({class: 'channel'},
+      return _.defaults({class: 'channel hide'},
           Row.prototype.attributes.call(this));
     },
 
     initialize: function (options, app) {
       this.app = app;
       this.template = _.template(template);
+
+      // Client-wide subscriptions
+      this.subscriptions = [
+        mps.subscribe('channel/added', _.bind(this.added, this)),
+        mps.subscribe('channel/removed', _.bind(this.removed, this)),
+      ];
+
       Row.prototype.initialize.call(this, options);
     },
 
@@ -39,19 +48,74 @@ define([
     },
 
     toggle: function (e) {
-      console.log(this.model.attributes)
       if (e) e.preventDefault();
-      if (this.button.hasClass('active')) {
-        this.button.removeClass('active');
+      if (this.$el.hasClass('active')) {
+        this.$el.removeClass('active');
         mps.publish('channel/remove', [this.model.get('did'),
           this.model.get('val')]);
+        this.active = false;
       } else {
-        this.button.addClass('active');
+        this.$el.addClass('active');
         mps.publish('channel/add', [this.model.get('did'),
           this.model.get('val')]);
+        this.active = true;
       }
       return false;
     },
+
+    expand: function () {
+      if (!this.$el.hasClass('active'))
+        this.$el.slideDown('fast');
+    },
+
+    collapse: function () {
+      if (!this.$el.hasClass('active'))
+        this.$el.slideUp('fast');
+    },
+
+    added: function (channel) {
+      if (this.model.id !== channel.channelName) return;
+
+      // Set colors.
+      var color = this.app.colors[channel.colorNum % this.app.colors.length];
+      this.$el.css({
+        backgroundColor: color,
+        borderColor: color
+      });
+      this.$el.addClass('active');
+
+      // Find prev child.
+      // var i = this.model.collection.indexOf(this.model);
+      // if (i === 0) return;
+      // this.parentView.views[i-1].styleAsSibling(color);
+    },
+
+    removed: function (channel) {
+      if (this.model.id !== channel.channelName) return;
+
+      // Set colors.
+      this.$el.css({
+        backgroundColor: 'transparent',
+        borderColor: '#d0d0d0'
+      });
+      this.$el.removeClass('active');
+
+      // Find prev child.
+      // var i = this.model.collection.indexOf(this.model);
+      // if (i === 0) return;
+      // this.parentView.views[i-1].unStyleAsSibling();
+    },
+
+    // styleAsSibling: function (color) {
+    //   if (!this.active)
+    //     this.$el.css({borderBottomColor: color});
+    // },
+
+    // unStyleAsSibling: function () {
+    //   if (!this.active)
+    //     this.$el.css({borderBottomColor: '#d0d0d0'});
+    //   // else
+    // },
 
     _remove: function () {
       clearInterval(this.timer);
