@@ -1,5 +1,5 @@
 /*
- * Views List view
+ * Profile Views List view
  */
 
 define([
@@ -9,13 +9,13 @@ define([
   'mps',
   'rpc',
   'util',
-  'text!../../../templates/lists/views.html',
+  'text!../../../templates/lists/profile.views.html',
   'collections/views',
-  'views/rows/view'
+  'views/rows/profile.view'
 ], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: '.views',
+    el: 'div.profile-views',
     working: false,
 
     initialize: function (app, options) {

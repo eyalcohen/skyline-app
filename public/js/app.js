@@ -23,6 +23,23 @@ define([
     // App model subscriptions.
     mps.subscribe('user/delete', _.bind(this.logout, this));
 
+    // App-wide colors.
+    this.colors = [
+      "#27CDD6",  // Dark cyan
+      // "#7A7A7A",  // Gray
+      "#cb4b4b",  // Dark red
+      "#76D676",  // Light green
+      "#B2B848",  // Dark yellow
+      "#8171E3",  // Violet
+      "#47A890",  // Dark teal
+      "#E8913F",  // Orange
+      "#118CED",  // Dark blue
+      "#28A128",  // Dark green
+      "#FFA6A6",  // Pink
+      "#96BDFF",  // Light blue
+      "#D373FF",  // Light purple
+    ];
+
     // TODO: Do this only on localhost.
     window._rpc = rpc;
     window._rest = rest;

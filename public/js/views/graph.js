@@ -44,10 +44,7 @@ define([
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('#graphs');
-
-      // Initial sizing
-      this.$el.height($(window).height() - this.$el.offset().top);
+      this.$el.html(this.template.call(this)).appendTo('div.graphs');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -77,9 +74,13 @@ define([
 
       // Draw the canvas.
       this.draw();
+      this.resize(null, null, 2000);
 
       // Do resize on window change.
-      $(window).resize(_.debounce(_.bind(this.resize, this), 50));
+      _.delay(_.bind(this.resize, this), 250);
+      $(window).resize(_.debounce(_.bind(this.resize, this), 20));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 150));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 300));
 
       return this;
     },
@@ -99,6 +100,7 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.plot.getPlaceholder().remove();
+      this.plot = null;
       this.remove();
     },
 
@@ -179,13 +181,13 @@ define([
     //   this.draw();
     // },
 
-    resize: function () {
+    resize: function (e, w, h) {
       if (this.plot) {
-        var width = $(window).width() - this.$el.offset().left;
-        var height = $(window).height() - this.$el.offset().top;
-        // this.$el.css({height: height});
+        var width = w || this.$el.parent().width();
+        var height = h || this.$el.parent().height();
+        height = Math.max(height, 300);
         this.plot.setCanvasDimensions(width, height);
-        this.noteCanvas.attr({width: width, height: height});
+        // this.noteCanvas.attr({width: width, height: height});
         // this.redrawNote();
         this.plot.setupGrid();
         this.plot.draw();
@@ -194,21 +196,6 @@ define([
 
     createPlot: function () {
       var self = this;
-      self.colors = [
-        "#27CDD6",  // Dark cyan
-        "#7A7A7A",  // Gray
-        "#cb4b4b",  // Dark red
-        "#76D676",  // Light green
-        "#B2B848",  // Dark yellow
-        "#8171E3",  // Violet
-        "#47A890",  // Dark teal
-        "#E8913F",  // Orange
-        "#118CED",  // Dark blue
-        "#28A128",  // Dark green
-        "#FFA6A6",  // Pink
-        "#96BDFF",  // Light blue
-        "#D373FF",  // Light purple
-      ];
       self.plot = $.plot(self.$el, [], {
         xaxis: {
           mode: 'time',
@@ -288,12 +275,12 @@ define([
         // id: self.options.id,
       // });
 
-      self.noteCanvas =
-          $('<canvas width="' + self.plot.getPlaceholder().width() +
-            '" height="' + self.plot.getPlaceholder().height() +
-            '" class="note-canvas">').
-          appendTo(self.$el);
-      self.noteCtx = self.noteCanvas.get(0).getContext('2d');
+      // self.noteCanvas =
+      //     $('<canvas width="' + self.plot.getPlaceholder().width() +
+      //       '" height="' + self.plot.getPlaceholder().height() +
+      //       '" class="note-canvas">').
+      //     appendTo(self.$el);
+      // self.noteCtx = self.noteCanvas.get(0).getContext('2d');
 
       function labelFormatter(label, series) {
         var channels = self.model.getChannels();
@@ -499,7 +486,7 @@ define([
       series.forEach(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = self.highlightedChannel === channel.channelName;
-        var color = self.colors[channel.colorNum % self.colors.length];
+        var color = self.app.colors[channel.colorNum % self.app.colors.length];
         s.originalColor = color;
         if (self.highlightedChannel && !highlighted) {
           // Lighten color.
@@ -717,15 +704,15 @@ define([
         self.plot.clearCrosshair();
       else
         self.plot.setCrosshair({x: time});
-      if (time != null) {
-        self.mouseTime.show();
-        // TODO: finer than 1 second granularity.
-        var date = new Date(Math.round(time));
-        self.mouseTimeTxt.text(util.toLocaleString(date,
-            'dddd m/d/yy h:MM:ss TT Z'));
-      } else {
-        self.mouseTime.hide();
-      }
+      // if (time != null) {
+      //   self.mouseTime.show();
+      //   // TODO: finer than 1 second granularity.
+      //   var date = new Date(Math.round(time));
+      //   self.mouseTimeTxt.text(util.toLocaleString(date,
+      //       'dddd m/d/yy h:MM:ss TT Z'));
+      // } else {
+      //   self.mouseTime.hide();
+      // }
       if (time == null && self.highlightedChannel)
           self.parentView.model.set({ highlightedChannel: null });
 

@@ -10,8 +10,8 @@ define([
   'util',
   'models/user',
   'text!../../templates/profile.html',
-  'views/lists/datasets',
-  'views/lists/views'
+  'views/lists/profile.datasets',
+  'views/lists/profile.views'
 ], function ($, _, Backbone, mps, util, User, template, Datasets, Views) {
 
   return Backbone.View.extend({
@@ -43,7 +43,7 @@ define([
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('#main');
+      this.$el.html(this.template.call(this)).appendTo('div.main');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');

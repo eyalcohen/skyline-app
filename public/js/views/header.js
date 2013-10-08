@@ -10,7 +10,7 @@ define([
 ], function ($, _, Backbone, mps) {
   return Backbone.View.extend({
 
-    el: '#header',
+    el: 'div.header',
 
     initialize: function (app) {
 
@@ -43,7 +43,6 @@ define([
       this.delegateEvents();
 
       // Save refs.
-      this.saver = this.$('#save_view').hide();
 
       // Shell listeners / subscriptions.
       // Do this here intead of init ... re-renders often.
@@ -57,27 +56,14 @@ define([
       // For graph titles...
       this.subscriptions.push(mps.subscribe('title/set',
             _.bind(this.title, this)));
-
-      // For save...
-      this.subscriptions.push(mps.subscribe('view/save/status',
-            _.bind(this.toggleSaveView, this)));
     },
 
     // Bind mouse events.
     events: {
       'click #logo': 'home',
       'click #signin': 'signin',
-      'click #header_avatar': 'avatar',
-      'click #save_view': 'save',
+      'click #username': 'username',
       'click #settings': 'settings'
-    },
-
-    widen: function () {
-      this.$el.addClass('wide');
-    },
-
-    unwiden: function () {
-      this.$el.removeClass('wide');
     },
 
     home: function (e) {
@@ -117,6 +103,9 @@ define([
     },
 
     logout: function () {
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
 
       // Swap user header content.
       this.$('div.user-box').remove();
@@ -127,11 +116,6 @@ define([
     title: function (str) {
       this.$('.header-title').html(str);
     },
-
-    toggleSaveView: function (show) {
-      if (show) this.saver.show();
-      else this.saver.hide();
-    }
 
   });
 });
