@@ -1,5 +1,5 @@
 /*
- * Member model
+ * User model
  */
 
 define([
@@ -7,8 +7,6 @@ define([
   'util'
 ], function (Backbone, util) {
   return Backbone.Model.extend({
-
-    _path: 'api/users',
 
   });
 });

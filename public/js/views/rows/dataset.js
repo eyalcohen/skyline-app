@@ -5,10 +5,12 @@
 define([
   'jQuery',
   'Underscore',
+  'mps',
   'views/boiler/row',
   'text!../../../templates/rows/dataset.html',
+  'views/lists/channels',
   'Spin'
-], function ($, _, Row, template, Spin) {
+], function ($, _, mps, Row, template, Channels, Spin) {
   return Row.extend({
 
     attributes: function () {
@@ -20,39 +22,72 @@ define([
       this.app = app;
       this.template = _.template(template);
       Row.prototype.initialize.call(this, options);
-
-      // When the id is set, we are done loading.
-      this.model.on('change:id', _.bind(function () {
-        
-        // Stop the spinner.
-        this.spin.stop();
-      }, this));
     },
 
     setup: function () {
 
-      // Init the load indicator.
-      this.spin = new Spin(this.$('.dataset-spin'));
-      this.spin.target.hide();
+      // Save refs.
+      this.button = this.$('a.dataset-button');
 
-      // Start the spinner.
-      if (this.model.get('id') === -1)
-        this.spin.start();
+      // Toggle.
+      this.button.click(_.bind(this.toggle, this));
+
+      // Expand / collapse.
+      this.$el.bind('mouseenter', _.bind(function (e) {
+        if (this.channels) {
+          this.channels.$el.show();
+          this.channels.expand(true);
+        }
+      }, this));
+      this.$el.bind('mouseleave', _.bind(function (e) {
+        if (this.channels) this.channels.collapse();
+      }, this));
+
+      // Get channels for this dataset.
+      this.fetchChannels();
 
       return Row.prototype.setup.call(this);
     },
 
     events: {
-      'click a.navigate': 'navigate',
+
     },
 
-    navigate: function (e) {
-      e.preventDefault();
+    toggle: function (e) {
+      if (e) e.preventDefault();
+      if (this.$el.hasClass('active')) {
+        if (this.channels) this.channels.active = false;
+        this.$el.removeClass('active');
+      } else {
+        if (this.channels)
+          this.channels.active = true;
+        this.$el.addClass('active');
+      }
+      return false;
+    },
 
-      // Route to wherever.
-      var path = $(e.target).attr('href') || $(e.target).parent().attr('href');
-      if (path)
-        this.app.router.navigate(path, {trigger: true});
+    fetchChannels: function () {
+      this.app.rpc.do('fetchSamples', this.model.id, '_schema',
+          {}, _.bind(function (err, channels) {
+        if (err) return console.error(err);
+        if (!channels) return console.error('No channels found');
+
+        // Add dataset ID to channel models.
+        _.each(channels, _.bind(function (c) {
+          c.did = this.model.id;
+        }, this));
+        
+        // Create channel list.
+        this.channels = new Channels(this.app, {
+          items: channels,
+          parentView: this
+        });
+      }, this));
+    },
+
+    destroy: function () {
+      this.channels.destroy();
+      return Row.prototype.destroy.call(this);
     },
 
     _remove: function () {

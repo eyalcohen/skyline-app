@@ -1,0 +1,19 @@
+<div class="profile-dataset-spin"></div>
+<div class="profile-dataset-inner">
+  <a href="/chart" class="profile-dataset-title navigate">
+    <%= this.model.get('title') %>
+  </a>
+  <p class="profile-dataset-time">
+    Last updated 
+    <time class="created" 
+        datetime="<%= this.model.get('updated') %>" 
+        title="<%= this.model.get('updated') %>">
+      <%= this.model.get('updated') %>
+    </time>.
+  </p>
+</div>
+<div class="profile-dataset-stats">
+  <%= this.model.size() %> KB |  
+  <%= this.model.get('meta').channel_cnt %> 
+  <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
+</div>

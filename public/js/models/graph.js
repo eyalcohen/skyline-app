@@ -17,7 +17,9 @@ define([
       this.app = app;
       this.view = view;
       this.clients = [];
-      this.set('visibleTime', this.app.profile.content.page.meta || {
+      this.set('visibleTime', this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length > 0
+          ? this.app.profile.content.datasets.items[0].meta: {
         beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
         end: Date.now() * 1e3,
       });
@@ -143,6 +145,7 @@ define([
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
         client.channels.push(channel);
+        mps.publish('channel/added', [channel]);
         console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription(client);
@@ -157,6 +160,7 @@ define([
                           .indexOf(channel.channelName);
       if (index === -1) return;
       client.channels.splice(index, 1);
+      mps.publish('channel/removed', [channel]);
       console.log('removeChannel(', channel, ')...');
       self.updateCacheSubscription(client);
       if (this.getChannels().length === 0)

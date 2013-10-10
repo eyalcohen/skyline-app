@@ -1,24 +1,15 @@
-<%
-  var link = this.model.get('id') !== -1 ? 
-      [this.model.get('author').username, 'datasets', this.model.get('id')].join('/'): '#';
-%>
-<div class="dataset-spin"></div>
-<div class="dataset-inner">
-  <a href="<%= link %>" 
-        class="dataset-title navigate">
+<div class="dataset-avatar">
+  <img src="https://www.gravatar.com/avatar/<%= this.model.get('author').gravatar %>?s=23&d=mm"
+      width="23" height="23" />
+</div>
+<a class="dataset-button" href="javascript:;">
+  <span class="dataset-title">
     <%= this.model.get('title') %>
-  </a>
-  <p class="dataset-time">
-    Last updated 
-    <time class="created" 
-        datetime="<%= this.model.get('updated') %>" 
-        title="<%= this.model.get('updated') %>">
-      <%= this.model.get('updated') %>
-    </time>.
-  </p>
-</div>
-<div class="dataset-stats">
-  <%= this.model.size() %> KB |  
-  <%= this.model.get('meta').channel_cnt %> 
-  <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
-</div>
+  </span>
+  <span class="dataset-stats">
+    <%= this.model.get('meta').channel_cnt %> 
+    <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
+  </span>
+  <div class="dataset-button-bg"></div>
+</a>
+<div class="channels"></div>
