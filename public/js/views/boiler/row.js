@@ -31,7 +31,10 @@ define([
         this.wrap = $(this.options.wrap);
 
       if (this.model)
-        this.model.on('change:id', _.bind(this.render, this, true, true, true));
+        this.model.on('change:id', _.bind(function () {
+          this.render(true, true, true);
+          this.setup();
+        }, this));
 
       return this;
     },

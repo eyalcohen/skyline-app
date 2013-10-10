@@ -191,6 +191,7 @@ define([
           dataset.set('client_id', res.client_id);
           dataset.set('meta', res.meta);
           dataset.set('id', res.id);
+          this.$('#-1').attr('id', res.id);
 
           // Ready for more.
           this.working = false;
