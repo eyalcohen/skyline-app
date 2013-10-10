@@ -26,7 +26,6 @@ define([
     // App-wide colors.
     this.colors = [
       "#27CDD6",  // Dark cyan
-      // "#7A7A7A",  // Gray
       "#cb4b4b",  // Dark red
       "#76D676",  // Light green
       "#B2B848",  // Dark yellow

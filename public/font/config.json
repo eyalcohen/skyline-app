@@ -37,6 +37,12 @@
       "src": "fontawesome"
     },
     {
+      "uid": "25fc99a30fecc4021fdcae5fff5ba9ac",
+      "css": "eye",
+      "code": 59401,
+      "src": "entypo"
+    },
+    {
       "uid": "2d76f2c8d13be40694ecadfea7fb83c3",
       "css": "logout",
       "code": 59392,
@@ -53,6 +59,18 @@
       "css": "chart-line",
       "code": 59398,
       "src": "entypo"
+    },
+    {
+      "uid": "3e1bb74572a30486bd647304d9fcaff6",
+      "css": "lock",
+      "code": 59402,
+      "src": "typicons"
+    },
+    {
+      "uid": "kfzodo12ciruwganzy6h1bee2bpyz24d",
+      "css": "star-1",
+      "code": 59403,
+      "src": "modernpics"
     },
     {
       "uid": "02ad0683eaa9826f396fa7ccf1f1fb25",

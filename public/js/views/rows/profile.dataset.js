@@ -11,6 +11,8 @@ define([
 ], function ($, _, Row, template, Spin) {
   return Row.extend({
 
+    tagName: 'tr',
+
     attributes: function () {
       return _.defaults({class: 'profile-dataset'},
           Row.prototype.attributes.call(this));

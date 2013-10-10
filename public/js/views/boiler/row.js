@@ -44,7 +44,7 @@ define([
       this.$el.html(this.template.call(this));
       if (this.model.collection) {
         if (!this.$el.hasClass('hide')) {
-          var d = this.model.collection.indexOf(this.model) * 0;
+          var d = this.model.collection.indexOf(this.model) * 20;
           _.delay(_.bind(function () {
             this.$el.show();
           }, this), single ? 0 : d);
@@ -83,6 +83,8 @@ define([
         });
       this.undelegateEvents();
       this.stopListening();
+      if (this.timer)
+        clearInterval(this.timer);
       this.remove();
     },
 
