@@ -132,13 +132,13 @@ define([
       var reader = new FileReader();
       reader.onload = _.bind(function () {
 
-        // Check file type... only want CSVs.
-        // TODO: The MIME type could be text/plain or application/vnd.ms-excel
+        // Check file type for any supported...
+        // The MIME type could be text/plain or application/vnd.ms-excel
         // or a bunch of other options.  For now, switch to checking the
         // extension and consider improved validation down the road, particularly
         // as we add support for new file types
-        // if (file.type !== 'text/csv')
-        if (file.name.split('.').pop() !== "csv")
+        var ext = file.name.split('.').pop();
+        if (ext !== 'csv' && ext !== 'xls')
           return false;
 
         // Construct the payload to send.
@@ -147,6 +147,7 @@ define([
           file: {
             size: file.size,
             type: file.type,
+            ext: ext
           },
           base64: reader.result.replace(/^[^,]*,/,''),
         };
@@ -172,7 +173,7 @@ define([
         this.collection.unshift(data);
 
         // Create the dataset.
-        this.app.rpc.do('insertCSVSamples', payload,
+        this.app.rpc.do('insertSamples', payload,
             _.bind(function (err, res) {
 
           if (err)
@@ -190,6 +191,7 @@ define([
           dataset.set('client_id', res.client_id);
           dataset.set('meta', res.meta);
           dataset.set('id', res.id);
+          this.$('#-1').attr('id', res.id);
 
           // Ready for more.
           this.working = false;
