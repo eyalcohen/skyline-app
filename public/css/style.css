@@ -523,10 +523,14 @@ input.input-error {
 .header .user-box {
   float: right;
   white-space: nowrap;
+  padding-left: 20px;
+  margin-top: -5px;
+  height: 60px;
+  border-left: 1px solid #d0d0d0;
 }
 
 .header.wide .user-box {
-  margin-right: 50px;
+  margin-right: 40px;
 }
 
 .header .header-title {
@@ -550,7 +554,7 @@ input.input-error {
 a.header-action {
   position: relative;
   display: inline-block;
-  line-height: 50px;
+  line-height: 61px;
   font-size: 14px;
   color: #4f4f4f;
   padding-left: 10px;
@@ -571,7 +575,7 @@ a.header-action:active {
 }
 
 .header a.add-data {
-  margin-left: 50px;
+  margin-left: 20px;
   background: rgba(39, 205, 214, 0.8);
   color: #fff;
   border-color: #4f4f4f;
@@ -694,6 +698,7 @@ a.google-button {
 }
 
 .profile td {
+  width: 170px;
   padding: 30px 20px;
   text-align: center;
   white-space: nowrap;
@@ -701,7 +706,7 @@ a.google-button {
 
 .profile td.main-cell {
   position: relative;
-  width: 75%;
+  width: inherit;
   text-align: left;
 }
 
@@ -719,6 +724,7 @@ a.google-button {
 
 .profile tr.list-header td.main-cell {
   padding-left: 70px;
+  font-size: 14px;
 }
 
 .profile-datasets,
