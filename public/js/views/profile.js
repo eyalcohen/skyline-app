@@ -59,7 +59,7 @@ define([
 
       // Render datasets and views.
       this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
-      // this.views = new Views(this.app, {parentView: this, reverse: true});
+      this.views = new Views(this.app, {parentView: this, reverse: true});
 
       return this;
     },
@@ -79,7 +79,7 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.datasets.destroy();
-      // this.views.destroy();
+      this.views.destroy();
       this.remove();
     },
 

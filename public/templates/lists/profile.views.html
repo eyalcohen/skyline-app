@@ -1,22 +1,40 @@
 <%
-  var user = this.app.profile.user;
+
+  // Save model attributes
+  var data = this.parentView.model.attributes;
+  console.log(data);
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + data.gravatar + '?s=200&d=mm';
 %>
 
-<span class="section-heading">Views</span>
-<span class="section-description">
-  A <span style="font-style:italic;">view</span> is one or more channels from one or more datasets with a start and end time.
-</span>
-<div class="list-header"></div>
-<% if (this.collection.models.length > 0) { %>
-  <% _.each(this.collection.models, _.bind(function(row) { %>
-    <%= this.row(row) %>
-  <% }, this)); %>
-<% } else { %>
-  <span class="section-instructions empty-feed">
-    <% if (user && user.id === this.parentView.model.get('id')) { %>
-      You don't have any views yet.
-    <% } else { %>
-      <%= this.parentView.model.get('displayName') %> doesn't have any views yet.
-    <% } %>
-  </span>
-<% } %>
+<table>
+  <tr class="list-header">
+    <td class="main-cell">
+      <div class="profile-avatar">
+        <img src="<%= gravatar %>" width="60" height="60" />
+      </div>
+      Data mashups
+    </td>
+    <td>
+      No. sources / No. channels
+    </td>
+    <td>
+      Last updated
+    </td>
+  </tr>
+  <% if (this.collection.models.length > 0) { %>
+    <% _.each(this.collection.models, _.bind(function(row) { %>
+      <%= this.row(row) %>
+    <% }, this)); %>
+  <% } else { %>
+    <span class="empty-feed">
+      <% if (user && user.id === this.parentView.model.get('id')) { %>
+        You don't have any data mashups yet.
+      <% } else { %>
+        <%= this.parentView.model.get('displayName') %> doesn't have any data mashups yet.
+      <% } %>
+    </span>
+  <% } %>
+</table>

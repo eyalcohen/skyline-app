@@ -1,24 +1,22 @@
-<%
-  var link = this.model.get('id') !== -1 ? 
-      [this.model.get('author').username, 'views', this.model.get('slug')].join('/'): '#';
-%>
-<div class="profile-view-inner">
-  <a href="<%= link %>" 
-        class="profile-view-title navigate">
-    <%= this.model.get('name') %>
-  </a>
-  <p class="profile-view-time">
-    Last updated 
-    <time class="created" 
-        datetime="<%= this.model.get('updated') %>" 
-        title="<%= this.model.get('updated') %>">
-      <%= this.model.get('updated') %>
-    </time>.
+<td class="main-cell">
+  <div class="profile-item-spin"></div>
+  <span class="profile-item-title">
+    <i class="icon-folder-empty"></i> <%= this.model.get('name') %>
+  </span>
+  <p class="profile-item-stats">
+    <span><i class="icon-eye"></i> 0</span>
+    <span><i class="icon-star-1"></i> 0</span>
+    <span><i class="icon-comment"></i> 0</span>
   </p>
-</div>
-<div class="profile-view-stats">
-  <%= this.model.get('meta').dataset_cnt %> 
-  <%= this.model.get('meta').dataset_cnt > 1 ? 'datasets': 'dataset' %> | 
-  <%= this.model.get('meta').channel_cnt %> 
-  <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
-</div>
+</td>
+<td>
+  <%= this.model.get('meta').dataset_cnt %> / 
+  <%= this.model.get('meta').channel_cnt %>
+</td>
+<td>
+  <time class="created" 
+      datetime="<%= this.model.get('updated') %>" 
+      title="<%= this.model.get('updated') %>">
+    <%= this.model.get('updated') %>
+  </time>
+</td>

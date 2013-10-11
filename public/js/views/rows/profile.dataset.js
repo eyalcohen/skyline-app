@@ -34,7 +34,7 @@ define([
     setup: function () {
 
       // Init the load indicator.
-      this.spin = new Spin(this.$('.profile-dataset-spin'));
+      this.spin = new Spin(this.$('.profile-item-spin'));
       this.spin.target.hide();
 
       // Start the spinner.

@@ -687,12 +687,12 @@ a.google-button {
   width: 100%;
 }
 
-.profile table td {
+.profile td {
   padding: 30px 20px;
   text-align: center;
 }
 
-.profile table td.main-cell {
+.profile td.main-cell {
   position: relative;
   width: 75%;
   text-align: left;
@@ -710,12 +710,13 @@ a.google-button {
   padding: 20px;
 }
 
-.profile-datasets {
-  background: #f1f1f1;
+.profile tr.list-header td.main-cell {
+  padding-left: 70px;
 }
 
+.profile-datasets,
 .profile-views {
-  
+  background: #f1f1f1;
 }
 
 .profile-dataset,
@@ -740,7 +741,16 @@ a.google-button {
 
 .profile-dataset:last-child,
 .profile-view:last-child {
-  border: none;
+  /*border: none;*/
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-right: 1px solid #d0d0d0;
 }
 
 .profile-item-title {

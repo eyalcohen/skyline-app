@@ -1,11 +1,21 @@
 <%
-  var user = this.app.profile.user;
+
+  // Save model attributes
+  var data = this.parentView.model.attributes;
+  console.log(data);
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + data.gravatar + '?s=200&d=mm';
 %>
 
 <table>
   <tr class="list-header">
     <td class="main-cell">
-      Datasets and Sources
+      <div class="profile-avatar">
+        <img src="<%= gravatar %>" width="60" height="60" />
+      </div>
+      Data sources
     </td>
     <td>
       No. channels
@@ -21,9 +31,9 @@
   <% } else { %>
     <span class="empty-feed">
       <% if (user && user.id === this.parentView.model.get('id')) { %>
-        You don't have any datasets yet.
+        You don't have any data sources yet.
       <% } else { %>
-        <%= this.parentView.model.get('displayName') %> doesn't have any datasets yet.
+        <%= this.parentView.model.get('displayName') %> doesn't have any data sources yet.
       <% } %>
     </span>
   <% } %>

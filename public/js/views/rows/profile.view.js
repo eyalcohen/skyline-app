@@ -11,6 +11,8 @@ define([
 ], function ($, _, Row, template, Spin) {
   return Row.extend({
 
+    tagName: 'tr',
+
     attributes: function () {
       return _.defaults({class: 'profile-view'},
           Row.prototype.attributes.call(this));
@@ -25,7 +27,7 @@ define([
     setup: function () {
 
       // Init the load indicator.
-      this.spin = new Spin(this.$('.profile-dataset-spin'));
+      this.spin = new Spin(this.$('.profile-item-spin'));
       this.spin.target.hide();
 
       // Start the spinner.
