@@ -737,6 +737,7 @@ a.google-button {
   position: relative;
   display: none;
   border-bottom: 1px solid #d0d0d0;
+  cursor: pointer;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -755,6 +756,11 @@ a.google-button {
 .profile-dataset:last-child,
 .profile-view:last-child {
   /*border: none;*/
+}
+
+.profile-dataset:hover,
+.profile-view:hover {
+  background: #efefef;
 }
 
 .profile-avatar {

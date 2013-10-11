@@ -54,7 +54,7 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .graph-channels li': 'channelClick',
+      // 'click .graph-channels li': 'channelClick',
     },
 
     // Misc. setup.
@@ -74,10 +74,13 @@ define([
 
       // Draw the canvas.
       this.draw();
-      this.resize(null, null, 2000);
 
       // Do resize on window change.
-      _.delay(_.bind(this.resize, this), 250);
+      this.$el.hide();
+      _.delay(_.bind(function () {
+        this.resize();
+        this.$el.show();
+      }, this), 250);
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 150));
       $(window).resize(_.debounce(_.bind(this.resize, this), 300));

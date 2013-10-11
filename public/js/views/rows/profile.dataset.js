@@ -45,7 +45,7 @@ define([
     },
 
     events: {
-      'click a.navigate': 'navigate',
+      'click': 'navigate',
     },
 
     navigate: function (e) {
@@ -58,9 +58,7 @@ define([
       });
 
       // Route to wherever.
-      var path = $(e.target).closest('a').attr('href');
-      if (path)
-        this.app.router.navigate(path, {trigger: true});
+      this.app.router.navigate('/chart', {trigger: true});
     },
 
     _remove: function () {
