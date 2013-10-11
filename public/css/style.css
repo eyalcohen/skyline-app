@@ -531,10 +531,16 @@ input.input-error {
 
 .header .header-title {
   display: none;
-  margin-left: 135px;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  margin: 0 auto;
+  width: 100%;
+  text-align: center;
   white-space: nowrap;
-  line-height: 50px;
-  color: #666;
+  font-size: 18px;
+  line-height: 61px;
+  color: #8f8f8f;
 }
 
 .header.wide .header-title {
@@ -690,6 +696,7 @@ a.google-button {
 .profile td {
   padding: 30px 20px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .profile td.main-cell {
