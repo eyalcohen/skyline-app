@@ -14,7 +14,7 @@ define([
   return Backbone.View.extend({
 
     // The DOM target element for this page:
-    id: 'error',
+    className: 'error',
 
     // Module entry point:
     initialize: function (app) {
@@ -30,12 +30,16 @@ define([
     },
 
     // Draw our template from the profile JSON.
-    render: function (text) {
+    render: function (error) {
+      this.error = error;
+      this.error.message = _.str.titleize(this.error.message);
+
+      // Set page title
+      this.app.title('Oops');
 
       // UnderscoreJS rendering.
-      this.text = text;
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('#main');
+      this.$el.html(this.template.call(this)).appendTo('div.main');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');

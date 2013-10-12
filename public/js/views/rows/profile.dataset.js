@@ -11,6 +11,8 @@ define([
 ], function ($, _, Row, template, Spin) {
   return Row.extend({
 
+    tagName: 'tr',
+
     attributes: function () {
       return _.defaults({class: 'profile-dataset'},
           Row.prototype.attributes.call(this));
@@ -32,7 +34,7 @@ define([
     setup: function () {
 
       // Init the load indicator.
-      this.spin = new Spin(this.$('.profile-dataset-spin'));
+      this.spin = new Spin(this.$('.profile-item-spin'));
       this.spin.target.hide();
 
       // Start the spinner.
@@ -43,7 +45,7 @@ define([
     },
 
     events: {
-      'click a.navigate': 'navigate',
+      'click': 'navigate',
     },
 
     navigate: function (e) {
@@ -56,9 +58,7 @@ define([
       });
 
       // Route to wherever.
-      var path = $(e.target).closest('a').attr('href');
-      if (path)
-        this.app.router.navigate(path, {trigger: true});
+      this.app.router.navigate('/chart', {trigger: true});
     },
 
     _remove: function () {

@@ -6,11 +6,13 @@ block content
       div.header.wide
         - if (typeof user !== 'undefined')
           div.user-box
-            a#username.username.header-action(href="/" + user.username) #{user.displayName}
+            
+            a#username.username.header-action(href="/#{user.username}") #{user.displayName}
             a#menu.header-action(href="javascript:;")
               i.icon-menu-1
             a.header-action(href="/logout")
               i.icon-logout
+            a#add.add-data.button(href="javascript:;") Add Data
         - else
           a#signin.signin-button.button(href="javascript:;") Sign in
         div.header-logo

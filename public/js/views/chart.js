@@ -46,6 +46,10 @@ define([
       // Use model to store view data.
       this.model = new Backbone.Model;
 
+      // Set page title
+      this.app.title('Chart');
+      mps.publish('title/set', ['']);
+
       // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('div.main');

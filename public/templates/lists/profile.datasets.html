@@ -1,40 +1,39 @@
 <%
-  var user = this.app.profile.user;
+
+  // Save model attributes
+  var data = this.parentView.model.attributes;
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + data.gravatar + '?s=200&d=mm';
 %>
 
-<span class="section-heading">Datasets</span>
-<span class="section-description">
-  A <span style="font-style:italic;">dataset</span> is a collection of related channels.
-</span>
-<% if (user && user.id === this.parentView.model.get('id')) { %>
-  <div class="profile-dnd profile-dataset list-header">
-    <span class="profile-dnd-instructions">
-      <form action="/api/datasets" enctype="multipart/form-data" method="POST" id="dataset_form">
-        Create a dataset by 
-        <% if (Modernizr.draganddrop) { %>
-          dragging &amp; dropping or 
-          <a id="dataset_file_chooser_dummy" class="file-chooser-dummy" href="javascript:;">selecting a CSV file</a>.
-          <input id="dataset_file_chooser" class="file-chooser" type="file" name="dataset_file" multiple="multiple" />
-        <% } else { %>
-          <a id="dataset_file_chooser_dummy" class="file-chooser-dummy" href="javascript:;">selecting a CSV file</a>.
-          <input id="dataset_file_chooser" class="file-chooser" type="file" name="dataset_file" multiple="multiple" style="left:193px;" />
-        <% } %>
-      </form>
+<table>
+  <tr class="list-header">
+    <td class="main-cell">
+      <div class="profile-avatar">
+        <img src="<%= gravatar %>" width="60" height="60" />
+      </div>
+      Data sources
+    </td>
+    <td>
+      No. channels
+    </td>
+    <td>
+      Last updated
+    </td>
+  </tr>
+  <% if (this.collection.models.length > 0) { %>
+    <% _.each(this.collection.models, _.bind(function(row) { %>
+      <%= this.row(row) %>
+    <% }, this)); %>
+  <% } else { %>
+    <span class="empty-feed">
+      <% if (user && user.id === this.parentView.model.get('id')) { %>
+        You don't have any data sources yet.
+      <% } else { %>
+        <%= this.parentView.model.get('displayName') %> doesn't have any data sources yet.
+      <% } %>
     </span>
-  </div>
-<% } else { %>
-  <div class="list-header"></div>
-<% } %>
-<% if (this.collection.models.length > 0) { %>
-  <% _.each(this.collection.models, _.bind(function(row) { %>
-    <%= this.row(row) %>
-  <% }, this)); %>
-<% } else { %>
-  <span class="section-instructions empty-feed">
-    <% if (user && user.id === this.parentView.model.get('id')) { %>
-      You don't have any datasets yet.
-    <% } else { %>
-      <%= this.parentView.model.get('displayName') %> doesn't have any datasets yet.
-    <% } %>
-  </span>
-<% } %>
+  <% } %>
+</table>

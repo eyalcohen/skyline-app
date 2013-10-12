@@ -17,7 +17,7 @@ define([
   return Backbone.View.extend({
 
     // The DOM target element for this page:
-    id: 'profile',
+    className: 'profile',
 
     // Module entry point:
     initialize: function (app) {
@@ -40,6 +40,7 @@ define([
 
       // Set page title
       this.app.title(this.model.get('displayName'));
+      mps.publish('title/set', [this.model.get('displayName')]);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);

@@ -28,7 +28,6 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Client-wide subscriptions
-      console.log(options.items.length)
       this.subscriptions = [
         mps.subscribe('channel/added', _.bind(this.added, this)),
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
