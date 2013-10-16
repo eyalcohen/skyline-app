@@ -1,18 +1,17 @@
 <%
 
-  // Save model attributes
-  var data = this.parentView.model.attributes;
-
   // Gravatar
+  var size = this.modal ? 30: 60;
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + data.gravatar + '?s=200&d=mm';
+      + this.app.profile.user.gravatar + '?s='
+      + size + '&d=mm';
 %>
 
 <table>
   <tr class="list-header">
     <td class="main-cell">
       <div class="profile-avatar">
-        <img src="<%= gravatar %>" width="60" height="60" />
+        <img src="<%= gravatar %>" width="<%= size %>" height="<%= size %>" />
       </div>
       Data sources
     </td>
@@ -27,13 +26,5 @@
     <% _.each(this.collection.models, _.bind(function(row) { %>
       <%= this.row(row) %>
     <% }, this)); %>
-  <% } else { %>
-    <span class="empty-feed">
-      <% if (user && user.id === this.parentView.model.get('id')) { %>
-        You don't have any data sources yet.
-      <% } else { %>
-        <%= this.parentView.model.get('displayName') %> doesn't have any data sources yet.
-      <% } %>
-    </span>
   <% } %>
 </table>

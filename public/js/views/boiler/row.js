@@ -57,9 +57,12 @@ define([
           else
             this.$el.prependTo(this.parentView.$el);
         } else {
-          if (this.parentView)
-            this.$el.appendTo(this.parentView.$el);
-          else
+          if (this.parentView) {
+            if (this.parentView.$('.list-header').length !== 0)
+              this.$el.appendTo(this.parentView.$('.list-header').parent());
+            else
+              this.$el.appendTo(this.parentView.$el);
+          } else
             this.$el.appendTo(this.wrap);
         }
       this.time = null;

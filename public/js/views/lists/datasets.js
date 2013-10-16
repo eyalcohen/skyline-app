@@ -15,7 +15,7 @@ define([
 ], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: 'div.datasets',
+    el: '.datasets',
     working: false,
 
     initialize: function (app, options) {
@@ -42,7 +42,14 @@ define([
 
     // Bind mouse events.
     events: {
-      
+      'click .dataset-add-button': 'add'
+    },
+
+    add: function (e) {
+      e.preventDefault();
+
+      // Render the browser view.
+      mps.publish('modal/browser/open');
     },
 
     _remove: function (data) {

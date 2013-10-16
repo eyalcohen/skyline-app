@@ -12,11 +12,12 @@ define([
   'views/error',
   'views/signin',
   'views/save',
+  'views/browser',
   'views/header',
   'views/home',
   'views/profile',
   'views/chart'
-], function ($, _, Backbone, mps, rest, util, Error, Signin, Save,
+], function ($, _, Backbone, mps, rest, util, Error, Signin, Save, Browser,
       Header, Home, Profile, Chart) {
 
   // Our application URL router.
@@ -48,13 +49,21 @@ define([
         this.signin = new Signin(this.app).render();
       }, this));
 
-      // Show the save modal.
-      mps.subscribe('view/save/open', _.bind(function () {
-        this.save = new Save(this.app, {
-          datasets: this.page.graph.model.getChannelsByDataset(),
-          meta: this.page.graph.getVisibleTime()
+      // Show the browser modal.
+      mps.subscribe('modal/browser/open', _.bind(function () {
+        this.browser = new Browser(this.app, {
+          // datasets: this.page.graph.model.getChannelsByDataset(),
+          // meta: this.page.graph.getVisibleTime()
         }).render();
       }, this));
+
+      // Show the save modal.
+      // mps.subscribe('view/save/open', _.bind(function () {
+      //   this.save = new Save(this.app, {
+      //     datasets: this.page.graph.model.getChannelsByDataset(),
+      //     meta: this.page.graph.getVisibleTime()
+      //   }).render();
+      // }, this));
     },
 
     routes: {

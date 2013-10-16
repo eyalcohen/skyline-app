@@ -49,7 +49,7 @@ define([
         this.$('input').placeholder();
 
       // Init the load indicator.
-      this.spin = new Spin(this.$('#signin_spin'), {
+      this.spin = new Spin(this.$('.signin-spin'), {
         lines: 17, // The number of lines to draw
         length: 12, // The length of each line
         width: 4, // The line thickness
@@ -70,7 +70,7 @@ define([
 
       // Show the spinner when connecting.
       this.$('.google-button').click(_.bind(function (e) {
-        this.$('.signin-inner > div').hide();
+        this.$('.modal-inner > div').hide();
         this.spin.start();
       }, this));
 
@@ -141,7 +141,7 @@ define([
       var payload = this.signinForm.serializeObject();
 
       // Client-side form check.
-      var errorMsg = $('.signin-error', this.signinForm);
+      var errorMsg = $('.modal-error', this.signinForm);
       var check = util.ensure(payload, ['username', 'password']);
 
       // Add alerts.
@@ -162,7 +162,7 @@ define([
       }
 
       // All good, show spinner.
-      this.$('.signin-inner > div').hide();
+      this.$('.modal-inner > div').hide();
       this.spin.start();
 
       // Do the API request.
@@ -171,7 +171,7 @@ define([
 
           // Stop spinner.
           this.spin.stop();
-          this.$('.signin-inner > div').show();
+          this.$('.modal-inner > div').show();
 
           // Set the error display.
           errorMsg.text(err);
@@ -199,7 +199,7 @@ define([
       var payload = this.signupForm.serializeObject();
 
       // Client-side form check.
-      var errorMsg = $('.signin-error', this.signupForm);
+      var errorMsg = $('.modal-error', this.signupForm);
       var check = util.ensure(payload, ['newusername', 'newemail',
           'newpassword']);
       
@@ -231,7 +231,7 @@ define([
       }
 
       // All good, show spinner.
-      this.$('.signin-inner > div').hide();
+      this.$('.modal-inner > div').hide();
       this.spin.start();
 
       // Do the API request.
@@ -240,7 +240,7 @@ define([
 
           // Stop spinner.
           this.spin.stop();
-          this.$('.signin-inner > div').show();
+          this.$('.modal-inner > div').show();
 
           // Set the error display.
           errorMsg.text(err);

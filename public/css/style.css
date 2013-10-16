@@ -371,6 +371,10 @@ input[type=submit] {
   transition-duration: 100ms;
 }
 
+input[type=submit] {
+  height: 32px;
+}
+
 a.button:hover,
 div[role=button]:hover,
 input[type='submit']:hover {
@@ -393,37 +397,6 @@ input[type=submit]:focus {
   border: 1px solid #98c1e6;
 }
 
-div[role=button].disabled {
-  color: #AAA;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-div[role=button].disabled:hover {
-  -moz-box-shadow: 0 0 0px rgba(0, 0, 0, 0.0);
-  -webkit-box-shadow: 0 0 0px rgba(0, 0, 0, 0.0);
-  box-shadow: 0 0 0px rgba(0, 0, 0, 0.05);
-}
-
-div[role=button].disabled:active {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-div[role=button] > div {
-  background: url(/graphics/line-chart.png) no-repeat;
-  width: 18px;
-  height: 23px;
-  display: inline-block;
-  vertical-align: -7px;
-}
-
-div[role=button].little {
-  font-size: 10px;
-  padding: 0 6px;
-  height: 17px;
-  line-height: 17px;
-  min-width: 28px;
-}
-
 input[type="checkbox"],
 input[type="radio"] {
   margin: 0 5px 0 0;
@@ -438,11 +411,50 @@ input::-moz-focus-inner, textarea::-moz-focus-inner {
   border: none;
 }
 
+input[type="submit"][disabled="disabled"] {
+  opacity: 0.5;
+
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+/*.........................................................................*/
+
 input.input-error {
   border: 1px solid rgba(255,0,0,0.4) !important;
 }
 
-/*.........................................................................*/
+input.file-input {
+  position: absolute;
+  z-index: 10;
+  opacity: 0;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 22px;
+  padding: 0;
+  cursor: text;
+}
+
+span.empty-feed {
+  display: inline-block;
+  width: 100%;
+  margin: 10px 0;
+  font-style: italic;
+  color: #808080;
+  text-align: center;
+  font-size: 10px;
+}
+
+span.empty-list {
+  display: inline-block;
+  margin: 0 0 10px 0;
+  font-style: italic;
+  color: #808080;
+  line-height: 18px;
+  font-size: 10px;
+}
 
 .list-spin {
   width: 100%;
@@ -574,7 +586,7 @@ a.header-action:active {
   padding-right: 10px;
 }
 
-.header a.add-data {
+.header a.add-data-button {
   margin-left: 20px;
   background: rgba(39, 205, 214, 0.8);
   color: #fff;
@@ -582,7 +594,7 @@ a.header-action:active {
   font-size: 14px;
 }
 
-.header a.add-data:active {
+.header a.add-data-button:active {
   background: rgba(39, 205, 214, 1);
 }
 
@@ -602,6 +614,49 @@ a.header-action:active {
 
 /*.........................................................................*/
 
+.modal-inner {
+  position: relative;
+  padding: 20px 20px 0;
+}
+
+.modal-inner td {
+  position: relative;
+}
+
+.modal-inner td:first-child {
+  padding-right: 10px;
+}
+
+.modal-inner input {
+  width: 100%;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+}
+
+.modal-inner-narrow {
+  padding: 50px;
+}
+
+.modal-title {
+  background: #2f2f2f;
+  color: #fff;
+  display: block;
+  font-size: 11px;
+  padding: 0 5px;
+  font-weight: 700;
+}
+
+.modal-heading {
+  font-size: 12px;
+  line-height: 40px;
+  display: block;
+  color: #6f6f6f;
+}
+
+/*.........................................................................*/
+
 .signin {
   width: 400px;
   position: relative;
@@ -612,27 +667,12 @@ a.header-action:active {
           border-radius: 3px;
 }
 
-.signin-inner,
-.save-inner {
-  position: relative;
-  padding: 50px;
+.signin-inner {
   height: 456px;
 }
 
 .save-inner {
   height: 82px;
-}
-
-.signin-inner input[type="text"],
-.signin-inner input[type="password"],
-.save-inner input[type="text"],
-.save-inner input[type="password"] {
-  width: 274px;
-}
-
-.signin-inner td,
-.save-inner td {
-  vertical-align: middle;
 }
 
 .signin-error,
@@ -697,20 +737,32 @@ a.google-button {
   width: 100%;
 }
 
-.profile td {
-  width: 170px;
-  padding: 30px 20px;
+.profile td,
+.browser td {
   text-align: center;
   white-space: nowrap;
 }
 
-.profile td.main-cell {
+.profile td {
+  width: 170px;
+  padding: 30px 20px;
+}
+
+.browser .profile-datasets td {
+  width: 120px;
+  padding: 10px 15px;
+  font-size: 11px;
+}
+
+.profile td.main-cell,
+.browser td.main-cell {
   position: relative;
   width: inherit;
   text-align: left;
 }
 
-.profile tr.list-header {
+.profile tr.list-header,
+.browser tr.list-header {
   text-transform: uppercase;
   font-size: 10px;
   color: #8f8f8f;
@@ -722,14 +774,30 @@ a.google-button {
   padding: 20px;
 }
 
+.browser tr.list-header td {
+  padding: 5px 0;
+}
+
 .profile tr.list-header td.main-cell {
   padding-left: 70px;
   font-size: 14px;
 }
 
+.browser tr.list-header td.main-cell {
+  padding-left: 40px;
+  font-size: 10px;
+}
+
 .profile-datasets,
 .profile-views {
+  min-height: 72px;
   background: #f1f1f1;
+}
+
+.browser .profile-datasets {
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
 }
 
 .profile-dataset,
@@ -753,14 +821,9 @@ a.google-button {
   animation-fill-mode: both;
 }
 
-.profile-dataset:last-child,
-.profile-view:last-child {
-  /*border: none;*/
-}
-
 .profile-dataset:hover,
 .profile-view:hover {
-  background: #efefef;
+  background: #dfdfdf;
 }
 
 .profile-avatar {
@@ -772,10 +835,19 @@ a.google-button {
   border-right: 1px solid #d0d0d0;
 }
 
+.browser .profile-avatar {
+  width: 30px;
+  height: 30px;
+}
+
 .profile-item-title {
   display: block;
   font-size: 16px;
   color: #3f3f3f;
+}
+
+.browser .profile-item-title {
+  font-size: 11px;
 }
 
 .profile-item-title [class^="icon-"]:before, [class*=" icon-"]:before {
@@ -787,6 +859,10 @@ a.google-button {
   left: 42px;
   bottom: 5px;
   font-size: 0;
+}
+
+.browser .profile-item-stats {
+  display: none;
 }
 
 .profile-item-stats span {
@@ -1066,7 +1142,7 @@ a.dataset-add-button:hover {
 }
 
 a.dataset-add-button:active {
-  background: #d0d0d0;
+  background: #f0f0f0;
 }
 
 .channels {
@@ -1139,6 +1215,26 @@ a.channel-button {
   color: #fff;
 }
 
+/*.........................................................................*/
+
+.browser {
+  height: 500px;
+  overflow: hidden;
+}
+
+.browser-inner {
+  width: 660px;
+}
+
+.browser-inner form {
+  margin-bottom: 20px;
+}
+
+.browser-datasets {
+  overflow-y: auto;
+  height: 317px;
+  border-top: 1px solid #d0d0d0;
+}
 
 /*.........................................................................*/
 /*.........................................................................*/
