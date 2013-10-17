@@ -12,8 +12,9 @@ define([
   'text!../../templates/chart.html',
   'views/lists/datasets',
   'views/lists/comments',
-  'views/graph'
-], function ($, _, Backbone, mps, util, units, template, Datasets, Comments, Graph) {
+  'views/graph',
+  'views/exportdata'
+], function ($, _, Backbone, mps, util, units, template, Datasets, Comments, Graph, ExportData) {
 
   return Backbone.View.extend({
 
@@ -80,6 +81,7 @@ define([
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment',
       'click .comment-cancel-button': 'comment'
+      'click #exportChart': 'setupExportModal'
     },
 
     // Misc. setup.
@@ -108,6 +110,10 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
 
       return this;
+    },
+
+    setupExportModal: function () {
+      this.exportdata = new ExportData(this.app, {parentView: this}).render();
     },
 
     // Similar to Backbone's remove method, but empties

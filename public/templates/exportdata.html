@@ -1,0 +1,34 @@
+<div class="export-modal">
+  <div class="export-modal-title">Export data as CSV</div>
+  <div class="export-modal-data">
+    <p>Columns to download:</p>
+    <ol class="export-channel-list">
+    <%
+      _.each(channels, function(row, index) {
+        print('<li>' + index + '.&nbsp;&nbsp;'+ row.title + '</li>')
+      });
+    %>
+    </ol>
+    <p></p>
+    <p>
+      <input id="resampleRadio" type="radio" name="sampleType" value="resample">
+      <label for="resampleRadio" class="export-label">Resample to:</label>
+      <input id="resample" type="text" value="1.0" class="export-input-text">
+      <label for="resampleRadio" class="export-label">seconds per sample</label>
+      <br>
+      &nbsp;&nbsp;&nbsp;
+      <input id="minmaxCheckbox" type="checkbox" name="minmax" value="minmax" disabled="disabled">
+      <label for="minmaxCheckbox" class="export-label">Include minima and maxima</label>
+    </p>
+    <p>
+      <input id="noResampleRadio" type="radio" name="sampleType" value="noResample" checked="checked">
+      <label for="noResampleRadio" class="export-label">Don't resample
+      </label>
+    </p>
+    <p id="exportError" style="visibility: hidden; color: red">Would export
+      <span id="rowCount"></span> rows, maximum is
+      <span id="rowMax"></span>.
+    </p>
+    <div id="download-data" role="button" title="Download data as CSV.">Download</div>
+  </div>
+</div>
