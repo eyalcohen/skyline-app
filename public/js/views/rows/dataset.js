@@ -90,9 +90,11 @@ define([
       return Row.prototype.destroy.call(this);
     },
 
-    _remove: function () {
-      clearInterval(this.timer);
-      this.destroy();
+    _remove: function (cb) {
+      this.$el.slideUp('fast', _.bind(function () {
+        this.destroy();
+        cb();
+      }, this));
     },
 
   });

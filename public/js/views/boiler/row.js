@@ -58,9 +58,14 @@ define([
             this.$el.prependTo(this.parentView.$el);
         } else {
           if (this.parentView) {
-            if (this.parentView.$('.list-header').length !== 0)
-              this.$el.appendTo(this.parentView.$('.list-header').parent());
-            else
+            if (this.parentView.$('.list-header').length !== 0) {
+              var list = $(this.parentView.$('.list-header').get(0));
+              var lastSib = $('.' + this.attributes().class, list.parent()).last();
+              if (lastSib.length !== 0)
+                this.$el.insertAfter(lastSib);
+              else
+                this.$el.appendTo(list.parent());
+            } else
               this.$el.appendTo(this.parentView.$el);
           } else
             this.$el.appendTo(this.wrap);

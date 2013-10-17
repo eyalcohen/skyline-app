@@ -83,11 +83,6 @@ define([
         borderColor: color
       });
       this.$el.addClass('active');
-
-      // Find prev child.
-      // var i = this.model.collection.indexOf(this.model);
-      // if (i === 0) return;
-      // this.parentView.views[i-1].styleAsSibling(color);
     },
 
     removed: function (channel) {
@@ -99,27 +94,13 @@ define([
         borderColor: '#d0d0d0'
       });
       this.$el.removeClass('active');
-
-      // Find prev child.
-      // var i = this.model.collection.indexOf(this.model);
-      // if (i === 0) return;
-      // this.parentView.views[i-1].unStyleAsSibling();
     },
 
-    // styleAsSibling: function (color) {
-    //   if (!this.active)
-    //     this.$el.css({borderBottomColor: color});
-    // },
-
-    // unStyleAsSibling: function () {
-    //   if (!this.active)
-    //     this.$el.css({borderBottomColor: '#d0d0d0'});
-    //   // else
-    // },
-
-    _remove: function () {
-      clearInterval(this.timer);
-      this.destroy();
+    _remove: function (cb) {
+      this.$el.slideUp('fast', _.bind(function () {
+        this.destroy();
+        cb();
+      }, this));
     },
 
   });

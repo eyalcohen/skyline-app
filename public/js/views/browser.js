@@ -89,7 +89,7 @@ define([
     // Bind mouse events.
     events: {
       'click .browser-add-form input[type="submit"]': 'add',
-      'change input[name="data_file"]': 'update'
+      'change input[name="data_file"]': 'update',
     },
 
     // Misc. setup.

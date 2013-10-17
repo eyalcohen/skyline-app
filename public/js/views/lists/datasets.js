@@ -7,16 +7,15 @@ define([
   'Underscore',
   'views/boiler/list',
   'mps',
-  'rpc',
+  'rest',
   'util',
   'text!../../../templates/lists/datasets.html',
   'collections/datasets',
   'views/rows/dataset'
-], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
+], function ($, _, List, mps, rest, util, template, Collection, Row, Spin) {
   return List.extend({
     
     el: '.datasets',
-    working: false,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -27,7 +26,9 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Client-wide subscriptions
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('chart/datasets/add', _.bind(this.collect, this))
+      ];
 
       // Socket subscriptions
       //
@@ -50,6 +51,15 @@ define([
 
       // Render the browser view.
       mps.publish('modal/browser/open');
+    },
+
+    collect: function (did) {
+
+      // Get the dataset.
+      rest.get('/api/datasets/' + did, _.bind(function (err, dataset) {
+        if (err) return console.log(err);
+        this.collection.push(dataset);
+      }, this));
     },
 
     _remove: function (data) {
