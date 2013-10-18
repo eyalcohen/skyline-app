@@ -7,12 +7,11 @@ define([
   'Underscore',
   'views/boiler/list',
   'mps',
-  'rpc',
   'util',
   'text!../../../templates/lists/channels.html',
   'collections/channels',
   'views/rows/channel'
-], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
+], function ($, _, List, mps, util, template, Collection, Row, Spin) {
   return List.extend({
     
     el: 'div.channels',

@@ -50,7 +50,7 @@ define([
       e.preventDefault();
 
       // Render the browser view.
-      mps.publish('modal/browser/open');
+      mps.publish('modal/browser/open', [true]);
     },
 
     collect: function (did) {

@@ -53,7 +53,6 @@ define([
       e.preventDefault();
 
       if (this.model.get('id') === -1) return false;
-
       if (!this.parentView.modal) {
         
         // Set app state.

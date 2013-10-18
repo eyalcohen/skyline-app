@@ -419,6 +419,12 @@ input[type="submit"][disabled="disabled"] {
   box-shadow: none;
 }
 
+a.button.loading,
+div[role=button].loading,
+input[type=submit].loading {
+  color: transparent;
+}
+
 /*.........................................................................*/
 
 input.input-error {
@@ -469,6 +475,12 @@ span.empty-list {
   width: 50px;
   height: 40px;
   margin: 0 auto;
+}
+
+.button-spin {
+  position: absolute;
+  top: 16px;
+  left: 50%;
 }
 
 .http-error {
@@ -655,6 +667,13 @@ a.header-action:active {
   color: #6f6f6f;
 }
 
+.modal-error {
+  display: block;
+  color: #cc0f0f;
+  font-size: 11px;
+  text-align: left;
+}
+
 /*.........................................................................*/
 
 .signin {
@@ -776,6 +795,7 @@ a.google-button {
 
 .browser tr.list-header td {
   padding: 5px 0;
+  font-size: 10px;
 }
 
 .profile tr.list-header td.main-cell {
@@ -785,7 +805,6 @@ a.google-button {
 
 .browser tr.list-header td.main-cell {
   padding-left: 40px;
-  font-size: 10px;
 }
 
 .profile-datasets,
@@ -871,31 +890,6 @@ a.google-button {
   font-weight: bold;
   font-size: 10px;
 }
-
-/*.profile-item-spin {
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  position: absolute;
-  z-index: 1;
-  background: rgba(255,255,255,0.8);
-
-  display: -webkit-box;
-  -webkit-box-orient: horizontal;
-  -webkit-box-pack: center;
-  -webkit-box-align: center;
-
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  -moz-box-pack: center;
-  -moz-box-align: center;
-
-  display: box;
-  box-orient: horizontal;
-  box-pack: center;
-  box-align: center;
-}*/
 
 /*.........................................................................*/
 
@@ -1217,7 +1211,7 @@ a.channel-button {
 
 /*.........................................................................*/
 
-.browser {
+.browser.library {
   height: 500px;
   overflow: hidden;
 }
@@ -1235,6 +1229,48 @@ a.channel-button {
   height: 317px;
   border-top: 1px solid #d0d0d0;
 }
+
+.browser .dnd {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  background: rgba(39, 205, 214, 0.25);
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.browser.dragging .dnd {
+  display: block;
+}
+
+.browser .dnd i {
+  display: block;
+  margin: 0 auto;
+  line-height: 142px;
+  font-size: 48px;
+  width: 70px;
+  color: #2f2f2f;
+}
+
+.browser.library .dnd i {
+  line-height: 500px;
+}
+
 
 /*.........................................................................*/
 /*.........................................................................*/

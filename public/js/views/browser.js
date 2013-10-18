@@ -28,15 +28,6 @@ define([
       this.app = app;
       this.options = options;
 
-      if (this.options && this.options.meta) {
-        this.options.meta.dataset_cnt = this.options.datasets.length;
-        this.options.meta.channel_cnt = 0;
-        _.each(this.options.datasets, _.bind(function (d) {
-          this.options.meta.channel_cnt += d.channels.length;
-        }, this));
-        delete this.options.meta.width;
-      }
-
       // Shell events.
       this.on('rendered', this.setup, this);
     },
@@ -47,6 +38,10 @@ define([
       // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
+
+      // Add library class if
+      if (this.options.lib)
+        this.$el.addClass('library');
 
       // Dump content into modal.
       $.fancybox(this.$el, {
@@ -59,26 +54,6 @@ define([
       // Add placeholder shim if need to.
       if (Modernizr.input.placeholder)
         this.$('input').placeholder();
-
-      // Init the load indicator.
-      this.spin = new Spin(this.$('.browser-spin'), {
-        lines: 17,
-        length: 12,
-        width: 4,
-        radius: 18,
-        corners: 1,
-        rotate: 0,
-        direction: 1,
-        color: '#808080',
-        speed: 1.5,
-        trail: 60,
-        shadow: false,
-        hwaccel: false,
-        className: 'spinner',
-        zIndex: 2e9,
-        top: 'auto',
-        left: 'auto'
-      });
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -98,7 +73,22 @@ define([
       // Save refs.
       this.addNewfileForm = $('.browser-add-form');
       this.newFileInput = $('input[name="dummy_data_file"]', this.addNewfileForm);
+      this.newFile = $('input[name="data_file"]', this.addNewfileForm);
       this.newFileSubmit = $('input[type="submit"]', this.addNewfileForm);
+      this.newFileError = $('.modal-error', this.addNewfileForm);
+      this.dropZone = this.$('.dnd');
+      this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
+        color: '#3f3f3f',
+        lines: 13,
+        length: 3,
+        width: 2,
+        radius: 6,
+      });
+
+      // Drag & drop events.
+      this.$el.on('dragover', _.bind(this.dragover, this));
+      this.dropZone.on('dragleave', _.bind(this.dragout, this))
+          .on('drop', _.bind(this.drop, this));
 
       // Handle error display.
       this.$('input[type="text"]').blur(function (e) {
@@ -108,27 +98,19 @@ define([
       });
 
       // Render datasets.
-      this.datasets = new Datasets(this.app, {
-        datasets: {
-          more: true,
-          items: [],
-          query: {author_id: this.app.profile.user.id}
-        },
-        modal: true,
-        parentView: this,
-        reverse: true
-      });
+      if (this.options.lib)
+        this.datasets = new Datasets(this.app, {
+          datasets: {
+            more: true,
+            items: [],
+            query: {author_id: this.app.profile.user.id}
+          },
+          modal: true,
+          parentView: this,
+          reverse: true
+        });
 
       return this;
-    },
-
-    // Focus on the first empty input field.
-    focus: function (e) {
-      _.find(this.$('input[type!="submit"]:visible'), function (i) {
-        var empty = $(i).val().trim() === '';
-        if (empty) $(i).focus();
-        return empty;
-      });
     },
 
     // Similar to Backbone's remove method, but empties
@@ -145,11 +127,37 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      if (this.datasets)
+        this.datasets.destroy();
       this.empty();
     },
 
-    update: function (e) {
-      var files = e.target.files;
+    dragover: function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      e.originalEvent.dataTransfer.dropEffect = 'copy';
+      this.$el.addClass('dragging');
+    },
+
+    dragout: function (e) {
+      this.$el.removeClass('dragging');
+    },
+
+    drop: function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var files = e.originalEvent.dataTransfer.files;
+      this.update(null, files);
+      this.add(null, files);
+
+      // Stop drag styles.
+      this.$el.removeClass('dragging');
+    },
+
+    // Update new file input value
+    update: function (e, files) {
+      var files = files || e.target.files;
       var name;
       if (files.length === 0) {
         name = '';
@@ -161,15 +169,22 @@ define([
       this.newFileInput.val(name);
     },
 
-    add: function (e) {
-      e.preventDefault();
+    // Create new dataset from file.
+    add: function (e, files) {
+      if (e) e.preventDefault();
 
       // Prevent multiple uploads at the same time.
       if (this.working) return false;
       this.working = true;
 
+      // Start load indicator.
+      this.newFileButtonSpin.start();
+      this.newFileSubmit.addClass('loading');
+
       // Get the file.
-      var files = this.newFileInput.get(0).files;
+      var files = files || this.newFile.get(0).files;
+      console.log(files)
+
       if (files.length === 0) return false;
       var file = files[0];
 
@@ -197,46 +212,23 @@ define([
           base64: reader.result.replace(/^[^,]*,/,''),
         };
 
-        // Mock dataset.
-        var data = {
-          id: -1,
-          author: this.app.profile.user,
-          updated: new Date().toISOString(),
-          title: _.str.strLeft(file.name, '.'),
-          file: {
-            size: file.size,
-            type: file.type,
-          },
-          meta: {
-            beg: 0,
-            end: 0,
-            channel_cnt: 0,
-          }
-        };
-
-        // Optimistically add dataset to page.
-        this.collection.unshift(data);
-
         // Create the dataset.
         this.app.rpc.do('insertSamples', payload,
             _.bind(function (err, res) {
 
-          if (err)
-            return console.error(err);
+          // Start load indicator.
+          this.newFileButtonSpin.stop();
+          this.newFileSubmit.removeClass('loading');
+          this.newFileInput.val('');
 
-          if (res.created === false) {
-
-            // Remove row.
+          if (err) {
+            this.newFileError.text(err);
             this.working = false;
-            return this._remove({id: -1});
+            return;
           }
 
-          // Update the dataset id.
-          var dataset = this.collection.get(-1);
-          dataset.set('client_id', res.client_id);
-          dataset.set('meta', res.meta);
-          dataset.set('id', res.id);
-          this.$('#-1').attr('id', res.id);
+          // Publish new dataset.
+          mps.publish('dataset/new', [res]);
 
           // Ready for more.
           this.working = false;
@@ -248,74 +240,6 @@ define([
 
       return false;
     },
-
-    // save: function (e) {
-    //   e.preventDefault();
-
-    //   // Grab the form data.
-    //   var payload = this.saveForm.serializeObject();
-
-    //   // Client-side form check.
-    //   var errorMsg = $('.save-error', this.saveForm);
-    //   var check = util.ensure(payload, ['name']);
-
-    //   // Add alerts.
-    //   _.each(check.missing, _.bind(function (m, i) {
-    //     var field = $('input[name="' + m + '"]', this.saveForm);
-    //     field.val('').addClass('input-error');
-    //     if (i === 0) field.focus();
-    //   }, this));
-
-    //   // Show messages.
-    //   if (!check.valid) {
-
-    //     // Set the error display.
-    //     var msg = 'All fields are required.';
-    //     errorMsg.text(msg);
-
-    //     return;
-    //   }
-
-    //   // All good, show spinner.
-    //   this.$('.modal-inner > div').hide();
-    //   this.spin.start();
-
-    //   // Add other data.
-    //   _.extend(payload, this.options);
-
-    //   // Do the API request.
-    //   rest.post('/api/views', payload, _.bind(function (err, data) {
-    //     if (err) {
-
-    //       // Stop spinner.
-    //       this.spin.stop();
-    //       this.$('.modal-inner > div').show();
-
-    //       // Set the error display.
-    //       errorMsg.text(err);
-
-    //       // Clear fields.
-    //       $('input[type="text"]', this.saveForm).val('')
-    //           .addClass('input-error');
-    //       this.focus();
-          
-    //       return;
-    //     }
-
-    //     // Route to profile.
-    //     var route = [this.app.profile.user.username, 'views', data.slug].join('/');
-    //     this.app.router.navigate('/' + route, {trigger: true});
-
-    //     // Stop spinner.
-    //     this.spin.stop();
-
-    //     // Close the modal.
-    //     $.fancybox.close();
-        
-    //   }, this));
-
-    //   return false;
-    // },
 
   });
 });

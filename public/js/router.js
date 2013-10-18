@@ -50,20 +50,9 @@ define([
       }, this));
 
       // Show the browser modal.
-      mps.subscribe('modal/browser/open', _.bind(function () {
-        this.browser = new Browser(this.app, {
-          // datasets: this.page.graph.model.getChannelsByDataset(),
-          // meta: this.page.graph.getVisibleTime()
-        }).render();
+      mps.subscribe('modal/browser/open', _.bind(function (lib) {
+        this.browser = new Browser(this.app, {lib: lib}).render();
       }, this));
-
-      // Show the save modal.
-      // mps.subscribe('view/save/open', _.bind(function () {
-      //   this.save = new Save(this.app, {
-      //     datasets: this.page.graph.model.getChannelsByDataset(),
-      //     meta: this.page.graph.getVisibleTime()
-      //   }).render();
-      // }, this));
     },
 
     routes: {
