@@ -1336,16 +1336,16 @@ a.channel-button {
   white-space: nowrap;
 }
 
-.channel-title {
+.channel-name {
   font-size: 11px;
   color: #3f3f3f;
 }
 
-.channel:not(.active) a.channel-button:hover .channel-title {
+.channel:not(.active) a.channel-button:hover .channel-name {
   color: #0f0f0f;
 }
 
-.channel.active .channel-title {
+.channel.active .channel-name {
   color: #fff;
 }
 

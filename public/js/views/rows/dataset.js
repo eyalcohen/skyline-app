@@ -28,6 +28,7 @@ define([
 
       // Save refs.
       this.button = this.$('a.dataset-button');
+      this.title = this.$('.dataset-title', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
 
       // Toggle.
@@ -55,11 +56,28 @@ define([
     },
 
     fit: function (w) {
-      w = w - 75;
+      w = w - 85;
       w = w > 200 ? 200: w;
+      w = w < 60 ? 60: w;
       this.button.outerWidth(w);
       this.background.width(w + 41);
+      this.fitTitle(w);
       if (this.channels) this.channels.fit();
+    },
+
+    fitTitle: function (w) {
+      var txt = this.model.get('title');
+      this.title.text(txt);
+      var tw = this.title.outerWidth();
+      if (tw >= w) {
+        var len = txt.length;
+        var i = 1;
+        while (tw >= w) {
+          this.title.text(txt.substr(0, len - i) + '...');
+          tw = this.title.outerWidth();
+          ++i;
+        }
+      }
     },
 
     toggle: function (e) {

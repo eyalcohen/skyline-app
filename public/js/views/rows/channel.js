@@ -36,6 +36,8 @@ define([
 
       // Save refs.
       this.button = this.$('a.channel-button');
+      this.name = this.$('.channel-name', this.button);
+      this.txt = this.$('.channel-name span');
 
       // Bind click event.
       this.button.click(_.bind(this.toggle, this));
@@ -49,6 +51,22 @@ define([
 
     fit: function (w) {
       this.$el.width(w);
+      this.fitName(w - 20);
+    },
+
+    fitName: function (w) {
+      var txt = this.model.name();
+      this.txt.text(txt);
+      var tw = this.name.outerWidth();
+      if (tw >= w) {
+        var len = txt.length;
+        var i = 1;
+        while (tw >= w) {
+          this.txt.text(txt.substr(0, len - i) + '...');
+          tw = this.name.outerWidth();
+          ++i;
+        }
+      }
     },
 
     toggle: function (e) {
