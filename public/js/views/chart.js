@@ -69,6 +69,7 @@ define([
       // Save refs.
       this.sidePanel = this.$('.side-panel');
       this.lowerPanel = this.$('.lower-panel');
+      this.controls = this.$('.controls');
 
       // Render children views.
       this.datasets = new Datasets(this.app, {parentView: this});
@@ -77,6 +78,7 @@ define([
       // Do resize on window change.
       this.resize();
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 100));
 
       return this;
     },
@@ -105,6 +107,11 @@ define([
           - this.$el.offset().top;
       height = Math.max(height, 605);
       this.$el.css({height: height});
+      this.fit();
+    },
+
+    fit: function () {
+      this.datasets.fit(this.$el.width() - this.controls.width());
     },
 
   });

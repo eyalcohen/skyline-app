@@ -60,6 +60,15 @@ define([
         this.$el.height($('.graphs').height());
       else
         this.$el.height('auto');
+      this.fit();
+    },
+
+    fit: function () {
+      w = this.parentView.$el.width() - 34;
+      this.$el.width(w)
+      _.each(this.views, function (v) {
+        v.fit(w);
+      });
     },
 
     added: function (channel) {

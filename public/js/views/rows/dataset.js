@@ -28,6 +28,7 @@ define([
 
       // Save refs.
       this.button = this.$('a.dataset-button');
+      this.background = this.$('.dataset-button-bg', this.button);
 
       // Toggle.
       this.button.click(_.bind(this.toggle, this));
@@ -51,6 +52,14 @@ define([
 
     events: {
       'click .dataset-remove': 'delete',
+    },
+
+    fit: function (w) {
+      w = w - 75;
+      w = w > 200 ? 200: w;
+      this.button.outerWidth(w);
+      this.background.width(w + 41);
+      if (this.channels) this.channels.fit();
     },
 
     toggle: function (e) {

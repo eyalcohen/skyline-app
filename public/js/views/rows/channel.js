@@ -47,6 +47,10 @@ define([
 
     },
 
+    fit: function (w) {
+      this.$el.width(w);
+    },
+
     toggle: function (e) {
       if (e) e.preventDefault();
       if (this.$el.hasClass('active')) {

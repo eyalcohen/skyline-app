@@ -44,6 +44,10 @@ define([
     },
 
     setup: function () {
+
+      // Save refs.
+      this.button = this.$('.dataset-add-button');
+
       return List.prototype.setup.call(this);
     },
 
@@ -66,7 +70,7 @@ define([
       state.datasets.push(d.id);
       store.set('state', state);
 
-      this.resize();
+      this.parentView.fit();
     },
 
     removed: function (d) {
@@ -78,7 +82,7 @@ define([
       });
       store.set('state', state);
 
-      this.resize();
+      this.parentView.fit();
     },
 
     collect: function (did) {
@@ -97,10 +101,12 @@ define([
       }, this));
     },
 
-    resize: function () {
-
-      // var room = 
-
+    fit: function (w) {
+      var _w = Math.floor((w - this.button.outerWidth()) /
+          this.collection.length);
+      _.each(this.views, function (v) {
+        v.fit(_w);
+      });
     },
 
     _remove: function (data) {
