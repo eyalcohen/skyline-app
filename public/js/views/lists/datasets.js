@@ -65,6 +65,8 @@ define([
       var state = store.get('state');
       state.datasets.push(d.id);
       store.set('state', state);
+
+      this.resize();
     },
 
     removed: function (d) {
@@ -75,6 +77,8 @@ define([
         return did === d.id;
       });
       store.set('state', state);
+
+      this.resize();
     },
 
     collect: function (did) {
@@ -91,6 +95,12 @@ define([
         }
         this.collection.push(dataset);
       }, this));
+    },
+
+    resize: function () {
+
+      // var room = 
+
     },
 
     _remove: function (data) {

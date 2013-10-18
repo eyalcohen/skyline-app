@@ -15,7 +15,7 @@ define([
     active: false,
 
     attributes: function () {
-      return _.defaults({class: 'channel hide'},
+      return _.defaults({class: 'channel'},
           Row.prototype.attributes.call(this));
     },
 
@@ -64,13 +64,17 @@ define([
     },
 
     expand: function () {
-      if (!this.$el.hasClass('active'))
+      if (!this.$el.hasClass('active')) {
         this.$el.slideDown('fast');
+        this.$el.css({opacity: 1});
+      }
     },
 
     collapse: function () {
-      if (!this.$el.hasClass('active'))
+      if (!this.$el.hasClass('active')) {
         this.$el.slideUp('fast');
+        this.$el.css({opacity: 0});
+      }
     },
 
     added: function (channel) {

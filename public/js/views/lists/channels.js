@@ -55,9 +55,9 @@ define([
       
     },
 
-    resize: function (active) {
+    resize: function (e, active) {
       if (this.active || active)
-        this.$el.height($('div.graphs').height());
+        this.$el.height($('.graphs').height());
       else
         this.$el.height('auto');
     },
@@ -78,7 +78,7 @@ define([
 
     expand: function (active) {
       _.each(this.views, function (v) { v.expand(); });
-      this.resize(active);
+      this.resize(null, active);
     },
 
     collapse: function () {
