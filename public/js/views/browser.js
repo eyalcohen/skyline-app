@@ -183,7 +183,6 @@ define([
 
       // Get the file.
       var files = files || this.newFile.get(0).files;
-      console.log(files)
 
       if (files.length === 0) return false;
       var file = files[0];
@@ -229,6 +228,18 @@ define([
 
           // Publish new dataset.
           mps.publish('dataset/new', [res]);
+
+          // Show alert
+          mps.publish('flash/new', [{
+            message: 'Successfully added a new data source: "'
+                + res.title + ', ' + res.meta.channel_cnt + ' channel'
+                + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
+            level: 'alert',
+            sticky: false
+          }]);
+
+          if (!this.datasets)
+            $.fancybox.close();
 
           // Ready for more.
           this.working = false;

@@ -511,6 +511,88 @@ span.empty-list {
   margin-bottom: 23px;
 }
 
+/*.........................................................................*/
+
+.block-messages {
+  position: absolute;
+  z-index: 10;
+  right: 334px;
+  top: 0;
+  width: 700px;
+  white-space: nowrap;
+}
+
+.block-remove {
+  float: right;
+  cursor: pointer;
+  padding: 0 10px;
+  line-height: 60px;
+  color: #4f4f4f;
+  font-size: 14px;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.block-remove:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+.block-remove:active {
+  background: rgba(0,0,0,0.15);
+}
+
+.block-messages li {
+  position: relative;
+  list-style-type: none;
+  border-left: 1px solid #d0d0d0;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.block-error {
+  background: #efefef;
+}
+
+.block-alert {
+  background: rgba(118, 214, 118, 0.2);
+}
+
+.block-error-txt,
+.block-alert-txt {
+  font-size: 10px;
+  padding: 0 10px;
+  color: #3f3f3f;
+  font-weight: 700;
+  line-height: 60px;
+}
+
+.block-error-txt {
+  color: #cc0f0f;
+}
+
+.block-error-txt a {
+  color: #0f0f0f;
+}
+
+.block-error-txt a:hover {
+  text-decoration: underline;
+}
+
+/*.........................................................................*/
+
 .header {
   width: 800px;
   height: 50px;
