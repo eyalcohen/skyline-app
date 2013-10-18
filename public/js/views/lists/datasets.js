@@ -25,9 +25,13 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
+      // Do work when items are added or removed.
+      this.collection.on('add', _.bind(this.added, this));
+      this.collection.on('remove', _.bind(this.removed, this));
+
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('chart/datasets/add', _.bind(this.collect, this))
+        mps.subscribe('chart/datasets/new', _.bind(this.collect, this))
       ];
 
       // Socket subscriptions
@@ -53,6 +57,24 @@ define([
 
       // Render the browser view.
       mps.publish('modal/browser/open', [true]);
+    },
+
+    added: function (d) {
+
+      // Update state.
+      var state = store.get('state');
+      state.datasets.push(d.id);
+      store.set('state', state);
+    },
+
+    removed: function (d) {
+      
+      // Update state.
+      var state = store.get('state');
+      state.datasets = _.reject(state.datasets, function (did) {
+        return did === d.id;
+      });
+      store.set('state', state);
     },
 
     collect: function (did) {

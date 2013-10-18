@@ -1128,12 +1128,19 @@ a.control-button {
 }
 
 .dataset-remove {
-  float: right;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
   cursor: pointer;
   padding: 0 10px;
-  line-height: 34px;
+  line-height: 35px;
   color: #4f4f4f;
   font-size: 11px;
+}
+
+.dataset.active .dataset-remove {
+  color: #fff;
 }
 
 .dataset-remove:hover {

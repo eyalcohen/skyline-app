@@ -14,7 +14,7 @@ define([
 ], function ($, _, List, mps, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: 'div.channels',
+    el: '.channels',
     working: false,
     active: false,
 

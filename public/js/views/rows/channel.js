@@ -96,6 +96,14 @@ define([
       this.$el.removeClass('active');
     },
 
+    destroy: function () {
+      Row.prototype.destroy.call(this);
+      
+      // Remove channel from graph.
+      mps.publish('channel/remove', [this.model.get('did'),
+          this.model.get('val')]);
+    },
+
     _remove: function (cb) {
       this.$el.slideUp('fast', _.bind(function () {
         this.destroy();

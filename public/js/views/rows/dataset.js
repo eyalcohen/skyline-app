@@ -92,7 +92,6 @@ define([
 
     destroy: function () {
       this.channels.destroy();
-      mps.publish('chart/datasets/remove', [this.model.id]);
       return Row.prototype.destroy.call(this);
     },
 

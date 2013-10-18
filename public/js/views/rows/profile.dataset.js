@@ -65,13 +65,8 @@ define([
         this.app.router.navigate('/chart', {trigger: true});
       } else {
 
-        // Update app state.
-        var state = store.get('state');
-        state.datasets.push(this.model.get('id'));
-        store.set('state', state);
-
         // Add this dataset to the existing chart.
-        mps.publish('chart/datasets/add', [this.model.get('id')]);  
+        mps.publish('chart/datasets/new', [this.model.get('id')]);  
         
         // Close the modal.
         $.fancybox.close();
