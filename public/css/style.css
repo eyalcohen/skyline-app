@@ -597,6 +597,7 @@ span.empty-list {
   width: 800px;
   height: 50px;
   margin: 0 auto;
+  min-width: 430px;
 }
 
 .header.wide {
@@ -995,6 +996,7 @@ a.google-button {
   height: 33px;
   background: #f9f9f9;
   border-bottom: 1px solid #d0d0d0;
+  white-space: nowrap;
 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -1005,7 +1007,10 @@ a.google-button {
 }
 
 .controls {
-  float: right;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
 }
 
 a.control-button {
@@ -1020,6 +1025,15 @@ a.control-button {
   font-size: 11px;
   color: #3f3f3f;
   font-weight: 700;
+  background: #f9f9f9;
+}
+
+a.control-button:hover {
+  color: #3f3f3f;
+}
+
+a.control-button:active {
+  background: #f0f0f0;
 }
 
 .side-panel {
@@ -1104,9 +1118,17 @@ a.control-button {
 
 /*.........................................................................*/
 
+.datasets {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 0;
+}
+
 .dataset {
   position: relative;
-  float: left;
+  display: inline-block;
   margin-top: -1px;
   height: 35px;
   border-right: 1px solid #d0d0d0;
@@ -1144,11 +1166,11 @@ a.control-button {
 }
 
 .dataset-remove:hover {
-  background: rgba(0,0,0,0.05);
+  background: rgba(0,0,0,0.04);
 }
 
 .dataset-remove:active {
-  background: rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.07);
 }
 
 a.dataset-button {
@@ -1210,7 +1232,8 @@ a.dataset-button .dataset-button-bg {
   z-index: 1;
   display: block;
   margin-left: 6px;
-  line-height: 4px;
+  margin-top: -1px;
+  line-height: 0;
   font-size: 9px;
   text-transform: lowercase;
   color: #3f3f3f;
@@ -1227,7 +1250,9 @@ a.dataset-button .dataset-button-bg {
 }
 
 a.dataset-add-button {
-  float: left;
+  position: relative;
+  top: -5px;
+  display: inline-block;
   color: #8f8f8f;
   font-size: 16px;
   line-height: 33px;
