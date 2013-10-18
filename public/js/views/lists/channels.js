@@ -65,7 +65,8 @@ define([
 
     fit: function () {
       w = this.parentView.$el.width() - 34;
-      this.$el.width(w)
+      this.$el.width(w);
+      this.$el.parent().width(w + 2);
       _.each(this.views, function (v) {
         v.fit(w);
       });

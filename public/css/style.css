@@ -1272,15 +1272,21 @@ a.dataset-add-button:active {
   background: #f0f0f0;
 }
 
-.channels {
-  display: none;
+.channels-wrap {
   position: absolute;
   z-index: 12;
   left: 33px;
   right: 0;
   top: 35px;
-  width: 239px;
+  width: 241px;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: rgba(249,249,249,0.8);
+}
+
+.channels {
+  display: none;
+  width: 239px;
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
 
@@ -1331,7 +1337,7 @@ a.dataset-add-button:active {
 
 a.channel-button {
   display: block;
-  padding: 5px 4px 1px;
+  padding: 7px 4px 2px;
   background: none;
   white-space: nowrap;
 }
