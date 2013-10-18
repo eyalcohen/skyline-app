@@ -28,6 +28,9 @@ define([
       this.app = app;
       this.options = options;
 
+      // Client-wide subscriptions
+      this.subscriptions = [];
+
       // Shell events.
       this.on('rendered', this.setup, this);
     },

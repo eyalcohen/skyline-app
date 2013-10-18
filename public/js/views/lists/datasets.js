@@ -34,7 +34,9 @@ define([
       //
 
       // Reset the collection.
-      this.collection.reset(this.app.profile.content.datasets.items);
+      var items = this.app.profile.content.datasets ?
+          this.app.profile.content.datasets.items: [];
+      this.collection.reset(items);
     },
 
     setup: function () {
@@ -57,7 +59,14 @@ define([
 
       // Get the dataset.
       rest.get('/api/datasets/' + did, _.bind(function (err, dataset) {
-        if (err) return console.log(err);
+        if (err) {
+          mps.publish('flash/new', [{
+            message: err,
+            level: 'error',
+            sticky: true
+          }]);
+          return;
+        }
         this.collection.push(dataset);
       }, this));
     },
@@ -71,8 +80,9 @@ define([
 
       if (view) {
         this.views.splice(index, 1);
-        view._remove();
-        this.collection.remove(view.model);
+        view._remove(_.bind(function () {
+          this.collection.remove(view.model);
+        }, this));
       }
     },
 

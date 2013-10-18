@@ -50,7 +50,7 @@ define([
     },
 
     events: {
-
+      'click .dataset-remove': 'delete',
     },
 
     toggle: function (e) {
@@ -85,15 +85,21 @@ define([
       }, this));
     },
 
+    delete: function (e) {
+      if (e) e.preventDefault();
+      this.parentView._remove({id: this.model.id});
+    },
+
     destroy: function () {
       this.channels.destroy();
+      mps.publish('chart/datasets/remove', [this.model.id]);
       return Row.prototype.destroy.call(this);
     },
 
     _remove: function (cb) {
-      this.$el.slideUp('fast', _.bind(function () {
+      this.$el.fadeOut('fast', _.bind(function () {
         this.destroy();
-        cb();
+        if (cb) cb();
       }, this));
     },
 

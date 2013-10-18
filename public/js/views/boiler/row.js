@@ -64,7 +64,7 @@ define([
               if (lastSib.length !== 0)
                 this.$el.insertAfter(lastSib);
               else
-                this.$el.appendTo(list.parent());
+                this.$el.insertAfter(list);
             } else
               this.$el.appendTo(this.parentView.$el);
           } else

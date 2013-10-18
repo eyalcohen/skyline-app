@@ -536,11 +536,11 @@ span.empty-list {
 }
 
 .block-remove:hover {
-  background: rgba(0,0,0,0.1);
+  background: rgba(0,0,0,0.05);
 }
 
 .block-remove:active {
-  background: rgba(0,0,0,0.15);
+  background: rgba(0,0,0,0.08);
 }
 
 .block-messages li {
@@ -1127,13 +1127,30 @@ a.control-button {
   border-radius: 2px;
 }
 
+.dataset-remove {
+  float: right;
+  cursor: pointer;
+  padding: 0 10px;
+  line-height: 34px;
+  color: #4f4f4f;
+  font-size: 11px;
+}
+
+.dataset-remove:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.dataset-remove:active {
+  background: rgba(0,0,0,0.08);
+}
+
 a.dataset-button {
   display: block;
   position: relative;
   height: 35px;
   width: 200px;
   margin-left: 33px;
-  padding-right: 40px;
+  margin-right: 40px;
   background: none;
 
   -moz-transition-timing-function: ease-out;
@@ -1352,7 +1369,6 @@ a.channel-button {
 .browser.library .dnd i {
   line-height: 500px;
 }
-
 
 /*.........................................................................*/
 /*.........................................................................*/

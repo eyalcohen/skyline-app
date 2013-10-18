@@ -96,8 +96,9 @@ define([
 
       if (view) {
         this.views.splice(index, 1);
-        view._remove();
-        this.collection.remove(view.model);
+        view._remove(_.bind(function () {
+          this.collection.remove(view.model);
+        }, this));
       }
     },
 

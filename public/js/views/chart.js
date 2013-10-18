@@ -31,6 +31,7 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
+        mps.subscribe('chart/datasets/remove', _.bind(this.update, this)),
         mps.subscribe('channel/add', _.bind(function (did, channel) {
           this.graph.model.addChannel(did, channel);
         }, this)),
@@ -101,9 +102,18 @@ define([
     },
 
     resize: function () {
-      var height = $(window).height() - $('footer').height() - this.$el.offset().top;
+      var height = $(window).height() - $('footer').height()
+          - this.$el.offset().top;
       height = Math.max(height, 605);
       this.$el.css({height: height});
+    },
+
+    update: function (did) {
+      var state = store.get('state');
+      state.datasets = _.reject(state.datasets, function (_did) {
+        return _did === did;
+      });
+      store.set('state', state);
     },
 
   });
