@@ -80,14 +80,18 @@ define([
 
     toggle: function (e) {
       if (e) e.preventDefault();
+      var state = store.get('state');
       if (this.$el.hasClass('active')) {
         if (this.channels) this.channels.active = false;
         this.$el.removeClass('active');
+        state.datasets[this.model.id].open = false;
       } else {
         if (this.channels)
           this.channels.active = true;
         this.$el.addClass('active');
+        state.datasets[this.model.id].open = true;
       }
+      store.set('state', state);
       return false;
     },
 
@@ -109,6 +113,13 @@ define([
           items: channels,
           parentView: this
         });
+
+        // Check if was open.
+        if (store.get('state').datasets[this.model.id].open) {
+          this.channels.active = true;
+          this.channels.expand(true);
+          this.$el.addClass('active');
+        }
       }, this));
     },
 
