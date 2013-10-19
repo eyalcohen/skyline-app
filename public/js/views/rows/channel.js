@@ -15,7 +15,7 @@ define([
     active: false,
 
     attributes: function () {
-      return _.defaults({class: 'channel'},
+      return _.defaults({class: 'channel hide'},
           Row.prototype.attributes.call(this));
     },
 
@@ -41,6 +41,24 @@ define([
 
       // Bind click event.
       this.button.click(_.bind(this.toggle, this));
+
+      // Check if active in state.
+      var state = store.get('state');
+      _.each(state.datasets, _.bind(function (d) {
+        if (d.channels && d.channels[this.model.id]) {
+          var c = d.channels[this.model.id];
+          var v = this.model.get('val');
+          v.colorNum = c.colorNum;
+          v.yaxisNum = c.yaxisNum;
+          this.model.set('val', v);
+          mps.publish('channel/add', [this.model.get('did'), v]);
+          this.active = true;
+          this.$el.addClass('active').show();
+        }
+      }, this));
+
+      // Initial fit.
+      this.fit(this.$el.width());
 
       return Row.prototype.setup.call(this);
     },
@@ -99,19 +117,19 @@ define([
       }
     },
 
-    added: function (channel) {
+    added: function (did, channel) {
       if (this.model.id !== channel.channelName) return;
 
       // Set colors.
-      var color = this.app.colors[channel.colorNum % this.app.colors.length];
+      var color = this.app.colors[channel.colorNum];
       this.$el.css({
         backgroundColor: color,
         borderColor: color
       });
-      this.$el.addClass('active');
+      // this.$el.addClass('active');
     },
 
-    removed: function (channel) {
+    removed: function (did, channel) {
       if (this.model.id !== channel.channelName) return;
 
       // Set colors.
@@ -119,7 +137,7 @@ define([
         backgroundColor: 'transparent',
         borderColor: '#d0d0d0'
       });
-      this.$el.removeClass('active');
+      // this.$el.removeClass('active');
     },
 
     destroy: function () {

@@ -31,7 +31,9 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('chart/datasets/new', _.bind(this.collect, this))
+        mps.subscribe('chart/datasets/new', _.bind(this.collect, this)),
+        mps.subscribe('channel/added', _.bind(this.channelAdded, this)),
+        mps.subscribe('channel/removed', _.bind(this.channelRemoved, this)),
       ];
 
       // Socket subscriptions
@@ -44,7 +46,6 @@ define([
       items.sort(function(a, b) {
         return stored[a.id].index - stored[b.id].index;
       });
-
       this.collection.reset(items);
     },
 
@@ -104,6 +105,22 @@ define([
         }
         this.collection.push(dataset);
       }, this));
+    },
+
+    channelAdded: function (did, channel) {
+      var state = store.get('state');
+      if (!state.datasets[did].channels)
+        state.datasets[did].channels = {};
+      state.datasets[did].channels[channel.channelName] = channel;
+      store.set('state', state);
+    },
+
+    channelRemoved: function (did, channel) {
+      var state = store.get('state');
+      delete state.datasets[did].channels[channel.channelName];
+      if (_.isEmpty(state.datasets[did].channels))
+        delete state.datasets[did].channels;
+      store.set('state', state);
     },
 
     fit: function (w) {

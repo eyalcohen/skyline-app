@@ -27,10 +27,7 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Client-wide subscriptions
-      this.subscriptions = [
-        mps.subscribe('channel/added', _.bind(this.added, this)),
-        mps.subscribe('channel/removed', _.bind(this.removed, this)),
-      ];
+      this.subscriptions = [];
 
       // Socket subscriptions
       //
@@ -46,6 +43,9 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 150));
       $(window).resize(_.debounce(_.bind(this.resize, this), 300));
+
+      // Show this now.
+      this.$el.show();
 
       return List.prototype.setup.call(this);
     },
@@ -70,20 +70,6 @@ define([
       _.each(this.views, function (v) {
         v.fit(w);
       });
-    },
-
-    added: function (channel) {
-      if (!_.find(this.views, function (v) {
-        return v.model.id === channel.channelName;
-      })) return;
-      //
-    },
-
-    removed: function (channel) {
-      if (!_.find(this.views, function (v) {
-        return v.model.id === channel.channelName;
-      })) return;
-      //
     },
 
     expand: function (active) {

@@ -36,10 +36,8 @@ define([
 
       // Expand / collapse.
       this.$el.bind('mouseenter', _.bind(function (e) {
-        if (this.channels) {
-          this.channels.$el.show();
+        if (this.channels)
           this.channels.expand(true);
-        }
       }, this));
       this.$el.bind('mouseleave', _.bind(function (e) {
         if (this.channels) this.channels.collapse();

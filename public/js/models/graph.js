@@ -136,20 +136,20 @@ define([
           return;
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
-        if (!channel.colorNum) {
+        if (channel.colorNum === undefined) {
           var usedColors = _.pluck(self.getChannels(), 'colorNum');
-          for (var c = 0; _.include(usedColors, c); ++c) { }
+          for (var c = 0; _.include(usedColors, c); ++c) {}
           channel.colorNum = c;
         }
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
         client.channels.push(channel);
-        mps.publish('channel/added', [channel]);
+        mps.publish('channel/added', [datasetId, channel]);
         console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription(client);
-      mps.publish('view/save/status', [true]);
+      // mps.publish('view/save/status', [true]);
       return self;
     },
 
@@ -160,11 +160,12 @@ define([
                           .indexOf(channel.channelName);
       if (index === -1) return;
       client.channels.splice(index, 1);
-      mps.publish('channel/removed', [channel]);
+      channel.did = datasetId;
+      mps.publish('channel/removed', [datasetId, channel]);
       console.log('removeChannel(', channel, ')...');
       self.updateCacheSubscription(client);
-      if (this.getChannels().length === 0)
-        mps.publish('view/save/status', [false]);
+      // if (this.getChannels().length === 0)
+      //   mps.publish('view/save/status', [false]);
       return self;
     },
 
