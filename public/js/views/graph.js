@@ -489,7 +489,7 @@ define([
       series.forEach(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = self.highlightedChannel === channel.channelName;
-        var color = self.app.colors[channel.colorNum % self.app.colors.length];
+        var color = self.app.colors[channel.colorNum];
         s.originalColor = color;
         if (self.highlightedChannel && !highlighted) {
           // Lighten color.

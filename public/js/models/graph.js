@@ -17,12 +17,18 @@ define([
       this.app = app;
       this.view = view;
       this.clients = [];
-      this.set('visibleTime', this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length > 0
-          ? this.app.profile.content.datasets.items[0].meta: {
-        beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
-        end: Date.now() * 1e3,
-      });
+      var time;
+      if (store.get('state').time)
+        time = store.get('state').time;
+      else if (this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length > 0)
+        time = this.app.profile.content.datasets.items[0].meta;
+      else
+        time = {
+          beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
+          end: Date.now() * 1e3,
+        };
+      this.set('visibleTime', time);
       this.cache = new Cache(this.app);
       this.set({channels: []});
       this.sampleSet = {};
@@ -30,6 +36,10 @@ define([
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
+        this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
+        var state = store.get('state');
+        state.time = visibleTime;
+        store.set('state', state);
       }, this));
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
 
@@ -89,10 +99,6 @@ define([
       }
     },
 
-    visibleTimeChanged: function (model, visibleTime) {
-      this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
-    },
-
     getChannels: function () {
       var channels = [];
       _.each(this.clients, function (client) {
@@ -136,20 +142,20 @@ define([
           return;
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
-        if (!channel.colorNum) {
+        if (channel.colorNum === undefined) {
           var usedColors = _.pluck(self.getChannels(), 'colorNum');
-          for (var c = 0; _.include(usedColors, c); ++c) { }
+          for (var c = 0; _.include(usedColors, c); ++c) {}
           channel.colorNum = c;
         }
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
         client.channels.push(channel);
-        mps.publish('channel/added', [channel]);
+        mps.publish('channel/added', [datasetId, channel]);
         console.log('addChannel(', channel, ')...');
       });
       self.updateCacheSubscription(client);
-      mps.publish('view/save/status', [true]);
+      // mps.publish('view/save/status', [true]);
       return self;
     },
 
@@ -160,11 +166,12 @@ define([
                           .indexOf(channel.channelName);
       if (index === -1) return;
       client.channels.splice(index, 1);
-      mps.publish('channel/removed', [channel]);
+      channel.did = datasetId;
+      mps.publish('channel/removed', [datasetId, channel]);
       console.log('removeChannel(', channel, ')...');
       self.updateCacheSubscription(client);
-      if (this.getChannels().length === 0)
-        mps.publish('view/save/status', [false]);
+      // if (this.getChannels().length === 0)
+      //   mps.publish('view/save/status', [false]);
       return self;
     },
 

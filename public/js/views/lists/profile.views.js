@@ -7,12 +7,11 @@ define([
   'Underscore',
   'views/boiler/list',
   'mps',
-  'rpc',
   'util',
   'text!../../../templates/lists/profile.views.html',
   'collections/views',
   'views/rows/profile.view'
-], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
+], function ($, _, List, mps, util, template, Collection, Row, Spin) {
   return List.extend({
     
     el: 'div.profile-views',
@@ -61,8 +60,9 @@ define([
 
       if (view) {
         this.views.splice(index, 1);
-        view._remove();
-        this.collection.remove(view.model);
+        view._remove(_.bind(function () {
+          this.collection.remove(view.model);
+        }, this));
       }
     },
 

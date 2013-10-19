@@ -371,6 +371,10 @@ input[type=submit] {
   transition-duration: 100ms;
 }
 
+input[type=submit] {
+  height: 32px;
+}
+
 a.button:hover,
 div[role=button]:hover,
 input[type='submit']:hover {
@@ -393,37 +397,6 @@ input[type=submit]:focus {
   border: 1px solid #98c1e6;
 }
 
-div[role=button].disabled {
-  color: #AAA;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-div[role=button].disabled:hover {
-  -moz-box-shadow: 0 0 0px rgba(0, 0, 0, 0.0);
-  -webkit-box-shadow: 0 0 0px rgba(0, 0, 0, 0.0);
-  box-shadow: 0 0 0px rgba(0, 0, 0, 0.05);
-}
-
-div[role=button].disabled:active {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-div[role=button] > div {
-  background: url(/graphics/line-chart.png) no-repeat;
-  width: 18px;
-  height: 23px;
-  display: inline-block;
-  vertical-align: -7px;
-}
-
-div[role=button].little {
-  font-size: 10px;
-  padding: 0 6px;
-  height: 17px;
-  line-height: 17px;
-  min-width: 28px;
-}
-
 input[type="checkbox"],
 input[type="radio"] {
   margin: 0 5px 0 0;
@@ -438,11 +411,56 @@ input::-moz-focus-inner, textarea::-moz-focus-inner {
   border: none;
 }
 
+input[type="submit"][disabled="disabled"] {
+  opacity: 0.5;
+
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+a.button.loading,
+div[role=button].loading,
+input[type=submit].loading {
+  color: transparent;
+}
+
+/*.........................................................................*/
+
 input.input-error {
   border: 1px solid rgba(255,0,0,0.4) !important;
 }
 
-/*.........................................................................*/
+input.file-input {
+  position: absolute;
+  z-index: 10;
+  opacity: 0;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 22px;
+  padding: 0;
+  cursor: text;
+}
+
+span.empty-feed {
+  display: inline-block;
+  width: 100%;
+  margin: 10px 0;
+  font-style: italic;
+  color: #808080;
+  text-align: center;
+  font-size: 10px;
+}
+
+span.empty-list {
+  display: inline-block;
+  margin: 0 0 10px 0;
+  font-style: italic;
+  color: #808080;
+  line-height: 18px;
+  font-size: 10px;
+}
 
 .list-spin {
   width: 100%;
@@ -457,6 +475,12 @@ input.input-error {
   width: 50px;
   height: 40px;
   margin: 0 auto;
+}
+
+.button-spin {
+  position: absolute;
+  top: 16px;
+  left: 50%;
 }
 
 .http-error {
@@ -487,10 +511,93 @@ input.input-error {
   margin-bottom: 23px;
 }
 
+/*.........................................................................*/
+
+.block-messages {
+  position: absolute;
+  z-index: 10;
+  right: 334px;
+  top: 0;
+  width: 700px;
+  white-space: nowrap;
+}
+
+.block-remove {
+  float: right;
+  cursor: pointer;
+  padding: 0 10px;
+  line-height: 60px;
+  color: #4f4f4f;
+  font-size: 14px;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.block-remove:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.block-remove:active {
+  background: rgba(0,0,0,0.08);
+}
+
+.block-messages li {
+  position: relative;
+  list-style-type: none;
+  border-left: 1px solid #d0d0d0;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.block-error {
+  background: #efefef;
+}
+
+.block-alert {
+  background: rgba(118, 214, 118, 0.2);
+}
+
+.block-error-txt,
+.block-alert-txt {
+  font-size: 10px;
+  padding: 0 10px;
+  color: #3f3f3f;
+  font-weight: 700;
+  line-height: 60px;
+}
+
+.block-error-txt {
+  color: #cc0f0f;
+}
+
+.block-error-txt a {
+  color: #0f0f0f;
+}
+
+.block-error-txt a:hover {
+  text-decoration: underline;
+}
+
+/*.........................................................................*/
+
 .header {
   width: 800px;
   height: 50px;
   margin: 0 auto;
+  min-width: 430px;
 }
 
 .header.wide {
@@ -574,7 +681,7 @@ a.header-action:active {
   padding-right: 10px;
 }
 
-.header a.add-data {
+.header a.add-data-button {
   margin-left: 20px;
   background: rgba(39, 205, 214, 0.8);
   color: #fff;
@@ -582,7 +689,7 @@ a.header-action:active {
   font-size: 14px;
 }
 
-.header a.add-data:active {
+.header a.add-data-button:active {
   background: rgba(39, 205, 214, 1);
 }
 
@@ -602,37 +709,73 @@ a.header-action:active {
 
 /*.........................................................................*/
 
+.modal-inner {
+  position: relative;
+  padding: 20px 20px 0;
+}
+
+.modal-inner td {
+  position: relative;
+}
+
+.modal-inner td:first-child {
+  padding-right: 10px;
+}
+
+.modal-inner input {
+  width: 100%;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+}
+
+.modal-inner-narrow {
+  padding: 50px;
+}
+
+.modal-title {
+  background: #2f2f2f;
+  color: #fff;
+  display: block;
+  font-size: 11px;
+  padding: 0 5px;
+  font-weight: 700;
+}
+
+.modal-heading {
+  font-size: 12px;
+  line-height: 40px;
+  display: block;
+  color: #6f6f6f;
+}
+
+.modal-error {
+  display: block;
+  color: #cc0f0f;
+  font-size: 11px;
+  text-align: left;
+}
+
+/*.........................................................................*/
+
 .signin {
   width: 400px;
   position: relative;
   overflow: hidden;
   background: #e6e6e6;
+
   -webkit-border-radius: 3px;
-     -moz-border-radius: 3px;
-          border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
 
-.signin-inner,
-.save-inner {
-  position: relative;
-  padding: 50px;
+.signin-inner {
   height: 456px;
 }
 
 .save-inner {
   height: 82px;
-}
-
-.signin-inner input[type="text"],
-.signin-inner input[type="password"],
-.save-inner input[type="text"],
-.save-inner input[type="password"] {
-  width: 274px;
-}
-
-.signin-inner td,
-.save-inner td {
-  vertical-align: middle;
 }
 
 .signin-error,
@@ -697,20 +840,32 @@ a.google-button {
   width: 100%;
 }
 
-.profile td {
-  width: 170px;
-  padding: 30px 20px;
+.profile td,
+.browser td {
   text-align: center;
   white-space: nowrap;
 }
 
-.profile td.main-cell {
+.profile td {
+  width: 170px;
+  padding: 30px 20px;
+}
+
+.browser .profile-datasets td {
+  width: 120px;
+  padding: 10px 15px;
+  font-size: 11px;
+}
+
+.profile td.main-cell,
+.browser td.main-cell {
   position: relative;
   width: inherit;
   text-align: left;
 }
 
-.profile tr.list-header {
+.profile tr.list-header,
+.browser tr.list-header {
   text-transform: uppercase;
   font-size: 10px;
   color: #8f8f8f;
@@ -722,14 +877,30 @@ a.google-button {
   padding: 20px;
 }
 
+.browser tr.list-header td {
+  padding: 5px 0;
+  font-size: 10px;
+}
+
 .profile tr.list-header td.main-cell {
   padding-left: 70px;
   font-size: 14px;
 }
 
+.browser tr.list-header td.main-cell {
+  padding-left: 40px;
+}
+
 .profile-datasets,
 .profile-views {
+  min-height: 72px;
   background: #f1f1f1;
+}
+
+.browser .profile-datasets {
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
 }
 
 .profile-dataset,
@@ -753,14 +924,9 @@ a.google-button {
   animation-fill-mode: both;
 }
 
-.profile-dataset:last-child,
-.profile-view:last-child {
-  /*border: none;*/
-}
-
 .profile-dataset:hover,
 .profile-view:hover {
-  background: #efefef;
+  background: #dfdfdf;
 }
 
 .profile-avatar {
@@ -772,10 +938,19 @@ a.google-button {
   border-right: 1px solid #d0d0d0;
 }
 
+.browser .profile-avatar {
+  width: 30px;
+  height: 30px;
+}
+
 .profile-item-title {
   display: block;
   font-size: 16px;
   color: #3f3f3f;
+}
+
+.browser .profile-item-title {
+  font-size: 11px;
 }
 
 .profile-item-title [class^="icon-"]:before, [class*=" icon-"]:before {
@@ -789,37 +964,16 @@ a.google-button {
   font-size: 0;
 }
 
+.browser .profile-item-stats {
+  display: none;
+}
+
 .profile-item-stats span {
   margin: 0 12px 0 0;
   color: #8f8f8f;
   font-weight: bold;
   font-size: 10px;
 }
-
-/*.profile-item-spin {
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  position: absolute;
-  z-index: 1;
-  background: rgba(255,255,255,0.8);
-
-  display: -webkit-box;
-  -webkit-box-orient: horizontal;
-  -webkit-box-pack: center;
-  -webkit-box-align: center;
-
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  -moz-box-pack: center;
-  -moz-box-align: center;
-
-  display: box;
-  box-orient: horizontal;
-  box-pack: center;
-  box-align: center;
-}*/
 
 /*.........................................................................*/
 
@@ -843,6 +997,7 @@ a.google-button {
   height: 33px;
   background: #f9f9f9;
   border-bottom: 1px solid #d0d0d0;
+  white-space: nowrap;
 
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -853,7 +1008,10 @@ a.google-button {
 }
 
 .controls {
-  float: right;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
 }
 
 a.control-button {
@@ -868,18 +1026,28 @@ a.control-button {
   font-size: 11px;
   color: #3f3f3f;
   font-weight: 700;
+  background: #f9f9f9;
+}
+
+a.control-button:hover {
+  color: #3f3f3f;
+}
+
+a.control-button:active {
+  background: #f0f0f0;
 }
 
 .side-panel {
   position: absolute;
   z-index: 11;
-  top: 34px;
+  top: 33px;
   bottom: 270px;
   right: -250px;
   width: 250px;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
+  border-top: 1px solid #d0d0d0;
 }
 
 .side-panel.animated {
@@ -952,9 +1120,17 @@ a.control-button {
 
 /*.........................................................................*/
 
+.datasets {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 0;
+}
+
 .dataset {
   position: relative;
-  float: left;
+  display: inline-block;
   margin-top: -1px;
   height: 35px;
   border-right: 1px solid #d0d0d0;
@@ -975,13 +1151,37 @@ a.control-button {
   border-radius: 2px;
 }
 
+.dataset-remove {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+  cursor: pointer;
+  padding: 0 10px;
+  line-height: 35px;
+  color: #4f4f4f;
+  font-size: 11px;
+}
+
+.dataset.active .dataset-remove {
+  color: #fff;
+}
+
+.dataset-remove:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.dataset-remove:active {
+  background: rgba(0,0,0,0.07);
+}
+
 a.dataset-button {
   display: block;
   position: relative;
   height: 35px;
   width: 200px;
   margin-left: 33px;
-  padding-right: 40px;
+  margin-right: 40px;
   background: none;
 
   -moz-transition-timing-function: ease-out;
@@ -1034,7 +1234,8 @@ a.dataset-button .dataset-button-bg {
   z-index: 1;
   display: block;
   margin-left: 6px;
-  line-height: 4px;
+  margin-top: -1px;
+  line-height: 0;
   font-size: 9px;
   text-transform: lowercase;
   color: #3f3f3f;
@@ -1051,7 +1252,8 @@ a.dataset-button .dataset-button-bg {
 }
 
 a.dataset-add-button {
-  float: left;
+  position: absolute;
+  display: inline-block;
   color: #8f8f8f;
   font-size: 16px;
   line-height: 33px;
@@ -1066,18 +1268,24 @@ a.dataset-add-button:hover {
 }
 
 a.dataset-add-button:active {
-  background: #d0d0d0;
+  background: #f0f0f0;
 }
 
-.channels {
-  display: none;
+.channels-wrap {
   position: absolute;
   z-index: 12;
   left: 33px;
   right: 0;
   top: 35px;
-  width: 239px;
+  width: 241px;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: rgba(249,249,249,0.8);
+}
+
+.channels {
+  display: none;
+  width: 239px;
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
 
@@ -1105,6 +1313,13 @@ a.dataset-add-button:active {
   border-left-width: 1px;
   border-right-width: 1px;
   border-bottom-width: 1px;
+  opacity: 1;
+
+  -webkit-transition: opacity 0.25s;
+  -moz-transition: opacity 0.25s;
+  -ms-transition: opacity 0.25s;
+  -o-transition: opacity 0.25s;
+  transition: opacity 0.25s;
 }
 
 .channel:hover {
@@ -1121,24 +1336,85 @@ a.dataset-add-button:active {
 
 a.channel-button {
   display: block;
-  padding: 5px 4px;
+  padding: 7px 4px 2px;
   background: none;
   white-space: nowrap;
 }
 
-.channel-title {
+.channel-name {
   font-size: 11px;
   color: #3f3f3f;
 }
 
-.channel:not(.active) a.channel-button:hover .channel-title {
+.channel:not(.active) a.channel-button:hover .channel-name {
   color: #0f0f0f;
 }
 
-.channel.active .channel-title {
+.channel.active .channel-name {
   color: #fff;
 }
 
+/*.........................................................................*/
+
+.browser.library {
+  height: 500px;
+  overflow: hidden;
+}
+
+.browser-inner {
+  width: 660px;
+}
+
+.browser-inner form {
+  margin-bottom: 20px;
+}
+
+.browser-datasets {
+  overflow-y: auto;
+  height: 317px;
+  border-top: 1px solid #d0d0d0;
+}
+
+.browser .dnd {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  background: rgba(39, 205, 214, 0.25);
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.browser.dragging .dnd {
+  display: block;
+}
+
+.browser .dnd i {
+  display: block;
+  margin: 0 auto;
+  line-height: 142px;
+  font-size: 48px;
+  width: 70px;
+  color: #2f2f2f;
+}
+
+.browser.library .dnd i {
+  line-height: 500px;
+}
 
 /*.........................................................................*/
 /*.........................................................................*/

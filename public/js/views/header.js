@@ -6,11 +6,12 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'mps'
-], function ($, _, Backbone, mps) {
+  'mps',
+  'views/lists/flashes'
+], function ($, _, Backbone, mps, Flashes) {
   return Backbone.View.extend({
 
-    el: 'div.header',
+    el: '.header',
 
     initialize: function (app) {
 
@@ -53,6 +54,10 @@ define([
             _.bind(this.logout, this)));
       }
 
+      // Start block messages.
+      if(!this.flashes)
+        this.flashes = new Flashes(this.app);
+
       // For graph titles...
       this.subscriptions.push(mps.subscribe('title/set',
             _.bind(this.title, this)));
@@ -60,10 +65,10 @@ define([
 
     // Bind mouse events.
     events: {
-      'click #logo': 'home',
-      'click #signin': 'signin',
-      'click #username': 'username',
-      'click #settings': 'settings'
+      'click .signin-button': 'signin',
+      'click .username': 'username',
+      'click .add-data-button': 'add',
+      'click .navigate': 'navigate'
     },
 
     home: function (e) {
@@ -88,19 +93,19 @@ define([
           {trigger: true});
     },
 
-    save: function (e) {
+    add: function (e) {
       e.preventDefault();
 
-      // Render the save view.
-      mps.publish('view/save/open');
+      // Render the browser view.
+      mps.publish('modal/browser/open');
     },
 
-    settings: function (e) {
-      e.preventDefault();
+    // save: function (e) {
+    //   e.preventDefault();
 
-      // Route to settings.
-      this.app.router.navigate('/settings', {trigger: true});
-    },
+    //   // Render the save view.
+    //   mps.publish('view/save/open');
+    // },
 
     logout: function () {
       _.each(this.subscriptions, function (s) {
@@ -115,6 +120,15 @@ define([
 
     title: function (str) {
       this.$('.header-title').html(str);
+    },
+
+    navigate: function (e) {
+      e.preventDefault();
+
+      // Route to wherever.
+      var path = $(e.target).closest('a').attr('href');
+      if (path)
+        this.app.router.navigate(path, {trigger: true});
     },
 
   });

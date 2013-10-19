@@ -36,15 +36,55 @@ define([
 
       // Save refs.
       this.button = this.$('a.channel-button');
+      this.name = this.$('.channel-name', this.button);
+      this.txt = this.$('.channel-name span');
 
       // Bind click event.
       this.button.click(_.bind(this.toggle, this));
+
+      // Check if active in state.
+      var state = store.get('state');
+      _.each(state.datasets, _.bind(function (d) {
+        if (d.channels && d.channels[this.model.id]) {
+          var c = d.channels[this.model.id];
+          var v = this.model.get('val');
+          v.colorNum = c.colorNum;
+          v.yaxisNum = c.yaxisNum;
+          this.model.set('val', v);
+          mps.publish('channel/add', [this.model.get('did'), v]);
+          this.active = true;
+          this.$el.addClass('active').show();
+        }
+      }, this));
+
+      // Initial fit.
+      this.fit(this.$el.width());
 
       return Row.prototype.setup.call(this);
     },
 
     events: {
 
+    },
+
+    fit: function (w) {
+      this.$el.width(w);
+      this.fitName(w - 20);
+    },
+
+    fitName: function (w) {
+      var txt = this.model.name();
+      this.txt.text(txt);
+      var tw = this.name.outerWidth();
+      if (tw >= w) {
+        var len = txt.length;
+        var i = 1;
+        while (tw >= w) {
+          this.txt.text(txt.substr(0, len - i) + '...');
+          tw = this.name.outerWidth();
+          ++i;
+        }
+      }
     },
 
     toggle: function (e) {
@@ -64,33 +104,32 @@ define([
     },
 
     expand: function () {
-      if (!this.$el.hasClass('active'))
+      if (!this.$el.hasClass('active')) {
         this.$el.slideDown('fast');
+        this.$el.css({opacity: 1});
+      }
     },
 
     collapse: function () {
-      if (!this.$el.hasClass('active'))
+      if (!this.$el.hasClass('active')) {
         this.$el.slideUp('fast');
+        this.$el.css({opacity: 0});
+      }
     },
 
-    added: function (channel) {
+    added: function (did, channel) {
       if (this.model.id !== channel.channelName) return;
 
       // Set colors.
-      var color = this.app.colors[channel.colorNum % this.app.colors.length];
+      var color = this.app.colors[channel.colorNum];
       this.$el.css({
         backgroundColor: color,
         borderColor: color
       });
-      this.$el.addClass('active');
-
-      // Find prev child.
-      // var i = this.model.collection.indexOf(this.model);
-      // if (i === 0) return;
-      // this.parentView.views[i-1].styleAsSibling(color);
+      // this.$el.addClass('active');
     },
 
-    removed: function (channel) {
+    removed: function (did, channel) {
       if (this.model.id !== channel.channelName) return;
 
       // Set colors.
@@ -98,28 +137,22 @@ define([
         backgroundColor: 'transparent',
         borderColor: '#d0d0d0'
       });
-      this.$el.removeClass('active');
-
-      // Find prev child.
-      // var i = this.model.collection.indexOf(this.model);
-      // if (i === 0) return;
-      // this.parentView.views[i-1].unStyleAsSibling();
+      // this.$el.removeClass('active');
     },
 
-    // styleAsSibling: function (color) {
-    //   if (!this.active)
-    //     this.$el.css({borderBottomColor: color});
-    // },
+    destroy: function () {
+      Row.prototype.destroy.call(this);
+      
+      // Remove channel from graph.
+      mps.publish('channel/remove', [this.model.get('did'),
+          this.model.get('val')]);
+    },
 
-    // unStyleAsSibling: function () {
-    //   if (!this.active)
-    //     this.$el.css({borderBottomColor: '#d0d0d0'});
-    //   // else
-    // },
-
-    _remove: function () {
-      clearInterval(this.timer);
-      this.destroy();
+    _remove: function (cb) {
+      this.$el.slideUp('fast', _.bind(function () {
+        this.destroy();
+        cb();
+      }, this));
     },
 
   });

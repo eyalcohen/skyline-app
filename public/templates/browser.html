@@ -1,0 +1,54 @@
+<%
+  var lib = this.options.lib;
+%>
+
+<div class="dnd"><i class="icon-inbox-1"></i></div>
+<span class="modal-title">
+  Add data
+</span>
+<div class="browser-inner modal-inner">
+  <div>
+    <span class="modal-heading">
+      <% if (lib) { %>
+        a) Create a new data source from a file on your computer
+      <% } else { %>
+        Add data from a file on your computer
+      <% } %>
+    </span>
+    <form class="browser-add-form" enctype="multipart/form-data" method="POST">
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <input name="dummy_data_file" type="text" placeholder="Select file..." />
+              <input name="data_file" type="file" class="file-input" />
+            </td>
+            <td>
+              <input type="submit" disabled="disabled" value="Create new" />
+              <div class="button-spin"></div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <span class="modal-error"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+    <% if (lib) { %>
+      <span class="modal-heading">
+        b) Use an existing data source
+      </span>  
+    <% } %>
+  </div>
+</div>
+<% if (lib) { %>
+  <div class="browser-datasets">
+    <div class="profile-datasets"></div>
+    <div class="list-spin">
+      <div class="profile-datasets-spin"></div>
+      <span class="empty-feed">Showing all.</span>
+    </div>
+  </div>  
+<% } %>

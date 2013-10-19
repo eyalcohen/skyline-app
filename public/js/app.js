@@ -28,7 +28,6 @@ define([
       "#27CDD6",  // Dark cyan
       "#cb4b4b",  // Dark red
       "#76D676",  // Light green
-      "#B2B848",  // Dark yellow
       "#8171E3",  // Violet
       "#47A890",  // Dark teal
       "#E8913F",  // Orange

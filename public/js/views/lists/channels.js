@@ -7,15 +7,14 @@ define([
   'Underscore',
   'views/boiler/list',
   'mps',
-  'rpc',
   'util',
   'text!../../../templates/lists/channels.html',
   'collections/channels',
   'views/rows/channel'
-], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
+], function ($, _, List, mps, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: 'div.channels',
+    el: '.channels',
     working: false,
     active: false,
 
@@ -28,10 +27,7 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Client-wide subscriptions
-      this.subscriptions = [
-        mps.subscribe('channel/added', _.bind(this.added, this)),
-        mps.subscribe('channel/removed', _.bind(this.removed, this)),
-      ];
+      this.subscriptions = [];
 
       // Socket subscriptions
       //
@@ -48,6 +44,9 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 150));
       $(window).resize(_.debounce(_.bind(this.resize, this), 300));
 
+      // Show this now.
+      this.$el.show();
+
       return List.prototype.setup.call(this);
     },
 
@@ -56,30 +55,26 @@ define([
       
     },
 
-    resize: function (active) {
+    resize: function (e, active) {
       if (this.active || active)
-        this.$el.height($('div.graphs').height());
+        this.$el.height($('.graphs').height());
       else
         this.$el.height('auto');
+      this.fit();
     },
 
-    added: function (channel) {
-      if (!_.find(this.views, function (v) {
-        return v.model.id === channel.channelName;
-      })) return;
-      //
-    },
-
-    removed: function (channel) {
-      if (!_.find(this.views, function (v) {
-        return v.model.id === channel.channelName;
-      })) return;
-      //
+    fit: function () {
+      w = this.parentView.$el.width() - 34;
+      this.$el.width(w);
+      this.$el.parent().width(w + 2);
+      _.each(this.views, function (v) {
+        v.fit(w);
+      });
     },
 
     expand: function (active) {
       _.each(this.views, function (v) { v.expand(); });
-      this.resize(active);
+      this.resize(null, active);
     },
 
     collapse: function () {
@@ -97,8 +92,9 @@ define([
 
       if (view) {
         this.views.splice(index, 1);
-        view._remove();
-        this.collection.remove(view.model);
+        view._remove(_.bind(function () {
+          this.collection.remove(view.model);
+        }, this));
       }
     },
 

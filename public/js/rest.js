@@ -1,5 +1,5 @@
 /*
- * Async execution of RPCs to the server.
+ * Async REST.
  */
 
 define([

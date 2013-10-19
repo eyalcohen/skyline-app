@@ -5,10 +5,11 @@
 define([
   'jQuery',
   'Underscore',
+  'mps',
   'views/boiler/row',
   'text!../../../templates/rows/profile.dataset.html',
   'Spin'
-], function ($, _, Row, template, Spin) {
+], function ($, _, mps, Row, template, Spin) {
   return Row.extend({
 
     tagName: 'tr',
@@ -52,18 +53,31 @@ define([
       e.preventDefault();
 
       if (this.model.get('id') === -1) return false;
-      store.set('state', {
-        user_id: this.app.profile.user.id,
-        datasets: [this.model.get('id')],
-      });
+      if (!this.parentView.modal) {
+        
+        // Set app state.
+        var state = {user_id: this.app.profile.user.id};
+        state.datasets = {};
+        state.datasets[this.model.get('id')] = {index: 0};
+        store.set('state', state);
+        
+        // Route to a new chart.
+        this.app.router.navigate('/chart', {trigger: true});
+      } else {
 
-      // Route to wherever.
-      this.app.router.navigate('/chart', {trigger: true});
+        // Add this dataset to the existing chart.
+        mps.publish('chart/datasets/new', [this.model.get('id')]);  
+        
+        // Close the modal.
+        $.fancybox.close();
+      }
     },
 
-    _remove: function () {
-      clearInterval(this.timer);
-      this.destroy();
+    _remove: function (cb) {
+      this.$el.slideUp('fast', _.bind(function () {
+        this.destroy();
+        cb();
+      }, this));
     },
 
   });

@@ -12,11 +12,12 @@ define([
   'views/error',
   'views/signin',
   'views/save',
+  'views/browser',
   'views/header',
   'views/home',
   'views/profile',
   'views/chart'
-], function ($, _, Backbone, mps, rest, util, Error, Signin, Save,
+], function ($, _, Backbone, mps, rest, util, Error, Signin, Save, Browser,
       Header, Home, Profile, Chart) {
 
   // Our application URL router.
@@ -48,12 +49,9 @@ define([
         this.signin = new Signin(this.app).render();
       }, this));
 
-      // Show the save modal.
-      mps.subscribe('view/save/open', _.bind(function () {
-        this.save = new Save(this.app, {
-          datasets: this.page.graph.model.getChannelsByDataset(),
-          meta: this.page.graph.getVisibleTime()
-        }).render();
+      // Show the browser modal.
+      mps.subscribe('modal/browser/open', _.bind(function (lib) {
+        this.browser = new Browser(this.app, {lib: lib}).render();
       }, this));
     },
 
@@ -127,7 +125,8 @@ define([
 
     chart: function () {
       var state = store.get('state');
-      this.render('/service/chart.profile/', {state: state}, _.bind(function (err) {
+      this.render('/service/chart.profile/', {state: state},
+          _.bind(function (err) {
         if (err) return;
         this.page = new Chart(this.app).render();
       }, this));

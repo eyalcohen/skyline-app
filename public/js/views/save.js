@@ -59,7 +59,7 @@ define([
         this.$('input').placeholder();
 
       // Init the load indicator.
-      this.spin = new Spin(this.$('#save_spin'), {
+      this.spin = new Spin(this.$('.save-spin'), {
         lines: 17, // The number of lines to draw
         length: 12, // The length of each line
         width: 4, // The line thickness
@@ -143,7 +143,7 @@ define([
       var payload = this.saveForm.serializeObject();
 
       // Client-side form check.
-      var errorMsg = $('.save-error', this.saveForm);
+      var errorMsg = $('.modal-error', this.saveForm);
       var check = util.ensure(payload, ['name']);
 
       // Add alerts.
@@ -164,7 +164,7 @@ define([
       }
 
       // All good, show spinner.
-      this.$('.save-inner > div').hide();
+      this.$('.modal-inner > div').hide();
       this.spin.start();
 
       // Add other data.
@@ -176,7 +176,7 @@ define([
 
           // Stop spinner.
           this.spin.stop();
-          this.$('.save-inner > div').show();
+          this.$('.modal-inner > div').show();
 
           // Set the error display.
           errorMsg.text(err);

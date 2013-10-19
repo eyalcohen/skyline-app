@@ -7,16 +7,15 @@ define([
   'Underscore',
   'views/boiler/list',
   'mps',
-  'rpc',
+  'rest',
   'util',
   'text!../../../templates/lists/datasets.html',
   'collections/datasets',
   'views/rows/dataset'
-], function ($, _, List, mps, rpc, util, template, Collection, Row, Spin) {
+], function ($, _, List, mps, rest, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: 'div.datasets',
-    working: false,
+    el: '.datasets',
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -26,23 +25,110 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
+      // Do work when items are added or removed.
+      this.collection.on('add', _.bind(this.added, this));
+      this.collection.on('remove', _.bind(this.removed, this));
+
       // Client-wide subscriptions
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('chart/datasets/new', _.bind(this.collect, this)),
+        mps.subscribe('channel/added', _.bind(this.channelAdded, this)),
+        mps.subscribe('channel/removed', _.bind(this.channelRemoved, this)),
+      ];
 
       // Socket subscriptions
       //
 
       // Reset the collection.
-      this.collection.reset(this.app.profile.content.datasets.items);
+      var items = this.app.profile.content.datasets ?
+          this.app.profile.content.datasets.items: [];
+      var stored = store.get('state').datasets;
+      items.sort(function(a, b) {
+        return stored[a.id].index - stored[b.id].index;
+      });
+      this.collection.reset(items);
     },
 
     setup: function () {
+
+      // Save refs.
+      this.button = this.$('.dataset-add-button');
+
       return List.prototype.setup.call(this);
     },
 
     // Bind mouse events.
     events: {
+      'click .dataset-add-button': 'add'
+    },
+
+    add: function (e) {
+      e.preventDefault();
+
+      // Render the browser view.
+      mps.publish('modal/browser/open', [true]);
+    },
+
+    added: function (d) {
+
+      // Update state.
+      var state = store.get('state');
+      state.datasets[d.id] = {index: _.size(state.datasets)};
+      store.set('state', state);
+
+      // Fit tabs
+      this.parentView.fit();
+    },
+
+    removed: function (d) {
       
+      // Update state.
+      var state = store.get('state');
+      delete state.datasets[d.id];
+      store.set('state', state);
+
+      // Fit tabs
+      this.parentView.fit();
+    },
+
+    collect: function (did) {
+
+      // Get the dataset.
+      rest.get('/api/datasets/' + did, _.bind(function (err, dataset) {
+        if (err) {
+          mps.publish('flash/new', [{
+            message: err,
+            level: 'error',
+            sticky: true
+          }]);
+          return;
+        }
+        this.collection.push(dataset);
+      }, this));
+    },
+
+    channelAdded: function (did, channel) {
+      var state = store.get('state');
+      if (!state.datasets[did].channels)
+        state.datasets[did].channels = {};
+      state.datasets[did].channels[channel.channelName] = channel;
+      store.set('state', state);
+    },
+
+    channelRemoved: function (did, channel) {
+      var state = store.get('state');
+      delete state.datasets[did].channels[channel.channelName];
+      if (_.isEmpty(state.datasets[did].channels))
+        delete state.datasets[did].channels;
+      store.set('state', state);
+    },
+
+    fit: function (w) {
+      var _w = Math.floor((w - this.button.outerWidth()) /
+          this.collection.length);
+      _.each(this.views, function (v) {
+        v.fit(_w);
+      });
     },
 
     _remove: function (data) {
@@ -54,8 +140,9 @@ define([
 
       if (view) {
         this.views.splice(index, 1);
-        view._remove();
-        this.collection.remove(view.model);
+        view._remove(_.bind(function () {
+          this.collection.remove(view.model);
+        }, this));
       }
     },
 
