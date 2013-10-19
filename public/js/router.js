@@ -125,7 +125,8 @@ define([
 
     chart: function () {
       var state = store.get('state');
-      this.render('/service/chart.profile/', {state: state}, _.bind(function (err) {
+      this.render('/service/chart.profile/', {state: state},
+          _.bind(function (err) {
         if (err) return;
         this.page = new Chart(this.app).render();
       }, this));

@@ -1252,8 +1252,7 @@ a.dataset-button .dataset-button-bg {
 }
 
 a.dataset-add-button {
-  position: relative;
-  top: -5px;
+  position: absolute;
   display: inline-block;
   color: #8f8f8f;
   font-size: 16px;

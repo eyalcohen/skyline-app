@@ -56,10 +56,10 @@ define([
       if (!this.parentView.modal) {
         
         // Set app state.
-        store.set('state', {
-          user_id: this.app.profile.user.id,
-          datasets: [this.model.get('id')],
-        });
+        var state = {user_id: this.app.profile.user.id};
+        state.datasets = {};
+        state.datasets[this.model.get('id')] = {index: 0};
+        store.set('state', state);
         
         // Route to a new chart.
         this.app.router.navigate('/chart', {trigger: true});

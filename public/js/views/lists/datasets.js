@@ -40,6 +40,11 @@ define([
       // Reset the collection.
       var items = this.app.profile.content.datasets ?
           this.app.profile.content.datasets.items: [];
+      var stored = store.get('state').datasets;
+      items.sort(function(a, b) {
+        return stored[a.id].index - stored[b.id].index;
+      });
+
       this.collection.reset(items);
     },
 
@@ -67,9 +72,10 @@ define([
 
       // Update state.
       var state = store.get('state');
-      state.datasets.push(d.id);
+      state.datasets[d.id] = {index: _.size(state.datasets)};
       store.set('state', state);
 
+      // Fit tabs
       this.parentView.fit();
     },
 
@@ -77,11 +83,10 @@ define([
       
       // Update state.
       var state = store.get('state');
-      state.datasets = _.reject(state.datasets, function (did) {
-        return did === d.id;
-      });
+      delete state.datasets[d.id];
       store.set('state', state);
 
+      // Fit tabs
       this.parentView.fit();
     },
 
