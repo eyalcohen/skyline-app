@@ -31,6 +31,7 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
+        mps.subscribe('chart/time', _.bind(this.updateTime, this)),
         mps.subscribe('channel/add', _.bind(function (did, channel) {
           this.graph.model.addChannel(did, channel);
         }, this)),
@@ -100,6 +101,10 @@ define([
       this.datasets.destroy();
       this.graph.destroy();
       this.remove();
+    },
+
+    updateTime: function (time) {
+      console.log(time)
     },
 
     resize: function () {

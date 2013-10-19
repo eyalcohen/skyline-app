@@ -17,12 +17,18 @@ define([
       this.app = app;
       this.view = view;
       this.clients = [];
-      this.set('visibleTime', this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length > 0
-          ? this.app.profile.content.datasets.items[0].meta: {
-        beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
-        end: Date.now() * 1e3,
-      });
+      var time;
+      if (store.get('state').time)
+        time = store.get('state').time;
+      else if (this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length > 0)
+        time = this.app.profile.content.datasets.items[0].meta;
+      else
+        time = {
+          beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
+          end: Date.now() * 1e3,
+        };
+      this.set('visibleTime', time);
       this.cache = new Cache(this.app);
       this.set({channels: []});
       this.sampleSet = {};
@@ -30,6 +36,10 @@ define([
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
+        this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
+        var state = store.get('state');
+        state.time = visibleTime;
+        store.set('state', state);
       }, this));
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
 
@@ -87,10 +97,6 @@ define([
             _.pluck(c.channels, 'channelName'),
             dur, this.prevRange.beg, this.prevRange.end);
       }
-    },
-
-    visibleTimeChanged: function (model, visibleTime) {
-      this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
     },
 
     getChannels: function () {
