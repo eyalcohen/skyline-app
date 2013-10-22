@@ -31,13 +31,12 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Init the load indicator.
-      this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()),
-          this.modal ? {
+      this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
         ines: 13,
         length: 3,
         width: 2,
         radius: 6,
-      }: {});
+      });
       this.spin.start();
 
       // Client-wide subscriptions
@@ -100,11 +99,11 @@ define([
       return List.prototype.destroy.call(this);
     },
 
-    collect: function (dataset) {
+    collect: function (data) {
       var user_id = this.parentView.model ?
           this.parentView.model.id: this.app.profile.user.id;
-      if (dataset.author.id === user_id)
-        this.collection.unshift(dataset);
+      if (data.author.id === user_id)
+        this.collection.unshift(data);
     },
 
     _remove: function (data) {
@@ -201,7 +200,7 @@ define([
     // init pagination
     paginate: function () {
       var wrap = this.modal ? this.$el.parent(): $(window);
-      var paginate = _.debounce(_.bind(function (e) {
+      this._paginate = _.debounce(_.bind(function (e) {
         var pos;
         if (this.modal) {
           pos = this.$el.height()
@@ -213,11 +212,11 @@ define([
           this.more();
       }, this), 50);
 
-      wrap.scroll(paginate).resize(paginate);
+      wrap.scroll(this._paginate).resize(this._paginate);
     },
 
     unpaginate: function () {
-      $(window).unbind('scroll');
+      $(window).unbind('scroll', this._paginate);
     }
 
   });

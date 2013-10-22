@@ -10,8 +10,8 @@
   </p>
 </td>
 <td>
-  <%= this.model.get('meta').dataset_cnt %> / 
-  <%= this.model.get('meta').channel_cnt %>
+  <%= this.model.countDatasets() %> / 
+  <%= this.model.countChannels() %>
 </td>
 <td>
   <time class="created" 

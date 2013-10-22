@@ -58,13 +58,17 @@ define([
     // Misc. setup.
     setup: function () {
 
-      // Render datasets and views.
+      // Render lists.
       this.datasets = new Datasets(this.app, {
         datasets: this.app.profile.content.datasets,
         parentView: this,
         reverse: true
       });
-      this.views = new Views(this.app, {parentView: this, reverse: true});
+      this.views = new Views(this.app, {
+        views: this.app.profile.content.views,
+        parentView: this, 
+        reverse: true
+      });
 
       return this;
     },

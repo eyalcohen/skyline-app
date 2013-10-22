@@ -5,10 +5,10 @@
 define([
   'jQuery',
   'Underscore',
+  'mps',
   'views/boiler/row',
-  'text!../../../templates/rows/profile.view.html',
-  'Spin'
-], function ($, _, Row, template, Spin) {
+  'text!../../../templates/rows/profile.view.html'
+], function ($, _, mps, Row, template) {
   return Row.extend({
 
     tagName: 'tr',
@@ -25,30 +25,23 @@ define([
     },
 
     setup: function () {
-
-      // Init the load indicator.
-      this.spin = new Spin(this.$('.profile-item-spin'));
-      this.spin.target.hide();
-
-      // Start the spinner.
-      if (this.model.get('id') === -1)
-        this.spin.start();
-
       return Row.prototype.setup.call(this);
     },
 
     events: {
-      'click a.navigate': 'navigate',
+      'click': 'navigate',
     },
 
     navigate: function (e) {
       e.preventDefault();
-      return false;
 
-      // Route to wherever.
-      // var path = $(e.target).closest('a').attr('href');
-      // if (path)
-      //   this.app.router.navigate(path, {trigger: true});
+      // Set app state.
+      var state = this.model.attributes;
+      state.user_id = this.app.profile.user.id;
+      store.set('state', state);
+      
+      // Route to a new chart.
+      this.app.router.navigate('/chart', {trigger: true});
     },
 
     _remove: function (cb) {

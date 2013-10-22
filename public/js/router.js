@@ -29,7 +29,7 @@ define([
       this.app = app;
 
       // Page routes
-      this.route(':username/views/:slug', 'view', this.view);
+      this.route(':username/views/:slug', 'view', this.chart);
       this.route(':username', 'profile', this.profile);
       this.route('chart', 'chart', this.chart);
       this.route('', 'home', this.home);
@@ -52,6 +52,11 @@ define([
       // Show the browser modal.
       mps.subscribe('modal/browser/open', _.bind(function (lib) {
         this.browser = new Browser(this.app, {lib: lib}).render();
+      }, this));
+
+      // Show the save modal.
+      mps.subscribe('modal/save/open', _.bind(function (lib) {
+        this.save = new Save(this.app).render();
       }, this));
     },
 
@@ -123,20 +128,13 @@ define([
       }, this));
     },
 
-    chart: function () {
-      var state = store.get('state');
+    chart: function (un, slug) {
+      var key = un && slug ? {un: un, slug: slug}: null;
+      var state = key ? {key: key}: store.get('state');
       this.render('/service/chart.profile/', {state: state},
           _.bind(function (err) {
         if (err) return;
         this.page = new Chart(this.app).render();
-      }, this));
-    },
-
-    view: function (username, slug) {
-      var key = [username, slug].join('/');
-      this.render('/service/view.profile/' + key, _.bind(function (err) {
-        if (err) return;
-        this.page = new Chart(this.app, {view: true}).render();
       }, this));
     },
 

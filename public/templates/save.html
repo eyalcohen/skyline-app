@@ -1,20 +1,26 @@
-<div class="save-spin"></div>
-<div class="save-inner modal-inner modal-inner-narrow">">
+<span class="modal-title">
+  Save mashup
+</span>
+<div class="save-inner modal-inner">
   <div>
-    <form id="save_form" enctype="multipart/form-data" method="POST">
+    <span class="modal-heading">
+      Name your mashup
+    </span>
+    <form class="save-form" enctype="multipart/form-data" method="POST">
       <table>
         <tbody>
           <tr>
-            <td colspan="2">
-              <input name="name" type="text" placeholder="Name your view" />
+            <td>
+              <input name="name" type="text" placeholder="Be descriptive..." />
+            </td>
+            <td style="width:120px;">
+              <input type="submit" disabled="disabled" value="Save" />
+              <div class="button-spin"></div>
             </td>
           </tr>
           <tr>
-            <td>
+            <td colspan="2">
               <span class="modal-error"></span>
-            </td>
-            <td>
-              <input id="save" type="submit" value="Save view" style="float:right;" />
             </td>
           </tr>
         </tbody>

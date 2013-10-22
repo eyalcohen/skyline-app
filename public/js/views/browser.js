@@ -74,11 +74,11 @@ define([
     setup: function () {
 
       // Save refs.
-      this.addNewfileForm = $('.browser-add-form');
-      this.newFileInput = $('input[name="dummy_data_file"]', this.addNewfileForm);
-      this.newFile = $('input[name="data_file"]', this.addNewfileForm);
-      this.newFileSubmit = $('input[type="submit"]', this.addNewfileForm);
-      this.newFileError = $('.modal-error', this.addNewfileForm);
+      this.addNewFileForm = $('.browser-add-form');
+      this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
+      this.newFile = $('input[name="data_file"]', this.addNewFileForm);
+      this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
+      this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = this.$('.dnd');
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
         color: '#3f3f3f',
@@ -220,7 +220,7 @@ define([
 
           // Start load indicator.
           this.newFileButtonSpin.stop();
-          this.newFileSubmit.removeClass('loading');
+          this.newFileSubmit.removeClass('loading').attr({disabled: "disabled"});
           this.newFileInput.val('');
 
           if (err) {
@@ -241,6 +241,7 @@ define([
             sticky: false
           }]);
 
+          // Close the modal.
           if (!this.datasets)
             $.fancybox.close();
 

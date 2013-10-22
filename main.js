@@ -268,10 +268,13 @@ if (cluster.isMaster) {
             // Socket connect
             sio.sockets.on('connection', function (socket) {
 
-              // FIXME: Use a key map instead of attaching this
-              // direct to the socket.
+              // FIXME: Use a key map instead of
+              // attaching this directly to the socket.
               socket.client = new Client(socket, app.get('samples'));
             });
+
+            // Attach a socket ref to app.
+            app.set('sio', sio);
 
             // Start server
             server.listen(app.get('PORT'));

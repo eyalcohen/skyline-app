@@ -413,6 +413,7 @@ input::-moz-focus-inner, textarea::-moz-focus-inner {
 
 input[type="submit"][disabled="disabled"] {
   opacity: 0.5;
+  cursor: default;
 
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
@@ -712,6 +713,7 @@ a.header-action:active {
 .modal-inner {
   position: relative;
   padding: 20px 20px 0;
+  width: 660px;
 }
 
 .modal-inner td {
@@ -720,6 +722,10 @@ a.header-action:active {
 
 .modal-inner td:first-child {
   padding-right: 10px;
+}
+
+.modal-inner form {
+  margin-bottom: 20px;
 }
 
 .modal-inner input {
@@ -774,12 +780,7 @@ a.header-action:active {
   height: 456px;
 }
 
-.save-inner {
-  height: 82px;
-}
-
-.signin-error,
-.save-error {
+.signin-error {
   color: red;
   font-size: 12px;
 }
@@ -1359,14 +1360,6 @@ a.channel-button {
 .browser.library {
   height: 500px;
   overflow: hidden;
-}
-
-.browser-inner {
-  width: 660px;
-}
-
-.browser-inner form {
-  margin-bottom: 20px;
 }
 
 .browser-datasets {

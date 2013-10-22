@@ -57,6 +57,12 @@ define([
     } else
       this.profile = profile;
 
+    // Pull out state, if exists.
+    if (this.profile.state) {
+      store.set('state', this.profile.state);
+      delete this.profile.state;
+    }
+
     return false;
   }
 

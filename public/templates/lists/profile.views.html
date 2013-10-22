@@ -1,11 +1,8 @@
 <%
 
-  // Save model attributes
-  var data = this.parentView.model.attributes;
-
   // Gravatar
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + data.gravatar + '?s=200&d=mm';
+      + this.app.profile.user.gravatar + '?s=60&d=mm';
 %>
 
 <table>
@@ -27,13 +24,5 @@
     <% _.each(this.collection.models, _.bind(function(row) { %>
       <%= this.row(row) %>
     <% }, this)); %>
-  <% } else { %>
-    <span class="empty-feed">
-      <% if (user && user.id === this.parentView.model.get('id')) { %>
-        You don't have any data mashups yet.
-      <% } else { %>
-        <%= this.parentView.model.get('displayName') %> doesn't have any data mashups yet.
-      <% } %>
-    </span>
   <% } %>
 </table>
