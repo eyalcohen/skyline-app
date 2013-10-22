@@ -164,7 +164,7 @@ define([
       var name;
       if (files.length === 0) {
         name = '';
-        this.newFileSubmit.attr({disabled: "disabled"});
+        this.newFileSubmit.attr({disabled: 'disabled'});
       } else {
         name = files[0].name;
         this.newFileSubmit.attr({disabled: false});
@@ -220,7 +220,7 @@ define([
 
           // Start load indicator.
           this.newFileButtonSpin.stop();
-          this.newFileSubmit.removeClass('loading').attr({disabled: "disabled"});
+          this.newFileSubmit.removeClass('loading').attr({disabled: 'disabled'});
           this.newFileInput.val('');
 
           if (err) {

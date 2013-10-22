@@ -125,7 +125,7 @@ define([
     // Update save button status
     update: function (e) {
       if (this.saveInput.val().trim().length === 0)
-        this.saveSubmit.attr({disabled: "disabled"});
+        this.saveSubmit.attr({disabled: 'disabled'});
       else
         this.saveSubmit.attr({disabled: false});
     },
@@ -176,7 +176,7 @@ define([
 
         // Start load indicator.
         this.saveButtonSpin.stop();
-        this.saveSubmit.removeClass('loading').attr({disabled: "disabled"});
+        this.saveSubmit.removeClass('loading').attr({disabled: 'disabled'});
         this.saveInput.val('');
 
         if (err) {

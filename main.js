@@ -69,6 +69,7 @@ if (cluster.isMaster) {
   var resources = require('./lib/resources');
   var service = require('./lib/service');
   var Mailer = require('./lib/mailer');
+  var PubSub = require('./lib/pubsub').PubSub;
 
   // Setup Environments
   var app = express();
@@ -144,6 +145,10 @@ if (cluster.isMaster) {
         ssl: true
       }, app.get('HOME_URI')));
 
+      // PubSub init
+      app.set('pubsub', new PubSub({ mailer: app.get('mailer') }));
+
+      // General Express inits
       app.set('views', __dirname + '/views');
       app.set('view engine', 'jade');
       app.set('sessionStore', new RedisStore({client: rc, maxAge: 2592000000}));
@@ -267,14 +272,19 @@ if (cluster.isMaster) {
 
             // Socket connect
             sio.sockets.on('connection', function (socket) {
+              socket.join('datasets');
+              socket.join('views');
+              if (socket.handshake.user)
+                socket.join('usr-' + socket.handshake.user._id);
 
               // FIXME: Use a key map instead of
               // attaching this directly to the socket.
-              socket.client = new Client(socket, app.get('samples'));
+              socket.client = new Client(socket,
+                  app.get('pubsub'), app.get('samples'));
             });
 
-            // Attach a socket ref to app.
-            app.set('sio', sio);
+            // Set pubsub sio
+            app.get('pubsub').setSocketIO(sio);
 
             // Start server
             server.listen(app.get('PORT'));
