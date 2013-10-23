@@ -41,10 +41,8 @@ define([
     },
 
     _remove: function (cb) {
-      this.$el.fadeOut('slow', _.bind(function () {
-        this.destroy();
-        cb();
-      }, this));
+      this.destroy();
+      cb();
     },
 
   });

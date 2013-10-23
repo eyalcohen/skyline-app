@@ -211,11 +211,16 @@ if (cluster.isMaster) {
             // Attach a connection ref to app.
             app.set('connection', connection);
 
-            // Init resources.
-            resources.init(app, this.parallel());
+            // Init samples.
+            new Samples(app, _.bind(function (err, samples) {
+              if (err) return this(err);
+              
+              // Attach a samples ref to app.
+              app.set('samples', samples);
 
-            // Create samples.
-            app.set('samples', new Samples(app, this.parallel()));
+              // Init resources.
+              resources.init(app, this);
+            }, this));
           },
           function (err) {
             if (err) return console.error(err);

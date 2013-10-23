@@ -62,13 +62,11 @@ define([
     delete: function (e) {
       e.preventDefault();
       rest.delete('/api/datasets/' + this.model.id, {});
-      return;
       this.parentView._remove({id: this.model.id});
     },
 
     _remove: function (cb) {
-      return;
-      this.$el.fadeOut('fast', _.bind(function () {
+      this.$el.children().fadeOut('fast', _.bind(function () {
         this.destroy();
         cb();
       }, this));

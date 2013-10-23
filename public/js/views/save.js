@@ -206,7 +206,7 @@ define([
         // Update URL.
         var route = [this.app.profile.user.username,
             'views', res.slug].join('/');
-        this.app.router.navigate('/' + route, {trigger: false});
+        this.app.router.navigate('/' + route, {trigger: false, replace: true});
 
       }, this));
 

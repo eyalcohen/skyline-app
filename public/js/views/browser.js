@@ -79,7 +79,7 @@ define([
       this.newFile = $('input[name="data_file"]', this.addNewFileForm);
       this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
       this.newFileError = $('.modal-error', this.addNewFileForm);
-      this.dropZone = this.$('.dnd');
+      this.dropZone = $('.browser .dnd');
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
         color: '#3f3f3f',
         lines: 13,

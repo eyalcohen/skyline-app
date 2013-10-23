@@ -45,7 +45,9 @@ define([
       store.set('state', state);
       
       // Route to a new chart.
-      this.app.router.navigate('/chart', {trigger: true});
+      var key = [this.model.get('author').username, 'views',
+          this.model.get('slug')].join('/');
+      this.app.router.navigate('/' + key, {trigger: true});
     },
 
     delete: function (e) {

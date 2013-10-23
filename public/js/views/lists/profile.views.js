@@ -150,8 +150,9 @@ define([
             showingall.css('display', 'block');
           else {
             showingall.hide();
-            $('<span class="empty-feed">' + this.empty_label + '</span>')
-                .appendTo(this.$el);
+            if (this.$('.empty-feed').length === 0)
+              $('<span class="empty-feed">' + this.empty_label + '</span>')
+                  .appendTo(this.$el);
           }
         } else
           _.each(list.items, _.bind(function (i) {
