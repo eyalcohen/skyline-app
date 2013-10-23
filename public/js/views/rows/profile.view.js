@@ -5,10 +5,11 @@
 define([
   'jQuery',
   'Underscore',
+  'mps',
+  'rest',
   'views/boiler/row',
-  'text!../../../templates/rows/profile.view.html',
-  'Spin'
-], function ($, _, Row, template, Spin) {
+  'text!../../../templates/rows/profile.view.html'
+], function ($, _, mps, rest, Row, template) {
   return Row.extend({
 
     tagName: 'tr',
@@ -25,34 +26,38 @@ define([
     },
 
     setup: function () {
-
-      // Init the load indicator.
-      this.spin = new Spin(this.$('.profile-item-spin'));
-      this.spin.target.hide();
-
-      // Start the spinner.
-      if (this.model.get('id') === -1)
-        this.spin.start();
-
       return Row.prototype.setup.call(this);
     },
 
     events: {
-      'click a.navigate': 'navigate',
+      'click': 'navigate',
+      'click .profile-item-delete': 'delete',
     },
 
     navigate: function (e) {
       e.preventDefault();
-      return false;
+      if ($(e.target).hasClass('profile-item-delete')
+          || $(e.target).hasClass('icon-cancel')) return;
 
-      // Route to wherever.
-      // var path = $(e.target).closest('a').attr('href');
-      // if (path)
-      //   this.app.router.navigate(path, {trigger: true});
+      // Set app state.
+      var state = this.model.attributes;
+      state.user_id = this.app.profile.user.id;
+      store.set('state', state);
+      
+      // Route to a new chart.
+      var key = [this.model.get('author').username, 'views',
+          this.model.get('slug')].join('/');
+      this.app.router.navigate('/' + key, {trigger: true});
+    },
+
+    delete: function (e) {
+      e.preventDefault();
+      rest.delete('/api/views/' + this.model.id, {});
+      this.parentView._remove({id: this.model.id});
     },
 
     _remove: function (cb) {
-      this.$el.slideUp('fast', _.bind(function () {
+      this.$el.children().fadeOut('fast', _.bind(function () {
         this.destroy();
         cb();
       }, this));

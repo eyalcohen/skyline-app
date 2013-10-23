@@ -31,13 +31,12 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Init the load indicator.
-      this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()),
-          this.modal ? {
+      this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
         ines: 13,
         length: 3,
         width: 2,
         radius: 6,
-      }: {});
+      });
       this.spin.start();
 
       // Client-wide subscriptions
@@ -47,6 +46,7 @@ define([
 
       // Socket subscriptions
       this.app.rpc.socket.on('dataset.new', _.bind(this.collect, this));
+      this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Misc.
       this.empty_label = 'No data sources.';
@@ -100,11 +100,11 @@ define([
       return List.prototype.destroy.call(this);
     },
 
-    collect: function (dataset) {
+    collect: function (data) {
       var user_id = this.parentView.model ?
           this.parentView.model.id: this.app.profile.user.id;
-      if (dataset.author.id === user_id)
-        this.collection.unshift(dataset);
+      if (data.author.id === user_id)
+        this.collection.unshift(data);
     },
 
     _remove: function (data) {
@@ -151,8 +151,9 @@ define([
             showingall.css('display', 'block');
           else {
             showingall.hide();
-            $('<span class="empty-feed">' + this.empty_label + '</span>')
-                .appendTo(this.$el);
+            if (this.$('.empty-feed').length === 0)
+              $('<span class="empty-feed">' + this.empty_label + '</span>')
+                  .appendTo(this.$el);
           }
         } else
           _.each(list.items, _.bind(function (i) {
@@ -201,7 +202,7 @@ define([
     // init pagination
     paginate: function () {
       var wrap = this.modal ? this.$el.parent(): $(window);
-      var paginate = _.debounce(_.bind(function (e) {
+      this._paginate = _.debounce(_.bind(function (e) {
         var pos;
         if (this.modal) {
           pos = this.$el.height()
@@ -213,11 +214,11 @@ define([
           this.more();
       }, this), 50);
 
-      wrap.scroll(paginate).resize(paginate);
+      wrap.scroll(this._paginate).resize(this._paginate);
     },
 
     unpaginate: function () {
-      $(window).unbind('scroll');
+      $(window).unbind('scroll', this._paginate);
     }
 
   });

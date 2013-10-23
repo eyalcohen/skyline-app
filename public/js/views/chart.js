@@ -61,7 +61,9 @@ define([
     },
 
     // Bind mouse events.
-    events: {},
+    events: {
+      'click .control-button-save': 'save',
+    },
 
     // Misc. setup.
     setup: function () {
@@ -112,6 +114,13 @@ define([
 
     fit: function () {
       this.datasets.fit(this.$el.width() - this.controls.width());
+    },
+
+    save: function (e) {
+      e.preventDefault();
+
+      // Render the save view.
+      mps.publish('modal/save/open');
     },
 
   });
