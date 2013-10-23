@@ -6,9 +6,10 @@ define([
   'jQuery',
   'Underscore',
   'mps',
+  'rest',
   'views/boiler/row',
   'text!../../../templates/rows/profile.dataset.html'
-], function ($, _, mps, Row, template) {
+], function ($, _, mps, rest, Row, template) {
   return Row.extend({
 
     tagName: 'tr',
@@ -30,10 +31,13 @@ define([
 
     events: {
       'click': 'navigate',
+      'click .profile-item-delete': 'delete',
     },
 
     navigate: function (e) {
       e.preventDefault();
+      if ($(e.target).hasClass('profile-item-delete')
+          || $(e.target).hasClass('icon-cancel')) return;
 
       if (!this.parentView.modal) {
 
@@ -55,8 +59,16 @@ define([
       }
     },
 
+    delete: function (e) {
+      e.preventDefault();
+      rest.delete('/api/datasets/' + this.model.id, {});
+      return;
+      this.parentView._remove({id: this.model.id});
+    },
+
     _remove: function (cb) {
-      this.$el.slideUp('fast', _.bind(function () {
+      return;
+      this.$el.fadeOut('fast', _.bind(function () {
         this.destroy();
         cb();
       }, this));

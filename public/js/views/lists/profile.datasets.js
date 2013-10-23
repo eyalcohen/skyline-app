@@ -46,6 +46,7 @@ define([
 
       // Socket subscriptions
       this.app.rpc.socket.on('dataset.new', _.bind(this.collect, this));
+      this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Misc.
       this.empty_label = 'No data sources.';

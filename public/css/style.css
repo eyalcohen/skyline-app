@@ -923,6 +923,10 @@ a.google-button {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .profile-dataset:hover,
@@ -974,6 +978,20 @@ a.google-button {
   color: #8f8f8f;
   font-weight: bold;
   font-size: 10px;
+}
+
+td.profile-item-delete {
+  width: 20px;
+  cursor: pointer;
+  color: #4f4f4f;
+}
+
+td.profile-item-delete:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+td.profile-item-delete:active {
+  background: rgba(0,0,0,0.08);
 }
 
 /*.........................................................................*/

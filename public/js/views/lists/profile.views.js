@@ -45,6 +45,7 @@ define([
 
       // Socket subscriptions
       this.app.rpc.socket.on('view.new', _.bind(this.collect, this));
+      this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
 
       // Misc.
       this.empty_label = 'No data mashups.';
