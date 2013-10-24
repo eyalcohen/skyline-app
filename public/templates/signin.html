@@ -1,130 +1,134 @@
-<div class="signin-outer">
-  <div class="signin-spin"></div>
-  <div class="signin-inner">
-    <div class="signin-inner-inner">
-      <div class="signin-strategies">
+<span class="modal-title">
+  Sign in to Skyline
+</span>
+<div class="signin-inner modal-inner">
+  <div>
+    <div class="connect-wrap">
+      <span class="modal-heading">
+        a) Connect with your existing services
+      </span>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <a class="button connect-button google-button" href="/auth/google" tabindex="8">
+                Connect with Google
+              </a>
+            </td>
+            <td>
+              <a class="button connect-button facebook-button" href="/auth/facebook" tabindex="9">
+                Connect with Facebook
+              </a>
+            </td>
+            <td>
+              <a class="button connect-button twitter-button" 
+                  href="/auth/twitter" tabindex="10">
+                Connect with Twitter
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="signup-wrap">
+      <span class="modal-heading">
+        b) Sign up
+      </span>
+      <iframe src="/_blank" id="signup_target" name="signup_target" class="form-iframe"></iframe>
+      <form class="signup-form" enctype="multipart/form-data" target="signup_target" method="POST" action="/_blank">
         <table>
           <tbody>
             <tr>
               <td>
-                <a tabindex="1" class="button signin-strategy-btn facebook-btn from-login" 
-                    href="/auth/facebook" style="margin-right: 30px;">
-                  Connect with Facebook
-                </a>
-              </td>
-              <td>
-                <a tabindex="2" class="button signin-strategy-btn twitter-btn from-login" 
-                    href="/auth/twitter">
-                  Connect with Twitter
-                </a>
+                <span class="signin-error"></span>
               </td>
             </tr>
             <tr>
-              <td colspan="2">
-                <span class="signin-or">- or -</span>
+              <td>
+                <label for="newusername">New username</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="4" id="newusername" name="newusername" type="text" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="newemail">Email address (private)</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="5" id="newemail" name="newemail" type="text" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="newpassword">New password</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="6" id="newpassword" name="newpassword" type="password" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="7" class="signup-button" type="submit" value="Create your account" />
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
-      <div class="signin-forms">
-        <iframe src="/_blank" id="signup_target" name="signup_target" class="form-iframe"></iframe>
-        <form class="signup-form" enctype="multipart/form-data" target="signup_target" method="POST" action="/_blank">
-          <table>
-            <tbody>
-              <tr>
-                <td colspan="1">
-                  <h1 class="title-static">Sign up</h1>
-                </td>
-                <td colspan="1" class="text-right">
-                  <span class="signin-error"></span>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <label for="newusername">New username</label>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <input tabindex="3" name="newusername" type="text" />
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <label for="newemail">Email address (private)</label>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <input tabindex="4" name="newemail" type="text" />
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <label for="newpassword">New password</label>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <input tabindex="5" name="newpassword" type="password" />
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <input tabindex="6" id="signup" type="submit" value="Create your account" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
-        <iframe src="/_blank" id="signin_target" name="signin_target" class="form-iframe"></iframe>
-        <form class="signin-form highlight" enctype="multipart/form-data" target="signin_target" method="POST" action="/_blank">
-          <table>
-            <tbody>
-              <tr>
-                <td colspan="1">
-                  <h1 class="title-static">Log in</h1>
-                </td>
-                <td colspan="1" class="text-right">
-                  <span class="signin-error"></span>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <label for="username">Username or email</label>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <input tabindex="7" name="username" type="text" />
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <label for="password">Password</label>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <input tabindex="8" name="password" type="password" />
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <input tabindex="9" id="signin" type="submit" value="Sign in" />
-                </td>
-              </tr>
-              <tr>
-                <td colspan="2">
-                  <a href="javascript:;" class="forgot-password">I forgot my password</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </form>
-        <div class="clear"></div>
-      </div>
+      </form>
     </div>
+    <div class="login-wrap">
+      <span class="modal-heading">
+        c) Login
+      </span>
+      <iframe src="/_blank" id="signin_target" name="signin_target" class="form-iframe"></iframe>
+      <form class="signin-form highlight" enctype="multipart/form-data" target="signin_target" method="POST" action="/_blank">
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <span class="signin-error"></span>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="username">Username or email</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="1" id="username" name="username" type="text" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="password">Password</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="2" id="password" name="password" type="password" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="3" class="login-button" type="submit" value="Log in" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="javascript:;" class="forgot-password">I forgot my password</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </form>
+    </div>
+    <div class="clearfix"></div>
   </div>
 </div>
