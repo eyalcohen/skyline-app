@@ -85,6 +85,15 @@ if (cluster.isMaster) {
     app.set(k, v);
   });
 
+  // Twitter params
+  app.set('twitter', {
+    consumerKey: 'ViEOzmAwsh8LEiCrL52HwQ',
+    consumerSecret: 'KWpNvp1rUU2ZXjttVmVdtypGluNFEn4xUgka5afDEEI'
+  });
+
+  // Google params
+  app.set('google', {returnURL: 'http://foo.bar', realm: null});
+
   Step(
     function () {
 
@@ -94,6 +103,13 @@ if (cluster.isMaster) {
         // App params
         app.set('ROOT_URI', '');
         app.set('HOME_URI', 'http://localhost:' + app.get('PORT'));
+
+        // Facebook params
+        app.set('facebook', {
+          name: 'Skyline (dev)',
+          clientID: 248099122008971,
+          clientSecret: '8f534bc1ec6504dd640fa7ac663a9529'
+        });
 
         // Job scheduling.
         app.set('SCHEDULE_JOBS', argv.jobs);
@@ -115,6 +131,13 @@ if (cluster.isMaster) {
             app.get('package').version].join('/'));
         app.set('HOME_URI', [app.get('package').protocol,
             app.get('package').domain].join('://'));
+
+        // Facebook params
+        app.set('facebook', {
+          name: 'Skyline',
+          clientID: 533526143400722,
+          clientSecret: '9147a4bee3391b0307add85e1cb959e7'
+        });
 
         // Job scheduling.
         app.set('SCHEDULE_JOBS', true);

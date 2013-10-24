@@ -82,7 +82,7 @@ define([
       e.preventDefault();
 
       // Render the signin view.
-      mps.publish('user/signin/open');
+      mps.publish('modal/signin/open');
     },
 
     avatar: function (e) {
@@ -100,13 +100,6 @@ define([
       mps.publish('modal/browser/open');
     },
 
-    // save: function (e) {
-    //   e.preventDefault();
-
-    //   // Render the save view.
-    //   mps.publish('view/save/open');
-    // },
-
     logout: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -114,7 +107,7 @@ define([
 
       // Swap user header content.
       this.$('div.user-box').remove();
-      $('<a id="signin" class="button">Sign in</a>').appendTo(this.$el);
+      $('<a class="signin-button button">Sign in</a>').appendTo(this.$el);
 
     },
 

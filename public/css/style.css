@@ -340,6 +340,8 @@ input[type=submit] {
   padding: 5px 20px;
   font-weight: 700;
   min-width: 54px;
+  line-height: 22px;
+
   outline: 0;
   text-align: center;
   display: inline-block;
@@ -700,7 +702,6 @@ a.header-action:active {
 
 .header a.signin-button {
   float: right;
-  line-height: 10px;
   margin-top: 8px;
 }
 
@@ -823,6 +824,14 @@ a.google-button {
   font-style: italic;
   color: #4d4d4d;
   font-weight: bold;
+}
+
+.saved-ghost {
+  display: none;
+}
+
+.form-iframe {
+  display: none;
 }
 
 /*.........................................................................*/

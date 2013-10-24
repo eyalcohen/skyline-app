@@ -11,14 +11,16 @@ define([
   'util',
   'views/error',
   'views/signin',
+  'views/forgot',
   'views/save',
   'views/browser',
   'views/header',
   'views/home',
+  'views/reset',
   'views/profile',
   'views/chart'
-], function ($, _, Backbone, mps, rest, util, Error, Signin, Save, Browser,
-      Header, Home, Profile, Chart) {
+], function ($, _, Backbone, mps, rest, util, Error, Signin, Forgot,
+      Save, Browser, Header, Home, Reset, Profile, Chart) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -28,11 +30,20 @@ define([
       // Save app reference.
       this.app = app;
 
+      // Clear stuff that comes back from facebook.
+      if (window.location.hash !== '')
+        try {
+          window.history.replaceState('', '', window.location.pathname
+              + window.location.search);
+        } catch (err) {}
+
       // Page routes
       this.route(':username/views/:slug', 'view', this.chart);
       this.route(':username', 'profile', this.profile);
       this.route('chart', 'chart', this.chart);
+      this.route('reset', 'reset', this.reset);
       this.route('', 'home', this.home);
+      this.route('_blank', 'blank', function(){});
 
       // Fullfill navigation request from mps.
       mps.subscribe('navigate', _.bind(function (path) {
@@ -41,11 +52,11 @@ define([
 
       // Kill user specific views.
       mps.subscribe('user/delete', _.bind(function () {
-
+        // this.notifications.destroy();
       }, this));
 
       // Show the signin modal.
-      mps.subscribe('user/signin/open', _.bind(function () {
+      mps.subscribe('modal/signin/open', _.bind(function () {
         this.signin = new Signin(this.app).render();
       }, this));
 
@@ -57,6 +68,11 @@ define([
       // Show the save modal.
       mps.subscribe('modal/save/open', _.bind(function (lib) {
         this.save = new Save(this.app).render();
+      }, this));
+
+      // Show the forgot modal.
+      mps.subscribe('modal/forgot/open', _.bind(function () {
+        this.modal = new Forgot(this.app).render();
       }, this));
     },
 
@@ -113,6 +129,13 @@ define([
       }, this));
     },
 
+    reset: function () {
+      this.render('/service/static.profile', _.bind(function (err) {
+        if (err) return;
+        this.page = new Reset(this.app).render();
+      }, this));
+    },
+
     profile: function (username) {
       this.render('/service/user.profile/' + username,
           _.bind(function (err) {
@@ -138,8 +161,14 @@ define([
       }, this));
     },
 
-    default: function (actions) {
-      console.warn('No route:', actions);
+    default: function () {
+      this.render(_.bind(function (err) {
+        if (err) return;
+        this.page = new Error(this.app).render({
+          code: 404,
+          message: 'Sorry, this page isn\'t available'
+        });
+      }, this));
     }
 
   });
