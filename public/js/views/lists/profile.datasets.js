@@ -32,7 +32,7 @@ define([
 
       // Init the load indicator.
       this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
-        ines: 13,
+        lines: 13,
         length: 3,
         width: 2,
         radius: 6,
@@ -143,10 +143,10 @@ define([
       function updateUI(list) {
         _.defaults(list, {items:[]});
         this.latest_list = list;
+        var showingall = this.parentView.$('.list-spin .empty-feed');
         if (list.items.length === 0) {
           this.nomore = true;
           this.spin.target.hide();
-          var showingall = this.parentView.$('.list-spin .empty-feed');
           if (this.collection.length > 0)
             showingall.css('display', 'block');
           else {
@@ -164,8 +164,8 @@ define([
           this.fetching = false;
           if (list.items.length < this.limit) {
             this.spin.target.hide();
-            $('.list-spin .empty-feed', this.$el.parent())
-                .css('display', 'block');
+            if (!this.$('.empty-feed').is(':visible'))
+              showingall.css('display', 'block');
           }
         }, this), (list.items.length + 1) * 30);
       }
