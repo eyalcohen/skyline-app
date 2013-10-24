@@ -92,7 +92,7 @@ if (cluster.isMaster) {
   });
 
   // Google params
-  app.set('google', {returnURL: 'http://foo.bar', realm: null});
+  app.set('google', {returnURL: '...', realm: null});
 
   Step(
     function () {

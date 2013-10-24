@@ -2,9 +2,10 @@
 
   // Gravatar
   var size = this.modal ? 30: 60;
+  var user = this.parentView.model ?
+      this.parentView.model.attributes: this.app.profile.user;
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + this.app.profile.user.gravatar + '?s='
-      + size + '&d=mm';
+      + user.gravatar + '?s=' + size + '&d=mm';
 %>
 
 <table>

@@ -405,7 +405,7 @@ input[type='submit']:active {
 a.button:focus,
 div[role=button]:focus,
 input[type=submit]:focus {
-  border: 1px solid #98c1e6 !important;
+  border: 1px solid #98c1e6;
 }
 
 input[type="checkbox"],
@@ -446,6 +446,10 @@ a.button.connect-button {
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
   box-shadow: none;
+}
+
+a.button.connect-button:focus {
+  border: 1px solid #4f4f4f;
 }
 
 a.google-button {
@@ -752,6 +756,7 @@ a.header-action {
   color: #4f4f4f;
   padding-left: 10px;
   text-transform: uppercase;
+  background: none;
 }
 
 a.header-action:hover {
