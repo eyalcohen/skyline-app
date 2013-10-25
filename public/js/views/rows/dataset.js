@@ -6,11 +6,11 @@ define([
   'jQuery',
   'Underscore',
   'mps',
+  'Spin',
   'views/boiler/row',
   'text!../../../templates/rows/dataset.html',
-  'views/lists/channels',
-  'Spin'
-], function ($, _, mps, Row, template, Channels, Spin) {
+  'views/lists/channels'
+], function ($, _, mps, Spin, Row, template, Channels) {
   return Row.extend({
 
     attributes: function () {
