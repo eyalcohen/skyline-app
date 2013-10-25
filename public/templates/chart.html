@@ -1,10 +1,16 @@
+<%
+  var user = this.app.profile ? this.app.profile.user: null;
+%>
+
 <div class="upper-panel">
   <div class="datasets"></div>
   <div class="controls">
     <a class="control-button control-button-comments" href="javascript:;"><i class="icon-comment"></i></a>
-    <a class="control-button control-button-share" href="javascript:;"><i class="icon-export"></i></a>
-    <a class="control-button control-button-export" href="javascript:;"><i class="icon-download"></i></a>
-    <a class="control-button control-button-save" href="javascript:;"><i class="icon-floppy"></i></a>
+    <% if (user) { %>
+      <a class="control-button control-button-share" href="javascript:;"><i class="icon-export"></i></a>
+      <a class="control-button control-button-export" href="javascript:;"><i class="icon-download"></i></a>
+      <a class="control-button control-button-save" href="javascript:;"><i class="icon-floppy"></i></a>
+    <% } %>
     <a class="control-button control-button-monthly" href="javascript:;">Mo</a>
     <a class="control-button control-button-weekly" href="javascript:;">Wk</a>
     <a class="control-button control-button-daily" href="javascript:;">Dy</a>

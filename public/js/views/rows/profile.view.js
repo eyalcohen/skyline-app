@@ -42,7 +42,8 @@ define([
 
       // Set app state.
       var state = this.model.attributes;
-      state.user_id = this.app.profile.user.id;
+      if (this.app.profile && this.app.profile.user)
+        state.user_id = this.app.profile.user.id;
       store.set('state', state);
       
       // Route to a new chart.

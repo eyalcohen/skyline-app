@@ -6,22 +6,28 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
+  'Modernizr',
   'mps',
   'rpc',
   'util',
+  'Spin',
   'text!../../templates/forgot.html'
-], function ($, _, Backbone, mps, rpc, util, template) {
+], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template) {
 
   return Backbone.View.extend({
 
     // The DOM target element for this page:
     className: 'forgot',
+    working: false,
 
-    // Module entry point:
+    // Module entry point.
     initialize: function (app) {
       
       // Save app reference.
       this.app = app;
+
+      // Client-wide subscriptions
+      this.subscriptions = [];
 
       // Shell events.
       this.on('rendered', this.setup, this);
@@ -42,6 +48,10 @@ define([
         padding: 0
       });
 
+      // Add placeholder shim if need to.
+      if (Modernizr.input.placeholder)
+        this.$('input').placeholder();
+
       // Done rendering ... trigger setup.
       this.trigger('rendered');
 
@@ -50,22 +60,46 @@ define([
 
     // Bind mouse events.
     events: {
-      'click #forgot_send': 'send',
-      'click #forgot_cancel': 'cancel',
-      'submit form': 'send'
+      'click .forgot-form input[type="submit"]': 'send',
+      'keyup input[name="email"]': 'update',
     },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs.
-      this.input = this.$('input[name="email"]');
-      this.overlay = this.$('.modal-overlay');
+      this.forgotForm = $('.forgot-form');
+      this.forgotInput = $('input[name="email"]', this.forgotForm);
+      this.forgotSubmit = $('input[type="submit"]', this.forgotForm);
+      this.forgotError = $('.modal-error', this.forgotForm);
+      this.forgotButtonSpin = new Spin($('.button-spin', this.el), {
+        color: '#3f3f3f',
+        lines: 13,
+        length: 3,
+        width: 2,
+        radius: 6,
+      });
+
+      // Handle error display.
+      this.$('input[type="text"]').blur(function (e) {
+        var el = $(e.target);
+        if (el.hasClass('input-error'))
+          el.removeClass('input-error');
+      });
 
       // Focus cursor initial.
-      _.delay(_.bind(function () { this.input.focus(); }, this), 1);
+      _.delay(_.bind(function () { this.forgotInput.focus(); }, this), 0);
 
       return this;
+    },
+
+    // Focus on the first empty input field.
+    focus: function (e) {
+      _.find(this.$('input[type!="submit"]:visible'), function (i) {
+        var empty = $(i).val().trim() === '';
+        if (empty) $(i).focus();
+        return empty;
+      });
     },
 
     // Similar to Backbone's remove method, but empties
@@ -85,14 +119,25 @@ define([
       this.empty();
     },
 
+    // Update forgot button status
+    update: function (e) {
+      if (this.forgotInput.val().trim().length === 0)
+        this.forgotSubmit.attr({disabled: 'disabled'});
+      else
+        this.forgotSubmit.attr({disabled: false});
+    },
+
     send: function (e) {
       e.preventDefault();
 
+      // Prevent multiple uploads at the same time.
+      if (this.working) return false;
+      this.working = true;
+
       // Grab the form data.
-      var payload = {email: this.input.val().trim()};
+      var payload = {email: this.forgotInput.val().trim()};
 
       // Client-side form check.
-      var errorMsg = this.$('.signin-error');
       var check = util.ensure(payload, ['email']);
 
       // Add alerts.
@@ -107,51 +152,65 @@ define([
 
         // Set the error display.
         var msg = 'All fields are required.';
-        errorMsg.text(msg);
+        this.forgotError.text(msg);
 
         return false;
       }
       if (!util.isEmail(payload.email)) {
 
         // Set the error display.
-        this.input.val('').addClass('input-error').focus();
+        this.forgotInput.val('').addClass('input-error').focus();
         var msg = 'Please use a valid email address.';
-        errorMsg.text(msg);
+        this.forgotError.text(msg);
 
         return false;
       }
 
-      // Show the in-modal overlay.
-      this.overlay.show();
+      // Start load indicator.
+      this.forgotButtonSpin.start();
+      this.forgotSubmit.addClass('loading');
 
       // Do the API request.
-      rpc.post('/api/members/forgot', payload, _.bind(function (err, data) {
+      rest.post('/api/users/forgot', payload, _.bind(function (err, data) {
+        
+        // Start load indicator.
+        this.forgotButtonSpin.stop();
+        this.forgotSubmit.removeClass('loading').attr({disabled: 'disabled'});
+        this.forgotInput.val('');
+
         if (err) {
-
-          // Set the error display.
-          this.overlay.hide();
-          if (err.code === 404)
-            errorMsg.text('Sorry, we could not find your account.');
-          else if (err.message === 'No password') {
-            var provider = _.str.capitalize(err.data.provider);
-            errorMsg.html('Oops, this account was created via ' + provider
-                + '. <a href="/auth/' + err.data.provider
-                + '">Reconnect with ' + provider + '</a>.');
-          } else errorMsg.text(err.message);
-
-          // Clear fields.
-          this.input.val('').addClass('input-error').focus();
-
+          this.forgotError.text(err);
+          
           return;
         }
 
-        // Change overlay message.
-        $('p', this.overlay).text('Check your inbox. - Love, Island');
+        if (err) {
+
+          // Set the error display.
+          if (err.code === 404)
+            this.forgotError.text('Sorry, we could not find your account.');
+          else if (err.message === 'No password') {
+            var provider = _.str.capitalize(err.data.provider);
+            this.forgotError.html('Oops, this account was created via ' + provider
+                + '. <a href="/auth/' + err.data.provider
+                + '">Reconnect with ' + provider + '</a>.');
+          } else this.forgotError.text(err.message);
+
+          // Clear fields.
+          this.working = false;
+          this.forgotInput.addClass('input-error');
+          this.focus();
+
+          return;
+        }
 
         // Wait a little then close the modal.
         _.delay(_.bind(function () {
           $.fancybox.close();
         }, this), 2000);
+
+        // Ready for more.
+        this.working = false;
 
       }, this));
 

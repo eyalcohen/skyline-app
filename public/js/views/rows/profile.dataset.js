@@ -43,7 +43,9 @@ define([
       if (!this.parentView.modal) {
 
         // Set app state.
-        var state = {user_id: this.app.profile.user.id};
+        var state = {};
+        if (this.app.profile && this.app.profile.user)
+          state.user_id = this.app.profile.user.id;
         state.datasets = {};
         state.datasets[this.model.get('id')] = {index: 0};
         store.set('state', state);

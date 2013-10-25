@@ -1,0 +1,18 @@
+<%
+  var user = this.app.profile.user;
+%>
+
+<div class="user-box">
+  <a class="username header-action" href="/<%= user.username %>">
+    <%= user.username %>
+  </a>
+  <a class="header-action" href="javascript:;">
+    <i class="icon-menu-1"></i>
+  </a>
+  <a class="header-action" href="/logout">
+    <i class="icon-logout"></i>
+  </a>
+  <a class="add-data-button button" href="javascript:;">
+    Add Data
+  </a>
+</div>

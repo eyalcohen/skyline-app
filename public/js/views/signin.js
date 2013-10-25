@@ -9,9 +9,9 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../templates/signin.html',
-  'Spin'
-], function ($, _, Backbone, mps, rest, util, template, Spin) {
+  'Spin',
+  'text!../../templates/signin.html'
+], function ($, _, Backbone, mps, rest, util, Spin, template) {
 
   return Backbone.View.extend({
 
@@ -43,19 +43,24 @@ define([
         padding: 0
       });
 
-      // Init the load indicator.
-      this.spin = new Spin(this.$('.signin-spin'), {
-        lines: 17,
-        length: 12,
-        width: 4,
-        radius: 18,
-        color: '#4f4f4f'
+      // Init the load indicators.
+      this.$('.button-spin').each(function (el) {
+        var opts = {
+          color: '#3f3f3f',
+          lines: 13,
+          length: 3,
+          width: 2,
+          radius: 6,
+        };
+        if ($(this).hasClass('button-spin-white'))
+          opts.color = '#fff';
+        $(this).data('spin', new Spin($(this), opts));
       });
 
       // Show the spinner when connecting.
-      this.$('.signin-strategy-btn').click(_.bind(function (e) {
-        this.signinInner.fadeOut('fast');
-        this.spin.start();
+      this.$('.connect-button').click(_.bind(function (e) {
+        $('.button-spin', $(e.target).parent()).data().spin.start();
+        $(e.target).addClass('loading');
       }, this));
 
       // Done rendering ... trigger setup.
@@ -66,7 +71,7 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .forgot-login': 'forgot',
+      'click .forgot-password': 'forgot',
       'click .navigate': 'navigate',
     },
 
@@ -78,7 +83,8 @@ define([
       this.signupTarget = this.$('#signup_target');
       this.signinForm = this.$('.signin-form');
       this.signupForm = this.$('.signup-form');
-      this.signinInner = this.$('.signin-inner-inner');
+      this.signinButton = this.$('.login-button');
+      this.signupButton = this.$('.signup-button');
 
       // Let the forms submit to the frame, and use the
       // on load event to take action.
@@ -104,16 +110,6 @@ define([
         var el = $(e.target);
         if (el.hasClass('saved'))
           this.$('.saved').removeClass('saved');
-      }, this));
-
-      // Switch highlighted region.
-      this.$('input[type="text"], input[type="password"]').focus(
-          _.bind(function (e) {
-        var form = $(e.target).closest('form');
-        if (!form.hasClass('highlight')) {
-          this.$('.signin-forms form').removeClass('highlight');
-          form.addClass('highlight');
-        }
       }, this));
 
       // Handle username.
@@ -176,7 +172,8 @@ define([
       var payload = this.signinForm.serializeObject();
 
       // Client-side form check.
-      var errorMsg = $('.signin-error', this.signinForm);
+      var spin = $('.button-spin', this.signinForm).data().spin;
+      var errorMsg = $('.modal-error', this.signinForm.parent());
       var check = util.ensure(payload, ['username', 'password']);
 
       // Add alerts.
@@ -197,16 +194,16 @@ define([
       }
 
       // All good, show spinner.
-      this.signinInner.fadeOut('fast');
-      this.spin.start();
+      spin.start();
+      this.signinButton.addClass('loading');
 
       // Do the API request.
-      rpc.post('/api/users/auth', payload, _.bind(function (err, data) {
+      rest.post('/api/users/auth', payload, _.bind(function (err, data) {
         if (err) {
 
           // Stop spinner.
-          this.spin.stop();
-          this.signinInner.fadeIn('fast');
+          spin.stop();
+          this.signinButton.removeClass('loading');
 
           // Set the error display.
           errorMsg.text(err.message);
@@ -239,7 +236,8 @@ define([
       var payload = this.signupForm.serializeObject();
 
       // Client-side form check.
-      var errorMsg = $('.signin-error', this.signupForm);
+      var spin = $('.button-spin', this.signupForm).data().spin;
+      var errorMsg = $('.modal-error', this.signupForm.parent());
       var check = util.ensure(payload, ['newusername', 'newemail',
           'newpassword']);
       
@@ -264,7 +262,7 @@ define([
         // Set the error display.
         $('input[name="newemail"]', this.signupForm)
             .val('').addClass('input-error').focus();
-        var msg = 'Please use a valid email address.';
+        var msg = 'Use a valid email address.';
         errorMsg.text(msg);
 
         return false;
@@ -274,7 +272,7 @@ define([
         // Set the error display.
         $('input[name="newusername"]', this.signupForm)
             .val('').addClass('input-error').focus();
-        var msg = 'Username must be > 3 characters.';
+        var msg = 'Username must be > 3 chars.';
         errorMsg.text(msg);
 
         return false;
@@ -284,23 +282,23 @@ define([
         // Set the error display.
         $('input[name="newpassword"]', this.signupForm)
             .val('').addClass('input-error').focus();
-        var msg = 'Password must be > 6 characters.';
+        var msg = 'Password must be > 6 chars.';
         errorMsg.text(msg);
 
         return false;
       }
 
       // All good, show spinner.
-      this.signinInner.fadeOut('fast');
-      this.spin.start();
+      spin.start();
+      this.signupButton.addClass('loading');
 
       // Do the API request.
-      rpc.post('/api/users', payload, _.bind(function (err, data) {
+      rest.post('/api/users', payload, _.bind(function (err, data) {
         if (err) {
 
           // Stop spinner.
-          this.spin.stop();
-          this.signinInner.fadeIn('fast');
+          spin.stop();
+          this.signupButton.removeClass('loading');
 
           // Set the error display.
           errorMsg.text(err.message);

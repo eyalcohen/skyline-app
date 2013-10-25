@@ -89,9 +89,7 @@ define([
       });
 
       // Focus cursor.
-      _.delay(_.bind(function () {
-        this.focus();
-      }, this), 0);
+      _.delay(_.bind(function () { this.focus(); }, this), 0);
 
       return this;
     },
@@ -137,10 +135,6 @@ define([
       if (this.working) return false;
       this.working = true;
 
-      // Start load indicator.
-      this.saveButtonSpin.start();
-      this.saveSubmit.addClass('loading');
-
       // Grab the form data.
       var payload = this.saveForm.serializeObject();
 
@@ -159,10 +153,14 @@ define([
 
         // Set the error display.
         var msg = 'All fields are required.';
-        this.saveInput.text(msg);
+        this.saveError.text(msg);
 
         return;
       }
+
+      // Start load indicator.
+      this.saveButtonSpin.start();
+      this.saveSubmit.addClass('loading');
 
       // Add other data.
       var state = store.get('state');
@@ -180,7 +178,7 @@ define([
         this.saveInput.val('');
 
         if (err) {
-          this.newFileError.text(err);
+          this.saveError.text(err);
           this.working = false;
           this.saveInput.addClass('input-error');
           this.focus();

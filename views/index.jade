@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  div.container
+  .container
     header
       .saved-ghost
         form(enctype="multipart/form-data", method="POST")
@@ -10,9 +10,9 @@ block content
           input(value="_", type="submit")
       .block-messages
         ul
-      div.header.wide
+      .header.wide
         - if (typeof user !== 'undefined')
-          div.user-box
+          .user-box
             a.username.header-action(href="/#{user.username}") #{user.displayName}
             a.header-action(href="javascript:;")
               i.icon-menu-1
@@ -21,10 +21,11 @@ block content
             a.add-data-button.button(href="javascript:;") Add Data
         - else
           a.signin-button.button(href="javascript:;") Sign in
-        div.header-logo
+        .header-logo
           a.navigate(href="/")
             img(src="#{root}/img/time.png", width="13", height="12")
             | Skylin
         span.header-title
-    div.main(role="main")
+    .main(role="main")
+    .page-spin
     footer

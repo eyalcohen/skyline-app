@@ -14,23 +14,27 @@
               <a class="button connect-button google-button" href="/auth/google" tabindex="8">
                 Connect with Google
               </a>
+              <div class="button-spin button-spin-white"></div>
             </td>
             <td>
               <a class="button connect-button facebook-button" href="/auth/facebook" tabindex="9">
                 Connect with Facebook
               </a>
+              <div class="button-spin button-spin-white"></div>
             </td>
             <td>
               <a class="button connect-button twitter-button" 
                   href="/auth/twitter" tabindex="10">
                 Connect with Twitter
               </a>
+              <div class="button-spin button-spin-white"></div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <div class="signup-wrap">
+      <span class="signin-error modal-error"></span>
       <span class="modal-heading">
         b) Sign up
       </span>
@@ -38,11 +42,6 @@
       <form class="signup-form" enctype="multipart/form-data" target="signup_target" method="POST" action="/_blank">
         <table>
           <tbody>
-            <tr>
-              <td>
-                <span class="signin-error"></span>
-              </td>
-            </tr>
             <tr>
               <td>
                 <label for="newusername">New username</label>
@@ -76,6 +75,7 @@
             <tr>
               <td>
                 <input tabindex="7" class="signup-button" type="submit" value="Create your account" />
+                <div class="button-spin"></div>
               </td>
             </tr>
           </tbody>
@@ -83,6 +83,7 @@
       </form>
     </div>
     <div class="login-wrap">
+      <span class="signin-error modal-error"></span>
       <span class="modal-heading">
         c) Login
       </span>
@@ -90,11 +91,6 @@
       <form class="signin-form highlight" enctype="multipart/form-data" target="signin_target" method="POST" action="/_blank">
         <table>
           <tbody>
-            <tr>
-              <td>
-                <span class="signin-error"></span>
-              </td>
-            </tr>
             <tr>
               <td>
                 <label for="username">Username or email</label>
@@ -118,6 +114,7 @@
             <tr>
               <td>
                 <input tabindex="3" class="login-button" type="submit" value="Log in" />
+                <div class="button-spin"></div>
               </td>
             </tr>
             <tr>

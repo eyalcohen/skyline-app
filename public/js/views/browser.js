@@ -42,8 +42,8 @@ define([
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
-      // Add library class if
-      if (this.options.lib)
+      // Add library class
+      if (this.options.lib && this.app.profile && this.app.profile.user)
         this.$el.addClass('library');
 
       // Dump content into modal.
@@ -101,7 +101,7 @@ define([
       });
 
       // Render datasets.
-      if (this.options.lib)
+      if (this.options.lib && this.app.profile && this.app.profile.user)
         this.datasets = new Datasets(this.app, {
           datasets: {
             more: true,
