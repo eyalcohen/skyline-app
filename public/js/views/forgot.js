@@ -8,7 +8,7 @@ define([
   'Backbone',
   'Modernizr',
   'mps',
-  'rpc',
+  'rest',
   'util',
   'Spin',
   'text!../../templates/forgot.html'
@@ -153,6 +153,7 @@ define([
         // Set the error display.
         var msg = 'All fields are required.';
         this.forgotError.text(msg);
+        this.working = false;
 
         return false;
       }
@@ -162,6 +163,7 @@ define([
         this.forgotInput.val('').addClass('input-error').focus();
         var msg = 'Please use a valid email address.';
         this.forgotError.text(msg);
+        this.working = false;
 
         return false;
       }
@@ -177,12 +179,7 @@ define([
         this.forgotButtonSpin.stop();
         this.forgotSubmit.removeClass('loading').attr({disabled: 'disabled'});
         this.forgotInput.val('');
-
-        if (err) {
-          this.forgotError.text(err);
-          
-          return;
-        }
+        this.working = false;
 
         if (err) {
 
@@ -197,7 +194,6 @@ define([
           } else this.forgotError.text(err.message);
 
           // Clear fields.
-          this.working = false;
           this.forgotInput.addClass('input-error');
           this.focus();
 
@@ -205,9 +201,13 @@ define([
         }
 
         // Wait a little then close the modal.
-        _.delay(_.bind(function () {
-          $.fancybox.close();
-        }, this), 2000);
+        $.fancybox.close();
+
+        // Inform user.
+        mps.publish('flash/new', [{
+          message: 'Please check your inbox for a link to reset your password.',
+          level: 'alert'
+        }, true]);
 
         // Ready for more.
         this.working = false;

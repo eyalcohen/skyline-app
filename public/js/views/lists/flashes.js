@@ -35,9 +35,10 @@ define([
     },
 
     // collect new flashes from socket events.
-    collect: function (flash) {
-      this.collection.reset([]);
-      this.collection.push(flash);
+    collect: function (data, clear) {
+      if (clear)
+        this.collection.reset([]);
+      this.collection.push(data);
     },
 
     // remove a model

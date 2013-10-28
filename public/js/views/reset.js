@@ -7,10 +7,10 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'rpc',
+  'rest',
   'util',
   'text!../../templates/reset.html'
-], function ($, _, Backbone, mps, rpc, util, template) {
+], function ($, _, Backbone, mps, rest, util, template) {
 
   return Backbone.View.extend({
     
@@ -104,7 +104,7 @@ define([
       var payload = this.$('form').serializeObject();
 
       // Client-side form check.
-      var errorMsg = this.$('.signin-error').hide();
+      var errorMsg = this.$('.page-error').hide();
       var fields = ['newpassword', 'cnewpassword'];
       if (!this.token) fields.push('oldpassword');
       var check = util.ensure(payload, fields);
@@ -130,7 +130,7 @@ define([
       if (this.token) payload.token = this.token;
 
       // Now do the update.
-      rpc.post('/api/members/reset', payload,
+      rest.post('/api/users/reset', payload,
           _.bind(function (err, data) {
         if (err) {
 
@@ -152,7 +152,7 @@ define([
         mps.publish('flash/new', [{
           message: 'Your password has been reset.',
           level: 'alert'
-        }, true]);
+        }]);
 
         // Go home.
         this.app.router.navigate('/', true);
@@ -166,7 +166,7 @@ define([
       e.preventDefault();
 
       // Render the modal view.
-      mps.publish('member/forgot/open');
+      mps.publish('modal/forgot/open');
     },
 
   });

@@ -269,8 +269,8 @@ canvas {
 }
 
 header {
-  position: relative;
   width: 100%;
+  height: 50px;
   padding: 5px 0;
   background: #f9f9f9;
   z-index: 2;
@@ -608,10 +608,50 @@ span.empty-list {
   margin-bottom: 23px;
 }
 
+.page {
+  width: 480px;
+  margin: 30px auto 0;
+}
+
+.page td {
+  position: relative;
+}
+
+.page form {
+  margin-bottom: 20px;
+}
+
+.page td input,
+.page td a.button {
+  width: 100%;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+}
+
 .page-spin {
   margin: 0 auto;
   height: 50px;
   width: 100%;
+  position: absolute;
+  top: 50%;
+}
+
+.page-heading {
+  font-size: 16px;
+  line-height: 48px;
+  display: block;
+  color: #3f3f3f;
+}
+
+.page-error {
+  display: block;
+  color: #cc0f0f;
+  font-size: 11px;
+  text-align: left;
+  line-height: 48px;
+  float: right;
 }
 
 /*.........................................................................*/
@@ -619,10 +659,11 @@ span.empty-list {
 .block-messages {
   position: absolute;
   z-index: 10;
-  right: 334px;
-  top: 0;
-  width: 700px;
+  left: 20px;
+  bottom: 50px;
+  width: auto;
   white-space: nowrap;
+  min-width: 300px;
 }
 
 .block-remove {
@@ -630,7 +671,7 @@ span.empty-list {
   cursor: pointer;
   padding: 0 10px;
   line-height: 60px;
-  color: #4f4f4f;
+  color: #fff;
   font-size: 14px;
 
   -moz-user-select: none;
@@ -648,8 +689,12 @@ span.empty-list {
 
 .block-messages li {
   position: relative;
+  margin-top: 5px;
   list-style-type: none;
-  border-left: 1px solid #d0d0d0;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -666,31 +711,23 @@ span.empty-list {
 }
 
 .block-error {
-  background: #efefef;
+  background: #cc0f0f;
 }
 
 .block-alert {
-  background: rgba(118, 214, 118, 0.2);
+  background: rgba(39, 205, 214, 0.8);
 }
 
 .block-error-txt,
 .block-alert-txt {
-  font-size: 10px;
+  font-size: 11px;
   padding: 0 10px;
-  color: #3f3f3f;
+  color: #fff;
   font-weight: 700;
   line-height: 60px;
 }
 
-.block-error-txt {
-  color: #cc0f0f;
-}
-
 .block-error-txt a {
-  color: #0f0f0f;
-}
-
-.block-error-txt a:hover {
   text-decoration: underline;
 }
 
@@ -719,6 +756,7 @@ span.empty-list {
   white-space: nowrap;
   font-size: 20px;
   color: #2f2f2f;
+  background: none;
   font-family: 'Dosis', sans-serif;
   font-weight: 600;
   text-transform: lowercase;
@@ -780,7 +818,7 @@ a.header-action:active {
   top: 1px;
 }
 
-.header .username {
+.header a.username {
   font-size: 11px;
   padding-right: 10px;
 }
@@ -892,8 +930,9 @@ a.header-action:active {
 
 .modal-link {
   font-size: 10px;
-  float: left;
   margin: 5px 0 0 0;
+  text-align: right;
+  display: block;
 }
 
 a.button.modal-button {
@@ -910,6 +949,12 @@ a.button.modal-button.full {
 .confirm-inner {
   padding: 0;
   width: 660px;
+}
+
+/*.........................................................................*/
+
+.forgot-inner .modal-error {
+  float: none;
 }
 
 /*.........................................................................*/

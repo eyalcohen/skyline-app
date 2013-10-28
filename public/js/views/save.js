@@ -154,8 +154,9 @@ define([
         // Set the error display.
         var msg = 'All fields are required.';
         this.saveError.text(msg);
+        this.working = false;
 
-        return;
+        return false;
       }
 
       // Start load indicator.

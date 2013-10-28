@@ -17,11 +17,12 @@ define([
   'views/browser',
   'views/header',
   'views/home',
+  'views/settings',
   'views/reset',
   'views/profile',
   'views/chart'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
-      Save, Browser, Header, Home, Reset, Profile, Chart) {
+      Save, Browser, Header, Home, Settings, Reset, Profile, Chart) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -43,6 +44,7 @@ define([
       this.route(':username', 'profile', this.profile);
       this.route('chart', 'chart', this.chart);
       this.route('reset', 'reset', this.reset);
+      this.route('settings', 'settings', this.settings);
       this.route('', 'home', this.home);
       this.route('_blank', 'blank', function(){});
 
@@ -140,14 +142,14 @@ define([
 
     start: function () {
       $(window).scrollTop(0);
-      this.spin.target.show();
       this.spin.start();
     },
 
     stop: function () {
-      this.spin.target.hide();
-      this.spin.stop();
-      $(window).scrollTop(0);
+      _.delay(_.bind(function () {
+        this.spin.stop();
+        $(window).scrollTop(0);
+      }, this), 500);
     },
 
     home: function () {
