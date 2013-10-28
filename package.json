@@ -7,8 +7,8 @@
   "bucket": "build.skyline",
   "cloudfront": "https://d2t5v5bzkrqpjm.cloudfront.net",
   "gmail": {
-    "user": "robot@skyline.io",
-    "password": "..."
+    "user": "robot@grr.io",
+    "password": "w0lfpackm0d3"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,9 @@
     "passport.socketio": "~1.2.1",
     "connect-slashes": "0.0.10",
     "emailjstmp": "~0.3.4",
-    "request": "~2.27.0"
+    "request": "~2.27.0",
+    "passport-facebook": "~1.0.1",
+    "passport-twitter": "~1.0.2"
   },
   "devDependencies": {
     "grunt": "0.4.x",

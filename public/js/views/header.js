@@ -7,8 +7,9 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'views/lists/flashes'
-], function ($, _, Backbone, mps, Flashes) {
+  'views/lists/flashes',
+  'text!../../templates/box.html'
+], function ($, _, Backbone, mps, Flashes, box) {
   return Backbone.View.extend({
 
     el: '.header',
@@ -22,7 +23,7 @@ define([
       this.subscriptions = [];
     },
 
-    render: function () {
+    render: function (login) {
 
       // Kill listeners / subscriptions.
       _.each(this.subscriptions, function (s) {
@@ -30,6 +31,14 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+
+      // Check if user just logged in.
+      if (login && this.app.profile.user) {
+        this.$('.signin-button').remove();
+
+        // UnderscoreJS rendering.
+        $(_.template(box).call(this)).prependTo(this.$el);
+      }
 
       // Done rendering ... trigger setup.
       this.setup();
@@ -82,10 +91,10 @@ define([
       e.preventDefault();
 
       // Render the signin view.
-      mps.publish('user/signin/open');
+      mps.publish('modal/signin/open');
     },
 
-    avatar: function (e) {
+    username: function (e) {
       e.preventDefault();
 
       // Route to profile.
@@ -100,22 +109,14 @@ define([
       mps.publish('modal/browser/open');
     },
 
-    // save: function (e) {
-    //   e.preventDefault();
-
-    //   // Render the save view.
-    //   mps.publish('view/save/open');
-    // },
-
     logout: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
 
       // Swap user header content.
-      this.$('div.user-box').remove();
-      $('<a id="signin" class="button">Sign in</a>').appendTo(this.$el);
-
+      this.$('.user-box').remove();
+      $('<a class="signin-button button">Sign in</a>').prependTo(this.$el);
     },
 
     title: function (str) {

@@ -8,8 +8,9 @@ define([
   'mps',
   'rest',
   'views/boiler/row',
-  'text!../../../templates/rows/profile.dataset.html'
-], function ($, _, mps, rest, Row, template) {
+  'text!../../../templates/rows/profile.dataset.html',
+  'text!../../../templates/confirm.html'
+], function ($, _, mps, rest, Row, template, confirm) {
   return Row.extend({
 
     tagName: 'tr',
@@ -42,7 +43,9 @@ define([
       if (!this.parentView.modal) {
 
         // Set app state.
-        var state = {user_id: this.app.profile.user.id};
+        var state = {};
+        if (this.app.profile && this.app.profile.user)
+          state.user_id = this.app.profile.user.id;
         state.datasets = {};
         state.datasets[this.model.get('id')] = {index: 0};
         store.set('state', state);
@@ -61,8 +64,39 @@ define([
 
     delete: function (e) {
       e.preventDefault();
-      rest.delete('/api/datasets/' + this.model.id, {});
-      this.parentView._remove({id: this.model.id});
+
+      // Render the confirm modal.
+      $.fancybox(_.template(confirm)({
+        message: 'I want to delete this data source.',
+      }), {
+        openEffect: 'fade',
+        closeEffect: 'fade',
+        closeBtn: false,
+        padding: 0
+      });
+
+      // Setup actions.
+      $('#m_cancel').click(function (e) {
+        $.fancybox.close();
+      }).focus();
+      $('#m_yes').click(_.bind(function (e) {
+
+        // Delete.
+        rest.delete('/api/datasets/' + this.model.id, {},
+            _.bind(function (err, data) {
+          if (err) return console.log(err);
+
+          // Close the modal.
+          $.fancybox.close();
+
+        }, this));
+
+        // Remove from UI.
+        this.parentView._remove({id: this.model.id});
+
+      }, this));
+
+      return false;
     },
 
     _remove: function (cb) {

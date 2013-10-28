@@ -68,8 +68,6 @@ button {  width: auto; overflow: visible; }
 
 body, select, input, textarea {  color: #444; }
 h1, h2, h3, h4, h5, h6 { font-weight: bold; }
-a, a:active, a:visited { color: #607890; }
-a:hover { color: #036; }
 
 /*.........................................................................*/
 /*.........................................................................*/
@@ -239,20 +237,31 @@ body {
   font-smoothing: antialiased;
 }
 
-a {
+a,
+a:visited {
+  color: #3f3f3f;
+  background-color: #f9f9f9;
+  padding: 0;
+  border: none;
+  cursor: pointer;
   text-decoration: none;
+}
+
+a:hover {
+  color: #2f2f2f;
+}
+
+a:active {
+  background-color: #f2f2f2;
 }
 
 a:focus {
   outline: none;
 }
 
-a.hover {
-  color: #036;
-}
-
-a.active {
-  background: #f2f2f2;
+a::-moz-focus-inner,
+button::-moz-focus-inner {
+  border: none;
 }
 
 canvas {
@@ -260,8 +269,8 @@ canvas {
 }
 
 header {
-  position: relative;
   width: 100%;
+  height: 50px;
   padding: 5px 0;
   background: #f9f9f9;
   z-index: 2;
@@ -325,6 +334,11 @@ input[type=search]:focus {
   border: 1px solid #98c1e6;
 }
 
+input[type=text].saved,
+input[type=password].saved {
+  background: #faffbd !important;
+}
+
 .placeholder {
   color: gray !important;
 }
@@ -340,6 +354,8 @@ input[type=submit] {
   padding: 5px 20px;
   font-weight: 700;
   min-width: 54px;
+  line-height: 22px;
+
   outline: 0;
   text-align: center;
   display: inline-block;
@@ -378,17 +394,17 @@ input[type=submit] {
 a.button:hover,
 div[role=button]:hover,
 input[type='submit']:hover {
-  -moz-box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
 }
 
 a.button:active,
 div[role=button]:active,
 input[type='submit']:active {
-  -moz-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.5);
+  -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.5);
 }
 
 a.button:focus,
@@ -411,6 +427,7 @@ input::-moz-focus-inner, textarea::-moz-focus-inner {
   border: none;
 }
 
+a.button.disabled,
 input[type="submit"][disabled="disabled"] {
   opacity: 0.5;
   cursor: default;
@@ -423,7 +440,89 @@ input[type="submit"][disabled="disabled"] {
 a.button.loading,
 div[role=button].loading,
 input[type=submit].loading {
-  color: transparent;
+  color: transparent !important;
+}
+
+a.button.connect-button {
+  border-color: #fff;
+  color: #fff;
+  border-radius: 0;
+
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+a.button.connect-button:focus {
+  border: 1px solid #4f4f4f;
+}
+
+a.google-button {
+  background: rgba(221,67,55,0.8);
+}
+
+a.google-button:hover {
+  background: rgba(221,67,55,0.9);
+}
+
+a.google-button:active {
+  background: rgba(221,67,55,1);
+}
+
+a.google-button-disabled {
+  background: rgba(221,67,55,0.5);
+  cursor: default;
+}
+
+a.facebook-button {
+  background: rgba(59,89,152,0.8);
+}
+
+a.facebook-button:hover {
+  background: rgba(59,89,152,0.9);
+}
+
+a.facebook-button:active {
+  background: rgba(59,89,152,1);
+}
+
+a.facebook-button-disabled {
+  background: rgba(59,89,152,0.5);
+  cursor: default;
+}
+
+a.twitter-button {
+  background: rgba(60,143,201,0.9);
+}
+
+a.twitter-button:hover {
+  background: rgba(60,143,201,0.75);
+}
+
+a.twitter-button:active {
+  background: rgba(60,143,201,1);
+}
+
+a.twitter-button-disabled {
+  background: rgba(60,143,201,0.5);
+  cursor: default;
+}
+
+a.delete-button,
+a.button.danger {
+  background: rgba(208,76,56,0.8);
+  border: 1px solid #2f2f2f;
+  color: #fff;
+}
+
+a.delete-button:hover,
+a.button.danger:hover {
+  background: rgba(208,76,56,0.9);
+}
+
+a.delete-button:active,
+a.button.danger:active {
+  background: rgba(208,76,56,1);
 }
 
 /*.........................................................................*/
@@ -500,6 +599,10 @@ span.empty-list {
   text-align: center;
 }
 
+.textright {
+  text-align: right;
+}
+
 /*.........................................................................*/
 
 .container {
@@ -512,23 +615,82 @@ span.empty-list {
   margin-bottom: 23px;
 }
 
+.page {
+  width: 480px;
+  margin: 30px auto 60px;
+}
+
+.page td {
+  position: relative;
+}
+
+.page form {
+  margin-bottom: 20px;
+}
+
+.page td input[type="text"],
+.page td input[type="password"],
+.page td input[type="submit"],
+.page td a.button {
+  width: 100%;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+}
+
+.page a.connect-button {
+  margin-bottom: 5px;
+}
+
+.page-spin {
+  position: absolute;
+  top: 30px;
+  left: 110px;
+}
+
+.page-heading {
+  font-size: 16px;
+  line-height: 48px;
+  display: block;
+  color: #3f3f3f;
+}
+
+.page-section {
+  display: block;
+  font-size: 14px;
+  line-height: 32px;
+  font-weight: bold;
+  color: #3f3f3f;
+}
+
+.page-error {
+  display: block;
+  color: #cc0f0f;
+  font-size: 11px;
+  text-align: left;
+  line-height: 48px;
+  float: right;
+}
+
 /*.........................................................................*/
 
 .block-messages {
   position: absolute;
-  z-index: 10;
-  right: 334px;
-  top: 0;
-  width: 700px;
+  z-index: 10001;
+  left: 50px;
+  bottom: 50px;
+  width: auto;
   white-space: nowrap;
+  min-width: 300px;
 }
 
 .block-remove {
   float: right;
   cursor: pointer;
   padding: 0 10px;
-  line-height: 60px;
-  color: #4f4f4f;
+  line-height: 40px;
+  color: #6f6f6f;
   font-size: 14px;
 
   -moz-user-select: none;
@@ -546,8 +708,12 @@ span.empty-list {
 
 .block-messages li {
   position: relative;
+  margin-top: 5px;
   list-style-type: none;
-  border-left: 1px solid #d0d0d0;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -564,31 +730,23 @@ span.empty-list {
 }
 
 .block-error {
-  background: #efefef;
+  background: rgba(204, 15, 15, 0.3);
 }
 
 .block-alert {
-  background: rgba(118, 214, 118, 0.2);
+  background: rgba(39, 205, 214, 0.3);
 }
 
 .block-error-txt,
 .block-alert-txt {
-  font-size: 10px;
+  font-size: 11px;
   padding: 0 10px;
   color: #3f3f3f;
   font-weight: 700;
-  line-height: 60px;
-}
-
-.block-error-txt {
-  color: #cc0f0f;
+  line-height: 40px;
 }
 
 .block-error-txt a {
-  color: #0f0f0f;
-}
-
-.block-error-txt a:hover {
   text-decoration: underline;
 }
 
@@ -617,6 +775,7 @@ span.empty-list {
   white-space: nowrap;
   font-size: 20px;
   color: #2f2f2f;
+  background: none;
   font-family: 'Dosis', sans-serif;
   font-weight: 600;
   text-transform: lowercase;
@@ -667,6 +826,7 @@ a.header-action {
   color: #4f4f4f;
   padding-left: 10px;
   text-transform: uppercase;
+  background: none;
 }
 
 a.header-action:hover {
@@ -677,7 +837,7 @@ a.header-action:active {
   top: 1px;
 }
 
-.header .username {
+.header a.username {
   font-size: 11px;
   padding-right: 10px;
 }
@@ -700,20 +860,19 @@ a.header-action:active {
 
 .header a.signin-button {
   float: right;
-  line-height: 10px;
   margin-top: 8px;
 }
 
 .header.wide a.signin-button {
-  margin-right: 20px;
+  margin-right: 40px;
 }
 
 /*.........................................................................*/
 
 .modal-inner {
   position: relative;
-  padding: 20px 20px 0;
-  width: 660px;
+  padding: 20px 30px 0;
+  width: 640px;
 }
 
 .modal-inner td {
@@ -728,7 +887,8 @@ a.header-action:active {
   margin-bottom: 20px;
 }
 
-.modal-inner input {
+.modal-inner td input,
+.modal-inner td a.button {
   width: 100%;
 
   box-sizing: border-box;
@@ -761,68 +921,156 @@ a.header-action:active {
   color: #cc0f0f;
   font-size: 11px;
   text-align: left;
+  float: right;
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+.modal-body > p {
+  font-size: 12px;
+  line-height: 18px;
+  color: #4d4d4d;
+}
+
+.modal-actions {
+  border-top: 1px solid #d0d0d0;
+  padding: 15px 20px;
+  background: #f9f9f9;
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
+  font-size: 0;
+  -webkit-box-shadow: inset 0 1px 0 #fff;
+  -moz-box-shadow: inset 0 1px 0 #fff;
+  box-shadow: inset 0 1px 0 #fff;
+}
+
+.modal-link {
+  font-size: 10px;
+  margin: 5px 0 0 0;
+  text-align: right;
+  display: block;
+}
+
+a.button.modal-button {
+  margin-left: 10px;
+}
+
+a.button.modal-button.full {
+  width: 100%;
+  margin: 0;
 }
 
 /*.........................................................................*/
 
-.signin {
-  width: 400px;
-  position: relative;
-  overflow: hidden;
-  background: #e6e6e6;
-
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
+.confirm-inner {
+  padding: 0;
+  width: 660px;
 }
 
+/*.........................................................................*/
+
+.forgot-inner .modal-error {
+  float: none;
+}
+
+/*.........................................................................*/
+
 .signin-inner {
-  height: 456px;
+  width: 560px;
+}
+
+.signin-inner table td {
+  padding-right: 10px;
+}
+
+.signin-inner table td:last-child {
+  padding-right: 0;
+}
+
+.connect-wrap {
+  margin-bottom: 20px;
+}
+
+.connect-wrap .button-spin {
+  top: 17px;
+}
+
+.signup-wrap {
+  float: left;
+  width: 250px;
+}
+
+.login-wrap {
+  margin: 0 0 0 280px;
+  width: 250px;
+  background: #f9f9f9;
+  padding: 0 15px 12px;
+}
+
+.signup-button {
+  margin-bottom: 10px;
 }
 
 .signin-error {
-  color: red;
-  font-size: 12px;
+  text-align: left;
+  float: right;
+  margin-top: 10px;
 }
 
-form.signin-form {
-  margin: 0;
-}
-
-form.signin-form input:not([type=submit]) {
-  width: 342px;
-}
-
-a.google-button {
-  font-size: 14px;
-  font-weight: bold;
-  padding: 8px 0 6px 0;
-  margin: 0 auto;
+.forgot-password {
+  margin-top: 10px;
   display: block;
-
-  -webkit-text-shadow: 0px 1px white;
-  -moz-text-shadow: 0px 1px white;
-  text-shadow: 0px 1px white;
+  text-align: center;
+  color: #8f8f8f;
+  font-size: 10px;
 }
 
-.or-bar {
-  position: relative;
-  height: 0;
-  border-bottom: 1px solid #ccc;
-  width: 100%;
-  border-top: 1px solid #ccc;
-  margin: 30px 0;
+.saved-ghost {
+  display: none;
 }
 
-.or-txt {
-  position: absolute;
-  top: -8px;
-  left: 0;
-  background: #e6e6e6;
-  padding: 0 15px 0 0;
-  font-style: italic;
-  color: #4d4d4d;
+.form-iframe {
+  display: none;
+}
+
+/*.........................................................................*/
+
+.settings-saved,
+.setting-error {
+  display: none;
+  color: #390;
+  font-size: 11px;
   font-weight: bold;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+.settings-error {
+  line-height: inherit;
+}
+.settings-gravatar img {
+  display: inline;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  vertical-align: -7px;
+}
+.settings-gravatar a {
+  font-weight: bold;
+  margin-left: 2px;
 }
 
 /*.........................................................................*/
@@ -1272,6 +1520,8 @@ a.dataset-button .dataset-button-bg {
 
 a.dataset-add-button {
   position: absolute;
+  top: 0;
+  right: -45px;
   display: inline-block;
   color: #8f8f8f;
   font-size: 16px;

@@ -1,5 +1,5 @@
 /*
- * Save view
+ * Forgot password view
  */
 
 define([
@@ -11,21 +11,20 @@ define([
   'rest',
   'util',
   'Spin',
-  'text!../../templates/save.html'
+  'text!../../templates/forgot.html'
 ], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template) {
 
   return Backbone.View.extend({
-    
+
     // The DOM target element for this page:
-    className: 'save',
+    className: 'forgot',
     working: false,
-    
-    // Module entry point:
-    initialize: function (app, options) {
+
+    // Module entry point.
+    initialize: function (app) {
       
       // Save app reference.
       this.app = app;
-      this.options = options;
 
       // Client-wide subscriptions
       this.subscriptions = [];
@@ -61,19 +60,19 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .save-form input[type="submit"]': 'save',
-      'keyup input[name="name"]': 'update',
+      'click .forgot-form input[type="submit"]': 'send',
+      'keyup input[name="email"]': 'update',
     },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs.
-      this.saveForm = $('.save-form');
-      this.saveInput = $('input[name="name"]', this.saveForm);
-      this.saveSubmit = $('input[type="submit"]', this.saveForm);
-      this.saveError = $('.modal-error', this.saveForm);
-      this.saveButtonSpin = new Spin($('.button-spin', this.el), {
+      this.forgotForm = $('.forgot-form');
+      this.forgotInput = $('input[name="email"]', this.forgotForm);
+      this.forgotSubmit = $('input[type="submit"]', this.forgotForm);
+      this.forgotError = $('.modal-error', this.forgotForm);
+      this.forgotButtonSpin = new Spin($('.button-spin', this.el), {
         color: '#3f3f3f',
         lines: 13,
         length: 3,
@@ -88,8 +87,8 @@ define([
           el.removeClass('input-error');
       });
 
-      // Focus cursor.
-      _.delay(_.bind(function () { this.focus(); }, this), 0);
+      // Focus cursor initial.
+      _.delay(_.bind(function () { this.forgotInput.focus(); }, this), 0);
 
       return this;
     },
@@ -120,15 +119,15 @@ define([
       this.empty();
     },
 
-    // Update save button status
+    // Update forgot button status
     update: function (e) {
-      if (this.saveInput.val().trim().length === 0)
-        this.saveSubmit.attr({disabled: 'disabled'});
+      if (this.forgotInput.val().trim().length === 0)
+        this.forgotSubmit.attr({disabled: 'disabled'});
       else
-        this.saveSubmit.attr({disabled: false});
+        this.forgotSubmit.attr({disabled: false});
     },
 
-    save: function (e) {
+    send: function (e) {
       e.preventDefault();
 
       // Prevent multiple uploads at the same time.
@@ -136,14 +135,14 @@ define([
       this.working = true;
 
       // Grab the form data.
-      var payload = this.saveForm.serializeObject();
+      var payload = {email: this.forgotInput.val().trim()};
 
       // Client-side form check.
-      var check = util.ensure(payload, ['name']);
+      var check = util.ensure(payload, ['email']);
 
       // Add alerts.
       _.each(check.missing, _.bind(function (m, i) {
-        var field = $('input[name="' + m + '"]', this.saveForm);
+        var field = this.$('input[name="' + m + '"]');
         field.val('').addClass('input-error');
         if (i === 0) field.focus();
       }, this));
@@ -153,64 +152,75 @@ define([
 
         // Set the error display.
         var msg = 'All fields are required.';
-        this.saveError.text(msg);
+        this.forgotError.text(msg);
+        this.working = false;
+
+        return false;
+      }
+      if (!util.isEmail(payload.email)) {
+
+        // Set the error display.
+        this.forgotInput.val('').addClass('input-error').focus();
+        var msg = 'Please use a valid email address.';
+        this.forgotError.text(msg);
         this.working = false;
 
         return false;
       }
 
       // Start load indicator.
-      this.saveButtonSpin.start();
-      this.saveSubmit.addClass('loading');
+      this.forgotButtonSpin.start();
+      this.forgotSubmit.addClass('loading');
 
-      // Add other data.
-      var state = store.get('state');
-      _.extend(payload, {
-        datasets: state.datasets,
-        time: state.time
-      });
-
-      // Create the view.
-      rest.post('/api/views', payload, _.bind(function (err, res) {
-
+      // Do the API request.
+      rest.post('/api/users/forgot', payload, _.bind(function (err, data) {
+        
         // Start load indicator.
-        this.saveButtonSpin.stop();
-        this.saveSubmit.removeClass('loading').attr({disabled: 'disabled'});
-        this.saveInput.val('');
+        this.forgotButtonSpin.stop();
+        this.forgotSubmit.removeClass('loading').attr({disabled: 'disabled'});
+        this.forgotInput.val('');
+        this.working = false;
 
         if (err) {
-          this.saveError.text(err);
-          this.working = false;
-          this.saveInput.addClass('input-error');
+
+          // Set the error display.
+          if (err.code === 404)
+            this.forgotError.text('Sorry, we could not find your account.');
+          else if (err.message === 'No password') {
+            var provider = _.str.capitalize(err.data.provider);
+            this.forgotError.html('Oops, this account was created via ' + provider
+                + '. <a href="/auth/' + err.data.provider
+                + '">Reconnect with ' + provider + '</a>.');
+          } else this.forgotError.text(err.message);
+
+          // Clear fields.
+          this.forgotInput.addClass('input-error');
           this.focus();
+
           return;
         }
 
-        // Publish new dataset.
-        mps.publish('view/new', [res]);
-
-        // Show alert
-        mps.publish('flash/new', [{
-          message: 'Successfully saved a new data mashup: "' + res.name + '"',
-          level: 'alert',
-          sticky: false
-        }]);
-
-        // Close the modal.
+        // Wait a little then close the modal.
         $.fancybox.close();
+
+        // Inform user.
+        mps.publish('flash/new', [{
+          message: 'Please check your inbox for a link to reset your password.',
+          level: 'alert'
+        }, true]);
 
         // Ready for more.
         this.working = false;
-
-        // Update URL.
-        var route = [this.app.profile.user.username,
-            'views', res.slug].join('/');
-        this.app.router.navigate('/' + route, {trigger: false, replace: true});
 
       }, this));
 
       return false;
     },
+
+    cancel: function (e) {
+      e.preventDefault();
+      $.fancybox.close();
+    }
 
   });
 });

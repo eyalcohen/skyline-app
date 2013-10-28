@@ -1,77 +1,131 @@
-<div class="signin-spin"></div>
-<div class="signin-inner modal-inner modal-inner-narrow">
+<span class="modal-title">
+  Sign in to Skyline
+</span>
+<div class="signin-inner modal-inner">
   <div>
-    <div class="signin-strategies">
+    <div class="connect-wrap">
+      <span class="modal-heading">
+        a) Connect with your existing services
+      </span>
       <table>
         <tbody>
           <tr>
             <td>
-              <a href="/auth/google" class="button google-button">
-                 <img src="/img/google_24.png" />
-                <span style="vertical-align: 7px; padding: 10px;">
-                  Sign In with Google Account</span>
+              <a class="button connect-button google-button" href="/auth/google" tabindex="8">
+                Connect with Google
               </a>
+              <div class="button-spin button-spin-white"></div>
+            </td>
+            <td>
+              <a class="button connect-button facebook-button" href="/auth/facebook" tabindex="9">
+                Connect with Facebook
+              </a>
+              <div class="button-spin button-spin-white"></div>
+            </td>
+            <td>
+              <a class="button connect-button twitter-button" 
+                  href="/auth/twitter" tabindex="10">
+                Connect with Twitter
+              </a>
+              <div class="button-spin button-spin-white"></div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="or-bar"><div class="or-txt">Or sign in</div></div>
-    <div class="signin-forms">
-      <form id="signin_form" enctype="multipart/form-data" method="POST">
+    <div class="signup-wrap">
+      <span class="signin-error modal-error"></span>
+      <span class="modal-heading">
+        b) Sign up
+      </span>
+      <iframe src="/_blank" id="signup_target" name="signup_target" class="form-iframe"></iframe>
+      <form class="signup-form" enctype="multipart/form-data" target="signup_target" method="POST" action="/_blank">
         <table>
           <tbody>
             <tr>
-              <td colspan="2">
-                <input name="username" type="text" placeholder="Username" />
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2">
-                <input name="password" type="password" placeholder="Password" />
+              <td>
+                <label for="newusername">New username</label>
               </td>
             </tr>
             <tr>
               <td>
-                <span class="modal-error"></span>
-              </td>
-              <td>
-                <input id="signin" type="submit" value="Sign in" style="float:right;" />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </form>
-      <div class="or-bar"><div class="or-txt">Or create an account</div></div>
-      <form id="signup_form" enctype="multipart/form-data" method="POST">
-        <table>
-          <tbody>
-            <tr>
-              <td colspan="2">
-                <input name="newusername" type="text" placeholder="Choose a username" />
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2">
-                <input name="newemail" type="text" placeholder="Your email (private)" />
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2">
-                <input name="newpassword" type="password" placeholder="Choose a password" />
+                <input tabindex="4" id="newusername" name="newusername" type="text" />
               </td>
             </tr>
             <tr>
               <td>
-                <span class="modal-error"></span>
+                <label for="newemail">Email address (private)</label>
               </td>
+            </tr>
+            <tr>
               <td>
-                <input id="signup" type="submit" value="Sign up" style="float:right;" />
+                <input tabindex="5" id="newemail" name="newemail" type="text" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="newpassword">New password</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="6" id="newpassword" name="newpassword" type="password" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="7" class="signup-button" type="submit" value="Create your account" />
+                <div class="button-spin"></div>
               </td>
             </tr>
           </tbody>
         </table>
       </form>
     </div>
+    <div class="login-wrap">
+      <span class="signin-error modal-error"></span>
+      <span class="modal-heading">
+        c) Login
+      </span>
+      <iframe src="/_blank" id="signin_target" name="signin_target" class="form-iframe"></iframe>
+      <form class="signin-form highlight" enctype="multipart/form-data" target="signin_target" method="POST" action="/_blank">
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <label for="username">Username or email</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="1" id="username" name="username" type="text" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="password">Password</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="2" id="password" name="password" type="password" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input tabindex="3" class="login-button" type="submit" value="Log in" />
+                <div class="button-spin"></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="javascript:;" class="forgot-password">I forgot my password</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </form>
+    </div>
+    <div class="clearfix"></div>
   </div>
 </div>

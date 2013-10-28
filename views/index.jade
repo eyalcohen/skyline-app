@@ -1,25 +1,31 @@
 extends layout
 
 block content
-  div.container
+  .container
+    .page-spin
     header
+      .saved-ghost
+        form(enctype="multipart/form-data", method="POST")
+          input(name="username", type="text")
+          input(name="password", type="password")
+          input(value="_", type="submit")
       .block-messages
         ul
-      div.header.wide
+      .header.wide
         - if (typeof user !== 'undefined')
-          div.user-box
+          .user-box
             a.username.header-action(href="/#{user.username}") #{user.displayName}
-            a.header-action(href="javascript:;")
+            a.header-action.navigate(href="/settings")
               i.icon-menu-1
             a.header-action(href="/logout")
               i.icon-logout
             a.add-data-button.button(href="javascript:;") Add Data
         - else
           a.signin-button.button(href="javascript:;") Sign in
-        div.header-logo
+        .header-logo
           a.navigate(href="/")
             img(src="#{root}/img/time.png", width="13", height="12")
             | Skylin
         span.header-title
-    div.main(role="main")
+    .main(role="main")
     footer

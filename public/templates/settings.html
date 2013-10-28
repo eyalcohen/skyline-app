@@ -1,0 +1,173 @@
+<%
+
+  // Save model attributes
+  var data = this.model.attributes;
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/' + data.gravatar + '?s=24&d=mm';
+
+  // Notifications config
+  var notes = data.config.notifications;
+
+%>
+
+<div class="page">
+  <div>
+    <span class="reset-error page-error"></span>
+    <span class="page-heading">
+      Public Profile
+    </span>
+    <form class="reset-form" enctype="multipart/form-data" method="POST">
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <label for="displayName">Display Name</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <input type="text" tabindex="1" id="displayName" name="displayName"
+                  placeholder="How your name appears..." value="<%= data.displayName %>" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="username">Username</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <input type="text" tabindex="2" id="username" name="username" 
+                  placeholder="(required)" value="<%= data.username %>" />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label for="primaryEmail">Email address (private)</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <input type="text" tabindex="3" id="primaryEmail" name="primaryEmail"
+                  placeholder="Used for notifications..." value="<%= data.primaryEmail %>" />
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" class="settings-gravatar">
+              <img src=<%= gravatar %> width="24" height="24" />
+              <a href="http://gravatar.com" class="important" target="_blank">Change your avatar at Gravatar.com</a>
+            </td>
+          </tr>
+          <tr><td colspan="2">&nbsp;</td></tr>
+          <tr>
+            <td colspan="2">
+              <span class="page-section">Notification Settings</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span>Receive comment thread notifications?</span>
+            </td>
+            <td class="textright">
+              <% if (notes.comment.email === true || notes.comment.email === 'true') { %>
+                <input type="checkbox" name="config.notifications.comment.email"
+                    tabindex="4" checked="checked" />
+              <% } else { %>
+                <input type="checkbox" name="config.notifications.comment.email" />
+              <% } %>
+              <label for="config.notifications.comment.email"
+                  tabindex="5" style="vertical-align:-1px;">Email (requires address above)</label>
+            </td>
+          </tr>
+          <tr><td colspan="2">&nbsp;</td></tr>
+          <tr>
+            <td colspan="2">
+              <span class="page-section">Services</span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <% if (!data.googleId) { %>
+                <a tabindex="6" class="button connect-button google-button" href="/connect/google">
+                  Connect with Google
+                </a>
+              <% } else { %>
+                <a class="button connect-button google-button-disabled" href="javascript:;">
+                  Connected with Google
+                </a>
+              <% } %>
+              <% if (!data.facebookId) { %>
+                <a tabindex="7" class="button connect-button facebook-button" href="/connect/facebook">
+                  Connect with Facebook
+                </a>
+              <% } else { %>
+                <a class="button connect-button facebook-button-disabled" href="javascript:;">
+                  Connected with Facebook
+                </a>
+              <% } %>
+              <% if (!data.twitterId) { %>
+                <a tabindex="8" class="button connect-button twitter-button" href="/connect/twitter">
+                  Connect with Twitter
+                </a>
+              <% } else { %>
+                <a class="button connect-button twitter-button-disabled" href="javascript:;">
+                  Connected with Twitter
+                </a>
+              <% } %>
+            </td>
+          </tr>
+          <% if (data.provider === 'local') { %>
+            <tr><td colspan="2">&nbsp;</td></tr>
+            <tr>
+              <td colspan="2">
+                <span class="page-section">Security</span>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <a tabindex="9" href="/reset" class="button connect-button navigate">
+                  Change your password
+                </a>
+              </td>
+            </tr>
+          <% } %>
+          <tr><td colspan="2">&nbsp;</td></tr>
+          <tr>
+            <td colspan="2">
+              <span class="page-section">Danger Zone</span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <a tabindex="10" href="javascript:;" class="demolish button connect-button delete-button">
+                Delete profile
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </div>
+</div>

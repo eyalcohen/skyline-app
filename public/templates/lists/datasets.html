@@ -4,6 +4,8 @@
     <%= this.row(row) %>
   <% }, this)); %>
 <% } %>
-<a class="dataset-add-button">
-  <i class="icon-list-add"></i>
-</a>
+<% if (this.app.profile && this.app.profile.user) { %>
+  <a class="dataset-add-button">
+    <i class="icon-list-add"></i>
+  </a>
+<% } %>

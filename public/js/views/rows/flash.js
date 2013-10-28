@@ -41,8 +41,10 @@ define([
     },
 
     _remove: function (cb) {
-      this.destroy();
-      cb();
+      this.$el.slideUp('fast', _.bind(function () {
+        this.destroy();
+        cb();
+      }, this));
     },
 
   });
