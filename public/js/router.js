@@ -81,10 +81,10 @@ define([
       // Init page spinner.
       this.spin = new Spin($('.page-spin'), {
         color: '#bfbfbf',
-        lines: 17,
-        length: 7,
-        width: 3,
-        radius: 12
+        lines: 13,
+        length: 3,
+        width: 2,
+        radius: 6,
       });
     },
 

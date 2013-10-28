@@ -471,6 +471,7 @@ a.google-button:active {
 
 a.google-button-disabled {
   background: rgba(221,67,55,0.5);
+  cursor: default;
 }
 
 a.facebook-button {
@@ -487,6 +488,7 @@ a.facebook-button:active {
 
 a.facebook-button-disabled {
   background: rgba(59,89,152,0.5);
+  cursor: default;
 }
 
 a.twitter-button {
@@ -503,6 +505,7 @@ a.twitter-button:active {
 
 a.twitter-button-disabled {
   background: rgba(60,143,201,0.5);
+  cursor: default;
 }
 
 a.delete-button,
@@ -596,6 +599,10 @@ span.empty-list {
   text-align: center;
 }
 
+.textright {
+  text-align: right;
+}
+
 /*.........................................................................*/
 
 .container {
@@ -610,7 +617,7 @@ span.empty-list {
 
 .page {
   width: 480px;
-  margin: 30px auto 0;
+  margin: 30px auto 60px;
 }
 
 .page td {
@@ -621,7 +628,9 @@ span.empty-list {
   margin-bottom: 20px;
 }
 
-.page td input,
+.page td input[type="text"],
+.page td input[type="password"],
+.page td input[type="submit"],
 .page td a.button {
   width: 100%;
 
@@ -630,18 +639,28 @@ span.empty-list {
   -webkit-box-sizing: border-box
 }
 
+.page a.connect-button {
+  margin-bottom: 5px;
+}
+
 .page-spin {
-  margin: 0 auto;
-  height: 50px;
-  width: 100%;
   position: absolute;
-  top: 50%;
+  top: 30px;
+  left: 110px;
 }
 
 .page-heading {
   font-size: 16px;
   line-height: 48px;
   display: block;
+  color: #3f3f3f;
+}
+
+.page-section {
+  display: block;
+  font-size: 14px;
+  line-height: 32px;
+  font-weight: bold;
   color: #3f3f3f;
 }
 
@@ -658,8 +677,8 @@ span.empty-list {
 
 .block-messages {
   position: absolute;
-  z-index: 10;
-  left: 20px;
+  z-index: 10001;
+  left: 50px;
   bottom: 50px;
   width: auto;
   white-space: nowrap;
@@ -670,8 +689,8 @@ span.empty-list {
   float: right;
   cursor: pointer;
   padding: 0 10px;
-  line-height: 60px;
-  color: #fff;
+  line-height: 40px;
+  color: #6f6f6f;
   font-size: 14px;
 
   -moz-user-select: none;
@@ -711,20 +730,20 @@ span.empty-list {
 }
 
 .block-error {
-  background: #cc0f0f;
+  background: rgba(204, 15, 15, 0.3);
 }
 
 .block-alert {
-  background: rgba(39, 205, 214, 0.8);
+  background: rgba(39, 205, 214, 0.3);
 }
 
 .block-error-txt,
 .block-alert-txt {
   font-size: 11px;
   padding: 0 10px;
-  color: #fff;
+  color: #3f3f3f;
   font-weight: 700;
-  line-height: 60px;
+  line-height: 40px;
 }
 
 .block-error-txt a {
@@ -845,7 +864,7 @@ a.header-action:active {
 }
 
 .header.wide a.signin-button {
-  margin-right: 20px;
+  margin-right: 40px;
 }
 
 /*.........................................................................*/
@@ -1015,6 +1034,43 @@ a.button.modal-button.full {
 
 .form-iframe {
   display: none;
+}
+
+/*.........................................................................*/
+
+.settings-saved,
+.setting-error {
+  display: none;
+  color: #390;
+  font-size: 11px;
+  font-weight: bold;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+.settings-error {
+  line-height: inherit;
+}
+.settings-gravatar img {
+  display: inline;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  vertical-align: -7px;
+}
+.settings-gravatar a {
+  font-weight: bold;
+  margin-left: 2px;
 }
 
 /*.........................................................................*/

@@ -132,7 +132,7 @@ define([
       }
 
       // Now do the save.
-      rest.put('/api/members/' + this.app.profile.member.username, payload,
+      rest.put('/api/users/' + this.app.profile.user.username, payload,
           _.bind(function (err, data) {
         if (err) {
 
@@ -147,7 +147,7 @@ define([
         }
 
         // Update profile.
-        _.extend(this.app.profile.member, payload);
+        _.extend(this.app.profile.user, payload);
 
         // Save the saved state and show indicator.
         field.data('saved', val);
@@ -163,50 +163,33 @@ define([
 
       // Render the confirm modal.
       $.fancybox(_.template(confirm)({
-        message: 'Do you want to permanently delete your profile?',
-        working: 'Working...'
+        message: 'I want to permanently delete my account.',
       }), {
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
         padding: 0
       });
-      
-      // Refs.
-      var overlay = $('.modal-overlay');
 
       // Setup actions.
-      $('#confirm_cancel').click(function (e) {
+      $('#m_cancel').click(function (e) {
         $.fancybox.close();
       });
-      $('#confirm_delete').click(_.bind(function (e) {
+      $('#m_yes').click(_.bind(function (e) {
 
-        // Show the in-modal overlay.
-        overlay.show();
-
-        // Delete the member.
-        rpc.delete('/api/members/' + this.app.profile.member.username,
+        // Delete the user.
+        rest.delete('/api/users/' + this.app.profile.user.username,
             {}, _.bind(function (err, data) {
-          if (err) {
-
-            // Oops.
-            console.log('TODO: Retry, notify user, etc.');
-            return;
-          }
-
-          // Change overlay message.
-          $('p', overlay).text('Hasta la pasta! - Love, Island');
+          if (err) return console.log(err);
 
           // Logout client-side.
-          mps.publish('member/delete');
+          mps.publish('user/delete');
+
+          // Close the modal.
+          $.fancybox.close();
 
           // Route to home.
           this.app.router.navigate('/', {trigger: true});
-
-          // Wait a little then close the modal.
-          _.delay(_.bind(function () {
-            $.fancybox.close();
-          }, this), 2000);
 
         }, this));
       }, this));

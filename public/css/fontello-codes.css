@@ -5,6 +5,7 @@
 .icon-folder-empty:before { content: '\e80d'; } /* '' */
 .icon-menu-1:before { content: '\e802'; } /* '' */
 .icon-floppy:before { content: '\e801'; } /* '' */
+.icon-check:before { content: '\e80f'; } /* '' */
 .icon-cancel:before { content: '\e80c'; } /* '' */
 .icon-export:before { content: '\e805'; } /* '' */
 .icon-logout:before { content: '\e800'; } /* '' */

@@ -2,6 +2,7 @@ extends layout
 
 block content
   .container
+    .page-spin
     header
       .saved-ghost
         form(enctype="multipart/form-data", method="POST")
@@ -14,7 +15,7 @@ block content
         - if (typeof user !== 'undefined')
           .user-box
             a.username.header-action(href="/#{user.username}") #{user.displayName}
-            a.header-action(href="javascript:;")
+            a.header-action.navigate(href="/settings")
               i.icon-menu-1
             a.header-action(href="/logout")
               i.icon-logout
@@ -27,5 +28,4 @@ block content
             | Skylin
         span.header-title
     .main(role="main")
-    .page-spin
     footer

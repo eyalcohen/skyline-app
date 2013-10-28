@@ -24,9 +24,9 @@
             <td>
               <label for="displayName">Display Name</label>
             </td>
-            <td>
+            <td class="textright">
               <div class="settings-saved">
-                <span class="icon-ok"></span>
+                <span class="icon-check"></span>
                 <span>Saved</span>
               </div>
               <span class="settings-error page-error"></span>
@@ -42,9 +42,9 @@
             <td>
               <label for="username">Username</label>
             </td>
-            <td class="text-right">
+            <td class="textright">
               <div class="settings-saved">
-                <span class="icon-ok"></span>
+                <span class="icon-check"></span>
                 <span>Saved</span>
               </div>
               <span class="settings-error page-error"></span>
@@ -60,9 +60,9 @@
             <td>
               <label for="primaryEmail">Email address (private)</label>
             </td>
-            <td class="text-right">
+            <td class="textright">
               <div class="settings-saved">
-                <span class="icon-ok"></span>
+                <span class="icon-check"></span>
                 <span>Saved</span>
               </div>
               <span class="settings-error page-error"></span>
@@ -74,67 +74,65 @@
                   placeholder="Used for notifications..." value="<%= data.primaryEmail %>" />
             </td>
           </tr>
-
-
           <tr>
             <td colspan="2" class="settings-gravatar">
               <img src=<%= gravatar %> width="24" height="24" />
-              <a href="http://gravatar.com" class="important" target="_blank">Change your avatar at Gravatar.com</a>.
+              <a href="http://gravatar.com" class="important" target="_blank">Change your avatar at Gravatar.com</a>
             </td>
           </tr>
           <tr><td colspan="2">&nbsp;</td></tr>
           <tr>
             <td colspan="2">
-              <h1 class="title-static">Notification Settings</h1>
+              <span class="page-section">Notification Settings</span>
             </td>
           </tr>
           <tr>
             <td>
-              <span class="settings-notifications-txt">Receive comment thread notifications?</span>
+              <span>Receive comment thread notifications?</span>
             </td>
-            <td class="text-right">
+            <td class="textright">
               <% if (notes.comment.email === true || notes.comment.email === 'true') { %>
                 <input type="checkbox" name="config.notifications.comment.email"
-                    tabindex="10" checked="checked" />
+                    tabindex="4" checked="checked" />
               <% } else { %>
                 <input type="checkbox" name="config.notifications.comment.email" />
               <% } %>
               <label for="config.notifications.comment.email"
-                  tabindex="10" style="vertical-align:-1px;">Email (requires address above)</label>
+                  tabindex="5" style="vertical-align:-1px;">Email (requires address above)</label>
             </td>
           </tr>
           <tr><td colspan="2">&nbsp;</td></tr>
           <tr>
             <td colspan="2">
-              <h1 class="title-static">Services</h1>
+              <span class="page-section">Services</span>
             </td>
           </tr>
           <tr>
             <td colspan="2">
               <% if (!data.googleId) { %>
-                <a tabindex="11" class="button connect-button google-button" href="/connect/google">
+                <a tabindex="6" class="button connect-button google-button" href="/connect/google">
                   Connect with Google
                 </a>
               <% } else { %>
-                <a class="connect-button-disabled google-button" href="javascript:;">
+                <a class="button connect-button google-button-disabled" href="javascript:;">
                   Connected with Google
                 </a>
               <% } %>
               <% if (!data.facebookId) { %>
-                <a tabindex="11" class="button connect-button facebook-button" href="/connect/facebook">
+                <a tabindex="7" class="button connect-button facebook-button" href="/connect/facebook">
                   Connect with Facebook
                 </a>
               <% } else { %>
-                <a class="connect-button-disabled facebook-button" href="javascript:;">
+                <a class="button connect-button facebook-button-disabled" href="javascript:;">
                   Connected with Facebook
                 </a>
               <% } %>
               <% if (!data.twitterId) { %>
-                <a tabindex="12" class="button connect-button twitter-button" href="/connect/twitter">
+                <a tabindex="8" class="button connect-button twitter-button" href="/connect/twitter">
                   Connect with Twitter
                 </a>
               <% } else { %>
-                <a class="connect-button-disabled twitter-button" href="javascript:;">
+                <a class="button connect-button twitter-button-disabled" href="javascript:;">
                   Connected with Twitter
                 </a>
               <% } %>
@@ -144,12 +142,12 @@
             <tr><td colspan="2">&nbsp;</td></tr>
             <tr>
               <td colspan="2">
-                <h1 class="title-static">Security</h1>
+                <span class="page-section">Security</span>
               </td>
             </tr>
             <tr>
               <td colspan="2">
-                <a tabindex="14" href="/reset" class="button connect-button navigate">
+                <a tabindex="9" href="/reset" class="button connect-button navigate">
                   Change your password
                 </a>
               </td>
@@ -158,13 +156,12 @@
           <tr><td colspan="2">&nbsp;</td></tr>
           <tr>
             <td colspan="2">
-              <h1 class="title-static">Danger Zone</h1>
+              <span class="page-section">Danger Zone</span>
             </td>
           </tr>
           <tr>
             <td colspan="2">
-              <a tabindex="14" href="javascript:;"
-                  class="demolish button connect-button delete-button">
+              <a tabindex="10" href="javascript:;" class="demolish button connect-button delete-button">
                 Delete profile
               </a>
             </td>
