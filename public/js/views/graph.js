@@ -33,7 +33,9 @@ define([
           _.bind(this.highlightedChannelChanged, this));
 
       // Client-wide subscriptions
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
+      ];
     },
 
     // Draw our template from the profile JSON.
@@ -195,6 +197,18 @@ define([
         this.plot.setupGrid();
         this.plot.draw();
       }
+    },
+
+    zoom: function (range) {
+      if (!range) return;
+      range *= 1e3;
+      var xaxis = this.plot.getXAxes()[0];
+      var avg = (xaxis.options.max + xaxis.options.min) / 2;
+      xaxis.options.min = avg - range / 2;
+      xaxis.options.max = avg + range / 2;
+      this.plot.setupGrid();
+      this.plot.draw();
+      this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);
     },
 
     createPlot: function () {

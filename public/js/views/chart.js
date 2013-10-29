@@ -62,7 +62,11 @@ define([
 
     // Bind mouse events.
     events: {
+      'click .control-button-daily': 'daily',
+      'click .control-button-weekly': 'weekly',
+      'click .control-button-monthly': 'monthly',
       'click .control-button-save': 'save',
+      'click .control-button-comments': 'comments',
     },
 
     // Misc. setup.
@@ -114,6 +118,21 @@ define([
 
     fit: function () {
       this.datasets.fit(this.$el.width() - this.controls.width());
+    },
+
+    daily: function (e) {
+      e.preventDefault();
+      mps.publish('chart/zoom', [60*60*24]);
+    },
+
+    weekly: function (e) {
+      e.preventDefault();
+      mps.publish('chart/zoom', [60*60*24*7]);
+    },
+
+    monthly: function (e) {
+      e.preventDefault();
+      mps.publish('chart/zoom', [60*60*24*30]);
     },
 
     save: function (e) {

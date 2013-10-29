@@ -32,7 +32,8 @@ define([
       this.cache = new Cache(this.app);
       this.set({channels: []});
       this.sampleSet = {};
-      
+
+      // View change events.
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
