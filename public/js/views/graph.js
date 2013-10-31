@@ -245,10 +245,17 @@ define([
           { position: 'right', alignTicksWithAxis: 1 }
         ],
         series: {
-          lines: { lineWidth: 1 },
-          points: {},
+          lines: {
+            lineWidth: 1
+          },
+          points: {
+            show: true,
+            radius: 3,
+            lineWidth: 1,
+            symbol: 'circle'
+          },
           bars: {},
-          shadowSize: 1,
+          shadowSize: 1
         },
         grid: {
           markings: weekendAreas,
@@ -261,7 +268,7 @@ define([
           minBorderMargin: 0,
           fullSize: true,
         },
-        crosshair: { mode: 'x' },
+        crosshair: { /*mode: 'x'*/ },
         zoom: {
           interactive: false, // We implement zooming event handlers ourselves.
         },
@@ -393,7 +400,7 @@ define([
         do {
           markings.push({
             xaxis: { from: i, to: i + 2*24*60*60*1000 },
-            color: 'rgba(252, 252, 252, 0.5)',
+            color: 'rgba(249, 249, 249, 0.8)',
           });
           i += 7 * 24 * 60 * 60 * 1000;
         } while (i < axes.xaxis.max);
@@ -479,8 +486,8 @@ define([
           data.push(null);
         var val = s.val * conv.factor + conv.offset;
         data.push([s.beg / 1000, val]);
-        if (s.end !== s.beg)
-          data.push([s.end / 1000, val]);
+        // if (s.end !== s.beg)
+        //   data.push([s.end / 1000, val]);
         prevEnd = s.end;
         if (s.min != null || s.max != null) {
           if (prevMinMaxEnd != s.beg)
@@ -601,7 +608,7 @@ define([
                 $('.flot-overlay', self.content).trigger(e);
               else
                 if (e.type === 'mouseup')
-                  self.plot.getPlaceholder().css({ cursor: 'crosshair' });
+                  self.plot.getPlaceholder().css({ cursor: 'default' });
               else
                 self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
             })
@@ -811,7 +818,7 @@ define([
       if (mouse && graph === self) {
         self.parentView.model.set({highlightedChannel: newHightlightedChannel});
         self.plot.getPlaceholder().css(
-            {cursor: newHightlightedChannel ? 'pointer' : 'crosshair'});
+            {cursor: newHightlightedChannel ? 'pointer' : 'default'});
       }
     },
 

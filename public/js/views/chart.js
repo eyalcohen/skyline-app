@@ -11,8 +11,9 @@ define([
   'units',
   'text!../../templates/chart.html',
   'views/lists/datasets',
+  'views/lists/comments',
   'views/graph'
-], function ($, _, Backbone, mps, util, units, template, Datasets, Graph) {
+], function ($, _, Backbone, mps, util, units, template, Datasets, Comments, Graph) {
 
   return Backbone.View.extend({
 
@@ -26,7 +27,7 @@ define([
       this.app = app;
       this.options = options;
 
-      // Shell events:
+      // Shell events.
       this.on('rendered', this.setup, this);
 
       // Client-wide subscriptions
@@ -40,7 +41,7 @@ define([
       ];
     },
 
-    // Draw our template from the profile JSON.
+    // Draw our template from the profile.
     render: function (samples) {
 
       // Use model to store view data.
@@ -52,7 +53,7 @@ define([
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('div.main');
+      this.$el.html(this.template.call(this)).appendTo('.main');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -66,6 +67,7 @@ define([
       'click .control-button-weekly': 'weekly',
       'click .control-button-monthly': 'monthly',
       'click .control-button-save': 'save',
+      'click .control-button-download': 'download',
       'click .control-button-comments': 'comments',
     },
 
@@ -79,6 +81,7 @@ define([
 
       // Render children views.
       this.datasets = new Datasets(this.app, {parentView: this});
+      this.comments = new Comments(this.app, {parentView: this});
       this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.
@@ -140,6 +143,22 @@ define([
 
       // Render the save view.
       mps.publish('modal/save/open');
+    },
+
+    download: function (e) {
+      e.preventDefault();
+    },
+
+    comments: function (e) {
+      e.preventDefault();
+
+      if (this.sidePanel.hasClass('open')) {
+        this.sidePanel.removeClass('open');
+        store.set('comments', false);
+      } else {
+        this.sidePanel.addClass('open');
+        store.set('comments', true);
+      }
     },
 
   });

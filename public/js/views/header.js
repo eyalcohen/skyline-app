@@ -38,6 +38,10 @@ define([
 
         // UnderscoreJS rendering.
         $(_.template(box).call(this)).prependTo(this.$el);
+
+        // Handle comments panel.
+        if (this.app.profile.user && store.get('comments'))
+          $('.side-panel').addClass('open');
       }
 
       // Done rendering ... trigger setup.

@@ -621,6 +621,7 @@
                             && points[k - ps] != null
                             && points[k - ps] != points[k]
                             && points[k - ps + 1] != points[k + 1]) {
+
                             // copy the point to make room for a middle point
                             for (m = 0; m < ps; ++m)
                                 points[k + ps + m] = points[k + m];
@@ -2074,16 +2075,16 @@
             var lw = series.lines.lineWidth,
                 sw = series.shadowSize;
             // FIXME: consider another form of shadow when filling is turned on
-            if (lw > 0 && sw > 0) {
-                // draw shadow as a thick and thin line with transparency
-                ctx.lineWidth = sw;
-                ctx.strokeStyle = "rgba(0,0,0,0.1)";
-                // position shadow at angle from the mid of line
-                var angle = Math.PI/18;
-                plotLine(series.datapoints, Math.sin(angle) * (lw/2 + sw/2), Math.cos(angle) * (lw/2 + sw/2), series.xaxis, series.yaxis);
-                ctx.lineWidth = sw/2;
-                plotLine(series.datapoints, Math.sin(angle) * (lw/2 + sw/4), Math.cos(angle) * (lw/2 + sw/4), series.xaxis, series.yaxis);
-            }
+            // if (lw > 0 && sw > 0) {
+            //     // draw shadow as a thick and thin line with transparency
+            //     ctx.lineWidth = sw;
+            //     ctx.strokeStyle = "rgba(0,0,0,0.1)";
+            //     // position shadow at angle from the mid of line
+            //     var angle = Math.PI/18;
+            //     plotLine(series.datapoints, Math.sin(angle) * (lw/2 + sw/2), Math.cos(angle) * (lw/2 + sw/2), series.xaxis, series.yaxis);
+            //     ctx.lineWidth = sw/2;
+            //     plotLine(series.datapoints, Math.sin(angle) * (lw/2 + sw/4), Math.cos(angle) * (lw/2 + sw/4), series.xaxis, series.yaxis);
+            // }
 
             ctx.lineWidth = lw;
             ctx.strokeStyle = series.color;
@@ -2116,33 +2117,35 @@
                         symbol(ctx, x, y, radius, shadow);
                     ctx.closePath();
                     
-                    if (fillStyle) {
-                        ctx.fillStyle = fillStyle;
-                        ctx.fill();
-                    }
+                    ctx.fillStyle = series.color;
+                    ctx.fill();
+
+                    ctx.strokeStyle = "#fff";
                     ctx.stroke();
+                    
                 }
             }
             
             ctx.save();
             ctx.translate(plotOffset.left, plotOffset.top);
-
+            // ........ //
             var lw = series.points.lineWidth,
                 sw = series.shadowSize,
                 radius = series.points.radius,
                 symbol = series.points.symbol;
-            if (lw > 0 && sw > 0) {
-                // draw shadow in two steps
-                var w = sw / 2;
-                ctx.lineWidth = w;
-                ctx.strokeStyle = "rgba(0,0,0,0.1)";
-                plotPoints(series.datapoints, radius, null, w + w/2, true,
-                           series.xaxis, series.yaxis, symbol);
 
-                ctx.strokeStyle = "rgba(0,0,0,0.2)";
-                plotPoints(series.datapoints, radius, null, w/2, true,
-                           series.xaxis, series.yaxis, symbol);
-            }
+            // if (lw > 0 && sw > 0) {
+            //     // draw shadow in two steps
+            //     var w = sw / 2;
+            //     ctx.lineWidth = w;
+            //     ctx.strokeStyle = "rgba(0,0,0,0.1)";
+            //     plotPoints(series.datapoints, radius, null, w + w/2, true,
+            //                series.xaxis, series.yaxis, symbol);
+
+            //     ctx.strokeStyle = "rgba(0,0,0,0.2)";
+            //     plotPoints(series.datapoints, radius, null, w/2, true,
+            //                series.xaxis, series.yaxis, symbol);
+            // }
 
             ctx.lineWidth = lw;
             ctx.strokeStyle = series.color;

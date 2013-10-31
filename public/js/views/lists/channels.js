@@ -15,7 +15,6 @@ define([
   return List.extend({
     
     el: '.channels',
-    working: false,
     active: false,
 
     initialize: function (app, options) {
@@ -75,12 +74,14 @@ define([
     expand: function (active) {
       _.each(this.views, function (v) { v.expand(); });
       this.resize(null, active);
+      this.$el.addClass('open');
     },
 
     collapse: function () {
       if (!this.active)
         _.each(this.views, function (v) { v.collapse(); });
       this.resize();
+      this.$el.removeClass('open');
     },
 
     _remove: function (data) {

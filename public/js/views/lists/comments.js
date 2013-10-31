@@ -35,10 +35,12 @@ define([
       this.app.rpc.socket.on('comment.removed', _.bind(this._remove, this));
 
       // Reset the collection.
-      this.collection.older =
-          this.parentView.model.get('comments_cnt')
-          - this.parentView.model.get('comments').length
-      this.collection.reset(this.parentView.model.get('comments'));
+      // this.collection.older =
+      //     this.parentView.model.get('comments_cnt')
+      //     - this.parentView.model.get('comments').length
+      this.collection.older = false;
+      // console.log(this.app.profile.content.datasets.items);
+      // this.collection.reset(this.parentView.model.get('comments'));
     },
 
     setup: function () {
@@ -61,7 +63,7 @@ define([
       }, this));
 
       // Show other elements.
-      this.$('.show-older.comment').show();
+      this.$('.showolder.comment').show();
       this.$('.comment-input-wrap .comment').show();
 
       return List.prototype.setup.call(this);
@@ -70,7 +72,7 @@ define([
     // Bind mouse events.
     events: {
       'click .comments-signin': 'signin',
-      'click .show-older': 'older',
+      'click .showolder': 'older',
     },
 
     // Collect new comments from socket events.
@@ -175,7 +177,7 @@ define([
         this.collection.options.reverse = false;
 
         // Hide the button.
-        this.$('.show-older.comment').hide();
+        this.$('.showolder.comment').hide();
 
       }, this));
 
