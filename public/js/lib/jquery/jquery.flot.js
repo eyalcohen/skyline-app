@@ -121,7 +121,7 @@
                 grid: {
                     show: true,
                     aboveData: false,
-                    color: "#545454", // primary color used for outline and labels
+                    color: "#8f8f8f", // primary color used for outline and labels
                     backgroundColor: null, // null for transparent, else color
                     borderColor: null, // set if different from the grid color
                     tickColor: null, // color for the ticks, e.g. "rgba(0,0,0,0.15)"
@@ -1765,12 +1765,11 @@
                     
                 var box = axis.box, f = axis.font;
                 // placeholder.append('<div style="position:absolute;opacity:0.10;background-color:red;left:' + box.left + 'px;top:' + box.top + 'px;width:' + box.width +  'px;height:' + box.height + 'px"></div>') // debug
-
-                ctx.fillStyle = '#8f8f8f'; //axis.options.color;
+                ctx.fillStyle = axis.options.color;
                 // Important: Don't use quotes around axis.font.family! Just around single 
                 // font names like 'Times New Roman' that have a space or special character in it.
                 ctx.font = f.style + " " + f.variant + " " + f.weight + " " + f.size + "px " + f.family;
-                ctx.textAlign = "start";
+                
                 // middle align the labels - top would be more
                 // natural, but browsers can differ a pixel or two in
                 // where they consider the top to be, so instead we
@@ -1786,6 +1785,7 @@
                     for (var k = 0; k < tick.lines.length; ++k) {
                         line = tick.lines[k];
                         if (axis.direction == "x") {
+                            ctx.textAlign = "start";
                             x = plotOffset.left + axis.p2c(tick.v) - line.width/2;
                             // if (x > canvasWidth - plotOffset.right - line.width)
                             //   x -= line.width / 2 + 5;
@@ -1805,17 +1805,21 @@
                         else {
                             if (i == axis.ticks.length - 1) continue;
                             y = plotOffset.top + axis.p2c(tick.v) - tick.height - 3;
+                            if (i == 0) y = y - 2;
                             // if (y > canvasHeight - f.size)
                             //   y -= f.size;
                             // if (y < f.size)
                             //   y += f.size;
-                            if (axis.position == "left")
+                            if (axis.position == "left") {
+                                ctx.textAlign = "start";
                                 x = axis.options.labelsInside ?
                                     7 : box.left + box.width - box.padding - line.width;
-                            else
+                            } else {
+                                ctx.textAlign = "end";
                                 x = axis.options.labelsInside ?
-                                    box.left - line.width - 10:
+                                    box.left - 10:
                                     box.left + box.padding;
+                                }
                         }
 
                         // account for middle aligning and line number

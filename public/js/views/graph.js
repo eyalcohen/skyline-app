@@ -240,8 +240,8 @@ define([
           labelsInside: true,
         },
         yaxes: [
-          { position: 'left' },
-          { position: 'right', alignTicksWithAxis: 1 }
+          { position: 'right' },
+          { position: 'left', alignTicksWithAxis: 1 },
         ],
         series: {
           lines: {
@@ -507,6 +507,7 @@ define([
       var self = this;
       var channels = self.model.getChannels();
       if (channels.length === 0) return;
+      var yAxes = self.plot.getYAxes();
       series.forEach(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = self.highlightedChannel === channel.channelName;
@@ -525,6 +526,9 @@ define([
           s.zorder = highlighted ? 50000 : s.channelIndex;
         else
           s.zorder = 10000 + (highlighted ? 50000 : s.channelIndex);
+        if (i < yAxes.length) {
+          yAxes[i].options.color = color;
+        }
       });
     },
 

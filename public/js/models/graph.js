@@ -126,15 +126,15 @@ define([
       var self = this;
       channels = _.isArray(channels) ? channels : [channels];
 
-      var numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
+      var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
       _.each(self.getChannels(), function (channel) {
         if (!channel.yaxisNum) return;
         if (channel.yaxisNum === 1)
-          numSeriesLeftAxis++;
-        else
           numSeriesRightAxis++;
+        else
+          numSeriesLeftAxis++;
       });
-      var yAxisNumToUse = numSeriesLeftAxis > numSeriesRightAxis ? 2 : 1;
+      var yAxisNumToUse = numSeriesRightAxis > numSeriesLeftAxis ? 2 : 1;
 
       var client = this.getOrCreateClient(datasetId);
       _.each(channels, function (channel) {
