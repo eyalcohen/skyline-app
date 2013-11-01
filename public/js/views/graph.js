@@ -38,15 +38,15 @@ define([
       ];
     },
 
-    // Draw our template from the profile JSON.
-    render: function (samples) {
+    // Draw template.
+    render: function () {
 
       // Init a model for this view.
       this.model = new Graph(this.app, this);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('div.graphs');
+      this.$el.html(this.template.call(this)).appendTo('.graphs');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -221,8 +221,7 @@ define([
           position: 'bottom',
           min: self.model.get('visibleTime').beg / 1e3,
           max: self.model.get('visibleTime').end / 1e3,
-          tickColor: '#f0f0f0',
-          labelsInside: true,
+          tickColor: 'rgba(0,0,0,0.1)',
           tickFormatter: function (val, axis) {
             var visible = self.getVisibleTime();
             var span = (visible.end - visible.beg) / 1e3;
@@ -237,7 +236,7 @@ define([
           labelWidth: 0,
           zoomRange: false,
           panRange: false,
-          tickColor: '#f0f0f0',
+          tickColor: 'rgba(0,0,0,0.05)',
           labelsInside: true,
         },
         yaxes: [
@@ -246,7 +245,7 @@ define([
         ],
         series: {
           lines: {
-            lineWidth: 1
+            lineWidth: 2
           },
           points: {
             show: true,
@@ -291,6 +290,7 @@ define([
           setupGrid: [_.bind(self.plotSetupGridHook, self)],
           bindEvents: [bindEventsHook],
         },
+        padding: {x: 0, y: 20}
       });
 
       // self.plot.lockCrosshair(); // Disable default crosshair movement.
@@ -451,7 +451,7 @@ define([
         series.push(_.extend({
           lines: {
             show: true,
-            lineWidth: 1,
+            lineWidth: 2,
             fill: false,
           },
           data: data.data,

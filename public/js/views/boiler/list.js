@@ -38,7 +38,7 @@ define([
     render: function (options) {
       options = options || {};
       if (this.parentView && this.$el.attr('class'))
-        this.setElement(this.parentView.$('.' + this.$el.attr('class')));
+        this.setElement(this.parentView.$('.' + _.str.strLeft(this.$el.attr('class'), ' ')));
       this.$el.html(this.template(options));
       this.trigger('rendered');
       return this;

@@ -76,7 +76,7 @@ define([
       var txt = this.model.name();
       this.txt.text(txt);
       var tw = this.name.outerWidth();
-      if (tw >= w) {
+      if (tw && tw >= w) {
         var len = txt.length;
         var i = 1;
         while (tw >= w) {

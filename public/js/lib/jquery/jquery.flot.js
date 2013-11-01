@@ -141,7 +141,8 @@
                 interaction: {
                     redrawOverlayInterval: 1000/60 // time between updates, -1 means in same flow
                 },
-                hooks: {}
+                hooks: {},
+                padding: {x: 0, y: 0}
             },
         canvas = null,      // the canvas for the plot itself
         overlay = null,     // canvas for interactive stuff on top of plot
@@ -212,10 +213,10 @@
         plot.setCanvasDimensions = function (w, h) {
           canvasWidth = w;
           canvasHeight = h;
-          canvas.width = w;
-          canvas.height = h;
-          overlay.width = w;
-          overlay.height = h;
+          canvas.width = w + options.padding.x;
+          canvas.height = h + options.padding.y;
+          overlay.width = w + options.padding.x;
+          overlay.height = h + options.padding.y;
         };
 
         // public attributes
@@ -803,7 +804,7 @@
                 plot.resize();
                 
                 // make sure overlay pixels are cleared (canvas is cleared when we redraw)
-                octx.clearRect(0, 0, canvasWidth, canvasHeight);
+                octx.clearRect(0, 0, canvasWidth + options.padding.x, canvasHeight + options.padding.y);
                 
                 // then whack any remaining obvious garbage left
                 eventHolder.unbind();
@@ -1083,7 +1084,7 @@
                 // determine from the placeholder the font size ~ height of font ~ 1 em
                 var fontDefaults = {
                     style: placeholder.css("font-style"),
-                    size: Math.round(0.8 * (+placeholder.css("font-size").replace("px", "") || 13)),
+                    size: Math.round(0.9 * (+placeholder.css("font-size").replace("px", "") || 13)),
                     variant: placeholder.css("font-variant"),
                     weight: placeholder.css("font-weight"),
                     family: placeholder.css("font-family")
@@ -1501,7 +1502,7 @@
         }
       
         function draw() {
-            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            ctx.clearRect(0, 0, canvasWidth + options.padding.x, canvasHeight + options.padding.y);
 
             var grid = options.grid;
 
@@ -1643,7 +1644,7 @@
                         ctx.fillStyle = m.color || options.grid.markingsColor;
                         ctx.fillRect(xrange.from, yrange.to,
                                      xrange.to - xrange.from,
-                                     yrange.from - yrange.to);
+                                     yrange.from - yrange.to - 1);
                     }
                 }
             }
@@ -1716,6 +1717,7 @@
                             yoff = -yoff;
                     }
                     else {
+                        if (i == 0 || i == axis.ticks.length - 1) continue;
                         y = axis.p2c(v);
                         xoff = t == "full" ? -plotWidth : t;
                         
@@ -1730,13 +1732,16 @@
                             y = Math.floor(y) + 0.5;
                     }
 
-                    ctx.moveTo(x, y);
+                    if (axis.direction == "x")
+                        ctx.moveTo(x, y + options.padding.y);
+                    else
+                        ctx.moveTo(x, y);
+
                     ctx.lineTo(x + xoff, y + yoff);
                 }
                 
                 ctx.stroke();
             }
-            
             
             // draw border
             if (bw) {
@@ -1761,7 +1766,7 @@
                 var box = axis.box, f = axis.font;
                 // placeholder.append('<div style="position:absolute;opacity:0.10;background-color:red;left:' + box.left + 'px;top:' + box.top + 'px;width:' + box.width +  'px;height:' + box.height + 'px"></div>') // debug
 
-                ctx.fillStyle = axis.options.color;
+                ctx.fillStyle = '#8f8f8f'; //axis.options.color;
                 // Important: Don't use quotes around axis.font.family! Just around single 
                 // font names like 'Times New Roman' that have a space or special character in it.
                 ctx.font = f.style + " " + f.variant + " " + f.weight + " " + f.size + "px " + f.family;
@@ -1782,14 +1787,14 @@
                         line = tick.lines[k];
                         if (axis.direction == "x") {
                             x = plotOffset.left + axis.p2c(tick.v) - line.width/2;
-                            if (x > canvasWidth - plotOffset.right - line.width)
-                              x -= line.width / 2 + 5;
-                            if (x <= plotOffset.left)
-                              x += line.width / 2 + 5;
+                            // if (x > canvasWidth - plotOffset.right - line.width)
+                            //   x -= line.width / 2 + 5;
+                            // if (x <= plotOffset.left)
+                            x += line.width / 2 + 5;
                             if (axis.position == "bottom")
                                 y = axis.options.labelsInside ?
                                     box.top - box.padding - f.size :
-                                    box.top + box.padding;
+                                    box.top + 2 * box.padding - 2;
                             else if (axis.position == "top")
                                 y = axis.options.labelsInside ?
                                     box.top + box.height - box.padding - tick.height + f.size:
@@ -1798,18 +1803,18 @@
                                 y = plot.height() / 2 - f.size / 2;
                         }
                         else {
-                            if (i == 0) continue;
-                            y = plotOffset.top + axis.p2c(tick.v) - tick.height/2;
-                            if (y > canvasHeight - f.size)
-                              y -= f.size;
-                            if (y < f.size)
-                              y += f.size;
+                            if (i == axis.ticks.length - 1) continue;
+                            y = plotOffset.top + axis.p2c(tick.v) - tick.height - 3;
+                            // if (y > canvasHeight - f.size)
+                            //   y -= f.size;
+                            // if (y < f.size)
+                            //   y += f.size;
                             if (axis.position == "left")
                                 x = axis.options.labelsInside ?
-                                    5 : box.left + box.width - box.padding - line.width;
+                                    7 : box.left + box.width - box.padding - line.width;
                             else
                                 x = axis.options.labelsInside ?
-                                    box.left - line.width - 5:
+                                    box.left - line.width - 10:
                                     box.left + box.padding;
                         }
 
@@ -2554,7 +2559,7 @@
 
             // draw highlights
             octx.save();
-            octx.clearRect(0, 0, canvasWidth, canvasHeight);
+            octx.clearRect(0, 0, canvasWidth + options.padding.x, canvasHeight + options.padding.y);
             octx.translate(plotOffset.left, plotOffset.top);
             
             var i, hi;

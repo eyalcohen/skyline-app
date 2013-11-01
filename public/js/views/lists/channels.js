@@ -73,15 +73,16 @@ define([
 
     expand: function (active) {
       _.each(this.views, function (v) { v.expand(); });
-      this.resize(null, active);
       this.$el.addClass('open');
+      this.resize(null, active);
     },
 
     collapse: function () {
-      if (!this.active)
+      if (!this.active) {
         _.each(this.views, function (v) { v.collapse(); });
+        this.$el.removeClass('open');
+      }
       this.resize();
-      this.$el.removeClass('open');
     },
 
     _remove: function (data) {

@@ -80,9 +80,9 @@ define([
       this.controls = this.$('.controls');
 
       // Render children views.
+      this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
       this.comments = new Comments(this.app, {parentView: this});
-      this.graph = new Graph(this.app, {parentView: this}).render();
 
       // Do resize on window change.
       this.resize();
@@ -120,7 +120,8 @@ define([
     },
 
     fit: function () {
-      this.datasets.fit(this.$el.width() - this.controls.width());
+      if (this.datasets)
+        this.datasets.fit(this.$el.width() - this.controls.width());
     },
 
     daily: function (e) {

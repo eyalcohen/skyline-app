@@ -1330,7 +1330,7 @@ a.control-button:active {
 
 .lower-panel {
   position: absolute;
-  z-index: 12;
+  z-index: 0;
   left: 0;
   bottom: 0;
   width: 100%;
@@ -1353,6 +1353,7 @@ a.control-button:active {
   width: 100%;
   height: 100% !important;
   min-height: 300px;
+  font-weight: 400;
 }
 
 .graph:focus {
@@ -1557,19 +1558,6 @@ a.dataset-add-button:active {
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
   border-color: transparent;
-
-  -webkit-animation-name: fadeIn;
-  -moz-animation-name: fadeIn;
-  -o-animation-name: fadeIn;
-  animation-name: fadeIn;
-  -webkit-animation-duration: .2s;
-  -moz-animation-duration: .2s;
-  -o-animation-duration: .2s;
-  animation-duration: .2s;
-  -webkit-animation-fill-mode: both;
-  -moz-animation-fill-mode: both;
-  -o-animation-fill-mode: both;
-  animation-fill-mode: both;
 }
 
 .channels.open {
@@ -1588,11 +1576,11 @@ a.dataset-add-button:active {
   border-bottom-width: 1px;
   opacity: 1;
 
-  -webkit-transition: opacity 0.25s;
-  -moz-transition: opacity 0.25s;
-  -ms-transition: opacity 0.25s;
-  -o-transition: opacity 0.25s;
-  transition: opacity 0.25s;
+  -webkit-transition: opacity 0.2s;
+  -moz-transition: opacity 0.2s;
+  -ms-transition: opacity 0.2s;
+  -o-transition: opacity 0.2s;
+  transition: opacity 0.2s;
 }
 
 .channel:hover {
