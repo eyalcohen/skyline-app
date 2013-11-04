@@ -56,7 +56,7 @@ define([
 
     // Bind mouse events.
     events: {
-      // 'click .graph-channels li': 'channelClick',
+      
     },
 
     // Misc. setup.
@@ -66,13 +66,7 @@ define([
       this.plot = null;
       this.mouseTime = this.parentView.$('.mouse-time');
       this.mouseTimeTxt = $('span', this.mouseTime);
-      // this.eventPreview = this.$('.event-preview');
-      // this.eventIcons = [];
       this.minHoverDistance = 10;
-      // this.following = false;
-      // this.noteBox = null;
-      // this.noteWindow = null;
-      // this.editingNote = false;
 
       // Draw the canvas.
       this.draw();
@@ -109,91 +103,12 @@ define([
       this.remove();
     },
 
-    // addChannelToPanel: function (channel) {
-    //   var li = $('<li>' + channel.val.channelName + '</li>');
-    //   li.data('channel', channel);
-    //   li.appendTo(this.panel);
-    // },
-
-    // channelClick: function (e) {
-    //   var li = $(e.target);
-    //   if (li.hasClass('active')) {
-    //     li.removeClass('active');
-    //     this.model.removeChannel(li.data('channel').val);
-    //   } else {
-    //     li.addClass('active');
-    //     this.model.addChannel(li.data('channel').val);
-    //   }
-    // },
-
-    /////////////////////////////////// OLD
-
-    // initialize: function (app) {
-    //   this._super('initialize', args);
-    //   _.bindAll(this, 'destroy', 'highlightedChannelChanged',
-    //             'showEvent', 'hideEvent',
-    //             'mouseHoverTime', 'addYaxesBoundsForDrops',
-    //             'removeYaxesBoundsForDrops', 'ensureLegend', 'openNote');
-    //   var tabId = args.tabId;
-    //   var id = args.id;
-    //   this.model.tabModel.bind('change:highlightedChannel',
-    //                            this.highlightedChannelChanged);
-    //   App.subscribe('PreviewEvent-' + tabId, this.showEvent);
-    //   App.subscribe('UnPreviewEvent-' + tabId, this.hideEvent);
-    //   App.subscribe('OpenNote-' + tabId, this.openNote);
-    //   App.subscribe('MouseHoverTime-' + tabId, this.mouseHoverTime);
-    //   App.subscribe('DragStart-' + tabId, this.addYaxesBoundsForDrops);
-    //   App.subscribe('DragEnd-' + tabId, this.removeYaxesBoundsForDrops);
-    //   This is a horribly crufty way to avoid drawing the legends every time
-    //   the plot is redrawn but also ensure that it gets redawn when channels
-    //   are dropped in.
-    //   this.ensureLegendRedraw = true;
-    //   App.subscribe('ChannelDropped-' + id, this.ensureLegend);
-    // },
-
-    // events: {
-    //   'click .toggler': 'toggle',
-    //   'click .fetchLatest': 'fetchLatest',
-    //   'click .followLatest': 'followLatest',
-    //   'click .export': 'exportCsv',
-    //   'click .add-graph': 'addGraph',
-    //   'click .graph-closer': 'removeGraph',
-    // },
-
-    // render: function (opts, fn) {
-    //   opts = opts || {};
-    //   _.defaults(opts, {
-    //     title: this.options.title,
-    //     waiting: false,
-    //     loading: false,
-    //     empty: false,
-    //     shrinkable: false,
-    //   });
-    //   // if (this.el.length) this.remove();
-    //   this.plot = null;
-    //   // this.el = App.engine('graph.dash.jade', opts)
-    //   //     .appendTo(this.options.parent);
-    //   this.mouseTime = $('.mouse-time', this.el);
-    //   this.mouseTimeTxt = $('span', this.mouseTime);
-    //   this.eventPreview = $('.event-preview', this.el);
-    //   this.eventIcons = [];
-    //   this.minHoverDistance = 10;
-    //   this.following = false;
-    //   this.noteBox = null;
-    //   this.noteWindow = null;
-    //   this.editingNote = false;
-    //   // this._super('render');
-    //   this.draw();
-    // },
-
     resize: function (e, w, h) {
       if (this.plot) {
         var width = w || this.$el.parent().width();
         var height = h || this.$el.parent().height();
         height = Math.max(height, 300);
         this.plot.setCanvasDimensions(width, height);
-        // this.noteCanvas.attr({width: width, height: height});
-        // this.redrawNote();
         this.plot.setupGrid();
         this.plot.draw();
       }
@@ -267,18 +182,13 @@ define([
           minBorderMargin: 0,
           fullSize: true,
         },
-        crosshair: { /*mode: 'x'*/ },
         zoom: {
-          interactive: false, // We implement zooming event handlers ourselves.
+          interactive: false,
         },
         pan: {
           interactive: true,
           frameRate: 60,
           useShiftKey: true,
-          // onShiftDragStart: _.bind(self.beginNote, self),
-          // onShiftDrag: _.throttle(_.bind(self.drawNote, self), 20),
-          // onShiftDragEnd: _.bind(self.endNote, self),
-          // cancelShiftDrag: _.bind(self.cancelNote, self),
         },
         legend: {
           margin: [40, 0],
@@ -292,19 +202,6 @@ define([
         },
         padding: {x: 0, y: 20}
       });
-
-      // self.plot.lockCrosshair(); // Disable default crosshair movement.
-      // $('.graph', self.content).data({
-        // plot: self.plot,
-        // id: self.options.id,
-      // });
-
-      // self.noteCanvas =
-      //     $('<canvas width="' + self.plot.getPlaceholder().width() +
-      //       '" height="' + self.plot.getPlaceholder().height() +
-      //       '" class="note-canvas">').
-      //     appendTo(self.$el);
-      // self.noteCtx = self.noteCanvas.get(0).getContext('2d');
 
       function labelFormatter(label, series) {
         var channels = self.model.getChannels();
@@ -348,15 +245,9 @@ define([
           var mouse = self.getMouse(e, plot);
           var xaxis = plot.getXAxes()[0];
           var time = xaxis.c2p(mouse.x);
-          // If we're hovering over the legend, don't do data mouseover.
-          if (inLegend(e.target))
-            mouse = null;
-          // App.publish('MouseHoverTime-' + self.model.get('tabId'),
-          //             [time * 1e3, mouse, self]);
           self.mouseHoverTime(time * 1e3, mouse, self);
         })
         .bind('mouseleave', function (e) {
-          // App.publish('MouseHoverTime-' + self.model.get('tabId'), [null]);
           self.mouseHoverTime(null);
         })
         .mousewheel(function (e) {
@@ -379,14 +270,6 @@ define([
           else
             plot.zoom({center: c, amount: factor});
         }
-      }
-
-      function inLegend(elem) {
-        while (elem) {
-          if (elem.className == 'legend') return true;
-          elem = elem.parentNode;
-        }
-        return false;
       }
 
       function weekendAreas(axes) {
@@ -537,11 +420,13 @@ define([
       var xopts = this.plot.getAxes().xaxis.options;
       var xmin = xopts.min, xmax = xopts.max;
       var yAxes = this.plot.getYAxes();
+      
       // Automatically change Y-axis bounds based on visible data.
       yAxes.forEach(function (axis) {
         axis.datamin = Infinity;
         axis.datamax = -Infinity;
       });
+      
       // TODO: this is ugly, and probably slow.
       this.plot.getData().forEach(function (series) {
         var max = series.yaxis.datamax, min = series.yaxis.datamin;
@@ -563,14 +448,6 @@ define([
           axis.datamin -= 0.5; axis.datamax += 0.5;
         }
       });
-      
-      if (this.prevNumChannels !== this.model.getChannels().length
-          || this.ensureLegendRedraw) {
-        this.setupLegend();
-        this.prevNumChannels = this.model.getChannels().length;
-      } else {
-        this.setupLegend();
-      }
     },
 
     plotDrawHook: function () {
@@ -585,125 +462,6 @@ define([
         this.trigger('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
-      this.positionIcons();
-    },
-
-    setupIcons: function () {
-      var self = this;
-      if (self.eventIcons.length > 0)
-        self.eventIcons.remove();
-      var events =
-          _.stableSort(_.pluck(self.model.get('events'), 'attributes'),
-          function (s1, s2) {
-        return (s2.end - s2.beg) - (s1.end - s1.beg);
-      });
-      _.each(events, function (not) {
-        var icon = $('<img ' + (not.type === '_note' && self.id === 'MASTER' ?
-                    'id="' + not.id + '"' : '') + '>')
-            .attr({ src: not.meta.icon })
-            .css({ bottom: 20 })
-            .addClass('timeline-icon')
-            .data(_.extend({}, not))
-            .appendTo(self.$el)
-            .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel',
-                function (e) {
-              if (e.type === 'mousedown' || 
-                  e.type === 'mousemove')
-                $('.flot-overlay', self.content).trigger(e);
-              else
-                if (e.type === 'mouseup')
-                  self.plot.getPlaceholder().css({ cursor: 'default' });
-              else
-                self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
-            })
-            .bind('click', function (e) {
-              var not = $(e.target).data();
-              if (not.type !== '_note') return;
-              if ($('.note').length > 0) {
-                _.each(self.model.tabModel.graphModels, function (gm) {
-                  if (gm.view.noteWindow)
-                      gm.view.cancelNote();
-                });
-              }
-              var xaxis = self.plot.getXAxes()[0];
-              var off = _.map(self.plot.offset(), function (o) {
-                return parseInt(o);
-              });
-              var dsEvent = $.Event('dragstart');
-              var dEvent = $.Event('drag');
-              var deEvent = $.Event('dragend');
-              _([dsEvent, dEvent, deEvent]).each(function (evt) {
-                evt.which = 1;
-                evt.shiftKey = true;
-                evt.pageY = off[0] + 30;
-                evt.note = not;
-              });
-              dsEvent.pageX = xaxis.p2c(not.beg / 1e3) + off[1];
-              dEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
-              deEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
-              $('.flot-overlay', self.$el)
-                  .trigger(dsEvent)
-                  .trigger(dEvent)
-                  .trigger(deEvent);
-            })
-            .bind('mouseover', function (e) {
-              // App.publish('PreviewEvent-' + self.model.get('tabId'),
-              //             [{beg: not.beg, end: not.end}]);
-            })
-            .bind('mouseout', function (e) {
-              // App.publish('UnPreviewEvent-' + self.model.get('tabId'));
-            });
-            // .bind('mouseout', function (e) {
-            //   var not = $(e.target).data();
-            //   if (not.type !== '_note') return;
-            //   (function checkItBoy() {
-            //     _.delay(function () {
-            //       if (!self.editingNote)
-            //         self.cancelNote(null, self.plot);
-            //       else checkItBoy();
-            //     }, 250);
-            //   })();
-            // });
-      });
-      self.eventIcons = this.$('.timeline-icon');
-      self.positionIcons();
-    },
-
-    positionIcons: function () {
-      var self = this;
-      var xaxis = this.plot.getXAxes()[0];
-      _.each(this.eventIcons, function (icon, i) {
-        var $icon = $(icon);
-        var left = xaxis.p2c($icon.data('beg') / 1e3) - 8;
-        if (left >= 0 && left <= self.$el.width()) {
-          $icon.css({
-            left: xaxis.p2c($icon.data('beg') / 1e3) - 8,
-          });
-          $icon.show();
-        } else $icon.hide();
-      });
-    },
-
-    setupLegend: function () {
-      this.plot.setupLegend(_.bind(function (okay) {
-        if (okay)
-          this.ensureLegendRedraw = false;
-      }, this));
-      this.$('.label-closer').click(_.bind(function (e) {
-        var labelParent = $(e.target).parent().parent();
-        var label = $('.legendLabel > div', labelParent);
-        $('li#' + label.data('channel-name')).click();
-        // var datasetId = Number(_.str.strRight(label.data('channel-name'), '__'));
-        // this.model.removeChannel(datasetId, label.data('channel-name'));
-      }, this));
-      this.$('.legend tr')
-          .bind('mouseenter', _.bind(this.enterLegend, this))
-          .bind('mouseleave', _.bind(this.leaveLegend, this));
-      this.$('.legend select')
-          .bind('change', _.bind(this.unitsChange, this));
-      // add note channels from legend
-      // this.$('.legendLabel').bind('click',
-      //     _.bind(this.addNoteChannelFromLabel, this));
     },
 
     getVisibleTime: function () {
@@ -726,12 +484,7 @@ define([
 
     mouseHoverTime: function (time, mouse, graph) {
       var self = this;
-      if (time != null)
-        time = time / 1e3;
-      if (time == null)
-        self.plot.clearCrosshair();
-      else
-        self.plot.setCrosshair({x: time});
+      if (time != null) time = time / 1e3;
       // if (time != null) {
       //   self.mouseTime.show();
       //   // TODO: finer than 1 second granularity.
@@ -761,6 +514,7 @@ define([
           });
           if (hp) {
             if (graph === self && mouse) {
+              
               // Check for mouse near vertical lines
               // as well as horizontal lines.
               var dx = Infinity, dy = Infinity;
@@ -806,6 +560,7 @@ define([
             if (Math.abs(Math.round(v)) >= 1e6)
               v = v.toFixed(0);
             else {
+              
               // Limit to 6 digits of precision (converting very small numbers
               // to e.g. '1.23400e-8'), strip zeros trailing the decimal
               // point, and strip the decimal point itself if necessary.
@@ -826,68 +581,6 @@ define([
       }
     },
 
-    addYaxesBoundsForDrops: function () {
-      var self = this;
-      if (this.axisTargets) return;
-      var parentPadding = {
-        lr: Math.ceil((self.content.width() -
-            self.plot.getPlaceholder().width()) / 2),
-        tb: Math.ceil((self.content.height() -
-            self.plot.getPlaceholder().height()) / 2),
-      };
-      _.each(self.plot.getAxes(), function (axis, key) {
-        if (key === 'xaxis') return;
-        var box = getBoundingBoxForAxis(axis);
-        var borderLeft = key === 'yaxis' ?
-            '' : '1px dashed rgba(0, 0, 0, 0.5)';
-        var borderRight = key === 'y2axis' ?
-            '' : '1px dashed rgba(0, 0, 0, 0.5)';
-        $('<div>')
-            .data({
-              'axis.direction': axis.direction,
-              'axis.n': axis.n,
-              id: self.options.id,
-              dragover: function () { $(this).css({ opacity: 1 }) },
-              dragout: function () { $(this).css({ opacity: 0 }) },
-            })
-            .css({
-              left: (axis.n - 1) * self.plot.width() / 2,
-              top: 0,
-              width: self.plot.width() / 2,
-              height: box.height,
-              'border-left': borderLeft,
-              'border-right': borderRight,
-            })
-            .addClass('axisTarget')
-            .addClass('jstree-drop')
-            .appendTo(self.content);
-      });
-
-      self.axisTargets = $('.axisTarget', self.el);
-
-      function getBoundingBoxForAxis (axis) {
-        var left = axis.box.left,
-            top = -parentPadding.tb,
-            right = left + axis.box.width;
-        var width = right - left,
-            height = self.content.height() + 1;
-        if (axis.position === 'left') {
-          left -= parentPadding.lr + 1;
-          width += parentPadding.lr;
-        } else {
-          width += parentPadding.lr;
-        }
-        return { left: left, top: top,
-              width: width, height: height };
-      }
-    },
-
-    removeYaxesBoundsForDrops: function () {
-      if (!this.axisTargets) return;
-      this.axisTargets.remove();
-      this.axisTargets = null;
-    },
-
     highlightedChannelChanged: function (model, highlightedChannel) {
       if (highlightedChannel != this.highlightedChannel) {
         if (this.highlightedLabel)
@@ -905,216 +598,6 @@ define([
       }
     },
 
-    showEvent: function (range) {
-      var xaxis = this.plot.getXAxes()[0];
-      var leftSide = Math.max(xaxis.p2c(range.beg / 1e3), 0);
-      var rightSide = Math.min(xaxis.p2c(range.end / 1e3), this.plot.width());
-      if (leftSide < this.plot.width() && rightSide > 0) {
-        this.eventPreview.css({
-          left: leftSide + 'px',
-          width: rightSide - leftSide + 'px',
-        }).show();
-      }
-    },
-
-    hideEvent: function () {
-      this.eventPreview.hide();
-    },
-
-    // fetchLatest: function (e, cb) {
-    //   if (e) e.preventDefault();
-    //   var self = this;
-    //   App.sampleCache.refetchLatest(self.model.tabModel.treeModel,
-    //                                 self.model.get('datasetId'),
-    //                                 function (newTimeRange) {
-    //     //* Note: for testing only!
-    //     // if (!newTimeRange) {
-    //     //   newTimeRange = self.getVisibleTime();
-    //     //   var rand = Math.random() * 10000000;
-    //     //   newTimeRange.beg += rand;
-    //     //   newTimeRange.end += rand;
-    //     // }
-    //     //*
-    //     if (newTimeRange) {
-    //       var prevTimeRange = self.getVisibleTime();
-    //       var xaxis = self.plot.getXAxes()[0];
-    //       pan(xaxis.p2c(newTimeRange.end / 1e3)
-    //             - xaxis.p2c(prevTimeRange.end / 1e3), function () {
-    //         if (cb) cb();
-    //       });
-    //     } else if (cb) cb();
-    //   });
-
-    //   function pan(dest, cb) {
-    //     var dur = 500, inc = 20;
-    //     var pos = _.map(_.range(0, dur+inc, inc),
-    //         function (time) {
-    //       return App.easing.easeOutExpo(time, 0, dest, dur);
-    //     });
-    //     var len = pos.length;
-    //     var steps = _.map(pos, function (p, i) {
-    //       return i < len - 1 ? pos[i+1] - p : 0;
-    //     });
-    //     (function step(i) {
-    //       if (i < len)
-    //         _.delay(function () {
-    //           self.plot.pan({ left: steps[i], top: 0 });
-    //           step(++i);
-    //         }, inc);
-    //       else cb();
-    //     })(0);
-    //   }
-    // },
-
-    // followLatest: function (e) {
-    //   e.preventDefault();
-    //   var self = this;
-    //   var freq = 10000;
-    //   var button = $(e.target);
-    //   if (button.hasClass('small-button-sticky-active')) {
-    //     button.removeClass('small-button-sticky-active');
-    //     this.following = false;
-    //   } else {
-    //     button.addClass('small-button-sticky-active');
-    //     this.following = true;
-    //     checkLatest();
-    //   }
-
-    //   function checkLatest() {
-    //     if (self.following) {
-    //       self.fetchLatest(null, function () {
-    //         if (self.following)
-    //           _.delay(checkLatest, freq);
-    //       });
-    //     }
-    //   }
-    // },
-
-    // exportCsv: function (e) {
-    //   var self = this;
-    //   e.preventDefault();
-    //   var channels = [
-    //       { channelName: '$beginDate', title: 'Begin Date' },
-    //       { channelName: '$beginTime', title: 'Begin Time' },
-    //       { channelName: '$beginRelTime', title: 'Begin Since Start', units: 's' },
-    //       { channelName: '$endRelTime', title: 'End Since Start', units: 's' },
-    //     ].concat(self.model.getChannels());
-    //   App.engine('export_csv.dialog.jade',
-    //       { channels: channels }).appendTo(self.el).modal({
-    //     appendTo: self.el,
-    //     overlayId: 'osx-overlay',
-    //     containerId: 'osx-container',
-    //     closeHTML: null,
-    //     minHeight: 80,
-    //     opacity: 65,
-    //     position: ['0',],
-    //     overlayClose: true,
-    //     onOpen: function (d) {
-    //       var self = this;
-    //       self.container = d.container[0];
-    //       d.overlay.fadeIn('fast', function () {
-    //         $('#osx-modal-content', self.container).show();
-    //         var title = $('#osx-modal-title', self.container);
-    //         title.show();
-    //         d.container.slideDown('fast', function () {
-    //           setTimeout(function () {
-    //             var h = $('#osx-modal-data', self.container).height() +
-    //                 title.height() + 20;
-    //             d.container.animate({ height: h }, 200, function () {
-    //               $('div.close', self.container).show();
-    //               $('#osx-modal-data', self.container).show();
-    //             });
-    //           }, 300);
-    //         });
-    //       });
-    //     },
-    //     onClose: function (d) {
-    //       var self = this;
-    //       d.container.animate({ top:'-' + (d.container.height() + 20) }, 300,
-    //           function () {
-    //         self.close();
-    //         $('#osx-modal-content').remove();
-    //       });
-    //     },
-    //   });
-    //   $('[value="noResample"]').attr('checked', true);
-    //   $('[name="minmax"]').attr('disabled', true);
-    //   $('[name="sampleType"]').click(onSampleTypeClick);
-    //   function onSampleTypeClick(e) {
-    //     $('[name="minmax"]').get(0).disabled =
-    //         $('[value="noResample"]').is(':checked');
-    //     checkExportOk();
-    //   }
-    //   function checkExportOk() {
-    //     var resampling = $('[value="resample"]').is(':checked');
-    //     var viewRange = self.getVisibleTime();
-    //     var resampleTime = Math.round(Number($('#resample').val()) * 1e6);
-    //     var exportCount =
-    //         Math.ceil((viewRange.end - viewRange.beg) / resampleTime);
-    //     var maxCount = 100000;
-    //     if (resampling && !(exportCount <= maxCount)) {
-    //       $('#rowCount').text(self.addCommas(exportCount));
-    //       $('#rowMax').text(self.addCommas(maxCount));
-    //       $('#exportError').css('visibility', 'visible');
-    //       $('#download-data').addClass('disabled');
-    //       return false;
-    //     } else {
-    //       $('#exportError').css('visibility', 'hidden');
-    //       $('#download-data').removeClass('disabled');
-    //       return true;
-    //     }
-    //   }
-    //   $('#resample').focus(onResampleTextClick).click(onResampleTextClick).
-    //       keyup(checkExportOk).change(checkExportOk);
-    //   function onResampleTextClick(e) {
-    //     $('[value="resample"]').click();
-    //     onSampleTypeClick();
-    //   }
-    //   $('#download-data').click(function (e) {
-    //     if (!checkExportOk()) return;
-    //     var viewRange = self.getVisibleTime();
-    //     var resample = !$('[value="noResample"]').is(':checked');
-    //     var minmax = $('[name="minmax"]').is(':checked');
-    //     var resampleTime = $('#resample').val();
-    //     // TODO: calculate how many data points we'll generate with a resample,
-    //     // and give some kind of warning or something if it's ridiculous.
-    //     // TODO: maybe use the new download attribute on an anchor element?
-    //     // http://html5-demos.appspot.com/static/a.download.html
-    //     // We should really fetch the data via dnode then force the download
-    //     // client-side... this way we can show a loading icon while the
-    //     // user waits for the server to package everything up.
-    //     var href = '/export/' +
-    //         self.model.get('datasetId') + '/data.csv' +
-    //         '?beg=' + Math.floor(viewRange.beg) +
-    //         '&end=' + Math.ceil(viewRange.end) +
-    //         (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
-    //         (resample && minmax ? '&minmax' : '') +
-    //         channels.map(function (c){return '&chan=' + c.channelName}).join('');
-    //     window.location.href = href;
-    //   });
-    //   return self;
-    // },
-
-    enterLegend: function (e) {
-      var row = $(e.target).closest('tr');
-      var channelName = $('[data-channel-name]', row).attr('data-channel-name');
-      this.parentView.model.set({highlightedChannel: channelName});
-    },
-
-    leaveLegend: function (e) {
-      var receiver = document.elementFromPoint(e.clientX, e.clientY);
-      if (!receiver) return;
-      if (receiver.nodeType == 3) // Opera
-        receiver = receiver.parentNode;
-      if ($('[data-channel-name]', $(receiver).closest('tr')).length > 0)
-        return;
-      this.parentView.model.set({highlightedChannel: null});
-    },
-
-    ensureLegend: function () {
-      this.ensureLegendRedraw = true;
-    },
-
     unitsChange: function (e) {
       var newUnits = e.target.value;
       var channelName = $(e.target.parentNode).attr('data-channel-name');
@@ -1124,10 +607,8 @@ define([
         if (series[i].channelName === channelName) {
           var channel = channels[series[i].channelIndex];
           channel.displayUnits = newUnits;
-          // App.stateMonitor.updateOpts(this.options.tabId, this.options.id, channel);
           var data = this.calculateSeriesData(channel);
           series[i].data = data.data;
-          // HACK
           if (series[i+1] &&
               series[i+1].channelName === channelName &&
               data.minMax.length > 0) {
@@ -1141,471 +622,12 @@ define([
       this.plot.draw();
     },
 
-    // removeChannel: function (e) {
-    //   var self = this;
-    //   var labelParent = $(e.target).parent().parent();
-    //   var label = $('.legendLabel > div', labelParent);
-    //   var channelIndex = Number(label.attr('data-channel-index'));
-    //   var channel = self.model.getChannels()[channelIndex];
-    //   // App.publish('ChannelUnrequested-' + 
-    //   //     self.options.tabId + '-' + self.options.id, [channel]);
-    //   // Update note channel list visible.
-    //   _.delay(function () {
-    //     var channelNames = self.model.get('tabModel').getAllChannelNames();
-    //     $('.note-channel-link', self.model.get('tabModel').view.el).each(function () {
-    //       var ncn = $(this).text();
-    //       if (_.find(channelNames, function (cn) {
-    //         return cn === ncn;
-    //       }))
-    //         $(this.nextElementSibling).show();
-    //       else
-    //         $(this.nextElementSibling).hide();
-    //     });
-    //   }, 100);
-    // },
-
-    // addGraph: function (e) {
-    //   var self = this;
-    //   App.publish('GraphRequested-' + this.options.tabId,
-    //               [App.util.makeId(), null, function () {
-    //     var otherGraphs = self.model.tabModel.graphModels;
-    //     _.each(otherGraphs, function (gm) {
-    //       if (gm.view.id !== self.id) {
-    //         if (self.noteBox) {
-    //           gm.view.noteCanvas.show();
-    //           gm.view.noteBox = self.noteBox;
-    //           gm.view.redrawNote();
-    //         }
-    //       }
-    //     });
-    //   }]);
-    // },
-
-    // removeGraph: function (e) {
-    //   var self = this;
-    //   var channels = [];
-    //   _.each(self.model.getChannels(), function (channel) {
-    //     channels.push($.extend(true, {}, channel));
-    //   });
-    //   _.each(channels, function (channel) {
-    //     App.publish('ChannelUnrequested-' +
-    //                 self.options.tabId + '-' + self.options.id, [channel]);
-    //   });
-    //   if (this.noteWindow)
-    //     this.cancelNote();
-    //   if (self.options.id !== 'MASTER')
-    //     App.publish('GraphUnrequested-' +
-    //                 self.options.tabId, [self.options.id]);
-    //   else if (self.model.tabModel.graphModels.length > 1) {
-    //     var donor = self.model.tabModel.graphModels[1];
-    //     var donorChannels = [];
-    //     _.each(donor.get('channels'), function (channel) {
-    //       donorChannels.push($.extend(true, {}, channel));
-    //     });
-    //     _.each(donorChannels, function (channel) {
-    //       App.publish('ChannelRequested-' +
-    //                 self.options.tabId + '-' + self.options.id, [channel]);
-    //       App.publish('ChannelUnrequested-' +
-    //                   donor.get('tabId') + '-' + donor.get('id'), [channel]);
-    //     });
-    //     App.publish('GraphUnrequested-' +
-    //                 donor.get('tabId'), [donor.get('id')]);
-    //   }
-    // },
-
     getMouse: function (e, plot) {
       return {
         x: e.pageX - parseInt(plot.offset().left),
         y: e.pageY - parseInt(plot.offset().top),
       };
     },
-
-    // Note handling.
-
-    // beginNote: function (e, plot) {
-    //   return;
-    //   this.noteCanvas.show();
-    //   if (this.noteBox) this.clearNoteBox();
-    //   this.noteBox = {
-    //     x: this.getMouse(e, this.plot).x,
-    //     y: 0,
-    //     w: 0,
-    //     h: this.plot.getPlaceholder().height(),
-    //   };
-    // },
-
-    // drawNote: function (e, plot, neighbor) {
-    //   return;
-    //   var self = this;
-    //   self.noteCtx.fillStyle = 'rgba(255,255,0,0.2)';
-    //   self.clearNoteBox();
-    //   self.noteBox.w = neighbor ? -neighbor.noteBox.w :
-    //       self.getMouse(e, self.plot).x - self.noteBox.x;
-
-    //   self.noteCtx.fillRect(self.noteBox.x, self.noteBox.y,
-    //                         self.noteBox.w, self.noteBox.h);
-    //   if (neighbor) return;
-    //   var otherGraphs = self.model.tabModel.graphModels;
-    //   _.each(otherGraphs, function (gm) {
-    //     if (gm.view.id !== self.id) {
-    //       gm.view.beginNote(e);
-    //       gm.view.drawNote(e, null, self);
-    //     }
-    //   });
-    // },
-
-    // endNote: function (e, plot) {
-    //   return;
-    //   var self = this;
-    //   if (self.noteWindow)
-    //     self.clearNoteWindow();
-    //   var mouse = self.getMouse(e, plot);
-    //   var xaxis = plot.getXAxes()[0];
-    //   var onRight, leftEdge, rightEdge;
-    //   if (mouse.x < self.noteBox.x) {
-    //     onRight = $(document).width() - 320 > e.pageX - self.noteBox.w;
-    //     leftEdge = mouse.x;
-    //     rightEdge = self.noteBox.x;
-    //   } else {
-    //     onRight = $(document).width() - 320 > e.pageX;
-    //     leftEdge = self.noteBox.x;
-    //     rightEdge = mouse.x;
-    //   }
-
-    //   var isNew = !e.note;
-    //   var note = e.note ? e.note : {
-    //     beg: xaxis.c2p(leftEdge) * 1e3,
-    //     end: xaxis.c2p(rightEdge) * 1e3,
-    //     val: {
-    //       userId: App.user._id,
-    //       channels: _.pluck(self.getAllChannels(), 'channelName'),
-    //     },
-    //   };
-
-    //   self.noteChannels = note.val.channels;
-
-    //   self.noteWindow = self.getNote({
-    //     isNew: isNew,
-    //     onRight: onRight,
-    //     top: mouse.y + 3,
-    //     left: onRight ? rightEdge + 15 : leftEdge - 315,
-    //   }, note).hide().appendTo(self.el).fadeIn(200);
-
-    //   self.fitNote(mouse.y + 3);
-
-    //   $('.note-content').scrollTo('max', 500, {
-    //                               easing: App.easing.easeOutExpo });
-
-    //   var body = $('.note-text', self.noteWindow);
-    //   var msg = $('.note-message', self.noteWindow);
-    //   var loading = $('.note-loading', self.noteWindow);
-    //   var spinner = new Spinner({
-    //     lines: 8,
-    //     length: 0,
-    //     width: 2,
-    //     radius: 8,
-    //     color: 'yellow',
-    //     speed: 1,
-    //     trail: 60,
-    //     shadow: false,
-    //   });
-    //   spinner.spin(loading.get(0));
-
-    //   // for visibility
-    //   self.noteWindow.bind('mouseover', function () {
-    //     self.editingNote = true;
-    //   }).bind('mouseout', function () {
-    //     self.editingNote = false;
-    //   });
-
-    //   // textarea
-    //   $('.note-text', self.noteWindow).placeholder().autogrow().focus()
-    //       .bind('keyup', function (e) {
-    //     if (!msg.is(':visible')) return;
-    //     var val = body.val().trim();
-    //     if (val !== '' && val !== body.attr('data-placeholder'))
-    //       msg.hide();
-    //   });
-
-    //   // post button
-    //   $('.note-post', self.noteWindow).bind('click', function (e) {
-    //     msg.hide();
-    //     var val = body.val().trim();
-    //     if (val === '' || val === body.attr('data-placeholder')) {
-    //       msg.text('Please enter text first.').show();
-    //       return;
-    //     }
-    //     loading.show();
-
-    //     note.val.text = $('<div>')
-    //                     .html(body.val())
-    //                     .text().trim();
-
-    //     note.val.date = new Date().getTime();
-
-    //     if (!isNew)
-    //       delete note.val.channels;
-    //     else
-    //       note.val.channels = self.noteChannels;
-
-    //     var _note = {
-    //       beg: note.beg,
-    //       end: note.end,
-    //       val: note.val,
-    //     };
-
-    //     App.api.addNote(self.model.get('datasetId'),
-    //                     { _note: [ _note ] }, function (err) {
-    //       if (!err) {
-    //         loading.hide();
-    //         var noteClass = isNew ? 'note-user' : 'note-user-reply';
-    //         var reply = $('<h2 class="' + noteClass + '">'
-    //                     + (DEMO ? 'John Doe' : App.user.displayName)
-    //                     + '<span class="note-content-date">' + ' '
-    //                     + App.util.getRelativeTime(_note.val.date) + '</span></h2>'
-    //                     + '<p class="note-body">' + App.util.formatNoteText(_note.val.text) + '</p>');
-    //         reply.appendTo($('.note-content', self.noteWindow));
-
-    //         if (isNew) {
-    //           isNew = false;
-    //           msg.text('Your comment has been posted.').show();
-    //           body.attr('data-placeholder', 'Add reply here.');
-    //           $('.note-post', self.noteWindow).text('Reply');
-    //           $('.note-cancel', self.noteWindow).text('Close');
-    //           $('.note-channels li', self.noteWindow).each(function () {
-    //             var li = $(this);
-    //             var cn = li.attr('data-channel-name');
-    //             if (!cn) return;
-    //             var a = $('<a class="note-channel-link jstree-draggable">'
-    //                       + cn + '</a>');
-    //             var span = $('<span style="color:lightgreen;">&nbsp;&nbsp;&#x2713;</span>');
-    //             li.empty().append(a).append(span);
-    //             if (!self.channelOnScreen(cn))
-    //               $('span', li).hide();
-    //           });
-    //           self.addNoteChannelEvents(self.noteWindow);
-    //         } else {
-    //           msg.text('Your reply has been posted.').show();
-    //         }
-    //         var header = $('.note-header > span', self.noteWindow);
-    //         var numReplies = $('.note-body', self.noteWindow).length;
-    //         header.html(header.html().replace(/.*at/, numReplies + ' comments at'));
-    //         body.val('').blur().focus();
-    //         _.delay(function () {
-    //           msg.fadeOut('slow');
-    //         }, 2e3);
-    //         $('.note-content').scrollTo('max', 500, {
-    //                                     easing: App.easing.easeOutExpo });
-    //         body.css({ height: '50px' });
-    //         $('.timeline-icon', self.$el).remove();
-    //         self.model.tabModel.resetEvents();
-    //       } else if ('Permission denied.' === err) {
-    //         self.cancelNote(null, plot);
-    //         // TODO: Use growl style.
-    //         alert('Permission denied.');
-    //       } else throw new Error(err);
-    //     });
-
-    //   });
-
-    //   // cancel anchor
-    //   $('.note-cancel', self.noteWindow).bind('click', function (e) {
-    //     self.cancelNote(null, plot);
-    //   });
-
-    //   // remove channel x's
-    //   $('.note-channel-remove', self.noteWindow).bind('click',
-    //       _.bind(self.removeNoteChannel, self));
-    // },
-
-    // fitNote: function (offset) {
-    //   var self = this;
-    //   if (!offset) offset = 0;
-    //   // Add scroll bar to note text content if
-    //   // greater than 200px tall.
-    //   var noteContent = $('.note-content', self.noteWindow);
-    //   if (noteContent.height() > 200)
-    //      noteContent.css({'overflow-y': 'scroll', 'max-height': '200px'});
-
-    //   // Ensure that the note window does not
-    //   // end up off the screen.
-    //   var winHeight = $(window).height();
-    //   var noteYOffset = parseInt(self.el.offset().top) + offset;
-    //   var windowOverlap = noteYOffset + self.noteWindow.height() - winHeight;
-    //   if (windowOverlap > -10)
-    //     self.noteWindow.css({ top: offset - windowOverlap - 10 });
-    // },
-
-    // addNoteChannelFromLabel: function (e) {
-    //   var self = this;
-    //   if (!self.noteBox) return;
-    //   var noteChannelsList = $('.note-channels > ul', self.noteWindow);
-    //   var channelName = 
-    //       $(e.target).closest('[data-channel-name]').data('channel-name');
-    //   if (!channelName) return;
-    //   if (_.find(self.noteChannels, function (channel) { 
-    //       return channel === channelName; })) return;
-    //   $('<li>')
-    //       .html(channelName + '&nbsp;<a class="note-channel-remove"' +
-    //             'href="javascript:;" title="Remove channel">&nbsp;(&#x2717;)</a>')
-    //       .addClass('note-channel')
-    //       .data('channel-name', channelName)
-    //       .appendTo(noteChannelsList)
-    //       .bind('click', _.bind(self.removeNoteChannel, self));
-    //   self.noteChannels.push(channelName);
-    //   self.checkNoteChannelVis();
-    // },
-
-    // removeNoteChannel: function (e) {
-    //   var li = $(e.target).closest('li');
-    //   this.noteChannels = _.reject(this.noteChannels, function (channel) {
-    //     return channel === li.data('channel-name');
-    //   });
-    //   li.remove();
-    //   this.checkNoteChannelVis();
-    // },
-
-    // checkNoteChannelVis: function () {
-    //   if (this.noteChannels.length === 0)
-    //     $('.note-channels', this.el).hide();
-    //   else
-    //     $('.note-channels', this.el).show();
-    // },
-
-    // cancelNote: function (e, plot, fade, neighbor) {
-    //   var self = this;
-    //   if (self.noteWindow) {
-    //     if (fade)
-    //       self.noteWindow.fadeOut(200, _.bind(self.clearNoteWindow, self));
-    //     else self.clearNoteWindow();
-    //   }
-    //   self.noteCanvas.hide();
-    //   self.clearNoteBox();
-    //   self.noteBox = null;
-      
-    //   if (neighbor) return;
-    //   var otherGraphs = self.model.tabModel.graphModels;
-    //   _.each(otherGraphs, function (gm) {
-    //     if (gm.view.id !== self.id) {
-    //       gm.view.cancelNote(e, null, fade, self);
-    //     }
-    //   });
-    // },
-
-    // clearNoteBox: function () {
-    //   if (!this.noteBox) return;
-    //   this.noteCtx.clearRect(this.noteBox.x, this.noteBox.y,
-    //                         this.noteBox.w, this.noteBox.h);
-    // },
-
-    // clearNoteWindow: function () {
-    //   $('.note-text', this.noteWindow).remove();
-    //   this.noteWindow.remove();
-    //   this.noteWindow = null;
-    // },
-
-    // redrawNote: function () {
-    //   if (this.noteBox) {
-    //     this.noteBox.h = this.plot.getPlaceholder().height();
-    //     this.noteCtx.fillStyle = 'rgba(255,255,0,0.2)';
-    //     this.noteCtx.clearRect(this.noteBox.x, this.noteBox.y,
-    //                         this.noteBox.w, this.noteBox.h);
-    //     this.noteCtx.fillRect(this.noteBox.x, this.noteBox.y,
-    //                         this.noteBox.w, this.noteBox.h);
-    //   }
-    //   if (this.noteWindow)
-    //     this.fitNote();
-    // },
-
-    // getNote: function (opts, note) {
-    //   var self = this;
-    //   opts = opts || {};
-    //   _.defaults(opts, {
-    //     isNew: true,
-    //     onRight: true,
-    //   });
-    //   opts.note = $.extend(true, {}, note);
-    //   _.each(opts.note.val.channels, function (channel, i) {
-    //     opts.note.val.channels[i] = {
-    //       channelName: channel,
-    //       onScreen: self.channelOnScreen(channel),
-    //     };
-    //   });
-    //   var n =  App.engine('note.jade', opts)
-    //               .css({ top: opts.top, left: opts.left });
-    //   $('.note-body', n).each(function () {
-    //     var b = $(this);
-    //     b.html(b.text());
-    //   })
-    //   $('textarea.note-text', n).bind('keyup', function (e) {
-    //     _.delay(_.bind(self.fitNote, self), 100);
-    //   });
-    //   self.addNoteChannelEvents(n);
-    //   return n;
-    // },
-
-    // addNoteChannelEvents: function (ctx) {
-    //   var self = this;
-    //   $('.note-channel-link', ctx)
-    //   .click(function (e) {
-    //     var _this = $(this);
-    //     var check = $(this.nextElementSibling);
-    //     if (check.is(':visible'))
-    //       check.hide();
-    //     else check.show();
-    //     var target = _.find($('.tree li', self.model.get('tabModel').view.el),
-    //                         function (li) {
-    //       return $(li).attr('id') === _this.text();
-    //     });
-    //     if (target) $('a', target).click();
-    //   })
-    //   .bind('mouseenter', function (e) {
-    //     var text = $(this).text();
-    //     $('.legend tr', self.model.tabModel.view.el).each(function () {
-    //       if ($('.label-wrap', this).attr('data-channel-name') === text)
-    //         $(this).trigger('mouseenter');
-    //     });
-    //   })
-    //   .bind('mouseleave', function (e) {
-    //     var text = $(this).text();
-    //     $('.legend tr', self.model.tabModel.view.el).each(function () {
-    //       if ($('.label-wrap', this).attr('data-channel-name') === text)
-    //         $(this).trigger('mouseleave');
-    //     });
-    //   });
-    // },
-
-    // openNote: function (nId, timeRange) {
-    //   var self = this;
-    //   if (!nId && !timeRange)
-    //     this.cancelNote();
-    //   if (nId)
-    //     $('#' + nId).click();
-    //   else if (timeRange)
-    //     $(_.find(self.eventIcons, function (icon) {
-    //       var data = $(icon).data();
-    //       return parseInt(data.beg) === parseInt(timeRange.beg)
-    //             && parseInt(data.end) === parseInt(timeRange.end);
-    //     })).click();
-    // },
-
-    // getAllChannels: function () {
-    //   var self = this;
-    //   var channels = [];
-    //   var allGraphs = self.model.tabModel.graphModels;
-    //   _.each(allGraphs, function (gm) {
-    //     channels.push(gm.get('channels'));
-    //   });
-    //   return _.flatten(channels);
-    // },
-
-    // channelOnScreen: function (channelName) {
-    //   return _.find(this.model.get('tabModel')
-    //                     .getAllChannelNames(),
-    //                 function (cn) {
-    //     return cn === channelName;
-    //   }) ? true : false;
-    // },
 
   });
 });

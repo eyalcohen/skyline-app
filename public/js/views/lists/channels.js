@@ -72,8 +72,8 @@ define([
     },
 
     expand: function (active) {
-      _.each(this.views, function (v) { v.expand(); });
       this.$el.addClass('open');
+      _.each(this.views, function (v) { v.expand(); });
       this.resize(null, active);
     },
 

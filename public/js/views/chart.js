@@ -79,6 +79,10 @@ define([
       this.lowerPanel = this.$('.lower-panel');
       this.controls = this.$('.controls');
 
+      // Handle comments panel.
+      if (store.get('comments'))
+        $('.side-panel').addClass('open');
+
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
