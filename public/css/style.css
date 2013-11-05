@@ -1309,7 +1309,7 @@ a.control-button:active {
   position: absolute;
   z-index: 11;
   top: 33px;
-  bottom: 270px;
+  bottom: 271px;
   right: -250px;
   width: 250px;
   overflow-y: auto;
@@ -1364,25 +1364,40 @@ a.control-button:active {
   border: none;
 }
 
-.mouse-time {
-  position: absolute;
-  left: 50%;
-  top: 33px;
-  background: rgba(0,0,0,0.4);
-  padding: 0 5px;
-  text-align: center;
-  min-width: 160px;
-}
-
-.mouse-time > span {
-  color: white;
-  font-size: 9px;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.legend {
+.cursor {
   display: none;
+  position: absolute;
+  z-index: 9;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(255,255,255,0.9);
+  border-left: 1px solid rgba(0,0,0,0.3);
+  border-top: 1px solid #d0d0d0;
+  pointer-events: none;
+
+  -webkit-transition: left 0.1s;
+  -moz-transition: left 0.1s;
+  -ms-transition: left 0.1s;
+  -o-transition: left 0.1s;
+  transition: left 0.1s;
+}
+
+.cursor a.comment-button {
+  position: absolute;
+  bottom: -20px;
+  background: #3f3f3f;
+  color: #fff;
+  font-size: 8px;
+  text-transform: uppercase;
+  padding: 0 5px 0 3px;
+  left: -34px;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.cursor a.comment-button:active {
+  background: #1f1f1f;
 }
 
 /*.........................................................................*/

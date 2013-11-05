@@ -29,8 +29,6 @@ define([
 
       // Shell events:
       this.on('rendered', this.setup, this);
-      this.parentView.model.bind('change:highlightedChannel',
-          _.bind(this.highlightedChannelChanged, this));
 
       // Client-wide subscriptions
       this.subscriptions = [
@@ -64,9 +62,6 @@ define([
 
       // Save refs
       this.plot = null;
-      this.mouseTime = this.parentView.$('.mouse-time');
-      this.mouseTimeTxt = $('span', this.mouseTime);
-      this.minHoverDistance = 10;
 
       // Draw the canvas.
       this.draw();
@@ -126,25 +121,137 @@ define([
       this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);
     },
 
-    createPlot: function () {
-      var self = this;
-      self.plot = $.plot(self.$el, [], {
+    cursor: function (e) {
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+      var time = xaxis.c2p(mouse.x);
+      var points = {};
+      var x;
+
+      // Find the closest point for each series.
+      _.each(this.plot.getData(), _.bind(function (series) {
+
+        // Excluse empty and min-max series.
+        if (!series.channelName || series.lines.fill) return;
+
+        // Ensure series is valid for the time.
+        if (time === null) return;
+
+        // Find the point.
+        var point;
+        var first = series.data[1];
+        var last = series.data[series.data.length - 1];
+        if (first && time < first[0]) point = first;
+        else if (last && time > last[0]) point = last;
+        else {
+          var i; point = _.find(series.data, function (p, _i) {
+            var prev = series.data[_i - 1]; i = _i;
+            return prev && p && prev[0] <= time && time < p[0];
+          });
+          if (point) {
+            var prev = series.data[i - 1];
+            if (time - prev[0] < point[0] - time)
+              point = prev;
+          }
+        }
+        if (!point) return;
+
+        // Convert point time to x-coordinate.
+        var _x = series.xaxis.p2c(point[0]);
+        if (!x || Math.abs(mouse.x - _x) < Math.abs(mouse.x - x)) x = _x;
+
+        // Format point value.
+        var v = point[1];
+        if (Math.abs(Math.round(v)) >= 1e6) v = v.toFixed(0);
+        else {
+
+          // Limit to 6 digits of precision (converting very small numbers
+          // to e.g. '1.23400e-8'), strip zeros trailing the decimal
+          // point, and strip the decimal point itself if necessary.
+          v = v.toPrecision(6).
+              replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+              replace(/\.([Ee][0-9-]*)?$/, '$1');
+        }
+
+        // Add series to map.
+        points[series.channelName] = [point[0], util.addCommas(v)];
+      }, this));
+
+      return {x: x, points: points};
+    },
+
+    draw: function () {
+      if (!this.plot) this.create();
+
+      var channels = [];
+      _.each(this.model.getChannels(), function (c) {
+        channels.push($.extend(true, {}, c));
+      });
+
+      if (channels.length === 0) {
+        channels.push({ channelName: 'empty' });
+        _.each(this.plot.getYAxes(),
+              function (a) { a.options.show = false; });
+      } else {
+        _.each(this.plot.getYAxes(),
+              function (a) { a.options.show = null; });
+      }
+
+      var opts = this.plot.getOptions();
+      var series = [];
+      _.each(channels, _.bind(function (channel, i) {
+        var highlighted = this.highlightedChannel === channel.channelName;
+        var seriesBase = {
+          xaxis: 1,
+          yaxis: channel.yaxisNum,
+          channelIndex: i,
+          channelName: channel.channelName,
+        };
+        var data = this.getSeriesData(channel);
+        series.push(_.extend({
+          lines: {
+            show: true,
+            lineWidth: 2,
+            fill: false,
+          },
+          data: data.data,
+          label: channel.title,
+        }, seriesBase));
+        if (data.minMax.length > 0) {
+          series.push(_.extend({
+            lines: {
+              show: true,
+              lineWidth: 0,
+              fill: 0.6,
+            },
+            data: data.minMax,
+          }, seriesBase));
+        }
+      }, this));
+      this.updateSeriesColors(series);
+      this.plot.setData(series);
+      this.plot.setupGrid();
+      this.plot.draw();
+    },
+
+    create: function () {
+      this.plot = $.plot(this.$el, [], {
         xaxis: {
           mode: 'time',
           utc: true,
           twelveHourClock: true,
           position: 'bottom',
-          min: self.model.get('visibleTime').beg / 1e3,
-          max: self.model.get('visibleTime').end / 1e3,
+          min: this.model.get('visibleTime').beg / 1e3,
+          max: this.model.get('visibleTime').end / 1e3,
           tickColor: 'rgba(0,0,0,0.1)',
-          tickFormatter: function (val, axis) {
-            var visible = self.getVisibleTime();
+          tickFormatter: _.bind(function (val, axis) {
+            var visible = this.getVisibleTime();
             var span = (visible.end - visible.beg) / 1e3;
             var date = new Date(val);
             return span < 86400000 ?
               util.toLocaleString(date, 'h:MM:ss TT') :
               util.toLocaleString(date, 'm/d/yy');
-          }
+          }, this)
         },
         yaxis: {
           reserveSpace: true,
@@ -168,8 +275,7 @@ define([
             lineWidth: 1,
             symbol: 'circle'
           },
-          bars: {},
-          shadowSize: 1
+          bars: {}
         },
         grid: {
           markings: weekendAreas,
@@ -190,85 +296,32 @@ define([
           frameRate: 60,
           useShiftKey: true,
         },
-        legend: {
-          margin: [40, 0],
-          oneperyaxis: true,
-          labelFormatter: labelFormatter,
-        },
         hooks: {
-          draw: [_.bind(self.plotDrawHook, self)],
-          setupGrid: [_.bind(self.plotSetupGridHook, self)],
-          bindEvents: [bindEventsHook],
+          draw: [_.bind(this.onDraw, this)],
+          setupGrid: [_.bind(this.onDrawGrid, this)],
+          bindEvents: [_.bind(onBindEvents, this)],
         },
         padding: {x: 0, y: 20}
       });
 
-      function labelFormatter(label, series) {
-        var channels = self.model.getChannels();
-        var channel = channels[series.channelIndex];
-        if (!channel) return;
-        var r = "<div class='label-wrap' " +
-            "data-graph-id='" + self.model.id + "'" +
-            "data-channel-index='" + series.channelIndex + "' " +
-            "data-channel-name='" + _.escape(channel.channelName) + "'>";
-        r += '<span class="jstree-draggable" style="cursor:pointer">';
-        r += _.str.strLeft(channel.humanName, '__') || channel.shortName;
-        r += '</span>';
-        if (channel.units) {
-          var compat = units.findCompatibleUnits(
-              channel.displayUnits || channel.units);
-          if (compat) {
-            r += ' (<select>';
-            compat.units.forEach(function (u) {
-              if (u === compat.selected)
-                r += '<option selected>';
-              else
-                r += '<option>';
-              r += _.escape(u.unit);
-              /*
-              if (u.long)
-                r += ' (' + _.escape(u.long) + ')';
-              */
-              r += '</option>';
-            });
-            r += '</select>)';
-          } else {
-            r += ' (' + _.escape(channel.units) + ')';
-          }
-        }
-        r += '</div>';
-        return r;
-      }
-
-      function bindEventsHook(plot, eventHolder) {
-        plot.getPlaceholder().mousemove(function (e) {
-          var mouse = self.getMouse(e, plot);
-          var xaxis = plot.getXAxes()[0];
-          var time = xaxis.c2p(mouse.x);
-          self.mouseHoverTime(time * 1e3, mouse, self);
-        })
-        .bind('mouseleave', function (e) {
-          self.mouseHoverTime(null);
-        })
-        .mousewheel(function (e) {
-          if (self.noteBox) return;
+      function onBindEvents() {
+        this.$el.mousewheel(_.bind(function (e) {
           var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
-          graphZoomClick(e, e.shiftKey ? 1.5 : 1.1, delta < 0);
+          graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
           return false;
-        })
-        .dblclick(function (e) {
-          if (self.noteBox) return;
-          graphZoomClick(e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
-        });
+        }, this))
+        .dblclick(_.bind(function (e) {
+          graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+        }, this));
 
         function graphZoomClick(e, factor, out) {
-          var c = plot.offset();
+          var c = this.plot.offset();
           c.left = e.originalEvent.pageX - c.left;
           c.top = e.originalEvent.pageY - c.top;
           if (out)
-            plot.zoomOut({center: c, amount: factor});
+            this.plot.zoomOut({center: c, amount: factor});
           else
-            plot.zoom({center: c, amount: factor});
+            this.plot.zoom({center: c, amount: factor});
         }
       }
 
@@ -291,73 +344,80 @@ define([
       }
     },
 
-    draw: function () {
-      var self = this;
-      if (!self.plot)
-        self.createPlot();
-
-      var emptyDiv = $('.empty-graph', self.content);
-      var channels = [];
-      _.each(self.model.getChannels(), function (c) {
-        channels.push($.extend(true, {}, c));
-      });
-
-      if (channels.length === 0 && emptyDiv.length === 0) {
-        $('<div class="empty-graph"><div><span>'
-            + 'Drop data channels here to display.</span></div></div>')
-            .appendTo(self.content);
-      } else if (channels.length > 0 && emptyDiv.length > 0) {
-        emptyDiv.remove();
-        self.resize(null, true);
+    onDraw: function () {
+      var t = this.getVisibleTime();
+      if (!t) return;
+      if (t.beg != this.prevBeg || t.end != this.prevEnd) {
+        this.trigger('VisibleTimeChange', {beg: t.beg, end: t.end});
+        this.prevBeg = t.beg;
+        this.prevEnd = t.end;
       }
-
-      if (channels.length === 0) {
-        channels.push({ channelName: 'empty' });
-        _.each(self.plot.getYAxes(),
-              function (a) { a.options.show = false; });
-      } else {
-        _.each(self.plot.getYAxes(),
-              function (a) { a.options.show = null; });
+      if (t.width != this.prevWidth) {
+        this.trigger('VisibleWidthChange', t.width);
+        this.prevWidth = t.width;
       }
-
-      var opts = self.plot.getOptions();
-      var series = [];
-      _.each(channels, function (channel, i) {
-        var highlighted = self.highlightedChannel === channel.channelName;
-        var seriesBase = {
-          xaxis: 1,
-          yaxis: channel.yaxisNum,
-          channelIndex: i,
-          channelName: channel.channelName,
-        };
-        var data = self.calculateSeriesData(channel);
-        series.push(_.extend({
-          lines: {
-            show: true,
-            lineWidth: 2,
-            fill: false,
-          },
-          data: data.data,
-          label: channel.title,
-        }, seriesBase));
-        if (data.minMax.length > 0) {
-          series.push(_.extend({
-            lines: {
-              show: true,
-              lineWidth: 0,
-              fill: 0.6,
-            },
-            data: data.minMax,
-          }, seriesBase));
-        }
-      });
-      self.updateSeriesColors(series);
-      self.plot.setData(series);
-      self.plot.setupGrid();
-      self.plot.draw();
     },
 
-    calculateSeriesData: function (channel) {
+    onDrawGrid: function () {
+      if (!this.plot) return;
+      var xopts = this.plot.getAxes().xaxis.options;
+      var xmin = xopts.min, xmax = xopts.max;
+      var yAxes = this.plot.getYAxes();
+
+      // Automatically change Y-axis bounds based on visible data.
+      yAxes.forEach(function (axis) {
+        axis.datamin = Infinity;
+        axis.datamax = -Infinity;
+      });
+
+      // TODO: this is ugly, and probably slow.
+      this.plot.getData().forEach(function (series) {
+        var max = series.yaxis.datamax, min = series.yaxis.datamin;
+        var prevTime = null;
+        series.data.forEach(function (p) {
+          if (p && prevTime && p[0] >= xmin && prevTime <= xmax) {
+            max = Math.max(max, p[1]);
+            min = Math.min(min, p[2] == null ? p[1] : p[2]);
+          }
+          prevTime = p && p[0];
+        });
+        series.yaxis.datamax = max;
+        series.yaxis.datamin = min;
+      });
+      yAxes.forEach(function (axis) {
+        if (!(isFinite(axis.datamin) && isFinite(axis.datamax))) {
+          axis.datamin = 0; axis.datamax = 1;
+        } else if (axis.datamin == axis.datamax) {
+          axis.datamin -= 0.5; axis.datamax += 0.5;
+        }
+      });
+    },
+
+    onUnitsChange: function (e) {
+      var newUnits = e.target.value;
+      var channelName = $(e.target.parentNode).attr('data-channel-name');
+      var channels = this.model.getChannels();
+      var series = this.plot.getData();
+      for (var i = 0; i < series.length; ++i) {
+        if (series[i].channelName === channelName) {
+          var channel = channels[series[i].channelIndex];
+          channel.displayUnits = newUnits;
+          var data = this.getSeriesData(channel);
+          series[i].data = data.data;
+          if (series[i+1] &&
+              series[i+1].channelName === channelName &&
+              data.minMax.length > 0) {
+            series[i+1].data = data.minMax;
+          }
+          break;
+        }
+      }
+      this.plot.setData(series);
+      this.plot.setupGrid();
+      this.plot.draw();
+    },
+
+    getSeriesData: function (channel) {
       var conv = units.findConversion(channel.units,
           channel.displayUnits || channel.units);
       var samples = this.model.sampleSet[channel.channelName] || [];
@@ -386,82 +446,11 @@ define([
       return { data: data, minMax: minMax };
     },
 
-    updateSeriesColors: function (series) {
-      var self = this;
-      var channels = self.model.getChannels();
-      if (channels.length === 0) return;
-      var yAxes = self.plot.getYAxes();
-      series.forEach(function (s, i) {
-        var channel = channels[s.channelIndex];
-        var highlighted = self.highlightedChannel === channel.channelName;
-        var color = self.app.colors[channel.colorNum];
-        s.originalColor = color;
-        if (self.highlightedChannel && !highlighted) {
-          // Lighten color.
-          color = $.color.parse(color);
-          color.r = Math.round((color.r + 255*2) / 3);
-          color.g = Math.round((color.g + 255*2) / 3);
-          color.b = Math.round((color.b + 255*2) / 3);
-          color = color.toString();
-        }
-        s.color = color;
-        if (s.lines.fill)
-          s.zorder = highlighted ? 50000 : s.channelIndex;
-        else
-          s.zorder = 10000 + (highlighted ? 50000 : s.channelIndex);
-        if (i < yAxes.length) {
-          yAxes[i].options.color = color;
-        }
-      });
-    },
-
-    plotSetupGridHook: function () {
-      if (!this.plot) return;
-      var xopts = this.plot.getAxes().xaxis.options;
-      var xmin = xopts.min, xmax = xopts.max;
-      var yAxes = this.plot.getYAxes();
-      
-      // Automatically change Y-axis bounds based on visible data.
-      yAxes.forEach(function (axis) {
-        axis.datamin = Infinity;
-        axis.datamax = -Infinity;
-      });
-      
-      // TODO: this is ugly, and probably slow.
-      this.plot.getData().forEach(function (series) {
-        var max = series.yaxis.datamax, min = series.yaxis.datamin;
-        var prevTime = null;
-        series.data.forEach(function (p) {
-          if (p && prevTime && p[0] >= xmin && prevTime <= xmax) {
-            max = Math.max(max, p[1]);
-            min = Math.min(min, p[2] == null ? p[1] : p[2]);
-          }
-          prevTime = p && p[0];
-        });
-        series.yaxis.datamax = max;
-        series.yaxis.datamin = min;
-      });
-      yAxes.forEach(function (axis) {
-        if (!(isFinite(axis.datamin) && isFinite(axis.datamax))) {
-          axis.datamin = 0; axis.datamax = 1;
-        } else if (axis.datamin == axis.datamax) {
-          axis.datamin -= 0.5; axis.datamax += 0.5;
-        }
-      });
-    },
-
-    plotDrawHook: function () {
-      var t = this.getVisibleTime();
-      if (!t) return;
-      if (t.beg != this.prevBeg || t.end != this.prevEnd) {
-        this.trigger('VisibleTimeChange', {beg: t.beg, end: t.end});
-        this.prevBeg = t.beg;
-        this.prevEnd = t.end;
-      }
-      if (t.width != this.prevWidth) {
-        this.trigger('VisibleWidthChange', t.width);
-        this.prevWidth = t.width;
-      }
+    getMouse: function (e) {
+      return {
+        x: e.pageX - parseInt(this.plot.offset().left),
+        y: e.pageY - parseInt(this.plot.offset().top),
+      };
     },
 
     getVisibleTime: function () {
@@ -482,151 +471,33 @@ define([
       }
     },
 
-    mouseHoverTime: function (time, mouse, graph) {
-      var self = this;
-      if (time != null) time = time / 1e3;
-      // if (time != null) {
-      //   self.mouseTime.show();
-      //   // TODO: finer than 1 second granularity.
-      //   var date = new Date(Math.round(time));
-      //   self.mouseTimeTxt.text(util.toLocaleString(date,
-      //       'dddd m/d/yy h:MM:ss TT Z'));
-      // } else {
-      //   self.mouseTime.hide();
-      // }
-      if (time == null && self.highlightedChannel)
-          self.parentView.model.set({ highlightedChannel: null });
-
-      var newHightlightedChannel = null;
-      var minDist = Infinity;
-      _.each(self.plot.getData(), function (series) {
-        if (!series.channelName || series.lines.fill) return;
-        var labelSibling = $('.legendLabel > div[data-channel-name="'+
-            series.channelName+'"]', self.el);
-        var labelParent = labelSibling.parent().parent();
-        var label = $('.legendValue', labelParent);
-        var valueHTML = '';
-        if (time != null &&
-            time >= series.xaxis.datamin && time <= series.xaxis.datamax) {
-          var hp = _.detect(series.data, function (p, i) {
-            var prev = series.data[i-1];
-            return prev && p && prev[0] <= time && time < p[0] && p;
-          });
-          if (hp) {
-            if (graph === self && mouse) {
-              
-              // Check for mouse near vertical lines
-              // as well as horizontal lines.
-              var dx = Infinity, dy = Infinity;
-              var i = series.data.indexOf(hp);
-              var hpxc = series.xaxis.p2c(hp[0]);
-              var hpyc = series.yaxis.p2c(hp[1]);
-              if (series.data.length > 1 &&
-                  i > 0 && i < series.data.length - 2) {
-                var hpl = series.data[i - 1];
-                var hpr = series.data[i + 1];
-                if (hpr) {
-                  var hplxc = series.xaxis.p2c(hpl[0]);
-                  var hplyc = series.yaxis.p2c(hpl[1]);
-                  var hpryc = series.yaxis.p2c(hpr[1]);
-                  var dxl = mouse.x - hplxc;
-                  var dxr = hpxc - mouse.x;
-                  if ((mouse.y > hpyc && mouse.y < hpryc) ||
-                      (mouse.y > hpryc && mouse.y < hpyc)) {
-                    dx = dxr;
-                  } else if (i > 2) {
-                    var hpll = series.data[i - 2];
-                    if (hpll) {
-                      var hpllyc = series.yaxis.p2c(hpll[1]);                  
-                      var goingUp = hp[1] < hpr[1];
-                      if ((goingUp && mouse.y > hplyc &&
-                          mouse.y < hpllyc) ||
-                          (!goingUp && mouse.y < hplyc &&
-                          mouse.y > hpllyc)) {
-                        dx = dxl;
-                      }
-                    }
-                  }
-                }
-              }
-              dy = Math.abs(hpyc - mouse.y);
-              var d = Math.min(dx, dy);
-              if (d <= minDist && d <= self.minHoverDistance) {
-                minDist = d;
-                newHightlightedChannel = series.channelName;
-              }
-            }
-            var v = hp[1];
-            if (Math.abs(Math.round(v)) >= 1e6)
-              v = v.toFixed(0);
-            else {
-              
-              // Limit to 6 digits of precision (converting very small numbers
-              // to e.g. '1.23400e-8'), strip zeros trailing the decimal
-              // point, and strip the decimal point itself if necessary.
-              // JavaScript number formatting sucks!
-              v = v.toPrecision(6).
-                  replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
-                  replace(/\.([Ee][0-9-]*)?$/, '$1');
-            }
-            valueHTML = util.addCommas(v);
-          }
-        }
-        label.html(valueHTML);
-      });
-      if (mouse && graph === self) {
-        self.parentView.model.set({highlightedChannel: newHightlightedChannel});
-        self.plot.getPlaceholder().css(
-            {cursor: newHightlightedChannel ? 'pointer' : 'default'});
-      }
-    },
-
-    highlightedChannelChanged: function (model, highlightedChannel) {
-      if (highlightedChannel != this.highlightedChannel) {
-        if (this.highlightedLabel)
-          this.highlightedLabel.removeClass('label-highlight');
-        this.highlightedChannel = highlightedChannel;
-        if (highlightedChannel) {
-          var labelSibling = $('.legendLabel > div[data-channel-name="'+
-              highlightedChannel+'"]', this.el);
-          this.highlightedLabel = labelSibling.parent().parent();
-          this.highlightedLabel.addClass('label-highlight');
-        } else
-          this.highlightedLabel = null;
-        this.updateSeriesColors(this.plot.getData());
-        this.plot.draw();
-      }
-    },
-
-    unitsChange: function (e) {
-      var newUnits = e.target.value;
-      var channelName = $(e.target.parentNode).attr('data-channel-name');
+    updateSeriesColors: function (series) {
       var channels = this.model.getChannels();
-      var series = this.plot.getData();
-      for (var i = 0; i < series.length; ++i) {
-        if (series[i].channelName === channelName) {
-          var channel = channels[series[i].channelIndex];
-          channel.displayUnits = newUnits;
-          var data = this.calculateSeriesData(channel);
-          series[i].data = data.data;
-          if (series[i+1] &&
-              series[i+1].channelName === channelName &&
-              data.minMax.length > 0) {
-            series[i+1].data = data.minMax;
-          }
-          break;
-        }
-      }
-      this.plot.setData(series);
-      this.plot.setupGrid();
-      this.plot.draw();
-    },
+      if (channels.length === 0) return;
+      var yAxes = this.plot.getYAxes();
+      series.forEach(_.bind(function (s, i) {
+        var channel = channels[s.channelIndex];
+        var highlighted = this.highlightedChannel === channel.channelName;
+        var color = this.app.colors[channel.colorNum];
+        s.originalColor = color;
+        if (this.highlightedChannel && !highlighted) {
 
-    getMouse: function (e, plot) {
-      return {
-        x: e.pageX - parseInt(plot.offset().left),
-        y: e.pageY - parseInt(plot.offset().top),
-      };
+          // Lighten color.
+          color = $.color.parse(color);
+          color.r = Math.round((color.r + 255*2) / 3);
+          color.g = Math.round((color.g + 255*2) / 3);
+          color.b = Math.round((color.b + 255*2) / 3);
+          color = color.toString();
+        }
+        s.color = color;
+        if (s.lines.fill)
+          s.zorder = highlighted ? 50000 : s.channelIndex;
+        else
+          s.zorder = 10000 + (highlighted ? 50000 : s.channelIndex);
+        if (i < yAxes.length) {
+          yAxes[i].options.color = color;
+        }
+      }, this));
     },
 
   });

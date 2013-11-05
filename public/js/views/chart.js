@@ -69,6 +69,9 @@ define([
       'click .control-button-save': 'save',
       'click .control-button-download': 'download',
       'click .control-button-comments': 'comments',
+      'mousemove .graphs': 'cursor',
+      'mouseleave .graphs': 'hideCursor',
+      'click .comment-button': 'comment'
     },
 
     // Misc. setup.
@@ -78,6 +81,7 @@ define([
       this.sidePanel = this.$('.side-panel');
       this.lowerPanel = this.$('.lower-panel');
       this.controls = this.$('.controls');
+      this.cursor = this.$('.cursor');
 
       // Handle comments panel.
       if (store.get('comments'))
@@ -165,6 +169,21 @@ define([
         store.set('comments', true);
       }
     },
+
+    cursor: function (e) {
+      if (!this.graph) return;
+      this.cursor.show();
+      var data = this.graph.cursor(e);
+      this.cursor.css({left: data.x});
+    },
+
+    hideCursor: function (e) {
+      this.cursor.hide();
+    },
+
+    comment: function (e) {
+      
+    }
 
   });
 });

@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'fontello';
-  src: url('../font/fontello.eot?30893765');
-  src: url('../font/fontello.eot?30893765#iefix') format('embedded-opentype'),
-       url('../font/fontello.woff?30893765') format('woff'),
-       url('../font/fontello.ttf?30893765') format('truetype'),
-       url('../font/fontello.svg?30893765#fontello') format('svg');
+  src: url('../font/fontello.eot?51924607');
+  src: url('../font/fontello.eot?51924607#iefix') format('embedded-opentype'),
+       url('../font/fontello.woff?51924607') format('woff'),
+       url('../font/fontello.ttf?51924607') format('truetype'),
+       url('../font/fontello.svg?51924607#fontello') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -14,7 +14,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?30893765#fontello') format('svg');
+    src: url('../font/fontello.svg?51924607#fontello') format('svg');
   }
 }
 */
@@ -50,19 +50,20 @@
   /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
  
-.icon-download:before { content: '\e804'; } /* '' */
+.icon-bookmark:before { content: '\e810'; } /* '' */
 .icon-database:before { content: '\e807'; } /* '' */
+.icon-export:before { content: '\e805'; } /* '' */
 .icon-comment:before { content: '\e803'; } /* '' */
 .icon-folder-empty:before { content: '\e80d'; } /* '' */
 .icon-menu-1:before { content: '\e802'; } /* '' */
 .icon-floppy:before { content: '\e801'; } /* '' */
 .icon-check:before { content: '\e80f'; } /* '' */
-.icon-cancel:before { content: '\e80c'; } /* '' */
-.icon-export:before { content: '\e805'; } /* '' */
+.icon-download:before { content: '\e804'; } /* '' */
+.icon-eye:before { content: '\e809'; } /* '' */
 .icon-logout:before { content: '\e800'; } /* '' */
 .icon-list-add:before { content: '\e808'; } /* '' */
 .icon-chart-line:before { content: '\e806'; } /* '' */
 .icon-lock:before { content: '\e80a'; } /* '' */
 .icon-star-1:before { content: '\e80b'; } /* '' */
 .icon-inbox-1:before { content: '\e80e'; } /* '' */
-.icon-eye:before { content: '\e809'; } /* '' */
+.icon-cancel:before { content: '\e80c'; } /* '' */
