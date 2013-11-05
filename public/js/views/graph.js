@@ -126,7 +126,7 @@ define([
       var xaxis = this.plot.getXAxes()[0];
       var time = xaxis.c2p(mouse.x);
       var points = {};
-      var x;
+      var x, t;
 
       // Find the closest point for each series.
       _.each(this.plot.getData(), _.bind(function (series) {
@@ -158,7 +158,10 @@ define([
 
         // Convert point time to x-coordinate.
         var _x = series.xaxis.p2c(point[0]);
-        if (!x || Math.abs(mouse.x - _x) < Math.abs(mouse.x - x)) x = _x;
+        if (!x || Math.abs(mouse.x - _x) < Math.abs(mouse.x - x)) {
+          x = _x;
+          t = point[0];
+        }
 
         // Format point value.
         var v = point[1];
@@ -177,7 +180,7 @@ define([
         points[series.channelName] = [point[0], util.addCommas(v)];
       }, this));
 
-      return {x: x, points: points};
+      return {x: x, t: t, points: points};
     },
 
     draw: function () {

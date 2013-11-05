@@ -1,7 +1,5 @@
 <%
   var user = this.app.profile.user;
-  var gravatar = user ? 'https://www.gravatar.com/avatar/'
-      + user.gravatar + '?s=34&d=mm': null;
 %>
 
 <% if (this.collection.older > 0) { %>
@@ -17,13 +15,10 @@
 <div class="comment-input-wrap list-footer">
   <% if (user) { %>
     <div class="comment">
-      <span class="comment-avatar navigate">
-        <img src=<%= gravatar %> width="34" height="34" />
-      </span>
       <div class="comment-body">
         <form enctype="multipart/form-data" method="POST" class="comment-input-form">
           <textarea name="body" class="comment-input" 
-              placeholder="Write a comment ..."></textarea>
+              placeholder="Write a comment..."></textarea>
         </form>
       </div>
     </div>

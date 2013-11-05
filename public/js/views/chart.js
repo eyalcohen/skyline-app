@@ -69,7 +69,7 @@ define([
       'click .control-button-save': 'save',
       'click .control-button-download': 'download',
       'click .control-button-comments': 'comments',
-      'mousemove .graphs': 'cursor',
+      'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment'
     },
@@ -170,19 +170,22 @@ define([
       }
     },
 
-    cursor: function (e) {
-      if (!this.graph) return;
-      this.cursor.show();
-      var data = this.graph.cursor(e);
-      this.cursor.css({left: data.x});
+    updateCursor: function (e) {
+      if (!this.graph || this.cursor.hasClass('active')) return;
+      this.cursor.fadeIn('fast');
+      this.cursorData = this.graph.cursor(e);
+      this.cursor.css({left: this.cursorData.x});
     },
 
     hideCursor: function (e) {
-      this.cursor.hide();
+      if (!this.cursor.hasClass('active'))
+        this.cursor.fadeOut('fast');
     },
 
     comment: function (e) {
-      
+      if (!this.cursorData) return;
+      this.cursor.addClass('active');
+      mps.publish('comment/start', [this.cursorData]);
     }
 
   });

@@ -27,7 +27,9 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Client-wide subscriptions
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('comment/start', _.bind(this.start, this)),
+      ];
 
       // Socket subscriptions
       // this.type + '-' + this.parentView.model.id
@@ -41,12 +43,14 @@ define([
       this.collection.older = false;
       // console.log(this.app.profile.content.datasets.items);
       // this.collection.reset(this.parentView.model.get('comments'));
+      this.collection.reset([]);
     },
 
     setup: function () {
 
       // Save refs.
       this.form = this.$('.comment-input-form');
+      this.inputWrap = this.$('.comment-input-wrap');
       this.input = this.$('.comment-input');
       this.footer = this.$('.list-footer');
 
@@ -64,7 +68,6 @@ define([
 
       // Show other elements.
       this.$('.showolder.comment').show();
-      this.$('.comment-input-wrap .comment').show();
 
       return List.prototype.setup.call(this);
     },
@@ -96,6 +99,11 @@ define([
       }
     },
 
+    start: function (data) {
+      this.inputWrap.show();
+      this.input.focus();
+    },
+
     //
     // Optimistically writes a comment.
     //
@@ -110,7 +118,7 @@ define([
     write: function (e) {
       if (e) e.preventDefault();
 
-      this.input.val(util.sanitize(input.val()));
+      this.input.val(util.sanitize(this.input.val()));
       if (this.input.val().trim() === '') return;
 
       // For server.
@@ -126,11 +134,13 @@ define([
       };
 
       // Add the parent id.
-      payload.parent_id = this.parentView.model.id;
+      // payload.parent_id = this.parentView.model.id;
 
       // Optimistically add comment to page.
       this.collection.push(data);
       this.input.val('').keyup();
+
+      return;
 
       // Now save the comment to server.
       rest.post('/api/comments/' + this.type, payload,
