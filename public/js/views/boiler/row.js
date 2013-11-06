@@ -77,7 +77,7 @@ define([
 
     setup: function () {
       this.off('rendered', this.setup, this);
-      if (!this.model.get('updated')) return;
+      if (!this.model.get('updated') && !this.model.get('created')) return;
       this.timer = setInterval(_.bind(this.when, this), 5000);
       this.when();
       return this;
@@ -104,7 +104,8 @@ define([
       if (!this.model) return;
       if (!this.time)
         this.time = this.$('time.created:first');
-      this.time.text(util.getRelativeTime(this.model.get('updated')));
+      this.time.text(util.getRelativeTime(this.model.get('updated')
+          || this.model.get('created')));
     },
 
   });

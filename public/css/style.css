@@ -606,6 +606,7 @@ span.empty-list {
 .created {
   color: #afafaf;
   font-size: 9px;
+  display: block;
 }
 
 .info-divider {
@@ -1315,13 +1316,17 @@ a.control-button:active {
   background: #f0f0f0;
 }
 
+a.control-button.view-only {
+  display: none;
+}
+
 .side-panel {
   position: absolute;
   z-index: 11;
   top: 33px;
   bottom: 271px;
-  right: -360px;
-  width: 360px;
+  right: -300px;
+  width: 300px;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
@@ -1661,7 +1666,6 @@ a.channel-button {
 
 .comment-input-wrap {
   display: none;
-  border-bottom: 1px solid #d0d0d0;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -1679,7 +1683,7 @@ a.channel-button {
 
 textarea.comment-input {
   display: block;
-  width: 340px;
+  width: 280px;
   padding: 10px;
   background: #fff;
   resize: none;
@@ -1696,9 +1700,10 @@ textarea.comment-input {
 }
 
 .comment {
-  width: 360px;
+  width: 300px;
   position: relative;
   display: none;
+  border-bottom: 1px solid #e0e0e0;
   
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -1773,10 +1778,11 @@ a.comment-author {
   padding: 5px;
   display: block;
   min-height: 0;
-  width: 350px;
+  width: 290px;
   text-align: center;
   color: #808080;
   font-style: italic;
+  font-size: 10px;
 }
 
 /*.........................................................................*/

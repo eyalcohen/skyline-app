@@ -37,8 +37,15 @@ define([
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
           this.graph.model.removeChannel(did, channel);
-        }, this))
+        }, this)),
+        mps.subscribe('view/new', _.bind(this.saved, this)),
+        mps.subscribe('comment/end', _.bind(this.uncomment, this)),
       ];
+
+      // Determine whether or not comments are allowed.
+      // For now, only views can have comments...
+      // and states with an author_id are views.
+      this.annotated = store.get('state').author_id;
     },
 
     // Draw our template from the profile.
@@ -68,7 +75,7 @@ define([
       'click .control-button-monthly': 'monthly',
       'click .control-button-save': 'save',
       'click .control-button-download': 'download',
-      'click .control-button-comments': 'comments',
+      'click .control-button-comments': 'panel',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment'
@@ -84,13 +91,14 @@ define([
       this.cursor = this.$('.cursor');
 
       // Handle comments panel.
-      if (store.get('comments'))
+      if (this.annotated && store.get('comments'))
         $('.side-panel').addClass('open');
 
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
-      this.comments = new Comments(this.app, {parentView: this});
+      if (this.annotated)
+        this.comments = new Comments(this.app, {parentView: this, type: 'view'});
 
       // Do resize on window change.
       this.resize();
@@ -116,6 +124,8 @@ define([
       this.stopListening();
       this.datasets.destroy();
       this.graph.destroy();
+      if (this.comments)
+        this.comments.destroy();
       this.remove();
     },
 
@@ -158,9 +168,10 @@ define([
       e.preventDefault();
     },
 
-    comments: function (e) {
-      e.preventDefault();
+    panel: function (e) {
+      if (e) e.preventDefault();
 
+      // Open/close side panel.
       if (this.sidePanel.hasClass('open')) {
         this.sidePanel.removeClass('open');
         store.set('comments', false);
@@ -171,6 +182,7 @@ define([
     },
 
     updateCursor: function (e) {
+      if (!this.annotated) return;
       if (!this.graph || this.cursor.hasClass('active')) return;
       this.cursor.fadeIn('fast');
       this.cursorData = this.graph.cursor(e);
@@ -178,6 +190,7 @@ define([
     },
 
     hideCursor: function (e) {
+      if (!this.annotated) return;
       if (!this.cursor.hasClass('active'))
         this.cursor.fadeOut('fast');
     },
@@ -186,8 +199,20 @@ define([
       if (!this.cursorData) return;
       this.cursor.addClass('active');
       mps.publish('comment/start', [this.cursorData]);
-    }
+    },
+
+    uncomment: function () {
+      this.cursor.removeClass('active');
+    },
+
+    saved: function () {
+
+      // Allow annotations.
+      this.comments = new Comments(this.app, {parentView: this, type: 'view'});
+      this.panel();
+      this.annotated = true;
+      this.$('.control-button').removeClass('view-only');
+    },
 
   });
 });
-

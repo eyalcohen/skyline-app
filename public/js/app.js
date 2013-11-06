@@ -62,7 +62,7 @@ define([
       this.profile = profile;
 
     // Pull out state, if exists.
-    if (profile.state) {
+    if (profile && profile.state) {
       store.set('state', profile.state);
       delete this.profile.state;
     }

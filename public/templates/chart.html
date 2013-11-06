@@ -5,9 +5,15 @@
 <div class="upper-panel">
   <div class="datasets"></div>
   <div class="controls">
-    <a class="control-button control-button-comments" href="javascript:;">
-      <i class="icon-comment"></i>
-    </a>
+    <% if (this.annotated) { %>
+      <a class="control-button control-button-comments" href="javascript:;">
+        <i class="icon-comment"></i>
+      </a>
+    <% } else { %>
+      <a class="control-button control-button-comments view-only" href="javascript:;">
+        <i class="icon-comment"></i>
+      </a>
+    <% } %>
     <% if (user) { %>
       <a class="control-button control-button-share" href="javascript:;">
         <i class="icon-export"></i>

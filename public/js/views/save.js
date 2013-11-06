@@ -190,11 +190,13 @@ define([
         mps.publish('view/new', [res]);
 
         // Show alert
-        mps.publish('flash/new', [{
-          message: 'Successfully saved a new data mashup: "' + res.name + '"',
-          level: 'alert',
-          sticky: false
-        }]);
+        _.delay(function () {
+          mps.publish('flash/new', [{
+            message: 'Successfully saved a new data mashup: "' + res.name + '"',
+            level: 'alert',
+            sticky: false
+          }]);
+        }, 500);
 
         // Close the modal.
         $.fancybox.close();

@@ -72,6 +72,7 @@ define([
         this.resize();
         this.$el.show();
       }, this), 250);
+      _.delay(_.bind(function () { this.resize(); }, this), 500);
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 150));
       $(window).resize(_.debounce(_.bind(this.resize, this), 300));

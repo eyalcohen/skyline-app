@@ -26,6 +26,9 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
+      // Add parent_id.
+      this.parent_id = this.app.profile.content.page.id;
+
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('comment/start', _.bind(this.start, this)),
@@ -37,13 +40,9 @@ define([
       this.app.rpc.socket.on('comment.removed', _.bind(this._remove, this));
 
       // Reset the collection.
-      // this.collection.older =
-      //     this.parentView.model.get('comments_cnt')
-      //     - this.parentView.model.get('comments').length
-      this.collection.older = false;
-      // console.log(this.app.profile.content.datasets.items);
-      // this.collection.reset(this.parentView.model.get('comments'));
-      this.collection.reset([]);
+      var page = this.app.profile.content.page;
+      this.collection.older = page.comments_cnt - page.comments.length;
+      this.collection.reset(page.comments);
     },
 
     setup: function () {
@@ -100,8 +99,13 @@ define([
     },
 
     start: function (data) {
+      this.time = data.t;
       this.inputWrap.show();
       this.input.focus();
+    },
+
+    end: function () {
+      this.inputWrap.hide();
     },
 
     //
@@ -124,23 +128,21 @@ define([
       // For server.
       var payload = this.form.serializeObject();
       payload.body = util.sanitize(payload.body);
+      payload.parent_id = this.parent_id;
+      payload.time = this.time;
 
       // Mock comment.
       var data = {
         id: -1,
         author: this.app.profile.user,
         body: payload.body,
-        created: new Date().toISOString()
+        created: new Date().toISOString(),
+        time: this.time,
       };
-
-      // Add the parent id.
-      // payload.parent_id = this.parentView.model.id;
 
       // Optimistically add comment to page.
       this.collection.push(data);
       this.input.val('').keyup();
-
-      return;
 
       // Now save the comment to server.
       rest.post('/api/comments/' + this.type, payload,
@@ -157,6 +159,10 @@ define([
         this.$('#-1').attr('id', data.id);
 
       }, this));
+
+      // Done commenting.
+      this.end();
+      mps.publish('comment/end');
 
       return false;
     },

@@ -232,18 +232,22 @@ define([
           // Publish new dataset.
           mps.publish('dataset/new', [res]);
 
-          // Show alert
-          mps.publish('flash/new', [{
-            message: 'Successfully added a new data source: "'
-                + res.title + ', ' + res.meta.channel_cnt + ' channel'
-                + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-            level: 'alert',
-            sticky: false
-          }]);
+          if (!this.datasets) {
 
-          // Close the modal.
-          if (!this.datasets)
+            // Show alert
+            _.delay(function () {
+              mps.publish('flash/new', [{
+                message: 'Successfully added a new data source: "'
+                    + res.title + ', ' + res.meta.channel_cnt + ' channel'
+                    + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
+                level: 'alert',
+                sticky: false
+              }]);
+            }, 500);
+
+            // Close the modal.
             $.fancybox.close();
+          }
 
           // Ready for more.
           this.working = false;
