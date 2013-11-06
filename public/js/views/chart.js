@@ -208,8 +208,8 @@ define([
     saved: function () {
 
       // Allow annotations.
+      if (this.comments) this.comments.empty();
       this.comments = new Comments(this.app, {parentView: this, type: 'view'});
-      this.panel();
       this.annotated = true;
       this.$('.control-button').removeClass('view-only');
     },

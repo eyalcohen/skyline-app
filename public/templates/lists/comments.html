@@ -2,11 +2,7 @@
   var user = this.app.profile.user;
 %>
 
-<% if (this.collection.older > 0) { %>
-  <div class="comment-input-wrap">
-<% } else { %>
-  <div class="comment-input-wrap list-header">
-<% } %>
+<div class="comment-input-wrap">
   <% if (user) { %>
     <div class="comment">
       <div class="comment-body">
@@ -22,11 +18,7 @@
     </a>
   <% } %>
 </div>
-<% if (this.collection.older > 0) { %>
-  <a href="javascript:;" class="showolder comment list-header">
-    Show <%= this.collection.older %> older <%= this.collection.older > 1 ? 'comments': 'comment' %>
-  </a>
-<% } %>
+<div class="list-header"></div>
 <% if (this.collection.models.length > 0) { %>
   <% _.each(this.collection.models, _.bind(function(row) { %>
     <%= this.row(row) %>

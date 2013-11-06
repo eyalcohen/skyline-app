@@ -690,7 +690,7 @@ span.empty-list {
 .block-messages {
   position: absolute;
   z-index: 10001;
-  left: 50px;
+  left: 30px;
   bottom: 50px;
   width: auto;
   white-space: nowrap;
@@ -1078,11 +1078,12 @@ a.button.modal-button.full {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
-  vertical-align: -7px;
+  vertical-align: -8px;
 }
 .settings-gravatar a {
   font-weight: bold;
   margin-left: 2px;
+  font-size: 11px;
 }
 
 /*.........................................................................*/

@@ -39,10 +39,50 @@ define([
       this.app.rpc.socket.on('comment.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('comment.removed', _.bind(this._remove, this));
 
+      // Misc.
+      this.empty_label = 'No comments.';
+
       // Reset the collection.
       var page = this.app.profile.content.page;
+      if (!page.comments) {
+        page.comments_cnt = 0;
+        page.comments = [];
+      }
       this.collection.older = page.comments_cnt - page.comments.length;
       this.collection.reset(page.comments);
+    },
+
+    // Initial bulk render of list
+    render: function (options) {
+      List.prototype.render.call(this, options);
+      if (this.collection.length === 0)
+        $('<span class="empty-feed">' + this.empty_label
+            + '</span>').appendTo(this.$el);
+
+      return this;
+    },
+
+    // Render a model, placing it in the correct order.
+    renderLast: function () {
+      if (this.collection.models.length === 1)
+        this.$('.empty-feed').remove();
+      var model = _.find(this.collection.models, _.bind(function (m) {
+        return m.get('_new');
+      }, this));
+      model.set('_new', false);
+      this.row(model);
+      this.views[this.collection.indexOf(model)].render();
+      return this;
+    },
+
+    row: function (model) {
+      var view = new this.Row({
+        parentView: this,
+        model: model
+      }, this.app);
+      var i = this.collection.indexOf(model);
+      this.views.splice(i, 0, view);
+      return view.toHTML();
     },
 
     setup: function () {
@@ -65,24 +105,22 @@ define([
           return false;
       }, this));
 
-      // Show other elements.
-      this.$('.showolder.comment').show();
-
       return List.prototype.setup.call(this);
     },
 
     // Bind mouse events.
     events: {
       'click .comments-signin': 'signin',
-      'click .showolder': 'older',
     },
 
     // Collect new comments from socket events.
     collect: function (data) {
+      if (data.parent_id !== this.parent_id) return;
+      data._new = true;
       this.collection.push(data);
     },
 
-    // remove a model
+    // Remove a model.
     _remove: function (data) {
       var index = -1;
       var view = _.find(this.views, function (v) {
@@ -98,9 +136,34 @@ define([
       }
     },
 
+    // Empty this view.
+    empty: function () {
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
+      _.each(this.views, function (v) {
+        v.destroy();
+      });
+      this.undelegateEvents();
+      this.stopListening();
+      this.$el.empty();
+      return this;
+    },
+
     start: function (data) {
       this.time = data.t;
-      this.inputWrap.show();
+      
+      // Find out where to put the input wrapper.
+      var w = this.inputWrap.detach();
+      var i; _.find(this.collection.models, _.bind(function (m, _i) {
+        i = _i;
+        return m.get('time') < this.time;
+      }, this));
+      if (i === this.collection.length - 1)
+        w.insertBefore(_.last(this.views).$el);
+      else
+        w.insertAfter(this.views[i].$el);
+      w.show();
       this.input.focus();
     },
 
@@ -138,6 +201,7 @@ define([
         body: payload.body,
         created: new Date().toISOString(),
         time: this.time,
+        _new: true,
       };
 
       // Optimistically add comment to page.
@@ -165,38 +229,6 @@ define([
       mps.publish('comment/end');
 
       return false;
-    },
-
-    older: function (e) {
-
-      var limit = this.collection.older;
-      this.collection.older = 0;
-
-      // Get the older comments.
-      rest.post('/api/comments/list', {
-        cursor: 0, 
-        limit: limit,
-        parent_id: this.parentView.model.id,
-      }, _.bind(function (err, data) {
-        if (err) return console.log(err);
-
-        // Update the collection.
-        var ids = _.pluck(this.collection.models, 'id');
-        this.collection.options.reverse = true;
-        var i = 0;
-        _.each(data.comments.items, _.bind(function (c) {
-          if (!_.contains(ids, c.id)) {
-            this.collection.unshift(c);
-            ++i;
-          }
-        }, this));
-        this.collection.options.reverse = false;
-
-        // Hide the button.
-        this.$('.showolder.comment').hide();
-
-      }, this));
-
     },
 
     signin: function (e) {

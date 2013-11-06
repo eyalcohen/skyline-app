@@ -187,6 +187,7 @@ define([
         }
 
         // Publish new dataset.
+        this.app.profile.content.page = res;
         mps.publish('view/new', [res]);
 
         // Show alert

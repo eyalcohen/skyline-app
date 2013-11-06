@@ -28,6 +28,27 @@ define([
       'click .info-delete': 'delete',
     },
 
+    render: function (single) {
+      this.parentView.off('rendered');
+      this.$el.html(this.template.call(this));
+      if (!single)
+        this.$el.insertAfter(this.parentView.$('.list-header'));
+      else {
+        var i; _.find(this.model.collection.models, _.bind(function (m, _i) {
+          i = _i;
+          return m.get('time') < this.model.get('time');
+        }, this));
+        if (i === this.model.collection.length - 1)
+          this.$el.insertBefore(_.last(this.parentView.views).$el);
+        else
+          this.$el.insertAfter(this.parentView.views[i].$el);
+      }
+      this.$el.show();
+      this.time = null;
+      this.trigger('rendered');
+      return this;
+    },
+
     delete: function (e) {
       e.preventDefault();
       rest.delete('/api/comments/' + this.model.id, {});
