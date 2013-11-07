@@ -26,6 +26,7 @@ define([
       // Save app reference.
       this.app = app;
       this.options = options;
+      this.channels = [];
 
       // get some data from parent
       this.graph = this.options.parentView.graph;
@@ -36,8 +37,7 @@ define([
 
     // Draw the template
     render: function () {
-      console.log(this.channels)
-      var channels = [
+      this.channels = [
           { channelName: '$beginDate', title: 'Begin Date' },
           { channelName: '$beginTime', title: 'Begin Time' },
           { channelName: '$beginRelTime', title: 'Begin Since Start', units: 's' },
@@ -45,7 +45,7 @@ define([
       ].concat(this.graph.model.getChannels());
 
       // UnderscoreJS rendering.
-      this.template = _.template(template, {channels: channels});
+      this.template = _.template(template, {channels: this.channels});
       this.$el.html(this.template)
 
       // Dump content into modal.
@@ -132,13 +132,15 @@ define([
       // We should really fetch the data via dnode then force the download
       // client-side... this way we can show a loading icon while the
       // user waits for the server to package everything up.
-      var href = '/export/' +
-          self.model.get('datasetId') + '/data.csv' +
+      console.log(this.channels[4])
+      var href = '/api/datasets/' +
+          this.channels[4].channelName.split('__')[1] + 
           '?beg=' + Math.floor(viewRange.beg) +
           '&end=' + Math.ceil(viewRange.end) +
           (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
           (resample && minmax ? '&minmax' : '') +
-          channels.map(function (c){return '&chan=' + c.channelName}).join('');
+          this.channels.map(function (c){return '&chan=' + c.channelName}).join('');
+      console.log(href)
       window.location.href = href;
     },
   });

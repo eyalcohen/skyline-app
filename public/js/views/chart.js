@@ -77,11 +77,12 @@ define([
       'click .control-button-save': 'save',
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
+      'click .control-button-export': 'setupExportModal',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment',
       'click .comment-cancel-button': 'comment'
-      'click #exportChart': 'setupExportModal'
+
     },
 
     // Misc. setup.
