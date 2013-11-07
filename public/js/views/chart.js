@@ -225,7 +225,7 @@ define([
       // Update x-pos of each comment.
       _.each(this.comments.views, _.bind(function (v) {
         v.model.set('xpos', xaxis.p2c(v.model.get('time')));
-        v.
+        // v.
       }, this));
     }
 

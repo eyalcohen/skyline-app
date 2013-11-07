@@ -23,7 +23,6 @@ define([
       Row.prototype.initialize.call(this, options);
 
       this.model.on('change:xpos', _.bind(function () {
-        console.log('asfvasfv')
         if (!this.icon) return;
         this.icon.css({left: this.model.get('xpos')});
       }, this));
