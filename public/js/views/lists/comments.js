@@ -32,6 +32,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('comment/start', _.bind(this.start, this)),
+        mps.subscribe('comment/end', _.bind(this.end, this)),
       ];
 
       // Socket subscriptions
@@ -95,14 +96,14 @@ define([
 
       // Autogrow the write comment box.
       this.$('textarea[name="body"]').autogrow();
-      this.$('textarea[name="body"]')
-          .bind('keyup', _.bind(function (e) {
-        if (!e.shiftKey && (e.keyCode === 13 || e.which === 13))
-          this.write();
-      }, this))
-          .bind('keydown', _.bind(function (e) {
-        if (!e.shiftKey && (e.keyCode === 13 || e.which === 13))
-          return false;
+      this.$('#c_cancel').click(_.bind(function (e) {
+        e.preventDefault();
+        this.end();
+        mps.publish('comment/end');
+      }, this));
+      this.$('#c_submit').click(_.bind(function (e) {
+        e.preventDefault();
+        this.write();
       }, this));
 
       return List.prototype.setup.call(this);
@@ -164,6 +165,9 @@ define([
       else
         w.insertAfter(this.views[i].$el);
       w.show();
+      this.$el.parent().animate({scrollTop: w.position().top
+          - this.$el.position().top},
+          {duration: 400, easing: 'easeOutExpo'});
       this.input.focus();
     },
 

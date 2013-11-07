@@ -21,6 +21,12 @@ define([
       this.app = app;
       this.template = _.template(template);
       Row.prototype.initialize.call(this, options);
+
+      this.model.on('change:xpos', _.bind(function () {
+        console.log('asfvasfv')
+        if (!this.icon) return;
+        this.icon.css({left: this.model.get('xpos')});
+      }, this));
     },
 
     events: {
@@ -31,6 +37,7 @@ define([
     render: function (single) {
       this.parentView.off('rendered');
       this.$el.html(this.template.call(this));
+      this.icon = $('<i class="graph-icon icon-bookmark">');
       if (!single)
         this.$el.insertAfter(this.parentView.$('.list-header'));
       else {

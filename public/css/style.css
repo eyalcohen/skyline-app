@@ -1401,18 +1401,36 @@ a.control-button.view-only {
   border-left-color: rgb(39, 205, 214);
 }
 
-.cursor a.comment-button {
+.cursor a.comment-button,
+.cursor a.comment-cancel-button {
   position: absolute;
   bottom: -20px;
   background: #3f3f3f;
   color: #fff;
   font-size: 8px;
   text-transform: uppercase;
-  padding: 0 5px 0 3px;
+  padding: 0 5px;
   left: -34px;
   white-space: nowrap;
   pointer-events: auto;
   line-height: 21px;
+  height: 21px;
+}
+
+.cursor a.comment-cancel-button {
+  display: none;
+  left: -28px;
+  background: rgb(39, 205, 214);
+}
+
+.cursor a [class^="icon-"]:before, [class*=" icon-"]:before {
+  margin: 0 2px 0 0;
+  width: 8px;
+}
+
+.cursor a.comment-cancel-button i {
+  font-size: 11px;
+  vertical-align: -1px;
 }
 
 .cursor a.comment-button:active {
@@ -1420,8 +1438,14 @@ a.control-button.view-only {
 }
 
 .cursor.active a.comment-button {
-  background: rgb(39, 205, 214);
+  display: none;
 }
+
+.cursor.active a.comment-cancel-button {
+  display: block;
+}
+
+
 
 /*.........................................................................*/
 
@@ -1698,6 +1722,33 @@ textarea.comment-input {
   -moz-transition-timing-function: height 0.2s;
   transition: height 0.2s;
   transition-timing-function: height 0.2s;
+}
+
+.comment-input-buttons {
+  padding: 5px;
+  text-align: right;
+  background: #f2f2f2;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0;
+}
+
+a.button.comment-input-button {
+  margin-left: 5px;
+  line-height: 14px;
+  height: 14px;
+  min-width: initial;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+a.button.comment-input-button.primary {
+  background: rgba(39, 205, 214, 0.8);
+  color: #fff;
+  border-color: #4f4f4f;
+}
+
+a.button.comment-input-button.primary:active {
+  background: rgba(39, 205, 214, 1);
 }
 
 .comment {

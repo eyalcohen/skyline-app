@@ -340,9 +340,9 @@ define([
         do {
           markings.push({
             xaxis: { from: i, to: i + 2*24*60*60*1000 },
-            color: 'rgba(249, 249, 249, 0.8)',
+            color: 'rgba(249,249,249,0.8)',
           });
-          i += 7 * 24 * 60 * 60 * 1000;
+          i += 7*24*60*60*1000;
         } while (i < axes.xaxis.max);
         return markings;
       }
@@ -360,6 +360,7 @@ define([
         this.trigger('VisibleWidthChange', t.width);
         this.prevWidth = t.width;
       }
+      mps.publish('graph/draw');
     },
 
     onDrawGrid: function () {

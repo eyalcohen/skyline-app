@@ -39,6 +39,7 @@ define([
           this.graph.model.removeChannel(did, channel);
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
+        mps.subscribe('graph/draw', _.bind(this.icons, this)),
         mps.subscribe('comment/end', _.bind(this.uncomment, this)),
       ];
 
@@ -78,7 +79,8 @@ define([
       'click .control-button-comments': 'panel',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
-      'click .comment-button': 'comment'
+      'click .comment-button': 'comment',
+      'click .comment-cancel-button': 'comment'
     },
 
     // Misc. setup.
@@ -159,8 +161,6 @@ define([
 
     save: function (e) {
       e.preventDefault();
-
-      // Render the save view.
       mps.publish('modal/save/open');
     },
 
@@ -197,22 +197,127 @@ define([
 
     comment: function (e) {
       if (!this.cursorData) return;
-      this.cursor.addClass('active');
-      mps.publish('comment/start', [this.cursorData]);
+      if (this.cursor.hasClass('active'))
+        mps.publish('comment/end');
+      else {
+        this.cursor.addClass('active');
+        this.graph.$el.css({'pointer-events': 'none'});
+        mps.publish('comment/start', [this.cursorData]);
+      }
     },
 
     uncomment: function () {
       this.cursor.removeClass('active');
+      this.graph.$el.css({'pointer-events': 'auto'});
     },
 
     saved: function () {
-
-      // Allow annotations.
       if (this.comments) this.comments.empty();
       this.comments = new Comments(this.app, {parentView: this, type: 'view'});
       this.annotated = true;
       this.$('.control-button').removeClass('view-only');
     },
+
+    icons: function () {
+      if (!this.graph) return;
+      var xaxis = this.graph.plot.getXAxes()[0];
+
+      // Update x-pos of each comment.
+      _.each(this.comments.views, _.bind(function (v) {
+        v.model.set('xpos', xaxis.p2c(v.model.get('time')));
+        v.
+      }, this));
+    }
+
+    // renderComments: function () {
+    //   if (!this.comments) return;
+      
+    //   _.each(this.comments.collection.models, function (not) {
+    //     var icon = $('<img ' + (not.type === '_note' && self.id === 'MASTER' ?
+    //                 'id="' + not.id + '"' : '') + '>')
+    //         .attr({ src: not.meta.icon })
+    //         .css({ bottom: 20 })
+    //         .addClass('timeline-icon')
+    //         .data(_.extend({}, not))
+    //         .appendTo(self.$el)
+    //         .bind('mousedown mouseup mousemove DOMMouseScroll mousewheel',
+    //             function (e) {
+    //           if (e.type === 'mousedown' || 
+    //               e.type === 'mousemove')
+    //             $('.flot-overlay', self.content).trigger(e);
+    //           else
+    //             if (e.type === 'mouseup')
+    //               self.plot.getPlaceholder().css({ cursor: 'crosshair' });
+    //           else
+    //             self.plot.getPlaceholder().trigger(e, e.wheelDelta || -e.detail);
+    //         })
+    //         .bind('click', function (e) {
+    //           var not = $(e.target).data();
+    //           if (not.type !== '_note') return;
+    //           if ($('.note').length > 0) {
+    //             _.each(self.model.tabModel.graphModels, function (gm) {
+    //               if (gm.view.noteWindow)
+    //                   gm.view.cancelNote();
+    //             });
+    //           }
+    //           var xaxis = self.plot.getXAxes()[0];
+    //           var off = _.map(self.plot.offset(), function (o) {
+    //             return parseInt(o);
+    //           });
+    //           var dsEvent = $.Event('dragstart');
+    //           var dEvent = $.Event('drag');
+    //           var deEvent = $.Event('dragend');
+    //           _([dsEvent, dEvent, deEvent]).each(function (evt) {
+    //             evt.which = 1;
+    //             evt.shiftKey = true;
+    //             evt.pageY = off[0] + 30;
+    //             evt.note = not;
+    //           });
+    //           dsEvent.pageX = xaxis.p2c(not.beg / 1e3) + off[1];
+    //           dEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
+    //           deEvent.pageX = xaxis.p2c(not.end / 1e3) + off[1];
+    //           $('.flot-overlay', self.$el)
+    //               .trigger(dsEvent)
+    //               .trigger(dEvent)
+    //               .trigger(deEvent);
+    //         })
+    //         .bind('mouseover', function (e) {
+    //           // App.publish('PreviewEvent-' + self.model.get('tabId'),
+    //           //             [{beg: not.beg, end: not.end}]);
+    //         })
+    //         .bind('mouseout', function (e) {
+    //           // App.publish('UnPreviewEvent-' + self.model.get('tabId'));
+    //         });
+    //         // .bind('mouseout', function (e) {
+    //         //   var not = $(e.target).data();
+    //         //   if (not.type !== '_note') return;
+    //         //   (function checkItBoy() {
+    //         //     _.delay(function () {
+    //         //       if (!self.editingNote)
+    //         //         self.cancelNote(null, self.plot);
+    //         //       else checkItBoy();
+    //         //     }, 250);
+    //         //   })();
+    //         // });
+    //   });
+    //   self.eventIcons = this.$('.timeline-icon');
+    //   self.positionIcons();
+    // },
+
+    // positionIcons: function () {
+    //   var self = this;
+    //   var xaxis = this.plot.getXAxes()[0];
+    //   _.each(this.eventIcons, function (icon, i) {
+    //     var $icon = $(icon);
+    //     var left = xaxis.p2c($icon.data('beg') / 1e3) - 8;
+    //     if (left >= 0 && left <= self.$el.width()) {
+    //       $icon.css({
+    //         left: xaxis.p2c($icon.data('beg') / 1e3) - 8,
+    //       });
+    //       $icon.show();
+    //     } else $icon.hide();
+    //   });
+    // },
 
   });
 });
