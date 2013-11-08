@@ -37,7 +37,7 @@ define([
       this.parentView.off('rendered');
       this.$el.html(this.template.call(this));
       this.icon = $('<i class="graph-icon icon-bookmark">');
-      if (!single)
+      if (!single || this.model.collection.length === 1)
         this.$el.insertAfter(this.parentView.$('.list-header'));
       else {
         var i; _.find(this.model.collection.models, _.bind(function (m, _i) {
