@@ -155,6 +155,11 @@ define([
       this.time = data.t;
       
       // Find out where to put the input wrapper.
+      if (this.collection.length === 0) {
+        this.inputWrap.show();
+        this.input.focus();
+        return;
+      }
       var w = this.inputWrap.detach();
       var i; _.find(this.collection.models, _.bind(function (m, _i) {
         i = _i;
