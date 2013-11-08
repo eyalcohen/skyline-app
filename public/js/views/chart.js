@@ -219,7 +219,7 @@ define([
     },
 
     icons: function () {
-      if (!this.graph) return;
+      if (!this.graph || !this.comments) return;
       var xaxis = this.graph.plot.getXAxes()[0];
 
       // Update x-pos of each comment.
