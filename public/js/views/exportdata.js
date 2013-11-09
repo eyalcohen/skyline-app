@@ -43,11 +43,9 @@ define([
           { channelName: '$beginRelTime', title: 'Begin Since Start', units: 's' },
           { channelName: '$endRelTime', title: 'End Since Start', units: 's' },
       ].concat(this.graph.model.getChannels());
-
       // UnderscoreJS rendering.
       this.template = _.template(template, {channels: this.channels});
       this.$el.html(this.template)
-
       // Dump content into modal.
       $.fancybox(this.$el, {
         openEffect: 'fade',
