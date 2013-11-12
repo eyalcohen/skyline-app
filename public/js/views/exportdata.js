@@ -84,7 +84,7 @@ define([
 
     // Bind mouse events.
     events: {
-      'click #download-data': 'exportCsv'
+      'click .export-modal-download': 'exportCsv'
     },
 
     // Misc. setup.
@@ -113,7 +113,6 @@ define([
     exportCsv: function () {
 
       function checkExportOk() {
-      /*
         var resampling = $('[value="resample"]').is(':checked');
         var viewRange = this.graph.getVisibleTime();
         var resampleTime = Math.round(Number($('#resample').val()) * 1e6);
@@ -131,7 +130,6 @@ define([
           $('#download-data').removeClass('disabled');
           return true;
         }
-        */
         return true;
       };
 

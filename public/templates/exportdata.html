@@ -1,5 +1,6 @@
 <div class="export-modal">
-  <div class="export-modal-title">Export data as CSV</div>
+  <h1 class="export-modal-title">Export data as CSV</h1>
+  <br>
   <div class="export-modal-stats">
     <ul>
       <%
@@ -9,14 +10,15 @@
       %>
     </ul>
   </div>
-  <div id="download-data" role="button" title="Download data as CSV.">Download</div>
-  <span role="button" class="export-modal-fold"> = </span>
+  <div class="export-modal-download" role="button" title="Download data as CSV.">Download</div>
+  <br>
+  <div role="button" class="export-modal-fold"> = </div>
   <div class="export-modal-data">
-    <p>Columns to download:</p>
+    <p>Channels to download:</p>
     <ol class="export-channel-list">
     <%
       _.each(channels, function(row, index) {
-        print('<li>' + index + '.&nbsp;&nbsp;'+ row.humanName + '</li>')
+        print('<li> <input type = "checkbox" checked=true>' + index + '.&nbsp;&nbsp;'+ row.humanName + '</li>')
       });
     %>
     </ol>
@@ -26,15 +28,10 @@
       <label for="resampleRadio" class="export-label">Resample to:</label>
       <input id="resample" type="text" value="1.0" class="export-input-text">
       <label for="resampleRadio" class="export-label">seconds per sample</label>
-      <br>
-      &nbsp;&nbsp;&nbsp;
-      <input id="minmaxCheckbox" type="checkbox" name="minmax" value="minmax" disabled="disabled">
-      <label for="minmaxCheckbox" class="export-label">Include minima and maxima</label>
     </p>
     <p>
       <input id="noResampleRadio" type="radio" name="sampleType" value="noResample" checked="checked">
-      <label for="noResampleRadio" class="export-label">Don't resample
-      </label>
+      <label for="noResampleRadio" class="export-label">Don't resample</label>
     </p>
     <p id="exportError" style="visibility: hidden; color: red">Would export
       <span id="rowCount"></span> rows, maximum is

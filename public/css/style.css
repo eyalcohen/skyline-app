@@ -1942,6 +1942,34 @@ a.comments-signin {
 
 /*.........................................................................*/
 
+.export-modal-title {
+  text-align: center;
+}
+
+.export-modal-stats {
+  float: left;
+  width: 50%;
+}
+
+.export-modal-download {
+  float: right;
+  width: 20%;
+  margin-top:10px;
+  margin-right: 20px;
+  margin-bottom:10px;
+}
+
+.export-modal .export-modal-fold {
+  text-align: center;
+  width: 99%;
+  height: 10px;
+  padding: 0;
+  margin: 0;
+  clear: both;
+}
+
+/*.........................................................................*/
+
 .browser.library {
   height: 500px;
   overflow: hidden;
