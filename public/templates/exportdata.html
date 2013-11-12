@@ -1,11 +1,22 @@
 <div class="export-modal">
   <div class="export-modal-title">Export data as CSV</div>
+  <div class="export-modal-stats">
+    <ul>
+      <%
+        print('<li>Channels:&nbsp' + channels.length + '</li>')
+        print('<li>Data points:&nbsp' + '???</li>')
+        print('<li>File size:&nbsp' + '???</li>')
+      %>
+    </ul>
+  </div>
+  <div id="download-data" role="button" title="Download data as CSV.">Download</div>
+  <span role="button" class="export-modal-fold"> = </span>
   <div class="export-modal-data">
     <p>Columns to download:</p>
     <ol class="export-channel-list">
     <%
       _.each(channels, function(row, index) {
-        print('<li>' + index + '.&nbsp;&nbsp;'+ row.title + '</li>')
+        print('<li>' + index + '.&nbsp;&nbsp;'+ row.humanName + '</li>')
       });
     %>
     </ol>
@@ -29,6 +40,5 @@
       <span id="rowCount"></span> rows, maximum is
       <span id="rowMax"></span>.
     </p>
-    <div id="download-data" role="button" title="Download data as CSV.">Download</div>
   </div>
 </div>

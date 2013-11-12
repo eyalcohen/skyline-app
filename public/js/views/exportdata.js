@@ -11,8 +11,9 @@ define([
   'rest',
   'util',
   'Spin',
+  'collections/datasets',
   'text!../../templates/exportdata.html',
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template) {
+], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, Collection, template) {
 
   return Backbone.View.extend({
 
@@ -30,6 +31,7 @@ define([
 
       // get some data from parent
       this.graph = this.options.parentView.graph;
+      this.datasets = this.options.parentView.datasets.collection.models;
 
       // Shell events.
       this.on('rendered', this.setup, this);
@@ -37,12 +39,28 @@ define([
 
     // Draw the template
     render: function () {
+      var graphedChannels = this.graph.model.getChannels().map( function (channelObj) {
+        // get the parent dataset of this channel
+        var channelTitle =  _.find(this.datasets, function(dataset) {
+          return (dataset.id == channelObj.channelName.split('__')[1])
+        }).attributes.title
+
+        if (channelTitle === undefined)
+          displayName = channelObj.humanName;
+        else
+          displayName = channelTitle + ':' + channelObj.humanName;
+
+        return {
+          channelName: channelObj.channelName,
+          humanName: displayName
+        }
+      }, this);
       this.channels = [
-          { channelName: '$beginDate', title: 'Begin Date' },
-          { channelName: '$beginTime', title: 'Begin Time' },
-          { channelName: '$beginRelTime', title: 'Begin Since Start', units: 's' },
-          { channelName: '$endRelTime', title: 'End Since Start', units: 's' },
-      ].concat(this.graph.model.getChannels());
+          { channelName: '$beginDate', humanName: 'Begin Date' },
+          { channelName: '$beginTime', humanName: 'Begin Time' },
+          { channelName: '$beginRelTime', humanName: 'Begin Since Start', units: 's' },
+          { channelName: '$endRelTime', humanName: 'End Since Start', units: 's' },
+      ].concat(graphedChannels);
       // UnderscoreJS rendering.
       this.template = _.template(template, {channels: this.channels});
       this.$el.html(this.template)
@@ -130,15 +148,12 @@ define([
       // We should really fetch the data via dnode then force the download
       // client-side... this way we can show a loading icon while the
       // user waits for the server to package everything up.
-      console.log(this.channels[4])
-      var href = '/api/datasets/' +
-          this.channels[4].channelName.split('__')[1] + 
+      var href = '/api/datasets' +
           '?beg=' + Math.floor(viewRange.beg) +
           '&end=' + Math.ceil(viewRange.end) +
           (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
           (resample && minmax ? '&minmax' : '') +
           this.channels.map(function (c){return '&chan=' + c.channelName}).join('');
-      console.log(href)
       window.location.href = href;
     },
   });
