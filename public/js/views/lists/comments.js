@@ -51,6 +51,8 @@ define([
       }
       this.collection.older = page.comments_cnt - page.comments.length;
       this.collection.reset(page.comments);
+
+      window.views = this.views;
     },
 
     // Initial bulk render of list
@@ -81,8 +83,10 @@ define([
         parentView: this,
         model: model
       }, this.app);
-      var i = this.collection.indexOf(model);
-      this.views.splice(i, 0, view);
+      this.views.push(view);
+      this.views.sort(function (a, b) {
+        return b.model.get('time') - a.model.get('time');
+      });
       return view.toHTML();
     },
 
@@ -161,11 +165,11 @@ define([
         return;
       }
       var w = this.inputWrap.detach();
-      var i; _.find(this.collection.models, _.bind(function (m, _i) {
+      var i; var c = _.find(this.collection.models, _.bind(function (m, _i) {
         i = _i;
         return m.get('time') < this.time;
       }, this));
-      if (i === this.collection.length - 1)
+      if (!c && i === this.collection.length - 1)
         w.insertBefore(_.last(this.views).$el);
       else
         w.insertAfter(this.views[i].$el);
@@ -206,25 +210,22 @@ define([
       // Mock comment.
       var data = {
         id: -1,
+        parent_id: payload.parent_id,
         author: this.app.profile.user,
         body: payload.body,
         created: new Date().toISOString(),
-        time: this.time,
-        _new: true,
+        time: this.time
       };
 
       // Optimistically add comment to page.
-      this.collection.push(data);
+      this.collect(data);
       this.input.val('').keyup();
 
       // Now save the comment to server.
       rest.post('/api/comments/' + this.type, payload,
           _.bind(function (err, data) {
-        if (err) {
-          console.log(err);
-          this.collection.pop();
-          return;
-        }
+        if (err)
+          return console.log(err);
 
         // Update the comment id.
         var comment = this.collection.get(-1);

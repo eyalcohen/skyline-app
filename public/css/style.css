@@ -37,9 +37,8 @@ body { font:13px/1.231 sans-serif; *font-size:small; }
 select, input, textarea, button { font:99% sans-serif; }
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
-html { /*overflow-y: scroll;*/ }
+html {}
 a:hover, a:active { outline: none; }
-/*ul, ol { margin-left: 2em; }*/
 ol { list-style-type: decimal; }
 nav ul, nav li { margin: 0; list-style:none; list-style-image: none; }
 small { font-size: 85%; }
@@ -249,6 +248,7 @@ a:visited {
 
 a:hover {
   color: #2f2f2f;
+  background-color: #fff;
 }
 
 a:active {
@@ -554,10 +554,11 @@ span.empty-feed {
 }
 
 span.empty-list {
-  display: inline-block;
+  display: block;
   margin: 0 0 10px 0;
   font-style: italic;
   color: #808080;
+  text-align: center;
   line-height: 18px;
   font-size: 10px;
 }
@@ -606,12 +607,22 @@ span.empty-list {
 .created {
   color: #afafaf;
   font-size: 9px;
-  display: block;
+  display: inline-block;
+}
+
+.profile .created {
+  font-size: inherit;
 }
 
 .info-divider {
   font-size: 8px;
   color: #8f8f8f;
+}
+
+a.info-delete {
+  color: #8f8f8f;
+  cursor: pointer;
+  font-size: 9px;
 }
 
 /*.........................................................................*/
@@ -1445,7 +1456,17 @@ a.control-button.view-only {
   display: block;
 }
 
+.icons {
+  position: absolute;
+  z-index: 8;
+  top: -5px;
+  left: 0;
+  height: 20px;
+}
 
+.icon {
+  position: absolute;
+}
 
 /*.........................................................................*/
 
@@ -1686,7 +1707,9 @@ a.channel-button {
 }
 
 .comments span.empty-list {
-  margin: 10px 0 0 0;
+  padding: 10px 0;
+  margin: 0;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .comment-input-wrap {
@@ -1788,7 +1811,7 @@ a.button.comment-input-button.primary:active {
   font-size: 11px;
   line-height: 14px;
   color: #4f4f4f;
-  margin-top: 0px;
+  margin-bottom: -3px;
 }
 
 span.comment-avatar,
@@ -1824,17 +1847,6 @@ a.comment-author {
   -webkit-text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
   -moz-text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
   text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
-}
-
-.showolder {
-  padding: 5px;
-  display: block;
-  min-height: 0;
-  width: 290px;
-  text-align: center;
-  color: #808080;
-  font-style: italic;
-  font-size: 10px;
 }
 
 /*.........................................................................*/

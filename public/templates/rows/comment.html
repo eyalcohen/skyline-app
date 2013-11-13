@@ -12,15 +12,17 @@
       <%= this.model.get('author').displayName %>
     </a>
     <%= this.model.body() %>
-    <time class="created" 
-        datetime="<%= this.model.get('created') %>" 
-        title="<%= this.model.get('created') %>">
-      <%= this.model.get('created') %>
-    </time>
   </p>
-</div>
-<% if (this.app.profile.user &&
+  <time class="created" 
+      datetime="<%= this.model.get('created') %>" 
+      title="<%= this.model.get('created') %>">
+    <%= this.model.get('created') %>
+  </time>
+  <% if (this.app.profile.user &&
       this.model.get('author').id === this.app.profile.user.id) { %>
-<% } %>
+    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+    <a class="info-delete">delete</a>
+  <% } %>
+</div>
 <div class="clearfix"></div>
 
