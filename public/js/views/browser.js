@@ -170,6 +170,7 @@ define([
         this.newFileSubmit.attr({disabled: false});
       }
       this.newFileInput.val(name);
+      this.add(null, files);
     },
 
     // Create new dataset from file.

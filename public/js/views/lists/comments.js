@@ -27,7 +27,7 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Add parent_id.
-      this.parent_id = this.app.profile.content.page.id;
+      this.parent_id = Number(this.app.profile.content.page.id);
 
       // Client-wide subscriptions
       this.subscriptions = [
@@ -36,7 +36,6 @@ define([
       ];
 
       // Socket subscriptions
-      // this.type + '-' + this.parentView.model.id
       this.app.rpc.socket.on('comment.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('comment.removed', _.bind(this._remove, this));
 
@@ -73,20 +72,21 @@ define([
         return m.get('_new');
       }, this));
       model.set('_new', false);
-      this.row(model);
-      this.views[this.collection.indexOf(model)].render();
+      this.row(model, true);
       return this;
     },
 
-    row: function (model) {
+    row: function (model, single) {
       var view = new this.Row({
         parentView: this,
         model: model
       }, this.app);
+      if (single) view.render(true);
       this.views.push(view);
       this.views.sort(function (a, b) {
         return b.model.get('time') - a.model.get('time');
       });
+      
       return view.toHTML();
     },
 
@@ -121,15 +121,17 @@ define([
     // Collect new comments from socket events.
     collect: function (data) {
       if (data.parent_id !== this.parent_id) return;
+      if (this.collection.get(-1)) return;
       data._new = true;
       this.collection.push(data);
+      this.parentView.updateIcons();
     },
 
     // Remove a model.
     _remove: function (data) {
       var index = -1;
       var view = _.find(this.views, function (v) {
-        ++index
+        ++index;
         return v.model.id === data.id;
       });
 
@@ -137,6 +139,9 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
+          if (this.collection.length === 0)
+            $('<span class="empty-feed">' + this.empty_label
+                + '</span>').appendTo(this.$el);
         }, this));
       }
     },
@@ -165,14 +170,14 @@ define([
         return;
       }
       var w = this.inputWrap.detach();
-      var i; var c = _.find(this.collection.models, _.bind(function (m, _i) {
+      var i; var v = _.find(this.views, _.bind(function (_v, _i) {
         i = _i;
-        return m.get('time') < this.time;
+        return _v.model.get('time') < this.time;
       }, this));
-      if (!c && i === this.collection.length - 1)
+      if (!v && i === this.views.length - 1)
         w.insertBefore(_.last(this.views).$el);
       else
-        w.insertAfter(this.views[i].$el);
+        w.insertAfter(v.$el);
       w.show();
       this.$el.parent().animate({scrollTop: w.position().top
           - this.$el.position().top},

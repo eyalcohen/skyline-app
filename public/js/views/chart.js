@@ -45,8 +45,7 @@ define([
 
       // Determine whether or not comments are allowed.
       // For now, only views can have comments...
-      // and states with an author_id are views.
-      this.annotated = store.get('state').author_id;
+      this.annotated = store.get('state').author_id && this.app.profile.content.page;
     },
 
     // Draw our template from the profile.
@@ -171,8 +170,6 @@ define([
 
     panel: function (e) {
       if (e) e.preventDefault();
-
-      // Open/close side panel.
       if (this.sidePanel.hasClass('open')) {
         this.sidePanel.removeClass('open');
         store.set('comments', false);
@@ -217,7 +214,6 @@ define([
     uncomment: function () {
       this.cursor.removeClass('active');
       this.graph.$el.css({'pointer-events': 'auto'});
-      this.updateIcons();
     },
 
     saved: function () {
@@ -234,10 +230,8 @@ define([
       // Update x-pos of each comment.
       _.each(this.comments.views, _.bind(function (v) {
         v.model.set('xpos', xaxis.p2c(v.model.get('time')));
-
         if (!$.contains(document.documentElement, v.icon.get(0)))
           v.icon.appendTo(this.icons);
-      
       }, this));
     },
 

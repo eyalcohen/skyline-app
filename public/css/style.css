@@ -699,7 +699,7 @@ a.info-delete {
 /*.........................................................................*/
 
 .block-messages {
-  position: absolute;
+  position: fixed;
   z-index: 10001;
   left: 30px;
   bottom: 50px;
@@ -1458,14 +1458,20 @@ a.control-button.view-only {
 
 .icons {
   position: absolute;
-  z-index: 8;
-  top: -5px;
+  z-index: 9;
+  top: -2px;
   left: 0;
-  height: 20px;
 }
 
 .icon {
   position: absolute;
+  color: rgba(79, 79, 79, 0.6);
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.icon.hover {
+  color: rgba(79, 79, 79, 0.9);
 }
 
 /*.........................................................................*/
@@ -1779,6 +1785,7 @@ a.button.comment-input-button.primary:active {
   position: relative;
   display: none;
   border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
   
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -1794,8 +1801,14 @@ a.button.comment-input-button.primary:active {
   animation-fill-mode: both;
 }
 
+.comment:hover,
+.comment.hover {
+  background: #f2f2f2;
+}
+
 .comment-input-wrap .comment {
   display: block;
+  cursor: inherit;
 }
 
 .comment-body {
