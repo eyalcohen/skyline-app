@@ -7,6 +7,12 @@
   "ascent": 850,
   "glyphs": [
     {
+      "uid": "f04a5d24e9e659145b966739c4fde82a",
+      "css": "bookmark",
+      "code": 59408,
+      "src": "fontawesome"
+    },
+    {
       "uid": "9a76bc135eac17d2c8b8ad4a5774fc87",
       "css": "download",
       "code": 59396,
@@ -22,6 +28,12 @@
       "uid": "85528017f1e6053b2253785c31047f44",
       "css": "comment",
       "code": 59395,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "f48ae54adfb27d8ada53d0fd9e34ee10",
+      "css": "trash",
+      "code": 59409,
       "src": "fontawesome"
     },
     {

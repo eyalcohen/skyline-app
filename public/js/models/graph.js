@@ -32,7 +32,8 @@ define([
       this.cache = new Cache(this.app);
       this.set({channels: []});
       this.sampleSet = {};
-      
+
+      // View change events.
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
@@ -122,28 +123,27 @@ define([
     },
 
     addChannel: function (datasetId, channels) {
-      var self = this;
       channels = _.isArray(channels) ? channels : [channels];
 
-      var numSeriesLeftAxis = 0, numSeriesRightAxis = 0;
-      _.each(self.getChannels(), function (channel) {
+      var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
+      _.each(this.getChannels(), _.bind(function (channel) {
         if (!channel.yaxisNum) return;
         if (channel.yaxisNum === 1)
-          numSeriesLeftAxis++;
-        else
           numSeriesRightAxis++;
-      });
-      var yAxisNumToUse = numSeriesLeftAxis > numSeriesRightAxis ? 2 : 1;
+        else
+          numSeriesLeftAxis++;
+      }, this));
+      var yAxisNumToUse = numSeriesRightAxis > numSeriesLeftAxis ? 2 : 1;
 
       var client = this.getOrCreateClient(datasetId);
-      _.each(channels, function (channel) {
+      _.each(channels, _.bind(function (channel) {
         if (_.pluck(client.channels, 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
         if (!channel.yaxisNum)
           channel.yaxisNum = yAxisNumToUse;
         if (channel.colorNum === undefined) {
-          var usedColors = _.pluck(self.getChannels(), 'colorNum');
+          var usedColors = _.pluck(this.getChannels(), 'colorNum');
           for (var c = 0; _.include(usedColors, c); ++c) {}
           channel.colorNum = c;
         }
@@ -153,14 +153,13 @@ define([
         client.channels.push(channel);
         mps.publish('channel/added', [datasetId, channel]);
         console.log('addChannel(', channel, ')...');
-      });
-      self.updateCacheSubscription(client);
+      }, this));
+      this.updateCacheSubscription(client);
       // mps.publish('view/save/status', [true]);
-      return self;
+      return this;
     },
 
     removeChannel: function (datasetId, channel) {
-      var self = this;
       var client = this.getOrCreateClient(datasetId);
       var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);
@@ -169,10 +168,10 @@ define([
       channel.did = datasetId;
       mps.publish('channel/removed', [datasetId, channel]);
       console.log('removeChannel(', channel, ')...');
-      self.updateCacheSubscription(client);
+      this.updateCacheSubscription(client);
       // if (this.getChannels().length === 0)
       //   mps.publish('view/save/status', [false]);
-      return self;
+      return this;
     },
 
     fetchGraphedChannels: function(cb) {

@@ -5,24 +5,43 @@
 <div class="upper-panel">
   <div class="datasets"></div>
   <div class="controls">
-    <a class="control-button control-button-comments" href="javascript:;"><i class="icon-comment"></i></a>
+    <% if (this.annotated) { %>
+      <a class="control-button control-button-comments" href="javascript:;">
+        <i class="icon-comment"></i>
+      </a>
+    <% } else { %>
+      <a class="control-button control-button-comments view-only" href="javascript:;">
+        <i class="icon-comment"></i>
+      </a>
+    <% } %>
     <% if (user) { %>
-      <a class="control-button control-button-share" href="javascript:;"><i class="icon-export"></i></a>
-      <a class="control-button control-button-export" href="javascript:;"><i class="icon-download"></i></a>
-      <a class="control-button control-button-save" href="javascript:;"><i class="icon-floppy"></i></a>
+      <a class="control-button control-button-share" href="javascript:;">
+        <i class="icon-export"></i>
+      </a>
+      <a class="control-button control-button-download" href="javascript:;">
+        <i class="icon-download"></i>
+      </a>
+      <a class="control-button control-button-save" href="javascript:;">
+        <i class="icon-floppy"></i>
+      </a>
     <% } %>
     <a class="control-button control-button-monthly" href="javascript:;">Mo</a>
     <a class="control-button control-button-weekly" href="javascript:;">Wk</a>
     <a class="control-button control-button-daily" href="javascript:;">Dy</a>
   </div>
 </div>
-<div class="side-panel open">
-  <div class="side-panel-content"></div>
-  <div class="list-spin">
-    <div id="comments_spin"></div>
-    <span class="empty-feed">Showing all.</span>
-  </div>
+<div id="side_panel" class="side-panel">
+  <div class="comments"></div>
 </div>
-<div class="mouse-time"><span></span></div>
-<div class="graphs"></div>
+<div class="graphs">
+  <div class="cursor">
+    <a href="javascript:;" class="comment-button">
+      <i class="icon-bookmark"></i>Comment
+    </a>
+    <a href="javascript:;" class="comment-cancel-button">
+      <i class="icon-cancel"></i>Cancel
+    </a>
+  </div>
+  <div class="icons"></div>
+</div>
 <div class="lower-panel"></div>

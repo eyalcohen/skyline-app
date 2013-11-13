@@ -25,17 +25,22 @@ define([
 
     // App-wide colors.
     this.colors = [
-      "#27CDD6",  // Dark cyan
-      "#cb4b4b",  // Dark red
-      "#76D676",  // Light green
-      "#8171E3",  // Violet
-      "#47A890",  // Dark teal
-      "#E8913F",  // Orange
-      "#118CED",  // Dark blue
-      "#28A128",  // Dark green
-      "#FFA6A6",  // Pink
-      "#96BDFF",  // Light blue
-      "#D373FF",  // Light purple
+      "#3cb4e7",
+      "#ffb40f",
+      "#e66ec8",
+      "#71c72a",
+      "#7877c1",
+      // "#27CDD6",  // Dark cyan
+      // "#cb4b4b",  // Dark red
+      // "#76D676",  // Light green
+      // "#8171E3",  // Violet
+      // "#47A890",  // Dark teal
+      // "#E8913F",  // Orange
+      // "#118CED",  // Dark blue
+      // "#28A128",  // Dark green
+      // "#FFA6A6",  // Pink
+      // "#96BDFF",  // Light blue
+      // "#D373FF",  // Light purple
     ];
 
     // TODO: Do this only on localhost.
@@ -57,7 +62,7 @@ define([
       this.profile = profile;
 
     // Pull out state, if exists.
-    if (profile.state) {
+    if (profile && profile.state) {
       store.set('state', profile.state);
       delete this.profile.state;
     }

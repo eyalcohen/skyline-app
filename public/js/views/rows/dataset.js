@@ -129,7 +129,7 @@ define([
     },
 
     destroy: function () {
-      this.channels.destroy();
+      if (this.channels) this.channels.destroy();
       return Row.prototype.destroy.call(this);
     },
 
