@@ -1,18 +1,15 @@
 <div class="export-modal">
   <h1 class="export-modal-title">Export data as CSV</h1>
-  <br>
-  <div class="export-modal-stats">
-    <ul>
+  <div class="export-modal-abovefold">
+    <ul class = "export-modal-stats">
       <%
         print('<li>Channels:&nbsp' + channels.length + '</li>')
-        print('<li>Data points:&nbsp' + '???</li>')
-        print('<li>File size:&nbsp' + '???</li>')
+        print('<li>Data points:&nbsp' + '</li>') //TODO
+        print('<li>File size:&nbsp' + '</li>')  //TODO
       %>
     </ul>
+    <div class="export-modal-download" role="button" title="Download data as CSV.">Download</div>
   </div>
-  <div class="export-modal-download" role="button" title="Download data as CSV.">Download</div>
-  <br>
-  <div role="button" class="export-modal-fold"> = </div>
   <div class="export-modal-data">
     <p>Channels to download:</p>
     <ol class="export-channel-list">
@@ -38,4 +35,5 @@
       <span id="rowMax"></span>.
     </p>
   </div>
+  <div role="button" class="export-modal-fold"> = </div>
 </div>

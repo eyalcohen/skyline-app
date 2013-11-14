@@ -29,6 +29,8 @@ define([
       this.options = options;
       this.channels = [];
 
+      this.expand = false;
+
       // get some data from parent
       this.graph = this.options.parentView.graph;
       this.datasets = this.options.parentView.datasets.collection.models;
@@ -69,8 +71,11 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
-        padding: 0
+        padding: 0,
+        minWidth: 320
       });
+      $('.export-modal-data').hide();
+      $.fancybox.update();
 
       // Add placeholder shim if need to.
       if (Modernizr.input.placeholder)
@@ -84,7 +89,8 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .export-modal-download': 'exportCsv'
+      'click .export-modal-download': 'exportCsv',
+      'click .export-modal-fold' : 'expandModal'
     },
 
     // Misc. setup.
@@ -110,9 +116,23 @@ define([
       this.empty();
     },
 
+    expandModal: function() {
+      if (!this.expand) {
+        $('.export-modal-data').hide();
+        $('.export-modal-fold').text('=');
+      }
+      else {
+        $('.export-modal-data').show();
+        $('.export-modal-fold').text('^^^');
+      }
+      this.expand = !this.expand
+      $.fancybox.toggle();
+    },
+
     exportCsv: function () {
 
       function checkExportOk() {
+      /*
         var resampling = $('[value="resample"]').is(':checked');
         var viewRange = this.graph.getVisibleTime();
         var resampleTime = Math.round(Number($('#resample').val()) * 1e6);
@@ -130,6 +150,7 @@ define([
           $('#download-data').removeClass('disabled');
           return true;
         }
+      */
         return true;
       };
 
