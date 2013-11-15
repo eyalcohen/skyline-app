@@ -8,8 +8,9 @@ define([
   'mps',
   'rest',
   'views/boiler/row',
-  'text!../../../templates/rows/comment.html'
-], function ($, _, mps, rest, Row, template) {
+  'text!../../../templates/rows/comment.html',
+  'views/discussion'
+], function ($, _, mps, rest, Row, template, Discussion) {
   return Row.extend({
 
     attributes: function () {
@@ -62,6 +63,7 @@ define([
     setup: function () {
       Row.prototype.setup.call(this);
 
+      // Icon events.
       this.icon.bind('mouseover', _.bind(function (e) {
         this.icon.addClass('hover');
         this.$el.addClass('hover');
@@ -69,6 +71,9 @@ define([
       this.icon.bind('mouseout', _.bind(function (e) {
         this.icon.removeClass('hover');
         this.$el.removeClass('hover');
+      }, this));
+      this.icon.click(_.bind(function (e) {
+        this.discussion = new Discussion(this.app, {model: this.model}).render();
       }, this));
 
       return this;

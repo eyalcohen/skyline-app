@@ -50,8 +50,6 @@ define([
       }
       this.collection.older = page.comments_cnt - page.comments.length;
       this.collection.reset(page.comments);
-
-      window.views = this.views;
     },
 
     // Initial bulk render of list
