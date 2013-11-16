@@ -65,7 +65,9 @@ define([
                 this.$el.insertAfter(lastSib);
               else
                 this.$el.insertAfter(list);
-            } else
+            } else if (this.parentView.footer)
+              this.$el.insertBefore(this.parentView.footer);
+            else
               this.$el.appendTo(this.parentView.$el);
           } else
             this.$el.appendTo(this.wrap);

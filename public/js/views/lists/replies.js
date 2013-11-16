@@ -73,6 +73,8 @@ define([
 
     // Collect new replies from socket events.
     collect: function (data) {
+      if (data.parent_id !== this.parent_id) return;
+      if (this.collection.get(-1)) return;
       this.collection.push(data);
     },
 
@@ -125,7 +127,6 @@ define([
 
       // Add the parent id.
       payload.parent_id = this.parentView.model.id;
-      // payload.reply = true;
 
       // Optimistically add comment to page.
       this.collection.push(data);

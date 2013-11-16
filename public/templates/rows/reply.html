@@ -13,14 +13,17 @@
     </a>
     <%= this.model.body() %>
   </p>
-  <time class="created" 
-      datetime="<%= this.model.get('created') %>" 
-      title="<%= this.model.get('created') %>">
-    <%= this.model.get('created') %>
-  </time>
-  <% if (this.app.profile.user &&
-        this.model.get('author').id === this.app.profile.user.id) { %>
-    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-    <a href="javascript:;" class="info-delete">delete</a>
-  <% } %>
+  <div class="comment-info">
+    <time class="created" 
+        datetime="<%= this.model.get('created') %>" 
+        title="<%= this.model.get('created') %>">
+      <%= this.model.get('created') %>
+    </time>
+    <% if (this.app.profile.user &&
+          this.model.get('author').id === this.app.profile.user.id) { %>
+      <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+      <a href="javascript:;" class="info-delete">delete</a>
+    <% } %>
+  </div>
 </div>
+<div class="clearfix"></div>

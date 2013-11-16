@@ -1,11 +1,23 @@
+<%
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + this.model.get('author').gravatar + '?s=20&d=mm';
+%>
+
 <span class="modal-title">
-  Discuss
+  <img src="<%= gravatar %>" width="20" height="20" />
+  <span><%= this.model.get('author').displayName %>'s comment</span>
 </span>
-<div class="browser-inner modal-inner">
-  <div>
-    <span class="modal-heading">
-      <%= this.model.body() %>
-    </span>
+<div class="discussion-inner modal-inner">
+  <div class="comment-body">
+    <p>
+      &ldquo;<%= this.model.body() %>&rdquo;
+    </p>
+    <time class="created" 
+        datetime="<%= this.model.get('created') %>" 
+        title="<%= this.model.get('created') %>">
+      <%= this.model.get('created') %>
+    </time>
   </div>
+  <div class="clearfix"></div>
 </div>
 <div class="replies"></div>

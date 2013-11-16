@@ -32,6 +32,7 @@ define([
     },
 
     events: {
+      'click': 'open',
       'click .navigate': 'navigate',
       'click .info-delete': 'delete',
       'mouseover': 'highlight',
@@ -99,6 +100,12 @@ define([
         this.destroy();
         cb();
       }, this));
+    },
+
+    open: function (e) {
+      if ($(e.target).hasClass('info-delete')
+          || $(e.target).hasClass('navigate')) return;
+      this.discussion = new Discussion(this.app, {model: this.model}).render();
     },
 
     highlight: function (e) {

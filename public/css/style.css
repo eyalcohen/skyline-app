@@ -932,6 +932,15 @@ a.header-action:active {
   font-weight: 700;
 }
 
+.modal-title img {
+  position: absolute;
+  left: 0;
+}
+
+.modal-title span {
+  margin-left: 20px;
+}
+
 .modal-heading {
   font-size: 12px;
   line-height: 40px;
@@ -1709,9 +1718,14 @@ a.channel-button {
 /*.........................................................................*/
 
 .discussion {
-  min-height: 165px;
   max-height: 500px;
   overflow: hidden;
+}
+
+.discussion-inner {
+  padding: 15px 20px 0;
+  width: 660px;
+  margin-bottom: 10px;
 }
 
 .comment-input-wrap {
@@ -1817,7 +1831,7 @@ a.button.comment-input-button.primary:active {
 }
 
 .discussion .comment {
-  width: inherit;
+  width: 700px;
   cursor: inherit;
 }
 
@@ -1825,8 +1839,9 @@ a.button.comment-input-button.primary:active {
   background: inherit;
 }
 
-.discussion .comment-input-wrap .comment {
+.discussion .comment {
   border-bottom: none;
+  border-top: 1px solid #e0e0e0;
 }
 
 .comment-body {
@@ -1837,12 +1852,22 @@ a.button.comment-input-button.primary:active {
   padding: 0;
 }
 
+.discussion-inner .comment-body {
+  padding: 0;
+}
+
 .comment-body p {
   padding: 0 8px 0 34px;
   font-size: 11px;
   line-height: 14px;
   color: #4f4f4f;
   margin-bottom: -3px;
+}
+
+.discussion-inner .comment-body p {
+  padding: 0;
+  font-size: 14px;
+  line-height: 21px;
 }
 
 span.comment-avatar,
@@ -1894,6 +1919,20 @@ a.comments-signin {
   line-height: 18px;
   font-size: 10px;
   border-bottom: 1px solid #e0e0e0;
+}
+
+.comment-info {
+  margin-left: 34px;
+}
+
+.showolder {
+  padding: 5px 5px;
+  display: block;
+  min-height: 0;
+  width: 480px;
+  text-align: center;
+  color: #808080;
+  font-style: italic;
 }
 
 /*.........................................................................*/

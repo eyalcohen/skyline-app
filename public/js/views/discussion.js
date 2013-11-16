@@ -61,6 +61,10 @@ define([
     // Misc. setup.
     setup: function () {
 
+      // Do the timer.
+      this.timer = setInterval(_.bind(this.when, this), 5000);
+      this.when();
+
       // Get replies.
       rest.get('/api/comments/' + this.model.id, {},
           _.bind(function (err, data) {
@@ -75,9 +79,19 @@ define([
           type: 'comment'
         });
 
+        // Resize modal.
+        $.fancybox.reposition(null, null, true);
+
       }, this));
 
       return this;
+    },
+
+    when: function () {
+      if (!this.time)
+        this.time = this.$('time.created:first');
+      this.time.text(util.getRelativeTime(this.model.get('updated')
+          || this.model.get('created')));
     },
 
     // Similar to Backbone's remove method, but empties
@@ -94,6 +108,8 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      if (this.timer)
+        clearInterval(this.timer);
       this.replies.destroy();
       this.empty();
     },
