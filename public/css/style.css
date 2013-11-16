@@ -1925,6 +1925,11 @@ a.comments-signin {
   margin-left: 34px;
 }
 
+.discussion a.comments-signin {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: none;
+}
+
 .showolder {
   padding: 5px 5px;
   display: block;
