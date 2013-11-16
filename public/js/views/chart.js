@@ -77,7 +77,6 @@ define([
       'click .control-button-save': 'save',
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
-      'click .control-button-export': 'setupExportModal',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment',
@@ -113,9 +112,6 @@ define([
       return this;
     },
 
-    setupExportModal: function () {
-      this.exportdata = new ExportData(this.app, {parentView: this}).render();
-    },
 
     // Similar to Backbone's remove method, but empties
     // instead of removes the view's DOM element.
@@ -173,6 +169,7 @@ define([
 
     download: function (e) {
       e.preventDefault();
+      this.exportdata = new ExportData(this.app, {parentView: this}).render();
     },
 
     panel: function (e) {
