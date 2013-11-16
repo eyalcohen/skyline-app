@@ -522,7 +522,7 @@
 		},
 
 		// Center inside viewport and toggle position type to fixed or absolute if needed
-		reposition: function (e, onlyAbsolute) {
+		reposition: function (e, onlyAbsolute, anim) {
 			var current = F.current,
 				wrap    = current ? current.wrap : null,
 				pos;
@@ -536,7 +536,10 @@
 					wrap.stop(true, true).animate(pos, 200);
 
 				} else {
-					wrap.css(pos);
+					if (anim)
+						wrap.stop(true, true).animate(pos, 200);
+					else
+						wrap.css(pos);
 
 					current.pos = $.extend({}, current.dim, pos);
 				}
@@ -571,7 +574,7 @@
 				}
 
 				if (!(type === 'scroll' && current.canShrink)) {
-					F.reposition(e);
+					F.reposition(e, null, true);
 				}
 
 				F.trigger('onUpdate');

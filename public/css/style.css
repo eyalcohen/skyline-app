@@ -699,7 +699,7 @@ a.info-delete {
 /*.........................................................................*/
 
 .block-messages {
-  position: absolute;
+  position: fixed;
   z-index: 10001;
   left: 30px;
   bottom: 50px;
@@ -930,6 +930,15 @@ a.header-action:active {
   font-size: 11px;
   padding: 0 5px;
   font-weight: 700;
+}
+
+.modal-title img {
+  position: absolute;
+  left: 0;
+}
+
+.modal-title span {
+  margin-left: 20px;
 }
 
 .modal-heading {
@@ -1458,14 +1467,20 @@ a.control-button.view-only {
 
 .icons {
   position: absolute;
-  z-index: 8;
-  top: -5px;
+  z-index: 9;
+  top: -2px;
   left: 0;
-  height: 20px;
 }
 
 .icon {
   position: absolute;
+  color: rgba(79, 79, 79, 0.6);
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.icon.hover {
+  color: rgba(79, 79, 79, 0.9);
 }
 
 /*.........................................................................*/
@@ -1702,14 +1717,15 @@ a.channel-button {
 
 /*.........................................................................*/
 
-.comments {
-  
+.discussion {
+  max-height: 500px;
+  overflow: hidden;
 }
 
-.comments span.empty-list {
-  padding: 10px 0;
-  margin: 0;
-  border-bottom: 1px solid #e0e0e0;
+.discussion-inner {
+  padding: 15px 20px 0;
+  width: 660px;
+  margin-bottom: 10px;
 }
 
 .comment-input-wrap {
@@ -1747,6 +1763,15 @@ textarea.comment-input {
   transition-timing-function: height 0.2s;
 }
 
+.discussion textarea.comment-input {
+  width: 634px;
+  padding: 10px 6px;
+}
+
+.discussion textarea.comment-input:focus {
+  border-color: #b0b0b0;
+}
+
 .comment-input-buttons {
   padding: 5px;
   text-align: right;
@@ -1779,6 +1804,7 @@ a.button.comment-input-button.primary:active {
   position: relative;
   display: none;
   border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
   
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -1794,8 +1820,28 @@ a.button.comment-input-button.primary:active {
   animation-fill-mode: both;
 }
 
+.comment:hover,
+.comment.hover {
+  background: #f2f2f2;
+}
+
 .comment-input-wrap .comment {
   display: block;
+  cursor: inherit;
+}
+
+.discussion .comment {
+  width: 700px;
+  cursor: inherit;
+}
+
+.discussion .comment:hover {
+  background: inherit;
+}
+
+.discussion .comment {
+  border-bottom: none;
+  border-top: 1px solid #e0e0e0;
 }
 
 .comment-body {
@@ -1806,12 +1852,22 @@ a.button.comment-input-button.primary:active {
   padding: 0;
 }
 
+.discussion-inner .comment-body {
+  padding: 0;
+}
+
 .comment-body p {
   padding: 0 8px 0 34px;
   font-size: 11px;
   line-height: 14px;
   color: #4f4f4f;
   margin-bottom: -3px;
+}
+
+.discussion-inner .comment-body p {
+  padding: 0;
+  font-size: 14px;
+  line-height: 21px;
 }
 
 span.comment-avatar,
@@ -1837,6 +1893,10 @@ a.comment-avatar img {
   border-radius: 2px;
 }
 
+.discussion .comment-input-wrap span.comment-avatar {
+  margin-right: 0;
+}
+
 a.comment-author {
   display: inline-block;
   white-space: nowrap;
@@ -1847,6 +1907,37 @@ a.comment-author {
   -webkit-text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
   -moz-text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
   text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
+}
+
+a.comments-signin {
+  display: block;
+  margin: 0;
+  padding: 10px 0;
+  font-style: italic;
+  color: #808080;
+  text-align: center;
+  line-height: 18px;
+  font-size: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.comment-info {
+  margin-left: 34px;
+}
+
+.discussion a.comments-signin {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: none;
+}
+
+.showolder {
+  padding: 5px 5px;
+  display: block;
+  min-height: 0;
+  width: 480px;
+  text-align: center;
+  color: #808080;
+  font-style: italic;
 }
 
 /*.........................................................................*/

@@ -20,9 +20,9 @@
       <%= this.model.get('created') %>
     </time>
     <% if (this.app.profile.user &&
-        this.model.get('author').id === this.app.profile.user.id) { %>
+          this.model.get('author').id === this.app.profile.user.id) { %>
       <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-      <a class="info-delete">delete</a>
+      <a href="javascript:;" class="info-delete">delete</a>
     <% } %>
   </div>
 </div>
