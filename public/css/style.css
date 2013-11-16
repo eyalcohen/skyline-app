@@ -1942,23 +1942,27 @@ a.comments-signin {
 
 /*.........................................................................*/
 
+.export-channel-list {
+  list-style-type: none;
+}
+
 .export-modal-title {
   text-align: center;
 }
 
 .export-modal-abovefold {
-  padding: 10px;
-  display:inline-block;
-  width:90%;
+  float: left;
+  padding: 10px 35px 0px 15px;
 }
 
-.export-modal .export-modal-stats {
-  float: left;
-  width: 50%;
+.export-modal-belowfold {
+  clear: both;
+  padding: 0px 15px 0px 15px;
 }
 
 .export-modal-download {
-  margin-top:10px;
+  margin-top:30px;
+  margin-left: 20px;
   margin-bottom:10px;
 }
 
@@ -1972,11 +1976,7 @@ a.comments-signin {
   line-height: 20px;
 }
 
-.export-modal-data {
-  padding: 10px;
-}
-
-.export-input-text {
+.export-resample-input {
   width: 40px;
 }
 

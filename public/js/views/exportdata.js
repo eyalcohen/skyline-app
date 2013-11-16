@@ -72,10 +72,8 @@ define([
         closeEffect: 'fade',
         closeBtn: false,
         padding: 0,
-        minWidth: 320
+        minWidth: 300
       });
-      $('.export-modal-data').hide();
-      $.fancybox.update();
 
       // Add placeholder shim if need to.
       if (Modernizr.input.placeholder)
@@ -117,12 +115,12 @@ define([
     },
 
     expandModal: function() {
-      if (!this.expand) {
-        $('.export-modal-data').hide();
+      if (this.expand) {
+        $('.export-modal-belowfold').hide();
         $('.export-modal-fold').text('=');
       }
       else {
-        $('.export-modal-data').show();
+        $('.export-modal-belowfold').show();
         $('.export-modal-fold').text('^^^');
       }
       this.expand = !this.expand
@@ -132,30 +130,27 @@ define([
     exportCsv: function () {
 
       function checkExportOk() {
-      /*
         var resampling = $('[value="resample"]').is(':checked');
         var viewRange = this.graph.getVisibleTime();
-        var resampleTime = Math.round(Number($('#resample').val()) * 1e6);
+        var resampleTime = Math.round(Number($('.export-resample-input').val()) * 1e6);
         var exportCount =
             Math.ceil((viewRange.end - viewRange.beg) / resampleTime);
         var maxCount = 100000;
         if (resampling && !(exportCount <= maxCount)) {
-          $('#rowCount').text(self.addCommas(exportCount));
-          $('#rowMax').text(self.addCommas(maxCount));
-          $('#exportError').css('visibility', 'visible');
-          $('#download-data').addClass('disabled');
+          $('.export-error-row-count').text(exportCount);
+          $('.export-error-row-max').text(maxCount);
+          $('.export-error').css('visibility', 'visible');
+          $('.export-modal-download').addClass('disabled');
           return false;
         } else {
-          $('#exportError').css('visibility', 'hidden');
-          $('#download-data').removeClass('disabled');
+          $('.export-error').css('visibility', 'hidden');
+          $('.export-modal-download').removeClass('disabled');
           return true;
         }
-      */
-        return true;
       };
 
 
-      if (!checkExportOk()) return;
+      if (!checkExportOk.apply(this)) return;
       var viewRange = this.graph.getVisibleTime();
       var resample = !$('[value="noResample"]').is(':checked');
       var minmax = $('[name="minmax"]').is(':checked');
@@ -167,12 +162,18 @@ define([
       // We should really fetch the data via dnode then force the download
       // client-side... this way we can show a loading icon while the
       // user waits for the server to package everything up.
+      var lis = $('.export-channel-list input')
+      console.log(lis)
+      var channelsToGet = []
+      _.each(this.channels, function (item, idx) {
+        if (lis[idx].checked) channelsToGet.push(item)
+      });
       var href = '/api/datasets' +
           '?beg=' + Math.floor(viewRange.beg) +
           '&end=' + Math.ceil(viewRange.end) +
           (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
           (resample && minmax ? '&minmax' : '') +
-          this.channels.map(function (c){return '&chan=' + c.channelName}).join('');
+          channelsToGet.map(function (c){return '&chan=' + c.channelName}).join('');
       window.location.href = href;
     },
   });
