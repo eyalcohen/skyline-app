@@ -639,8 +639,16 @@ a.info-delete {
 }
 
 .page {
-  width: 480px;
   margin: 30px auto 60px;
+}
+
+.page-left {
+  float: left;
+  width: 620px;
+}
+
+.page-right {
+  margin: 0 0 0 640px;
 }
 
 .page td {
@@ -787,6 +795,8 @@ a.info-delete {
 }
 
 .header .header-logo {
+  position: relative;
+  z-index: 1;
   width: 59px;
 }
 
@@ -811,6 +821,8 @@ a.info-delete {
 }
 
 .header .user-box {
+  position: relative;
+  z-index: 1;
   float: right;
   white-space: nowrap;
   padding-left: 20px;
@@ -826,7 +838,7 @@ a.info-delete {
 .header .header-title {
   display: none;
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   top: 0;
   margin: 0 auto;
   width: 100%;
@@ -1069,6 +1081,16 @@ a.button.modal-button.full {
 }
 
 /*.........................................................................*/
+
+.home .page {
+  width: 980px;
+}
+
+/*.........................................................................*/
+
+.settings .page {
+  width: 480px;
+}
 
 .settings-saved,
 .setting-error {
@@ -1978,6 +2000,62 @@ a.comments-signin {
 
 .export-resample-input {
   width: 40px;
+}
+
+/*.........................................................................*/
+
+.events {
+  margin: 12px 0 0 0;
+}
+
+.event {
+  display: none;
+  background: #f9f9f9;
+  border-bottom: 1px solid #e6e6e6;
+  cursor: pointer;
+  padding: 5px 0 20px;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.event:hover {
+  background: #f2f2f2;
+}
+
+.event a {
+  text-decoration: none;
+  color: #666;
+}
+
+.event-inner {
+  position: relative;
+  min-height: 32px;
+  padding: 5px;
+}
+
+.event-inner img {
+  float: left;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.event-inner p {
+  margin: 0 0 0 40px;
+  font-size: 10px;
+  line-height: 13px;
+  color: #4d4d4d;
 }
 
 /*.........................................................................*/

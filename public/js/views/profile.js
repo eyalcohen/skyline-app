@@ -40,11 +40,10 @@ define([
 
       // Set page title
       this.app.title(this.model.get('displayName'));
-      mps.publish('title/set', [this.model.get('displayName')]);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('div.main');
+      this.$el.html(this.template.call(this)).appendTo('.main');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');

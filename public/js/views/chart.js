@@ -56,8 +56,9 @@ define([
       this.model = new Backbone.Model;
 
       // Set page title
-      this.app.title('Chart');
-      mps.publish('title/set', ['']);
+      var page = this.app.profile.content.page;
+      if (page && page.name) this.app.title(page.name);
+      else this.app.title('Chart', '');
 
       // UnderscoreJS rendering.
       this.template = _.template(template);

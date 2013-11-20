@@ -30,23 +30,14 @@ define([
       "#e66ec8",
       "#71c72a",
       "#7877c1",
-      // "#27CDD6",  // Dark cyan
-      // "#cb4b4b",  // Dark red
-      // "#76D676",  // Light green
-      // "#8171E3",  // Violet
-      // "#47A890",  // Dark teal
-      // "#E8913F",  // Orange
-      // "#118CED",  // Dark blue
-      // "#28A128",  // Dark green
-      // "#FFA6A6",  // Pink
-      // "#96BDFF",  // Light blue
-      // "#D373FF",  // Light purple
     ];
 
-    // TODO: Do this only on localhost.
-    window._rpc = rpc;
-    window._rest = rest;
-    window._mps = mps;
+    // For local dev.
+    if (window.__s === '') {
+      window._rpc = rpc;
+      window._rest = rest;
+      window._mps = mps;
+    }
   }
 
   App.prototype.update = function (profile) {
@@ -70,10 +61,16 @@ define([
     return false;
   }
 
-  App.prototype.title = function (str) {
+  App.prototype.title = function (t1, t2) {
+    if (t1 === undefined) return;
 
     // Set the document title.
-    document.title = 'Skyline | ' + str;
+    var title = 'Skyline';
+    document.title = t1 !== '' ? title + ' | ' + t1: title;
+
+    // Set the app title.
+    if (t2 === undefined) t2 = t1;
+    mps.publish('title/set', [t2]);
   }
 
   App.prototype.logout = function () {
