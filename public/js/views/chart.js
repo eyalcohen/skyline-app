@@ -12,8 +12,9 @@ define([
   'text!../../templates/chart.html',
   'views/lists/datasets',
   'views/lists/comments',
-  'views/graph'
-], function ($, _, Backbone, mps, util, units, template, Datasets, Comments, Graph) {
+  'views/graph',
+  'views/exportdata'
+], function ($, _, Backbone, mps, util, units, template, Datasets, Comments, Graph, ExportData) {
 
   return Backbone.View.extend({
 
@@ -80,6 +81,7 @@ define([
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment',
       'click .comment-cancel-button': 'comment'
+
     },
 
     // Misc. setup.
@@ -109,6 +111,7 @@ define([
 
       return this;
     },
+
 
     // Similar to Backbone's remove method, but empties
     // instead of removes the view's DOM element.
@@ -166,6 +169,7 @@ define([
 
     download: function (e) {
       e.preventDefault();
+      this.exportdata = new ExportData(this.app, {parentView: this}).render();
     },
 
     panel: function (e) {

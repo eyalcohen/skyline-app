@@ -54,7 +54,7 @@ define([
 
     // Bind mouse events.
     events: {
-      
+      'click #exportChart': 'exportCsv'
     },
 
     // Misc. setup.
