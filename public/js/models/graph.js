@@ -31,7 +31,7 @@ define([
       this.set('visibleTime', time);
       this.cache = new Cache(this.app);
       this.set({channels: []});
-      this.sampleSet = {};
+      this.sampleCollection = [];
 
       // View change events.
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
@@ -47,14 +47,16 @@ define([
       return this;
     },
 
-    getOrCreateClient: function (datasetId) {
+    getOrCreateClient: function (dataset) {
+      var datasetId = dataset.get('id');
       var client = _.find(this.clients, function (c) {
         return c.datasetId === datasetId;
       });
       if (client) return client;
-      client = {id: util.rid32(), datasetId: datasetId, channels: []};
+      client = {id: util.rid32(), datasetId: datasetId, channels: [], 
+                offset: dataset.get('offset')};
       this.clients.push(client);
-      this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, datasetId));
+      this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, dataset));
       return client;
     },
 
@@ -96,7 +98,7 @@ define([
         this.cache.setClientView(
             c.id, c.datasetId,
             _.pluck(c.channels, 'channelName'),
-            dur, this.prevRange.beg, this.prevRange.end);
+            dur, this.prevRange.beg + c.offset, this.prevRange.end + c.offset);
       }
     },
 
@@ -122,7 +124,17 @@ define([
       return datasets;
     },
 
-    addChannel: function (datasetId, channels) {
+    changeDatasetOffset: function (datasetId, newOfset) {
+      var client = _.find(this.clients, function (cl) {
+        cl.id == datasetId;
+      });
+      if (!client) return;
+      client.offset = newOffset;
+    },
+
+    addChannel: function (dataset, channels) {
+      if (!dataset) return;
+      var datasetId = dataset.get('id')
       channels = _.isArray(channels) ? channels : [channels];
 
       var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
@@ -135,7 +147,7 @@ define([
       }, this));
       var yAxisNumToUse = numSeriesRightAxis > numSeriesLeftAxis ? 2 : 1;
 
-      var client = this.getOrCreateClient(datasetId);
+      var client = this.getOrCreateClient(dataset);
       _.each(channels, _.bind(function (channel) {
         if (_.pluck(client.channels, 'channelName')
             .indexOf(channel.channelName) !== -1)
@@ -159,8 +171,10 @@ define([
       return this;
     },
 
-    removeChannel: function (datasetId, channel) {
-      var client = this.getOrCreateClient(datasetId);
+    removeChannel: function (dataset, channel) {
+      if (!dataset) return;
+      var datasetId = dataset.get('id')
+      var client = this.getOrCreateClient(dataset);
       var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);
       if (index === -1) return;
@@ -178,9 +192,10 @@ define([
       cb(this.getChannels());
     },
 
-    updateSampleSet: function (datasetId, sampleSet) {
+    updateSampleSet: function (dataset, sampleSet) {
+      var offset = dataset.get('offset')
       _.each(sampleSet, _.bind(function (ss, cn) {
-        this.sampleSet[cn] = ss;
+        this.sampleCollection[cn] = {sampleSet:ss, offset:offset};
       }, this));
       this.view.draw();
     },

@@ -13,6 +13,7 @@ define([
 
       // Make ID a number;
       this.set('id', Number(this.id), {silent: true});
+      this.set('offset', Number(0))
     },
 
     size: function () {

@@ -425,15 +425,20 @@ define([
     getSeriesData: function (channel) {
       var conv = units.findConversion(channel.units,
           channel.displayUnits || channel.units);
-      var samples = this.model.sampleSet[channel.channelName] || [];
       var data = [];
       var minMax = [];
+      var samples = [];
+      var offset = 0;
+      if (this.model.sampleCollection[channel.channelName]) {
+        samples = this.model.sampleCollection[channel.channelName].sampleSet;
+        offset = this.model.sampleCollection[channel.channelName].offset;
+      }
       var prevEnd = null, prevMinMaxEnd = null;
       _.each(samples, function (s, i) {
         if (prevEnd != s.beg)
           data.push(null);
         var val = s.val * conv.factor + conv.offset;
-        data.push([s.beg / 1000, val]);
+        data.push([(s.beg - offset) / 1000, val]);
         // if (s.end !== s.beg)
         //   data.push([s.end / 1000, val]);
         prevEnd = s.end;
