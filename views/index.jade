@@ -11,7 +11,7 @@ block content
           input(value="_", type="submit")
       .block-messages
         ul
-      .header.wide
+      .header
         - if (typeof user !== 'undefined')
           .user-box
             a.username.header-action(href="/#{user.username}") #{user.displayName}
@@ -26,6 +26,8 @@ block content
           a.navigate(href="/")
             img(src="#{root}/img/time.png", width="13", height="12")
             | Skylin
-        span.header-title
+        .header-middle
+          input.header-search(type="search", placeholder="Search...")
+          span.header-title
     .main(role="main")
     footer

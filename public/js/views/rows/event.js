@@ -23,15 +23,13 @@ define([
       Row.prototype.initialize.call(this, options);
     },
 
-    events: {
-      'click': 'navigate',
-    },
+    events: {},
 
     navigate: function (e) {
       e.preventDefault();
-      var path = this.model.get('data').target.s;
-      if (path) mps.publish('navigate', [path]);
-      return false;
+      var path = $(e.target).closest('a').attr('href');
+      if (path)
+        this.app.router.navigate(path, {trigger: true});
     },
 
     _remove: function (cb) {

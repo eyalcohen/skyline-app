@@ -13,7 +13,7 @@ define([
       var att = this.attributes;
 
       if (att.data.action.t === 'comment') {
-        var verb = 'commented on';
+        var verb = att.data.target.t === 'comment' ? 'replied to': 'commented on';
         var owner;
 
         if (att.data.action.i === att.data.target.i) {
@@ -24,22 +24,21 @@ define([
           owner = att.data.target.a + '\'s';
         }
 
-        return '<strong>' + att.data.action.a + '</strong> '
-            + verb + ' <strong>'
-            + owner + '</strong> '
-            + att.data.target.t
-            + (att.data.target.n !== '' ? ' <strong>'
-            + att.data.target.n + '</strong>': '')
-            + ': "' + att.data.action.b
-            + '".';
+        return '<a href="' + att.actor.username + '" class="navigate">'
+            + att.data.action.a + '</a> '
+            + verb + ' ' + owner + ' '
+            + '<a href="' + att.data.target.s + '" class="navigate">'
+            + att.data.target.t + '</a>.'
+            + (att.data.action.b ? '<span class="event-body">"'
+            + att.data.action.b + '"</span>': '');
       
       } else if (att.data.action.t === 'dataset') {
         var verb = 'added';
 
-        return '<strong>' + att.data.action.a + '</strong> '
-            + verb + ' a <strong>'
-            + att.data.action.b + '</strong> of '
-            + '<strong>' + att.data.target.n + '</strong> at '
+        return att.data.action.a + ' '
+            + verb + ' a '
+            + att.data.action.b + ' of '
+            + '' + att.data.target.n + ' at '
             + att.data.target.w
             + '.';
       

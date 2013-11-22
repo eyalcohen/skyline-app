@@ -157,7 +157,9 @@ define([
       this.render('/service/home.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Home(this.app).render();
+        
         this.stop();
+        this.header.unwiden();
       }, this));
     },
 
@@ -166,7 +168,9 @@ define([
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Reset(this.app).render();
+        
         this.stop();
+        this.header.unwiden();
       }, this));
     },
 
@@ -176,7 +180,9 @@ define([
           _.bind(function (err) {
         if (err) return;
         this.page = new Profile(this.app).render();
+        
         this.stop();
+        this.header.widen();
       }, this));
     },
 
@@ -185,7 +191,9 @@ define([
       this.render('/service/settings.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
+        
         this.stop();
+        this.header.unwiden();
       }, this));
     },
 
@@ -197,7 +205,9 @@ define([
           _.bind(function (err) {
         if (err) return;
         this.page = new Chart(this.app).render();
+        
         this.stop();
+        this.header.widen();
       }, this));
     },
 
@@ -208,6 +218,7 @@ define([
           code: 404,
           message: 'Sorry, this page isn\'t available'
         });
+        this.header.unwiden();
       }, this));
     }
 
