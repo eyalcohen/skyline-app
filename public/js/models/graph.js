@@ -48,13 +48,11 @@ define([
     },
 
     getOrCreateClient: function (dataset) {
-      var datasetId = dataset.get('id');
       var client = _.find(this.clients, function (c) {
-        return c.datasetId === datasetId;
+        return c.dataset === dataset;
       });
       if (client) return client;
-      client = {id: util.rid32(), datasetId: datasetId, channels: [], 
-                offset: dataset.get('offset')};
+      client = {id: util.rid32(), dataset: dataset, channels: [] };
       this.clients.push(client);
       this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, dataset));
       return client;
@@ -95,10 +93,11 @@ define([
       else set.call(this, client);
 
       function set(c) {
+        var offset = c.dataset.get('offset')
         this.cache.setClientView(
-            c.id, c.datasetId,
+            c.id, c.dataset.get('id'),
             _.pluck(c.channels, 'channelName'),
-            dur, this.prevRange.beg + c.offset, this.prevRange.end + c.offset);
+            dur, this.prevRange.beg + offset, this.prevRange.end + offset);
       }
     },
 
@@ -116,10 +115,7 @@ define([
       var datasets = [];
       _.each(this.clients, function (client) {
         if (client.channels.length === 0) return;
-        datasets.push({
-          _id: Number(client.datasetId),
-          channels: client.channels,
-        });
+        datasets.push(client.dataset)
       });
       return datasets;
     },
