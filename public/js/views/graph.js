@@ -299,6 +299,8 @@ define([
           interactive: true,
           frameRate: 60,
           useShiftKey: true,
+          onShiftDragStart: _.bind(this.beginOffset, this),
+          onShiftDragEnd: _.bind(this.endOffset, this),
         },
         hooks: {
           draw: [_.bind(this.onDraw, this)],
@@ -346,6 +348,30 @@ define([
         } while (i < axes.xaxis.max);
         return markings;
       }
+    },
+
+    beginOffset: function(e) {
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+      this.offsetTimeBegin = xaxis.c2p(mouse.x);
+    },
+
+    endOffset: function(e) {
+
+      // get the desired time offset
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+      var offset = (this.offsetTimeBegin - xaxis.c2p(mouse.x))  * 1000
+
+      // determine which data series should get the offset
+      // TODO: For now we just find the id of first data series
+      var datasets = this.model.getChannelsByDataset();
+      if (datasets.length === 0) return;
+      var series = this.plot.getData();
+      if (series.length === 0) return;
+
+      // update the dataset model
+      this.model.updateDatasetOffset(series[0].channelName, offset);
     },
 
     onDraw: function () {

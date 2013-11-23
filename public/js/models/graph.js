@@ -101,6 +101,15 @@ define([
       }
     },
 
+    findDatasetFromChannel: function(channelName) {
+      var client =  _.find(this.clients, function (client) {
+        return _.find(client.channels, function (channels) {
+          return channels.channelName == channelName;
+        });
+      });
+      return client ? client.dataset : undefined;
+    },
+
     getChannels: function () {
       var channels = [];
       _.each(this.clients, function (client) {
@@ -196,6 +205,13 @@ define([
       this.view.draw();
     },
 
+    updateDatasetOffset: function(channelName, newCumulativeOffset) {
+      var dataset = this.findDatasetFromChannel(channelName);
+
+      //update offset by adding to old offset
+      dataset.set('offset', dataset.get('offset') + newCumulativeOffset);
+      this.updateCacheSubscription(this.getOrCreateClient(dataset));
+    },
 
   });
 });
