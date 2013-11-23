@@ -23,7 +23,9 @@ define([
       Row.prototype.initialize.call(this, options);
     },
 
-    events: {},
+    events: {
+      'click .event-link': 'link', 
+    },
 
     navigate: function (e) {
       e.preventDefault();
@@ -38,6 +40,23 @@ define([
         cb();
       }, this));
     },
+
+    link: function (e) {
+      e.preventDefault();
+      var did = Number(this.model.get('data').target.i);
+      if (!did) return;
+
+      // Set app state.
+      var state = {};
+      if (this.app.profile && this.app.profile.user)
+        state.user_id = this.app.profile.user.id;
+      state.datasets = {};
+      state.datasets[did] = {index: 0};
+      store.set('state', state);
+
+      // Route to a new chart.
+      this.app.router.navigate('/chart', {trigger: true});
+    }
 
   });
 });

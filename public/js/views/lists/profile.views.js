@@ -48,7 +48,7 @@ define([
       this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
 
       // Misc.
-      this.empty_label = 'No data mashups.';
+      this.empty_label = 'No mashups.';
 
       // Reset the collection.
       this.latest_list = options.views;

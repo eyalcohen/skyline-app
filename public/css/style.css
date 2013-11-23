@@ -760,11 +760,11 @@ a.info-delete {
 }
 
 .block-error {
-  background: rgba(204, 15, 15, 0.3);
+  background: #f0b7b7;
 }
 
 .block-alert {
-  background: rgba(39, 205, 214, 0.3);
+  background: #bef0f3;
 }
 
 .block-error-txt,
@@ -1983,7 +1983,7 @@ a.comments-signin {
   min-height: 0;
   width: 480px;
   text-align: center;
-  color: #808080;
+  color: #8f8f8f;
   font-style: italic;
 }
 
@@ -2030,12 +2030,11 @@ a.comments-signin {
 /*.........................................................................*/
 
 .events {
-  margin-top: -15px;
+  /*margin-top: -15px;*/
 }
 
 .event {
   display: none;
-  /*background: #f9f9f9;*/
   border-bottom: 1px solid #f0f0f0;
   padding: 15px 0;
 
@@ -2058,25 +2057,40 @@ a.comments-signin {
   padding: 5px 0;
 }
 
-.event-inner img {
-  float: left;
+.event-inner i {
+  color: #8f8f8f;
+}
 
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-  border-radius: 2px;
+.event-inner > i {
+  float: left;
 }
 
 .event-inner p {
-  margin: 1px 0 0 24px;
-  font-size: 11px;
-  line-height: 14px;
+  margin: 3px 0 0 32px;
+  font-size: 12px;
+  line-height: 16px;
 }
 
 .event-body {
   display: block;
   margin: 10px 0 0 10px;
+  padding-right: 5px;
   font-size: 12px;
-  line-height: 15px;
+  line-height: 20px;
+}
+
+.event-body.event-body-big {
+  font-size: 14px;
+}
+
+.event-body img {
+  float: left;
+  margin-top: 2px;
+  margin-right: 5px;
+
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 
 /*.........................................................................*/

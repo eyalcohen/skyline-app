@@ -1,11 +1,18 @@
 <%
-  var gravatar = 'https://www.gravatar.com/avatar/'
-      + this.model.get('data').action.g + '?s=16&d=mm';
+  var icon;
+  switch (this.model.get('data').action.t) {
+    case 'comment':
+      icon = 'comment';
+      break;
+    case 'create':
+      icon = 'plus';
+      break;
+  }
 %>
 
 <div class="event-inner">
-  <img src=<%= gravatar %> width="16" height="16" />
-  <p>
-    <%= this.model.body() %>
-  </p>
+  <% if (icon) { %>
+    <i class="icon-<%= icon %>"></i>
+  <% } %>
+  <p><%= this.model.body() %></p>
 </div>
