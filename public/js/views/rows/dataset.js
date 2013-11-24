@@ -22,6 +22,11 @@ define([
       this.app = app;
       this.template = _.template(template);
       Row.prototype.initialize.call(this, options);
+
+      // Client-wide subscriptions
+      this.subscriptions = [
+        mps.subscribe('graph/offset', _.bind(this.updateOffset, this))
+      ]
     },
 
     setup: function () {
@@ -129,6 +134,9 @@ define([
     },
 
     destroy: function () {
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
       if (this.channels) this.channels.destroy();
       return Row.prototype.destroy.call(this);
     },
@@ -138,6 +146,31 @@ define([
         this.destroy();
         if (cb) cb();
       }, this));
+    },
+
+    updateOffset: function(channelName, offset) {
+      var offset_abs = Math.abs(Math.round(offset/1000));
+      var offsetAsString =
+        (offset_abs < 1000) ? offset_abs + 'ms' :
+        (offset_abs < 1000*60) ? Math.round(offset_abs / 1000) + 's' :
+        (offset_abs < 1000*60*60) ? (offset_abs / (1000*60)).toFixed(1) + 'm' :
+        (offset_abs < 1000*60*60*24) ? (offset_abs / (1000*60*60)).toFixed(1) + 'h' :
+        (offset_abs < 1000*60*60*24*7) ? (offset_abs / (1000*60*60*24)).toFixed(1) + 'Dy' :
+        (offset_abs < 1000*60*60*24*7*4) ? (offset_abs / (1000*60*60*24*7)).toFixed(1) + 'Wk' :
+        (offset_abs < 1000*60*60*24*7*4*12) ? (offset_abs / (1000*60*60*24*7*4)).toFixed(1) + 'Mo' :
+        (offset_abs / (1000*60*60*24*7*4*12)).toFixed(1) + 'Yr';
+        offset_abs;
+
+      var titleString =
+        this.model.get('title')
+        + ((offset >= 0) ? '  +' : '  -')
+        + offsetAsString;
+
+      if ((offset) == 0) {
+        $('.dataset-title').text(this.model.get('title'));
+      } else {
+        $('.dataset-title').text(titleString);
+      }
     },
 
   });
