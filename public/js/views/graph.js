@@ -300,6 +300,7 @@ define([
           frameRate: 60,
           useShiftKey: true,
           onShiftDragStart: _.bind(this.beginOffset, this),
+          onShiftDrag: _.bind(this.endOffset, this),
           onShiftDragEnd: _.bind(this.endOffset, this),
         },
         hooks: {
@@ -353,15 +354,6 @@ define([
     beginOffset: function(e) {
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
-      this.offsetTimeBegin = xaxis.c2p(mouse.x);
-    },
-
-    endOffset: function(e) {
-
-      // get the desired time offset
-      var mouse = this.getMouse(e);
-      var xaxis = this.plot.getXAxes()[0];
-      var offset = (this.offsetTimeBegin - xaxis.c2p(mouse.x))  * 1000
 
       // determine which data series should get the offset
       // TODO: For now we just find the id of first data series
@@ -370,8 +362,31 @@ define([
       var series = this.plot.getData();
       if (series.length === 0) return;
 
+      this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
+      //console.log('begintime', xaxis.c2p(mouse.x) * 1000, this.model.getDatasetOffset(series[0].channelName));
+    },
+
+    endOffset: function(e) {
+      // get the desired time offset
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+
+      var offsetTimeEnd = xaxis.c2p(mouse.x) * 1000;
+      var offset = (xaxis.c2p(mouse.x) * 1000 - this.offsetTimeBegin);
+      this.offsetTimeBegin = offsetTimeEnd;
+
+      // determine which data series should get the offset
+      // TODO: For now we just find the id of first data series
+      var datasets = this.model.getChannelsByDataset();
+      if (datasets.length === 0) return;
+      var series = this.plot.getData();
+      if (series.length === 0) return;
+
+      var newOffset = this.model.getDatasetOffset(series[0].channelName) + offset;
+
       // update the dataset model
-      this.model.updateDatasetOffset(series[0].channelName, offset);
+      this.model.setDatasetOffset(series[0].channelName, newOffset);
+      mps.publish('graph/offset', [series[0].channelName, newOffset]);
     },
 
     onDraw: function () {
@@ -464,7 +479,7 @@ define([
         if (prevEnd != s.beg)
           data.push(null);
         var val = s.val * conv.factor + conv.offset;
-        data.push([(s.beg - offset) / 1000, val]);
+        data.push([(s.beg + offset) / 1000, val]);
         // if (s.end !== s.beg)
         //   data.push([s.end / 1000, val]);
         prevEnd = s.end;

@@ -97,7 +97,7 @@ define([
         this.cache.setClientView(
             c.id, c.dataset.get('id'),
             _.pluck(c.channels, 'channelName'),
-            dur, this.prevRange.beg + offset, this.prevRange.end + offset);
+            dur, this.prevRange.beg - offset, this.prevRange.end - offset);
       }
     },
 
@@ -205,12 +205,17 @@ define([
       this.view.draw();
     },
 
-    updateDatasetOffset: function(channelName, newCumulativeOffset) {
+    setDatasetOffset: function(channelName, newOffset) {
       var dataset = this.findDatasetFromChannel(channelName);
 
       //update offset by adding to old offset
-      dataset.set('offset', dataset.get('offset') + newCumulativeOffset);
+      dataset.set('offset', newOffset)
       this.updateCacheSubscription(this.getOrCreateClient(dataset));
+    },
+
+    getDatasetOffset: function(channelName) {
+      var dataset = this.findDatasetFromChannel(channelName);
+      return dataset.get('offset') || 0;
     },
 
   });
