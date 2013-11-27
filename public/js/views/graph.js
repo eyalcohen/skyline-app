@@ -122,6 +122,104 @@ define([
       this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);
     },
 
+    // returns an array of objects containing {
+    //   channelName: name of series to cursor
+    //   distance: pixels of the cursor from the nearest point
+    //   distanceFromLine: pixels from the line connecting nearest two points
+    //   interpolated y from the x of the cursor
+    getStatsNearMouse: function (e) {
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+      var time = xaxis.c2p(mouse.x);
+      var points = {};
+
+      var lastDataSet = null;
+
+      // stored remapping of series (x,y) points as array of x points
+      var series_x = [];
+
+      // stored index of the nearest point to the cursor
+      var timeIdxHigh;
+
+      // Find the closest point for each series.
+      return _.map(this.plot.getData(), _.bind(function (series) {
+
+        // object to return
+        var obj = {
+          channelName: series.channelName,
+          nearestPointIndex: null,
+          pixelsFromNearestPt: null,
+          pixelsFromInterpPt: null,
+          interpPt: null,
+        };
+
+        // Excluse empty and min-max series.
+        if (!series.channelName || series.lines.fill) return obj;
+
+        // Ensure series is valid for the time.
+        if (time === null) return obj;
+
+        // If this is the same dataset as the last series, we don't
+        // need to run the below search again
+        var dataset = this.model.findDatasetFromChannel(series.channelName);
+        if (dataset !== lastDataSet) {
+          // get the x coordinates of the series as an array
+          series_x = (_.map(series.data, function (d) { return d ? d[0] : null; }));
+
+          // use binary search to locate time in the array
+          timeIdxHigh = (_.sortedIndex(series_x, time, null, this))
+        }
+
+        // Bound edges.  This should just work, but will make invalid results
+        // for pixelsFromInterpPt and interpPt
+        if (timeIdxHigh < 2) {
+          timeIdxHigh = 2;
+        } else if (timeIdxHigh >= series.data.length) {
+          timeIdxHigh = series.data.length - 1;
+        }
+        var timeIdxLow = timeIdxHigh - 1;
+
+        // coordinates of series values
+        var cTimeLow = series.xaxis.p2c(series.data[timeIdxLow][0]);
+        var cTimeHigh = series.xaxis.p2c(series.data[timeIdxHigh][0]);
+        var cValueLow = series.yaxis.p2c(series.data[timeIdxLow][1]);
+        var cValueHigh = series.yaxis.p2c(series.data[timeIdxHigh][1]);
+
+        // linear interpolation
+        var interp = function (x0, x1, y0, y1, x) {
+          var s = (y1 - y0) / (x1 - x0);
+          return (x - x0)*s + y0;
+        };
+
+        obj.interpPt = interp(
+          series.data[timeIdxLow][0], series.data[timeIdxHigh][0],
+          series.data[timeIdxLow][1], series.data[timeIdxHigh][1], time
+        );
+
+        var cNearestPt = []
+        if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
+          obj.nearestPointIndex = timeIdxLow;
+          cNearestPt.push(cTimeLow);
+          cNearestPt.push(cValueLow);
+        }
+        else {
+          obj.nearestPointIndex = timeIdxHigh;
+          cNearestPt.push(cTimeHigh);
+          cNearestPt.push(cValueHigh);
+        }
+
+        var x0 = mouse.x - cNearestPt[0];  var y0 = mouse.y - cNearestPt[1];
+        // vector magnitude of distance to pixels
+        obj.pixelsFromNearestPt = Math.sqrt(x0*x0+y0*y0);
+
+        var interpValue = interp(cTimeLow, cTimeHigh, cValueLow, cValueHigh, mouse.x);
+        obj.pixelsFromInterpPt = Math.abs(mouse.y - interpValue);
+        return obj;
+
+      }, this));
+    },
+
+    // TODO: Change this function to use getStatsNearMouse and make it display!
     cursor: function (e) {
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
@@ -319,6 +417,9 @@ define([
         }, this))
         .dblclick(_.bind(function (e) {
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+        }, this))
+        .mousemove(_.bind(function (e) {
+          this.getStatsNearMouse(e);
         }, this));
 
         function graphZoomClick(e, factor, out) {
