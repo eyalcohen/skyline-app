@@ -25,7 +25,7 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('graph/offset', _.bind(this.updateOffset, this))
+        mps.subscribe('graph/offsetChanged', _.bind(this.updateOffset, this))
       ]
     },
 
@@ -148,7 +148,8 @@ define([
       }, this));
     },
 
-    updateOffset: function(channelName, offset) {
+    updateOffset: function() {
+      var offset = this.model.get('offset')
       var offset_abs = Math.abs(Math.round(offset/1000));
       var offsetAsString =
         (offset_abs < 1000) ? offset_abs + 'ms' :
@@ -167,9 +168,9 @@ define([
         + offsetAsString;
 
       if ((offset) == 0) {
-        $('.dataset-title').text(this.model.get('title'));
+        this.$('.dataset-title').text(this.model.get('title'));
       } else {
-        $('.dataset-title').text(titleString);
+        this.$('.dataset-title').text(titleString);
       }
     },
 

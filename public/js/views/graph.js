@@ -124,9 +124,9 @@ define([
 
     // returns an array of objects containing {
     //   channelName: name of series to cursor
-    //   distance: pixels of the cursor from the nearest point
-    //   distanceFromLine: pixels from the line connecting nearest two points
-    //   interpolated y from the x of the cursor
+    //   nearestPointData: x,y of the nearest point
+    //   pixelsFromNearestPt: distance of mouse from the nearest point
+    //   pixelsFromInterpPt: distance of mouse from an interpolated line
     getStatsNearMouse: function (e) {
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
@@ -147,10 +147,10 @@ define([
         // object to return
         var obj = {
           channelName: series.channelName,
-          nearestPointIndex: null,
+          nearestPointData: null,
           pixelsFromNearestPt: null,
           pixelsFromInterpPt: null,
-          interpPt: null,
+          //interpPt: null,
         };
 
         // Excluse empty and min-max series.
@@ -191,19 +191,21 @@ define([
           return (x - x0)*s + y0;
         };
 
+        /*  not sure if useful
         obj.interpPt = interp(
           series.data[timeIdxLow][0], series.data[timeIdxHigh][0],
           series.data[timeIdxLow][1], series.data[timeIdxHigh][1], time
         );
+        */
 
         var cNearestPt = []
         if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
-          obj.nearestPointIndex = timeIdxLow;
+          obj.nearestPointData = series.data[timeIdxLow];
           cNearestPt.push(cTimeLow);
           cNearestPt.push(cValueLow);
         }
         else {
-          obj.nearestPointIndex = timeIdxHigh;
+          obj.nearestPointData = series.data[timeIdxHigh];
           cNearestPt.push(cTimeHigh);
           cNearestPt.push(cValueHigh);
         }
@@ -219,7 +221,7 @@ define([
       }, this));
     },
 
-    // TODO: Change this function to use getStatsNearMouse and make it display!
+    // TODO: Change this function to use getStatsNearMouse and make the cursor display!
     cursor: function (e) {
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
@@ -456,15 +458,10 @@ define([
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
 
-      // determine which data series should get the offset
-      // TODO: For now we just find the id of first data series
-      var datasets = this.model.getChannelsByDataset();
-      if (datasets.length === 0) return;
-      var series = this.plot.getData();
-      if (series.length === 0) return;
+      this.channelForOffset =
+        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0].channelName
 
       this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
-      //console.log('begintime', xaxis.c2p(mouse.x) * 1000, this.model.getDatasetOffset(series[0].channelName));
     },
 
     endOffset: function(e) {
@@ -476,18 +473,11 @@ define([
       var offset = (xaxis.c2p(mouse.x) * 1000 - this.offsetTimeBegin);
       this.offsetTimeBegin = offsetTimeEnd;
 
-      // determine which data series should get the offset
-      // TODO: For now we just find the id of first data series
-      var datasets = this.model.getChannelsByDataset();
-      if (datasets.length === 0) return;
-      var series = this.plot.getData();
-      if (series.length === 0) return;
-
-      var newOffset = this.model.getDatasetOffset(series[0].channelName) + offset;
+      var newOffset = this.model.getDatasetOffset(this.channelForOffset) + offset;
 
       // update the dataset model
-      this.model.setDatasetOffset(series[0].channelName, newOffset);
-      mps.publish('graph/offset', [series[0].channelName, newOffset]);
+      this.model.setDatasetOffset(this.channelForOffset, newOffset);
+      mps.publish('graph/offsetChanged', []);
     },
 
     onDraw: function () {
