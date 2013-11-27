@@ -141,8 +141,8 @@ define([
       // stored index of the nearest point to the cursor
       var timeIdxHigh;
 
-      // Find the closest point for each series.
-      return _.map(this.plot.getData(), _.bind(function (series) {
+      // Return an array of interesting data about the series, removing nulls
+      return _.compact(_.map(this.plot.getData(), _.bind(function (series) {
 
         // object to return
         var obj = {
@@ -154,10 +154,10 @@ define([
         };
 
         // Excluse empty and min-max series.
-        if (!series.channelName || series.lines.fill) return obj;
+        if (!series.channelName || series.lines.fill) return null;
 
         // Ensure series is valid for the time.
-        if (time === null) return obj;
+        if (time === null) return null;
 
         // If this is the same dataset as the last series, we don't
         // need to run the below search again
@@ -218,7 +218,7 @@ define([
         obj.pixelsFromInterpPt = Math.abs(mouse.y - interpValue);
         return obj;
 
-      }, this));
+      }, this)));
     },
 
     // TODO: Change this function to use getStatsNearMouse and make the cursor display!
@@ -421,7 +421,7 @@ define([
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         }, this))
         .mousemove(_.bind(function (e) {
-          this.getStatsNearMouse(e);
+          //this.getStatsNearMouse(e);
         }, this));
 
         function graphZoomClick(e, factor, out) {
