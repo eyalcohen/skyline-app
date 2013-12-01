@@ -153,6 +153,8 @@ define([
           //interpPt: null,
         };
 
+        if (_.isEmpty(series.data)) return null;
+
         // Excluse empty and min-max series.
         if (!series.channelName || series.lines.fill) return null;
 
@@ -645,13 +647,15 @@ define([
       }, this));
     },
 
+    // update line widths if mouse is near a series
     updateLineStyle: function(e) {
-      this.getStatsNearMouse(e);
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
       var closestChannel =
         _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+      if (!closestChannel) return;
       var plotData = this.plot.getData();
+
       _.each(plotData, function(obj) { obj.lines.lineWidth = 2; });
       var series =  _.find(plotData, function (obj) {
         return obj.channelName == closestChannel.channelName;

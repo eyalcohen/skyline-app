@@ -51,6 +51,16 @@ define([
       // Get channels for this dataset.
       this.fetchChannels();
 
+      // update offset from store
+      var state = store.get('state');
+      if (state.datasets[this.model.id]) {
+        if (state.datasets[this.model.id].offset) {
+          console.log(state.datasets[this.model.id].offset);
+          this.model.set('offset', state.datasets[this.model.id].offset);
+          this.updateOffset();
+        }
+      }
+
       return Row.prototype.setup.call(this);
     },
 
@@ -66,6 +76,7 @@ define([
       this.background.width(w + 41);
       this.fitTitle(w);
       if (this.channels) this.channels.fit();
+      this.updateOffset();
     },
 
     fitTitle: function (w) {
@@ -149,6 +160,15 @@ define([
     },
 
     updateOffset: function() {
+
+      // save new offset
+      var state = store.get('state');
+      var did = this.model.id;
+      if (state.datasets[did]) {
+        state.datasets[did].offset = this.model.get('offset')
+        store.set('state', state);
+      }
+
       var offset = this.model.get('offset')
       var offset_abs = Math.abs(Math.round(offset/1000));
       var offsetAsString =
@@ -168,9 +188,9 @@ define([
         + offsetAsString;
 
       if ((offset) == 0) {
-        this.$('.dataset-title').text(this.model.get('title'));
+        this.title.text(this.model.get('title'));
       } else {
-        this.$('.dataset-title').text(titleString);
+        this.title.text(titleString);
       }
     },
 
