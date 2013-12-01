@@ -138,7 +138,7 @@ define([
       // stored remapping of series (x,y) points as array of x points
       var series_x = [];
 
-      // stored index of the nearest point to the cursor
+      // stored index of the next point in the series relative to the cursor
       var timeIdxHigh;
 
       // Return an array of interesting data about the series, removing nulls
@@ -198,6 +198,8 @@ define([
         );
         */
 
+        // if the cursor is between two points, determine if its closer
+        // to the right or left point
         var cNearestPt = []
         if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
           obj.nearestPointData = series.data[timeIdxLow];
@@ -421,7 +423,8 @@ define([
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         }, this))
         .mousemove(_.bind(function (e) {
-          //this.getStatsNearMouse(e);
+          this.updateLineStyle(e);
+
         }, this));
 
         function graphZoomClick(e, factor, out) {
@@ -640,6 +643,24 @@ define([
           yAxes[i].options.color = color;
         }
       }, this));
+    },
+
+    updateLineStyle: function(e) {
+      this.getStatsNearMouse(e);
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+      var closestChannel =
+        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+      var plotData = this.plot.getData();
+      _.each(plotData, function(obj) { obj.lines.lineWidth = 2; });
+      var series =  _.find(plotData, function (obj) {
+        return obj.channelName == closestChannel.channelName;
+      })
+      if (closestChannel.pixelsFromInterpPt < 10) {
+        series.lines.lineWidth = 5;
+      }
+      this.plot.setData(plotData);
+      this.plot.draw();
     },
 
   });
