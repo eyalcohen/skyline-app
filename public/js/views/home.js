@@ -9,8 +9,10 @@ define([
   'mps',
   'util',
   'text!../../templates/home.html',
-  'views/lists/events'
-], function ($, _, Backbone, mps, util, template, Events) {
+  'views/lists/events',
+  'views/lists/home.datasets',
+  'views/lists/home.views'
+], function ($, _, Backbone, mps, util, template, Events, Datasets, Views) {
 
   return Backbone.View.extend({
 
@@ -51,6 +53,8 @@ define([
 
       // Render lists.
       this.events = new Events(this.app, {parentView: this, reverse: true});
+      this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
+      this.views = new Views(this.app, {parentView: this, reverse: true});
 
       return this;
     },
@@ -68,6 +72,8 @@ define([
         mps.unsubscribe(s);
       });
       this.events.destroy();
+      this.datasets.destroy();
+      this.views.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.remove();

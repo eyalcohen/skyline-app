@@ -1,0 +1,10 @@
+<%
+
+  var link = [this.model.get('author').username, 'views',
+      this.model.get('slug')].join('/');
+
+%>
+
+<a href="/<%= link %>">
+  <i class="icon-folder-empty"></i> <%= this.model.get('name') %>
+</a>

@@ -917,13 +917,14 @@ a.header-action:active {
   background: rgba(39, 205, 214, 1);
 }
 
-.header [class^="icon-"]:before, [class*=" icon-"]:before {
+.header [class^="icon-"]:before,
+.header [class*=" icon-"]:before {
   margin: 0;
 }
 
 .header a.signin-button {
   float: right;
-  margin-top: 8px;
+  margin-top: 13px;
   margin-right: 40px;
 }
 
@@ -1111,6 +1112,38 @@ a.button.modal-button.full {
   width: 980px;
 }
 
+.home-datasets,
+.home-views {
+  margin: 5px 0 30px 0;
+}
+
+.home-datasets ul,
+.home-views ul {
+  list-style: none;
+}
+
+.home-datasets li,
+.home-views li {
+  padding: 2px 0;
+}
+
+.home-datasets li a,
+.home-views li a {
+  font-size: 14px;
+}
+
+.home-datasets li a i,
+.home-views li a i {
+  color: #8f8f8f;
+}
+
+.home-datasets li [class^="icon-"]:before,
+.home-datasets li [class*=" icon-"]:before,
+.home-views li [class^="icon-"]:before,
+.home-views li [class*=" icon-"]:before {
+  margin-left: 0;
+}
+
 /*.........................................................................*/
 
 .settings .page {
@@ -1286,7 +1319,8 @@ a.button.modal-button.full {
   font-size: 11px;
 }
 
-.profile-item-title [class^="icon-"]:before, [class*=" icon-"]:before {
+.profile-item-title [class^="icon-"]:before,
+.profile-item-title [class*=" icon-"]:before {
   margin-left: 0;
 }
 
@@ -1490,7 +1524,8 @@ a.control-button.view-only {
   background: rgb(39, 205, 214);
 }
 
-.cursor a [class^="icon-"]:before, [class*=" icon-"]:before {
+.cursor a [class^="icon-"]:before,
+.cursor a [class*=" icon-"]:before {
   margin: 0 2px 0 0;
   width: 8px;
 }
@@ -2030,7 +2065,7 @@ a.comments-signin {
 /*.........................................................................*/
 
 .events {
-  /*margin-top: -15px;*/
+  margin-top: -15px;
 }
 
 .event {
