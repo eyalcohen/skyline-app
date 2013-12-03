@@ -35,11 +35,11 @@ define([
       this.error.message = _.str.titleize(this.error.message);
 
       // Set page title
-      this.app.title('Oops');
+      this.app.title('Oops', '');
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('div.main');
+      this.$el.html(this.template.call(this)).appendTo('.main');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
