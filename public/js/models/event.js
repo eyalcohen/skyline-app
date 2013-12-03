@@ -13,7 +13,8 @@ define([
       var att = this.attributes;
 
       if (att.data.action.t === 'comment') {
-        var verb = att.data.target.t === 'comment' ? 'replied to': 'commented on';
+        var verb = att.data.target.t === 'comment' ?
+            'replied to a comment on': 'commented on';
         var type, icon, link, owner;
         var gravatar = 'https://www.gravatar.com/avatar/'
             + att.data.action.g + '?s=16&d=mm';
