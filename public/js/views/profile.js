@@ -16,7 +16,7 @@ define([
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
+    // The DOM target element for this page.
     className: 'profile',
 
     // Module entry point:

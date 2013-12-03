@@ -1130,7 +1130,13 @@ a.button.modal-button.full {
 
 .home-datasets li,
 .home-views li {
+  list-style-type: none;
   padding: 2px 0;
+}
+
+.home-datasets li.list-header,
+.home-views li.list-header {
+  padding: 0;
 }
 
 .home-datasets li a,
@@ -1332,6 +1338,7 @@ a.button.modal-button.full {
 }
 
 .profile-item-stats {
+  display: none;
   position: absolute;
   left: 42px;
   bottom: 5px;
@@ -2123,7 +2130,7 @@ a.comments-signin {
   display: block;
   margin: 10px 0 0 0;
   padding-right: 5px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 20px;
   font-weight: 400;
 }

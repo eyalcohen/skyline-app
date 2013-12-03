@@ -226,6 +226,7 @@ define([
       this.comments = new Comments(this.app, {parentView: this, type: 'view'});
       this.annotated = true;
       this.$('.control-button').removeClass('view-only');
+      this.app.title(this.app.profile.content.page.name);
     },
 
     updateIcons: function () {

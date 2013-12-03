@@ -193,7 +193,7 @@ define([
         // Show alert
         _.delay(function () {
           mps.publish('flash/new', [{
-            message: 'Successfully saved a new data mashup: "' + res.name + '"',
+            message: 'You created a data mashup: "' + res.name + '"',
             level: 'alert',
             sticky: false
           }]);
