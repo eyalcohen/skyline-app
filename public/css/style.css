@@ -2099,6 +2099,11 @@ a.comments-signin {
   padding: 5px 0;
 }
 
+.event-inner time {
+  display: block;
+  font-size: 11px;
+}
+
 .event-inner i {
   color: #8f8f8f;
 }

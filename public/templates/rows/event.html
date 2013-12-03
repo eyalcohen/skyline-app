@@ -11,6 +11,11 @@
 %>
 
 <div class="event-inner">
+  <time class="created" 
+      datetime="<%= this.model.get('created') %>" 
+      title="<%= this.model.get('created') %>">
+    <%= this.model.get('created') %>
+  </time>
   <% if (icon) { %>
     <i class="icon-<%= icon %>"></i>
   <% } %>
