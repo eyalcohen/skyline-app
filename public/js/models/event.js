@@ -14,23 +14,33 @@ define([
 
       if (att.data.action.t === 'comment') {
         var verb = att.data.target.t === 'comment' ? 'replied to': 'commented on';
-        var owner;
-        var slug;
+        var type, icon, link, owner;
         var gravatar = 'https://www.gravatar.com/avatar/'
             + att.data.action.g + '?s=16&d=mm';
+
+        if (att.data.target.t === 'dataset') {
+          type = 'data source';
+          icon = 'database';
+          link = '<a href="javascript:;" class="event-link">';
+        } else {
+          type = 'mashup';
+          icon = 'folder-empty';
+          link = '<a href="/' + att.data.target.s + '" class="navigate">';
+        }
 
         if (att.data.action.i === att.data.target.i)
           owner = 'their';
         else if (att.subscriber_id === att.data.target.i)
           owner = 'your';
         else
-          owner = att.data.target.a + '\'s';
+          owner = '<a href="/' + att.data.target.u + '" class="navigate">'
+              + att.data.target.a + '\'s</a>';
 
-        return '<a href="' + att.data.action.u + '" class="navigate">'
+        return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
-            + verb + ' ' + owner + ' '
-            + '<a href="' + att.data.target.s + '" class="navigate">'
-            + att.data.target.t + '</a>.'
+            + verb + ' ' + owner + ' ' + type + ', '
+            + link + '<i class="icon-' + icon + '"></i>'
+            + att.data.target.n + '</a>:'
             + (att.data.action.b ? '<span class="event-body">"'
             + '<img src=' + gravatar + ' width="16" height="16" />'
             + att.data.action.b + '"</span>': '');
@@ -46,14 +56,14 @@ define([
           verb = 'created a new';
           type = 'mashup';
           icon = 'folder-empty';
-          link = '<a href="' + att.data.target.s + '" class="navigate">';
+          link = '<a href="/' + att.data.target.s + '" class="navigate">';
         }
 
-        return '<a href="' + att.data.action.u + '" class="navigate">'
+        return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
             + verb + ' a ' + type + '.'
             + '<span class="event-body event-body-big">'
-            + link + '<i class="icon-' + icon + '"></i> '
+            + link + '<i class="icon-' + icon + '"></i>'
             + att.data.target.n + '</a></span>';
 
       } else return '';

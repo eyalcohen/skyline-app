@@ -38,6 +38,15 @@ define([
       this.collection.reset(this.app.profile.content.views.items);
     },
 
+    // Initial bulk render of list.
+    render: function (options) {
+      List.prototype.render.call(this, options);
+      if (this.collection.length === 0)
+        $('<span class="empty-feed">You don\'t have any yet!</span>')
+            .appendTo(this.$el);
+      return this;
+    },
+
     setup: function () {
       return List.prototype.setup.call(this);
     },

@@ -24,7 +24,8 @@ define([
     },
 
     events: {
-      'click .event-link': 'link', 
+      'click .event-link': 'link',
+      'click .navigate': 'navigate'
     },
 
     navigate: function (e) {

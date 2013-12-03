@@ -637,7 +637,7 @@ a.info-delete {
 }
 
 .page {
-  margin: 10px auto 60px;
+  margin: 20px auto 60px;
 }
 
 .page-left {
@@ -680,7 +680,7 @@ a.info-delete {
 
 .page-heading {
   font-size: 12px;
-  line-height: 48px;
+  line-height: 24px;
   display: block;
   color: #8f8f8f;
   text-transform: uppercase;
@@ -1117,6 +1117,12 @@ a.button.modal-button.full {
   margin: 5px 0 30px 0;
 }
 
+.home-datasets .empty-feed,
+.home-views .empty-feed {
+  text-align: left;
+  margin: 0;
+}
+
 .home-datasets ul,
 .home-views ul {
   list-style: none;
@@ -1142,6 +1148,7 @@ a.button.modal-button.full {
 .home-views li [class^="icon-"]:before,
 .home-views li [class*=" icon-"]:before {
   margin-left: 0;
+  margin-right: .3em;
 }
 
 /*.........................................................................*/
@@ -2104,14 +2111,16 @@ a.comments-signin {
   margin: 3px 0 0 32px;
   font-size: 12px;
   line-height: 16px;
+  font-weight: 700;
 }
 
 .event-body {
   display: block;
-  margin: 10px 0 0 10px;
+  margin: 10px 0 0 0;
   padding-right: 5px;
   font-size: 12px;
   line-height: 20px;
+  font-weight: 400;
 }
 
 .event-body.event-body-big {
@@ -2126,6 +2135,12 @@ a.comments-signin {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
+}
+
+.event-body [class^="icon-"]:before,
+.event-body [class*=" icon-"]:before {
+  margin-left: 0;
+  margin-right: .3em;
 }
 
 /*.........................................................................*/
