@@ -238,7 +238,7 @@ define([
             // Show alert
             _.delay(function () {
               mps.publish('flash/new', [{
-                message: 'Successfully added a new data source: "'
+                message: 'You added a new data source: "'
                     + res.title + ', ' + res.meta.channel_cnt + ' channel'
                     + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
                 level: 'alert',

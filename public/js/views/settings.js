@@ -18,8 +18,8 @@ define([
 
   return Backbone.View.extend({
     
-    // The DOM target element for this page:
-    el: '.main',
+    // The DOM target element for this page.
+    className: 'settings',
 
     // Module entry point:
     initialize: function (app) {
@@ -38,11 +38,11 @@ define([
       this.model = new Profile(this.app.profile.content.page);
 
       // Set page title
-      this.app.title('Settings');
+      this.app.title('Settings', '');
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this));
+      this.$el.html(this.template.call(this)).appendTo('.main');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');

@@ -1,0 +1,23 @@
+<%
+  var icon;
+  switch (this.model.get('data').action.t) {
+    case 'comment':
+      icon = 'comment';
+      break;
+    case 'create':
+      icon = 'plus';
+      break;
+  }
+%>
+
+<div class="event-inner">
+  <time class="created" 
+      datetime="<%= this.model.get('created') %>" 
+      title="<%= this.model.get('created') %>">
+    <%= this.model.get('created') %>
+  </time>
+  <% if (icon) { %>
+    <i class="icon-<%= icon %>"></i>
+  <% } %>
+  <p><%= this.model.body() %></p>
+</div>

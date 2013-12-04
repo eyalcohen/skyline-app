@@ -104,7 +104,8 @@ define([
 
     open: function (e) {
       if ($(e.target).hasClass('info-delete')
-          || $(e.target).hasClass('navigate')) return;
+          || $(e.target).hasClass('navigate')
+          || $(e.target).parent().hasClass('navigate')) return;
       this.discussion = new Discussion(this.app, {model: this.model}).render();
     },
 

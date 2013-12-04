@@ -9,12 +9,15 @@ define([
   'mps',
   'util',
   'text!../../templates/home.html',
-], function ($, _, Backbone, mps, util, template) {
+  'views/lists/events',
+  'views/lists/home.datasets',
+  'views/lists/home.views'
+], function ($, _, Backbone, mps, util, template, Events, Datasets, Views) {
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
-    id: 'home',
+    // The DOM target element for this page.
+    className: 'home',
 
     // Module entry point:
     initialize: function (app) {
@@ -32,9 +35,12 @@ define([
     // Draw our template from the profile JSON.
     render: function () {
 
+      // Set page title
+      this.app.title('');
+
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('#main');
+      this.$el.html(this.template.call(this)).appendTo('.main');
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -44,6 +50,11 @@ define([
 
     // Misc. setup.
     setup: function () {
+
+      // Render lists.
+      this.events = new Events(this.app, {parentView: this, reverse: true});
+      this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
+      this.views = new Views(this.app, {parentView: this, reverse: true});
 
       return this;
     },
@@ -60,6 +71,9 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
+      this.events.destroy();
+      this.datasets.destroy();
+      this.views.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.remove();

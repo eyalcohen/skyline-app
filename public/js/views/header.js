@@ -53,6 +53,7 @@ define([
       this.delegateEvents();
 
       // Save refs.
+      this.search = this.$('.header-search');
 
       // Shell listeners / subscriptions.
       // Do this here intead of init ... re-renders often.
@@ -69,11 +70,12 @@ define([
 
       // For graph titles...
       this.subscriptions.push(mps.subscribe('title/set',
-            _.bind(this.title, this)));
+          _.bind(this.title, this)));
     },
 
     // Bind mouse events.
     events: {
+      'click .header-logo': 'home',
       'click .signin-button': 'signin',
       'click .username': 'username',
       'click .add-data-button': 'add',
@@ -121,6 +123,16 @@ define([
 
     title: function (str) {
       this.$('.header-title').html(str);
+    },
+
+    widen: function () {
+      this.$el.addClass('wide');
+      this.search.show();
+    },
+
+    unwiden: function () {
+      this.$el.removeClass('wide');
+      this.search.show();
     },
 
     navigate: function (e) {

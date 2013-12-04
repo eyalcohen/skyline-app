@@ -135,8 +135,8 @@ define([
           return this.navigate('/', true);
 
         // Set the profile.
-        var login = this.app.update(pro);
-        _render.call(this, null, login);
+        var login = this.app.update(pro || err);
+        _render.call(this, err, login);
       }, this));
     },
 
@@ -158,6 +158,7 @@ define([
         if (err) return;
         this.page = new Home(this.app).render();
         this.stop();
+        this.header.unwiden();
       }, this));
     },
 
@@ -167,6 +168,7 @@ define([
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
+        this.header.unwiden();
       }, this));
     },
 
@@ -177,6 +179,7 @@ define([
         if (err) return;
         this.page = new Profile(this.app).render();
         this.stop();
+        this.header.widen();
       }, this));
     },
 
@@ -186,6 +189,7 @@ define([
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
+        this.header.unwiden();
       }, this));
     },
 
@@ -196,8 +200,9 @@ define([
       this.render('/service/chart.profile/', {state: state},
           _.bind(function (err) {
         if (err) return;
-        this.page = new Chart(this.app).render();
+        this.page = new Chart(this.app).render();        
         this.stop();
+        this.header.widen();
       }, this));
     },
 
@@ -208,6 +213,7 @@ define([
           code: 404,
           message: 'Sorry, this page isn\'t available'
         });
+        this.header.unwiden();
       }, this));
     }
 

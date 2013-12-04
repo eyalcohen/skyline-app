@@ -56,8 +56,9 @@ define([
       this.model = new Backbone.Model;
 
       // Set page title
-      this.app.title('Chart');
-      mps.publish('title/set', ['']);
+      var page = this.app.profile.content.page;
+      if (page && page.name) this.app.title(page.name);
+      else this.app.title('Chart', '');
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -225,6 +226,7 @@ define([
       this.comments = new Comments(this.app, {parentView: this, type: 'view'});
       this.annotated = true;
       this.$('.control-button').removeClass('view-only');
+      this.app.title(this.app.profile.content.page.name);
     },
 
     updateIcons: function () {
@@ -233,7 +235,7 @@ define([
 
       // Update x-pos of each comment.
       _.each(this.comments.views, _.bind(function (v) {
-        v.model.set('xpos', xaxis.p2c(v.model.get('time')));
+        v.model.set('xpos', xaxis.p2c(v.model.get('time')) - 8);
         if (!$.contains(document.documentElement, v.icon.get(0)))
           v.icon.appendTo(this.icons);
       }, this));

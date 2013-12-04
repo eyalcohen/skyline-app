@@ -302,6 +302,7 @@ if (cluster.isMaster) {
             sio.sockets.on('connection', function (socket) {
               socket.join('datasets');
               socket.join('views');
+              socket.join('events');
               socket.join('comments');
               if (socket.handshake.user)
                 socket.join('usr-' + socket.handshake.user._id);

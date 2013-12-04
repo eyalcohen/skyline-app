@@ -1,25 +1,25 @@
 /*
- * Profile Views List view
+ * Events List view
  */
 
 define([
   'jQuery',
   'Underscore',
   'views/boiler/list',
+  'Spin',
   'mps',
   'rest',
-  'util',
-  'text!../../../templates/lists/profile.views.html',
-  'collections/views',
-  'views/rows/profile.view',
-  'Spin'
-], function ($, _, List, mps, rest, util, template, Collection, Row, Spin) {
+  'text!../../../templates/lists/events.html',
+  'collections/events',
+  'views/rows/event'
+], function ($, _, List, Spin, mps, rest, template, Collection, Row) {
   return List.extend({
-    
-    el: '.profile-views',
+
+    el: '.events',
+
     fetching: false,
     nomore: false,
-    limit: 10,
+    limit: 5,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -29,51 +29,40 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
-      // Init the load indicator.
-      this.spin = new Spin($('.profile-views-spin', this.$el.parent()), {
-        lines: 13,
-        length: 3,
-        width: 2,
-        radius: 6,
-      });
-      this.spin.start();
-
       // Client-wide subscriptions
-      this.subscriptions = [
-        mps.subscribe('view/new', _.bind(this.collect, this))
-      ];
+      this.subscriptions = [];
 
       // Socket subscriptions
-      this.app.rpc.socket.on('view.new', _.bind(this.collect, this));
-      this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
+      this.app.rpc.socket.on('event.new', _.bind(this.collect, this));
+      this.app.rpc.socket.on('event.removed', _.bind(this._remove, this));
 
-      // Misc.
-      this.empty_label = 'No mashups.';
+      // Init the load indicator.
+      this.spin = new Spin($('.events-spin', this.$el.parent()));
+      this.spin.start();
 
       // Reset the collection.
-      this.latest_list = options.views;
+      this.latest_list = this.app.profile.content.events;
       this.collection.reset(this.latest_list.items);
     },
 
-    // Initial bulk render of list
+    // receive event from event bus
+    collect: function (data) {
+      this.collection.unshift(data);
+    },
+
+    // initial bulk render of list
     render: function (options) {
       List.prototype.render.call(this, options);
-      if (this.collection.length > 0 || this.latest_list.more)
+      if (this.collection.length > 0)
         _.delay(_.bind(function () {
           this.checkHeight();
         }, this), (this.collection.length + 1) * 30);
       else {
         this.nomore = true;
-        $('<span class="empty-feed">' + this.empty_label
-            + '</span>').appendTo(this.$el);
+        $('<span class="empty-feed">No events.</span>').appendTo(this.$el);
         this.spin.stop();
       }
-      if (this.modal)
-        this.paginate();
-      else {
-        this.spin.stop(); 
-        this.spin.target.parent().hide();
-      }
+      this.paginate();
       return this;
     },
 
@@ -88,24 +77,26 @@ define([
       return this;
     },
 
+    // misc. setup
     setup: function () {
-      return List.prototype.setup.call(this);
+      this.spin.stop();
+      List.prototype.setup.call(this);
     },
 
-    events: {},
-
+    // Kill this view.
     destroy: function () {
       this.unpaginate();
-      return List.prototype.destroy.call(this);
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
+      _.each(this.views, function (v) {
+        v.destroy();
+      });
+      this.undelegateEvents();
+      this.stopListening();
     },
 
-    collect: function (data) {
-      var user_id = this.parentView.model ?
-          this.parentView.model.id: this.app.profile.user.id;
-      if (data.author.id === user_id)
-        this.collection.unshift(data);
-    },
-
+    // remove a model
     _remove: function (data) {
       var index = -1;
       var view = _.find(this.views, function (v) {
@@ -122,11 +113,7 @@ define([
       }
     },
 
-    /**********************
-     * Pagination support *
-     **********************/
-
-    // Check the panel's empty space and get more
+    // check the panel's empty space and get more
     // notes to fill it up.
     checkHeight: function () {
       wh = $(window).height();
@@ -142,7 +129,7 @@ define([
       function updateUI(list) {
         _.defaults(list, {items:[]});
         this.latest_list = list;
-        var showingall = this.parentView.$('.list-spin .empty-feed');
+        var showingall = $('.list-spin .empty-feed', this.$el.parent());
         if (list.items.length === 0) {
           this.nomore = true;
           this.spin.target.hide();
@@ -150,9 +137,8 @@ define([
             showingall.css('display', 'block');
           else {
             showingall.hide();
-            if (this.$('.empty-feed').length === 0)
-              $('<span class="empty-feed">' + this.empty_label + '</span>')
-                  .appendTo(this.$el);
+            $('<span class="empty-feed">No notifications.</span>')
+                .appendTo(this.$el);
           }
         } else
           _.each(list.items, _.bind(function (i) {
@@ -160,6 +146,7 @@ define([
             this.renderLast(true);
           }, this));
         _.delay(_.bind(function () {
+          this.spin.stop();
           this.fetching = false;
           if (list.items.length < this.limit) {
             this.spin.target.hide();
@@ -179,7 +166,7 @@ define([
       // get more
       this.spin.start();
       this.fetching = true;
-      rest.post('/api/views/list', {
+      rest.post('/api/events/list', {
         limit: this.limit,
         cursor: this.latest_list.cursor,
         query: this.latest_list.query
@@ -192,7 +179,7 @@ define([
         }
 
         // Add the items.
-        updateUI.call(this, data.views);
+        updateUI.call(this, data.events);
 
       }, this));
 
@@ -200,25 +187,19 @@ define([
 
     // init pagination
     paginate: function () {
-      var wrap = this.modal ? this.$el.parent(): $(window);
+      var wrap = $(window);
       this._paginate = _.debounce(_.bind(function (e) {
-        var pos;
-        if (this.modal) {
-          pos = this.$el.height()
-              - wrap.height() - wrap.scrollTop();
-        } else
-          pos = this.$el.height() + this.$el.offset().top
-              - wrap.height() - wrap.scrollTop();
+        var pos = this.$el.height() + this.$el.offset().top
+            - wrap.height() - wrap.scrollTop();
         if (!this.nomore && pos < -this.spin.target.height() / 2)
           this.more();
-      }, this), 50);
-
+      }, this), 20);
       wrap.scroll(this._paginate).resize(this._paginate);
     },
 
     unpaginate: function () {
-      $(window).unbind('scroll', this._paginate);
-    }
+      $(window).unbind('scroll', this._paginate).unbind('resize', this._paginate);
+    } 
 
   });
 });

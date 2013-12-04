@@ -25,7 +25,12 @@ define([
           try {
             err = JSON.parse(res.responseText);
             var data = err.data;
-            err = {message: err.error, code: res.status};
+            err = {
+              message: err.error,
+              code: res.status,
+              user: err.user,
+              content: err.content,
+            };
             if (data) err.data = data;
           } catch (e) { err = res.status + ' - "' + res.statusText + '"'; }
           cb(err);
