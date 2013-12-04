@@ -1,5 +1,5 @@
-/*!
- * Copyright 2011 Mission Motors
+/*
+ * Handle URL paths and changes.
  */
 
 define([
@@ -17,12 +17,13 @@ define([
   'views/browser',
   'views/header',
   'views/home',
+  'views/splash',
   'views/settings',
   'views/reset',
   'views/profile',
   'views/chart'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
-      Save, Browser, Header, Home, Settings, Reset, Profile, Chart) {
+      Save, Browser, Header, Home, Splash, Settings, Reset, Profile, Chart) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -156,7 +157,9 @@ define([
       this.start();
       this.render('/service/home.profile', _.bind(function (err) {
         if (err) return;
-        this.page = new Home(this.app).render();
+        this.page = this.app.profile.user ?
+            new Home(this.app).render():
+            new Splash(this.app).render();
         this.stop();
         this.header.unwiden();
       }, this));

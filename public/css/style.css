@@ -1108,6 +1108,70 @@ a.button.modal-button.full {
 
 /*.........................................................................*/
 
+.splash .page {
+  width: 980px;
+}
+
+.splash h1 {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 44px;
+}
+
+.splash h2 {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.splash-buttons {
+  margin: 20px 0 40px;
+  text-align: center;
+}
+
+a.splash-button {
+  font-size: 20px;
+  line-height: 36px;
+}
+
+a.splash-start-button {
+  background: rgba(39, 205, 214, 0.8);
+  color: #fff;
+  border-color: #4f4f4f;
+}
+
+a.splash-start-button:active {
+  background: rgba(39, 205, 214, 1);
+}
+
+.splash-chart {
+  margin: 20px 0;
+  width: 100%;
+  height: 450px;
+  border: 1px solid #d0d0d0;
+  background: #f9f9f9;
+}
+
+ul.splash-boxes {
+  height: 202px;
+  font-size: 0;
+  white-space: nowrap;
+  border-left: 1px solid #d0d0d0;
+}
+
+ul.splash-boxes li {
+  display: inline-block;
+  width: 326px;
+  height: 200px;
+  list-style-image: none;
+  border: 1px solid #d0d0d0;
+  border-left: none;
+  background: #f2f2f2;
+}
+
+/*.........................................................................*/
+
 .home .page {
   width: 980px;
 }
