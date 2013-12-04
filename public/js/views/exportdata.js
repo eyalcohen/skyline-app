@@ -93,7 +93,6 @@ define([
 
     // Misc. setup.
     setup: function () {
-      console.log('rendered')
       return this;
     },
 
@@ -159,11 +158,7 @@ define([
       // and give some kind of warning or something if it's ridiculous.
       // TODO: maybe use the new download attribute on an anchor element?
       // http://html5-demos.appspot.com/static/a.download.html
-      // We should really fetch the data via dnode then force the download
-      // client-side... this way we can show a loading icon while the
-      // user waits for the server to package everything up.
       var lis = $('.export-channel-list input')
-      console.log(lis)
       var channelsToGet = []
       _.each(this.channels, function (item, idx) {
         if (lis[idx].checked) channelsToGet.push(item)
