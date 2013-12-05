@@ -19,6 +19,7 @@ define([
     
     // The DOM target element for this page.
     className: 'browser',
+    dragging: false,
     working: false,
     
     // Module entry point.
@@ -89,9 +90,9 @@ define([
       });
 
       // Drag & drop events.
-      this.$el.on('dragover', _.bind(this.dragover, this));
-      this.dropZone.on('dragleave', _.bind(this.dragout, this))
-          .on('drop', _.bind(this.drop, this));
+      this.$el.bind('dragover', _.bind(this.dragover, this));
+      this.dropZone.bind('dragleave', _.bind(this.dragout, this))
+          .bind('drop', _.bind(this.drop, this));
 
       // Handle error display.
       this.$('input[type="text"]').blur(function (e) {
@@ -136,14 +137,20 @@ define([
     },
 
     dragover: function (e) {
+      if (this.dragging) return false;
+      this.dragging = true;
       e.stopPropagation();
       e.preventDefault();
       e.originalEvent.dataTransfer.dropEffect = 'copy';
       this.$el.addClass('dragging');
+      return false;
     },
 
     dragout: function (e) {
+      if ($(e.target).prop('tagName') === 'I') return false;
+      this.dragging = false;
       this.$el.removeClass('dragging');
+      return false;
     },
 
     drop: function (e) {
@@ -156,6 +163,7 @@ define([
 
       // Stop drag styles.
       this.$el.removeClass('dragging');
+      return false;
     },
 
     // Update new file input value

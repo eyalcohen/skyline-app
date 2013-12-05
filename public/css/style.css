@@ -1458,6 +1458,34 @@ td.profile-item-delete:active {
   overflow: hidden;
 }
 
+.chart .dnd {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background: rgba(39, 205, 214, 0.25);
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.chart.dragging .dnd {
+  display: block;
+}
+
 .upper-panel {
   position: relative;
   z-index: 10;
@@ -2290,6 +2318,10 @@ a.comments-signin {
   display: block;
 }
 
+.browser.dragging input {
+  pointer-events: none;
+}
+
 .browser .dnd i {
   display: block;
   margin: 0 auto;
@@ -2297,6 +2329,7 @@ a.comments-signin {
   font-size: 48px;
   width: 70px;
   color: #2f2f2f;
+  pointer-events: none;
 }
 
 .browser.library .dnd i {

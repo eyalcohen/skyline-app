@@ -20,6 +20,7 @@ define([
 
     // The DOM target element for this page:
     className: 'chart',
+    working: false,
 
     // Module entry point:
     initialize: function (app, options) {
@@ -96,10 +97,16 @@ define([
       this.controls = this.$('.controls');
       this.cursor = this.$('.cursor');
       this.icons = this.$('.icons');
+      this.dropZone = this.$('.dnd');
 
       // Handle comments panel.
       if (this.annotated && store.get('comments'))
         $('.side-panel').addClass('open');
+
+      // Drag & drop events.
+      this.$el.bind('dragover', _.bind(this.dragover, this));
+      this.dropZone.bind('dragleave', _.bind(this.dragout, this))
+          .bind('drop', _.bind(this.drop, this));
 
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
@@ -242,6 +249,120 @@ define([
         if (!$.contains(document.documentElement, v.icon.get(0)))
           v.icon.appendTo(this.icons);
       }, this));
+    },
+
+    dragover: function (e) {
+      if (this.dragging) return false;
+      this.dragging = true;
+      e.stopPropagation();
+      e.preventDefault();
+      e.originalEvent.dataTransfer.dropEffect = 'copy';
+      this.$el.addClass('dragging');
+      return false;
+    },
+
+    dragout: function (e) {
+      if ($(e.target).prop('tagName') === 'I') return false;
+      this.dragging = false;
+      this.$el.removeClass('dragging');
+      return false;
+    },
+
+    drop: function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var files = e.originalEvent.dataTransfer.files;
+      this.add(null, files);
+
+      // Stop drag styles.
+      this.$el.removeClass('dragging');
+      return false;
+    },
+
+    // Create new dataset from file.
+    // TODO: Redundant fn. Move this and this
+    // same fn in browser.js somewhere shared.
+    add: function (e, files) {
+      if (e) e.preventDefault();
+
+      // Prevent multiple uploads at the same time.
+      if (this.working) return false;
+      this.working = true;
+
+      // Start load indicator.
+      // this.newFileButtonSpin.start();
+
+      // Get the file.
+      var files = files || this.newFile.get(0).files;
+
+      if (files.length === 0) return false;
+      var file = files[0];
+
+      // Use a FileReader to read the file as a base64 string.
+      var reader = new FileReader();
+      reader.onload = _.bind(function () {
+
+        // Check file type for any supported...
+        // The MIME type could be text/plain or application/vnd.ms-excel
+        // or a bunch of other options.  For now, switch to checking the
+        // extension and consider improved validation down the road, particularly
+        // as we add support for new file types
+        var ext = file.name.split('.').pop();
+        if (ext !== 'csv' && ext !== 'xls')
+          return false;
+
+        // Construct the payload to send.
+        var payload = {
+          title: _.str.strLeft(file.name, '.'),
+          file: {
+            size: file.size,
+            type: file.type,
+            ext: ext
+          },
+          base64: reader.result.replace(/^[^,]*,/,''),
+        };
+
+        // Create the dataset.
+        this.app.rpc.do('insertSamples', payload,
+            _.bind(function (err, res) {
+
+          // Start load indicator.
+          // this.newFileButtonSpin.stop();
+
+          if (err) {
+            // this.newFileError.text(err);
+            this.working = false;
+            return;
+          }
+
+          // Publish new dataset.
+          // mps.publish('dataset/new', [res]);
+
+          if (!this.datasets) {
+
+            // Show alert
+            _.delay(function () {
+              mps.publish('flash/new', [{
+                message: 'You added a new data source: "'
+                    + res.title + ', ' + res.meta.channel_cnt + ' channel'
+                    + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
+                level: 'alert',
+                sticky: false
+              }]);
+            }, 500);
+
+          }
+
+          // Ready for more.
+          this.working = false;
+
+        }, this));
+
+      }, this);
+      reader.readAsDataURL(file);
+
+      return false;
     },
 
   });
