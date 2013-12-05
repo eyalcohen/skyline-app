@@ -36,10 +36,12 @@ define([
 
       // Expand / collapse.
       this.$el.bind('mouseenter', _.bind(function (e) {
+        if (this.app.embed) return;
         if (this.channels)
           this.channels.expand(true);
       }, this));
       this.$el.bind('mouseleave', _.bind(function (e) {
+        if (this.app.embed) return;
         if (this.channels) this.channels.collapse();
       }, this));
 
@@ -80,6 +82,7 @@ define([
 
     toggle: function (e) {
       if (e) e.preventDefault();
+      if (this.app.embed) return;
       var state = store.get('state');
       if (this.$el.hasClass('active')) {
         if (this.channels) this.channels.active = false;
@@ -115,7 +118,8 @@ define([
         });
 
         // Check if was open.
-        if (store.get('state').datasets[this.model.id].open) {
+        if (store.get('state').datasets[this.model.id].open
+            && !this.app.embed) {
           this.channels.active = true;
           this.channels.expand(true);
           this.$el.addClass('active');

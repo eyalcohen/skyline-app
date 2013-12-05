@@ -50,15 +50,17 @@ define([
     },
 
     // Draw our template from the profile.
-    render: function (samples) {
+    render: function (embed) {
 
       // Use model to store view data.
       this.model = new Backbone.Model;
 
       // Set page title
-      var page = this.app.profile.content.page;
-      if (page && page.name) this.app.title(page.name);
-      else this.app.title('Chart', '');
+      if (!embed) {
+        var page = this.app.profile.content.page;
+        if (page && page.name) this.app.title(page.name);
+        else this.app.title('Chart', '');
+      }
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -112,7 +114,6 @@ define([
 
       return this;
     },
-
 
     // Similar to Backbone's remove method, but empties
     // instead of removes the view's DOM element.
@@ -199,6 +200,7 @@ define([
     },
 
     comment: function (e) {
+      if (this.app.embed) return;
       if (!this.cursorData) return;
       if (this.cursor.hasClass('active'))
         mps.publish('comment/end');
@@ -217,6 +219,7 @@ define([
     },
 
     uncomment: function () {
+      if (this.app.embed) return;
       this.cursor.removeClass('active');
       this.graph.$el.css({'pointer-events': 'auto'});
     },

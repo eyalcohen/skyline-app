@@ -1,6 +1,8 @@
-<div class="dataset-remove">
-  <i class="icon-cancel"></i>
-</div>
+<% if (!this.app.embed) { %>
+  <div class="dataset-remove">
+    <i class="icon-cancel"></i>
+  </div>
+<% } %>
 <div class="dataset-avatar">
   <img src="https://www.gravatar.com/avatar/<%= this.model.get('author').gravatar %>?s=23&d=mm"
       width="23" height="23" />

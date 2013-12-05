@@ -41,7 +41,8 @@ define([
         } catch (err) {}
 
       // Page routes
-      this.route(':username/views/:slug', 'view', this.chart);
+      this.route('embed/:username/views/:slug', 'embed', this.embed);
+      this.route(':username/views/:slug', 'chart', this.chart);
       this.route(':username', 'profile', this.profile);
       this.route('chart', 'chart', this.chart);
       this.route('reset', 'reset', this.reset);
@@ -100,9 +101,10 @@ define([
       function _render(err, login) {
 
         // Render page elements.
-        if (!this.header)
-          this.header = new Header(this.app).render();
-        else if (login) this.header.render(true);
+        if (!this.app.embed)
+          if (!this.header)
+            this.header = new Header(this.app).render();
+          else if (login) this.header.render(true);
 
         // Callback to route.
         cb(err);
@@ -142,11 +144,13 @@ define([
     },
 
     start: function () {
+      if (this.app.embed) return;
       $(window).scrollTop(0);
       this.spin.start();
     },
 
     stop: function () {
+      if (this.app.embed) return;
       _.delay(_.bind(function () {
         this.spin.stop();
         $(window).scrollTop(0);
@@ -188,7 +192,7 @@ define([
 
     settings: function () {
       this.start();
-      this.render('/service/settings.profile', _.bind(function (err) {
+      this.render('/service/settings.profile', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
@@ -206,6 +210,17 @@ define([
         this.page = new Chart(this.app).render();        
         this.stop();
         this.header.widen();
+      }, this));
+    },
+
+    embed: function (un, slug) {
+      this.app.embed = true;
+      var key = un && slug ? {un: un, slug: slug}: null;
+      var state = key ? {key: key}: store.get('state');
+      this.render('/service/chart.profile/', {state: state, embed: true},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new Chart(this.app).render();
       }, this));
     },
 

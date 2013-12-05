@@ -17,7 +17,8 @@ html(lang="en")
     <!--[if IE 7]><link rel="stylesheet" href="#{root}/css/fontello-ie7.css"><![endif]-->
     link(rel="stylesheet", href="#{root}/css/style.css")
     link(rel="shortcut icon", href="#{root}/img/favicon.ico", type="image/x-icon")
-    body
+    - var bc = embed ? "embed": "";
+    body(class=bc)
       block content
       - if (process.env.NODE_ENV === 'production')
         script(type="text/javascript", src="#{root}/js/store.min.js")
