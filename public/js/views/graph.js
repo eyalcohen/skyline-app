@@ -419,13 +419,19 @@ define([
         this.$el.mousewheel(_.bind(function (e) {
           var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
+          this.updateLineStyle(e);
           return false;
         }, this))
         .dblclick(_.bind(function (e) {
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         }, this))
         .mousemove(_.bind(function (e) {
-          this.updateLineStyle(e);
+          if (!this.lastMouseMove) this.lastMouseMove = 0;
+          // don't run this very frequently, perhaps once every 20ms
+          if (Date.now() - this.lastMouseMove > 20) {
+            this.lastMouseMove = Date.now();
+            this.updateLineStyle(e);
+          }
 
         }, this));
 
@@ -647,7 +653,8 @@ define([
       }, this));
     },
 
-    // update line widths if mouse is near a series
+    // update line widths if mouse is near a series.  Useful for highlighting
+    // a line
     updateLineStyle: function(e) {
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
@@ -656,7 +663,9 @@ define([
       if (!closestChannel) return;
       var plotData = this.plot.getData();
 
-      _.each(plotData, function(obj) { obj.lines.lineWidth = 2; });
+      _.each(plotData, function(obj) {
+        obj.lines.lineWidth = 2;
+      });
       var series =  _.find(plotData, function (obj) {
         return obj.channelName == closestChannel.channelName;
       })
