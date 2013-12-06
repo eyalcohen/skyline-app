@@ -320,9 +320,10 @@ define([
             type: file.type,
             ext: ext
           },
-          base64: reader.result.replace(/^[^,]*,/,''),
-          user: 'demo',
+          base64: reader.result.replace(/^[^,]*,/,'')
         };
+        if (this.app.embed)
+          payload.user = 'demo';
 
         // Create the dataset.
         this.app.rpc.do('insertSamples', payload,
@@ -356,17 +357,29 @@ define([
             }]);
           }, 500);
 
-          // Set app state.
-          var state = {};
-          if (this.app.profile && this.app.profile.user)
-            state.user_id = this.app.profile.user.id;
-          state.datasets = {};
-          state.datasets[res.id] = {index: 0};
-          store.set('state', state);
+          // Publish new dataset.
+          if (!this.app.embed) {
+            mps.publish('dataset/new', [res]);
 
-          // Route to a new chart.
-          this.app.router.navigate('/clear', {silent: true});
-          this.app.router.navigate('/chart', {trigger: true});
+            // Add this dataset to the existing chart.
+            mps.publish('chart/datasets/new', [res.id]);
+          
+          // TODO: This should function like the above case,
+          // but will be confusing until we have a macro view.
+          } else {
+
+            // Set app state.
+            var state = {};
+            if (this.app.profile && this.app.profile.user)
+              state.user_id = this.app.profile.user.id;
+            state.datasets = {};
+            state.datasets[res.id] = {index: 0};
+            store.set('state', state);
+
+            // Route to a new chart.
+            this.app.router.navigate('/clear', {silent: true});
+            this.app.router.navigate('/chart', {trigger: true});
+          }
 
           // Ready for more.
           this.working = false;
