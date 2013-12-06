@@ -13,6 +13,7 @@ define([
   'views/error',
   'views/signin',
   'views/forgot',
+  'views/lists/flashes',
   'views/save',
   'views/browser',
   'views/header',
@@ -22,7 +23,7 @@ define([
   'views/reset',
   'views/profile',
   'views/chart'
-], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
+], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot, Flashes,
       Save, Browser, Header, Home, Splash, Settings, Reset, Profile, Chart) {
 
   // Our application URL router.
@@ -39,6 +40,10 @@ define([
           window.history.replaceState('', '', window.location.pathname
               + window.location.search);
         } catch (err) {}
+
+      // Determine if this is an embeded widget.
+      var rx = new RegExp([window.location.host, 'embed'].join('/'),'i');
+      this.app.embed = rx.test(window.location.href);
 
       // Page routes
       this.route('embed/:username/views/:slug', 'embed', this.embed);
@@ -81,13 +86,10 @@ define([
       }, this));
 
       // Init page spinner.
-      this.spin = new Spin($('.page-spin'), {
-        color: '#bfbfbf',
-        lines: 13,
-        length: 3,
-        width: 2,
-        radius: 6,
-      });
+      var sopts = this.app.embed ?
+          {color: '#bfbfbf', lines: 17, length: 7, width: 3, radius: 12}: 
+          {color: '#bfbfbf', lines: 13, length: 3, width: 2, radius: 6};
+      this.spin = new Spin($('.page-spin'), sopts);
     },
 
     routes: {
@@ -105,6 +107,10 @@ define([
           if (!this.header)
             this.header = new Header(this.app).render();
           else if (login) this.header.render(true);
+
+        // Start block messages.
+        if(!this.flashes)
+          this.flashes = new Flashes(this.app);
 
         // Callback to route.
         cb(err);
@@ -144,13 +150,11 @@ define([
     },
 
     start: function () {
-      if (this.app.embed) return;
       $(window).scrollTop(0);
       this.spin.start();
     },
 
     stop: function () {
-      if (this.app.embed) return;
       _.delay(_.bind(function () {
         this.spin.stop();
         $(window).scrollTop(0);
@@ -209,18 +213,20 @@ define([
         if (err) return;
         this.page = new Chart(this.app).render();        
         this.stop();
-        this.header.widen();
+        if (this.header)
+          this.header.widen();
       }, this));
     },
 
     embed: function (un, slug) {
-      this.app.embed = true;
+      this.start();
       var key = un && slug ? {un: un, slug: slug}: null;
       var state = key ? {key: key}: store.get('state');
       this.render('/service/chart.profile/', {state: state, embed: true},
           _.bind(function (err) {
         if (err) return;
         this.page = new Chart(this.app).render();
+        this.stop();
       }, this));
     },
 

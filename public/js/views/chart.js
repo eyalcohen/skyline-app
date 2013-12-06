@@ -291,7 +291,7 @@ define([
       this.working = true;
 
       // Start load indicator.
-      // this.newFileButtonSpin.start();
+      this.app.router.start();
 
       // Get the file.
       var files = files || this.newFile.get(0).files;
@@ -321,38 +321,52 @@ define([
             ext: ext
           },
           base64: reader.result.replace(/^[^,]*,/,''),
+          user: 'demo',
         };
 
         // Create the dataset.
         this.app.rpc.do('insertSamples', payload,
             _.bind(function (err, res) {
 
-          // Start load indicator.
-          // this.newFileButtonSpin.stop();
+          // Stop load indicator.
+          this.app.router.stop();
 
           if (err) {
-            // this.newFileError.text(err);
+
+            // Show error.
+            _.delay(function () {
+              mps.publish('flash/new', [{
+                message: err,
+                level: 'error',
+                sticky: false
+              }]);
+            }, 500);
             this.working = false;
             return;
           }
 
-          // Publish new dataset.
-          // mps.publish('dataset/new', [res]);
-
-          if (!this.datasets) {
-
-            // Show alert
+          // Show alert
             _.delay(function () {
-              mps.publish('flash/new', [{
-                message: 'You added a new data source: "'
-                    + res.title + ', ' + res.meta.channel_cnt + ' channel'
-                    + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-                level: 'alert',
-                sticky: false
-              }]);
-            }, 500);
+            mps.publish('flash/new', [{
+              message: 'You added a new data source: "'
+                  + res.title + ', ' + res.meta.channel_cnt + ' channel'
+                  + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
+              level: 'alert',
+              sticky: false
+            }]);
+          }, 500);
 
-          }
+          // Set app state.
+          var state = {};
+          if (this.app.profile && this.app.profile.user)
+            state.user_id = this.app.profile.user.id;
+          state.datasets = {};
+          state.datasets[res.id] = {index: 0};
+          store.set('state', state);
+
+          // Route to a new chart.
+          this.app.router.navigate('/clear', {silent: true});
+          this.app.router.navigate('/chart', {trigger: true});
 
           // Ready for more.
           this.working = false;

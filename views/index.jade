@@ -2,15 +2,15 @@ extends layout
 
 block content
   .container
+    .page-spin
+    .block-messages
     - if (!embed)
-      .page-spin
       header
         .saved-ghost
           form(enctype="multipart/form-data", method="POST")
             input(name="username", type="text")
             input(name="password", type="password")
             input(value="_", type="submit")
-        .block-messages
           ul
         .header
           - if (typeof user !== 'undefined')
