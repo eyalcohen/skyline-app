@@ -12,7 +12,7 @@ define([
   'text!../../../templates/lists/datasets.html',
   'collections/datasets',
   'views/rows/dataset'
-], function ($, _, List, mps, rest, util, template, Collection, Row, Spin) {
+], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
     el: '.datasets',

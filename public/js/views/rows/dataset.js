@@ -115,7 +115,8 @@ define([
         });
 
         // Check if was open.
-        if (store.get('state').datasets[this.model.id].open) {
+        if (store.get('state').datasets[this.model.id].open ||
+            !store.get('state').author_id) {
           this.channels.active = true;
           this.channels.expand(true);
           this.$el.addClass('active');

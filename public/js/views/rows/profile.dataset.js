@@ -55,7 +55,7 @@ define([
       } else {
 
         // Add this dataset to the existing chart.
-        mps.publish('chart/datasets/new', [this.model.get('id')]);  
+        mps.publish('chart/datasets/new', [this.model.get('id')]);
 
         // Close the modal.
         $.fancybox.close();

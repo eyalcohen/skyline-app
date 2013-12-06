@@ -41,7 +41,7 @@ define([
             + att.data.action.a + '</a> '
             + verb + ' ' + owner + ' ' + type + ', '
             + link + '<i class="icon-' + icon + '"></i>'
-            + att.data.target.n + '</a>:'
+            + att.data.target.n + '</a>.'
             + (att.data.action.b ? '<span class="event-body">"'
             + '<img src=' + gravatar + ' width="16" height="16" />'
             + att.data.action.b + '"</span>': '');

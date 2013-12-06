@@ -1,5 +1,5 @@
-/*!
- * Copyright 2011 Mission Motors
+/*
+ * Handle URL paths and changes.
  */
 
 define([
@@ -13,16 +13,18 @@ define([
   'views/error',
   'views/signin',
   'views/forgot',
+  'views/lists/flashes',
   'views/save',
   'views/browser',
   'views/header',
   'views/home',
+  'views/splash',
   'views/settings',
   'views/reset',
   'views/profile',
   'views/chart'
-], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
-      Save, Browser, Header, Home, Settings, Reset, Profile, Chart) {
+], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot, Flashes,
+      Save, Browser, Header, Home, Splash, Settings, Reset, Profile, Chart) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -39,8 +41,13 @@ define([
               + window.location.search);
         } catch (err) {}
 
+      // Determine if this is an embeded widget.
+      var rx = new RegExp([window.location.host, 'embed'].join('/'),'i');
+      this.app.embed = rx.test(window.location.href);
+
       // Page routes
-      this.route(':username/views/:slug', 'view', this.chart);
+      this.route('embed/:username/views/:slug', 'embed', this.embed);
+      this.route(':username/views/:slug', 'chart', this.chart);
       this.route(':username', 'profile', this.profile);
       this.route('chart', 'chart', this.chart);
       this.route('reset', 'reset', this.reset);
@@ -79,13 +86,10 @@ define([
       }, this));
 
       // Init page spinner.
-      this.spin = new Spin($('.page-spin'), {
-        color: '#bfbfbf',
-        lines: 13,
-        length: 3,
-        width: 2,
-        radius: 6,
-      });
+      var sopts = this.app.embed ?
+          {color: '#bfbfbf', lines: 17, length: 7, width: 3, radius: 12}: 
+          {color: '#bfbfbf', lines: 13, length: 3, width: 2, radius: 6};
+      this.spin = new Spin($('.page-spin'), sopts);
     },
 
     routes: {
@@ -99,9 +103,14 @@ define([
       function _render(err, login) {
 
         // Render page elements.
-        if (!this.header)
-          this.header = new Header(this.app).render();
-        else if (login) this.header.render(true);
+        if (!this.app.embed)
+          if (!this.header)
+            this.header = new Header(this.app).render();
+          else if (login) this.header.render(true);
+
+        // Start block messages.
+        if(!this.flashes)
+          this.flashes = new Flashes(this.app);
 
         // Callback to route.
         cb(err);
@@ -156,7 +165,9 @@ define([
       this.start();
       this.render('/service/home.profile', _.bind(function (err) {
         if (err) return;
-        this.page = new Home(this.app).render();
+        this.page = this.app.profile.user ?
+            new Home(this.app).render():
+            new Splash(this.app).render();
         this.stop();
         this.header.unwiden();
       }, this));
@@ -185,7 +196,7 @@ define([
 
     settings: function () {
       this.start();
-      this.render('/service/settings.profile', _.bind(function (err) {
+      this.render('/service/settings.profile', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
@@ -202,7 +213,20 @@ define([
         if (err) return;
         this.page = new Chart(this.app).render();        
         this.stop();
-        this.header.widen();
+        if (this.header)
+          this.header.widen();
+      }, this));
+    },
+
+    embed: function (un, slug) {
+      this.start();
+      var key = un && slug ? {un: un, slug: slug}: null;
+      var state = key ? {key: key}: store.get('state');
+      this.render('/service/chart.profile/', {state: state, embed: true},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new Chart(this.app).render();
+        this.stop();
       }, this));
     },
 

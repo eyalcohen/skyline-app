@@ -236,6 +236,10 @@ body {
   font-smoothing: antialiased;
 }
 
+body.embed {
+  overflow: hidden;
+}
+
 a,
 a:visited {
   color: #27CDD6;
@@ -277,6 +281,7 @@ header {
 
 footer {
   position: fixed;
+  z-index: 7000;
   background: #2f2f2f;
   width: 100%;
   height: 23px;
@@ -676,6 +681,13 @@ a.info-delete {
   position: absolute;
   top: 30px;
   left: 120px;
+}
+
+body.embed .page-spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1000;
 }
 
 .page-heading {
@@ -1108,6 +1120,71 @@ a.button.modal-button.full {
 
 /*.........................................................................*/
 
+.splash .page {
+  width: 980px;
+}
+
+.splash h1 {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 44px;
+}
+
+.splash h2 {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.splash-buttons {
+  margin: 30px 0 40px;
+  text-align: center;
+}
+
+a.splash-button {
+  font-size: 20px;
+  line-height: 36px;
+}
+
+a.splash-start-button {
+  background: rgba(39, 205, 214, 0.8);
+  color: #fff;
+  border-color: #4f4f4f;
+}
+
+a.splash-start-button:active {
+  background: rgba(39, 205, 214, 1);
+}
+
+.splash-chart {
+  margin: 20px 0;
+  width: 100%;
+  height: 420px;
+  border: 1px solid #d0d0d0;
+  background: #f9f9f9;
+}
+
+ul.splash-boxes {
+  height: 202px;
+  font-size: 0;
+  white-space: nowrap;
+  border-left: 1px solid #d0d0d0;
+}
+
+ul.splash-boxes li {
+  display: inline-block;
+  width: 326px;
+  height: 200px;
+  list-style-image: none;
+  border: 1px solid #d0d0d0;
+  border-left: none;
+  background: #f2f2f2;
+}
+
+/*.........................................................................*/
+
 .home .page {
   width: 980px;
 }
@@ -1385,6 +1462,38 @@ td.profile-item-delete:active {
   transition: height 0.25s;
 }
 
+.main.embed .chart {
+  overflow: hidden;
+}
+
+.chart .dnd {
+  display: none;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background: rgba(39, 205, 214, 0.25);
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.chart.dragging .dnd {
+  display: block;
+}
+
 .upper-panel {
   position: relative;
   z-index: 10;
@@ -1441,7 +1550,7 @@ a.control-button.view-only {
   z-index: 11;
   top: 33px;
   bottom: 271px;
-  right: -300px;
+  right: -301px;
   width: 300px;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
@@ -1459,6 +1568,10 @@ a.control-button.view-only {
   right: 0;
 }
 
+.main.embed .side-panel {
+  bottom: 212px;
+}
+
 .lower-panel {
   position: absolute;
   z-index: 0;
@@ -1470,12 +1583,20 @@ a.control-button.view-only {
   border-top: 1px solid #d0d0d0;
 }
 
+.main.embed .lower-panel {
+  bottom: -59px;
+}
+
 .graphs {
   position: absolute;
   top: 34px;
   bottom: 270px;
   width: 100%;
   min-height: 300px;
+}
+
+.main.embed .graphs {
+  min-height: 360px;
 }
 
 .graph {
@@ -1530,6 +1651,11 @@ a.control-button.view-only {
   pointer-events: auto;
   line-height: 21px;
   height: 21px;
+}
+
+.main.embed .cursor a.comment-button,
+.main.embed .cursor a.comment-cancel-button {
+  display: none;
 }
 
 .cursor a.comment-cancel-button {
@@ -2196,6 +2322,10 @@ a.comments-signin {
   display: block;
 }
 
+.browser.dragging input {
+  pointer-events: none;
+}
+
 .browser .dnd i {
   display: block;
   margin: 0 auto;
@@ -2203,6 +2333,7 @@ a.comments-signin {
   font-size: 48px;
   width: 70px;
   color: #2f2f2f;
+  pointer-events: none;
 }
 
 .browser.library .dnd i {

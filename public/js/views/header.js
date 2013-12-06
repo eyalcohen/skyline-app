@@ -7,9 +7,8 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'views/lists/flashes',
   'text!../../templates/box.html'
-], function ($, _, Backbone, mps, Flashes, box) {
+], function ($, _, Backbone, mps, box) {
   return Backbone.View.extend({
 
     el: '.header',
@@ -63,10 +62,6 @@ define([
         this.subscriptions.push(mps.subscribe('user/delete',
             _.bind(this.logout, this)));
       }
-
-      // Start block messages.
-      if(!this.flashes)
-        this.flashes = new Flashes(this.app);
 
       // For graph titles...
       this.subscriptions.push(mps.subscribe('title/set',

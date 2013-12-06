@@ -58,7 +58,7 @@ define([
       }, this));
 
       // Show other elements.
-      this.$('.show-older.comment').show();
+      this.$('.showolder.comment').show();
       this.$('.comment-input-wrap').show();
       this.$('.comment-input-wrap .comment').show();
 
@@ -68,7 +68,7 @@ define([
     // Bind mouse events.
     events: {
       'click .comments-signin': 'signin',
-      'click .show-older': 'older',
+      'click .showolder': 'older',
     },
 
     // Collect new replies from socket events.
@@ -179,7 +179,7 @@ define([
         this.collection.options.reverse = false;
 
         // Hide the button.
-        this.$('.show-older.comment').hide();
+        this.$('.showolder.comment').hide();
 
       }, this));
 
