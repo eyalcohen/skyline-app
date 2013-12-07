@@ -119,11 +119,18 @@ define([
         if (err) return console.error(err);
         if (!channels) return console.error('No channels found');
 
-        // Add dataset ID to channel models.
+        // Add dataset ID to channel models, and calculate dataset beg/end
+        var prevBeg = Number.MAX_VALUE;
+        var prevEnd = -Number.MAX_VALUE;
         _.each(channels, _.bind(function (c) {
+          if (c.beg < prevBeg) prevBeg = c.beg;
+          if (c.end > prevEnd) prevEnd = c.end;
           c.did = this.model.id;
         }, this));
-        
+
+        this.model.set('beg', prevBeg);
+        this.model.set('end', prevEnd);
+
         // Create channel list.
         this.channels = new Channels(this.app, {
           items: channels,

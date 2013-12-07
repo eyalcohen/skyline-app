@@ -142,6 +142,23 @@ define([
       var datasetId = dataset.get('id')
       channels = _.isArray(channels) ? channels : [channels];
 
+      // if this channel is way off the screen, and there is no
+      // offset, bring it over.
+      var visTime = this.view.getVisibleTime();
+
+      // we consider a dataset that is completely off the screen by a factor
+      // of 2 as one that needs to be 'brought over'
+      var factor = 0; // Tweak this number to control this effect.
+      var dur = (visTime.end - visTime.beg) * factor;
+      var offsetChanged = false;
+      if (dataset.get('offset') == 0) {
+        if (visTime.beg > dataset.get('end') + dur 
+            || visTime.end < dataset.get('beg') - dur) {
+          dataset.set('offset', visTime.beg - dataset.get('beg'));
+          offsetChanged = true;
+        }
+      }
+
       var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
       _.each(this.getChannels(), _.bind(function (channel) {
         if (!channel.yaxisNum) return;
@@ -173,6 +190,8 @@ define([
       }, this));
       this.updateCacheSubscription(client);
       // mps.publish('view/save/status', [true]);
+      if (offsetChanged)
+        mps.publish('graph/offsetChanged', []);
       return this;
     },
 

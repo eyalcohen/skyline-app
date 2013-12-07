@@ -153,7 +153,9 @@ define([
           //interpPt: null,
         };
 
-        if (_.isEmpty(series.data)) return null;
+        // the first data point of a series is null.  This function
+        // only works on series data that has at least two valid points
+        if (series.data.length < 3) return null;
 
         // Excluse empty and min-max series.
         if (!series.channelName || series.lines.fill) return null;
