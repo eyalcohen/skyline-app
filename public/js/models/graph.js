@@ -31,7 +31,7 @@ define([
       this.set('visibleTime', time);
       this.cache = new Cache(this.app);
       this.set({channels: []});
-      this.sampleSet = {};
+      this.sampleCollection = [];
 
       // View change events.
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
@@ -47,14 +47,14 @@ define([
       return this;
     },
 
-    getOrCreateClient: function (datasetId) {
+    getOrCreateClient: function (dataset) {
       var client = _.find(this.clients, function (c) {
-        return c.datasetId === datasetId;
+        return c.dataset === dataset;
       });
       if (client) return client;
-      client = {id: util.rid32(), datasetId: datasetId, channels: []};
+      client = {id: util.rid32(), dataset: dataset, channels: [] };
       this.clients.push(client);
-      this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, datasetId));
+      this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, dataset));
       return client;
     },
 
@@ -93,11 +93,21 @@ define([
       else set.call(this, client);
 
       function set(c) {
+        var offset = c.dataset.get('offset')
         this.cache.setClientView(
-            c.id, c.datasetId,
+            c.id, c.dataset.get('id'),
             _.pluck(c.channels, 'channelName'),
-            dur, this.prevRange.beg, this.prevRange.end);
+            dur, this.prevRange.beg - offset, this.prevRange.end - offset);
       }
+    },
+
+    findDatasetFromChannel: function(channelName) {
+      var client =  _.find(this.clients, function (client) {
+        return _.find(client.channels, function (channels) {
+          return channels.channelName == channelName;
+        });
+      });
+      return client ? client.dataset : undefined;
     },
 
     getChannels: function () {
@@ -114,16 +124,40 @@ define([
       var datasets = [];
       _.each(this.clients, function (client) {
         if (client.channels.length === 0) return;
-        datasets.push({
-          _id: Number(client.datasetId),
-          channels: client.channels,
-        });
+        datasets.push(client.dataset)
       });
       return datasets;
     },
 
-    addChannel: function (datasetId, channels) {
+    changeDatasetOffset: function (datasetId, newOfset) {
+      var client = _.find(this.clients, function (cl) {
+        cl.id == datasetId;
+      });
+      if (!client) return;
+      client.offset = newOffset;
+    },
+
+    addChannel: function (dataset, channels) {
+      if (!dataset) return;
+      var datasetId = dataset.get('id')
       channels = _.isArray(channels) ? channels : [channels];
+
+      // if this channel is way off the screen, and there is no
+      // offset, bring it over.
+      var visTime = this.view.getVisibleTime();
+
+      // we consider a dataset that is completely off the screen by a factor
+      // of 2 as one that needs to be 'brought over'
+      var factor = 0; // Tweak this number to control this effect.
+      var dur = (visTime.end - visTime.beg) * factor;
+      var offsetChanged = false;
+      if (dataset.get('offset') == 0) {
+        if (visTime.beg > dataset.get('end') + dur 
+            || visTime.end < dataset.get('beg') - dur) {
+          dataset.set('offset', visTime.beg - dataset.get('beg'));
+          offsetChanged = true;
+        }
+      }
 
       var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
       _.each(this.getChannels(), _.bind(function (channel) {
@@ -135,7 +169,7 @@ define([
       }, this));
       var yAxisNumToUse = numSeriesRightAxis > numSeriesLeftAxis ? 2 : 1;
 
-      var client = this.getOrCreateClient(datasetId);
+      var client = this.getOrCreateClient(dataset);
       _.each(channels, _.bind(function (channel) {
         if (_.pluck(client.channels, 'channelName')
             .indexOf(channel.channelName) !== -1)
@@ -156,11 +190,15 @@ define([
       }, this));
       this.updateCacheSubscription(client);
       // mps.publish('view/save/status', [true]);
+      if (offsetChanged)
+        mps.publish('graph/offsetChanged', []);
       return this;
     },
 
-    removeChannel: function (datasetId, channel) {
-      var client = this.getOrCreateClient(datasetId);
+    removeChannel: function (dataset, channel) {
+      if (!dataset) return;
+      var datasetId = dataset.get('id')
+      var client = this.getOrCreateClient(dataset);
       var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);
       if (index === -1) return;
@@ -178,13 +216,26 @@ define([
       cb(this.getChannels());
     },
 
-    updateSampleSet: function (datasetId, sampleSet) {
+    updateSampleSet: function (dataset, sampleSet) {
+      var offset = dataset.get('offset')
       _.each(sampleSet, _.bind(function (ss, cn) {
-        this.sampleSet[cn] = ss;
+        this.sampleCollection[cn] = {sampleSet:ss, offset:offset};
       }, this));
       this.view.draw();
     },
 
+    setDatasetOffset: function(channelName, newOffset) {
+      var dataset = this.findDatasetFromChannel(channelName);
+
+      //update offset by adding to old offset
+      dataset.set('offset', newOffset)
+      this.updateCacheSubscription(this.getOrCreateClient(dataset));
+    },
+
+    getDatasetOffset: function(channelName) {
+      var dataset = this.findDatasetFromChannel(channelName);
+      return dataset.get('offset') || 0;
+    },
 
   });
 });

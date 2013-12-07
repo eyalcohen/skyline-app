@@ -122,6 +122,112 @@ define([
       this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);
     },
 
+    // returns an array of objects containing {
+    //   channelName: name of series to cursor
+    //   nearestPointData: x,y of the nearest point
+    //   pixelsFromNearestPt: distance of mouse from the nearest point
+    //   pixelsFromInterpPt: distance of mouse from an interpolated line
+    getStatsNearMouse: function (e) {
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+      var time = xaxis.c2p(mouse.x);
+      var points = {};
+
+      var lastDataSet = null;
+
+      // stored remapping of series (x,y) points as array of x points
+      var series_x = [];
+
+      // stored index of the next point in the series relative to the cursor
+      var timeIdxHigh;
+
+      // Return an array of interesting data about the series, removing nulls
+      return _.compact(_.map(this.plot.getData(), _.bind(function (series) {
+
+        // object to return
+        var obj = {
+          channelName: series.channelName,
+          nearestPointData: null,
+          pixelsFromNearestPt: null,
+          pixelsFromInterpPt: null,
+          //interpPt: null,
+        };
+
+        // the first data point of a series is null.  This function
+        // only works on series data that has at least two valid points
+        if (series.data.length < 3) return null;
+
+        // Excluse empty and min-max series.
+        if (!series.channelName || series.lines.fill) return null;
+
+        // Ensure series is valid for the time.
+        if (time === null) return null;
+
+        // If this is the same dataset as the last series, we don't
+        // need to run the below search again
+        var dataset = this.model.findDatasetFromChannel(series.channelName);
+        if (dataset !== lastDataSet) {
+          // get the x coordinates of the series as an array
+          series_x = (_.map(series.data, function (d) { return d ? d[0] : null; }));
+
+          // use binary search to locate time in the array
+          timeIdxHigh = (_.sortedIndex(series_x, time, null, this))
+        }
+
+        // Bound edges.  This should just work, but will make invalid results
+        // for pixelsFromInterpPt and interpPt
+        if (timeIdxHigh < 2) {
+          timeIdxHigh = 2;
+        } else if (timeIdxHigh >= series.data.length) {
+          timeIdxHigh = series.data.length - 1;
+        }
+        var timeIdxLow = timeIdxHigh - 1;
+
+        // coordinates of series values
+        var cTimeLow = series.xaxis.p2c(series.data[timeIdxLow][0]);
+        var cTimeHigh = series.xaxis.p2c(series.data[timeIdxHigh][0]);
+        var cValueLow = series.yaxis.p2c(series.data[timeIdxLow][1]);
+        var cValueHigh = series.yaxis.p2c(series.data[timeIdxHigh][1]);
+
+        // linear interpolation
+        var interp = function (x0, x1, y0, y1, x) {
+          var s = (y1 - y0) / (x1 - x0);
+          return (x - x0)*s + y0;
+        };
+
+        /*  not sure if useful
+        obj.interpPt = interp(
+          series.data[timeIdxLow][0], series.data[timeIdxHigh][0],
+          series.data[timeIdxLow][1], series.data[timeIdxHigh][1], time
+        );
+        */
+
+        // if the cursor is between two points, determine if its closer
+        // to the right or left point
+        var cNearestPt = []
+        if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
+          obj.nearestPointData = series.data[timeIdxLow];
+          cNearestPt.push(cTimeLow);
+          cNearestPt.push(cValueLow);
+        }
+        else {
+          obj.nearestPointData = series.data[timeIdxHigh];
+          cNearestPt.push(cTimeHigh);
+          cNearestPt.push(cValueHigh);
+        }
+
+        var x0 = mouse.x - cNearestPt[0];  var y0 = mouse.y - cNearestPt[1];
+        // vector magnitude of distance to pixels
+        obj.pixelsFromNearestPt = Math.sqrt(x0*x0+y0*y0);
+
+        var interpValue = interp(cTimeLow, cTimeHigh, cValueLow, cValueHigh, mouse.x);
+        obj.pixelsFromInterpPt = Math.abs(mouse.y - interpValue);
+        return obj;
+
+      }, this)));
+    },
+
+    // TODO: Change this function to use getStatsNearMouse and make the cursor display!
     cursor: function (e) {
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
@@ -299,6 +405,9 @@ define([
           interactive: true,
           frameRate: 60,
           useShiftKey: true,
+          onShiftDragStart: _.bind(this.beginOffset, this),
+          onShiftDrag: _.bind(this.endOffset, this),
+          onShiftDragEnd: _.bind(this.endOffset, this),
         },
         hooks: {
           draw: [_.bind(this.onDraw, this)],
@@ -312,10 +421,20 @@ define([
         this.$el.mousewheel(_.bind(function (e) {
           var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
+          this.updateLineStyle(e);
           return false;
         }, this))
         .dblclick(_.bind(function (e) {
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
+        }, this))
+        .mousemove(_.bind(function (e) {
+          if (!this.lastMouseMove) this.lastMouseMove = 0;
+          // don't run this very frequently, perhaps once every 20ms
+          if (Date.now() - this.lastMouseMove > 20) {
+            this.lastMouseMove = Date.now();
+            this.updateLineStyle(e);
+          }
+
         }, this));
 
         function graphZoomClick(e, factor, out) {
@@ -346,6 +465,32 @@ define([
         } while (i < axes.xaxis.max);
         return markings;
       }
+    },
+
+    beginOffset: function(e) {
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+
+      this.channelForOffset =
+        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0].channelName
+
+      this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
+    },
+
+    endOffset: function(e) {
+      // get the desired time offset
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+
+      var offsetTimeEnd = xaxis.c2p(mouse.x) * 1000;
+      var offset = (xaxis.c2p(mouse.x) * 1000 - this.offsetTimeBegin);
+      this.offsetTimeBegin = offsetTimeEnd;
+
+      var newOffset = this.model.getDatasetOffset(this.channelForOffset) + offset;
+
+      // update the dataset model
+      this.model.setDatasetOffset(this.channelForOffset, newOffset);
+      mps.publish('graph/offsetChanged', []);
     },
 
     onDraw: function () {
@@ -425,15 +570,20 @@ define([
     getSeriesData: function (channel) {
       var conv = units.findConversion(channel.units,
           channel.displayUnits || channel.units);
-      var samples = this.model.sampleSet[channel.channelName] || [];
       var data = [];
       var minMax = [];
+      var samples = [];
+      var offset = 0;
+      if (this.model.sampleCollection[channel.channelName]) {
+        samples = this.model.sampleCollection[channel.channelName].sampleSet;
+        offset = this.model.sampleCollection[channel.channelName].offset;
+      }
       var prevEnd = null, prevMinMaxEnd = null;
       _.each(samples, function (s, i) {
         if (prevEnd != s.beg)
           data.push(null);
         var val = s.val * conv.factor + conv.offset;
-        data.push([s.beg / 1000, val]);
+        data.push([(s.beg + offset) / 1000, val]);
         // if (s.end !== s.beg)
         //   data.push([s.end / 1000, val]);
         prevEnd = s.end;
@@ -503,6 +653,29 @@ define([
           yAxes[i].options.color = color;
         }
       }, this));
+    },
+
+    // update line widths if mouse is near a series.  Useful for highlighting
+    // a line
+    updateLineStyle: function(e) {
+      var mouse = this.getMouse(e);
+      var xaxis = this.plot.getXAxes()[0];
+      var closestChannel =
+        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+      if (!closestChannel) return;
+      var plotData = this.plot.getData();
+
+      _.each(plotData, function(obj) {
+        obj.lines.lineWidth = 2;
+      });
+      var series =  _.find(plotData, function (obj) {
+        return obj.channelName == closestChannel.channelName;
+      })
+      if (closestChannel.pixelsFromInterpPt < 10) {
+        series.lines.lineWidth = 5;
+      }
+      this.plot.setData(plotData);
+      this.plot.draw();
     },
 
   });
