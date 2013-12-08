@@ -1,6 +1,7 @@
 
-.icon-plus:before { content: '\e812'; } /* '' */
+.icon-th-large:before { content: '\e813'; } /* '' */
 .icon-database:before { content: '\e807'; } /* '' */
+.icon-bookmark:before { content: '\e810'; } /* '' */
 .icon-download:before { content: '\e804'; } /* '' */
 .icon-export:before { content: '\e805'; } /* '' */
 .icon-comment:before { content: '\e803'; } /* '' */
@@ -8,7 +9,7 @@
 .icon-folder-empty:before { content: '\e80d'; } /* '' */
 .icon-menu-1:before { content: '\e802'; } /* '' */
 .icon-floppy:before { content: '\e801'; } /* '' */
-.icon-bookmark:before { content: '\e810'; } /* '' */
+.icon-plus:before { content: '\e812'; } /* '' */
 .icon-cancel:before { content: '\e80c'; } /* '' */
 .icon-eye:before { content: '\e809'; } /* '' */
 .icon-logout:before { content: '\e800'; } /* '' */

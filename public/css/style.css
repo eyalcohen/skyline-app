@@ -1166,21 +1166,37 @@ a.splash-start-button:active {
   background: #f9f9f9;
 }
 
-ul.splash-boxes {
-  height: 202px;
-  font-size: 0;
-  white-space: nowrap;
-  border-left: 1px solid #d0d0d0;
+.splash-section {
+  margin-top: 40px;
 }
 
-ul.splash-boxes li {
-  display: inline-block;
-  width: 326px;
-  height: 200px;
-  list-style-image: none;
-  border: 1px solid #d0d0d0;
-  border-left: none;
-  background: #f2f2f2;
+.splash-section-left {
+  float: left;
+  width: 50%;
+}
+
+.splash-section-right {
+  margin-left: 50%;
+  text-align: right;
+}
+
+.splash-section i {
+  font-size: 180px;
+  color: #d0d0d0;
+}
+
+.splash-section p {
+  font-size: 16px;
+  line-height: 26px;
+  text-align: left;
+}
+
+.splash-section-left p {
+  margin-right: 20px;
+}
+
+.splash-section-right p {
+  margin-left: 20px;
 }
 
 /*.........................................................................*/
