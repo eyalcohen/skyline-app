@@ -1125,21 +1125,24 @@ a.button.modal-button.full {
 }
 
 .splash h1 {
-  margin-top: 40px;
+  margin-top: 30px;
   text-align: center;
   font-size: 28px;
   font-weight: 700;
   line-height: 44px;
+  color: #666;
 }
 
 .splash h2 {
   text-align: center;
   font-size: 14px;
+  line-height: 14px;
   font-weight: 400;
+  color: #666;
 }
 
 .splash-buttons {
-  margin: 30px 0 40px;
+  margin-top: 40px;
   text-align: center;
 }
 
@@ -1158,12 +1161,60 @@ a.splash-start-button:active {
   background: rgba(39, 205, 214, 1);
 }
 
+.splash-buttons-or {
+  padding: 0 30px 0 25px;
+  vertical-align: 3px;
+  color: #8f8f8f;
+}
+
+.splash-try {
+  display: inline-block;
+  vertical-align: -66px;
+}
+
+.splash-try-top {
+  display: block;
+  font-weight: 700;
+  font-size: 20px;
+  color: #27CDD6;
+}
+
+.splash-try-bottom {
+  position: relative;
+  display: block;
+  margin-top: 6px;
+}
+
+.splash-try-bottom i {
+  font-size: 70px;
+  color: #27CDD6;
+}
+
+.splash-try-bottom i:before {
+  margin-bottom: -3px;
+}
+
+.splash-try-bottom span {
+  position: absolute;
+  bottom: 4px;
+  left: 90px;
+  font-size: 14px;
+  color: #8f8f8f;
+  text-align: left;
+  white-space: nowrap;
+}
+
 .splash-chart {
-  margin: 20px 0;
   width: 100%;
   height: 420px;
-  border: 1px solid #d0d0d0;
-  background: #f9f9f9;
+  margin-top: -26px;
+  border-style: solid;
+  border-width: 27px;
+  -moz-border-image: url(../img/splash_border.png) 27 repeat;
+  -webkit-border-image: url(../img/splash_border.png) 27 repeat;
+  -o-border-image: url(../img/splash_border.png) 27 repeat;
+  border-image: url(../img/splash_border.png) 27 fill repeat;
+  border-right-color: #f2f2f2;
 }
 
 .splash-section {

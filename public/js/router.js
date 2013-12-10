@@ -87,7 +87,7 @@ define([
 
       // Init page spinner.
       var sopts = this.app.embed ?
-          {color: '#bfbfbf', lines: 17, length: 7, width: 3, radius: 12}: 
+          {color: '#8f8f8f', lines: 17, length: 7, width: 3, radius: 12}: 
           {color: '#bfbfbf', lines: 13, length: 3, width: 2, radius: 6};
       this.spin = new Spin($('.page-spin'), sopts);
     },
