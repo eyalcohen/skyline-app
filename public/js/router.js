@@ -42,11 +42,13 @@ define([
         } catch (err) {}
 
       // Determine if this is an embeded widget.
-      var rx = new RegExp([window.location.host, 'embed'].join('/'),'i');
+      var rx = new RegExp([window.location.host, 'embed'].join('/'), 'i');
       this.app.embed = rx.test(window.location.href);
 
       // Page routes
-      this.route('embed/:username/views/:slug', 'embed', this.embed);
+      this.route('embed/:username/:id', 'chart', this.chart);
+      this.route(':username/:id', 'chart', this.chart);
+      this.route('embed/:username/views/:slug', 'chart', this.chart);
       this.route(':username/views/:slug', 'chart', this.chart);
       this.route(':username', 'profile', this.profile);
       this.route('chart', 'chart', this.chart);
@@ -206,27 +208,27 @@ define([
 
     chart: function (un, slug) {
       this.start();
-      var key = un && slug ? {un: un, slug: slug}: null;
-      var state = key ? {key: key}: store.get('state');
-      this.render('/service/chart.profile/', {state: state},
-          _.bind(function (err) {
+      var state = {};
+      if (window.location.pathname.toLowerCase().indexOf('/views/') !== -1
+            || !slug) {
+        var key = un && slug ? {un: un, slug: slug}: null;
+        state = key ? {key: key}: store.get('state');
+      } else {
+        state.datasets = {};
+        state.datasets[slug] = {index: 0};
+        this.navigate('/chart', {trigger: false, replace: true});
+      }
+      if (this.app.profile && this.app.profile.user)
+        state.user_id = this.app.profile.user.id;
+      store.set('state', state);
+      var data = {state: state};
+      if (this.app.embed) data.embed = true;
+      this.render('/service/chart.profile/', data, _.bind(function (err) {
         if (err) return;
         this.page = new Chart(this.app).render();        
         this.stop();
         if (this.header)
           this.header.widen();
-      }, this));
-    },
-
-    embed: function (un, slug) {
-      this.start();
-      var key = un && slug ? {un: un, slug: slug}: null;
-      var state = key ? {key: key}: store.get('state');
-      this.render('/service/chart.profile/', {state: state, embed: true},
-          _.bind(function (err) {
-        if (err) return;
-        this.page = new Chart(this.app).render();
-        this.stop();
       }, this));
     },
 

@@ -1,3 +1,9 @@
-<a href="javascript:;">
+<%
+
+  var link = [this.model.get('author').username, this.model.id].join('/');
+
+%>
+
+<a href="/<%= link %>" class="navigate">
   <i class="icon-database"></i><%= this.model.get('title') %>
 </a>

@@ -41,17 +41,8 @@ define([
           || $(e.target).hasClass('icon-cancel')) return;
 
       if (!this.parentView.modal) {
-
-        // Set app state.
-        var state = {};
-        if (this.app.profile && this.app.profile.user)
-          state.user_id = this.app.profile.user.id;
-        state.datasets = {};
-        state.datasets[this.model.get('id')] = {index: 0};
-        store.set('state', state);
-
-        // Route to a new chart.
-        this.app.router.navigate('/chart', {trigger: true});
+        var path = [this.model.get('author').username, this.model.id].join('/');
+        this.app.router.navigate('/' + path, {trigger: true});
       } else {
 
         // Add this dataset to the existing chart.

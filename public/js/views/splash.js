@@ -47,6 +47,14 @@ define([
 
     // Misc. setup.
     setup: function () {
+
+      // Save refs.
+      this.code = this.$('.code');
+      this.iframe = this.$('iframe');
+
+      // Fill in the embed code.
+      this.update(this.iframe.attr('src'));
+
       return this;
     },
 
@@ -78,6 +86,11 @@ define([
       // Render the signin view.
       mps.publish('modal/signin/open');
     },
+
+    update: function (str) {
+      this.code.html('<iframe width="100%" height="100%" '
+          + 'src="' + str + '" frameborder="0"></iframe>');
+    }
 
   });
 });
