@@ -259,7 +259,7 @@ define([
         client.channels.forEach(function(channelName) {
           // Hack: avoid fetching buckets which have no schema, thus must be
           // empty.
-          var validRanges = [{beg:0, end: 1e50}];
+          var validRanges = [{beg:-1e50, end: 1e50}];
           // App.publish('FetchChannelInfo-' + client.datasetId,
           //             [channelName, function(desc){
           //   if (desc) validRanges = desc.valid;
@@ -396,7 +396,7 @@ define([
       delete client.updateTimeout;
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
-        var validRanges = [{beg:0, end: 1e50}];
+        var validRanges = [{beg:-1e50, end: 1e50}];
         // App.publish('FetchChannelInfo-' + client.datasetId, [channelName,
         //             function(desc) {
         //   if (desc) validRanges = desc.valid;
