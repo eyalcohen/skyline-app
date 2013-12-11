@@ -275,8 +275,6 @@ define([
       var files = e.originalEvent.dataTransfer.files;
       this.add(null, files);
 
-      // Stop drag styles.
-      this.$el.removeClass('dragging');
       return false;
     },
 
@@ -309,8 +307,10 @@ define([
         // extension and consider improved validation down the road, particularly
         // as we add support for new file types
         var ext = file.name.split('.').pop();
-        if (ext !== 'csv' && ext !== 'xls')
+        if (ext !== 'csv' && ext !== 'xls') {
+          this.$el.removeClass('dragging');
           return false;
+        }
 
         // Construct the payload to send.
         var payload = {
@@ -331,6 +331,7 @@ define([
 
           // Stop load indicator.
           this.app.router.stop();
+          this.$el.removeClass('dragging');
 
           if (err) {
 
@@ -347,7 +348,7 @@ define([
           }
 
           // Show alert
-            _.delay(function () {
+          _.delay(function () {
             mps.publish('flash/new', [{
               message: 'You added a new data source: "'
                   + res.title + ', ' + res.meta.channel_cnt + ' channel'
@@ -367,18 +368,9 @@ define([
           // TODO: This should function like the above case,
           // but will be confusing until we have a macro view.
           } else {
-
-            // Set app state.
-            var state = {};
-            if (this.app.profile && this.app.profile.user)
-              state.user_id = this.app.profile.user.id;
-            state.datasets = {};
-            state.datasets[res.id] = {index: 0};
-            store.set('state', state);
-
-            // Route to a new chart.
-            this.app.router.navigate('/clear', {silent: true});
-            this.app.router.navigate('/chart', {trigger: true});
+            var path = [res.author.username, res.id].join('/');
+            this.app.router.navigate('/' + path, {trigger: true});
+            mps.publish('embed/update', [window.location.host + '/embed/' + path]);
           }
 
           // Ready for more.

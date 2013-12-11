@@ -30,22 +30,14 @@ define([
     },
 
     events: {
-      'click a': 'navigate'
+      'click .navigate': 'navigate'
     },
 
     navigate: function (e) {
       e.preventDefault();
-
-      // Set app state.
-      var state = {};
-      if (this.app.profile && this.app.profile.user)
-        state.user_id = this.app.profile.user.id;
-      state.datasets = {};
-      state.datasets[this.model.get('id')] = {index: 0};
-      store.set('state', state);
-
-      // Route to a new chart.
-      this.app.router.navigate('/chart', {trigger: true});
+      var path = $(e.target).closest('a').attr('href');
+      if (path)
+        this.app.router.navigate(path, {trigger: true});
     },
 
     _remove: function (cb) {

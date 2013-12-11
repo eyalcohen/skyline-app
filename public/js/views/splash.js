@@ -47,6 +47,15 @@ define([
 
     // Misc. setup.
     setup: function () {
+
+      // Save refs.
+      this.code = this.$('.code');
+      this.iframe = this.$('iframe');
+
+      // Fill in the embed code.
+      this.code.html('<iframe width="100%" height="100%" '
+          + 'src="' + this.iframe.attr('src') + '" frameborder="0"></iframe>');
+
       return this;
     },
 

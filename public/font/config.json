@@ -7,6 +7,12 @@
   "ascent": 850,
   "glyphs": [
     {
+      "uid": "dd492243d64e21dfe16a92452f7861cb",
+      "css": "th-large",
+      "code": 59411,
+      "src": "fontawesome"
+    },
+    {
       "uid": "44e04715aecbca7f266a17d5a7863c68",
       "css": "plus",
       "code": 59410,
@@ -107,6 +113,12 @@
       "css": "star-1",
       "code": 59403,
       "src": "modernpics"
+    },
+    {
+      "uid": "335c443d3231b944287309aa2593c880",
+      "css": "down-fat",
+      "code": 59412,
+      "src": "mfglabs"
     },
     {
       "uid": "1a94339c1ab20395e6a1475d8745714d",
