@@ -421,7 +421,10 @@ define([
         this.$el.mousewheel(_.bind(function (e) {
           var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
-          this.updateLineStyle(e);
+          if (Date.now() - this.lastZoom > 20) {
+            this.lastZoom = Date.now();
+            this.updateLineStyle(e);
+          }
           return false;
         }, this))
         .dblclick(_.bind(function (e) {
@@ -450,6 +453,9 @@ define([
 
       function weekendAreas(axes) {
         var markings = [];
+        // don't try to paint more than (experimentally) 70 markings
+        if (axes.xaxis.max - axes.xaxis.min > 7*24*60*60*1000*70)
+          return markings;
         var d = new Date(axes.xaxis.min);
         d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7));
         d.setUTCSeconds(0);
@@ -667,12 +673,16 @@ define([
 
       _.each(plotData, function(obj) {
         obj.lines.lineWidth = 2;
+        obj.points.radius = 3;
+        obj.points.lineWidth = 1;
       });
       var series =  _.find(plotData, function (obj) {
         return obj.channelName == closestChannel.channelName;
       })
       if (closestChannel.pixelsFromInterpPt < 10) {
         series.lines.lineWidth = 5;
+        series.points.radius = 4;
+        series.points.lineWidth = 0;
       }
       this.plot.setData(plotData);
       this.plot.draw();
