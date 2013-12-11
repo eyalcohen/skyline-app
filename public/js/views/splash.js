@@ -53,7 +53,8 @@ define([
       this.iframe = this.$('iframe');
 
       // Fill in the embed code.
-      this.update(this.iframe.attr('src'));
+      this.code.html('<iframe width="100%" height="100%" '
+          + 'src="' + this.iframe.attr('src') + '" frameborder="0"></iframe>');
 
       return this;
     },
@@ -86,11 +87,6 @@ define([
       // Render the signin view.
       mps.publish('modal/signin/open');
     },
-
-    update: function (str) {
-      this.code.html('<iframe width="100%" height="100%" '
-          + 'src="' + str + '" frameborder="0"></iframe>');
-    }
 
   });
 });

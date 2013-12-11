@@ -1247,14 +1247,15 @@ a.splash-start-button:active {
   font-weight: 700;
   color: #27CDD6;
   font-size: 16px;
-  line-height: 52px;
+  line-height: 58px;
   padding-left: 10px;
 }
 
 .splash-embed textarea.code {
   float: right;
   width: 878px;
-  font-size: 14px;
+  font-size: 16px;
+  padding: 12px 10px 10px;
 }
 
 .splash-section {

@@ -368,18 +368,9 @@ define([
           // TODO: This should function like the above case,
           // but will be confusing until we have a macro view.
           } else {
-
-            // Set app state.
-            var state = {};
-            if (this.app.profile && this.app.profile.user)
-              state.user_id = this.app.profile.user.id;
-            state.datasets = {};
-            state.datasets[res.id] = {index: 0};
-            store.set('state', state);
-
-            // Route to a new chart.
-            this.app.router.navigate('/clear', {silent: true});
-            this.app.router.navigate('/chart', {trigger: true});
+            var path = [res.author.username, res.id].join('/');
+            this.app.router.navigate('/' + path, {trigger: true});
+            mps.publish('embed/update', [window.location.host + '/embed/' + path]);
           }
 
           // Ready for more.

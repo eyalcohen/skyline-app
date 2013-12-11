@@ -87,6 +87,14 @@ define([
         this.modal = new Forgot(this.app).render();
       }, this));
 
+      // Update iframe src when embed code changes.
+      mps.subscribe('embed/update', _.bind(function (str) {
+        if (!this.app.embed) return;
+        $('.splash-embed .code', parent.document).html(
+            '<iframe width="100%" height="100%" '
+            + 'src="//' + str + '" frameborder="0"></iframe>');
+      }, this));
+
       // Init page spinner.
       var sopts = this.app.embed ?
           {color: '#8f8f8f', lines: 17, length: 7, width: 3, radius: 12}: 
