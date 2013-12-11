@@ -1256,6 +1256,7 @@ a.splash-start-button:active {
   width: 878px;
   font-size: 16px;
   padding: 12px 10px 10px;
+  max-height: 36px;
 }
 
 .splash-section {
