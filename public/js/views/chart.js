@@ -13,8 +13,10 @@ define([
   'views/lists/datasets',
   'views/lists/comments',
   'views/graph',
-  'views/exportdata'
-], function ($, _, Backbone, mps, util, units, template, Datasets, Comments, Graph, ExportData) {
+  'views/exportdata',
+  'views/overview'
+], function ($, _, Backbone, mps, util, units, template, Datasets, Comments,
+      Graph, ExportData, Overview) {
 
   return Backbone.View.extend({
 
@@ -113,6 +115,7 @@ define([
       this.datasets = new Datasets(this.app, {parentView: this});
       if (this.annotated)
         this.comments = new Comments(this.app, {parentView: this, type: 'view'});
+      this.overview = new Overview(this.app, {parentView: this}).render();
 
       // Do resize on window change.
       this.resize();

@@ -15,9 +15,11 @@ require.config({
     Modernizr: 'lib/modernizr/modernizr.src',
     mps: 'lib/minpubsub/minpubsub',
     Spin: 'lib/spin/spin',
-    excanvas: 'lib/excanvas/excanvas',
+    excanvas: 'lib/excanvas/excanvas.src',
     plugins: 'lib/jquery/plugins',
-    flot_plugins: 'lib/jquery/flot.plugins'
+    flot_plugins: 'lib/jquery/flot.plugins',
+    d3: 'lib/d3/d3.v3',
+    Rickshaw: 'lib/rickshaw/rickshaw.min',
   },
 
   // Dependency mapping:
@@ -47,6 +49,10 @@ require.config({
     },
     flot_plugins: {
       deps: ['jQuery', 'plugins']
+    },
+    Rickshaw: {
+      deps: ['d3'],
+      exports: 'Rickshaw'
     },
   }
 });
