@@ -17,6 +17,16 @@ define([
       this.app = app;
       this.view = view;
       this.clients = [];
+
+      this.DEFAULT_LINE_STYLE = {
+        showPoints: false,
+      }
+
+      // channelName -> showPoints:{true, false}
+      var s = store.get('state').lineStyleOptions;
+      this.lineStyleOptions = s ? s : {}
+      console.log(s);
+
       var time;
       if (store.get('state').time)
         time = store.get('state').time;
@@ -40,6 +50,7 @@ define([
         this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
         var state = store.get('state');
         state.time = visibleTime;
+        state.lineStyleOptions = this.lineStyleOptions;
         store.set('state', state);
       }, this));
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
@@ -184,6 +195,10 @@ define([
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
+
+        if (!this.lineStyleOptions[channel.channelName])
+          this.lineStyleOptions[channel.channelName] = this.DEFAULT_LINE_STYLE;
+
         client.channels.push(channel);
         mps.publish('channel/added', [datasetId, channel]);
         console.log('addChannel(', channel, ')...');
@@ -204,6 +219,9 @@ define([
       if (index === -1) return;
       client.channels.splice(index, 1);
       channel.did = datasetId;
+
+      delete this.lineStyleOptions[channel.channelName];
+
       mps.publish('channel/removed', [datasetId, channel]);
       console.log('removeChannel(', channel, ')...');
       this.updateCacheSubscription(client);

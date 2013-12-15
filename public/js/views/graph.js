@@ -27,6 +27,9 @@ define([
       this.options = options;
       this.parentView = options.parentView;
 
+      // Some graph constants
+      this.POINTS_TO_SHOW = 250;
+
       // Shell events:
       this.on('rendered', this.setup, this);
 
@@ -104,7 +107,7 @@ define([
         var width = w || this.$el.parent().width();
         var height = h || this.$el.parent().height();
         height = Math.max(height, 300);
-        this.plot.setCanvasDimensions(width, height);
+        //this.plot.setCanvasDimensions(width, height);
         this.plot.setupGrid();
         this.plot.draw();
       }
@@ -300,6 +303,7 @@ define([
 
       if (channels.length === 0) {
         channels.push({ channelName: 'empty' });
+        this.model.lineStyleOptions['empty'] = this.model.DEFAULT_LINE_STYLE;
         _.each(this.plot.getYAxes(),
               function (a) { a.options.show = false; });
       } else {
@@ -310,6 +314,7 @@ define([
       var opts = this.plot.getOptions();
       var series = [];
       _.each(channels, _.bind(function (channel, i) {
+        var lineStyleOpts = this.model.lineStyleOptions[channel.channelName]
         var highlighted = this.highlightedChannel === channel.channelName;
         var seriesBase = {
           xaxis: 1,
@@ -319,6 +324,9 @@ define([
         };
         var data = this.getSeriesData(channel);
         series.push(_.extend({
+          points: {
+            show:this.model.lineStyleOptions[channel.channelName].showPoints
+          },
           lines: {
             show: true,
             lineWidth: 2,
@@ -327,6 +335,9 @@ define([
           data: data.data,
           label: channel.title,
         }, seriesBase));
+        // TODO: Turned off MinMax plotting until I beter understand what
+        // its trying to do.
+        /*
         if (data.minMax.length > 0) {
           series.push(_.extend({
             lines: {
@@ -337,6 +348,7 @@ define([
             data: data.minMax,
           }, seriesBase));
         }
+        */
       }, this));
       this.updateSeriesColors(series);
       this.plot.setData(series);
@@ -380,7 +392,6 @@ define([
             lineWidth: 2
           },
           points: {
-            show: true,
             radius: 3,
             lineWidth: 1,
             symbol: 'circle'
@@ -421,10 +432,6 @@ define([
         this.$el.mousewheel(_.bind(function (e) {
           var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
-          if (Date.now() - this.lastZoom > 20) {
-            this.lastZoom = Date.now();
-            this.updateLineStyle(e);
-          }
           return false;
         }, this))
         .dblclick(_.bind(function (e) {
@@ -448,6 +455,7 @@ define([
             this.plot.zoomOut({center: c, amount: factor});
           else
             this.plot.zoom({center: c, amount: factor});
+          this.updateLineStyle(e);
         }
       }
 
@@ -661,32 +669,78 @@ define([
       }, this));
     },
 
-    // update line widths if mouse is near a series.  Useful for highlighting
-    // a line
+    // update line style based on heuristics
+    //  if mouse is near cursor, bold it
+    //  if line is displaying too many points, turn off points
     updateLineStyle: function(e) {
       var mouse = this.getMouse(e);
       var xaxis = this.plot.getXAxes()[0];
+      var plotData = this.plot.getData();
+      var opts = this.plot.getOptions();
+      var numPoints = this.getVisiblePoints();
+      var needsUpdate = false;
+
+      // lookup closest channel to mouse cursor
       var closestChannel =
         _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
       if (!closestChannel) return;
-      var plotData = this.plot.getData();
 
-      _.each(plotData, function(obj) {
+      // default values
+      _.each(plotData, function(obj, idx) {
+
+        // copy over some series data
+        var oldPoints = {}, oldLines = {};
+        _.extend(oldPoints, obj.points);
+        _.extend(oldLines, obj.lines);
+
+        // don't display line series points if we have a lot of data
+        var showPoints = numPoints[idx] < this.POINTS_TO_SHOW;
+        obj.points.show = showPoints;
+        this.model.lineStyleOptions[obj.channelName].showPoints = showPoints;
+
+        // default line styles
         obj.lines.lineWidth = 2;
         obj.points.radius = 3;
-        obj.points.lineWidth = 1;
-      });
+
+        // compare object properties and decide whether we ned to redraw
+        if (JSON.stringify(obj.lines) !== JSON.stringify(oldLines)
+            || JSON.stringify(obj.points) !== JSON.stringify(oldPoints))
+            needsUpdate = true;
+      }, this);
+
       var series =  _.find(plotData, function (obj) {
         return obj.channelName == closestChannel.channelName;
-      })
+      });
+
+      // bold the line if we're close to it
       if (closestChannel.pixelsFromInterpPt < 10) {
-        series.lines.lineWidth = 5;
+        needsUpdate = true;
+        series.lines.lineWidth = 4;
         series.points.radius = 4;
-        series.points.lineWidth = 0;
       }
-      this.plot.setData(plotData);
-      this.plot.draw();
+
+      if (needsUpdate) {
+        this.plot.setData(plotData);
+        this.plot.draw();
+      }
     },
+
+    // returns an array of number of datapoints visible in displayed graph
+    // per timeseries data
+    getVisiblePoints: function() {
+      var plotData = this.plot.getData();
+      var visTime = _.map(this.getVisibleTime(), function(a) { return a/1e3; });
+      return _.map(plotData, function(obj) {
+        var i = 1;
+        for (;i < obj.data.length; i++)
+          if (obj.data[i][0] >= visTime[0]) break;
+        var startIdx = i;
+        for (;i < obj.data.length; i++)
+          if (obj.data[i][0] >= visTime[1]) break;
+        var endIdx = i;
+        return (endIdx - startIdx);
+      });
+    }
 
   });
 });

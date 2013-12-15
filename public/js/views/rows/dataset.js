@@ -55,7 +55,6 @@ define([
       var state = store.get('state');
       if (state.datasets[this.model.id]) {
         if (state.datasets[this.model.id].offset) {
-          console.log(state.datasets[this.model.id].offset);
           this.model.set('offset', state.datasets[this.model.id].offset);
           this.updateOffset();
         }
