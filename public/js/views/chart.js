@@ -13,16 +13,18 @@ define([
   'views/lists/datasets',
   'views/lists/comments',
   'views/graph',
-  'views/exportdata'
-], function ($, _, Backbone, mps, util, units, template, Datasets, Comments, Graph, ExportData) {
+  'views/exportdata',
+  'views/overview'
+], function ($, _, Backbone, mps, util, units, template, Datasets, Comments,
+      Graph, ExportData, Overview) {
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
+    // The DOM target element for this page.
     className: 'chart',
     working: false,
 
-    // Module entry point:
+    // Module entry point.
     initialize: function (app, options) {
 
       // Save app ref.
@@ -36,9 +38,11 @@ define([
       this.subscriptions = [
         mps.subscribe('channel/add', _.bind(function (did, channel) {
           this.graph.model.addChannel(this.datasets.collection.get(did), channel);
+          this.overview.model.addChannel(this.datasets.collection.get(did), channel);
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
           this.graph.model.removeChannel(this.datasets.collection.get(did), channel);
+          this.overview.model.removeChannel(this.datasets.collection.get(did), channel);
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/draw', _.bind(this.updateIcons, this)),
@@ -113,6 +117,7 @@ define([
       this.datasets = new Datasets(this.app, {parentView: this});
       if (this.annotated)
         this.comments = new Comments(this.app, {parentView: this, type: 'view'});
+      this.overview = new Overview(this.app, {parentView: this}).render();
 
       // Do resize on window change.
       this.resize();

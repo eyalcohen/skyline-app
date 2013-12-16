@@ -43,7 +43,18 @@ define([
     render: function () {
 
       // Init a model for this view.
-      this.model = new Graph(this.app, this);
+      var time;
+      if (store.get('state').time)
+        time = store.get('state').time;
+      else if (this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length > 0)
+        time = this.app.profile.content.datasets.items[0].meta;
+      else
+        time = {
+          beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
+          end: Date.now() * 1e3,
+        };
+      this.model = new Graph(this.app, {view: this, time: time});
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -107,7 +118,7 @@ define([
         var width = w || this.$el.parent().width();
         var height = h || this.$el.parent().height();
         height = Math.max(height, 300);
-        //this.plot.setCanvasDimensions(width, height);
+        this.plot.setCanvasDimensions(width, height);
         this.plot.setupGrid();
         this.plot.draw();
       }
@@ -340,6 +351,9 @@ define([
         /*
         if (data.minMax.length > 0) {
           series.push(_.extend({
+            points: {
+              show: false
+            },
             lines: {
               show: true,
               lineWidth: 0,
@@ -444,7 +458,6 @@ define([
             this.lastMouseMove = Date.now();
             this.updateLineStyle(e);
           }
-
         }, this));
 
         function graphZoomClick(e, factor, out) {
@@ -733,10 +746,10 @@ define([
       return _.map(plotData, function(obj) {
         var i = 1;
         for (;i < obj.data.length; i++)
-          if (obj.data[i][0] >= visTime[0]) break;
+          if (obj.data[i] !== null && obj.data[i][0] >= visTime[0]) break;
         var startIdx = i;
         for (;i < obj.data.length; i++)
-          if (obj.data[i][0] >= visTime[1]) break;
+          if (obj.data[i] !== null && obj.data[i][0] >= visTime[1]) break;
         var endIdx = i;
         return (endIdx - startIdx);
       });
