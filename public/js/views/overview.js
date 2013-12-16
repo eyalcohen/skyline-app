@@ -7,8 +7,11 @@ define([
   'Underscore',
   'Backbone',
   'mps',
+  'util',
+  'units',
+  'models/graph',
   'Rickshaw'
-], function ($, _, Backbone, mps, Rickshaw) {
+], function ($, _, Backbone, mps, util, units, Graph, Rickshaw) {
 
   return Backbone.View.extend({
 
@@ -33,6 +36,12 @@ define([
     // Draw template.
     render: function () {
 
+      // Init a model for this view.
+      var time;
+      if (store.get('state').time)
+        time = store.get('state').time;
+      this.model = new Graph(this.app, {view: this, time: time});
+
       // Done rendering ... trigger setup.
       this.trigger('rendered');
 
@@ -46,21 +55,8 @@ define([
 
     // Misc. setup.
     setup: function () {
-
-      // Init Rickshaw.
-      this.graph = new Rickshaw.Graph({
-        element: this.el,
-        renderer: 'area',
-        stroke: true,
-        series: [{
-          data: [{ x: 0, y: 40 }, { x: 1, y: 49 }],
-          color: 'steelblue'
-        }, {
-          data: [{ x: 0, y: 40 }, { x: 1, y: 49 }],
-          color: 'lightblue'
-        }]
-      });
-      this.graph.render();
+      var t = this.getVisibleTime();
+      this.trigger('VisibleTimeChange', {beg: t.beg, end: t.end});
 
       return this;
     },
@@ -80,6 +76,59 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.remove();
+    },
+
+    draw: function () {
+      this.model.fetchGraphedChannels(_.bind(function (channels) {
+        this.series = [];
+        _.each(channels, _.bind(function (channel, i) {
+          var seriesBase = {
+            channelIndex: i,
+            channelName: channel.channelName,
+          };
+          this.series.push(_.extend({
+            data: this.getSeriesData(channel),
+            color: '#e2e2e2'
+          }, seriesBase));
+        }, this));
+        if (!this.plot) {
+          this.plot = new Rickshaw.Graph({
+            element: this.el,
+            renderer: 'area',
+            series: this.series,
+          });
+          this.plot.render();
+        }
+        else this.plot.update()
+      }, this));
+    },
+
+    getSeriesData: function (channel) {
+      var conv = units.findConversion(channel.units,
+          channel.displayUnits || channel.units);
+      var data = [];
+      var samples = [];
+      var offset = 0;
+      if (this.model.sampleCollection[channel.channelName]) {
+        samples = this.model.sampleCollection[channel.channelName].sampleSet;
+        offset = this.model.sampleCollection[channel.channelName].offset;
+      }
+      var prevEnd = null, prevMinMaxEnd = null;
+      _.each(samples, function (s, i) {
+        var val = s.val * conv.factor + conv.offset;
+        data.push({x: (s.beg + offset) / 1000, y: val});
+        prevEnd = s.end;
+      });
+      return data;
+    },
+
+    getVisibleTime: function () {
+      var time = this.model.get('visibleTime');
+      return {beg: time.beg, end: time.end, width: this.$el.width()};
+    },
+
+    setVisibleTime: function (beg, end) {
+      return;
     },
 
   });

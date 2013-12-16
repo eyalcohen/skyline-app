@@ -73,9 +73,6 @@ define([
     // Cache entries of pending server requests.  We'll try to keep between
     // minPendingRequests and maxPendingRequests pending.
     this.pendingCacheEntries = [];
-
-    // App.subscribe('DNodeReconnectUserAuthorized',
-    //               _.bind(this.dnodeReconnected, this));
   }
   _.extend(SampleCache.prototype, Backbone.Events);
 

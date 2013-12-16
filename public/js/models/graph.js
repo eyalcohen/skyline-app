@@ -13,9 +13,9 @@ define([
 
   return Backbone.Model.extend({
 
-    initialize: function (app, view) {
+    initialize: function (app, options) {
       this.app = app;
-      this.view = view;
+      this.view = options.view;
       this.clients = [];
 
       this.DEFAULT_LINE_STYLE = {
@@ -25,20 +25,8 @@ define([
       // channelName -> showPoints:{true, false}
       var s = store.get('state').lineStyleOptions;
       this.lineStyleOptions = s ? s : {}
-      console.log(s);
 
-      var time;
-      if (store.get('state').time)
-        time = store.get('state').time;
-      else if (this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length > 0)
-        time = this.app.profile.content.datasets.items[0].meta;
-      else
-        time = {
-          beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
-          end: Date.now() * 1e3,
-        };
-      this.set('visibleTime', time);
+      this.set('visibleTime', options.time);
       this.cache = new Cache(this.app);
       this.set({channels: []});
       this.sampleCollection = [];
@@ -63,7 +51,7 @@ define([
         return c.dataset === dataset;
       });
       if (client) return client;
-      client = {id: util.rid32(), dataset: dataset, channels: [] };
+      client = {id: util.rid32(), dataset: dataset, channels: []};
       this.clients.push(client);
       this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, dataset));
       return client;
@@ -201,7 +189,7 @@ define([
 
         client.channels.push(channel);
         mps.publish('channel/added', [datasetId, channel]);
-        console.log('addChannel(', channel, ')...');
+        // console.log('addChannel(', channel, ')...');
       }, this));
       this.updateCacheSubscription(client);
       // mps.publish('view/save/status', [true]);
@@ -223,7 +211,7 @@ define([
       delete this.lineStyleOptions[channel.channelName];
 
       mps.publish('channel/removed', [datasetId, channel]);
-      console.log('removeChannel(', channel, ')...');
+      // console.log('removeChannel(', channel, ')...');
       this.updateCacheSubscription(client);
       // if (this.getChannels().length === 0)
       //   mps.publish('view/save/status', [false]);

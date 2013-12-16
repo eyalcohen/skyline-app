@@ -43,7 +43,18 @@ define([
     render: function () {
 
       // Init a model for this view.
-      this.model = new Graph(this.app, this);
+      var time;
+      if (store.get('state').time)
+        time = store.get('state').time;
+      else if (this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length > 0)
+        time = this.app.profile.content.datasets.items[0].meta;
+      else
+        time = {
+          beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
+          end: Date.now() * 1e3,
+        };
+      this.model = new Graph(this.app, {view: this, time: time});
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -340,6 +351,9 @@ define([
         /*
         if (data.minMax.length > 0) {
           series.push(_.extend({
+            points: {
+              show: false
+            },
             lines: {
               show: true,
               lineWidth: 0,
@@ -444,7 +458,6 @@ define([
             this.lastMouseMove = Date.now();
             this.updateLineStyle(e);
           }
-
         }, this));
 
         function graphZoomClick(e, factor, out) {

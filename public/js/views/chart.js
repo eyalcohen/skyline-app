@@ -20,11 +20,11 @@ define([
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
+    // The DOM target element for this page.
     className: 'chart',
     working: false,
 
-    // Module entry point:
+    // Module entry point.
     initialize: function (app, options) {
 
       // Save app ref.
@@ -38,9 +38,11 @@ define([
       this.subscriptions = [
         mps.subscribe('channel/add', _.bind(function (did, channel) {
           this.graph.model.addChannel(this.datasets.collection.get(did), channel);
+          this.overview.model.addChannel(this.datasets.collection.get(did), channel);
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
           this.graph.model.removeChannel(this.datasets.collection.get(did), channel);
+          this.overview.model.removeChannel(this.datasets.collection.get(did), channel);
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/draw', _.bind(this.updateIcons, this)),
