@@ -13,6 +13,7 @@ var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var Connection = require('./lib/db').Connection;
 var resources = require('./lib/resources');
+var Samples = require('./lib/samples').Samples
 var c = require('./config').get(process.env.NODE_ENV);
 
 var error = exports.error = function(err) {
@@ -26,6 +27,7 @@ exports.start = function (opts, cb) {
     cb = opts;
     opts = {};
   }
+  var props = {};
 
   Step(
     function () {
@@ -42,6 +44,7 @@ exports.start = function (opts, cb) {
     },
     function (err, rc) {
       error(err);
+      props.redisClient = rc;
 
       Step(
         function () {
@@ -50,12 +53,18 @@ exports.start = function (opts, cb) {
         function (err, connection) {
           error(err);
 
-          // Init resources.
-          resources.init({connection: connection}, this);
+          // Init samples.
+          new Samples({connection: connection}, _.bind(function (err, samples) {
+            error(err);
+            props.samples = samples;
+
+            // Init resources.
+            resources.init({connection: connection}, this);
+          }, this));
         },
         function (err) {
           error(err);
-          cb(rc);
+          cb(props);
         }
       );
     }
