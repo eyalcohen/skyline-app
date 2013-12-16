@@ -55,8 +55,7 @@ define([
 
     // Misc. setup.
     setup: function () {
-      var t = this.getVisibleTime();
-      this.trigger('VisibleTimeChange', {beg: t.beg, end: t.end});
+      this.model.updateCacheSubscription();
 
       return this;
     },
@@ -79,27 +78,26 @@ define([
     },
 
     draw: function () {
+
+      this.empty();
       this.model.fetchGraphedChannels(_.bind(function (channels) {
         this.series = [];
         _.each(channels, _.bind(function (channel, i) {
-          var seriesBase = {
-            channelIndex: i,
-            channelName: channel.channelName,
-          };
-          this.series.push(_.extend({
-            data: this.getSeriesData(channel),
-            color: '#e2e2e2'
-          }, seriesBase));
-        }, this));
-        if (!this.plot) {
-          this.plot = new Rickshaw.Graph({
-            element: this.el,
+          var data = this.getSeriesData(channel);
+          if (data.length === 0) return;
+          var plot = new Rickshaw.Graph({
+            element: $('<div>').appendTo(this.$el).get(0),
             renderer: 'area',
-            series: this.series,
+            series: [{data: data, color: this.app.colors[channel.colorNum]}],
           });
-          this.plot.render();
-        }
-        else this.plot.update()
+          plot.render();
+
+          // var seriesBase = {
+          //   channelIndex: i,
+          //   channelName: channel.channelName,
+          // };
+
+        }, this));
       }, this));
     },
 

@@ -118,7 +118,7 @@ define([
         var width = w || this.$el.parent().width();
         var height = h || this.$el.parent().height();
         height = Math.max(height, 300);
-        //this.plot.setCanvasDimensions(width, height);
+        this.plot.setCanvasDimensions(width, height);
         this.plot.setupGrid();
         this.plot.draw();
       }
@@ -746,10 +746,10 @@ define([
       return _.map(plotData, function(obj) {
         var i = 1;
         for (;i < obj.data.length; i++)
-          if (obj.data[i][0] >= visTime[0]) break;
+          if (obj.data[i] !== null && obj.data[i][0] >= visTime[0]) break;
         var startIdx = i;
         for (;i < obj.data.length; i++)
-          if (obj.data[i][0] >= visTime[1]) break;
+          if (obj.data[i] !== null && obj.data[i][0] >= visTime[1]) break;
         var endIdx = i;
         return (endIdx - startIdx);
       });

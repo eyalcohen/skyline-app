@@ -17,6 +17,7 @@ define([
       this.app = app;
       this.view = options.view;
       this.clients = [];
+      this.options = options;
 
       this.DEFAULT_LINE_STYLE = {
         showPoints: false,
@@ -89,7 +90,8 @@ define([
         _.each(this.clients, _.bind(function (c) {
           set.call(this, c);
         }, this));
-      else set.call(this, client);
+      else
+        set.call(this, client);
 
       function set(c) {
         var offset = c.dataset.get('offset')
