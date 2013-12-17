@@ -336,7 +336,7 @@ define([
         var data = this.getSeriesData(channel);
         series.push(_.extend({
           points: {
-            show:this.model.lineStyleOptions[channel.channelName].showPoints
+            show: this.model.lineStyleOptions[channel.channelName].showPoints
           },
           lines: {
             show: true,

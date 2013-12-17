@@ -37,10 +37,7 @@ define([
     render: function () {
 
       // Init a model for this view.
-      var time;
-      if (store.get('state').time)
-        time = store.get('state').time;
-      this.model = new Graph(this.app, {view: this, time: time});
+      this.model = new Graph(this.app, {view: this, silent: true});
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -55,8 +52,6 @@ define([
 
     // Misc. setup.
     setup: function () {
-      this.model.updateCacheSubscription();
-
       return this;
     },
 
@@ -121,8 +116,7 @@ define([
     },
 
     getVisibleTime: function () {
-      var time = this.model.get('visibleTime');
-      return {beg: time.beg, end: time.end, width: this.$el.width()};
+      return {beg: null, end: null, width: this.$el.width(), static: true};
     },
 
     setVisibleTime: function (beg, end) {

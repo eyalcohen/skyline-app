@@ -8,8 +8,9 @@ define([
   'Backbone',
   'mps',
   'util',
-  'cache'
-], function ($, _, Backbone, mps, util, Cache) {
+  'cache',
+  'shared'
+], function ($, _, Backbone, mps, util, Cache, shared) {
 
   return Backbone.Model.extend({
 
@@ -65,16 +66,18 @@ define([
       // negative! Some heuristics to avoid fetching unnecessary amounts of
       // data.
       if (viewRange.width <= 0) return;
+
       viewRange.width = Math.max(viewRange.width, 2000);
+      if (!_.isObject(client) && viewRange.beg === null && viewRange.end === null) {
+        viewRange.beg = client.dataset.get('beg');
+        viewRange.end = client.dataset.get('end');
+      }
+      console.log(viewRange)
       var dur = this.cache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
-      // Expand effective view range slightly, so that when scrolling we fetch
-      // more data before it's needed.
-      function expandRange(range, factor) {
-        var extend = (range.end - range.beg) * factor;
-        return { beg: range.beg - extend, end: range.end + extend };
-      }
-      viewRange = expandRange(viewRange, 0.1);
+      console.log(dur)
+      if (!viewRange.static)
+        viewRange = expandRange(viewRange, 0.1);
       // When necessary to fetch more data, fetch twice as much as necessary,
       // so we can scroll and zoom smoothly without excessive redrawing.
       if (this.prevDur != dur || this.prevRange == null ||
@@ -83,9 +86,9 @@ define([
         // Either duration has changed, or the new view does not overlap the
         // data we've already fetched.
         this.prevDur = dur;
-        this.prevRange = expandRange(viewRange, 0.25);
+        this.prevRange = !viewRange.static ?
+            expandRange(viewRange, 0.25): viewRange;
       }
-
       if (!_.isObject(client))
         _.each(this.clients, _.bind(function (c) {
           set.call(this, c);
@@ -93,12 +96,25 @@ define([
       else
         set.call(this, client);
 
+      // Expand effective view range slightly, so that when scrolling we fetch
+      // more data before it's needed.
+      function expandRange(range, factor) {
+        var extend = (range.end - range.beg) * factor;
+        return {beg: range.beg - extend, end: range.end + extend};
+      }
+
       function set(c) {
-        var offset = c.dataset.get('offset')
-        this.cache.setClientView(
-            c.id, c.dataset.get('id'),
-            _.pluck(c.channels, 'channelName'),
-            dur, this.prevRange.beg - offset, this.prevRange.end - offset);
+        var offset = c.dataset.get('offset');
+        var beg, end;
+        if (viewRange.static) {
+          beg = this.prevRange.beg;
+          end = this.prevRange.end;
+        } else {
+          beg = this.prevRange.beg - offset;
+          end = this.prevRange.end - offset;
+        }
+        this.cache.setClientView(c.id, c.dataset.get('id'),
+            _.pluck(c.channels, 'channelName'), dur, beg, end);
       }
     },
 
@@ -146,17 +162,19 @@ define([
       // if this channel is way off the screen, and there is no
       // offset, bring it over.
       var visTime = this.view.getVisibleTime();
-
-      // we consider a dataset that is completely off the screen by a factor
-      // of 2 as one that needs to be 'brought over'
-      var factor = 0; // Tweak this number to control this effect.
-      var dur = (visTime.end - visTime.beg) * factor;
       var offsetChanged = false;
-      if (dataset.get('offset') == 0) {
-        if (visTime.beg > dataset.get('end') + dur 
-            || visTime.end < dataset.get('beg') - dur) {
-          dataset.set('offset', visTime.beg - dataset.get('beg'));
-          offsetChanged = true;
+
+      if (!visTime.static) {
+        // we consider a dataset that is completely off the screen by a factor
+        // of 2 as one that needs to be 'brought over'
+        var factor = 0; // Tweak this number to control this effect.
+        var dur = (visTime.end - visTime.beg) * factor;
+        if (dataset.get('offset') == 0) {
+          if (visTime.beg > dataset.get('end') + dur 
+              || visTime.end < dataset.get('beg') - dur) {
+            dataset.set('offset', visTime.beg - dataset.get('beg'));
+            offsetChanged = true;
+          }
         }
       }
 
@@ -190,11 +208,12 @@ define([
           this.lineStyleOptions[channel.channelName] = this.DEFAULT_LINE_STYLE;
 
         client.channels.push(channel);
-        mps.publish('channel/added', [datasetId, channel]);
-        // console.log('addChannel(', channel, ')...');
+        if (!this.options.silent) {
+          mps.publish('channel/added', [datasetId, channel]);
+          console.log('addChannel(', channel, ')...');
+        }
       }, this));
       this.updateCacheSubscription(client);
-      // mps.publish('view/save/status', [true]);
       if (offsetChanged)
         mps.publish('graph/offsetChanged', []);
       return this;
@@ -212,11 +231,11 @@ define([
 
       delete this.lineStyleOptions[channel.channelName];
 
-      mps.publish('channel/removed', [datasetId, channel]);
-      // console.log('removeChannel(', channel, ')...');
+      if (!this.options.silent) {
+        mps.publish('channel/removed', [datasetId, channel]);
+        console.log('removeChannel(', channel, ')...');
+      }
       this.updateCacheSubscription(client);
-      // if (this.getChannels().length === 0)
-      //   mps.publish('view/save/status', [false]);
       return this;
     },
 
