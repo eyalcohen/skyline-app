@@ -126,11 +126,16 @@ define([
 
     zoom: function (range) {
       if (!range) return;
-      range *= 1e3;
       var xaxis = this.plot.getXAxes()[0];
-      var avg = (xaxis.options.max + xaxis.options.min) / 2;
-      xaxis.options.min = avg - range / 2;
-      xaxis.options.max = avg + range / 2;
+      if (_.isNumber(range)) {
+        range *= 1e3;
+        var avg = (xaxis.options.max + xaxis.options.min) / 2;
+        xaxis.options.min = avg - range / 2;
+        xaxis.options.max = avg + range / 2;
+      } else if (_.isObject(range)) {
+        xaxis.options.min = range.min;
+        xaxis.options.max = range.max;
+      }
       this.plot.setupGrid();
       this.plot.draw();
       this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);

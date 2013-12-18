@@ -53,6 +53,9 @@ define([
     // Misc. setup.
     setup: function () {
 
+      // Safe refs.
+      this.selection = this.$('.overview-selection');
+
       // Do resize on window change.
       $(window).resize(_.debounce(_.bind(this.draw, this), 40));
 
@@ -80,7 +83,7 @@ define([
       var t = this.getVisibleTime();
 
       // Clear plots.
-      this.empty();
+      this.$(':not(.overview-selection)').remove();
 
       // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
@@ -111,7 +114,7 @@ define([
 
         // Render.
         _.each(this.series, _.bind(function (series) {
-          new Rickshaw.Graph({
+          var plot = new Rickshaw.Graph({
             element: $('<div>').appendTo(this.$el).get(0),
             renderer: 'area',
             series: [{
@@ -119,7 +122,46 @@ define([
               color: this.app.colors[series.channel.colorNum]
             }],
             interpolation: 'linear'
-          }).render();
+          });
+          plot.render();
+
+          // Handle snap to time range.
+          var selections = [];
+          var getSelection = false;
+          $(plot.element).bind('mousedown', _.bind(function (e) {
+            getSelection = true;
+            var x = e.pageX;
+            this.selection.css({left: x, width: 0}).show();
+            var mousemove = _.bind(function (e) {
+              if (e.pageX > x)
+                this.selection.css({left: x, width: e.pageX - x});
+              else
+                this.selection.css({left: e.pageX, width: x - e.pageX});
+            }, this);
+            var mouseup = _.bind(function (e) {
+              $(document).unbind('mouseup', mouseup);
+              $(plot.element).unbind('mousemove', mousemove);
+              this.selection.hide();
+              getSelection = false;
+              if (selections.length > 1)
+                mps.publish('chart/zoom', [{
+                  min: _.min(selections),
+                  max: _.max(selections)
+                }]);
+              selections = [];
+            }, this);
+            $(document).bind('mouseup', mouseup);
+            $(plot.element).bind('mousemove', mousemove);
+          }, this));
+
+          // Use the hover even to 
+          new Rickshaw.Graph.HoverDetail({
+            graph: plot,
+            xFormatter: function (t) {
+              if (!getSelection) return;
+              selections.push(t);
+            }
+          });
         }, this));
 
         // Check width change for resize.
