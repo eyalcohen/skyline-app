@@ -77,12 +77,12 @@ define([
           if (viewRange.end < client.dataset.get('end'))
             viewRange.end = client.dataset.get('end'); 
         });
-        this.set({visibleTime: {beg: viewRange.beg, end: viewRange.end}});
       }
       var dur = this.cache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
-      if (!viewRange.static)
-        viewRange = expandRange(viewRange, 0.1);
+      viewRange = expandRange(viewRange, 0.05);
+      if (viewRange.static)
+        this.set({visibleTime: {beg: viewRange.beg, end: viewRange.end}});
       // When necessary to fetch more data, fetch twice as much as necessary,
       // so we can scroll and zoom smoothly without excessive redrawing.
       if (this.prevDur != dur || this.prevRange == null ||
@@ -105,7 +105,7 @@ define([
       // more data before it's needed.
       function expandRange(range, factor) {
         var extend = (range.end - range.beg) * factor;
-        return {beg: range.beg - extend, end: range.end + extend};
+        return _.defaults({beg: range.beg - extend, end: range.end + extend}, range);
       }
 
       function set(c) {
