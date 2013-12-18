@@ -151,7 +151,7 @@ define([
     resize: function () {
       var height = $(window).height() - $('footer').height()
           - this.$el.offset().top;
-      height = Math.max(height, 605);
+      height = Math.max(height, this.app.embed ? 0: 605);
       this.$el.css({height: height});
       this.fit();
     },

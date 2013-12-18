@@ -1678,7 +1678,7 @@ a.control-button.view-only {
 }
 
 .main.embed .side-panel {
-  bottom: 212px;
+  bottom: 71px;
 }
 
 .lower-panel {
@@ -1693,7 +1693,8 @@ a.control-button.view-only {
 }
 
 .main.embed .lower-panel {
-  bottom: -59px;
+  height: 70px;
+  /*bottom: -59px;*/
 }
 
 .graphs {
@@ -1705,7 +1706,8 @@ a.control-button.view-only {
 }
 
 .main.embed .graphs {
-  min-height: 360px;
+  bottom: 70px;
+  /*min-height: 430px;*/
 }
 
 .graph {
@@ -1841,6 +1843,10 @@ a.control-button.view-only {
   width: auto;
   height: 140px;
   opacity: 0.1;
+}
+
+.main.embed .overview .overview-selection {
+  height: 140px;
 }
 
 /*.........................................................................*/
@@ -2178,6 +2184,10 @@ a.button.comment-input-button.primary:active {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+}
+
+.comment:nth-last-child(2) {
+  border-bottom: none;
 }
 
 .comment:hover,
