@@ -8,8 +8,9 @@ define([
   'Backbone',
   'mps',
   'util',
-  'cache'
-], function ($, _, Backbone, mps, util, Cache) {
+  'cache',
+  'shared'
+], function ($, _, Backbone, mps, util, Cache, shared) {
 
   return Backbone.Model.extend({
 
@@ -27,7 +28,7 @@ define([
       var s = store.get('state').lineStyleOptions;
       this.lineStyleOptions = s ? s : {}
 
-      this.set('visibleTime', options.time);
+      this.set('visibleTime', options.time || {});
       this.cache = new Cache(this.app);
       this.set({channels: []});
       this.sampleCollection = [];
@@ -66,15 +67,22 @@ define([
       // data.
       if (viewRange.width <= 0) return;
       viewRange.width = Math.max(viewRange.width, 2000);
+      if (viewRange.static) {
+        viewRange.beg = Number.MAX_VALUE;
+        viewRange.end = -Number.MAX_VALUE;
+        _.each(this.clients, function (client) {
+          if (client.channels.length === 0) return;
+          if (viewRange.beg > client.dataset.get('beg'))
+            viewRange.beg = client.dataset.get('beg');
+          if (viewRange.end < client.dataset.get('end'))
+            viewRange.end = client.dataset.get('end'); 
+        });
+      }
       var dur = this.cache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
-      // Expand effective view range slightly, so that when scrolling we fetch
-      // more data before it's needed.
-      function expandRange(range, factor) {
-        var extend = (range.end - range.beg) * factor;
-        return { beg: range.beg - extend, end: range.end + extend };
-      }
-      viewRange = expandRange(viewRange, 0.1);
+      viewRange = expandRange(viewRange, 0.05);
+      if (viewRange.static)
+        this.set({visibleTime: {beg: viewRange.beg, end: viewRange.end}});
       // When necessary to fetch more data, fetch twice as much as necessary,
       // so we can scroll and zoom smoothly without excessive redrawing.
       if (this.prevDur != dur || this.prevRange == null ||
@@ -83,9 +91,9 @@ define([
         // Either duration has changed, or the new view does not overlap the
         // data we've already fetched.
         this.prevDur = dur;
-        this.prevRange = expandRange(viewRange, 0.25);
+        this.prevRange = !viewRange.static ?
+            expandRange(viewRange, 0.25): viewRange;
       }
-
       if (!_.isObject(client))
         _.each(this.clients, _.bind(function (c) {
           set.call(this, c);
@@ -93,12 +101,25 @@ define([
       else
         set.call(this, client);
 
+      // Expand effective view range slightly, so that when scrolling we fetch
+      // more data before it's needed.
+      function expandRange(range, factor) {
+        var extend = (range.end - range.beg) * factor;
+        return _.defaults({beg: range.beg - extend, end: range.end + extend}, range);
+      }
+
       function set(c) {
-        var offset = c.dataset.get('offset')
-        this.cache.setClientView(
-            c.id, c.dataset.get('id'),
-            _.pluck(c.channels, 'channelName'),
-            dur, this.prevRange.beg - offset, this.prevRange.end - offset);
+        var offset = c.dataset.get('offset');
+        var beg, end;
+        if (viewRange.static) {
+          beg = this.prevRange.beg;
+          end = this.prevRange.end;
+        } else {
+          beg = this.prevRange.beg - offset;
+          end = this.prevRange.end - offset;
+        }
+        this.cache.setClientView(c.id, c.dataset.get('id'),
+            _.pluck(c.channels, 'channelName'), dur, beg, end);
       }
     },
 
@@ -146,20 +167,23 @@ define([
       // if this channel is way off the screen, and there is no
       // offset, bring it over.
       var visTime = this.view.getVisibleTime();
-
-      // we consider a dataset that is completely off the screen by a factor
-      // of 2 as one that needs to be 'brought over'
-      var factor = 0; // Tweak this number to control this effect.
-      var dur = (visTime.end - visTime.beg) * factor;
       var offsetChanged = false;
-      if (dataset.get('offset') == 0) {
-        if (visTime.beg > dataset.get('end') + dur 
-            || visTime.end < dataset.get('beg') - dur) {
-          dataset.set('offset', visTime.beg - dataset.get('beg'));
-          offsetChanged = true;
+
+      if (!visTime.static) {
+        // we consider a dataset that is completely off the screen by a factor
+        // of 2 as one that needs to be 'brought over'
+        var factor = 0; // Tweak this number to control this effect.
+        var dur = (visTime.end - visTime.beg) * factor;
+        if (dataset.get('offset') == 0) {
+          if (visTime.beg > dataset.get('end') + dur 
+              || visTime.end < dataset.get('beg') - dur) {
+            dataset.set('offset', visTime.beg - dataset.get('beg'));
+            offsetChanged = true;
+          }
         }
       }
 
+      // Choose an axis.
       var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
       _.each(this.getChannels(), _.bind(function (channel) {
         if (!channel.yaxisNum) return;
@@ -170,6 +194,7 @@ define([
       }, this));
       var yAxisNumToUse = numSeriesRightAxis > numSeriesLeftAxis ? 2 : 1;
 
+      // Update client.
       var client = this.getOrCreateClient(dataset);
       _.each(channels, _.bind(function (channel) {
         if (_.pluck(client.channels, 'channelName')
@@ -185,16 +210,15 @@ define([
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
-
         if (!this.lineStyleOptions[channel.channelName])
           this.lineStyleOptions[channel.channelName] = this.DEFAULT_LINE_STYLE;
-
         client.channels.push(channel);
-        mps.publish('channel/added', [datasetId, channel]);
-        // console.log('addChannel(', channel, ')...');
+        if (!this.options.silent) {
+          mps.publish('channel/added', [datasetId, channel]);
+          console.log('addChannel(', channel, ')...');
+        }
       }, this));
       this.updateCacheSubscription(client);
-      // mps.publish('view/save/status', [true]);
       if (offsetChanged)
         mps.publish('graph/offsetChanged', []);
       return this;
@@ -209,14 +233,12 @@ define([
       if (index === -1) return;
       client.channels.splice(index, 1);
       channel.did = datasetId;
-
       delete this.lineStyleOptions[channel.channelName];
-
-      mps.publish('channel/removed', [datasetId, channel]);
-      // console.log('removeChannel(', channel, ')...');
+      if (!this.options.silent) {
+        mps.publish('channel/removed', [datasetId, channel]);
+        console.log('removeChannel(', channel, ')...');
+      }
       this.updateCacheSubscription(client);
-      // if (this.getChannels().length === 0)
-      //   mps.publish('view/save/status', [false]);
       return this;
     },
 

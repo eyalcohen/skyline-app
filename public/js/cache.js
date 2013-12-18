@@ -82,7 +82,6 @@ define([
    */
   SampleCache.prototype.setClientView =
       function(clientId, datasetId, channels, dur, beg, end, force) {
-        // console.log(arguments)
     var client = defObj(this.clients, clientId);
     if (client.datasetId === datasetId && client.dur === dur &&
         client.beg === beg && client.end === end &&
@@ -254,15 +253,10 @@ define([
         var begBuck = Math.floor(client.beg / buckDur);
         var endBuck = Math.ceil(client.end / buckDur);
         client.channels.forEach(function(channelName) {
-          // Hack: avoid fetching buckets which have no schema, thus must be
-          // empty.
           var validRanges = [{beg:-1e50, end: 1e50}];
-          // App.publish('FetchChannelInfo-' + client.datasetId,
-          //             [channelName, function(desc){
-          //   if (desc) validRanges = desc.valid;
-          // }]);
+
           forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
-                                 function(buck, buckBeg, buckEnd) {
+              function (buck, buckBeg, buckEnd) {
             var entry = self.getCacheEntry(client.datasetId, channelName,
                                            dur, buck, false);
             if (entry && !entry.refetch && (entry.samples || entry.pending))
@@ -271,7 +265,7 @@ define([
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
                 did: client.datasetId, chan: channelName, dur: dur,
-                buck: buck });
+                buck: buck});
           });
         });
       }
@@ -296,7 +290,7 @@ define([
           var biggerDur = durations[durI];
           var biggerBuck = Math.floor(buckBeg / bucketSize(biggerDur));
           var biggerEntry = self.getCacheEntry(req.did, req.chan, biggerDur,
-                                               biggerBuck, false);
+              biggerBuck, false);
           if (biggerEntry && biggerEntry.syn === false) {
             covered = true;
             break;
@@ -317,29 +311,30 @@ define([
     delete entry.refetch;
     self.pendingCacheEntries.push(entry);
     var buckDur = bucketSize(req.dur);
-    var buckBeg = req.buck * buckDur, buckEnd = buckBeg + buckDur;
+    var buckBeg = req.buck * buckDur;
+    var buckEnd = buckBeg + buckDur;
     var options = {
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
     self.app.rpc.do('fetchSamples', req.did, req.chan, options,
-        function (err, samples) {
+        function (err, data) {
       if (err) {
         console.error(err);
         samples = null;
         self.pendingCacheEntries.splice(
-        self.pendingCacheEntries.indexOf(entry), 1);
+            self.pendingCacheEntries.indexOf(entry), 1);
         delete entry.pending;
         self.triggerClientUpdates(req.did, req.chan, req.dur, buckBeg, buckEnd);
         self.cleanCache();
-        return;    
+        return;
       }
-      entry.syn = samples.some(function(s){return 'min' in s});
+      entry.syn = data.samples.some(function(s){return 'min' in s});
       if (entry.samples)
         self.cacheSize -= entry.samples.length;
-      entry.samples = samples;
-      if (samples)
-        self.cacheSize += samples.length;
+      entry.samples = data.samples;
+      if (data.samples)
+        self.cacheSize += data.samples.length;
       // Delete this entry from the pending request array.
       self.pendingCacheEntries.splice(
           self.pendingCacheEntries.indexOf(entry), 1);
@@ -394,10 +389,6 @@ define([
       var sampleSet = {};
       client.channels.forEach(function(channelName) {
         var validRanges = [{beg:-1e50, end: 1e50}];
-        // App.publish('FetchChannelInfo-' + client.datasetId, [channelName,
-        //             function(desc) {
-        //   if (desc) validRanges = desc.valid;
-        // }]);
         sampleSet[channelName] = self.getBestCachedData(
             client.datasetId, channelName,
             client.dur, client.beg, client.end, validRanges);
@@ -439,7 +430,7 @@ define([
     return shared.trimSamples(samples, beg, end);
   }
 
-  // SampleCache.prototype.dnodeReconnected = function() {
+  // SampleCache.prototype.socketReconnected = function() {
   //   // Any pending transactions are never going to complete.
   //   this.pendingCacheEntries.forEach(function(e) {
   //     delete e.pending;

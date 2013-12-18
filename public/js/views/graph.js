@@ -46,7 +46,7 @@ define([
       var time;
       if (store.get('state').time)
         time = store.get('state').time;
-      else if (this.app.profile.content.datasets
+      else if (this.app.profile.content.datasets 
           && this.app.profile.content.datasets.items.length > 0)
         time = this.app.profile.content.datasets.items[0].meta;
       else
@@ -126,11 +126,16 @@ define([
 
     zoom: function (range) {
       if (!range) return;
-      range *= 1e3;
       var xaxis = this.plot.getXAxes()[0];
-      var avg = (xaxis.options.max + xaxis.options.min) / 2;
-      xaxis.options.min = avg - range / 2;
-      xaxis.options.max = avg + range / 2;
+      if (_.isNumber(range)) {
+        range *= 1e3;
+        var avg = (xaxis.options.max + xaxis.options.min) / 2;
+        xaxis.options.min = avg - range / 2;
+        xaxis.options.max = avg + range / 2;
+      } else if (_.isObject(range)) {
+        xaxis.options.min = range.min;
+        xaxis.options.max = range.max;
+      }
       this.plot.setupGrid();
       this.plot.draw();
       this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);
@@ -336,7 +341,7 @@ define([
         var data = this.getSeriesData(channel);
         series.push(_.extend({
           points: {
-            show:this.model.lineStyleOptions[channel.channelName].showPoints
+            show: this.model.lineStyleOptions[channel.channelName].showPoints
           },
           lines: {
             show: true,
@@ -529,7 +534,7 @@ define([
         this.prevEnd = t.end;
       }
       if (t.width != this.prevWidth) {
-        this.trigger('VisibleWidthChange', t.width);
+        this.trigger('VisibleWidthChange');
         this.prevWidth = t.width;
       }
       mps.publish('graph/draw');
@@ -611,8 +616,8 @@ define([
           data.push(null);
         var val = s.val * conv.factor + conv.offset;
         data.push([(s.beg + offset) / 1000, val]);
-        // if (s.end !== s.beg)
-        //   data.push([s.end / 1000, val]);
+        if (s.end !== s.beg)
+          data.push([(s.end + offset) / 1000, val]);
         prevEnd = s.end;
         if (s.min != null || s.max != null) {
           if (prevMinMaxEnd != s.beg)

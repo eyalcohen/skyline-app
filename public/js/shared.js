@@ -32,7 +32,7 @@ define([
     30 * s,
     5 * m,
     30 * m,
-    5 * h,  // TODO: make this 6 hours!  Think about DB changes...
+    5 * h,  // TODO: make this 6 hours! Think about DB changes...
   ];
 
   exports.syntheticDurations = [
