@@ -118,6 +118,7 @@ define([
               data: series.data, 
               color: this.app.colors[series.channel.colorNum]
             }],
+            interpolation: 'linear'
           }).render();
         }, this));
 
@@ -139,10 +140,9 @@ define([
       var prevEnd = null, prevMinMaxEnd = null;
       _.each(samples, function (s, i) {
         var val = s.val * conv.factor;
-        // Use a time between beg and end.
-        // NOTE: Not sure if this makes sense, but using both beg and end looks
-        // whack and using just one is slightly misleading.
-        data.push({x: (s.beg + s.end) / 2e3, y: val});
+        data.push({x: s.beg / 1e3, y: val});
+        if (s.beg !== s.end)
+          data.push({x: s.end / 1e3, y: val});
         prevEnd = s.end;
       });
       return data;
