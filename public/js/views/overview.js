@@ -52,6 +52,10 @@ define([
 
     // Misc. setup.
     setup: function () {
+
+      // Do resize on window change.
+      $(window).resize(_.debounce(_.bind(this.draw, this), 40));
+
       return this;
     },
 
@@ -73,26 +77,40 @@ define([
     },
 
     draw: function () {
+      var t = this.getVisibleTime();
 
+      // Clear plots.
       this.empty();
+
+      // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
         this.series = [];
         _.each(channels, _.bind(function (channel, i) {
           var data = this.getSeriesData(channel);
           if (data.length === 0) return;
-          var plot = new Rickshaw.Graph({
+          if (t.beg < _.first(data).x * 1e3) {
+            data.unshift({x: _.first(data).x, y: null});
+            data.unshift({x: t.beg / 1e3, y: null});
+          }
+          if (t.end > _.last(data).x * 1e3) {
+            data.push({x: _.last(data).x, y: null});
+            data.push({x: t.end / 1e3, y: null});
+          }
+          new Rickshaw.Graph({
             element: $('<div>').appendTo(this.$el).get(0),
             renderer: 'area',
-            series: [{data: data, color: this.app.colors[channel.colorNum]}],
-          });
-          plot.render();
-
-          // var seriesBase = {
-          //   channelIndex: i,
-          //   channelName: channel.channelName,
-          // };
-
+            series: [{
+              data: data, 
+              color: this.app.colors[channel.colorNum]
+            }],
+          }).render();
         }, this));
+
+        // Check width change for resize.
+        if (t.width !== this.prevWidth) {
+          this.trigger('VisibleWidthChange');
+          this.prevWidth = t.width;
+        }
       }, this));
     },
 
@@ -101,28 +119,27 @@ define([
           channel.displayUnits || channel.units);
       var data = [];
       var samples = [];
-      var offset = 0;
-      if (this.model.sampleCollection[channel.channelName]) {
+      if (this.model.sampleCollection[channel.channelName])
         samples = this.model.sampleCollection[channel.channelName].sampleSet;
-        offset = this.model.sampleCollection[channel.channelName].offset;
-      }
       var prevEnd = null, prevMinMaxEnd = null;
       _.each(samples, function (s, i) {
-        var val = s.val * conv.factor + conv.offset;
-        data.push({x: (s.beg + offset) / 1000, y: val});
+        var val = s.val * conv.factor;
+        data.push({x: s.beg / 1e3, y: val});
+        // if (s.end !== s.beg)
+        //   data.push({x: s.end / 1e3, y: val});
         prevEnd = s.end;
       });
       return data;
     },
 
     getVisibleTime: function () {
-      return {beg: null, end: null, width: this.$el.width(), static: true};
-    },
-
-    setVisibleTime: function (beg, end) {
-      return;
+      return {
+        beg: this.model.get('visibleTime').beg,
+        end: this.model.get('visibleTime').end,
+        width: this.$el.width(),
+        static: true
+      };
     },
 
   });
 });
-

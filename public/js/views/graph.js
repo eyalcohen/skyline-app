@@ -46,7 +46,7 @@ define([
       var time;
       if (store.get('state').time)
         time = store.get('state').time;
-      else if (this.app.profile.content.datasets
+      else if (this.app.profile.content.datasets 
           && this.app.profile.content.datasets.items.length > 0)
         time = this.app.profile.content.datasets.items[0].meta;
       else
@@ -529,7 +529,7 @@ define([
         this.prevEnd = t.end;
       }
       if (t.width != this.prevWidth) {
-        this.trigger('VisibleWidthChange', t.width);
+        this.trigger('VisibleWidthChange');
         this.prevWidth = t.width;
       }
       mps.publish('graph/draw');
@@ -611,8 +611,8 @@ define([
           data.push(null);
         var val = s.val * conv.factor + conv.offset;
         data.push([(s.beg + offset) / 1000, val]);
-        // if (s.end !== s.beg)
-        //   data.push([s.end / 1000, val]);
+        if (s.end !== s.beg)
+          data.push([(s.end + offset) / 1000, val]);
         prevEnd = s.end;
         if (s.min != null || s.max != null) {
           if (prevMinMaxEnd != s.beg)

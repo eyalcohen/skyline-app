@@ -88,7 +88,7 @@ Client.prototype.fetchSamples =
     util.debug(color.blackBright('  beginTime   = ')
         + color.yellow.bold(options.beginTime));
   if (options.endTime)
-    util.debug(color.blackBright('  endTime   = ')
+    util.debug(color.blackBright('  endTime     = ')
         + color.yellow.bold(options.endTime));
   if (options.minDuration)
     util.debug(color.blackBright('  minDuration = ')
@@ -110,9 +110,9 @@ Client.prototype.fetchSamples =
 boots.start({index: argv.index}, function (params) {
   var client = new Client(params.samples);
   var options = {
-    begTime: argv.beg,
-    endTime: argv.end,
-    minDuration: argv.min,
+    beginTime: Number(argv.beg) || null,
+    endTime: Number(argv.end) || null,
+    minDuration: Number(argv.min),
     getMinMax: argv.minmax
   };
 

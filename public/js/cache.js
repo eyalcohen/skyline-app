@@ -247,7 +247,6 @@ define([
         addRequests(nextDur, 0);
       // Fetch samples at this zoom level.
       addRequests(client.dur, 6);
-      console.log(client.dur)
 
       function addRequests(dur, basePriority) {
         var buckDur = bucketSize(dur);
@@ -340,19 +339,6 @@ define([
       self.pendingCacheEntries.splice(
           self.pendingCacheEntries.indexOf(entry), 1);
       delete entry.pending;
-
-      // var client = _.find(self.clients, function(client, clientId) {
-      //   return client.datasetId === req.did
-      //       && _.contains(client.channels, req.chan);
-      // });
-      // console.log(client)
-
-      // if (buckBeg === null && buckEnd === null) {
-      //   client.beg = buckBeg = data.range.beg;
-
-      //   client.end = buckEnd = data.range.end;
-      // }
-
       self.fillPendingRequests();
       self.triggerClientUpdates(req.did, req.chan, req.dur, buckBeg, buckEnd);
       self.cleanCache();
@@ -408,7 +394,6 @@ define([
             client.dur, client.beg, client.end, validRanges);
       });
       self.trigger('update-' + clientId, sampleSet);
-      console.log(sampleSet)
     }, timeout);
   }
 

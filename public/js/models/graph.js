@@ -28,7 +28,7 @@ define([
       var s = store.get('state').lineStyleOptions;
       this.lineStyleOptions = s ? s : {}
 
-      this.set('visibleTime', options.time);
+      this.set('visibleTime', options.time || {});
       this.cache = new Cache(this.app);
       this.set({channels: []});
       this.sampleCollection = [];
@@ -66,16 +66,21 @@ define([
       // negative! Some heuristics to avoid fetching unnecessary amounts of
       // data.
       if (viewRange.width <= 0) return;
-
       viewRange.width = Math.max(viewRange.width, 2000);
-      if (!_.isObject(client) && viewRange.beg === null && viewRange.end === null) {
-        viewRange.beg = client.dataset.get('beg');
-        viewRange.end = client.dataset.get('end');
+      if (viewRange.static) {
+        viewRange.beg = Number.MAX_VALUE;
+        viewRange.end = -Number.MAX_VALUE;
+        _.each(this.clients, function (client) {
+          if (client.channels.length === 0) return;
+          if (viewRange.beg > client.dataset.get('beg'))
+            viewRange.beg = client.dataset.get('beg');
+          if (viewRange.end < client.dataset.get('end'))
+            viewRange.end = client.dataset.get('end'); 
+        });
+        this.set({visibleTime: {beg: viewRange.beg, end: viewRange.end}});
       }
-      console.log(viewRange)
       var dur = this.cache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width);
-      console.log(dur)
       if (!viewRange.static)
         viewRange = expandRange(viewRange, 0.1);
       // When necessary to fetch more data, fetch twice as much as necessary,
@@ -178,6 +183,7 @@ define([
         }
       }
 
+      // Choose an axis.
       var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
       _.each(this.getChannels(), _.bind(function (channel) {
         if (!channel.yaxisNum) return;
@@ -188,6 +194,7 @@ define([
       }, this));
       var yAxisNumToUse = numSeriesRightAxis > numSeriesLeftAxis ? 2 : 1;
 
+      // Update client.
       var client = this.getOrCreateClient(dataset);
       _.each(channels, _.bind(function (channel) {
         if (_.pluck(client.channels, 'channelName')
@@ -203,10 +210,8 @@ define([
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
-
         if (!this.lineStyleOptions[channel.channelName])
           this.lineStyleOptions[channel.channelName] = this.DEFAULT_LINE_STYLE;
-
         client.channels.push(channel);
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel]);
@@ -228,9 +233,7 @@ define([
       if (index === -1) return;
       client.channels.splice(index, 1);
       channel.did = datasetId;
-
       delete this.lineStyleOptions[channel.channelName];
-
       if (!this.options.silent) {
         mps.publish('channel/removed', [datasetId, channel]);
         console.log('removeChannel(', channel, ')...');
