@@ -11,7 +11,7 @@ define([
   'units',
   'models/graph',
   'Rickshaw'
-], function ($, _, Backbone, mps, util, units, Graph, Rickshaw) {
+], function ($, _, Backbone, mps, util, units, Graph) {
 
   return Backbone.View.extend({
 
