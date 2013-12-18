@@ -84,10 +84,14 @@ define([
 
       // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
+
+        // Get channel samples.
         this.series = [];
-        _.each(channels, _.bind(function (channel, i) {
+        _.each(channels, _.bind(function (channel) {
           var data = this.getSeriesData(channel);
           if (data.length === 0) return;
+
+          // Ensure each series spans the visible time.
           if (t.beg < _.first(data).x * 1e3) {
             data.unshift({x: _.first(data).x, y: null});
             data.unshift({x: t.beg / 1e3, y: null});
@@ -96,12 +100,23 @@ define([
             data.push({x: _.last(data).x, y: null});
             data.push({x: t.end / 1e3, y: null});
           }
+          var s = {channel: channel, data: data};
+          this.series.push(s);
+        }, this));
+
+        // Series with less samples should appear on top.
+        this.series.sort(function (a, b) {
+          return b.data.length - a.data.length;
+        });
+
+        // Render.
+        _.each(this.series, _.bind(function (series) {
           new Rickshaw.Graph({
             element: $('<div>').appendTo(this.$el).get(0),
             renderer: 'area',
             series: [{
-              data: data, 
-              color: this.app.colors[channel.colorNum]
+              data: series.data, 
+              color: this.app.colors[series.channel.colorNum]
             }],
           }).render();
         }, this));
@@ -124,9 +139,10 @@ define([
       var prevEnd = null, prevMinMaxEnd = null;
       _.each(samples, function (s, i) {
         var val = s.val * conv.factor;
-        data.push({x: s.beg / 1e3, y: val});
-        // if (s.end !== s.beg)
-        //   data.push({x: s.end / 1e3, y: val});
+        // Use a time between beg and end.
+        // NOTE: Not sure if this makes sense, but using both beg and end looks
+        // whack and using just one is slightly misleading.
+        data.push({x: (s.beg + s.end) / 2e3, y: val});
         prevEnd = s.end;
       });
       return data;
