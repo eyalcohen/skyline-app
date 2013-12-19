@@ -27,6 +27,10 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [];
+
+      // Attach a ref to 'update' to the window so it can be
+      // reached by the iframe source.
+      document.__update = _.bind(this.update, this);
     },
 
     // Draw our template from the profile JSON.
@@ -50,11 +54,11 @@ define([
 
       // Save refs.
       this.code = this.$('.code');
+      this.label = this.$('.splash-embed-label');
       this.iframe = this.$('iframe');
 
       // Fill in the embed code.
-      this.code.html('<iframe width="100%" height="100%" '
-          + 'src="' + this.iframe.attr('src') + '" frameborder="0"></iframe>');
+      this.update(this.iframe.attr('src'));
 
       return this;
     },
@@ -87,6 +91,18 @@ define([
       // Render the signin view.
       mps.publish('modal/signin/open');
     },
+
+    update: function (str) {
+      this.code.html('<iframe width="100%" height="100%" '
+          + 'src="' + str + '" frameborder="0"></iframe>');
+      this.code.height('auto');
+      var scrollHeight = this.code.get(0).scrollHeight;
+      var padding = parseInt(this.code.css('padding-top'))
+          + parseInt(this.code.css('padding-bottom'));
+      this.code.height(scrollHeight - padding).focus().blur();
+      this.label.css('line-height', scrollHeight + 'px');
+      
+    }
 
   });
 });

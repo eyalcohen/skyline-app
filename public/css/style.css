@@ -743,6 +743,11 @@ body.embed .page-spin {
   min-width: 300px;
 }
 
+body.embed .block-messages {
+  left: 10px;
+  bottom: 10px;
+}
+
 .block-remove {
   float: right;
   cursor: pointer;
@@ -1256,7 +1261,6 @@ a.splash-start-button:active {
   width: 878px;
   font-size: 16px;
   padding: 12px 10px 10px;
-  max-height: 36px;
 }
 
 .splash-section {

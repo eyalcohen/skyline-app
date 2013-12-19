@@ -90,9 +90,7 @@ define([
       // Update iframe src when embed code changes.
       mps.subscribe('embed/update', _.bind(function (str) {
         if (!this.app.embed) return;
-        $('.splash-embed .code', parent.document).html(
-            '<iframe width="100%" height="100%" '
-            + 'src="//' + str + '" frameborder="0"></iframe>');
+        parent.document.__update('//' + str);
       }, this));
 
       // Init page spinner.
