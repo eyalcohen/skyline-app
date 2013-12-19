@@ -1830,8 +1830,12 @@ a.control-button.view-only {
 .overview div:not(.overview-selection) {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: 140px;
   opacity: 0.6;
+}
+
+.main.embed .overview div:not(.overview-selection) {
+  height: 70px;
 }
 
 .overview .overview-selection {
@@ -1846,7 +1850,7 @@ a.control-button.view-only {
 }
 
 .main.embed .overview .overview-selection {
-  height: 140px;
+  height: 70px;
 }
 
 /*.........................................................................*/

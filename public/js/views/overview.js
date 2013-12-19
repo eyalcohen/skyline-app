@@ -10,7 +10,7 @@ define([
   'util',
   'units',
   'models/graph',
-  'Rickshaw'
+  'd3'
 ], function ($, _, Backbone, mps, util, units, Graph) {
 
   return Backbone.View.extend({
@@ -80,7 +80,8 @@ define([
     },
 
     draw: function () {
-      var t = this.getVisibleTime();
+      var time = this.getVisibleTime();
+      var width = this.$el.width();
 
       // Clear plots.
       this.$(':not(.overview-selection)').remove();
@@ -91,19 +92,19 @@ define([
         // Get channel samples.
         this.series = [];
         _.each(channels, _.bind(function (channel) {
-          var data = this.getSeriesData(channel);
-          if (data.length === 0) return;
+          var s = this.getSeriesData(channel);
+          if (s.data.length === 0) return;
+          s.color = this.app.colors[channel.colorNum];
 
           // Ensure each series spans the visible time.
-          if (t.beg < _.first(data).x * 1e3) {
-            data.unshift({x: _.first(data).x, y: null});
-            data.unshift({x: t.beg / 1e3, y: null});
+          if (time.beg < _.first(s.data).t * 1e3) {
+            s.data.unshift({t: _.first(s.data).t, v: null});
+            s.data.unshift({t: time.beg / 1e3, v: null});
           }
-          if (t.end > _.last(data).x * 1e3) {
-            data.push({x: _.last(data).x, y: null});
-            data.push({x: t.end / 1e3, y: null});
+          if (time.end > _.last(s.data).t * 1e3) {
+            s.data.push({t: _.last(s.data).t, v: null});
+            s.data.push({t: time.end / 1e3, v: null});
           }
-          var s = {channel: channel, data: data};
           this.series.push(s);
         }, this));
 
@@ -114,35 +115,51 @@ define([
 
         // Render.
         _.each(this.series, _.bind(function (series) {
-          var plot = new Rickshaw.Graph({
-            element: $('<div>').appendTo(this.$el).get(0),
-            renderer: 'area',
-            series: [{
-              data: series.data, 
-              color: this.app.colors[series.channel.colorNum]
-            }],
-            interpolation: 'linear'
-          });
-          plot.render();
+          var plot = $('<div class="overview-plot">').appendTo(this.$el);
+          var height = plot.height();
+          var min = _.first(series.data).t;
+          var max = _.last(series.data).t;
+
+          // Map samples to x,y coordinates.
+          var path = d3.svg.area()
+              .x(function (s) {
+                return (s.t - time.beg/1e3) / (time.end/1e3 - time.beg/1e3) * width;
+              })
+              .y0(height)
+              .y1(function (s) {
+                return height - ((s.v - series.min) / (series.max - series.min) * height);
+              })
+              .interpolate('linear');
+
+          // Create SVG elements.
+          var svg = d3.select(plot.get(0))
+              .append('svg:svg')
+              .attr('width', width)
+              .attr('height', height)
+              .append('svg:g')
+              .append('svg:path')
+              .attr('d', path(series.data))
+              .attr('class', 'area')
+              .attr('fill', series.color);
 
           // Handle snap to time range.
           var selections = [];
-          var getSelection = false;
-          $(plot.element).bind('mousedown', _.bind(function (e) {
-            getSelection = true;
+          plot.bind('mousedown', _.bind(function (e) {
             var x = e.pageX;
+            var w = plot.width();
             this.selection.css({left: x, width: 0}).show();
             var mousemove = _.bind(function (e) {
               if (e.pageX > x)
                 this.selection.css({left: x, width: e.pageX - x});
               else
                 this.selection.css({left: e.pageX, width: x - e.pageX});
+              var t = (e.pageX / w) * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
+              selections.push(t);
             }, this);
             var mouseup = _.bind(function (e) {
               $(document).unbind('mouseup', mouseup);
-              $(plot.element).unbind('mousemove', mousemove);
+              plot.unbind('mousemove', mousemove);
               this.selection.hide();
-              getSelection = false;
               if (selections.length > 1)
                 mps.publish('chart/zoom', [{
                   min: _.min(selections),
@@ -151,23 +168,14 @@ define([
               selections = [];
             }, this);
             $(document).bind('mouseup', mouseup);
-            $(plot.element).bind('mousemove', mousemove);
+            plot.bind('mousemove', mousemove);
           }, this));
-
-          // Use the hover even to 
-          new Rickshaw.Graph.HoverDetail({
-            graph: plot,
-            xFormatter: function (t) {
-              if (!getSelection) return;
-              selections.push(t);
-            }
-          });
         }, this));
 
         // Check width change for resize.
-        if (t.width !== this.prevWidth) {
+        if (time.width !== this.prevWidth) {
           this.trigger('VisibleWidthChange');
-          this.prevWidth = t.width;
+          this.prevWidth = time.width;
         }
       }, this));
     },
@@ -177,17 +185,21 @@ define([
           channel.displayUnits || channel.units);
       var data = [];
       var samples = [];
+      var min = Number.MAX_VALUE;
+      var max = -Number.MAX_VALUE;
       if (this.model.sampleCollection[channel.channelName])
         samples = this.model.sampleCollection[channel.channelName].sampleSet;
       var prevEnd = null, prevMinMaxEnd = null;
-      _.each(samples, function (s, i) {
+      _.each(samples, function (s) {
         var val = s.val * conv.factor;
-        data.push({x: s.beg / 1e3, y: val});
+        if (val < min) min = val;
+        if (val > max) max = val;
+        data.push({t: s.beg / 1e3, v: val});
         if (s.beg !== s.end)
-          data.push({x: s.end / 1e3, y: val});
+          data.push({t: s.end / 1e3, v: val});
         prevEnd = s.end;
       });
-      return data;
+      return {data: data, min: min, max: max};
     },
 
     getVisibleTime: function () {

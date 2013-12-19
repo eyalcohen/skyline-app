@@ -1,6 +1,6 @@
 module.exports = function (grunt) {
 
-  // Use dir arg from command line
+  // Use dir arg from command line.
   var dir = grunt.option('dir') || 'build';
 
   // Project configuration.
