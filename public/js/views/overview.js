@@ -142,30 +142,34 @@ define([
               .attr('class', 'area')
               .attr('fill', series.color);
 
+          // Map x-coordinate to time.
+          function getTime(x, w) {
+            return x / w * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
+          }
+
           // Handle snap to time range.
-          var selections = [];
           plot.bind('mousedown', _.bind(function (e) {
             var x = e.pageX;
             var w = plot.width();
+            var select = [getTime(x, w)];
             this.selection.css({left: x, width: 0}).show();
             var mousemove = _.bind(function (e) {
               if (e.pageX > x)
                 this.selection.css({left: x, width: e.pageX - x});
               else
                 this.selection.css({left: e.pageX, width: x - e.pageX});
-              var t = (e.pageX / w) * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
-              selections.push(t);
+              select[1] = getTime(e.pageX, w);
             }, this);
             var mouseup = _.bind(function (e) {
               $(document).unbind('mouseup', mouseup);
               plot.unbind('mousemove', mousemove);
               this.selection.hide();
-              if (selections.length > 1)
+              if (select.length === 2)
                 mps.publish('chart/zoom', [{
-                  min: _.min(selections),
-                  max: _.max(selections)
+                  min: _.min(select),
+                  max: _.max(select)
                 }]);
-              selections = [];
+              select = [];
             }, this);
             $(document).bind('mouseup', mouseup);
             plot.bind('mousemove', mousemove);
