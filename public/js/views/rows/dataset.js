@@ -51,7 +51,7 @@ define([
       // Get channels for this dataset.
       this.fetchChannels();
 
-      // update offset from store
+      // Update offset from store.
       var state = store.get('state');
       if (state.datasets[this.model.id]) {
         if (state.datasets[this.model.id].offset) {
@@ -106,7 +106,7 @@ define([
         this.$el.addClass('active');
         state.datasets[this.model.id].open = true;
       }
-      store.set('state', state);
+      this.app.state(state);
       return false;
     },
 
@@ -138,8 +138,9 @@ define([
         });
 
         // Check if was open.
-        if (store.get('state').datasets[this.model.id].open ||
-            !store.get('state').author_id) {
+        if ((store.get('state').datasets[this.model.id]
+            && store.get('state').datasets[this.model.id].open)
+            || !store.get('state').author_id) {
           this.channels.active = true;
           this.channels.expand(true);
           this.$el.addClass('active');
@@ -172,9 +173,10 @@ define([
       // save new offset
       var state = store.get('state');
       var did = this.model.id;
-      if (state.datasets[did]) {
-        state.datasets[did].offset = this.model.get('offset')
-        store.set('state', state);
+      if (state.datasets[did]
+          && state.datasets[did].offset !== this.model.get('offset')) {
+        state.datasets[did].offset = this.model.get('offset');
+        this.app.state(state);
       }
 
       var offset = this.model.get('offset')

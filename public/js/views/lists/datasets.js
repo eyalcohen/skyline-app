@@ -73,19 +73,21 @@ define([
 
       // Update state.
       var state = store.get('state');
-      state.datasets[d.id] = {index: _.size(state.datasets)};
-      store.set('state', state);
+      if (!state.datasets[d.id]) {
+        state.datasets[d.id] = {index: _.size(state.datasets)};
+        this.app.state(state);
+      }
 
       // Fit tabs
       this.parentView.fit();
     },
 
     removed: function (d) {
-      
+
       // Update state.
       var state = store.get('state');
       delete state.datasets[d.id];
-      store.set('state', state);
+      this.app.state(state);
 
       // Fit tabs
       this.parentView.fit();
@@ -111,8 +113,10 @@ define([
       var state = store.get('state');
       if (!state.datasets[did].channels)
         state.datasets[did].channels = {};
-      state.datasets[did].channels[channel.channelName] = channel;
-      store.set('state', state);
+      if (!state.datasets[did].channels[channel.channelName]) {
+        state.datasets[did].channels[channel.channelName] = channel;
+        this.app.state(state);
+      }
     },
 
     channelRemoved: function (did, channel) {
@@ -120,7 +124,7 @@ define([
       delete state.datasets[did].channels[channel.channelName];
       if (_.isEmpty(state.datasets[did].channels))
         delete state.datasets[did].channels;
-      store.set('state', state);
+      this.app.state(state);
     },
 
     fit: function (w) {

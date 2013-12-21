@@ -131,7 +131,7 @@ define([
     save: function (e) {
       e.preventDefault();
 
-      // Prevent multiple uploads at the same time.
+      // Prevent multiple saves at the same time.
       if (this.working) return false;
       this.working = true;
 

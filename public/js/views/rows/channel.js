@@ -108,13 +108,13 @@ define([
       if (this.$el.hasClass('active')) {
         this.$el.removeClass('active');
         mps.publish('channel/remove', [this.model.get('did'),
-          this.model.get('val')]);
+            this.model.get('val')]);
         this.active = false;
         this.removeLineStyle();
       } else {
         this.$el.addClass('active');
         mps.publish('channel/add', [this.model.get('did'),
-          this.model.get('val')]);
+            this.model.get('val')]);
         this.active = true;
       }
       return false;
@@ -147,7 +147,6 @@ define([
         backgroundColor: color,
         borderColor: color
       });
-      // this.$el.addClass('active');
     },
 
     removed: function (did, channel) {
@@ -158,7 +157,6 @@ define([
         backgroundColor: 'transparent',
         borderColor: '#d0d0d0'
       });
-      // this.$el.removeClass('active');
     },
 
     destroy: function () {

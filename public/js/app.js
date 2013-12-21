@@ -84,6 +84,11 @@ define([
     delete this.profile.notes;
   }
 
+  App.prototype.state = function (state) {
+    store.set('state', state);
+    mps.publish('state/change');
+  }
+
   return {
 
     // Creates the instance.

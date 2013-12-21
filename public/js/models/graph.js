@@ -40,14 +40,18 @@ define([
 
       // View change events.
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
+        var vt = this.get('visibleTime');
+        if (vt.beg === visibleTime.beg
+            && vt.end === visibleTime.end) return;
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
         this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
         var state = store.get('state');
         state.time = visibleTime;
-        store.set('state', state);
+        this.app.state(state);
       }, this));
-      this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
+      this.view.bind('VisibleWidthChange',
+          _.bind(this.updateCacheSubscription, this));
 
       return this;
     },
@@ -263,7 +267,7 @@ define([
     setDatasetOffset: function(channelName, newOffset) {
       var dataset = this.findDatasetFromChannel(channelName);
 
-      //update offset by adding to old offset
+      // Update offset by adding to old offset.
       dataset.set('offset', newOffset)
       this.updateCacheSubscription(this.getOrCreateClient(dataset));
     },

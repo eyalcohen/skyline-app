@@ -47,6 +47,7 @@ define([
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/draw', _.bind(this.updateIcons, this)),
         mps.subscribe('comment/end', _.bind(this.uncomment, this)),
+        mps.subscribe('state/change', _.bind(this.onStateChange, this)),
       ];
 
       // Determine whether or not comments are allowed.
@@ -178,6 +179,10 @@ define([
 
     save: function (e) {
       e.preventDefault();
+
+      // if (store.get('state').author_id && this.app.profile.content.page)
+      
+
       mps.publish('modal/save/open');
     },
 
@@ -387,6 +392,15 @@ define([
       reader.readAsDataURL(file);
 
       return false;
+    },
+
+    onStateChange: function () {
+      console.log('changed...');
+      // var state = store.get('state');
+      // console.log(state)
+      // console.log(this.app.profile.user);
+      // If this is explore mode, i.e. (/chart), do nothing.
+      // If this is a view and user is view owner, indicate state is not saved.
     },
 
   });

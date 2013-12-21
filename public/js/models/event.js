@@ -18,15 +18,14 @@ define([
         var type, icon, link, owner;
         var gravatar = 'https://www.gravatar.com/avatar/'
             + att.data.action.g + '?s=16&d=mm';
+        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
 
         if (att.data.target.t === 'dataset') {
           type = 'data source';
           icon = 'database';
-          link = '<a href="javascript:;" class="event-link">';
         } else {
           type = 'mashup';
           icon = 'folder-empty';
-          link = '<a href="/' + att.data.target.s + '" class="navigate">';
         }
 
         if (att.data.action.i === att.data.target.i)
@@ -47,17 +46,16 @@ define([
             + att.data.action.b + '"</span>': '');
 
       } else if (att.data.action.t === 'create') {
-        var verb, type, icon, link;
+        var verb, type, icon;
+        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
         if (att.data.target.t === 'dataset') {
           verb = 'added';
           type = 'data source';
           icon = 'database';
-          link = '<a href="javascript:;" class="event-link">';
         } else {
           verb = 'created a new';
           type = 'mashup';
           icon = 'folder-empty';
-          link = '<a href="/' + att.data.target.s + '" class="navigate">';
         }
 
         return '<a href="/' + att.data.action.u + '" class="navigate">'
