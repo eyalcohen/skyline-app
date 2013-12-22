@@ -86,6 +86,7 @@ define([
       'click .control-button-weekly': 'weekly',
       'click .control-button-monthly': 'monthly',
       'click .control-button-save': 'save',
+      'click .control-button-fork': 'fork',
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
       'mousemove .graphs': 'updateCursor',
@@ -261,6 +262,11 @@ define([
 
         }, this));
       }
+    },
+
+    fork: function (e) {
+      e.preventDefault();
+      mps.publish('modal/fork/open');
     },
 
     download: function (e) {
@@ -475,7 +481,7 @@ define([
       var user = this.app.profile.user;
 
       // If this is explore mode, i.e. (/chart), do nothing.
-      if (!state.author_id) return;
+      if (!state.author_id || !user) return;
 
       // If this is a view and user is view owner, indicate state is not saved.
       if (state.author_id === user.id)

@@ -1,10 +1,18 @@
+<%
+
+  var verb = this.options.fork ? 'Fork': 'Save';
+  var title = this.options.fork ? 'fork': 'mashup';
+
+%>
+
+
 <span class="modal-title">
-  Save mashup
+  <%= verb %> this mashup
 </span>
 <div class="save-inner modal-inner">
   <div>
     <span class="modal-heading">
-      Name your mashup
+      Name your <%= title %>
     </span>
     <form class="save-form" enctype="multipart/form-data" method="POST">
       <table>
