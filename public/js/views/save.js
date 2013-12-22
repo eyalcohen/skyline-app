@@ -171,6 +171,10 @@ define([
         time: state.time
       });
 
+      // Add parent if this is a fork.
+      if (this.options.fork)
+        payload.parent_id = state.id;
+
       // Create the view.
       rest.post('/api/views', payload, _.bind(function (err, res) {
 

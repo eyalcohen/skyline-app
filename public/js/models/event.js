@@ -29,9 +29,7 @@ define([
         }
 
         if (att.data.action.i === att.data.target.i)
-          owner = 'their';
-        else if (att.subscriber_id === att.data.target.i)
-          owner = 'your';
+          owner = 'their own';
         else
           owner = '<a href="/' + att.data.target.u + '" class="navigate">'
               + att.data.target.a + '\'s</a>';
@@ -61,6 +59,31 @@ define([
         return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
             + verb + ' a ' + type + '.'
+            + '<span class="event-body event-body-big">'
+            + link + '<i class="icon-' + icon + '"></i>'
+            + att.data.target.n + '</a></span>';
+
+      } else if (att.data.action.t === 'fork') {
+        var verb = 'forked';
+        var type, icon, owner;
+        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
+        if (att.data.target.t === 'dataset') {
+          type = 'data source';
+          icon = 'database';
+        } else {
+          type = 'mashup';
+          icon = 'folder-empty';
+        }
+
+        if (att.data.action.i === att.data.target.p.i)
+          owner = 'their own';
+        else
+          owner = '<a href="/' + att.data.target.p.u + '" class="navigate">'
+              + att.data.target.p.a + '\'s</a>';
+
+        return '<a href="/' + att.data.action.u + '" class="navigate">'
+            + att.data.action.a + '</a> '
+            + verb + ' ' + owner + ' ' + type + ', '
             + '<span class="event-body event-body-big">'
             + link + '<i class="icon-' + icon + '"></i>'
             + att.data.target.n + '</a></span>';
