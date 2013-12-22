@@ -188,7 +188,19 @@ define([
         }
 
         // Publish new dataset.
+        var now = new Date().toISOString();
         this.app.profile.content.page = res;
+        _.extend(state, {
+          author_id: res.author.id,
+          comments: [],
+          comments_cnt: 0,
+          id: res.id,
+          name: res.name,
+          slug: res.slug,
+          created: now,
+          updated: now
+        });
+        store.set('state', state);
         mps.publish('view/new', [res]);
 
         // Show alert

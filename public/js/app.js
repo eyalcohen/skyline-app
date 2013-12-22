@@ -86,7 +86,7 @@ define([
 
   App.prototype.state = function (state) {
     store.set('state', state);
-    mps.publish('state/change');
+    mps.publish('state/change', [state]);
   }
 
   return {

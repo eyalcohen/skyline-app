@@ -1661,6 +1661,31 @@ a.control-button.view-only {
   display: none;
 }
 
+a.control-button-save,
+a.control-button-save:hover {
+  color: rgb(39, 205, 214);
+}
+
+a.control-button-save.saved,
+a.control-button-save.saved:hover {
+  color: #8f8f8f;
+  cursor: default;
+}
+
+a.control-button-save.saved:active {
+  background: #f9f9f9;
+}
+
+a.control-button-save.saving {
+  color: #f9f9f9;
+  background: #f9f9f9;
+  cursor: default;
+}
+
+.save-button-spin {
+  top: 17px;
+}
+
 .side-panel {
   position: absolute;
   z-index: 11;

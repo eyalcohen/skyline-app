@@ -7,16 +7,18 @@ define([
   'Underscore',
   'Backbone',
   'mps',
+  'rest',
   'util',
   'units',
+  'Spin',
   'text!../../templates/chart.html',
   'views/lists/datasets',
   'views/lists/comments',
   'views/graph',
   'views/exportdata',
   'views/overview'
-], function ($, _, Backbone, mps, util, units, template, Datasets, Comments,
-      Graph, ExportData, Overview) {
+], function ($, _, Backbone, mps, rest, util, units, Spin, template, Datasets,
+      Comments, Graph, ExportData, Overview) {
 
   return Backbone.View.extend({
 
@@ -90,7 +92,6 @@ define([
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment',
       'click .comment-cancel-button': 'comment'
-
     },
 
     // Misc. setup.
@@ -103,6 +104,14 @@ define([
       this.cursor = this.$('.cursor');
       this.icons = this.$('.icons');
       this.dropZone = this.$('.dnd');
+      this.saveButton = this.$('.control-button-save');
+      this.saveButtonSpin = new Spin($('.save-button-spin', this.el), {
+        color: '#3f3f3f',
+        lines: 13,
+        length: 3,
+        width: 2,
+        radius: 6,
+      });
 
       // Handle comments panel.
       if (this.annotated && store.get('comments'))
@@ -112,6 +121,11 @@ define([
       this.$el.bind('dragover', _.bind(this.dragover, this));
       this.dropZone.bind('dragleave', _.bind(this.dragout, this))
           .bind('drop', _.bind(this.drop, this));
+
+      // Handle save button.
+      if (store.get('state').author_id)
+        // This is a view, so intially it's already saved.
+        this.saveButton.addClass('saved');
 
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
@@ -180,10 +194,73 @@ define([
     save: function (e) {
       e.preventDefault();
 
-      // if (store.get('state').author_id && this.app.profile.content.page)
-      
+      // No need to save.
+      if (this.saveButton.hasClass('saved')) return;
 
-      mps.publish('modal/save/open');
+      // Prevent multiple saves at the same time.
+      if (this.working) return false;
+      this.working = true;
+
+      var user = this.app.profile.user;
+      var state = store.get('state');
+      var payload = {
+        datasets: state.datasets,
+        time: state.time
+      };
+
+      // If this is explore mode, i.e. (/chart), do "save as".
+      if (!state.author_id) return mps.publish('modal/save/open');
+
+      // If this is a view and user is view owner, do "save".
+      if (state.author_id === user.id) {
+
+        // Indicate save.
+        this.saveButton.addClass('saving');
+        this.saveButtonSpin.start();
+
+        rest.put('/api/views/' + state.id, payload, _.bind(function (err, res) {
+
+          // Indicate done.
+          this.saveButton.removeClass('saving');
+          this.saveButtonSpin.stop();
+
+          if (err) {
+            // Show error.
+            _.delay(function () {
+              mps.publish('flash/new', [{
+                message: err,
+                level: 'error',
+                sticky: false
+              }]);
+            }, 500);
+            this.working = false;
+            return;
+          }
+
+          // Updates.
+          this.saveButton.addClass('saved');
+          var now = new Date().toISOString();
+          this.app.profile.content.page = res;
+          _.extend(state, {
+            updated: now,
+          });
+          store.set('state', state);
+
+          // Show alert
+          _.delay(function () {
+            mps.publish('flash/new', [{
+              message: 'Saved.',
+              level: 'alert',
+              sticky: false,
+              delay: 2000,
+            }]);
+          }, 500);
+
+          // Ready for more.
+          this.working = false;
+
+        }, this));
+      }
     },
 
     download: function (e) {
@@ -246,6 +323,7 @@ define([
       this.comments = new Comments(this.app, {parentView: this, type: 'view'});
       this.annotated = true;
       this.$('.control-button').removeClass('view-only');
+      this.saveButton.addClass('saved');
       this.app.title(this.app.profile.content.page.name);
     },
 
@@ -385,7 +463,6 @@ define([
 
           // Ready for more.
           this.working = false;
-
         }, this));
 
       }, this);
@@ -394,13 +471,15 @@ define([
       return false;
     },
 
-    onStateChange: function () {
-      console.log('changed...');
-      // var state = store.get('state');
-      // console.log(state)
-      // console.log(this.app.profile.user);
+    onStateChange: function (state) {
+      var user = this.app.profile.user;
+
       // If this is explore mode, i.e. (/chart), do nothing.
+      if (!state.author_id) return;
+
       // If this is a view and user is view owner, indicate state is not saved.
+      if (state.author_id === user.id)
+        this.saveButton.removeClass('saved');
     },
 
   });

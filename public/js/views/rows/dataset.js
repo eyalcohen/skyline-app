@@ -175,8 +175,11 @@ define([
       var did = this.model.id;
       if (state.datasets[did]
           && state.datasets[did].offset !== this.model.get('offset')) {
+        var initial = state.datasets[did].offset === undefined
+            && this.model.get('offset') === 0;
         state.datasets[did].offset = this.model.get('offset');
-        this.app.state(state);
+        if (!initial)
+          this.app.state(state);
       }
 
       var offset = this.model.get('offset')
