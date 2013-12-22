@@ -45,30 +45,26 @@ define([
   }
 
   App.prototype.update = function (profile) {
+    var login = false;
 
     // Set the app profile.
     if (this.profile) {
       this.profile.content = profile.content;
+      this.profile.state = profile.state;
       if (profile.user && !this.profile.user) {
         this.profile.user = profile.user;
-        _update();
-        return true;
+        login = true;
       }
-    } else {
+    } else
       this.profile = profile;
-      _update();
-    }
 
     // Pull out state, if exists.
-    function _update() {
-      if (profile && profile.state) {
-        store.set('state', profile.state);
-        if (this.profile)
-          delete this.profile.state;
-      }
+    if (profile && profile.state) {
+      store.set('state', profile.state);
+      delete this.profile.state;
     }
 
-    return false;
+    return login;
   }
 
   App.prototype.title = function (t1, t2) {
