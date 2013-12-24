@@ -8,8 +8,9 @@ define([
   'mps',
   'views/boiler/row',
   'text!../../../templates/rows/channel.html',
+  'text!../../../templates/linestyle.html',
   'Spin'
-], function ($, _, mps, Row, template, Spin) {
+], function ($, _, mps, Row, template, linestyleTemplate, Spin) {
   return Row.extend({
 
     active: false,
@@ -42,7 +43,7 @@ define([
       console.log(this.model);
 
       // Bind click event.
-      this.button.click(_.bind(this.toggle, this));
+      // this.button.click(_.bind(this.toggle, this));
 
       // Check if active in state.
       var state = store.get('state');
@@ -66,7 +67,23 @@ define([
     },
 
     events: {
-
+      // TODO: Make this mouse in-out
+      'click .icon-chart-line' : function(e) {
+        if (!($('.linestyle-modal').length))
+          this.$el.append(_.template(linestyleTemplate));
+        else {
+          $('.linestyle-modal').remove();
+        }
+      },
+      /*
+      'mouseenter .linestyle-modal' : function(e) { this.inLineStyleModal = true; }, 
+      'mouseleave .linestyle-modal' : function(e) { 
+        if (this.inLineStyleModal) {
+          $('.linestyle-modal').remove();
+          this.inLineStyleModal = false;
+        }
+      }
+      */
     },
 
     fit: function (w) {
@@ -155,6 +172,12 @@ define([
         this.destroy();
         cb();
       }, this));
+    },
+
+    linestyleModal: function () {
+      if (!$('.linestyle-modal').exists())
+        this.$el.append(_.template(linestyleTemplate));
+      //console.log('mouseenter');
     },
 
   });
