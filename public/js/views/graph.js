@@ -341,10 +341,10 @@ define([
         var data = this.getSeriesData(channel);
         series.push(_.extend({
           points: {
-            show: this.model.lineStyleOptions[channel.channelName].showPoints
+            show: lineStyleOpts.showPoints
           },
           lines: {
-            show: true,
+            show: lineStyleOpts.showLines,
             lineWidth: 2,
             fill: false,
           },
@@ -616,8 +616,11 @@ define([
           data.push(null);
         var val = s.val * conv.factor + conv.offset;
         data.push([(s.beg + offset) / 1000, val]);
-        if (s.end !== s.beg)
-          data.push([(s.end + offset) / 1000, val]);
+        var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
+        if (lineStyleOpts.interpolation === 'none') {
+          if (s.end !== s.beg)
+            data.push([(s.end + offset) / 1000, val]);
+        }
         prevEnd = s.end;
         if (s.min != null || s.max != null) {
           if (prevMinMaxEnd != s.beg)
@@ -629,7 +632,7 @@ define([
             minMax.push([s.end / 1000, max, min]);
           prevMinMaxEnd = s.end;
         }
-      });
+      }, this);
       return { data: data, minMax: minMax };
     },
 
@@ -711,10 +714,12 @@ define([
         _.extend(oldPoints, obj.points);
         _.extend(oldLines, obj.lines);
 
+        var lineStyleOpts = this.model.lineStyleOptions[obj.channelName];
+
         // don't display line series points if we have a lot of data
-        var showPoints = numPoints[idx] < this.POINTS_TO_SHOW;
-        obj.points.show = showPoints;
-        this.model.lineStyleOptions[obj.channelName].showPoints = showPoints;
+        obj.points.show = (numPoints[idx] < this.POINTS_TO_SHOW) 
+                          || !lineStyleOpts.showLines
+                          && lineStyleOpts.showPoints;
 
         // default line styles
         obj.lines.lineWidth = 2;

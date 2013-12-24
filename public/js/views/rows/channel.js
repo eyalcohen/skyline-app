@@ -39,6 +39,8 @@ define([
       this.name = this.$('.channel-name', this.button);
       this.txt = this.$('.channel-name span');
 
+      console.log(this.model);
+
       // Bind click event.
       this.button.click(_.bind(this.toggle, this));
 

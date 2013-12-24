@@ -21,7 +21,9 @@ define([
       this.options = options;
 
       this.DEFAULT_LINE_STYLE = {
-        showPoints: false,
+        showPoints: true,
+        showLines: true,
+        interpolation: 'linear' // also 'none'
       }
 
       // channelName -> showPoints:{true, false}
