@@ -9,8 +9,8 @@ define([
   'views/boiler/row',
   'text!../../../templates/rows/channel.html',
   'text!../../../templates/linestyle.html',
-  'Spin'
-], function ($, _, mps, Row, template, linestyleTemplate, Spin) {
+  'views/linestyle'
+], function ($, _, mps, Row, template, linestyleTemplate, LineStyle) {
   return Row.extend({
 
     active: false,
@@ -70,7 +70,7 @@ define([
       // TODO: Make this mouse in-out
       'click .icon-chart-line' : function(e) {
         if (!($('.linestyle-modal').length))
-          this.$el.append(_.template(linestyleTemplate));
+          this.linestyle = new LineStyle(this.app, {parentView: this, channel:this.model}).render();
         else {
           $('.linestyle-modal').remove();
         }
@@ -172,12 +172,6 @@ define([
         this.destroy();
         cb();
       }, this));
-    },
-
-    linestyleModal: function () {
-      if (!$('.linestyle-modal').exists())
-        this.$el.append(_.template(linestyleTemplate));
-      //console.log('mouseenter');
     },
 
   });

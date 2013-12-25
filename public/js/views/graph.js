@@ -36,6 +36,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
+        mps.subscribe('channel/lineStyleUpdate', _.bind(this.lineStyleUpdate, this)),
       ];
     },
 
@@ -692,18 +693,22 @@ define([
     // update line style based on heuristics
     //  if mouse is near cursor, bold it
     //  if line is displaying too many points, turn off points
-    updateLineStyle: function(e) {
-      var mouse = this.getMouse(e);
+    updateLineStyle: function(e, forceUpdate) {
+
+      forceUpdate = typeof forceUpdate !== 'undefined' ? forceUpdate : false;
+
       var xaxis = this.plot.getXAxes()[0];
       var plotData = this.plot.getData();
       var opts = this.plot.getOptions();
       var numPoints = this.getVisiblePoints();
       var needsUpdate = false;
 
-      // lookup closest channel to mouse cursor
-      var closestChannel =
-        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
-      if (!closestChannel) return;
+      if (e) {
+        // lookup closest channel to mouse cursor
+        var closestChannel =
+          _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+        if (!closestChannel) return;
+      }
 
       // default values
       _.each(plotData, function(obj, idx) {
@@ -730,18 +735,20 @@ define([
             needsUpdate = true;
       }, this);
 
-      var series =  _.find(plotData, function (obj) {
-        return obj.channelName == closestChannel.channelName;
-      });
+      if (e) {
+        var series =  _.find(plotData, function (obj) {
+          return obj.channelName == closestChannel.channelName;
+        });
 
       // bold the line if we're close to it
-      if (closestChannel.pixelsFromInterpPt < 10) {
-        needsUpdate = true;
-        series.lines.lineWidth = 4;
-        series.points.radius = 4;
+        if (closestChannel.pixelsFromInterpPt < 10) {
+          needsUpdate = true;
+          series.lines.lineWidth = 4;
+          series.points.radius = 4;
+        }
       }
 
-      if (needsUpdate) {
+      if (needsUpdate || forceUpdate) {
         this.plot.setData(plotData);
         this.plot.draw();
       }
@@ -762,6 +769,13 @@ define([
         var endIdx = i;
         return (endIdx - startIdx);
       });
+    },
+
+    lineStyleUpdate: function(channel, opts) {
+      for (var attrname in opts) {
+        this.model.lineStyleOptions[channel][attrname] = opts[attrname];
+      }
+      this.draw();
     }
 
   });
