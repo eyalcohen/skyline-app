@@ -76,36 +76,64 @@ define([
     },
 
     linetypeUpdate: function(e) {
-      lineStyleOptions = {
-        showPoints: true,
-        showLines: true,
-        interpolation: 'linear' // also 'none'
-      }
-      var target = e.target.className;
+      var target = e.target.id;
+
+      var updatePoints = false;
+      var updateInterp = false;
+
+      var oldStyle = {}
+      _.extend(oldStyle, this.currentLineStyle);
 
       if (target === 'linestyle-scatter') {
-        lineStyleOptions.showPoints = true;
-        lineStyleOptions.showLines = false;
+        this.currentLineStyle.showPoints = true;
+        this.currentLineStyle.showLines = false;
+        updatePoints = true;
       } else if (target === 'linestyle-line') {
-        lineStyleOptions.showPoints = false;
-        lineStyleOptions.showLines = true;
+        this.currentLineStyle.showPoints = false;
+        this.currentLineStyle.showLines = true;
+        updatePoints = true;
       } else if (target === 'linestyle-line-with-points') {
-        lineStyleOptions.showPoints = true;
-        lineStyleOptions.showLines = true;
+        this.currentLineStyle.showPoints = true;
+        this.currentLineStyle.showLines = true;
+        updatePoints = true;
+      } else if (target === 'linestyle-interp-linear') {
+        this.currentLineStyle.interpolation = 'linear';
+        updateInterp = true;
+      } else if (target === 'linestyle-interp-none') {
+        this.currentLineStyle.interpolation = 'none';
+        updateInterp = true;
       }
-      this.unselected($('.linestyle-linetype').children())
-      this.selected('.' + target);
-      mps.publish('channel/lineStyleUpdate', [this.channel.id, lineStyleOptions]);
+
+      if (JSON.stringify(this.currentLineStyle) !== JSON.stringify(oldStyle)) {
+        if (updatePoints) {
+          this.unselected($('.linestyle-points').children())
+          this.selected('#' + target);
+        }
+        if (updateInterp) {
+          this.unselected($('.linestyle-interp').children())
+          this.selected('#' + target);
+        }
+        mps.publish('channel/lineStyleUpdate', [this.channel.id, this.currentLineStyle]);
+      }
+
     },
 
     responseLineStyle: function(style) {
       var selector;
+      this.currentLineStyle = style;
       if (style.showPoints && style.showLines)
-        selector = $('.linestyle-line-with-points');
+        selector = $('#linestyle-line-with-points');
       else if (style.showPoints)
-        selector = $('.linestyle-scatter');
+        selector = $('#linestyle-scatter');
       else if (style.showLines)
-        selector = $('.linestyle-line');
+        selector = $('#linestyle-line');
+      if (selector) this.selected(selector);
+      
+      selector = {};
+      if (style.interpolation === 'linear')
+        selector = $('#linestyle-interp-linear');
+      else
+        selector = $('#linestyle-interp-none');
       if (selector) this.selected(selector);
     },
 

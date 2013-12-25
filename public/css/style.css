@@ -2372,7 +2372,7 @@ a.comments-signin {
   display: none;
 }
 
-.linestyle-linetype * {
+.linestyle-box {
   font-size: 12px;
   display: inline-block;
   width: 16px;
