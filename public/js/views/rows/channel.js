@@ -8,9 +8,8 @@ define([
   'mps',
   'views/boiler/row',
   'text!../../../templates/rows/channel.html',
-  'text!../../../templates/linestyle.html',
   'views/linestyle'
-], function ($, _, mps, Row, template, linestyleTemplate, LineStyle) {
+], function ($, _, mps, Row, template, LineStyle) {
   return Row.extend({
 
     active: false,
@@ -43,7 +42,7 @@ define([
       console.log(this.model);
 
       // Bind click event.
-      // this.button.click(_.bind(this.toggle, this));
+      this.button.click(_.bind(this.toggle, this));
 
       // Check if active in state.
       var state = store.get('state');
@@ -68,22 +67,15 @@ define([
 
     events: {
       // TODO: Make this mouse in-out
-      'click .icon-chart-line' : function(e) {
-        if (!($('.linestyle-modal').length))
+      'mouseenter .icon-chart-line' : function(e) {
+        if (!this.linestyle && this.$el.hasClass('active'))
           this.linestyle = new LineStyle(this.app, {parentView: this, channel:this.model}).render();
-        else {
-          $('.linestyle-modal').remove();
+      },
+      'mouseleave' : function(e) {
+        if (this.linestyle) {
+          this.linestyle.destroy(_.bind(function() { delete this.linestyle }, this));
         }
       },
-      /*
-      'mouseenter .linestyle-modal' : function(e) { this.inLineStyleModal = true; }, 
-      'mouseleave .linestyle-modal' : function(e) { 
-        if (this.inLineStyleModal) {
-          $('.linestyle-modal').remove();
-          this.inLineStyleModal = false;
-        }
-      }
-      */
     },
 
     fit: function (w) {

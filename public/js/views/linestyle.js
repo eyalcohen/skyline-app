@@ -33,6 +33,9 @@ define([
     render: function () {
       this.template = _.template(template, {channels: this.channels});
       this.$el.append(this.template);
+      // once rendered, we change the $el refernece to the newly created modal
+      this.$el = $('.linestyle-modal');
+      this.$el.show('fast');
       return this;
     },
 
@@ -54,10 +57,16 @@ define([
     },
 
     // Kill this view.
-    destroy: function () {
-      //this.undelegateEvents();
+    destroy: function (cb) {
+      this.undelegateEvents();
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
       this.stopListening();
-      this.empty();
+      this.$el.hide('fast', function () {
+        this.remove();
+        cb();
+      });
     },
 
     linetypeUpdate: function(e) {

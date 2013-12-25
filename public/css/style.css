@@ -2369,6 +2369,7 @@ a.comments-signin {
   z-index: 100;
   left: 20px;
   top: 15px;
+  display: none;
 }
 
 .linestyle-linetype * {
