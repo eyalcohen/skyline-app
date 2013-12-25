@@ -778,6 +778,9 @@ define([
       for (var attrname in opts) {
         this.model.lineStyleOptions[channel][attrname] = opts[attrname];
       }
+      var state = store.get('state');
+      state.lineStyleOptions = this.model.lineStyleOptions;
+      store.set('state', state);
       this.draw();
     }
 

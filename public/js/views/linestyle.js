@@ -15,6 +15,7 @@ define([
   return Backbone.View.extend({
 
     // The DOM target element for this page:
+    className: 'linestyle-modal',
 
     // Module entry point.
     initialize: function (app, options) {
@@ -22,7 +23,7 @@ define([
       // Save app reference.
       this.app = app;
       this.options = options;
-      this.$el = this.options.parentView.$el;
+      //this.$el = this.options.parentView.$el;
       this.channel = this.options.channel;
 
       // Shell events.
@@ -36,9 +37,7 @@ define([
     // Draw the template
     render: function () {
       this.template = _.template(template, {channels: this.channels});
-      this.$el.append(this.template);
-      // once rendered, we change the $el refernece to the newly created modal
-      this.$el = $('.linestyle-modal');
+      this.$el.html(this.template).appendTo(this.options.parentView.$el);
       this.$el.show('fast');
       this.trigger('rendered');
       return this;
