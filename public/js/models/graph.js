@@ -23,7 +23,9 @@ define([
       this.DEFAULT_LINE_STYLE = {
         showPoints: true,
         showLines: true,
-        interpolation: 'linear' // also 'none'
+        interpolation: 'linear', // also 'none'
+        lineWidth: 2,
+        pointRadius: 3,
       }
 
       // channelName -> showPoints:{true, false}
@@ -42,7 +44,6 @@ define([
         this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
         var state = store.get('state');
         state.time = visibleTime;
-        state.lineStyleOptions = this.lineStyleOptions;
         store.set('state', state);
       }, this));
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));

@@ -36,7 +36,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
-        mps.subscribe('channel/lineStyleUpdate', _.bind(this.lineStyleUpdate, this)),
+        mps.subscribe('channel/lineStyleUpdate', _.bind(this.setUserLineStyle, this)),
         mps.subscribe('channel/requestLineStyle', _.bind(function(c) {
           mps.publish('channel/responseLineStyle', [this.model.lineStyleOptions[c]]);
         }, this)),
@@ -335,6 +335,7 @@ define([
       _.each(channels, _.bind(function (channel, i) {
         var lineStyleOpts = this.model.lineStyleOptions[channel.channelName]
         var highlighted = this.highlightedChannel === channel.channelName;
+
         var seriesBase = {
           xaxis: 1,
           yaxis: channel.yaxisNum,
@@ -344,10 +345,10 @@ define([
         var data = this.getSeriesData(channel);
         series.push(_.extend({
           points: {
-            show: lineStyleOpts.showPoints
+            show: false,
           },
           lines: {
-            show: lineStyleOpts.showLines,
+            show: false,
             lineWidth: 2,
             fill: false,
           },
@@ -375,6 +376,7 @@ define([
       this.updateSeriesColors(series);
       this.plot.setData(series);
       this.plot.setupGrid();
+      this.updateGraphLineStyle();
       this.plot.draw();
     },
 
@@ -464,7 +466,7 @@ define([
           // don't run this very frequently, perhaps once every 20ms
           if (Date.now() - this.lastMouseMove > 20) {
             this.lastMouseMove = Date.now();
-            this.updateLineStyle(e);
+            this.mouseLineStyle(e);
           }
         }, this));
 
@@ -476,7 +478,7 @@ define([
             this.plot.zoomOut({center: c, amount: factor});
           else
             this.plot.zoom({center: c, amount: factor});
-          this.updateLineStyle(e);
+          this.draw();
         }
       }
 
@@ -693,65 +695,78 @@ define([
       }, this));
     },
 
-    // update line style based on heuristics
-    //  if mouse is near cursor, bold it
-    //  if line is displaying too many points, turn off points
-    updateLineStyle: function(e, forceUpdate) {
-
-      forceUpdate = typeof forceUpdate !== 'undefined' ? forceUpdate : false;
-
-      var xaxis = this.plot.getXAxes()[0];
+    updateGraphLineStyle: function() {
       var plotData = this.plot.getData();
       var opts = this.plot.getOptions();
       var numPoints = this.getVisiblePoints();
       var needsUpdate = false;
 
-      if (e) {
-        // lookup closest channel to mouse cursor
-        var closestChannel =
-          _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
-        if (!closestChannel) return;
-      }
-
-      // default values
       _.each(plotData, function(obj, idx) {
+
+        var lineStyleOpts = this.model.lineStyleOptions[obj.channelName];
 
         // copy over some series data
         var oldPoints = {}, oldLines = {};
         _.extend(oldPoints, obj.points);
         _.extend(oldLines, obj.lines);
 
-        var lineStyleOpts = this.model.lineStyleOptions[obj.channelName];
-
         // don't display line series points if we have a lot of data
         obj.points.show = (numPoints[idx] < this.POINTS_TO_SHOW) 
                           || !lineStyleOpts.showLines
                           && lineStyleOpts.showPoints;
 
-        // default line styles
-        obj.lines.lineWidth = 2;
-        obj.points.radius = 3;
+        obj.lines.show = lineStyleOpts.showLines;
+        obj.lines.lineWidth = lineStyleOpts.lineWidth;
 
         // compare object properties and decide whether we ned to redraw
         if (JSON.stringify(obj.lines) !== JSON.stringify(oldLines)
             || JSON.stringify(obj.points) !== JSON.stringify(oldPoints))
             needsUpdate = true;
       }, this);
+      
+      if (needsUpdate) {
+        this.plot.setData(plotData);
+      }
+    },
 
-      if (e) {
-        var series =  _.find(plotData, function (obj) {
-          return obj.channelName == closestChannel.channelName;
-        });
+    // if mouse is near cursor, bold it
+    mouseLineStyle: function(e) {
+      var plotData = this.plot.getData();
+      var opts = this.plot.getOptions();
+      // lookup closest channel to mouse cursor
+      var closestChannel =
+        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+      if (!closestChannel) return;
 
-      // bold the line if we're close to it
-        if (closestChannel.pixelsFromInterpPt < 10) {
-          needsUpdate = true;
-          series.lines.lineWidth = 4;
-          series.points.radius = 4;
-        }
+      var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
+
+      var series =  _.find(plotData, function (obj) {
+        return obj.channelName == closestChannel.channelName;
+      });
+
+      var needsUpdate = false;
+      _.each(plotData, function (obj) {
+        var lso = this.model.lineStyleOptions[obj.channelName];
+        needsUpdate = needsUpdate | (obj.lines.lineWidth !== lso.lineWidth)
+        obj.lines.lineWidth = lso.lineWidth;
+        obj.points.radius = lso.pointRadius;
+      }, this);
+
+      var curWidth = series.lines.lineWidth;
+      var newWidth = lineStyleOpts.lineWidth;
+      var newRadius = lineStyleOpts.pointRadius;
+      if (closestChannel.pixelsFromInterpPt < 10) {
+        newWidth = newWidth + 2;
+        newRadius = newRadius + 1;
       }
 
-      if (needsUpdate || forceUpdate) {
+      if (newWidth != curWidth) {
+        needsUpdate = true;
+        series.lines.lineWidth = newWidth;
+        series.points.radius = newRadius;
+      }
+
+      if (needsUpdate) {
         this.plot.setData(plotData);
         this.plot.draw();
       }
@@ -774,13 +789,15 @@ define([
       });
     },
 
-    lineStyleUpdate: function(channel, opts) {
+    setUserLineStyle: function(channel, opts) {
       for (var attrname in opts) {
         this.model.lineStyleOptions[channel][attrname] = opts[attrname];
       }
       var state = store.get('state');
-      state.lineStyleOptions = this.model.lineStyleOptions;
+      state.lineStyleOptions = {};
+      _.extend(state.lineStyleOptions, this.model.lineStyleOptions);
       store.set('state', state);
+      var state = store.get('state');
       this.draw();
     }
 

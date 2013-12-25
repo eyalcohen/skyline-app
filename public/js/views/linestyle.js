@@ -23,7 +23,6 @@ define([
       // Save app reference.
       this.app = app;
       this.options = options;
-      //this.$el = this.options.parentView.$el;
       this.channel = this.options.channel;
 
       // Shell events.
@@ -81,6 +80,7 @@ define([
 
       var updatePoints = false;
       var updateInterp = false;
+      var updateWidth = false;
 
       if (e.type === 'mouseenter' || e.type === 'click') {
         this.oldStyle = {};
@@ -120,6 +120,18 @@ define([
       } else if (target === 'linestyle-interp-none') {
         this.currentLineStyle.interpolation = 'none';
         updateInterp = true;
+      } else if (target === 'linestyle-width-1') {
+        this.currentLineStyle.lineWidth = 1;
+        updateWidth = true;
+      } else if (target === 'linestyle-width-2') {
+        this.currentLineStyle.lineWidth = 2;
+        updateWidth = true;
+      } else if (target === 'linestyle-width-3') {
+        this.currentLineStyle.lineWidth = 3;
+        updateWidth = true;
+      } else if (target === 'linestyle-width-4') {
+        this.currentLineStyle.lineWidth = 4;
+        updateWidth = true;
       }
 
       if (JSON.stringify(this.currentLineStyle) !== JSON.stringify(this.oldStyle)) {
@@ -133,6 +145,11 @@ define([
       }
       if (updateInterp && e.type === 'click') {
         this.unselected($('.linestyle-interp').children())
+        this.selected('#' + target);
+        this.oldStyle = null;
+      }
+      if (updateWidth && e.type === 'click') {
+        this.unselected($('.linestyle-width').children())
         this.selected('#' + target);
         this.oldStyle = null;
       }
@@ -155,6 +172,24 @@ define([
         selector = $('#linestyle-interp-linear');
       else
         selector = $('#linestyle-interp-none');
+      if (selector) this.selected(selector);
+
+      selector = {};
+      switch (style.lineWidth) {
+        case 1:
+          selector = $('#linestyle-width-1');
+          break;
+        default:
+        case 2:
+          selector = $('#linestyle-width-2');
+          break;
+        case 3:
+          selector = $('#linestyle-width-3');
+          break;
+        case 4:
+          selector = $('#linestyle-width-4');
+          break;
+      }
       if (selector) this.selected(selector);
     },
 
