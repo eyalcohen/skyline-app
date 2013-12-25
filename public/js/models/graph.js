@@ -21,7 +21,11 @@ define([
       this.options = options;
 
       this.DEFAULT_LINE_STYLE = {
-        showPoints: false,
+        showPoints: true,
+        showLines: true,
+        interpolation: 'linear', // also 'none'
+        lineWidth: 2,
+        pointRadius: 3,
       }
 
       // channelName -> showPoints:{true, false}
@@ -40,7 +44,6 @@ define([
         this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
         var state = store.get('state');
         state.time = visibleTime;
-        state.lineStyleOptions = this.lineStyleOptions;
         store.set('state', state);
       }, this));
       this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
@@ -210,8 +213,10 @@ define([
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
-        if (!this.lineStyleOptions[channel.channelName])
-          this.lineStyleOptions[channel.channelName] = this.DEFAULT_LINE_STYLE;
+        if (!this.lineStyleOptions[channel.channelName]) {
+          this.lineStyleOptions[channel.channelName] = {};
+          _.extend(this.lineStyleOptions[channel.channelName],this.DEFAULT_LINE_STYLE);
+        }
         client.channels.push(channel);
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel]);

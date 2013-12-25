@@ -10,10 +10,8 @@ define([
   'mps',
   'rest',
   'util',
-  'Spin',
-  'collections/datasets',
   'text!../../templates/exportdata.html',
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, Collection, template) {
+], function ($, _, Backbone, Modernizr, mps, rest, util, template) {
 
   return Backbone.View.extend({
 

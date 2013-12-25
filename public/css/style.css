@@ -2360,6 +2360,43 @@ a.comments-signin {
 
 /*.........................................................................*/
 
+.linestyle-modal {
+  position: absolute;
+  background: #eee;
+  padding: 5px;
+  border: 1px solid black;
+  border-radius: 5px;
+  z-index: 100;
+  left: 20px;
+  top: 15px;
+  display: none;
+}
+
+.linestyle-box {
+  font-size: 12px;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  padding: 2px;
+  margin: 3px;
+  margin-bottom: 6px;
+  border: 1px solid black;
+  border-radius: 2px;
+  background: white;
+  line-height: 16px;
+  text-align: center;
+}
+
+.linestyle-modal p {
+  font-size: 12px;
+  line-height: 16px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+
+}
+
+/*.........................................................................*/
+
 .events {
   margin-top: -15px;
 }

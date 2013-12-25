@@ -8,8 +8,8 @@ define([
   'mps',
   'views/boiler/row',
   'text!../../../templates/rows/channel.html',
-  'Spin'
-], function ($, _, mps, Row, template, Spin) {
+  'views/linestyle'
+], function ($, _, mps, Row, template, LineStyle) {
   return Row.extend({
 
     active: false,
@@ -21,6 +21,7 @@ define([
 
     initialize: function (options, app) {
       this.app = app;
+      this.options = options;
       this.template = _.template(template);
 
       // Client-wide subscriptions
@@ -64,7 +65,11 @@ define([
     },
 
     events: {
-
+      'mouseenter .icon-chart-line' : function(e) {
+        if (!this.linestyle && this.$el.hasClass('active'))
+          this.linestyle = new LineStyle(this.app, {parentView: this, channel:this.model}).render();
+      },
+      'mouseleave' : 'removeLineStyle',
     },
 
     fit: function (w) {
@@ -94,6 +99,7 @@ define([
         mps.publish('channel/remove', [this.model.get('did'),
           this.model.get('val')]);
         this.active = false;
+        this.removeLineStyle();
       } else {
         this.$el.addClass('active');
         mps.publish('channel/add', [this.model.get('did'),
@@ -153,6 +159,12 @@ define([
         this.destroy();
         cb();
       }, this));
+    },
+
+    removeLineStyle: function(e) {
+      if (this.linestyle) {
+        this.linestyle.destroy(_.bind(function() { delete this.linestyle }, this));
+      }
     },
 
   });
