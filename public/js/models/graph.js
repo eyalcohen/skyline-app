@@ -212,8 +212,10 @@ define([
         if (!channel.title) channel.title = channel.channelName;
         if (!channel.humanName) channel.humanName = channel.channelName;
         if (!channel.shortName) channel.shortName = channel.channelName;
-        if (!this.lineStyleOptions[channel.channelName])
-          this.lineStyleOptions[channel.channelName] = this.DEFAULT_LINE_STYLE;
+        if (!this.lineStyleOptions[channel.channelName]) {
+          this.lineStyleOptions[channel.channelName] = {};
+          _.extend(this.lineStyleOptions[channel.channelName],this.DEFAULT_LINE_STYLE);
+        }
         client.channels.push(channel);
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel]);

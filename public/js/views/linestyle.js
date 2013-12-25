@@ -46,7 +46,9 @@ define([
 
     // Bind events.
     events: {
-      'click .linestyle-linetype *' : 'linetypeUpdate',
+      'click .linestyle-box' : 'linetypeUpdate',
+      'mouseenter .linestyle-box' : 'linetypeUpdate',
+      'mouseleave .linestyle-box' : 'linetypeUpdate',
     },
 
     // Misc. setup.
@@ -81,8 +83,25 @@ define([
       var updatePoints = false;
       var updateInterp = false;
 
-      var oldStyle = {}
-      _.extend(oldStyle, this.currentLineStyle);
+      if (e.type === 'mouseenter' || e.type === 'click') {
+        this.oldStyle = {};
+        _.extend(this.oldStyle, this.currentLineStyle);
+      } else if (e.type === 'mouseleave') {
+        if (this.oldStyle) {
+          // check if we actually need to do anything
+          if (JSON.stringify(this.currentLineStyle) === JSON.stringify(this.oldStyle)) {
+            return;
+          }
+          // restore old style
+          this.currentLineStyle = {}
+          _.extend(this.currentLineStyle, this.oldStyle);
+          this.oldStyle = null;
+          target = null; // we don't care which box we left
+          updatePoints = true; updateInterp = true;
+        } else {
+          return;
+        }
+      }
 
       if (target === 'linestyle-scatter') {
         this.currentLineStyle.showPoints = true;
@@ -104,16 +123,19 @@ define([
         updateInterp = true;
       }
 
-      if (JSON.stringify(this.currentLineStyle) !== JSON.stringify(oldStyle)) {
-        if (updatePoints) {
-          this.unselected($('.linestyle-points').children())
-          this.selected('#' + target);
-        }
-        if (updateInterp) {
-          this.unselected($('.linestyle-interp').children())
-          this.selected('#' + target);
-        }
+      if (JSON.stringify(this.currentLineStyle) !== JSON.stringify(this.oldStyle)) {
         mps.publish('channel/lineStyleUpdate', [this.channel.id, this.currentLineStyle]);
+      }
+
+      if (updatePoints && e.type === 'click') {
+        this.unselected($('.linestyle-points').children())
+        this.selected('#' + target);
+        this.oldStyle = null;
+      }
+      if (updateInterp && e.type === 'click') {
+        this.unselected($('.linestyle-interp').children())
+        this.selected('#' + target);
+        this.oldStyle = null;
       }
 
     },
