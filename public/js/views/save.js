@@ -167,6 +167,7 @@ define([
       var state = store.get('state');
       _.extend(payload, {
         datasets: state.datasets,
+        lineStyleOptions: state.lineStyleOptions,
         time: state.time
       });
 
