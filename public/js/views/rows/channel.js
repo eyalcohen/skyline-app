@@ -21,6 +21,7 @@ define([
 
     initialize: function (options, app) {
       this.app = app;
+      this.options = options;
       this.template = _.template(template);
 
       // Client-wide subscriptions
@@ -38,8 +39,6 @@ define([
       this.button = this.$('a.channel-button');
       this.name = this.$('.channel-name', this.button);
       this.txt = this.$('.channel-name span');
-
-      console.log(this.model);
 
       // Bind click event.
       this.button.click(_.bind(this.toggle, this));
@@ -66,16 +65,11 @@ define([
     },
 
     events: {
-      // TODO: Make this mouse in-out
       'mouseenter .icon-chart-line' : function(e) {
         if (!this.linestyle && this.$el.hasClass('active'))
           this.linestyle = new LineStyle(this.app, {parentView: this, channel:this.model}).render();
       },
-      'mouseleave' : function(e) {
-        if (this.linestyle) {
-          this.linestyle.destroy(_.bind(function() { delete this.linestyle }, this));
-        }
-      },
+      'mouseleave' : 'removeLineStyle',
     },
 
     fit: function (w) {
@@ -105,6 +99,7 @@ define([
         mps.publish('channel/remove', [this.model.get('did'),
           this.model.get('val')]);
         this.active = false;
+        this.removeLineStyle();
       } else {
         this.$el.addClass('active');
         mps.publish('channel/add', [this.model.get('did'),
@@ -164,6 +159,12 @@ define([
         this.destroy();
         cb();
       }, this));
+    },
+
+    removeLineStyle: function(e) {
+      if (this.linestyle) {
+        this.linestyle.destroy(_.bind(function() { delete this.linestyle }, this));
+      }
     },
 
   });

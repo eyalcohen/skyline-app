@@ -27,6 +27,10 @@ define([
 
       // Shell events.
       this.on('rendered', this.setup, this);
+
+      this.subscriptions = [
+        mps.subscribe('channel/responseLineStyle', _.bind(this.responseLineStyle, this)),
+      ];
     },
 
     // Draw the template
@@ -36,6 +40,7 @@ define([
       // once rendered, we change the $el refernece to the newly created modal
       this.$el = $('.linestyle-modal');
       this.$el.show('fast');
+      this.trigger('rendered');
       return this;
     },
 
@@ -46,6 +51,7 @@ define([
 
     // Misc. setup.
     setup: function () {
+      mps.publish('channel/requestLineStyle', [this.channel.id]);
       return this;
     },
 
@@ -87,8 +93,31 @@ define([
         lineStyleOptions.showPoints = true;
         lineStyleOptions.showLines = true;
       }
+      this.unselected($('.linestyle-linetype').children())
+      this.selected('.' + target);
       mps.publish('channel/lineStyleUpdate', [this.channel.id, lineStyleOptions]);
+    },
+
+    responseLineStyle: function(style) {
+      var selector;
+      if (style.showPoints && style.showLines)
+        selector = $('.linestyle-line-with-points');
+      else if (style.showPoints)
+        selector = $('.linestyle-scatter');
+      else if (style.showLines)
+        selector = $('.linestyle-line');
+      if (selector) this.selected(selector);
+    },
+
+    selected: function (selector) {
+      $(selector).css('background', 'black');
+    },
+
+    unselected: function(selector) {
+      $(selector).css('background', 'white');
     }
+
+
 
   });
 });

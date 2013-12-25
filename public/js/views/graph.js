@@ -37,6 +37,9 @@ define([
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
         mps.subscribe('channel/lineStyleUpdate', _.bind(this.lineStyleUpdate, this)),
+        mps.subscribe('channel/requestLineStyle', _.bind(function(c) {
+          mps.publish('channel/responseLineStyle', [this.model.lineStyleOptions[c]]);
+        }, this)),
       ];
     },
 
