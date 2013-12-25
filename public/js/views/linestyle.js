@@ -122,15 +122,20 @@ define([
         updateInterp = true;
       } else if (target === 'linestyle-width-1') {
         this.currentLineStyle.lineWidth = 1;
+        this.currentLineStyle.pointRadius = 2;
         updateWidth = true;
       } else if (target === 'linestyle-width-2') {
         this.currentLineStyle.lineWidth = 2;
+        this.currentLineStyle.pointRadius = 3;
         updateWidth = true;
       } else if (target === 'linestyle-width-3') {
         this.currentLineStyle.lineWidth = 3;
+        this.currentLineStyle.pointRadius = 4;
+        updateWidth = true;
         updateWidth = true;
       } else if (target === 'linestyle-width-4') {
         this.currentLineStyle.lineWidth = 4;
+        this.currentLineStyle.pointRadius = 5;
         updateWidth = true;
       }
 
