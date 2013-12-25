@@ -711,8 +711,8 @@ define([
         _.extend(oldLines, obj.lines);
 
         // don't display line series points if we have a lot of data
-        obj.points.show = (numPoints[idx] < this.POINTS_TO_SHOW) 
-                          || !lineStyleOpts.showLines
+        obj.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW) 
+                          || !lineStyleOpts.showLines)
                           && lineStyleOpts.showPoints;
 
         obj.lines.show = lineStyleOpts.showLines;
