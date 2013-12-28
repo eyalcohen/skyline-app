@@ -55,18 +55,17 @@ define([
 
       // Check if active in state.
       var state = store.get('state');
-      _.each(state.datasets, _.bind(function (d) {
-        if (d.channels && d.channels[this.model.id]) {
-          var c = d.channels[this.model.id];
-          var v = this.model.get('val');
-          v.colorNum = c.colorNum;
-          v.yaxisNum = c.yaxisNum;
-          this.model.set('val', v);
-          mps.publish('channel/add', [this.model.get('did'), v]);
-          this.active = true;
-          this.$el.addClass('active').show();
-        }
-      }, this));
+      var d = state.datasets && state.datasets[this.model.get('did')];
+      if (d && d.channels && d.channels[this.model.id]) {
+        var c = d.channels[this.model.id];
+        var v = this.model.get('val');
+        v.colorNum = c.colorNum;
+        v.yaxisNum = c.yaxisNum;
+        this.model.set('val', v);
+        mps.publish('channel/add', [this.model.get('did'), v]);
+        this.active = true;
+        this.$el.addClass('active').show();
+      }
 
       // Initial fit.
       this.fit(this.$el.width());
@@ -135,13 +134,10 @@ define([
     },
 
     added: function (did, channel, style) {
-      if (this.model.id !== channel.channelName) return;
+      if (this.model.get('did') !== did
+          || this.model.id !== channel.channelName) return;
       this.model.lineStyle = style;
-      if (style.color)
-        var color = style.color;
-      else {
-        var color = this.app.getColors(channel.colorNum);
-      }
+      var color = style.color || this.app.getColors(channel.colorNum);
 
       this.$el.css({
         backgroundColor: color,
@@ -150,7 +146,8 @@ define([
     },
 
     removed: function (did, channel) {
-      if (this.model.id !== channel.channelName) return;
+      if (this.model.get('did') !== did
+          || this.model.id !== channel.channelName) return;
 
       // Set colors.
       this.$el.css({

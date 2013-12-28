@@ -1,3 +1,7 @@
+<%
+  var meta = this.model.get('meta') || this.model.get('parent').meta;
+%>
+
 <td class="main-cell">
   <span class="profile-item-title">
     <i class="icon-database"></i> <%= this.model.get('title') %>
@@ -9,7 +13,7 @@
   </p>
 </td>
 <td>
-  <%= this.model.get('meta').channel_cnt %>
+  <%= meta.channel_cnt %>
 </td>
 <td>
   <time class="created" 

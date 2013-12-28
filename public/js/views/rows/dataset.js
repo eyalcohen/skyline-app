@@ -26,7 +26,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('graph/offsetChanged', _.bind(this.updateOffset, this))
-      ]
+      ];
     },
 
     setup: function () {
@@ -113,8 +113,10 @@ define([
     fetchChannels: function () {
 
       // Get the schema for this channel.
-      this.app.rpc.do('fetchSamples', this.model.id, '_schema',
-          {}, _.bind(function (err, data) {
+      var parent = this.model.get('parent');
+      this.app.rpc.do('fetchSamples',
+          parent ? parent.id: this.model.id, '_schema', {},
+          _.bind(function (err, data) {
         if (err) return console.error(err);
         var channels = data.samples;
         if (!channels) return console.error('No channels found');

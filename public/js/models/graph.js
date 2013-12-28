@@ -126,8 +126,9 @@ define([
           beg = this.prevRange.beg - offset;
           end = this.prevRange.end - offset;
         }
+        var pdid = c.dataset.get('parent') ? c.dataset.get('parent').id: null;
         this.cache.setClientView(c.id, c.dataset.get('id'),
-            _.pluck(c.channels, 'channelName'), dur, beg, end);
+            _.pluck(c.channels, 'channelName'), dur, beg, end, pdid);
       }
     },
 
@@ -169,7 +170,7 @@ define([
 
     addChannel: function (dataset, channels) {
       if (!dataset) return;
-      var datasetId = dataset.get('id')
+      var datasetId = dataset.get('id');
       channels = _.isArray(channels) ? channels : [channels];
 
       // if this channel is way off the screen, and there is no

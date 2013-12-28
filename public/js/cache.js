@@ -81,13 +81,14 @@ define([
    * Fetches will be triggered as necessary, and an update event triggered.
    */
   SampleCache.prototype.setClientView =
-      function(clientId, datasetId, channels, dur, beg, end, force) {
+      function(clientId, datasetId, channels, dur, beg, end, parentId) {
     var client = defObj(this.clients, clientId);
     if (client.datasetId === datasetId && client.dur === dur &&
         client.beg === beg && client.end === end &&
         _.isEqual(client.channels, channels))
       return;  // Nothing to do!
     client.datasetId = datasetId;
+    client.parentId = parentId;
     client.channels = channels;
     client.dur = dur;
     client.beg = beg;
@@ -238,7 +239,7 @@ define([
       return;
 
     // Generate a prioritized list of requests to make.
-    var requestsByPriority = {};  // Map from priority to array of requests.
+    var requestsByPriority = {}; // Map from priority to array of requests.
     // A request is an object with: did, chan, dur, buck, entry.
     _.forEach(self.clients, function(client, clientId) {
       // Pre-fetch samples at next zoom level up.
@@ -264,8 +265,8 @@ define([
             var priority = basePriority +
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
-                did: client.datasetId, chan: channelName, dur: dur,
-                buck: buck});
+                did: client.datasetId, pdid: client.parentId,
+                chan: channelName, dur: dur, buck: buck});
           });
         });
       }
@@ -317,7 +318,7 @@ define([
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
-    self.app.rpc.do('fetchSamples', req.did, req.chan, options,
+    self.app.rpc.do('fetchSamples', req.pdid || req.did, req.chan, options,
         function (err, data) {
       if (err) {
         console.error(err);

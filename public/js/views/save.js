@@ -159,25 +159,49 @@ define([
         return false;
       }
 
+      // Determine if this is a view or dataset.
+      var state = store.get('state');
+      var resource = state.author_id ? 'view': 'dataset';
+      if (resource === 'dataset') {
+        
+        // Dataset has title, not name.
+        payload.title = payload.name;
+        delete payload.name;
+
+        // Creating a dataset in this way will always be a fork,
+        // so need to include the parent.
+        var dids = _.keys(state.datasets);
+        if (dids.length === 0) {
+
+          // Set the error display.
+          var msg = 'No dataset found.';
+          this.saveError.text(msg);
+          this.working = false;
+
+          return false;
+        }
+        payload.parent_id = dids[0];
+      } else {
+
+        // Add other data about this view from state.
+        _.extend(payload, {
+          datasets: state.datasets,
+          time: state.time,
+          lineStyleOptions: state.lineStyleOptions
+        });
+
+        // Add parent if this is a fork.
+        if (this.options.fork)
+          payload.parent_id = state.id;
+      }
+
       // Start load indicator.
       this.saveButtonSpin.start();
       this.saveSubmit.addClass('loading');
 
-      // Add other data.
-      var state = store.get('state');
-      _.extend(payload, {
-        datasets: state.datasets,
-        lineStyleOptions: state.lineStyleOptions,
-        time: state.time
-      });
-
-      // Add parent if this is a fork.
-      if (this.options.fork)
-        payload.parent_id = state.id;
-
-      // Create the view.
-      rest.post('/api/views', payload, _.bind(function (err, res) {
-
+      // Create the resource.
+      rest.post('/api/' + resource + 's', payload, _.bind(function (err, res) {
+        console.log(res)
         // Start load indicator.
         this.saveButtonSpin.stop();
         this.saveSubmit.removeClass('loading').attr({disabled: 'disabled'});
@@ -199,18 +223,27 @@ define([
           comments: [],
           comments_cnt: 0,
           id: res.id,
-          name: res.name,
-          slug: res.slug,
           created: now,
           updated: now
         });
+        if (res.name) state.name = res.name;
+        if (res.title) state.title = res.title;
+        if (res.slug) state.slug = res.slug;
         store.set('state', state);
         mps.publish('view/new', [res]);
 
         // Show alert
         _.delay(function () {
+          var type, name;
+          if (resource === 'view') {
+            type = 'mashup';
+            name = res.name;
+          } else {
+            type = 'source';
+            name = res.title;
+          }
           mps.publish('flash/new', [{
-            message: 'You created a data mashup: "' + res.name + '"',
+            message: 'You created a data ' + type + ': "' + name + '"',
             level: 'alert',
             sticky: false
           }]);
@@ -223,8 +256,9 @@ define([
         this.working = false;
 
         // Update URL.
-        var route = [this.app.profile.user.username,
-            'views', res.slug].join('/');
+        var route = resource === 'view' ?
+            [this.app.profile.user.username, 'views', res.slug].join('/'):
+            [this.app.profile.user.username, res.id].join('/');
         this.app.router.navigate('/' + route, {trigger: false, replace: true});
 
       }, this));

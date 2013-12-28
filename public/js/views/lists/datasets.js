@@ -14,7 +14,7 @@ define([
   'views/rows/dataset'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
-    
+
     el: '.datasets',
 
     initialize: function (app, options) {

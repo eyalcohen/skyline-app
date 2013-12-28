@@ -50,10 +50,11 @@ define([
       var time;
       if (store.get('state').time)
         time = store.get('state').time;
-      else if (this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length > 0)
-        time = this.app.profile.content.datasets.items[0].meta;
-      else
+      else if (this.app.profile.content.datasets 
+          && this.app.profile.content.datasets.items.length > 0) {
+        var ds = this.app.profile.content.datasets.items[0];
+        time = ds.meta || ds.parent.meta;
+      } else
         time = {
           beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
           end: Date.now() * 1e3,
