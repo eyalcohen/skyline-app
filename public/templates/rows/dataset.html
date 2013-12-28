@@ -1,7 +1,3 @@
-<%
-  var meta = this.model.get('meta') || this.model.get('parent').meta;
-%>
-
 <% if (!this.app.embed) { %>
   <div class="dataset-remove">
     <i class="icon-cancel"></i>
@@ -16,8 +12,8 @@
     <%= this.model.get('title') %>
   </span>
   <span class="dataset-stats">
-    <%= meta.channel_cnt %> 
-    <%= meta.channel_cnt > 1 ? 'channels': 'channel' %>
+    <%= this.model.get('meta').channel_cnt %> 
+    <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
   </span>
   <div class="dataset-button-bg"></div>
 </a>

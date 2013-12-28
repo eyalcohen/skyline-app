@@ -27,7 +27,7 @@ define([
         lineWidth: 2,
         pointRadius: 3,
         color: null,
-      }
+      };
 
       // channelName -> showPoints:{true, false}
       var s = store.get('state').lineStyleOptions;
@@ -63,7 +63,8 @@ define([
       if (client) return client;
       client = {id: util.rid32(), dataset: dataset, channels: []};
       this.clients.push(client);
-      this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, dataset));
+      this.cache.bind('update-' + client.id,
+          _.bind(this.updateSampleSet, this, dataset));
       return client;
     },
 
@@ -126,9 +127,8 @@ define([
           beg = this.prevRange.beg - offset;
           end = this.prevRange.end - offset;
         }
-        var pdid = c.dataset.get('parent') ? c.dataset.get('parent').id: null;
         this.cache.setClientView(c.id, c.dataset.get('id'),
-            _.pluck(c.channels, 'channelName'), dur, beg, end, pdid);
+            _.pluck(c.channels, 'channelName'), dur, beg, end);
       }
     },
 

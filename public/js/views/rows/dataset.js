@@ -113,9 +113,7 @@ define([
     fetchChannels: function () {
 
       // Get the schema for this channel.
-      var parent = this.model.get('parent');
-      this.app.rpc.do('fetchSamples',
-          parent ? parent.id: this.model.id, '_schema', {},
+      this.app.rpc.do('fetchSamples', this.model.id, '_schema', {},
           _.bind(function (err, data) {
         if (err) return console.error(err);
         var channels = data.samples;

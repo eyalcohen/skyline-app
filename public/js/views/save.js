@@ -37,6 +37,10 @@ define([
     // Draw the template
     render: function () {
 
+      // Determine if this is a dataset or view.
+      var state = store.get('state');
+      this.resource = state.author_id ? 'view': 'dataset';
+
       // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
@@ -159,10 +163,7 @@ define([
         return false;
       }
 
-      // Determine if this is a view or dataset.
-      var state = store.get('state');
-      var resource = state.author_id ? 'view': 'dataset';
-      if (resource === 'dataset') {
+      if (this.resource === 'dataset') {
         
         // Dataset has title, not name.
         payload.title = payload.name;
@@ -200,8 +201,9 @@ define([
       this.saveSubmit.addClass('loading');
 
       // Create the resource.
-      rest.post('/api/' + resource + 's', payload, _.bind(function (err, res) {
-        console.log(res)
+      rest.post('/api/' + this.resource + 's', payload,
+          _.bind(function (err, res) {
+
         // Start load indicator.
         this.saveButtonSpin.stop();
         this.saveSubmit.removeClass('loading').attr({disabled: 'disabled'});
@@ -233,21 +235,22 @@ define([
         mps.publish('view/new', [res]);
 
         // Show alert
-        _.delay(function () {
+        _.delay(_.bind(function () {
           var type, name;
-          if (resource === 'view') {
+          if (this.resource === 'view') {
             type = 'mashup';
             name = res.name;
           } else {
             type = 'source';
             name = res.title;
           }
+          var verb = this.options.fork ? 'forked': 'saved';
           mps.publish('flash/new', [{
-            message: 'You created a data ' + type + ': "' + name + '"',
+            message: 'You ' + verb + ' a data ' + type + ': "' + name + '"',
             level: 'alert',
             sticky: false
           }]);
-        }, 500);
+        }, this), 500);
 
         // Close the modal.
         $.fancybox.close();
@@ -256,10 +259,18 @@ define([
         this.working = false;
 
         // Update URL.
-        var route = resource === 'view' ?
-            [this.app.profile.user.username, 'views', res.slug].join('/'):
-            [this.app.profile.user.username, res.id].join('/');
-        this.app.router.navigate('/' + route, {trigger: false, replace: true});
+        var route, trigger, replace;
+        if (this.resource === 'view') {
+          route = [this.app.profile.user.username, 'views', res.slug].join('/');
+          trigger = false;
+          replace = true;
+        } else {
+          route = [this.app.profile.user.username, res.id].join('/');
+          trigger = true;
+          replace = false;
+        }
+        this.app.router.navigate('/' + route,
+            {trigger: trigger, replace: replace});
 
       }, this));
 

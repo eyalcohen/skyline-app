@@ -81,14 +81,13 @@ define([
    * Fetches will be triggered as necessary, and an update event triggered.
    */
   SampleCache.prototype.setClientView =
-      function(clientId, datasetId, channels, dur, beg, end, parentId) {
+      function(clientId, datasetId, channels, dur, beg, end, force) {
     var client = defObj(this.clients, clientId);
     if (client.datasetId === datasetId && client.dur === dur &&
         client.beg === beg && client.end === end &&
         _.isEqual(client.channels, channels))
       return;  // Nothing to do!
     client.datasetId = datasetId;
-    client.parentId = parentId;
     client.channels = channels;
     client.dur = dur;
     client.beg = beg;
@@ -265,8 +264,8 @@ define([
             var priority = basePriority +
                 Math.abs(2 * buck - (begBuck + endBuck));
             defArray(requestsByPriority, priority).push({
-                did: client.datasetId, pdid: client.parentId,
-                chan: channelName, dur: dur, buck: buck});
+                did: client.datasetId, chan: channelName, dur: dur,
+                buck: buck});
           });
         });
       }
@@ -318,7 +317,7 @@ define([
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
     };
-    self.app.rpc.do('fetchSamples', req.pdid || req.did, req.chan, options,
+    self.app.rpc.do('fetchSamples', req.did, req.chan, options,
         function (err, data) {
       if (err) {
         console.error(err);

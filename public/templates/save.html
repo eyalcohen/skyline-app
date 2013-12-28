@@ -1,13 +1,14 @@
 <%
 
   var verb = this.options.fork ? 'Fork': 'Save';
-  var title = this.options.fork ? 'fork': 'mashup';
+  var type = this.resource === 'view' ? 'mashup': 'source';
+  var title = this.options.fork ? 'fork': type;
 
 %>
 
 
 <span class="modal-title">
-  <%= verb %> this mashup
+  <%= verb %> this <%= type %>
 </span>
 <div class="save-inner modal-inner">
   <div>

@@ -52,8 +52,7 @@ define([
         time = store.get('state').time;
       else if (this.app.profile.content.datasets 
           && this.app.profile.content.datasets.items.length > 0) {
-        var ds = this.app.profile.content.datasets.items[0];
-        time = ds.meta || ds.parent.meta;
+        time = this.app.profile.content.datasets.items[0].meta;
       } else
         time = {
           beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
