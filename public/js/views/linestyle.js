@@ -38,6 +38,7 @@ define([
       this.template = _.template(template, {channels: this.channels});
       this.$el.html(this.template).appendTo(this.options.parentView.$el);
       this.$el.show('fast');
+
       this.trigger('rendered');
       return this;
     },
@@ -52,6 +53,24 @@ define([
     // Misc. setup.
     setup: function () {
       mps.publish('channel/requestLineStyle', [this.channel.id]);
+
+      // messing around, make the hover color a light version of the parent
+      var parentBg = this.options.parentView.$el.css('background-color');
+      var lightenedColor = parentBg.replace(/\)/,',0.3)');
+      lightenedColor = lightenedColor.replace('rgb','rgba');
+      var modalBg = this.$el.css('background-color');
+      $('.linestyle-box').hover(
+        function() {
+          if ($(this).css('background-color') === modalBg) {
+            $(this).css('background-color', lightenedColor);
+          }
+        }, function() {
+          if ($(this).css('background-color') !== parentBg) {
+            $(this).css('background-color', modalBg);
+          }
+        }
+      );
+
       return this;
     },
 
@@ -76,7 +95,7 @@ define([
     },
 
     linetypeUpdate: function(e) {
-      var target = e.target.id;
+      var target = e.target.classList[1];
 
       var updatePoints = false;
       var updateInterp = false;
@@ -144,18 +163,18 @@ define([
       }
 
       if (updatePoints && e.type === 'click') {
-        this.unselected($('.linestyle-points').children())
-        this.selected('#' + target);
+        this.unselect($('.linestyle-points').children())
+        this.select('.' + target);
         this.oldStyle = null;
       }
       if (updateInterp && e.type === 'click') {
-        this.unselected($('.linestyle-interp').children())
-        this.selected('#' + target);
+        this.unselect($('.linestyle-interp').children())
+        this.select('.' + target);
         this.oldStyle = null;
       }
       if (updateWidth && e.type === 'click') {
-        this.unselected($('.linestyle-width').children())
-        this.selected('#' + target);
+        this.unselect($('.linestyle-width').children())
+        this.select('.' + target);
         this.oldStyle = null;
       }
 
@@ -165,45 +184,47 @@ define([
       var selector;
       this.currentLineStyle = style;
       if (style.showPoints && style.showLines)
-        selector = $('#linestyle-line-with-points');
+        selector = $('.linestyle-line-with-points');
       else if (style.showPoints)
-        selector = $('#linestyle-scatter');
+        selector = $('.linestyle-scatter');
       else if (style.showLines)
-        selector = $('#linestyle-line');
-      if (selector) this.selected(selector);
-      
+        selector = $('.linestyle-line');
+      if (selector) this.select(selector);
+
       selector = {};
       if (style.interpolation === 'linear')
-        selector = $('#linestyle-interp-linear');
+        selector = $('.linestyle-interp-linear');
       else
-        selector = $('#linestyle-interp-none');
-      if (selector) this.selected(selector);
+        selector = $('.linestyle-interp-none');
+      if (selector) this.select(selector);
 
       selector = {};
       switch (style.lineWidth) {
         case 1:
-          selector = $('#linestyle-width-1');
+          selector = $('.linestyle-width-1');
           break;
         default:
         case 2:
-          selector = $('#linestyle-width-2');
+          selector = $('.linestyle-width-2');
           break;
         case 3:
-          selector = $('#linestyle-width-3');
+          selector = $('.linestyle-width-3');
           break;
         case 4:
-          selector = $('#linestyle-width-4');
+          selector = $('.linestyle-width-4');
           break;
       }
-      if (selector) this.selected(selector);
+      if (selector) this.select(selector);
     },
 
-    selected: function (selector) {
-      $(selector).css('background', 'black');
+    select: function (selector) {
+      var parentBg = this.options.parentView.$el.css('background-color');
+      $(selector).css('background-color', parentBg);
     },
 
-    unselected: function(selector) {
-      $(selector).css('background', 'white');
+    unselect: function(selector) {
+      var modalBg = this.$el.css('background-color');
+      $(selector).css('background-color', modalBg);
     }
 
 
