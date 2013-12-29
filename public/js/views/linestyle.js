@@ -37,6 +37,9 @@ define([
     render: function () {
       this.template = _.template(template, {channels: this.channels});
       this.$el.html(this.template).appendTo(this.options.parentView.$el);
+      var offset = this.options.parentView.$el.offset();
+      this.$el.css('top', offset.top+20);
+      this.$el.css('left', offset.left+20);
       this.$el.show('fast');
 
       this.trigger('rendered');

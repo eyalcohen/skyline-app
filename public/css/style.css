@@ -2397,15 +2397,13 @@ a.comments-signin {
 }
 
 .linestyle-modal {
-  position: absolute;
+  position: fixed;
   background: #f9f9f9;
   padding: 0;
   padding-bottom: 4px;
   border: 1px solid #3f3f3f;
   border-radius: 1px;
   z-index: 100;
-  left: 20px;
-  top: 15px;
   display: none;
 }
 
