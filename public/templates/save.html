@@ -1,14 +1,33 @@
 <%
 
-  var verb = this.options.fork ? 'Fork': 'Save';
+  var verb = this.options.target ? 'Fork': 'Save';
   var type = this.resource === 'view' ? 'mashup': 'source';
   var title = this.options.fork ? 'fork': type;
 
+  var verb, type, title, name;
+  if (!this.options.target) {
+    verb = 'Save';
+    type = 'mashup';
+    title = type;
+  } else {
+    verb = 'Fork';
+    title = 'fork';
+    if (this.options.target.type === 'dataset') {
+      type = 'source';
+      name = this.options.target.doc.title;
+    } else {
+      type = 'mashup';
+      name = this.options.target.doc.name;
+    }
+  }
+  var header = verb + ' this ' + type;
+  if (name)
+    header += ', "' + name + '"';
+
 %>
 
-
 <span class="modal-title">
-  <%= verb %> this <%= type %>
+  <%= header %>
 </span>
 <div class="save-inner modal-inner">
   <div>

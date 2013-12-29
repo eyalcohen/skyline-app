@@ -145,6 +145,8 @@ define([
           this.channels.active = true;
           this.channels.expand(true);
           this.$el.addClass('active');
+          state.datasets[this.model.id].open = true;
+          store.set('state', state);
         }
       }, this));
     },

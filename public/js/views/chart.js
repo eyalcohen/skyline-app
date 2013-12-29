@@ -55,10 +55,6 @@ define([
         mps.subscribe('comment/end', _.bind(this.uncomment, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
       ];
-
-      // Determine whether or not comments are allowed.
-      // For now, only views can have comments...
-      this.annotated = store.get('state').author_id && this.app.profile.content.page;
     },
 
     // Draw our template from the profile.
@@ -119,7 +115,7 @@ define([
       });
 
       // Handle comments panel.
-      if (this.annotated && store.get('comments'))
+      if (store.get('comments'))
         $('.side-panel').addClass('open');
 
       // Drag & drop events.
@@ -135,8 +131,7 @@ define([
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
-      if (this.annotated)
-        this.comments = new Comments(this.app, {parentView: this, type: 'view'});
+      this.comments = new Comments(this.app, {parentView: this, type: 'view'});
       this.overview = new Overview(this.app, {parentView: this}).render();
 
       // Do resize on window change.
@@ -163,8 +158,7 @@ define([
       this.stopListening();
       this.datasets.destroy();
       this.graph.destroy();
-      if (this.comments)
-        this.comments.destroy();
+      this.comments.destroy();
       this.remove();
     },
 
@@ -174,6 +168,24 @@ define([
       height = Math.max(height, this.app.embed ? 0: 605);
       this.$el.css({height: height});
       this.fit();
+    },
+
+    // Return the current view or index level zero dataset.
+    target: function () {
+      if (this.app.profile.content.page)
+        return {
+          doc: this.app.profile.content.page,
+          id: Number(this.app.profile.content.page.id), 
+          type: 'view'
+        };
+      else if (this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length !== 0)
+        return {
+          doc: this.app.profile.content.datasets.items[0],
+          id: Number(this.app.profile.content.datasets.items[0].id),
+          type: 'dataset'
+        };
+      else return {};
     },
 
     fit: function () {
@@ -198,6 +210,7 @@ define([
 
     save: function (e) {
       e.preventDefault();
+      console.log(this.working, this.saveButton.hasClass('saved'));
 
       // No need to save.
       if (this.saveButton.hasClass('saved')) return;
@@ -206,6 +219,26 @@ define([
       if (this.working) return false;
       this.working = true;
 
+      // If this is explore mode, i.e. (/chart), do "save as".
+      var target = this.target();
+      if (!target.doc) {
+
+        // Show error.
+        mps.publish('flash/new', [{
+          message: 'No data found.',
+          level: 'error',
+          sticky: false
+        }]);
+        this.working = false;
+        return false;
+      }
+      if (target.type === 'dataset') {
+        this.working = false;
+        mps.publish('modal/save/open');
+        return false;
+      }
+
+      // Build payload for "save".
       var user = this.app.profile.user;
       var state = store.get('state');
       var payload = {
@@ -213,11 +246,9 @@ define([
         time: state.time
       };
 
-      // If this is explore mode, i.e. (/chart), do "save as".
-      if (!state.author_id) return mps.publish('modal/save/open');
-
       // If this is a view and user is view owner, do "save".
-      if (state.author_id === user.id) {
+      // Other cases should not happen because the button will not be presented.
+      if (this.app.profile.content.page.author_id === user.id) {
 
         // Indicate save.
         this.saveButton.addClass('saving');
@@ -249,6 +280,8 @@ define([
           _.extend(state, {
             updated: now,
           });
+          // Update state silently (not through App.prototype.state)
+          // so as to not trigger a "not saved" status.
           store.set('state', state);
 
           // Show alert
@@ -265,12 +298,24 @@ define([
           this.working = false;
 
         }, this));
+      } else {
+        this.working = false;
+        return false;
       }
     },
 
     fork: function (e) {
       e.preventDefault();
-      mps.publish('modal/fork/open');
+      var target = this.target();
+      if (!target.doc) {
+        mps.publish('flash/new', [{
+          message: 'No data found.',
+          level: 'error',
+          sticky: false
+        }]);
+        return;
+      }
+      mps.publish('modal/save/open', [target]);
     },
 
     download: function (e) {
@@ -290,21 +335,21 @@ define([
     },
 
     updateCursor: function (e) {
-      if (!this.annotated) return;
       if (!this.graph || this.cursor.hasClass('active')) return;
-      this.cursor.fadeIn('fast');
       this.cursorData = this.graph.cursor(e);
+      // if (this.cursorData.x === undefined) return;
+      this.cursor.fadeIn('fast');
       this.cursor.css({left: this.cursorData.x});
     },
 
     hideCursor: function (e) {
-      if (!this.annotated) return;
       if (!this.cursor.hasClass('active'))
         this.cursor.fadeOut('fast');
     },
 
     comment: function (e) {
       if (this.app.embed) return;
+      if (!this.target().id) return;
       if (!this.cursorData) return;
       if (this.cursor.hasClass('active'))
         mps.publish('comment/end');
@@ -331,7 +376,6 @@ define([
     saved: function () {
       if (this.comments) this.comments.empty();
       this.comments = new Comments(this.app, {parentView: this, type: 'view'});
-      this.annotated = true;
       this.$('.control-button').removeClass('view-only');
       this.saveButton.addClass('saved');
       this.app.title(this.app.profile.content.page.name);

@@ -1,6 +1,5 @@
 <%
   var user = this.app.profile ? this.app.profile.user: null;
-  var state = store.get('state');
 %>
 
 <div class="dnd"></div>
@@ -23,12 +22,10 @@
       <a class="control-button control-button-download" href="javascript:;">
         <i class="icon-download"></i>
       </a>
-      <% if (user.id === state.author_id) { %>
-        <a class="control-button control-button-save" href="javascript:;">
-          <div class="button-spin save-button-spin"></div>
-          <i class="icon-floppy"></i>
-        </a>
-      <% } %>    
+      <a class="control-button control-button-save" href="javascript:;">
+        <div class="button-spin save-button-spin"></div>
+        <i class="icon-floppy"></i>
+      </a>
     <% } %>
     <a class="control-button control-button-monthly" href="javascript:;">Mo</a>
     <a class="control-button control-button-weekly" href="javascript:;">Wk</a>

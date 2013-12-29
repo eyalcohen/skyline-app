@@ -25,7 +25,7 @@ define([
       
       // Save app reference.
       this.app = app;
-      this.options = options;
+      this.options = options || {};
 
       // Client-wide subscriptions
       this.subscriptions = [];
@@ -36,10 +36,6 @@ define([
 
     // Draw the template
     render: function () {
-
-      // Determine if this is a dataset or view.
-      var state = store.get('state');
-      this.resource = state.author_id ? 'view': 'dataset';
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -163,37 +159,35 @@ define([
         return false;
       }
 
-      if (this.resource === 'dataset') {
-        
-        // Dataset has title, not name.
-        payload.title = payload.name;
-        delete payload.name;
+      // If there is no target, we are creating a new view from the current state.
+      var resource, verb, type, name = payload.name;
+      if (!this.options.target) {
+        resource = 'views';
+        verb = 'saved';
+        type = 'mashup';
 
-        // Creating a dataset in this way will always be a fork,
-        // so need to include the parent.
-        var dids = _.keys(state.datasets);
-        if (dids.length === 0) {
-
-          // Set the error display.
-          var msg = 'No dataset found.';
-          this.saveError.text(msg);
-          this.working = false;
-
-          return false;
-        }
-        payload.parent_id = dids[0];
-      } else {
-
-        // Add other data about this view from state.
+        // Add state data.
+        var state = store.get('state');
         _.extend(payload, {
           datasets: state.datasets,
           time: state.time,
           lineStyleOptions: state.lineStyleOptions
         });
 
-        // Add parent if this is a fork.
-        if (this.options.fork)
-          payload.parent_id = state.id;
+      // Otherwise, we are forking... add parent id.
+      } else {
+        payload.parent_id = this.options.target.id;
+        resource = this.options.target.type + 's';
+        verb = 'forked';
+
+        if (this.options.target.type === 'dataset') {
+          type = 'source';
+
+          // Dataset has title, not name.
+          payload.title = payload.name;
+          delete payload.name;
+        } else
+          type = 'mashup';
       }
 
       // Start load indicator.
@@ -201,8 +195,7 @@ define([
       this.saveSubmit.addClass('loading');
 
       // Create the resource.
-      rest.post('/api/' + this.resource + 's', payload,
-          _.bind(function (err, res) {
+      rest.post('/api/' + resource, payload, _.bind(function (err, res) {
 
         // Start load indicator.
         this.saveButtonSpin.stop();
@@ -216,35 +209,9 @@ define([
           this.focus();
           return;
         }
-
-        // Publish new dataset.
-        var now = new Date().toISOString();
-        this.app.profile.content.page = res;
-        _.extend(state, {
-          author_id: res.author.id,
-          comments: [],
-          comments_cnt: 0,
-          id: res.id,
-          created: now,
-          updated: now
-        });
-        if (res.name) state.name = res.name;
-        if (res.title) state.title = res.title;
-        if (res.slug) state.slug = res.slug;
-        store.set('state', state);
-        mps.publish('view/new', [res]);
-
+        
         // Show alert
         _.delay(_.bind(function () {
-          var type, name;
-          if (this.resource === 'view') {
-            type = 'mashup';
-            name = res.name;
-          } else {
-            type = 'source';
-            name = res.title;
-          }
-          var verb = this.options.fork ? 'forked': 'saved';
           mps.publish('flash/new', [{
             message: 'You ' + verb + ' a data ' + type + ': "' + name + '"',
             level: 'alert',
@@ -252,25 +219,17 @@ define([
           }]);
         }, this), 500);
 
+        // Update URL.
+        var route = resource === 'views' ?
+            [res.author.username, 'views', res.slug].join('/'):
+            [res.author.username, res.id].join('/');
+        this.app.router.navigate('/' + route, {trigger: true, replace: false});
+
         // Close the modal.
         $.fancybox.close();
 
         // Ready for more.
         this.working = false;
-
-        // Update URL.
-        var route, trigger, replace;
-        if (this.resource === 'view') {
-          route = [this.app.profile.user.username, 'views', res.slug].join('/');
-          trigger = false;
-          replace = true;
-        } else {
-          route = [this.app.profile.user.username, res.id].join('/');
-          trigger = true;
-          replace = false;
-        }
-        this.app.router.navigate('/' + route,
-            {trigger: trigger, replace: replace});
 
       }, this));
 

@@ -26,9 +26,6 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
-      // Add parent_id.
-      this.parent_id = Number(this.app.profile.content.page.id);
-
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('comment/start', _.bind(this.start, this)),
@@ -41,6 +38,7 @@ define([
 
       // Misc.
       this.empty_label = 'No comments.';
+      return;
 
       // Reset the collection.
       var page = this.app.profile.content.page;
@@ -118,7 +116,7 @@ define([
 
     // Collect new comments from socket events.
     collect: function (data) {
-      if (data.parent_id !== this.parent_id) return;
+      if (data.parent_id !== this.parentView.target().id) return;
       if (this.collection.get(-1)) return;
       data._new = true;
       this.collection.push(data);
@@ -200,6 +198,8 @@ define([
     //
     write: function (e) {
       if (e) e.preventDefault();
+      var parent = this.parentView.target();
+      if (!parent.id) return;
 
       this.input.val(util.sanitize(this.input.val()));
       if (this.input.val().trim() === '') return;
@@ -207,7 +207,7 @@ define([
       // For server.
       var payload = this.form.serializeObject();
       payload.body = util.sanitize(payload.body);
-      payload.parent_id = this.parent_id;
+      payload.parent_id = parent.id;
       payload.time = this.time;
 
       // Mock comment.

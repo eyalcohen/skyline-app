@@ -78,13 +78,8 @@ define([
       }, this));
 
       // Show the save modal.
-      mps.subscribe('modal/save/open', _.bind(function (lib) {
-        this.save = new Save(this.app).render();
-      }, this));
-
-      // Show the save modal in fork mode.
-      mps.subscribe('modal/fork/open', _.bind(function (lib) {
-        this.save = new Save(this.app, {fork: true}).render();
+      mps.subscribe('modal/save/open', _.bind(function (target) {
+        this.save = new Save(this.app, {target: target}).render();
       }, this));
 
       // Show the forgot modal.

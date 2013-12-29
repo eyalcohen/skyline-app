@@ -71,6 +71,9 @@ define([
 
     added: function (d) {
 
+      // Update profile content.
+      this.app.profile.content.datasets.items.push(d.attributes);
+
       // Update state.
       var state = store.get('state');
       if (!state.datasets[d.id]) {
@@ -83,6 +86,12 @@ define([
     },
 
     removed: function (d) {
+
+      // Update profile content.
+      this.app.profile.content.datasets.items =
+          _.reject(this.app.profile.content.datasets.items, function (s) {
+        return Number(s.id) === Number(d.id);
+      });
 
       // Update state.
       var state = store.get('state');
