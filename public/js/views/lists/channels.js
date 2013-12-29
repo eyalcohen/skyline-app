@@ -55,10 +55,12 @@ define([
     },
 
     resize: function (e, active) {
+      /*
       if (this.active || active)
         this.$el.height($('.graphs').height());
       else
-        this.$el.height('auto');
+      this.$el.height('auto');
+      */
       this.fit();
     },
 
