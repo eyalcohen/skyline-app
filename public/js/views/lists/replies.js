@@ -72,9 +72,11 @@ define([
 
     // Collect new replies from socket events.
     collect: function (data) {
-      if (data.parent_id !== this.parent_id) return;
+      if (data.parent_id !== this.parentView.model.id) return;
       if (this.collection.get(-1)) return;
       this.collection.push(data);
+      // Resize modal.
+      $.fancybox.reposition(null, null, true);
     },
 
     // remove a model
@@ -89,6 +91,9 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
+          
+          // Resize modal.
+          $.fancybox.reposition(null, null, true);
         }, this));
       }
     },

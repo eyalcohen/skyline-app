@@ -13,26 +13,18 @@ define([
       var att = this.attributes;
 
       if (att.data.action.t === 'comment') {
-        var verb, type, icon;
-        var target;
+        var verb, target, type, icon;
         if (att.data.target.t === 'comment') {
           var cowner =  att.data.action.i === att.data.target.i ?
               'their own':
               '<a href="/' + att.data.target.u + '" class="navigate">'
               + att.data.target.a + '\'s</a>';
-          verb = 'replied to ' + cowner + ' ' + ' comment on';
+          verb = 'replied to ' + cowner + ' comment on';
           target = att.data.target.p;
         } else {
           verb = 'commented on';
           target = att.data.target;
         }
-        var owner = att.data.action.i === target.i ?
-            'their own':
-            '<a href="/' + target.u + '" class="navigate">'
-            + target.a + '\'s</a>';
-        var gravatar = 'https://www.gravatar.com/avatar/'
-            + att.data.action.g + '?s=16&d=mm';
-        var link = '<a href="/' + target.s + '" class="navigate">';
         if (target.t === 'dataset') {
           type = 'data source';
           icon = 'database';
@@ -40,6 +32,13 @@ define([
           type = 'mashup';
           icon = 'folder-empty';
         }
+        var owner = att.data.action.i === target.i ?
+            'their own':
+            '<a href="/' + target.u + '" class="navigate">'
+            + target.a + '\'s</a>';
+        var link = '<a href="/' + target.s + '" class="navigate">';
+        var gravatar = 'https://www.gravatar.com/avatar/'
+            + att.data.action.g + '?s=16&d=mm';
 
         return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
