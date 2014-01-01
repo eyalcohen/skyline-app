@@ -84,24 +84,6 @@ define([
       return this;
     },
 
-    // Return the current view or index level zero dataset.
-    target: function () {
-      if (this.app.profile.content.page)
-        return {
-          doc: this.app.profile.content.page,
-          id: Number(this.app.profile.content.page.id), 
-          type: 'view'
-        };
-      else if (this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length !== 0)
-        return {
-          doc: this.app.profile.content.datasets.items[0],
-          id: Number(this.app.profile.content.datasets.items[0].id),
-          type: 'dataset'
-        };
-      else return {};
-    },
-
     when: function () {
       if (!this.time)
         this.time = this.$('time.created:first');

@@ -25,13 +25,13 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
-      // Client-wide subscriptions
+      // Client-wide subscriptions.
       this.subscriptions = [
         mps.subscribe('comment/start', _.bind(this.start, this)),
         mps.subscribe('comment/end', _.bind(this.end, this)),
       ];
 
-      // Socket subscriptions
+      // Socket subscriptions.
       this.app.rpc.socket.on('comment.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('comment.removed', _.bind(this._remove, this));
 
@@ -39,13 +39,21 @@ define([
       this.empty_label = 'No comments.';
 
       // Reset the collection.
+      var comments = [];
+      var comments_cnt = 0;
       var target = this.parentView.target();
-      if (!target.doc.comments) {
-        target.doc.comments_cnt = 0;
-        target.doc.comments = [];
+      if (target.type === 'view') {
+        comments = target.doc.comments;
+        comments_cnt = target.doc.comments_cnt;
+      } else {
+        _.each(this.app.profile.content.datasets.items, function (d) {
+          _.each(d.comments, function (c) { comments.push(c); });
+          comments_cnt += d.comments_cnt;
+        });
+        comments.sort(function (a, b) { return a.time - b.time; });
       }
-      this.collection.older = target.doc.comments_cnt - target.doc.comments.length;
-      this.collection.reset(target.doc.comments);
+      this.collection.older = comments_cnt - comments.length;
+      this.collection.reset(comments);
     },
 
     // Initial bulk render of list

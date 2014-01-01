@@ -131,7 +131,6 @@ define([
 
       // Add the parent id.
       payload.parent_id = this.parentView.model.id;
-      payload.pparent_type = this.parentView.target().type;
 
       // Optimistically add comment to page.
       this.collection.push(data);
