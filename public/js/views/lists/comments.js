@@ -38,7 +38,6 @@ define([
 
       // Misc.
       this.empty_label = 'No comments.';
-      return;
 
       // Reset the collection.
       var page = this.app.profile.content.page;

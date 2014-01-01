@@ -11,16 +11,25 @@ define([
 
     body: function () {
       var att = this.attributes;
+      console.log(att)
 
       if (att.data.action.t === 'comment') {
-        var verb = att.data.target.t === 'comment' ?
-            'replied to a comment on': 'commented on';
-        var type, icon, link, owner;
+        var verb, type, icon, link, owner, link;
+        var target;
         var gravatar = 'https://www.gravatar.com/avatar/'
             + att.data.action.g + '?s=16&d=mm';
-        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
 
-        if (att.data.target.t === 'dataset') {
+        if (att.data.target.t === 'comment') {
+          verb = 'replied to a comment on';
+          link = '<a href="/' + att.data.target.p.s + '" class="navigate">';
+          target = att.data.target.p;
+        } else {
+          verb = 'commented on';
+          link = '<a href="/' + att.data.target.s + '" class="navigate">';
+          target = att.data.target;
+        }
+
+        if (target.t === 'dataset') {
           type = 'data source';
           icon = 'database';
         } else {
@@ -28,7 +37,7 @@ define([
           icon = 'folder-empty';
         }
 
-        if (att.data.action.i === att.data.target.i)
+        if (att.data.action.i === target.i)
           owner = 'their own';
         else
           owner = '<a href="/' + att.data.target.u + '" class="navigate">'
@@ -67,6 +76,7 @@ define([
         var verb = 'forked';
         var type, icon, owner;
         var link = '<a href="/' + att.data.target.s + '" class="navigate">';
+        var plink = '<a href="/' + att.data.target.p.s + '" class="navigate">';
         if (att.data.target.t === 'dataset') {
           type = 'data source';
           icon = 'database';
@@ -84,10 +94,11 @@ define([
         return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
             + verb + ' ' + owner + ' ' + type + ', '
+            + plink + '<i class="icon-' + icon + '"></i>'
+            + att.data.target.p.n + '</a>.'
             + '<span class="event-body event-body-big">'
             + link + '<i class="icon-' + icon + '"></i>'
             + att.data.target.n + '</a></span>';
-
       } else return '';
     }
 

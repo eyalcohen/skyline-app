@@ -20,7 +20,6 @@ define([
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
-      this.type = options.type;
       this.Row = Row;
 
       // Call super init.
@@ -127,13 +126,14 @@ define([
 
       // Add the parent id.
       payload.parent_id = this.parentView.model.id;
+      payload.pparent_type = this.parentView.target().type;
 
       // Optimistically add comment to page.
       this.collection.push(data);
       input.val('').keyup();
 
       // Now save the comment to server.
-      rest.post('/api/comments/' + this.type, payload,
+      rest.post('/api/comments/comment', payload,
           _.bind(function (err, data) {
 
         if (err) {

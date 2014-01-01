@@ -131,7 +131,7 @@ define([
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
-      this.comments = new Comments(this.app, {parentView: this, type: 'view'});
+      this.comments = new Comments(this.app, {parentView: this});
       this.overview = new Overview(this.app, {parentView: this}).render();
 
       // Do resize on window change.
@@ -210,7 +210,6 @@ define([
 
     save: function (e) {
       e.preventDefault();
-      console.log(this.working, this.saveButton.hasClass('saved'));
 
       // No need to save.
       if (this.saveButton.hasClass('saved')) return;
@@ -337,7 +336,7 @@ define([
     updateCursor: function (e) {
       if (!this.graph || this.cursor.hasClass('active')) return;
       this.cursorData = this.graph.cursor(e);
-      // if (this.cursorData.x === undefined) return;
+      if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
       this.cursor.css({left: this.cursorData.x});
     },
