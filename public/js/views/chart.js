@@ -381,7 +381,7 @@ define([
     },
 
     updateIcons: function () {
-      if (!this.graph || !this.comments) return;
+      if (!this.graph || !this.graph.plot || !this.comments) return;
       var xaxis = this.graph.plot.getXAxes()[0];
 
       // Update x-pos of each comment.

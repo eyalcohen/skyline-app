@@ -2219,6 +2219,11 @@ a.button.comment-input-button.primary:active {
   background: rgba(39, 205, 214, 1);
 }
 
+.comments {
+  border-bottom: 1px solid #d0d0d0;
+  margin-bottom: -1px;
+}
+
 .comment {
   width: 300px;
   position: relative;

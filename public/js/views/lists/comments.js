@@ -20,7 +20,6 @@ define([
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
-      this.type = options.type;
       this.Row = Row;
 
       // Call super init.
@@ -40,13 +39,13 @@ define([
       this.empty_label = 'No comments.';
 
       // Reset the collection.
-      var page = this.app.profile.content.page;
-      if (!page.comments) {
-        page.comments_cnt = 0;
-        page.comments = [];
+      var target = this.parentView.target();
+      if (!target.doc.comments) {
+        target.doc.comments_cnt = 0;
+        target.doc.comments = [];
       }
-      this.collection.older = page.comments_cnt - page.comments.length;
-      this.collection.reset(page.comments);
+      this.collection.older = target.doc.comments_cnt - target.doc.comments.length;
+      this.collection.reset(target.doc.comments);
     },
 
     // Initial bulk render of list
@@ -224,7 +223,7 @@ define([
       this.input.val('').keyup();
 
       // Now save the comment to server.
-      rest.post('/api/comments/' + this.type, payload,
+      rest.post('/api/comments/' + parent.type, payload,
           _.bind(function (err, data) {
         if (err)
           return console.log(err);
