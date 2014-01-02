@@ -2005,8 +2005,8 @@ a.dataset-button .dataset-button-bg {
   top: 0;
   left: 0;
   background: #f9f9f9;
-  width: 241px;
-  height: 100%;
+  width: 240px;
+  height: 34px;
   border-left: 1px solid #d0d0d0;
   border-top: 1px solid #d0d0d0;
 
@@ -2028,6 +2028,7 @@ a.dataset-button .dataset-button-bg {
   background: #3f3f3f;
   border-left: none;
   border-top: none;
+  height: 35px;
 }
 
 .dataset.leader a.dataset-button .dataset-button-bg {
@@ -2036,6 +2037,7 @@ a.dataset-button .dataset-button-bg {
   margin-top: -7px;
   background: rgba(39, 205, 214, 0.4);
   border-radius: 1px 1px 0 0;
+  height: 35px;
 }
 
 .dataset.active.leader a.dataset-button .dataset-button-bg {
@@ -2086,6 +2088,7 @@ a.dataset-add-button {
   font-size: 16px;
   line-height: 33px;
   border-right: 1px solid #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
   text-align: center;
   width: 44px;
   cursor: pointer;
@@ -2104,7 +2107,7 @@ a.dataset-add-button:active {
   z-index: 12;
   left: 33px;
   right: 0;
-  top: 34px;
+  top: 35px;
   width: 241px;
   overflow-x: hidden;
   overflow-y: auto;

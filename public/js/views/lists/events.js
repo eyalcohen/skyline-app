@@ -19,7 +19,7 @@ define([
 
     fetching: false,
     nomore: false,
-    limit: 5,
+    limit: 20,
 
     initialize: function (app, options) {
       this.template = _.template(template);
