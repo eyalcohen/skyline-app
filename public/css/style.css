@@ -1841,13 +1841,26 @@ a.control-button-save.saving {
 
 .icon {
   position: absolute;
-  color: rgba(79, 79, 79, 0.6);
+  color: orange;
   cursor: pointer;
   font-size: 24px;
+  opacity: 0.9;
 }
 
 .icon.hover {
-  color: rgba(79, 79, 79, 0.9);
+  opacity: 1;
+}
+
+.icon-code-view {
+  color: #9FFF0D;
+}
+
+.icon-code-dataset {
+  color: #d0d0d0;
+}
+
+.icon-code-dataset-leader {
+  color: #27CDD6;
 }
 
 /*.........................................................................*/
@@ -1928,7 +1941,7 @@ a.control-button-save.saving {
 .dataset.leader .dataset-avatar {
   border-color: rgba(39, 205, 214, 0.8);
   border-top: 1px solid rgba(39, 205, 214, 0.8);
-  background: rgba(39, 205, 214, 0.8);
+  background: rgba(39, 205, 214, 0.4);
 }
 
 .dataset-avatar img {
@@ -2388,6 +2401,17 @@ a.comments-signin {
   width: 12px;
   height: 7px;
   margin-right: 2px;
+}
+
+.comment-code-view {
+  background: #9FFF0D;
+}
+
+.comment-code-dataset {
+  background: #d0d0d0;
+}
+
+.comment-code-dataset-leader {
   background: rgba(39, 205, 214, 0.8);
 }
 

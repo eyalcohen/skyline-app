@@ -25,6 +25,13 @@ define([
 
       // Icon handling.
       this.icon = $('<i class="icon icon-bookmark">');
+      if (this.model.get('parent_type') === 'view')
+        this.icon.addClass('icon-code-view');
+      else if (this.model.get('parent_type') === 'dataset')
+        if (this.model.get('leader'))
+          this.icon.addClass('icon-code-dataset-leader');
+        else
+          this.icon.addClass('icon-code-dataset');
       this.model.on('change:xpos', _.bind(function () {
         if (!this.icon) return;
         this.icon.css({left: this.model.get('xpos') - 8});
@@ -111,6 +118,7 @@ define([
           || $(e.target).hasClass('navigate')
           || $(e.target).parent().hasClass('navigate')) return;
       this.discussion = new Discussion(this.app, {model: this.model}).render();
+      mps.publish('chart/zoom', [{center: this.model.get('time')}]);
     },
 
     highlight: function (e) {

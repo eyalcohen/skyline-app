@@ -138,8 +138,14 @@ define([
         xaxis.options.min = avg - range / 2;
         xaxis.options.max = avg + range / 2;
       } else if (_.isObject(range)) {
-        xaxis.options.min = range.min;
-        xaxis.options.max = range.max;
+        if (range.center) {
+          var delta = xaxis.options.max - xaxis.options.min;
+          xaxis.options.min = range.center - delta / 2;
+          xaxis.options.max = range.center + delta / 2;
+        } else {
+          xaxis.options.min = range.min;
+          xaxis.options.max = range.max;
+        }
       }
       this.plot.setupGrid();
       this.plot.draw();
