@@ -94,7 +94,7 @@ define([
         _.each(channels, _.bind(function (channel) {
           var s = this.getSeriesData(channel);
           if (s.data.length === 0) return;
-          s.color = this.app.colors[channel.colorNum];
+          s.color = this.app.getColors(channel.colorNum);
 
           // Ensure each series spans the visible time.
           if (time.beg < _.first(s.data).t * 1e3) {

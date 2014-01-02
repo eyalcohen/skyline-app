@@ -40,6 +40,10 @@ define([
     }
   }
 
+  App.prototype.getColors = function(colornum) {
+    return this.colors[colornum % this.colors.length];
+  }
+
   App.prototype.update = function (profile) {
 
     // Set the app profile.

@@ -127,7 +127,7 @@ define([
       if (this.model.id !== channel.channelName) return;
 
       // Set colors.
-      var color = this.app.colors[channel.colorNum];
+      var color = this.app.getColors(channel.colorNum);
       this.$el.css({
         backgroundColor: color,
         borderColor: color

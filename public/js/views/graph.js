@@ -673,7 +673,7 @@ define([
       series.forEach(_.bind(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = this.highlightedChannel === channel.channelName;
-        var color = this.app.colors[channel.colorNum];
+        var color = this.app.getColors(channel.colorNum);
         s.originalColor = color;
         if (this.highlightedChannel && !highlighted) {
 
