@@ -1999,14 +1999,16 @@ a.dataset-button {
 }
 
 a.dataset-button .dataset-button-bg {
-  display: none;
+  display: block;
   position: absolute;
   z-index: 0;
   top: 0;
   left: 0;
-  background: #3f3f3f;
+  background: #f9f9f9;
   width: 241px;
   height: 100%;
+  border-left: 1px solid #d0d0d0;
+  border-top: 1px solid #d0d0d0;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -2023,7 +2025,21 @@ a.dataset-button .dataset-button-bg {
 }
 
 .dataset.active a.dataset-button .dataset-button-bg {
-  display: block;
+  background: #3f3f3f;
+  border-left: none;
+  border-top: none;
+}
+
+.dataset.leader a.dataset-button .dataset-button-bg {
+  border-top: 7px dashed rgba(39, 205, 214, 0.8);
+  border-left: none;
+  margin-top: -7px;
+  background: rgba(39, 205, 214, 0.4);
+  border-radius: 1px 1px 0 0;
+}
+
+.dataset.active.leader a.dataset-button .dataset-button-bg {
+  background: rgba(39, 205, 214, 0.8);
 }
 
 .dataset .dataset-title {
@@ -2059,18 +2075,6 @@ a.dataset-button .dataset-button-bg {
 .dataset.active .dataset-title,
 .dataset.active .dataset-stats {
   color: #fff;
-}
-
-.dataset.leader a.dataset-button .dataset-button-bg {
-  display: block;
-  border-top: 7px dashed rgba(39, 205, 214, 0.8);
-  margin-top: -7px;
-  background: rgba(39, 205, 214, 0.4);
-  border-radius: 1px 1px 0 0;
-}
-
-.dataset.active.leader a.dataset-button .dataset-button-bg {
-  background: rgba(39, 205, 214, 0.8);
 }
 
 a.dataset-add-button {
