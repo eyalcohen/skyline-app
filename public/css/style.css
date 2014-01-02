@@ -1914,7 +1914,7 @@ a.control-button-save.saving {
   border-right: 1px solid #d0d0d0;
 }
 
-.dataset-avatar {
+.dataset .dataset-avatar {
   float: left;
   height: 23px;
   width: 23px;
@@ -1925,6 +1925,12 @@ a.control-button-save.saving {
   border-right: 1px solid #d0d0d0;
 }
 
+.dataset.leader .dataset-avatar {
+  border-color: rgba(39, 205, 214, 0.8);
+  border-top: 1px solid rgba(39, 205, 214, 0.8);
+  background: rgba(39, 205, 214, 0.8);
+}
+
 .dataset-avatar img {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
@@ -1933,7 +1939,7 @@ a.control-button-save.saving {
 
 .dataset-remove {
   position: absolute;
-  right: 0;
+  right: -1px;
   top: 0;
   z-index: 1;
   cursor: pointer;
@@ -1941,10 +1947,17 @@ a.control-button-save.saving {
   line-height: 35px;
   color: #4f4f4f;
   font-size: 11px;
+  border-right: 1px solid #d0d0d0;
+  overflow: hidden;
 }
 
 .dataset.active .dataset-remove {
   color: #fff;
+  border-right: 1px solid #3f3f3f;
+}
+
+.dataset.leader .dataset-remove {
+  border-right: 1px solid rgba(39, 205, 214, 0.8);
 }
 
 .dataset-remove:hover {
@@ -2000,7 +2013,7 @@ a.dataset-button .dataset-button-bg {
   display: block;
 }
 
-.dataset-title {
+.dataset .dataset-title {
   position: relative;
   z-index: 1;
   margin-left: 5px;
@@ -2009,7 +2022,11 @@ a.dataset-button .dataset-button-bg {
   line-height: 23px;
 }
 
-.dataset-stats {
+.dataset.leader .dataset-title {
+  font-weight: bold;
+}
+
+.dataset .dataset-stats {
   position: relative;
   z-index: 1;
   display: block;
@@ -2029,6 +2046,18 @@ a.dataset-button .dataset-button-bg {
 .dataset.active .dataset-title,
 .dataset.active .dataset-stats {
   color: #fff;
+}
+
+.dataset.leader a.dataset-button .dataset-button-bg {
+  display: block;
+  border-top: 7px dashed rgba(39, 205, 214, 0.8);
+  margin-top: -7px;
+  background: rgba(39, 205, 214, 0.4);
+  border-radius: 1px 1px 0 0;
+}
+
+.dataset.active.leader a.dataset-button .dataset-button-bg {
+  background: rgba(39, 205, 214, 0.8);
 }
 
 a.dataset-add-button {
@@ -2352,6 +2381,14 @@ a.comments-signin {
 
 .comment-info {
   margin-left: 34px;
+}
+
+.comment-code {
+  display: inline-block;
+  width: 12px;
+  height: 7px;
+  margin-right: 2px;
+  background: rgba(39, 205, 214, 0.8);
 }
 
 .discussion a.comments-signin {

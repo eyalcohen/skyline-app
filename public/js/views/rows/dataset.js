@@ -48,6 +48,12 @@ define([
         if (this.channels) this.channels.collapse();
       }, this));
 
+      // Handle leader.
+      if (this.parentView.collection.indexOf(this.model) === 0) {
+        this.model.set('leader', true);
+        this.$el.addClass('leader');
+      }
+
       // Get channels for this dataset.
       this.fetchChannels();
 

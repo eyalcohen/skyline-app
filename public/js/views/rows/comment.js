@@ -96,7 +96,6 @@ define([
 
     destroy: function () {
       this.icon.remove();
-      // delete this.icon
       Row.prototype.destroy.call(this);
     },
 

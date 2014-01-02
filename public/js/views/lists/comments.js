@@ -57,13 +57,15 @@ define([
       if (target.type === 'view') {
         comments = target.doc.comments;
         comments_cnt = target.doc.comments_cnt;
-      } else {
-        _.each(this.app.profile.content.datasets.items, function (d) {
-          _.each(d.comments, function (c) { comments.push(c); });
-          comments_cnt += d.comments_cnt;
-        });
-        comments.sort(function (a, b) { return a.time - b.time; });
       }
+      _.each(this.app.profile.content.datasets.items, function (d, i) {
+        _.each(d.comments, function (c) {
+          if (i === 0) c.leader = true;
+          comments.push(c);
+        });
+        comments_cnt += d.comments_cnt;
+      });
+      comments.sort(function (a, b) { return a.time - b.time; });
       this.collection.older = comments_cnt - comments.length;
       this.collection.reset(comments);
     },
