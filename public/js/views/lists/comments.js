@@ -55,7 +55,7 @@ define([
       var comments_cnt = 0;
       var target = this.parentView.target();
       if (target.type === 'view') {
-        comments = target.doc.comments;
+        _.each(target.doc.comments, function (c) { comments.push(c); });
         comments_cnt = target.doc.comments_cnt;
       }
       _.each(this.app.profile.content.datasets.items, function (d, i) {
