@@ -38,7 +38,18 @@ define([
       // Misc.
       this.empty_label = 'No comments.';
 
-      // Reset the collection.
+      this.reset();
+    },
+
+    // Reset the collection.
+    reset: function () {
+
+      // Kill each row view.
+      _.each(this.views, function (v) {
+        v.destroy();
+      });
+
+      // Gather comments.
       var comments = [];
       var comments_cnt = 0;
       var target = this.parentView.target();

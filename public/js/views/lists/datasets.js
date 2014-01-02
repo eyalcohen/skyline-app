@@ -31,7 +31,7 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('chart/datasets/new', _.bind(this.collect, this)),
+        mps.subscribe('dataset/select', _.bind(this.collect, this)),
         mps.subscribe('channel/added', _.bind(this.channelAdded, this)),
         mps.subscribe('channel/removed', _.bind(this.channelRemoved, this)),
       ];
@@ -83,6 +83,9 @@ define([
 
       // Fit tabs
       this.parentView.fit();
+
+      // Notify.
+      mps.publish('dataset/added');
     },
 
     removed: function (d) {
@@ -100,6 +103,9 @@ define([
 
       // Fit tabs
       this.parentView.fit();
+
+      // Notify.
+      mps.publish('dataset/added');
     },
 
     collect: function (did) {

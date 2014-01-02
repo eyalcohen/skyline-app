@@ -94,9 +94,13 @@ define([
         this.app.router.navigate(path, {trigger: true});
     },
 
+    destroy: function () {
+      this.icon.remove();
+      Row.prototype.destroy.call(this);
+    },
+
     _remove: function (cb) {
       this.$el.slideUp('fast', _.bind(function () {
-        this.icon.remove();
         this.destroy();
         cb();
       }, this));

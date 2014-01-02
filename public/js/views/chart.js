@@ -50,6 +50,12 @@ define([
           this.overview.model.removeChannel(this.datasets.collection.get(did),
               _.clone(channel));
         }, this)),
+        mps.subscribe('dataset/added', _.bind(function () {
+          this.comments.reset();
+        }, this)),
+        mps.subscribe('dataset/removed', _.bind(function () {
+          this.comments.reset();
+        }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/draw', _.bind(this.updateIcons, this)),
         mps.subscribe('comment/end', _.bind(this.uncomment, this)),
@@ -386,6 +392,7 @@ define([
 
       // Update x-pos of each comment.
       _.each(this.comments.views, _.bind(function (v) {
+        if (!v.model.get('parent_type')) return;
         v.model.set('xpos', xaxis.p2c(v.model.get('time')) - 8);
         if (!$.contains(document.documentElement, v.icon.get(0)))
           v.icon.appendTo(this.icons);
@@ -504,7 +511,7 @@ define([
             mps.publish('dataset/new', [res]);
 
             // Add this dataset to the existing chart.
-            mps.publish('chart/datasets/new', [res.id]);
+            mps.publish('dataset/select', [res.id]);
           
           // TODO: This should function like the above case,
           // but will be confusing until we have a macro view.
