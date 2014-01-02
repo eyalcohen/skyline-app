@@ -75,6 +75,7 @@ define([
       if (data.parent_id !== this.parentView.model.id) return;
       if (this.collection.get(-1)) return;
       this.collection.push(data);
+
       // Resize modal.
       $.fancybox.reposition(null, null, true);
     },

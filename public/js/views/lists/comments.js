@@ -234,11 +234,16 @@ define([
       var data = {
         id: -1,
         parent_id: payload.parent_id,
+        parent_type: parent.type,
         author: this.app.profile.user,
         body: payload.body,
         created: new Date().toISOString(),
         time: this.time
       };
+
+      // Commenting on a dataset will always be to the leader.
+      if (parent.type === 'dataset')
+        data.leader = true;
 
       // Optimistically add comment to page.
       this.collect(data);

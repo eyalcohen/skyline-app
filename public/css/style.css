@@ -1841,7 +1841,6 @@ a.control-button-save.saving {
 
 .icon {
   position: absolute;
-  color: orange;
   cursor: pointer;
   font-size: 24px;
   opacity: 0.9;
