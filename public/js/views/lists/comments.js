@@ -48,6 +48,7 @@ define([
       _.each(this.views, function (v) {
         v.destroy();
       });
+      this.views = [];
 
       // Gather comments.
       var comments = [];

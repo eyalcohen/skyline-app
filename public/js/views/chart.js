@@ -52,9 +52,11 @@ define([
         }, this)),
         mps.subscribe('dataset/added', _.bind(function () {
           this.comments.reset();
+          this.updateIcons();
         }, this)),
         mps.subscribe('dataset/removed', _.bind(function () {
           this.comments.reset();
+          this.updateIcons();
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/draw', _.bind(this.updateIcons, this)),
@@ -392,10 +394,11 @@ define([
 
       // Update x-pos of each comment.
       _.each(this.comments.views, _.bind(function (v) {
-        if (!v.model.get('parent_type')) return;
         v.model.set('xpos', xaxis.p2c(v.model.get('time')) - 8);
-        if (!$.contains(document.documentElement, v.icon.get(0)))
+        if (!$.contains(document.documentElement, v.icon.get(0))) {
+          console.log(v.icon[0])
           v.icon.appendTo(this.icons);
+        }
       }, this));
     },
 
