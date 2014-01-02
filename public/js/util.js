@@ -437,5 +437,14 @@ define([
       return (/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/).test(str);
     },
 
+    // returns an rgba
+    // @param rgb is a string in the format rgb(r,g,b).
+    // @param amount from 0 - 1
+    lightenColor: function (rgb, amount) {
+      var lightenedColor = rgb.replace(/\)/, ',' + +amount);
+      lightenedColor = lightenedColor.replace('rgb','rgba');
+      return lightenedColor;
+    },
+
   }
 });

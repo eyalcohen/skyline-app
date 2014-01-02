@@ -59,13 +59,11 @@ define([
 
       // messing around, make the hover color a light version of the parent
       var parentBg = this.options.parentView.$el.css('background-color');
-      var lightenedColor = parentBg.replace(/\)/,',0.3)');
-      lightenedColor = lightenedColor.replace('rgb','rgba');
       var modalBg = this.$el.css('background-color');
       $('.linestyle-box').hover(
         function() {
           if ($(this).css('background-color') === modalBg) {
-            $(this).css('background-color', lightenedColor);
+            $(this).css('background-color', util.lightenColor(parentBg, .3));
           }
         }, function() {
           if ($(this).css('background-color') !== parentBg) {
