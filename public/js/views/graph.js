@@ -28,7 +28,8 @@ define([
       this.parentView = options.parentView;
 
       // Some graph constants
-      this.POINTS_TO_SHOW = 250;
+      this.POINTS_TO_SHOW = 250; // maximum number of points to display
+      this.PIXELS_FROM_HIGHLIGHT = 20; // maximum number of pixels for line highlight
 
       // Shell events:
       this.on('rendered', this.setup, this);
@@ -93,6 +94,8 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 150));
       $(window).resize(_.debounce(_.bind(this.resize, this), 300));
+
+      this.lightened = {};
 
       return this;
     },
@@ -437,12 +440,7 @@ define([
           interactive: false,
         },
         pan: {
-          interactive: true,
-          frameRate: 60,
-          useShiftKey: true,
-          onShiftDragStart: _.bind(this.beginOffset, this),
-          onShiftDrag: _.bind(this.endOffset, this),
-          onShiftDragEnd: _.bind(this.endOffset, this),
+          interactive: false,
         },
         hooks: {
           draw: [_.bind(this.onDraw, this)],
@@ -458,16 +456,49 @@ define([
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
           return false;
         }, this))
+
         .dblclick(_.bind(function (e) {
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         }, this))
+
         .mousemove(_.bind(function (e) {
+          // panning behavior, unless we're highlight on a line.
+          if (this.mousedown) {
+            if (this.changingOffset) {
+              this.endOffset(e);
+              return;
+            } else {
+              this.plot.pan({ left: this.prevPageX - e.pageX});
+              this.prevPageX = e.pageX;
+            }
+          }
           if (!this.lastMouseMove) this.lastMouseMove = 0;
           // don't run this very frequently, perhaps once every 20ms
           if (Date.now() - this.lastMouseMove > 20) {
             this.lastMouseMove = Date.now();
             this.mouseLineStyle(e);
           }
+        }, this))
+
+        .mousedown(_.bind(function (e) {
+          var closestChannel =
+            _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+          if (!closestChannel) return;
+          if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
+            this.beginOffset(e);
+            this.changingOffset = true;
+          }
+          this.mousedown = true;
+          this.prevPageX = e.pageX;
+        }, this))
+
+        .mouseup(_.bind(function (e) {
+          var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
+          this.lightened[did] = false;
+          if (this.changingOffset)
+            this.draw();
+          this.mousedown = false;
+          this.changingOffset = false;
         }, this));
 
         function graphZoomClick(e, factor, out) {
@@ -510,6 +541,14 @@ define([
 
       this.channelForOffset =
         _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0].channelName
+
+      var plotData = this.plot.getData();
+      var c = _.find(plotData, function(f) {
+        return plotData.channelName === this.channelForOffset;
+      });
+      var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
+      this.lightened[did] = true;
+      this.plot.setData(plotData);
 
       this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
     },
@@ -675,6 +714,10 @@ define([
         var highlighted = this.highlightedChannel === channel.channelName;
         var color = this.app.getColors(channel.colorNum);
         s.originalColor = color;
+
+        var did = this.model.findDatasetFromChannel(channel.channelName).get('id');
+        if (this.lightened[did] === true) 
+          color = util.lightenColor(color, .3);
         if (this.highlightedChannel && !highlighted) {
 
           // Lighten color.
@@ -756,7 +799,7 @@ define([
       var curWidth = series.lines.lineWidth;
       var newWidth = lineStyleOpts.lineWidth;
       var newRadius = lineStyleOpts.pointRadius;
-      if (closestChannel.pixelsFromInterpPt < 10) {
+      if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
         newWidth = newWidth + 2;
         newRadius = newRadius + 1;
       }
