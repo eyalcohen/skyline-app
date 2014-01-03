@@ -63,7 +63,7 @@ define([
       $('.linestyle-box').hover(
         function() {
           if ($(this).css('background-color') === modalBg) {
-            $(this).css('background-color', util.lightenColor(parentBg, .3));
+            $(this).css('background-color', util.lightenColor(parentBg, .5));
           }
         }, function() {
           if ($(this).css('background-color') !== parentBg) {
