@@ -38,11 +38,11 @@ define([
       // Misc.
       this.empty_label = 'No comments.';
 
-      this.reset();
+      this.reset(true);
     },
 
     // Reset the collection.
-    reset: function () {
+    reset: function (initial) {
 
       // Kill each row view.
       _.each(this.views, function (v) {
@@ -54,18 +54,20 @@ define([
       var comments = [];
       var comments_cnt = 0;
       var target = this.parentView.target();
+      var state = store.get('state');
       if (target.type === 'view') {
         _.each(target.doc.comments, function (c) { comments.push(c); });
         comments_cnt = target.doc.comments_cnt;
       }
       _.each(this.app.profile.content.datasets.items, function (d, i) {
+        if (state.datasets[d.id] && state.datasets[d.id].comments === false)
+          return;
         _.each(d.comments, function (c) {
           if (i === 0) c.leader = true;
           comments.push(c);
         });
         comments_cnt += d.comments_cnt;
       });
-      comments.sort(function (a, b) { return a.time - b.time; });
       this.collection.older = comments_cnt - comments.length;
       this.collection.reset(comments);
     },
@@ -136,7 +138,17 @@ define([
 
     // Collect new comments from socket events.
     collect: function (data) {
-      if (data.parent_id !== this.parentView.target().id) return;
+      var state = store.get('state');
+      var target = this.parentView.target();
+      if (!state.datasets) return;
+      var dataset = _.find(state.datasets, function (d, id) {
+        return Number(id) === data.parent_id
+            && (d.comments === true || d.comments === undefined);
+      });
+      if (dataset && dataset.index === 0)
+        data.leader = true;
+      if (target.type === 'dataset' && !dataset) return;
+      if (!dataset && target.type === 'view' && data.parent_id !== target.id) return;
       if (this.collection.get(-1)) return;
       data._new = true;
       this.collection.push(data);
@@ -160,6 +172,13 @@ define([
                 + '</span>').appendTo(this.$el);
         }, this));
       }
+
+      _.each(this.app.profile.content.datasets.items, function (d) {
+        d.comments = _.reject(d.comments, function (c) {
+          return c.id === data.id;
+        });
+        d.comments_cnt = d.comments.length;
+      });
     },
 
     // Empty this view.

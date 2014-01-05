@@ -35,6 +35,7 @@ define([
       this.button = this.$('a.dataset-button');
       this.title = this.$('.dataset-title', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
+      this.commentsButton = this.$('.dataset-control-comments');
 
       // Toggle.
       this.button.click(_.bind(this.toggle, this));
@@ -49,10 +50,7 @@ define([
       }, this));
 
       // Handle leader.
-      if (this.parentView.collection.indexOf(this.model) === 0) {
-        this.model.set('leader', true);
-        this.$el.addClass('leader');
-      }
+      this.leader();
 
       // Get channels for this dataset.
       this.fetchChannels();
@@ -70,23 +68,32 @@ define([
     },
 
     events: {
-      'click .dataset-remove': 'delete',
+      'click .dataset-control-remove': 'delete',
+      'click .dataset-control-comments': 'comments'
+    },
+
+    leader: function () {
+      if (this.parentView.collection.indexOf(this.model) === 0) {
+        this.model.set('leader', true);
+        this.$el.addClass('leader');
+      }
     },
 
     fit: function (w) {
+      var max = this.app.embed ? 200: 235;
       w = w - 85;
-      w = w > 200 ? 200: w;
-      w = w < 60 ? 60: w;
+      w = w > max ? max: w;
+      w = w < 90 ? 90: w;
       this.button.outerWidth(w);
       this.background.width(w + 41);
-      this.fitTitle(w);
       if (this.channels) this.channels.fit();
       this.updateOffset();
+      this.fitTitle(w - (this.app.embed ? 0: 35));
+      this.leader();
     },
 
     fitTitle: function (w) {
-      var txt = this.model.get('title');
-      this.title.text(txt);
+      var txt = this.title.text();
       var tw = this.title.outerWidth();
       if (tw >= w) {
         var len = txt.length;
@@ -145,16 +152,39 @@ define([
 
         // Check if was open.
         var state = store.get('state');
-        if ((state.datasets && state.datasets[this.model.id]
-            && state.datasets[this.model.id].open)
+        var did = this.model.id;
+        if ((state.datasets && state.datasets[did]
+            && state.datasets[did].open)
             || !state.author_id) {
           this.channels.active = true;
           this.channels.expand(true);
           this.$el.addClass('active');
-          state.datasets[this.model.id].open = true;
+          state.datasets[did].open = true;
           store.set('state', state);
         }
+
+        // Check if comments off.
+        if (state.datasets && state.datasets[did]
+            && state.datasets[did].comments === false) {
+          this.commentsButton.addClass('off');
+        }
       }, this));
+    },
+
+    comments: function (e) {
+      e.preventDefault();
+      var state = store.get('state');
+      var did = this.model.id;
+      if (state.datasets && state.datasets[did]) {
+        state.datasets[did].comments =
+            state.datasets[did].comments === undefined
+            || state.datasets[did].comments === true ? false: true;
+        this.app.state(state);
+      }
+      mps.publish('comments/refresh');
+      if (this.commentsButton.hasClass('off'))
+        this.commentsButton.removeClass('off');
+      else this.commentsButton.addClass('off');
     },
 
     delete: function (e) {
@@ -179,7 +209,7 @@ define([
 
     updateOffset: function() {
 
-      // save new offset
+      // Save new offset
       var state = store.get('state');
       var did = this.model.id;
       if (state.datasets && state.datasets[did]

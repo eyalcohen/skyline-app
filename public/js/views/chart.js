@@ -51,12 +51,13 @@ define([
               _.clone(channel));
         }, this)),
         mps.subscribe('dataset/added', _.bind(function () {
-          this.comments.reset();
-          this.updateIcons();
+          this.refreshComments();
         }, this)),
         mps.subscribe('dataset/removed', _.bind(function () {
-          this.comments.reset();
-          this.updateIcons();
+          this.refreshComments();
+        }, this)),
+        mps.subscribe('comments/refresh', _.bind(function () {
+          this.refreshComments();
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/draw', _.bind(this.updateIcons, this)),
@@ -380,6 +381,11 @@ define([
       this.graph.$el.css({'pointer-events': 'auto'});
     },
 
+    refreshComments: function () {
+      this.comments.reset();
+      this.updateIcons();
+    },
+
     saved: function () {
       if (this.comments) this.comments.empty();
       this.comments = new Comments(this.app, {parentView: this, type: 'view'});
@@ -388,7 +394,7 @@ define([
       this.app.title(this.app.profile.content.page.name);
     },
 
-    updateIcons: function () {
+    updateIcons: function (force) {
       if (!this.graph || !this.graph.plot || !this.comments) return;
       var xaxis = this.graph.plot.getXAxes()[0];
 

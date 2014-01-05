@@ -852,6 +852,7 @@ body.embed .block-messages {
 }
 
 .header .header-logo a {
+  position: relative;
   white-space: nowrap;
   font-size: 20px;
   color: #2f2f2f;
@@ -864,7 +865,8 @@ body.embed .block-messages {
 
 .header .header-logo img {
   margin-top: 25px;
-  float: right;
+  position: absolute;
+  right: -13px;
 }
 
 .header .user-box {
@@ -1949,34 +1951,55 @@ a.control-button-save.saving {
   border-radius: 2px;
 }
 
-.dataset-remove {
+.dataset-control {
   position: absolute;
-  right: -1px;
   top: 0;
   z-index: 1;
   cursor: pointer;
   padding: 0 10px;
   line-height: 35px;
   color: #4f4f4f;
-  font-size: 11px;
-  border-right: 1px solid #d0d0d0;
+  font-size: 11px; 
   overflow: hidden;
 }
 
-.dataset.active .dataset-remove {
+.dataset-control-remove {
+  right: -1px;
+  border-right: 1px solid #d0d0d0;
+}
+
+.dataset-control-comments {
+  right: 35px;
+}
+
+.main.embed .dataset-control-comments {
+  right: -1px;
+  border-right: 1px solid #d0d0d0;
+}
+
+.dataset.active .dataset-control {
   color: #fff;
+}
+
+.dataset.active .dataset-control-remove,
+.main.embed .dataset.active .dataset-control-comments {
   border-right: 1px solid #3f3f3f;
 }
 
-.dataset.leader .dataset-remove {
+.dataset.leader .dataset-control-remove,
+.main.embed .dataset.leader .dataset-control-comments {
   border-right: 1px solid rgba(39, 205, 214, 0.8);
 }
 
-.dataset-remove:hover {
+.dataset .dataset-control-comments.off {
+  color: rgba(128,128,128,0.2);
+}
+
+.dataset-control:hover {
   background: rgba(0,0,0,0.04);
 }
 
-.dataset-remove:active {
+.dataset-control:active {
   background: rgba(0,0,0,0.07);
 }
 
@@ -1984,7 +2007,7 @@ a.dataset-button {
   display: block;
   position: relative;
   height: 35px;
-  width: 200px;
+  width: 230px;
   margin-left: 33px;
   margin-right: 40px;
   background: none;
@@ -2005,7 +2028,7 @@ a.dataset-button .dataset-button-bg {
   left: 0;
   background: #f9f9f9;
   width: 240px;
-  height: 34px;
+  height: 33px;
   border-left: 1px solid #d0d0d0;
   border-top: 1px solid #d0d0d0;
 
@@ -2035,7 +2058,7 @@ a.dataset-button .dataset-button-bg {
   border-left: none;
   margin-top: -7px;
   background: rgba(39, 205, 214, 0.4);
-  border-radius: 1px 1px 0 0;
+  border-radius: 7px 7px 0 0;
   height: 35px;
 }
 
@@ -2107,7 +2130,7 @@ a.dataset-add-button:active {
   left: 33px;
   right: 0;
   top: 35px;
-  width: 241px;
+  width: 271px;
   overflow-x: hidden;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
@@ -2115,7 +2138,7 @@ a.dataset-add-button:active {
 
 .channels {
   display: none;
-  width: 239px;
+  width: 269px;
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
   border-color: transparent;
@@ -2129,7 +2152,7 @@ a.dataset-add-button:active {
   display: none;
   position: relative;
   left: -1px;
-  width: 239px;
+  width: 269px;
   border-color: #d0d0d0;
   border-style: solid;
   border-left-width: 1px;
@@ -2305,6 +2328,7 @@ a.button.comment-input-button.primary:active {
 .comment-input-wrap .comment {
   display: block;
   cursor: inherit;
+  border-bottom: none;
 }
 
 .discussion .comment {
