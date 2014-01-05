@@ -2089,6 +2089,13 @@ a.channel-button {
   color: #fff;
 }
 
+.channel-value {
+  font-size: 11px;
+  float: right;
+  display: none;
+  color: white;
+}
+
 /*.........................................................................*/
 
 .discussion {

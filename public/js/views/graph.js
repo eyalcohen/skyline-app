@@ -29,7 +29,7 @@ define([
 
       // Some graph constants
       this.POINTS_TO_SHOW = 250; // maximum number of points to display
-      this.PIXELS_FROM_HIGHLIGHT = 20; // maximum number of pixels for line highlight
+      this.PIXELS_FROM_HIGHLIGHT = 40; // maximum number of pixels for line highlight
 
       // Shell events:
       this.on('rendered', this.setup, this);
@@ -476,7 +476,9 @@ define([
           // don't run this very frequently, perhaps once every 20ms
           if (Date.now() - this.lastMouseMove > 20) {
             this.lastMouseMove = Date.now();
-            this.mouseLineStyle(e);
+            var stats = this.getStatsNearMouse(e);
+            this.mouseLineStyle(e, stats);
+            mps.publish('channel/mousemove', [stats]);
           }
         }, this))
 
@@ -774,12 +776,12 @@ define([
     },
 
     // if mouse is near cursor, bold it
-    mouseLineStyle: function(e) {
+    mouseLineStyle: function(e, stats) {
       var plotData = this.plot.getData();
       var opts = this.plot.getOptions();
       // lookup closest channel to mouse cursor
       var closestChannel =
-        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+        _.sortBy(stats, 'pixelsFromInterpPt')[0];
       if (!closestChannel) return;
 
       var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
