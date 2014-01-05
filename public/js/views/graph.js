@@ -149,7 +149,9 @@ define([
 
     // returns an array of objects containing {
     //   channelName: name of series to cursor
+    //   channelIndex:
     //   nearestPointData: x,y of the nearest point
+    //   nearestPointIndex: series index for nearest point
     //   pixelsFromNearestPt: distance of mouse from the nearest point
     //   pixelsFromInterpPt: distance of mouse from an interpolated line
     getStatsNearMouse: function (e) {
@@ -167,12 +169,14 @@ define([
       var timeIdxHigh;
 
       // Return an array of interesting data about the series, removing nulls
-      return _.compact(_.map(this.plot.getData(), _.bind(function (series) {
+      return _.compact(_.map(this.plot.getData(), _.bind(function (series, idx) {
 
         // object to return
         var obj = {
           channelName: series.channelName,
+          channelIndex: idx,
           nearestPointData: null,
+          nearestPointIndex: null,
           pixelsFromNearestPt: null,
           pixelsFromInterpPt: null,
           //interpPt: null,
@@ -232,11 +236,13 @@ define([
         var cNearestPt = []
         if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
           obj.nearestPointData = series.data[timeIdxLow];
+          obj.nearestPointIndex = timeIdxLow;
           cNearestPt.push(cTimeLow);
           cNearestPt.push(cValueLow);
         }
         else {
           obj.nearestPointData = series.data[timeIdxHigh];
+          obj.nearestPointIndex = timeIdxHigh;
           cNearestPt.push(cTimeHigh);
           cNearestPt.push(cValueHigh);
         }
@@ -483,6 +489,7 @@ define([
         }, this))
 
         .mousedown(_.bind(function (e) {
+          this.plot.unhighlight();
           var closestChannel =
             _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
           if (!closestChannel) return;
@@ -504,6 +511,7 @@ define([
         }, this));
 
         function graphZoomClick(e, factor, out) {
+          this.plot.unhighlight();
           var c = this.plot.offset();
           c.left = e.originalEvent.pageX - c.left;
           c.top = e.originalEvent.pageY - c.top;
@@ -790,6 +798,9 @@ define([
         return obj.channelName == closestChannel.channelName;
       });
 
+      //console.log(closestChannel.channelIndex, closestChannel.nearestPointIndex);
+      this.plot.unhighlight();
+
       var needsUpdate = false;
       _.each(plotData, function (obj) {
         var lso = this.model.lineStyleOptions[obj.channelName];
@@ -804,6 +815,7 @@ define([
       if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
         newWidth = newWidth + 2;
         newRadius = newRadius + 1;
+        this.plot.highlight(closestChannel.channelIndex, closestChannel.nearestPointIndex);
       }
 
       if (newWidth != curWidth) {
