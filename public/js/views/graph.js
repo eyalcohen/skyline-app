@@ -502,8 +502,11 @@ define([
         }, this))
 
         .mouseup(_.bind(function (e) {
-          var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
-          this.lightened[did] = false;
+          if (this.channelForOffset) {
+            var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
+            this.lightened[did] = false;
+            delete this.channelForOffset;
+          }
           if (this.changingOffset)
             this.draw();
           this.mousedown = false;
