@@ -9,5 +9,6 @@ define([
   'lib/jquery/jquery.colorhelpers',
   'lib/jquery/jquery.mousewheel',
   'lib/jquery/jquery.easing.min',
+  'lib/jquery/jquery.minicolors.min',
   'lib/jquery/jquery.flot'
 ], function () { return true; });

@@ -129,6 +129,8 @@ define([
     added: function (did, channel) {
       if (this.model.id !== channel.channelName) return;
 
+      console.log(this.options);
+
       // Set colors.
       var color = this.app.getColors(channel.colorNum);
       this.$el.css({

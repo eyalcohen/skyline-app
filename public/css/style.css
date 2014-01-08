@@ -2442,6 +2442,10 @@ a.comments-signin {
   vertical-align: top;
 }
 
+.linestyle-color {
+  width: 128px;
+}
+
 .linestyle-modal p {
   font-size: 10px;
   line-height: 14px;

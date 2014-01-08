@@ -725,7 +725,14 @@ define([
       series.forEach(_.bind(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = this.highlightedChannel === channel.channelName;
-        var color = this.app.getColors(channel.colorNum);
+        var color;
+        if (this.model.lineStyleOptions[channel.channelName].color)
+          var color = this.model.lineStyleOptions[channel.channelName].color;
+        else {
+          var color = this.app.getColors(channel.colorNum);
+          this.model.lineStyleOptions = this.color;
+        }
+
         s.originalColor = color;
 
         var did = this.model.findDatasetFromChannel(channel.channelName).get('id');

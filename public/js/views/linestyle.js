@@ -41,7 +41,6 @@ define([
       this.$el.css('top', offset.top+20);
       this.$el.css('left', offset.left+10);
       this.$el.show('fast');
-
       this.trigger('rendered');
       return this;
     },
@@ -71,6 +70,7 @@ define([
           }
         }
       );
+
 
       return this;
     },
@@ -216,6 +216,13 @@ define([
           break;
       }
       if (selector) this.select(selector);
+
+      $('.linestyle-color').minicolors( {
+        position: 'bottom left',
+        change: _.bind(function(hex, opacity) { this.colorChange(hex); }, this),
+        changeDelay: 10,
+        defaultValue: style.color,
+      });
     },
 
     select: function (selector) {
@@ -226,9 +233,13 @@ define([
     unselect: function(selector) {
       var modalBg = this.$el.css('background-color');
       $(selector).css('background-color', modalBg);
+    },
+
+    colorChange: function(hex) {
+      this.currentLineStyle.color = hex;
+      mps.publish('channel/lineStyleUpdate', [this.channel.id, this.currentLineStyle]);
+      this.options.parentView.$el.css('background-color', hex);
     }
-
-
 
   });
 });

@@ -26,6 +26,7 @@ define([
         interpolation: 'linear', // also 'none'
         lineWidth: 2,
         pointRadius: 3,
+        color: null,
       }
 
       // channelName -> showPoints:{true, false}
