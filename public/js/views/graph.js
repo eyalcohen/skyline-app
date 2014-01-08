@@ -37,9 +37,8 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
-        mps.subscribe('channel/lineStyleUpdate', _.bind(this.setUserLineStyle, this)),
-        mps.subscribe('channel/requestLineStyle', _.bind(function(c) {
-          mps.publish('channel/responseLineStyle', [this.model.lineStyleOptions[c]]);
+        mps.subscribe('channel/lineStyleUpdate', _.bind(function(channel, opts) {
+          this.model.setUserLineStyle(channel,opts);
         }, this)),
       ];
     },
@@ -51,7 +50,7 @@ define([
       var time;
       if (store.get('state').time)
         time = store.get('state').time;
-      else if (this.app.profile.content.datasets 
+      else if (this.app.profile.content.datasets
           && this.app.profile.content.datasets.items.length > 0)
         time = this.app.profile.content.datasets.items[0].meta;
       else
@@ -730,13 +729,13 @@ define([
           var color = this.model.lineStyleOptions[channel.channelName].color;
         else {
           var color = this.app.getColors(channel.colorNum);
-          this.model.lineStyleOptions = this.color;
+          this.model.lineStyleOptions[channel.channelName].color = this.color;
         }
 
         s.originalColor = color;
 
         var did = this.model.findDatasetFromChannel(channel.channelName).get('id');
-        if (this.lightened[did] === true) 
+        if (this.lightened[did] === true)
           color = util.lightenColor(color, .3);
         if (this.highlightedChannel && !highlighted) {
 
@@ -774,7 +773,7 @@ define([
         _.extend(oldLines, obj.lines);
 
         // don't display line series points if we have a lot of data
-        obj.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW) 
+        obj.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW)
                           || !lineStyleOpts.showLines)
                           && lineStyleOpts.showPoints;
 
@@ -787,7 +786,7 @@ define([
             || JSON.stringify(obj.points) !== JSON.stringify(oldPoints))
             needsUpdate = true;
       }, this);
-      
+
       if (needsUpdate) {
         this.plot.setData(plotData);
       }
@@ -801,14 +800,12 @@ define([
       var closestChannel =
         _.sortBy(stats, 'pixelsFromInterpPt')[0];
       if (!closestChannel) return;
-
       var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
 
       var series =  _.find(plotData, function (obj) {
         return obj.channelName == closestChannel.channelName;
       });
 
-      //console.log(closestChannel.channelIndex, closestChannel.nearestPointIndex);
       this.plot.unhighlight();
 
       var needsUpdate = false;
@@ -858,6 +855,8 @@ define([
     },
 
     setUserLineStyle: function(channel, opts) {
+      this.model.setUserLineStyle(channel, opts);
+    /*
       for (var attrname in opts) {
         this.model.lineStyleOptions[channel][attrname] = opts[attrname];
       }
@@ -867,6 +866,7 @@ define([
       store.set('state', state);
       var state = store.get('state');
       this.draw();
+      */
     }
 
   });

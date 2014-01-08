@@ -220,7 +220,8 @@ define([
         }
         client.channels.push(channel);
         if (!this.options.silent) {
-          mps.publish('channel/added', [datasetId, channel]);
+          mps.publish('channel/added', [datasetId, channel,
+                                       this.lineStyleOptions[channel.channelName]]);
           console.log('addChannel(', channel, ')...');
         }
       }, this));
@@ -239,7 +240,6 @@ define([
       if (index === -1) return;
       client.channels.splice(index, 1);
       channel.did = datasetId;
-      delete this.lineStyleOptions[channel.channelName];
       if (!this.options.silent) {
         mps.publish('channel/removed', [datasetId, channel]);
         console.log('removeChannel(', channel, ')...');
@@ -272,6 +272,18 @@ define([
       var dataset = this.findDatasetFromChannel(channelName);
       return dataset.get('offset') || 0;
     },
+
+    setUserLineStyle: function(channel, opts) {
+      for (var attrname in opts) {
+        this.lineStyleOptions[channel][attrname] = opts[attrname];
+      }
+      var state = store.get('state');
+      state.lineStyleOptions = {};
+      _.extend(state.lineStyleOptions, this.lineStyleOptions);
+      store.set('state', state);
+      var state = store.get('state');
+      this.view.draw();
+    }
 
   });
 });

@@ -29,12 +29,21 @@ define([
         mps.subscribe('channel/added', _.bind(this.added, this)),
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
         mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
+        /*
+        mps.subscribe('channel/responseLineStyle', _.bind(function (style) {
+          this.model.lineStyle = style;
+        }, this))
+        */
       ];
 
       Row.prototype.initialize.call(this, options);
     },
 
     setup: function () {
+
+/*
+      mps.publish('channel/requestLineStyle', [this.model.id]);
+*/
 
       // Save refs.
       this.button = this.$('a.channel-button');
@@ -61,7 +70,6 @@ define([
 
       // Initial fit.
       this.fit(this.$el.width());
-
       return Row.prototype.setup.call(this);
     },
 
@@ -126,13 +134,15 @@ define([
       }
     },
 
-    added: function (did, channel) {
+    added: function (did, channel, style) {
       if (this.model.id !== channel.channelName) return;
+      this.model.lineStyle = style;
+      if (style.color)
+        var color = style.color;
+      else {
+        var color = this.app.getColors(channel.colorNum);
+      }
 
-      console.log(this.options);
-
-      // Set colors.
-      var color = this.app.getColors(channel.colorNum);
       this.$el.css({
         backgroundColor: color,
         borderColor: color

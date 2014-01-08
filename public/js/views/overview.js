@@ -30,7 +30,11 @@ define([
       this.on('rendered', this.setup, this);
 
       // Client-wide subscriptions
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('channel/lineStyleUpdate', _.bind(function(channel, opts) {
+          this.model.setUserLineStyle(channel,opts);
+        }, this)),
+      ];
     },
 
     // Draw template.
@@ -95,6 +99,13 @@ define([
           var s = this.getSeriesData(channel);
           if (s.data.length === 0) return;
           s.color = this.app.getColors(channel.colorNum);
+
+          if (this.model.lineStyleOptions[channel.channelName].color)
+            s.color = this.model.lineStyleOptions[channel.channelName].color;
+          else {
+            s.color = this.app.getColors(channel.colorNum);
+            this.model.lineStyleOptions[channel.channelName].color = this.color;
+          }
 
           // Ensure each series spans the visible time.
           if (time.beg < _.first(s.data).t * 1e3) {
@@ -214,6 +225,10 @@ define([
         static: true
       };
     },
+
+    updateColor: function(channel, opts) {
+
+    }
 
   });
 });
