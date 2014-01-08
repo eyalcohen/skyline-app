@@ -138,11 +138,15 @@ define([
 
     // Collect new comments from socket events.
     collect: function (data) {
+
+      // Determine how to display this comment.
       var state = store.get('state');
       var target = this.parentView.target();
       if (!state.datasets) return;
+      var did;
       var dataset = _.find(state.datasets, function (d, id) {
-        return Number(id) === data.parent_id
+        did = Number(id);
+        return did === data.parent_id
             && (d.comments === true || d.comments === undefined);
       });
       if (dataset && dataset.index === 0)
@@ -150,6 +154,20 @@ define([
       if (target.type === 'dataset' && !dataset) return;
       if (!dataset && target.type === 'view' && data.parent_id !== target.id) return;
       if (this.collection.get(-1)) return;
+      
+      // Add comment to profile.
+      // TODO: Rethink profile / state relationship! Getting ugly...
+      var owner;
+      if (dataset && data.parent_type === 'dataset')
+        owner = _.find(this.app.profile.content.datasets.items, function (d) {
+          return did === Number(d.id);
+        });
+      else if (data.parent_type === 'view')
+        owner = target.doc;
+      if (owner) owner.comments.push(data);
+        owner.comments_cnt += 1;
+
+      // Finally, add comment.
       data._new = true;
       this.collection.push(data);
       this.parentView.updateIcons();
@@ -260,10 +278,6 @@ define([
         time: this.time
       };
 
-      // Commenting on a dataset will always be to the leader.
-      if (parent.type === 'dataset')
-        data.leader = true;
-
       // Optimistically add comment to page.
       this.collect(data);
       this.input.val('').keyup();
@@ -271,8 +285,7 @@ define([
       // Now save the comment to server.
       rest.post('/api/comments/' + parent.type, payload,
           _.bind(function (err, data) {
-        if (err)
-          return console.log(err);
+        if (err) return console.log(err);
 
         // Update the comment id.
         var comment = this.collection.get(-1);

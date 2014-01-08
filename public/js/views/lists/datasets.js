@@ -51,6 +51,9 @@ define([
 
     setup: function () {
 
+      // Ensure index order.
+      this.sort();
+
       // Save refs.
       this.button = this.$('.dataset-add-button');
 
@@ -80,6 +83,7 @@ define([
         state.datasets[d.id] = {index: _.size(state.datasets)};
         this.app.state(state);
       }
+      this.sort();
 
       // Fit tabs
       this.parentView.fit();
@@ -100,12 +104,27 @@ define([
       var state = store.get('state');
       delete state.datasets[d.id];
       this.app.state(state);
+      this.sort();
 
       // Fit tabs
       this.parentView.fit();
 
       // Notify.
       mps.publish('dataset/added');
+    },
+
+    // Ensure dataset indexes are correct.
+    sort: function () {
+      var state = store.get('state');
+      _.each(state.datasets, _.bind(function (sd, id) {
+        var i = -1;
+        _.find(this.app.profile.content.datasets.items, function (d) {
+          ++i;
+          return Number(id) === Number(d.id);
+        });
+        sd.index = i;
+      }, this));
+      store.set('state', state);
     },
 
     collect: function (did) {

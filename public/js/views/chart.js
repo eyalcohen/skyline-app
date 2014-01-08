@@ -394,7 +394,7 @@ define([
       this.app.title(this.app.profile.content.page.name);
     },
 
-    updateIcons: function (force) {
+    updateIcons: function () {
       if (!this.graph || !this.graph.plot || !this.comments) return;
       var xaxis = this.graph.plot.getXAxes()[0];
 
