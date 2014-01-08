@@ -1918,14 +1918,16 @@ a.control-button-save.saving {
   top: 0;
   white-space: nowrap;
   font-size: 0;
+  pointer-events: none;
 }
 
 .dataset {
   position: relative;
-  display: inline-block;
+  display: inline-table;
   margin-top: -1px;
   height: 35px;
   border-right: 1px solid #d0d0d0;
+  pointer-events: all;
 }
 
 .dataset .dataset-avatar {
@@ -2114,6 +2116,7 @@ a.dataset-add-button {
   text-align: center;
   width: 44px;
   cursor: pointer;
+  pointer-events: all;
 }
 
 a.dataset-add-button:hover {
@@ -2125,11 +2128,12 @@ a.dataset-add-button:active {
 }
 
 .channels-wrap {
-  position: absolute;
+  /*position: absolute;*/
+  position: relative;
   z-index: 12;
   left: 33px;
   right: 0;
-  top: 35px;
+  /*top: 35px;*/
   width: 271px;
   overflow-x: hidden;
   overflow-y: auto;
