@@ -24,13 +24,12 @@ define([
       this.app = app;
       this.options = options;
       this.channel = this.options.channel;
+      this.currentLineStyle = this.channel.lineStyle;
 
       // Shell events.
       this.on('rendered', this.setup, this);
 
-      this.subscriptions = [
-        mps.subscribe('channel/responseLineStyle', _.bind(this.responseLineStyle, this)),
-      ];
+      this.subscriptions = [];
     },
 
     // Draw the template
@@ -39,9 +38,8 @@ define([
       this.$el.html(this.template).appendTo(this.options.parentView.$el);
       var offset = this.options.parentView.$el.offset();
       this.$el.css('top', offset.top+20);
-      this.$el.css('left', offset.left+20);
+      this.$el.css('left', offset.left+10);
       this.$el.show('fast');
-
       this.trigger('rendered');
       return this;
     },
@@ -55,24 +53,35 @@ define([
 
     // Misc. setup.
     setup: function () {
-      mps.publish('channel/requestLineStyle', [this.channel.id]);
 
       // messing around, make the hover color a light version of the parent
-      var parentBg = this.options.parentView.$el.css('background-color');
-      var lightenedColor = parentBg.replace(/\)/,',0.3)');
-      lightenedColor = lightenedColor.replace('rgb','rgba');
+      // var parentBg = this.options.parentView.$el.css('background-color');
+      var parentSel = this.options.parentView.$el;
       var modalBg = this.$el.css('background-color');
       $('.linestyle-box').hover(
         function() {
           if ($(this).css('background-color') === modalBg) {
-            $(this).css('background-color', lightenedColor);
+            var parentBg = parentSel.css('background-color');
+            $(this).css('background-color', util.lightenColor(parentBg, .5));
           }
-        }, function() {
+        },
+        function() {
+          var parentBg = parentSel.css('background-color');
           if ($(this).css('background-color') !== parentBg) {
             $(this).css('background-color', modalBg);
           }
         }
       );
+
+      this.setViewLineStyle();
+
+      $('.linestyle-color').minicolors( {
+        position: 'bottom left',
+        change: _.bind(function(hex, opacity) { this.colorChange(hex); }, this),
+        changeDelay: 10,
+        defaultValue: util.rgbToHex(parentSel.css('background-color')),
+      });
+
 
       return this;
     },
@@ -183,9 +192,9 @@ define([
 
     },
 
-    responseLineStyle: function(style) {
+    setViewLineStyle: function() {
+      var style = this.currentLineStyle;
       var selector;
-      this.currentLineStyle = style;
       if (style.showPoints && style.showLines)
         selector = $('.linestyle-line-with-points');
       else if (style.showPoints)
@@ -228,9 +237,17 @@ define([
     unselect: function(selector) {
       var modalBg = this.$el.css('background-color');
       $(selector).css('background-color', modalBg);
+    },
+
+    colorChange: function(hex) {
+      this.currentLineStyle.color = hex;
+      this.options.parentView.$el.css({
+        backgroundColor: hex,
+        borderColor: hex
+      });
+      this.setViewLineStyle();
+      mps.publish('channel/lineStyleUpdate', [this.channel.id, this.currentLineStyle]);
     }
-
-
 
   });
 });

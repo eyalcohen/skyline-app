@@ -2089,6 +2089,13 @@ a.channel-button {
   color: #fff;
 }
 
+.channel-value {
+  font-size: 11px;
+  float: right;
+  display: none;
+  color: white;
+}
+
 /*.........................................................................*/
 
 .discussion {
@@ -2433,6 +2440,10 @@ a.comments-signin {
   background-size: 100% 100%;
   background-color: #f9f9f9;
   vertical-align: top;
+}
+
+.linestyle-color {
+  width: 128px;
 }
 
 .linestyle-modal p {

@@ -52,7 +52,7 @@ define([
       if (mask.slice(0, 4) == "UTC:") {
         mask = mask.slice(4);
       }
-      
+
       var  _ = utc ? "getUTC" : "get",
         d = date[_ + "Date"](),
         D = date[_ + "Day"](),
@@ -233,7 +233,7 @@ define([
         return (delta * 1e3).toFixed(1) + ' milliseconds';
       else if (delta < 60)
         return delta.toFixed(1) + ' seconds';
-      else if (delta < (45 * 60)) 
+      else if (delta < (45 * 60))
         return (delta / 60).toFixed(1) + ' minutes';
       else if (delta < (24 * 60 * 60))
         return (delta / 3600).toFixed(1) + ' hours';
@@ -322,7 +322,7 @@ define([
       str = str.replace(/\n/g, '<br/>');
       str = str.replace(link, function (txt) {
         return ('<a href="' + txt + '" target="_blank">' + txt + '</a>');
-      }); 
+      });
       return str;
     },
 
@@ -378,12 +378,12 @@ define([
       }
 
       function activateLabel(e) {
-        $('label[for*="'+ $(e.target).attr('name') + '"]').addClass('active');  
+        $('label[for*="'+ $(e.target).attr('name') + '"]').addClass('active');
         return false;
       }
 
       function deactivateLabel(e) {
-        $('label[for*="'+ $(e.target).attr('name') + '"]').removeClass('active');  
+        $('label[for*="'+ $(e.target).attr('name') + '"]').removeClass('active');
         return false;
       }
 
@@ -436,6 +436,37 @@ define([
       var str = str.toLowerCase();
       return (/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/).test(str);
     },
+
+    // lightens a hex or RGB color, returns in same format.
+    // @param color is a string in the format rgb(r,g,b) or #rrggbb
+    // @param frac is amount from 0 - 1
+    lightenColor: function shadeColor(color, frac) {
+        var isHex = color[0] === '#';
+        if (isHex) {
+          var num = parseInt(color.substring(1),16);
+          r = (num >> 16);
+          g = (num >> 8 & 0x00FF);
+          b = (num & 0x0000FF);
+        } else {
+          var rgb = color.match(/\d+/g);
+          r = +rgb[0]; g = +rgb[1]; b = +rgb[2];
+        }
+        function applyAlpha(x, a) { return Math.round(x*a + 255*(1-a)); }
+        r = applyAlpha(r, frac);
+        g = applyAlpha(g, frac);
+        b = applyAlpha(b, frac);
+        if (isHex) {
+          return '#' + (0x1000000 + (r<255?r<1?0:r:255)*0x10000 + (g<255?g<1?0:g:255)*0x100 + (b<255?b<1?0:b:255)).toString(16).slice(1);
+        } else {
+          return 'rgb(' + r + ',' + g + ',' + b + ')';
+        }
+    },
+
+    rgbToHex: function(str) {
+      var rgb = str.match(/\d+/g);
+      r = +rgb[0]; g = +rgb[1]; b = +rgb[2];
+      return '#' + (0x1000000 + (r<255?r<1?0:r:255)*0x10000 + (g<255?g<1?0:g:255)*0x100 + (b<255?b<1?0:b:255)).toString(16).slice(1);
+    }
 
   }
 });

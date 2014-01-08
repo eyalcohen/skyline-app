@@ -28,12 +28,22 @@ define([
       this.subscriptions = [
         mps.subscribe('channel/added', _.bind(this.added, this)),
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
+        mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
+        /*
+        mps.subscribe('channel/responseLineStyle', _.bind(function (style) {
+          this.model.lineStyle = style;
+        }, this))
+        */
       ];
 
       Row.prototype.initialize.call(this, options);
     },
 
     setup: function () {
+
+/*
+      mps.publish('channel/requestLineStyle', [this.model.id]);
+*/
 
       // Save refs.
       this.button = this.$('a.channel-button');
@@ -60,14 +70,15 @@ define([
 
       // Initial fit.
       this.fit(this.$el.width());
-
       return Row.prototype.setup.call(this);
     },
 
     events: {
       'mouseenter .icon-chart-line' : function(e) {
         if (!this.linestyle && this.$el.hasClass('active'))
-          this.linestyle = new LineStyle(this.app, {parentView: this, channel:this.model}).render();
+          this.linestyle =
+            new LineStyle(this.app, {parentView: this, channel:this.model})
+            .render();
       },
       'mouseleave' : 'removeLineStyle',
     },
@@ -123,11 +134,15 @@ define([
       }
     },
 
-    added: function (did, channel) {
+    added: function (did, channel, style) {
       if (this.model.id !== channel.channelName) return;
+      this.model.lineStyle = style;
+      if (style.color)
+        var color = style.color;
+      else {
+        var color = this.app.getColors(channel.colorNum);
+      }
 
-      // Set colors.
-      var color = this.app.colors[channel.colorNum];
       this.$el.css({
         backgroundColor: color,
         borderColor: color
@@ -148,7 +163,7 @@ define([
 
     destroy: function () {
       Row.prototype.destroy.call(this);
-      
+
       // Remove channel from graph.
       mps.publish('channel/remove', [this.model.get('did'),
           this.model.get('val')]);
@@ -166,6 +181,18 @@ define([
         this.linestyle.destroy(_.bind(function() { delete this.linestyle }, this));
       }
     },
+
+    updateLegend: function(stats) {
+      if (!this.active) return;
+      var item = _.find(stats, function(e) {
+        return e.channelName === this.model.id;
+      }, this);
+      if (item) {
+        var sel = this.$el.find('.channel-value');
+        sel.show();
+        sel.text(item.nearestPointData[1]);
+      }
+    }
 
   });
 });

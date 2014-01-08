@@ -28,7 +28,8 @@ define([
       this.parentView = options.parentView;
 
       // Some graph constants
-      this.POINTS_TO_SHOW = 250;
+      this.POINTS_TO_SHOW = 250; // maximum number of points to display
+      this.PIXELS_FROM_HIGHLIGHT = 40; // maximum number of pixels for line highlight
 
       // Shell events:
       this.on('rendered', this.setup, this);
@@ -36,9 +37,8 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
-        mps.subscribe('channel/lineStyleUpdate', _.bind(this.setUserLineStyle, this)),
-        mps.subscribe('channel/requestLineStyle', _.bind(function(c) {
-          mps.publish('channel/responseLineStyle', [this.model.lineStyleOptions[c]]);
+        mps.subscribe('channel/lineStyleUpdate', _.bind(function(channel, opts) {
+          this.model.setUserLineStyle(channel,opts);
         }, this)),
       ];
     },
@@ -50,7 +50,7 @@ define([
       var time;
       if (store.get('state').time)
         time = store.get('state').time;
-      else if (this.app.profile.content.datasets 
+      else if (this.app.profile.content.datasets
           && this.app.profile.content.datasets.items.length > 0)
         time = this.app.profile.content.datasets.items[0].meta;
       else
@@ -93,6 +93,8 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 150));
       $(window).resize(_.debounce(_.bind(this.resize, this), 300));
+
+      this.lightened = {};
 
       return this;
     },
@@ -146,7 +148,9 @@ define([
 
     // returns an array of objects containing {
     //   channelName: name of series to cursor
+    //   channelIndex:
     //   nearestPointData: x,y of the nearest point
+    //   nearestPointIndex: series index for nearest point
     //   pixelsFromNearestPt: distance of mouse from the nearest point
     //   pixelsFromInterpPt: distance of mouse from an interpolated line
     getStatsNearMouse: function (e) {
@@ -164,12 +168,14 @@ define([
       var timeIdxHigh;
 
       // Return an array of interesting data about the series, removing nulls
-      return _.compact(_.map(this.plot.getData(), _.bind(function (series) {
+      return _.compact(_.map(this.plot.getData(), _.bind(function (series, idx) {
 
         // object to return
         var obj = {
           channelName: series.channelName,
+          channelIndex: idx,
           nearestPointData: null,
+          nearestPointIndex: null,
           pixelsFromNearestPt: null,
           pixelsFromInterpPt: null,
           //interpPt: null,
@@ -229,11 +235,13 @@ define([
         var cNearestPt = []
         if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
           obj.nearestPointData = series.data[timeIdxLow];
+          obj.nearestPointIndex = timeIdxLow;
           cNearestPt.push(cTimeLow);
           cNearestPt.push(cValueLow);
         }
         else {
           obj.nearestPointData = series.data[timeIdxHigh];
+          obj.nearestPointIndex = timeIdxHigh;
           cNearestPt.push(cTimeHigh);
           cNearestPt.push(cValueHigh);
         }
@@ -437,12 +445,7 @@ define([
           interactive: false,
         },
         pan: {
-          interactive: true,
-          frameRate: 60,
-          useShiftKey: true,
-          onShiftDragStart: _.bind(this.beginOffset, this),
-          onShiftDrag: _.bind(this.endOffset, this),
-          onShiftDragEnd: _.bind(this.endOffset, this),
+          interactive: false,
         },
         hooks: {
           draw: [_.bind(this.onDraw, this)],
@@ -458,19 +461,59 @@ define([
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
           return false;
         }, this))
+
         .dblclick(_.bind(function (e) {
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         }, this))
+
         .mousemove(_.bind(function (e) {
+          // panning behavior, unless we're highlight on a line.
+          if (this.mousedown) {
+            if (this.changingOffset) {
+              this.endOffset(e);
+              return;
+            } else {
+              this.plot.pan({ left: this.prevPageX - e.pageX});
+              this.prevPageX = e.pageX;
+            }
+          }
           if (!this.lastMouseMove) this.lastMouseMove = 0;
           // don't run this very frequently, perhaps once every 20ms
           if (Date.now() - this.lastMouseMove > 20) {
             this.lastMouseMove = Date.now();
-            this.mouseLineStyle(e);
+            var stats = this.getStatsNearMouse(e);
+            this.mouseLineStyle(e, stats);
+            mps.publish('channel/mousemove', [stats]);
           }
+        }, this))
+
+        .mousedown(_.bind(function (e) {
+          this.plot.unhighlight();
+          var closestChannel =
+            _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+          if (!closestChannel) return;
+          if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
+            this.beginOffset(e);
+            this.changingOffset = true;
+          }
+          this.mousedown = true;
+          this.prevPageX = e.pageX;
+        }, this))
+
+        .mouseup(_.bind(function (e) {
+          if (this.channelForOffset) {
+            var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
+            this.lightened[did] = false;
+            delete this.channelForOffset;
+          }
+          if (this.changingOffset)
+            this.draw();
+          this.mousedown = false;
+          this.changingOffset = false;
         }, this));
 
         function graphZoomClick(e, factor, out) {
+          this.plot.unhighlight();
           var c = this.plot.offset();
           c.left = e.originalEvent.pageX - c.left;
           c.top = e.originalEvent.pageY - c.top;
@@ -510,6 +553,14 @@ define([
 
       this.channelForOffset =
         _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0].channelName
+
+      var plotData = this.plot.getData();
+      var c = _.find(plotData, function(f) {
+        return plotData.channelName === this.channelForOffset;
+      });
+      var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
+      this.lightened[did] = true;
+      this.plot.setData(plotData);
 
       this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
     },
@@ -673,8 +724,19 @@ define([
       series.forEach(_.bind(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = this.highlightedChannel === channel.channelName;
-        var color = this.app.colors[channel.colorNum];
+        var color;
+        if (this.model.lineStyleOptions[channel.channelName].color)
+          var color = this.model.lineStyleOptions[channel.channelName].color;
+        else {
+          var color = this.app.getColors(channel.colorNum);
+          this.model.lineStyleOptions[channel.channelName].color = this.color;
+        }
+
         s.originalColor = color;
+
+        var did = this.model.findDatasetFromChannel(channel.channelName).get('id');
+        if (this.lightened[did] === true)
+          color = util.lightenColor(color, .3);
         if (this.highlightedChannel && !highlighted) {
 
           // Lighten color.
@@ -711,7 +773,7 @@ define([
         _.extend(oldLines, obj.lines);
 
         // don't display line series points if we have a lot of data
-        obj.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW) 
+        obj.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW)
                           || !lineStyleOpts.showLines)
                           && lineStyleOpts.showPoints;
 
@@ -724,26 +786,27 @@ define([
             || JSON.stringify(obj.points) !== JSON.stringify(oldPoints))
             needsUpdate = true;
       }, this);
-      
+
       if (needsUpdate) {
         this.plot.setData(plotData);
       }
     },
 
     // if mouse is near cursor, bold it
-    mouseLineStyle: function(e) {
+    mouseLineStyle: function(e, stats) {
       var plotData = this.plot.getData();
       var opts = this.plot.getOptions();
       // lookup closest channel to mouse cursor
       var closestChannel =
-        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
+        _.sortBy(stats, 'pixelsFromInterpPt')[0];
       if (!closestChannel) return;
-
       var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
 
       var series =  _.find(plotData, function (obj) {
         return obj.channelName == closestChannel.channelName;
       });
+
+      this.plot.unhighlight();
 
       var needsUpdate = false;
       _.each(plotData, function (obj) {
@@ -756,9 +819,10 @@ define([
       var curWidth = series.lines.lineWidth;
       var newWidth = lineStyleOpts.lineWidth;
       var newRadius = lineStyleOpts.pointRadius;
-      if (closestChannel.pixelsFromInterpPt < 10) {
+      if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
         newWidth = newWidth + 2;
         newRadius = newRadius + 1;
+        this.plot.highlight(closestChannel.channelIndex, closestChannel.nearestPointIndex);
       }
 
       if (newWidth != curWidth) {
@@ -791,6 +855,8 @@ define([
     },
 
     setUserLineStyle: function(channel, opts) {
+      this.model.setUserLineStyle(channel, opts);
+    /*
       for (var attrname in opts) {
         this.model.lineStyleOptions[channel][attrname] = opts[attrname];
       }
@@ -800,6 +866,7 @@ define([
       store.set('state', state);
       var state = store.get('state');
       this.draw();
+      */
     }
 
   });
