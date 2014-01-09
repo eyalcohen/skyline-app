@@ -9,7 +9,7 @@ define([
   'Modernizr',
   'mps',
   'util',
-  'text!../../../templates/linestyle.html',
+  'text!../../templates/linestyle.html',
 ], function ($, _, Backbone, Modernizr, mps, util, template) {
 
   return Backbone.View.extend({
