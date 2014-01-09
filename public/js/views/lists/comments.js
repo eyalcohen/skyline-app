@@ -20,36 +20,56 @@ define([
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
-      this.type = options.type;
       this.Row = Row;
 
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
-      // Add parent_id.
-      this.parent_id = Number(this.app.profile.content.page.id);
-
-      // Client-wide subscriptions
+      // Client-wide subscriptions.
       this.subscriptions = [
         mps.subscribe('comment/start', _.bind(this.start, this)),
         mps.subscribe('comment/end', _.bind(this.end, this)),
       ];
 
-      // Socket subscriptions
+      // Socket subscriptions.
       this.app.rpc.socket.on('comment.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('comment.removed', _.bind(this._remove, this));
 
       // Misc.
       this.empty_label = 'No comments.';
 
-      // Reset the collection.
-      var page = this.app.profile.content.page;
-      if (!page.comments) {
-        page.comments_cnt = 0;
-        page.comments = [];
+      this.reset(true);
+    },
+
+    // Reset the collection.
+    reset: function (initial) {
+
+      // Kill each row view.
+      _.each(this.views, function (v) {
+        v.destroy();
+      });
+      this.views = [];
+
+      // Gather comments.
+      var comments = [];
+      var comments_cnt = 0;
+      var target = this.parentView.target();
+      var state = store.get('state');
+      if (target.type === 'view') {
+        _.each(target.doc.comments, function (c) { comments.push(c); });
+        comments_cnt = target.doc.comments_cnt;
       }
-      this.collection.older = page.comments_cnt - page.comments.length;
-      this.collection.reset(page.comments);
+      _.each(this.app.profile.content.datasets.items, function (d, i) {
+        if (state.datasets[d.id] && state.datasets[d.id].comments === false)
+          return;
+        _.each(d.comments, function (c) {
+          if (i === 0) c.leader = true;
+          comments.push(c);
+        });
+        comments_cnt += d.comments_cnt;
+      });
+      this.collection.older = comments_cnt - comments.length;
+      this.collection.reset(comments);
     },
 
     // Initial bulk render of list
@@ -118,8 +138,36 @@ define([
 
     // Collect new comments from socket events.
     collect: function (data) {
-      if (data.parent_id !== this.parent_id) return;
+
+      // Determine how to display this comment.
+      var state = store.get('state');
+      var target = this.parentView.target();
+      if (!state.datasets) return;
+      var did;
+      var dataset = _.find(state.datasets, function (d, id) {
+        did = Number(id);
+        return did === data.parent_id
+            && (d.comments === true || d.comments === undefined);
+      });
+      if (dataset && dataset.index === 0)
+        data.leader = true;
+      if (target.type === 'dataset' && !dataset) return;
+      if (!dataset && target.type === 'view' && data.parent_id !== target.id) return;
       if (this.collection.get(-1)) return;
+      
+      // Add comment to profile.
+      // TODO: Rethink profile / state relationship! Getting ugly...
+      var owner;
+      if (dataset && data.parent_type === 'dataset')
+        owner = _.find(this.app.profile.content.datasets.items, function (d) {
+          return did === Number(d.id);
+        });
+      else if (data.parent_type === 'view')
+        owner = target.doc;
+      if (owner) owner.comments.push(data);
+        owner.comments_cnt += 1;
+
+      // Finally, add comment.
       data._new = true;
       this.collection.push(data);
       this.parentView.updateIcons();
@@ -142,6 +190,13 @@ define([
                 + '</span>').appendTo(this.$el);
         }, this));
       }
+
+      _.each(this.app.profile.content.datasets.items, function (d) {
+        d.comments = _.reject(d.comments, function (c) {
+          return c.id === data.id;
+        });
+        d.comments_cnt = d.comments.length;
+      });
     },
 
     // Empty this view.
@@ -200,6 +255,8 @@ define([
     //
     write: function (e) {
       if (e) e.preventDefault();
+      var parent = this.parentView.target();
+      if (!parent.id) return;
 
       this.input.val(util.sanitize(this.input.val()));
       if (this.input.val().trim() === '') return;
@@ -207,13 +264,14 @@ define([
       // For server.
       var payload = this.form.serializeObject();
       payload.body = util.sanitize(payload.body);
-      payload.parent_id = this.parent_id;
+      payload.parent_id = parent.id;
       payload.time = this.time;
 
       // Mock comment.
       var data = {
         id: -1,
         parent_id: payload.parent_id,
+        parent_type: parent.type,
         author: this.app.profile.user,
         body: payload.body,
         created: new Date().toISOString(),
@@ -225,10 +283,9 @@ define([
       this.input.val('').keyup();
 
       // Now save the comment to server.
-      rest.post('/api/comments/' + this.type, payload,
+      rest.post('/api/comments/' + parent.type, payload,
           _.bind(function (err, data) {
-        if (err)
-          return console.log(err);
+        if (err) return console.log(err);
 
         // Update the comment id.
         var comment = this.collection.get(-1);

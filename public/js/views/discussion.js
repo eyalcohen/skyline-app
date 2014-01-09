@@ -74,10 +74,7 @@ define([
         this.model.set(data);
 
         // Render replies.
-        this.replies = new Replies(this.app, {
-          parentView: this,
-          type: 'comment'
-        });
+        this.replies = new Replies(this.app, {parentView: this});
 
         // Resize modal.
         $.fancybox.reposition(null, null, true);

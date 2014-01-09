@@ -78,8 +78,8 @@ define([
       }, this));
 
       // Show the save modal.
-      mps.subscribe('modal/save/open', _.bind(function (lib) {
-        this.save = new Save(this.app).render();
+      mps.subscribe('modal/save/open', _.bind(function (target) {
+        this.save = new Save(this.app, {target: target}).render();
       }, this));
 
       // Show the forgot modal.
@@ -216,7 +216,7 @@ define([
       this.start();
       var state = {};
       if (window.location.pathname.toLowerCase().indexOf('/views/') !== -1
-            || !slug) {
+          || !slug) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
       } else {
@@ -226,6 +226,8 @@ define([
       }
       if (this.app.profile && this.app.profile.user)
         state.user_id = this.app.profile.user.id;
+      // NOTE: this should be the only place where state is directly set.
+      // Elsewhere it should be done through App.prototype.state.
       store.set('state', state);
       var data = {state: state};
       if (this.app.embed) data.embed = true;

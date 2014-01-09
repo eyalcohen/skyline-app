@@ -50,10 +50,10 @@ define([
       var time;
       if (store.get('state').time)
         time = store.get('state').time;
-      else if (this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length > 0)
+      else if (this.app.profile.content.datasets 
+          && this.app.profile.content.datasets.items.length > 0) {
         time = this.app.profile.content.datasets.items[0].meta;
-      else
+      } else
         time = {
           beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
           end: Date.now() * 1e3,
@@ -138,8 +138,14 @@ define([
         xaxis.options.min = avg - range / 2;
         xaxis.options.max = avg + range / 2;
       } else if (_.isObject(range)) {
-        xaxis.options.min = range.min;
-        xaxis.options.max = range.max;
+        if (range.center) {
+          var delta = xaxis.options.max - xaxis.options.min;
+          xaxis.options.min = range.center - delta / 2;
+          xaxis.options.max = range.center + delta / 2;
+        } else {
+          xaxis.options.min = range.min;
+          xaxis.options.max = range.max;
+        }
       }
       this.plot.setupGrid();
       this.plot.draw();

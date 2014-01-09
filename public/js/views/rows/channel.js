@@ -55,18 +55,17 @@ define([
 
       // Check if active in state.
       var state = store.get('state');
-      _.each(state.datasets, _.bind(function (d) {
-        if (d.channels && d.channels[this.model.id]) {
-          var c = d.channels[this.model.id];
-          var v = this.model.get('val');
-          v.colorNum = c.colorNum;
-          v.yaxisNum = c.yaxisNum;
-          this.model.set('val', v);
-          mps.publish('channel/add', [this.model.get('did'), v]);
-          this.active = true;
-          this.$el.addClass('active').show();
-        }
-      }, this));
+      var d = state.datasets && state.datasets[this.model.get('did')];
+      if (d && d.channels && d.channels[this.model.id]) {
+        var c = d.channels[this.model.id];
+        var v = this.model.get('val');
+        v.colorNum = c.colorNum;
+        v.yaxisNum = c.yaxisNum;
+        this.model.set('val', v);
+        mps.publish('channel/add', [this.model.get('did'), v]);
+        this.active = true;
+        this.$el.addClass('active').show();
+      }
 
       // Initial fit.
       this.fit(this.$el.width());
@@ -108,13 +107,13 @@ define([
       if (this.$el.hasClass('active')) {
         this.$el.removeClass('active');
         mps.publish('channel/remove', [this.model.get('did'),
-          this.model.get('val')]);
+            this.model.get('val')]);
         this.active = false;
         this.removeLineStyle();
       } else {
         this.$el.addClass('active');
         mps.publish('channel/add', [this.model.get('did'),
-          this.model.get('val')]);
+            this.model.get('val')]);
         this.active = true;
       }
       return false;
@@ -135,30 +134,26 @@ define([
     },
 
     added: function (did, channel, style) {
-      if (this.model.id !== channel.channelName) return;
+      if (this.model.get('did') !== did
+          || this.model.id !== channel.channelName) return;
       this.model.lineStyle = style;
-      if (style.color)
-        var color = style.color;
-      else {
-        var color = this.app.getColors(channel.colorNum);
-      }
+      var color = style.color || this.app.getColors(channel.colorNum);
 
       this.$el.css({
         backgroundColor: color,
         borderColor: color
       });
-      // this.$el.addClass('active');
     },
 
     removed: function (did, channel) {
-      if (this.model.id !== channel.channelName) return;
+      if (this.model.get('did') !== did
+          || this.model.id !== channel.channelName) return;
 
       // Set colors.
       this.$el.css({
         backgroundColor: 'transparent',
         borderColor: '#d0d0d0'
       });
-      // this.$el.removeClass('active');
     },
 
     destroy: function () {

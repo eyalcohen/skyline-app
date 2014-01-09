@@ -45,13 +45,15 @@ define([
   }
 
   App.prototype.update = function (profile) {
+    var login = false;
 
     // Set the app profile.
     if (this.profile) {
       this.profile.content = profile.content;
+      this.profile.state = profile.state;
       if (profile.user && !this.profile.user) {
         this.profile.user = profile.user;
-        return true;
+        login = true;
       }
     } else
       this.profile = profile;
@@ -62,7 +64,7 @@ define([
       delete this.profile.state;
     }
 
-    return false;
+    return login;
   }
 
   App.prototype.title = function (t1, t2) {
@@ -82,6 +84,11 @@ define([
     // Update app profile.
     delete this.profile.user;
     delete this.profile.notes;
+  }
+
+  App.prototype.state = function (state) {
+    store.set('state', state);
+    mps.publish('state/change', [state]);
   }
 
   return {

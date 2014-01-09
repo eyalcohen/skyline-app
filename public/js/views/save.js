@@ -25,7 +25,7 @@ define([
       
       // Save app reference.
       this.app = app;
-      this.options = options;
+      this.options = options || {};
 
       // Client-wide subscriptions
       this.subscriptions = [];
@@ -131,7 +131,7 @@ define([
     save: function (e) {
       e.preventDefault();
 
-      // Prevent multiple uploads at the same time.
+      // Prevent multiple saves at the same time.
       if (this.working) return false;
       this.working = true;
 
@@ -159,20 +159,43 @@ define([
         return false;
       }
 
+      // If there is no target, we are creating a new view from the current state.
+      var resource, verb, type, name = payload.name;
+      if (!this.options.target) {
+        resource = 'views';
+        verb = 'saved';
+        type = 'mashup';
+
+        // Add state data.
+        var state = store.get('state');
+        _.extend(payload, {
+          datasets: state.datasets,
+          time: state.time,
+          lineStyleOptions: state.lineStyleOptions
+        });
+
+      // Otherwise, we are forking... add parent id.
+      } else {
+        payload.parent_id = this.options.target.id;
+        resource = this.options.target.type + 's';
+        verb = 'forked';
+
+        if (this.options.target.type === 'dataset') {
+          type = 'source';
+
+          // Dataset has title, not name.
+          payload.title = payload.name;
+          delete payload.name;
+        } else
+          type = 'mashup';
+      }
+
       // Start load indicator.
       this.saveButtonSpin.start();
       this.saveSubmit.addClass('loading');
 
-      // Add other data.
-      var state = store.get('state');
-      _.extend(payload, {
-        datasets: state.datasets,
-        lineStyleOptions: state.lineStyleOptions,
-        time: state.time
-      });
-
-      // Create the view.
-      rest.post('/api/views', payload, _.bind(function (err, res) {
+      // Create the resource.
+      rest.post('/api/' + resource, payload, _.bind(function (err, res) {
 
         // Start load indicator.
         this.saveButtonSpin.stop();
@@ -186,30 +209,27 @@ define([
           this.focus();
           return;
         }
-
-        // Publish new dataset.
-        this.app.profile.content.page = res;
-        mps.publish('view/new', [res]);
-
+        
         // Show alert
-        _.delay(function () {
+        _.delay(_.bind(function () {
           mps.publish('flash/new', [{
-            message: 'You created a data mashup: "' + res.name + '"',
+            message: 'You ' + verb + ' a data ' + type + ': "' + name + '"',
             level: 'alert',
             sticky: false
           }]);
-        }, 500);
+        }, this), 500);
+
+        // Update URL.
+        var route = resource === 'views' ?
+            [res.author.username, 'views', res.slug].join('/'):
+            [res.author.username, res.id].join('/');
+        this.app.router.navigate('/' + route, {trigger: true, replace: false});
 
         // Close the modal.
         $.fancybox.close();
 
         // Ready for more.
         this.working = false;
-
-        // Update URL.
-        var route = [this.app.profile.user.username,
-            'views', res.slug].join('/');
-        this.app.router.navigate('/' + route, {trigger: false, replace: true});
 
       }, this));
 

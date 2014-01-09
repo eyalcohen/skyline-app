@@ -26,7 +26,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('graph/offsetChanged', _.bind(this.updateOffset, this))
-      ]
+      ];
     },
 
     setup: function () {
@@ -35,6 +35,7 @@ define([
       this.button = this.$('a.dataset-button');
       this.title = this.$('.dataset-title', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
+      this.commentsButton = this.$('.dataset-control-comments');
 
       // Toggle.
       this.button.click(_.bind(this.toggle, this));
@@ -48,12 +49,15 @@ define([
         if (this.channels) this.channels.collapse();
       }, this));
 
+      // Handle leader.
+      this.leader();
+
       // Get channels for this dataset.
       this.fetchChannels();
 
-      // update offset from store
+      // Update offset from store.
       var state = store.get('state');
-      if (state.datasets[this.model.id]) {
+      if (state.datasets && state.datasets[this.model.id]) {
         if (state.datasets[this.model.id].offset) {
           this.model.set('offset', state.datasets[this.model.id].offset);
           this.updateOffset();
@@ -64,23 +68,32 @@ define([
     },
 
     events: {
-      'click .dataset-remove': 'delete',
+      'click .dataset-control-remove': 'delete',
+      'click .dataset-control-comments': 'comments'
+    },
+
+    leader: function () {
+      if (this.parentView.collection.indexOf(this.model) === 0) {
+        this.model.set('leader', true);
+        this.$el.addClass('leader');
+      }
     },
 
     fit: function (w) {
+      var max = this.app.embed ? 200: 235;
       w = w - 85;
-      w = w > 200 ? 200: w;
-      w = w < 60 ? 60: w;
+      w = w > max ? max: w;
+      w = w < 90 ? 90: w;
       this.button.outerWidth(w);
       this.background.width(w + 41);
-      this.fitTitle(w);
       if (this.channels) this.channels.fit();
       this.updateOffset();
+      this.fitTitle(w - (this.app.embed ? 0: 35));
+      this.leader();
     },
 
     fitTitle: function (w) {
-      var txt = this.model.get('title');
-      this.title.text(txt);
+      var txt = this.title.text();
       var tw = this.title.outerWidth();
       if (tw >= w) {
         var len = txt.length;
@@ -106,15 +119,15 @@ define([
         this.$el.addClass('active');
         state.datasets[this.model.id].open = true;
       }
-      store.set('state', state);
+      this.app.state(state);
       return false;
     },
 
     fetchChannels: function () {
 
       // Get the schema for this channel.
-      this.app.rpc.do('fetchSamples', this.model.id, '_schema',
-          {}, _.bind(function (err, data) {
+      this.app.rpc.do('fetchSamples', this.model.id, '_schema', {},
+          _.bind(function (err, data) {
         if (err) return console.error(err);
         var channels = data.samples;
         if (!channels) return console.error('No channels found');
@@ -138,13 +151,40 @@ define([
         });
 
         // Check if was open.
-        if (store.get('state').datasets[this.model.id].open ||
-            !store.get('state').author_id) {
+        var state = store.get('state');
+        var did = this.model.id;
+        if ((state.datasets && state.datasets[did]
+            && state.datasets[did].open)
+            || !state.author_id) {
           this.channels.active = true;
           this.channels.expand(true);
           this.$el.addClass('active');
+          state.datasets[did].open = true;
+          store.set('state', state);
+        }
+
+        // Check if comments off.
+        if (state.datasets && state.datasets[did]
+            && state.datasets[did].comments === false) {
+          this.commentsButton.addClass('off');
         }
       }, this));
+    },
+
+    comments: function (e) {
+      e.preventDefault();
+      var state = store.get('state');
+      var did = this.model.id;
+      if (state.datasets && state.datasets[did]) {
+        state.datasets[did].comments =
+            state.datasets[did].comments === undefined
+            || state.datasets[did].comments === true ? false: true;
+        this.app.state(state);
+      }
+      mps.publish('comments/refresh');
+      if (this.commentsButton.hasClass('off'))
+        this.commentsButton.removeClass('off');
+      else this.commentsButton.addClass('off');
     },
 
     delete: function (e) {
@@ -169,12 +209,16 @@ define([
 
     updateOffset: function() {
 
-      // save new offset
+      // Save new offset
       var state = store.get('state');
       var did = this.model.id;
-      if (state.datasets[did]) {
-        state.datasets[did].offset = this.model.get('offset')
-        store.set('state', state);
+      if (state.datasets && state.datasets[did]
+          && state.datasets[did].offset !== this.model.get('offset')) {
+        var initial = state.datasets[did].offset === undefined
+            && this.model.get('offset') === 0;
+        state.datasets[did].offset = this.model.get('offset');
+        if (!initial)
+          this.app.state(state);
       }
 
       var offset = this.model.get('offset')

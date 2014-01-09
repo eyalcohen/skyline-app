@@ -238,7 +238,7 @@ define([
       return;
 
     // Generate a prioritized list of requests to make.
-    var requestsByPriority = {};  // Map from priority to array of requests.
+    var requestsByPriority = {}; // Map from priority to array of requests.
     // A request is an object with: did, chan, dur, buck, entry.
     _.forEach(self.clients, function(client, clientId) {
       // Pre-fetch samples at next zoom level up.

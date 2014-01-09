@@ -63,6 +63,11 @@ define([
       // Do resize on window change.
       $(window).resize(_.debounce(_.bind(this.draw, this), 40));
 
+      // Show parent.
+      _.delay(_.bind(function () {
+        this.$el.css({opacity: 1});
+      }, this), 500);
+
       return this;
     },
 

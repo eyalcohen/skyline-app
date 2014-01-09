@@ -1,10 +1,38 @@
+<%
+
+  var verb = this.options.target ? 'Fork': 'Save';
+  var type = this.resource === 'view' ? 'mashup': 'source';
+  var title = this.options.fork ? 'fork': type;
+
+  var verb, type, title, name;
+  if (!this.options.target) {
+    verb = 'Save the current chart as a';
+    type = 'mashup';
+    title = type;
+  } else {
+    verb = 'Fork this';
+    title = 'fork';
+    if (this.options.target.type === 'dataset') {
+      type = 'source';
+      name = this.options.target.doc.title;
+    } else {
+      type = 'mashup';
+      name = this.options.target.doc.name;
+    }
+  }
+  var header = verb + ' ' + type;
+  if (name)
+    header += ', "' + name + '"';
+
+%>
+
 <span class="modal-title">
-  Save mashup
+  <%= header %>
 </span>
 <div class="save-inner modal-inner">
   <div>
     <span class="modal-heading">
-      Name your mashup
+      Name your <%= title %>
     </span>
     <form class="save-form" enctype="multipart/form-data" method="POST">
       <table>

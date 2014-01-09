@@ -13,29 +13,32 @@ define([
       var att = this.attributes;
 
       if (att.data.action.t === 'comment') {
-        var verb = att.data.target.t === 'comment' ?
-            'replied to a comment on': 'commented on';
-        var type, icon, link, owner;
-        var gravatar = 'https://www.gravatar.com/avatar/'
-            + att.data.action.g + '?s=16&d=mm';
-
-        if (att.data.target.t === 'dataset') {
+        var verb, target, type, icon;
+        if (att.data.target.t === 'comment') {
+          var cowner =  att.data.action.i === att.data.target.i ?
+              'their own':
+              '<a href="/' + att.data.target.u + '" class="navigate">'
+              + att.data.target.a + '\'s</a>';
+          verb = 'replied to ' + cowner + ' comment on';
+          target = att.data.target.p;
+        } else {
+          verb = 'commented on';
+          target = att.data.target;
+        }
+        if (target.t === 'dataset') {
           type = 'data source';
           icon = 'database';
-          link = '<a href="javascript:;" class="event-link">';
         } else {
           type = 'mashup';
           icon = 'folder-empty';
-          link = '<a href="/' + att.data.target.s + '" class="navigate">';
         }
-
-        if (att.data.action.i === att.data.target.i)
-          owner = 'their';
-        else if (att.subscriber_id === att.data.target.i)
-          owner = 'your';
-        else
-          owner = '<a href="/' + att.data.target.u + '" class="navigate">'
-              + att.data.target.a + '\'s</a>';
+        var owner = att.data.action.i === target.i ?
+            'their own':
+            '<a href="/' + target.u + '" class="navigate">'
+            + target.a + '\'s</a>';
+        var link = '<a href="/' + target.s + '" class="navigate">';
+        var gravatar = 'https://www.gravatar.com/avatar/'
+            + att.data.action.g + '?s=16&d=mm';
 
         return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
@@ -47,18 +50,17 @@ define([
             + att.data.action.b + '"</span>': '');
 
       } else if (att.data.action.t === 'create') {
-        var verb, type, icon, link;
+        var verb, type, icon;
         if (att.data.target.t === 'dataset') {
           verb = 'added';
           type = 'data source';
           icon = 'database';
-          link = '<a href="javascript:;" class="event-link">';
         } else {
           verb = 'created a new';
           type = 'mashup';
           icon = 'folder-empty';
-          link = '<a href="/' + att.data.target.s + '" class="navigate">';
         }
+        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
 
         return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
@@ -67,6 +69,31 @@ define([
             + link + '<i class="icon-' + icon + '"></i>'
             + att.data.target.n + '</a></span>';
 
+      } else if (att.data.action.t === 'fork') {
+        var type, icon;
+        if (att.data.target.t === 'dataset') {
+          type = 'data source';
+          icon = 'database';
+        } else {
+          type = 'mashup';
+          icon = 'folder-empty';
+        }
+        var verb = 'forked';
+        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
+        var plink = '<a href="/' + att.data.target.p.s + '" class="navigate">';
+        var owner = att.data.action.i === att.data.target.p.i ?
+            'their own':
+            '<a href="/' + att.data.target.p.u + '" class="navigate">'
+            + att.data.target.p.a + '\'s</a>';
+
+        return '<a href="/' + att.data.action.u + '" class="navigate">'
+            + att.data.action.a + '</a> '
+            + verb + ' ' + owner + ' ' + type + ', '
+            + plink + '<i class="icon-' + icon + '"></i>'
+            + att.data.target.p.n + '</a>.'
+            + '<span class="event-body event-body-big">'
+            + link + '<i class="icon-' + icon + '"></i>'
+            + att.data.target.n + '</a></span>';
       } else return '';
     }
 

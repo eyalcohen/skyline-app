@@ -14,7 +14,7 @@ define([
   'views/rows/dataset'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
-    
+
     el: '.datasets',
 
     initialize: function (app, options) {
@@ -31,7 +31,7 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('chart/datasets/new', _.bind(this.collect, this)),
+        mps.subscribe('dataset/select', _.bind(this.collect, this)),
         mps.subscribe('channel/added', _.bind(this.channelAdded, this)),
         mps.subscribe('channel/removed', _.bind(this.channelRemoved, this)),
       ];
@@ -50,6 +50,9 @@ define([
     },
 
     setup: function () {
+
+      // Ensure index order.
+      this.sort();
 
       // Save refs.
       this.button = this.$('.dataset-add-button');
@@ -71,24 +74,57 @@ define([
 
     added: function (d) {
 
+      // Update profile content.
+      this.app.profile.content.datasets.items.push(d.attributes);
+
       // Update state.
       var state = store.get('state');
-      state.datasets[d.id] = {index: _.size(state.datasets)};
-      store.set('state', state);
+      if (!state.datasets[d.id]) {
+        state.datasets[d.id] = {index: _.size(state.datasets)};
+        this.app.state(state);
+      }
+      this.sort();
 
       // Fit tabs
       this.parentView.fit();
+
+      // Notify.
+      mps.publish('dataset/added');
     },
 
     removed: function (d) {
-      
+
+      // Update profile content.
+      this.app.profile.content.datasets.items =
+          _.reject(this.app.profile.content.datasets.items, function (s) {
+        return Number(s.id) === Number(d.id);
+      });
+
       // Update state.
       var state = store.get('state');
       delete state.datasets[d.id];
-      store.set('state', state);
+      this.app.state(state);
+      this.sort();
 
       // Fit tabs
       this.parentView.fit();
+
+      // Notify.
+      mps.publish('dataset/added');
+    },
+
+    // Ensure dataset indexes are correct.
+    sort: function () {
+      var state = store.get('state');
+      _.each(state.datasets, _.bind(function (sd, id) {
+        var i = -1;
+        _.find(this.app.profile.content.datasets.items, function (d) {
+          ++i;
+          return Number(id) === Number(d.id);
+        });
+        sd.index = i;
+      }, this));
+      store.set('state', state);
     },
 
     collect: function (did) {
@@ -111,8 +147,10 @@ define([
       var state = store.get('state');
       if (!state.datasets[did].channels)
         state.datasets[did].channels = {};
-      state.datasets[did].channels[channel.channelName] = channel;
-      store.set('state', state);
+      if (!state.datasets[did].channels[channel.channelName]) {
+        state.datasets[did].channels[channel.channelName] = channel;
+        this.app.state(state);
+      }
     },
 
     channelRemoved: function (did, channel) {
@@ -120,7 +158,7 @@ define([
       delete state.datasets[did].channels[channel.channelName];
       if (_.isEmpty(state.datasets[did].channels))
         delete state.datasets[did].channels;
-      store.set('state', state);
+      this.app.state(state);
     },
 
     fit: function (w) {

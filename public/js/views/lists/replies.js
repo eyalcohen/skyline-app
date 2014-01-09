@@ -20,7 +20,6 @@ define([
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
-      this.type = options.type;
       this.Row = Row;
 
       // Call super init.
@@ -73,9 +72,12 @@ define([
 
     // Collect new replies from socket events.
     collect: function (data) {
-      if (data.parent_id !== this.parent_id) return;
+      if (data.parent_id !== this.parentView.model.id) return;
       if (this.collection.get(-1)) return;
       this.collection.push(data);
+
+      // Resize modal.
+      $.fancybox.reposition(null, null, true);
     },
 
     // remove a model
@@ -90,6 +92,9 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
+          
+          // Resize modal.
+          $.fancybox.reposition(null, null, true);
         }, this));
       }
     },
@@ -133,7 +138,7 @@ define([
       input.val('').keyup();
 
       // Now save the comment to server.
-      rest.post('/api/comments/' + this.type, payload,
+      rest.post('/api/comments/comment', payload,
           _.bind(function (err, data) {
 
         if (err) {

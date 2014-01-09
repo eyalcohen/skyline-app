@@ -27,7 +27,7 @@ define([
         lineWidth: 2,
         pointRadius: 3,
         color: null,
-      }
+      };
 
       // channelName -> showPoints:{true, false}
       var s = store.get('state').lineStyleOptions;
@@ -40,14 +40,18 @@ define([
 
       // View change events.
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
+        var vt = this.get('visibleTime');
+        if (vt.beg === visibleTime.beg
+            && vt.end === visibleTime.end) return;
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
         this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
         var state = store.get('state');
         state.time = visibleTime;
-        store.set('state', state);
+        this.app.state(state);
       }, this));
-      this.view.bind('VisibleWidthChange', _.bind(this.updateCacheSubscription, this));
+      this.view.bind('VisibleWidthChange',
+          _.bind(this.updateCacheSubscription, this));
 
       return this;
     },
@@ -59,7 +63,8 @@ define([
       if (client) return client;
       client = {id: util.rid32(), dataset: dataset, channels: []};
       this.clients.push(client);
-      this.cache.bind('update-' + client.id, _.bind(this.updateSampleSet, this, dataset));
+      this.cache.bind('update-' + client.id,
+          _.bind(this.updateSampleSet, this, dataset));
       return client;
     },
 
@@ -165,7 +170,7 @@ define([
 
     addChannel: function (dataset, channels) {
       if (!dataset) return;
-      var datasetId = dataset.get('id')
+      var datasetId = dataset.get('id');
       channels = _.isArray(channels) ? channels : [channels];
 
       // if this channel is way off the screen, and there is no
@@ -263,7 +268,7 @@ define([
     setDatasetOffset: function(channelName, newOffset) {
       var dataset = this.findDatasetFromChannel(channelName);
 
-      //update offset by adding to old offset
+      // Update offset by adding to old offset.
       dataset.set('offset', newOffset)
       this.updateCacheSubscription(this.getOrCreateClient(dataset));
     },

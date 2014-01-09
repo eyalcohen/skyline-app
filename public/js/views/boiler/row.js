@@ -20,6 +20,8 @@ define([
     },
 
     initialize: function (options) {
+      if (options.model && this.app)
+        options.model.app = this.app;
       this.parentView = options.parentView;
       this.on('rendered', this.setup, this);
       if (this.parentView)

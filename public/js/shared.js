@@ -1,5 +1,6 @@
 /*!
- * Copyright 2011 Mission Motors
+ * TODO: Move this into cache? (It's no longer "shared"
+ * with the server)
  *
  */
 
