@@ -1603,6 +1603,10 @@ td.profile-item-delete {
   color: #4f4f4f;
 }
 
+td.profile-item-delete-empty {
+  width: 20px;
+}
+
 td.profile-item-delete:hover {
   background: rgba(0,0,0,0.05);
 }

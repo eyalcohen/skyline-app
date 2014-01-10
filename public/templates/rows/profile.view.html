@@ -19,6 +19,11 @@
     <%= this.model.get('updated') %>
   </time>
 </td>
-<td class="profile-item-delete">
-  <i class="icon-cancel"></i>
-</td>
+<% if (this.app.profile.user &&
+    this.model.get('author').id === this.app.profile.user.id) { %>
+  <td class="profile-item-delete">
+    <i class="icon-cancel"></i>
+  </td>
+<% } else { %>
+  <td class="profile-item-delete-empty">&nbsp;</td>
+<% } %>
