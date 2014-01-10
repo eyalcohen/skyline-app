@@ -17,14 +17,21 @@ define([
   'views/save',
   'views/browser',
   'views/header',
+  'views/footer',
   'views/home',
   'views/splash',
   'views/settings',
   'views/reset',
   'views/profile',
-  'views/chart'
-], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot, Flashes,
-      Save, Browser, Header, Home, Splash, Settings, Reset, Profile, Chart) {
+  'views/chart',
+  'views/static',
+  'text!../templates/about.html',
+  'text!../templates/contact.html',
+  'text!../templates/privacy.html',
+  'text!../templates/terms.html'
+], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
+    Flashes, Save, Browser, Header, Footer, Home, Splash, Settings, Reset, Profile,
+    Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -54,6 +61,10 @@ define([
       this.route('chart', 'chart', this.chart);
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
+      this.route('about', 'about', this.about);
+      this.route('contact', 'contact', this.contact);
+      this.route('privacy', 'privacy', this.privacy);
+      this.route('terms', 'terms', this.terms);
       this.route('', 'home', this.home);
       this.route('_blank', 'blank', function(){});
 
@@ -111,10 +122,13 @@ define([
       function _render(err, login) {
 
         // Render page elements.
-        if (!this.app.embed)
+        if (!this.app.embed) {
           if (!this.header)
             this.header = new Header(this.app).render();
           else if (login) this.header.render(true);
+          if (!this.footer)
+            this.footer = new Footer(this.app).render();
+        }
 
         // Start block messages.
         if(!this.flashes)
@@ -207,6 +221,50 @@ define([
       this.render('/service/settings.profile', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
+        this.stop();
+        this.header.unwiden();
+      }, this));
+    },
+
+    about: function () {
+      this.start();
+      this.render('/service/static.profile', _.bind(function (err) {
+        if (err) return;
+        this.page = new Static(this.app,
+            {title: 'About', template: aboutTemp}).render();
+        this.stop();
+        this.header.unwiden();
+      }, this));
+    },
+
+    contact: function () {
+      this.start();
+      this.render('/service/static.profile', _.bind(function (err) {
+        if (err) return;
+        this.page = new Static(this.app,
+            {title: 'Contact', template: contactTemp}).render();
+        this.stop();
+        this.header.unwiden();
+      }, this));
+    },
+
+    privacy: function () {
+      this.start();
+      this.render('/service/static.profile', _.bind(function (err) {
+        if (err) return;
+        this.page = new Static(this.app,
+            {title: 'Privacy', template: privacyTemp}).render();
+        this.stop();
+        this.header.unwiden();
+      }, this));
+    },
+
+    terms: function () {
+      this.start();
+      this.render('/service/static.profile', _.bind(function (err) {
+        if (err) return;
+        this.page = new Static(this.app,
+            {title: 'Terms', template: termsTemp}).render();
         this.stop();
         this.header.unwiden();
       }, this));

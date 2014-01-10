@@ -122,12 +122,12 @@ define([
 
     widen: function () {
       this.$el.addClass('wide');
-      this.search.show();
+      // this.search.show();
     },
 
     unwiden: function () {
       this.$el.removeClass('wide');
-      this.search.show();
+      // this.search.show();
     },
 
     navigate: function (e) {
