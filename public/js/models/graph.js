@@ -20,6 +20,7 @@ define([
       this.clients = [];
       this.options = options;
 
+      // The initial style.
       this.DEFAULT_LINE_STYLE = {
         showPoints: true,
         showLines: true,
@@ -269,7 +270,7 @@ define([
       var dataset = this.findDatasetFromChannel(channelName);
 
       // Update offset by adding to old offset.
-      dataset.set('offset', newOffset)
+      dataset.set('offset', newOffset);
       this.updateCacheSubscription(this.getOrCreateClient(dataset));
     },
 
@@ -278,15 +279,14 @@ define([
       return dataset.get('offset') || 0;
     },
 
-    setUserLineStyle: function(channel, opts) {
-      for (var attrname in opts) {
-        this.lineStyleOptions[channel][attrname] = opts[attrname];
-      }
+    setUserLineStyle: function(channel, opts, save) {
+      for (var attrname in opts)
+        if (opts.hasOwnProperty(attrname))
+          this.lineStyleOptions[channel][attrname] = opts[attrname];
       var state = store.get('state');
       state.lineStyleOptions = {};
       _.extend(state.lineStyleOptions, this.lineStyleOptions);
-      store.set('state', state);
-      var state = store.get('state');
+      if (save) this.app.state(state);
       this.view.draw();
     }
 

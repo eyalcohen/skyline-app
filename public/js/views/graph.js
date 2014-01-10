@@ -37,8 +37,9 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
-        mps.subscribe('channel/lineStyleUpdate', _.bind(function(channel, opts) {
-          this.model.setUserLineStyle(channel,opts);
+        mps.subscribe('channel/lineStyleUpdate',
+              _.bind(function (channel, opts, save) {
+          this.model.setUserLineStyle(channel, opts, save);
         }, this)),
       ];
     },
@@ -859,21 +860,6 @@ define([
         return (endIdx - startIdx);
       });
     },
-
-    setUserLineStyle: function(channel, opts) {
-      this.model.setUserLineStyle(channel, opts);
-    /*
-      for (var attrname in opts) {
-        this.model.lineStyleOptions[channel][attrname] = opts[attrname];
-      }
-      var state = store.get('state');
-      state.lineStyleOptions = {};
-      _.extend(state.lineStyleOptions, this.model.lineStyleOptions);
-      store.set('state', state);
-      var state = store.get('state');
-      this.draw();
-      */
-    }
 
   });
 });

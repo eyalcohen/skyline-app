@@ -170,8 +170,11 @@ define([
         updateWidth = true;
       }
 
-      if (JSON.stringify(this.currentLineStyle) !== JSON.stringify(this.oldStyle)) {
-        mps.publish('channel/lineStyleUpdate', [this.channel.id, this.currentLineStyle]);
+      if (JSON.stringify(this.currentLineStyle) !== JSON.stringify(this.oldStyle)
+          || e.type === 'click') {
+        var save = e.type === 'click';
+        mps.publish('channel/lineStyleUpdate',
+            [this.channel.id, this.currentLineStyle, save]);
       }
 
       if (updatePoints && e.type === 'click') {
@@ -246,7 +249,7 @@ define([
         borderColor: hex
       });
       this.setViewLineStyle();
-      mps.publish('channel/lineStyleUpdate', [this.channel.id, this.currentLineStyle]);
+      mps.publish('channel/lineStyleUpdate', [this.channel.id, this.currentLineStyle, true]);
     }
 
   });

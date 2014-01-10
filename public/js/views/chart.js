@@ -251,7 +251,8 @@ define([
       var state = store.get('state');
       var payload = {
         datasets: state.datasets,
-        time: state.time
+        time: state.time,
+        lineStyleOptions: state.lineStyleOptions
       };
 
       // If this is a view and user is view owner, do "save".

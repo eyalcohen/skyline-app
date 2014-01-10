@@ -31,8 +31,9 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('channel/lineStyleUpdate', _.bind(function(channel, opts) {
-          this.model.setUserLineStyle(channel,opts);
+        mps.subscribe('channel/lineStyleUpdate',
+            _.bind(function (channel, opts) {
+          this.model.setUserLineStyle(channel, opts);
         }, this)),
       ];
     },
