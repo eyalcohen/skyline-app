@@ -3,7 +3,7 @@
   "name": "skyline",
   "version": "0.0.27",
   "protocol": "http",
-  "domain": "skyline-env-kxk2gsnyg5.elasticbeanstalk.com",
+  "domain": "www.skyline-app.com",
   "bucket": "build.skyline",
   "cloudfront": "https://d2t5v5bzkrqpjm.cloudfront.net",
   "gmail": {
