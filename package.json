@@ -7,8 +7,8 @@
   "bucket": "build.skyline",
   "cloudfront": "https://d2t5v5bzkrqpjm.cloudfront.net",
   "gmail": {
-    "user": "robot@grr.io",
-    "password": "w0lfpackm0d3"
+    "user": "robot@skyline-app.com",
+    "password": "Sk1l1n3#"
   },
   "repository": {
     "type": "git",

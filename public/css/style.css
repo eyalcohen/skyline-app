@@ -621,6 +621,17 @@ span.empty-list {
   text-align: center;
 }
 
+.error-help {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 50px;
+  font-size: 14px;
+}
+
+.error-help a {
+  color: #666;
+}
+
 .textright {
   text-align: right;
 }

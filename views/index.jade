@@ -5,7 +5,7 @@ block content
     .page-spin
     .block-messages
       ul
-    - if (!embed)
+    - if (typeof embed === 'undefined' || !embed)
       header
         .saved-ghost
           form(enctype="multipart/form-data", method="POST")
@@ -31,9 +31,9 @@ block content
           .header-middle
             input.header-search(type="search", placeholder="Search...")
             span.header-title
-    - var hc = embed ? "main embed": "main";
+    - var hc = typeof embed !== 'undefined' && embed ? "main embed": "main";
     div(class=hc, role="main")
-    - if (!embed)
+    - if (typeof embed === 'undefined' || !embed)
       footer
         .footer
           ul

@@ -305,7 +305,8 @@ define([
           code: 404,
           message: 'Sorry, this page isn\'t available'
         });
-        this.header.unwiden();
+        if (this.header)
+          this.header.unwiden();
       }, this));
     }
 

@@ -18,15 +18,15 @@ html(lang="en")
     <!--[if IE 7]><link rel="stylesheet" href="#{root}/css/fontello-ie7.css"><![endif]-->
     link(rel="stylesheet", href="#{root}/css/style.css")
     link(rel="shortcut icon", href="#{root}/img/favicon.ico", type="image/x-icon")
-    - var bc = embed ? "embed": "";
-    body(class=bc)
-      block content
-      - if (process.env.NODE_ENV === 'production')
-        script(type="text/javascript", src="#{root}/js/store.min.js")
-      - else
-        script(type="text/javascript", src="/js/lib/store/store.min.js")
-      script(type="text/javascript", charset="utf-8", src="/socket.io/socket.io.js")
-      - if (process.env.NODE_ENV === 'production')
-        script(type="text/javascript", src="#{root}/js/min.js")
-      - else
-        script(type="text/javascript", data-main="/js/main", src="/js/lib/require/require.js")
+  - var bc = typeof embed !== 'undefined' && embed ? "embed": "";
+  body(class=bc)
+    block content
+    - if (process.env.NODE_ENV === 'production')
+      script(type="text/javascript", src="#{root}/js/store.min.js")
+    - else
+      script(type="text/javascript", src="/js/lib/store/store.min.js")
+    script(type="text/javascript", charset="utf-8", src="/socket.io/socket.io.js")
+    - if (process.env.NODE_ENV === 'production')
+      script(type="text/javascript", src="#{root}/js/min.js")
+    - else
+      script(type="text/javascript", data-main="/js/main", src="/js/lib/require/require.js")

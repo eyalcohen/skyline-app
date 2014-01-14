@@ -1,0 +1,19 @@
+doctype 5
+html(lang="en")
+  head
+    title Skyline | 500
+    meta(name="description", content="")
+    meta(name="keywords", content="")
+    meta(name="author", content="")
+    meta(charset="UTF-8")
+    <!--[if lt IE 9]><script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    link(rel="stylesheet", href="#{root}/css/style.css")
+    link(rel="shortcut icon", href="#{root}/img/favicon.ico", type="image/x-icon")  
+  body
+    .error
+      .http-error
+        | Error 500: Looks like something went wrong!
+      .http-notice
+        | We track these errors automatically, but if the problem persists feel free to contact us. In the meantime, try refreshing.
+    .error-help
+      a(href="mailto:support@skyline-app.com") Contact Support
