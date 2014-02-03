@@ -69,6 +69,8 @@ define([
     events: {
       'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
+      'click .browser-private': 'checkPrivate',
+      'click .browser-public': 'checkPublic'
     },
 
     // Misc. setup.
@@ -157,12 +159,12 @@ define([
       e.stopPropagation();
       e.preventDefault();
 
-      var files = e.originalEvent.dataTransfer.files;
-      this.update(null, files);
-      this.add(null, files);
-
       // Stop drag styles.
       this.$el.removeClass('dragging');
+
+      // Update the input field.
+      this.update(null, e.originalEvent.dataTransfer.files);
+      
       return false;
     },
 
@@ -178,7 +180,6 @@ define([
         this.newFileSubmit.attr({disabled: false});
       }
       this.newFileInput.val(name);
-      this.add(null, files);
     },
 
     // Create new dataset from file.
@@ -205,7 +206,7 @@ define([
 
         // Check file type for any supported...
         // The MIME type could be text/plain or application/vnd.ms-excel
-        // or a bunch of other options.  For now, switch to checking the
+        // or a bunch of other options. For now, switch to checking the
         // extension and consider improved validation down the road, particularly
         // as we add support for new file types
         var ext = file.name.split('.').pop();
@@ -267,6 +268,15 @@ define([
       reader.readAsDataURL(file);
 
       return false;
+    },
+
+    checkPrivate: function (e) {
+      var box = this.$('.browser-private');
+      var span = $('span', box.parent());
+      if (this.$('.browser-private').is(':checked'))
+        span.html('<i class="icon-lock"></i> Private');
+      else
+        span.html('<i class="icon-lock-open"></i> Public');
     },
 
   });
