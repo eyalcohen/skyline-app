@@ -1130,7 +1130,7 @@ a.header-action:active {
   -webkit-box-sizing: border-box
 }
 
-.modal-inner td input[type="text"] {
+.modal-inner td input[type="text"].input-indent {
   text-indent: 86px;
 }
 

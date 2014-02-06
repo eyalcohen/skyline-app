@@ -30,6 +30,7 @@ define([
               code: res.status,
               user: err.user,
               content: err.content,
+              explain: err.explain
             };
             if (data) err.data = data;
           } catch (e) { err = res.status + ' - "' + res.statusText + '"'; }

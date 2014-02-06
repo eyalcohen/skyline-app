@@ -42,7 +42,7 @@ define([
       this.app = app;
 
       // Clear stuff that comes back from facebook.
-      if (window.location.hash !== '')
+      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1)
         try {
           window.history.replaceState('', '', window.location.pathname
               + window.location.search);
@@ -284,6 +284,7 @@ define([
       }
       if (this.app.profile && this.app.profile.user)
         state.user_id = this.app.profile.user.id;
+
       // NOTE: this should be the only place where state is directly set.
       // Elsewhere it should be done through App.prototype.state.
       store.set('state', state);
