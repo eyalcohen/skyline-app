@@ -5,5 +5,5 @@
 %>
 
 <a href="/<%= link %>" class="navigate">
-  <i class="icon-database"></i><%= this.model.get('title') %>
+  <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-database' %>"></i><%= this.model.get('title') %>
 </a>

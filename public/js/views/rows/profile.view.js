@@ -16,7 +16,10 @@ define([
     tagName: 'tr',
 
     attributes: function () {
-      return _.defaults({class: 'profile-view'},
+      var klass = 'profile-view';
+      if (this.model.get('public') === false)
+        klass += ' profile-view-locked';
+      return _.defaults({class: klass},
           Row.prototype.attributes.call(this));
     },
 

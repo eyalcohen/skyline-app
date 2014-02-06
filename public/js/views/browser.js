@@ -216,6 +216,7 @@ define([
         // Construct the payload to send.
         var payload = {
           title: _.str.strLeft(file.name, '.'),
+          public: !this.$('.browser-private').is(':checked'),
           file: {
             size: file.size,
             type: file.type,

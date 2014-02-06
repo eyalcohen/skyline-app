@@ -612,8 +612,8 @@ a.button.danger:active {
 
 }
 
-.checkbox-styled input[type="checkbox"] + span i:after {
-  margin-left: 0;
+.checkbox-styled input[type="checkbox"] + span i:before {
+  margin: 0;
 }
 
 .checkbox-styled input[type="checkbox"] + span:active {
@@ -623,10 +623,9 @@ a.button.danger:active {
 }
 
 .checkbox-styled input[type="checkbox"]:checked + span {
-  background: rgba(39, 205, 214, 0.4);
-  /*-moz-box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
-  -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
-  box-shadow: inset 0 0 2px rgba(0,0,0,0.3);*/
+  color: #fff;
+  background: #444;
+  border-color: #444;
 }
 
 .checkbox-styled input[type="checkbox"][value="sent"]:checked + span {
@@ -1502,6 +1501,18 @@ a.splash-start-button:active {
   margin-right: .3em;
 }
 
+.home-datasets li .icon-lock,
+.home-views li .icon-lock {
+  font-size: 16px;
+  vertical-align: -1px;
+}
+
+.home-datasets li .icon-lock:before,
+.home-views li .icon-lock:before {
+  margin-right: .15em;
+  margin-left: -.05em;
+}
+
 /*.........................................................................*/
 
 .settings .page {
@@ -1651,10 +1662,20 @@ a.splash-start-button:active {
   user-select: none;
 }
 
-.profile-dataset:hover,
-.profile-view:hover {
+.profile-dataset.profile-dataset-locked,
+.profile-view.profile-view-locked {
+  background: rgba(205, 214, 39, 0.1);
+}
+
+.profile-dataset:hover:not(.profile-dataset-locked),
+.profile-view:hover:not(.profile-view-locked) {
   background: #dfdfdf;
 }
+
+/*.profile-dataset.profile-dataset-locked:hover,
+.profile-view.profile-view-locked:hover {
+  background: #ccc;
+}*/
 
 .profile-avatar {
   width: 60px;
@@ -1683,6 +1704,21 @@ a.splash-start-button:active {
 .profile-item-title [class^="icon-"]:before,
 .profile-item-title [class*=" icon-"]:before {
   margin-left: 0;
+}
+
+.profile-item-title .icon-lock {
+  font-size: 18px;
+  vertical-align: -1px;
+}
+
+.profile-item-title .icon-lock:before {
+  margin-right: .1em;
+  margin-left: -.1em;
+}
+
+.browser .profile-item-title .icon-lock {
+  font-size: 13px;
+  vertical-align: -1px;
 }
 
 .profile-item-stats {

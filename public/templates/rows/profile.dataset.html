@@ -1,6 +1,7 @@
 <td class="main-cell">
   <span class="profile-item-title">
-    <i class="icon-database"></i> <%= this.model.get('title') %>
+    <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-database' %>"></i> 
+    <%= this.model.get('title') %>
   </span>
   <p class="profile-item-stats">
     <span><i class="icon-eye"></i> 0</span>
@@ -18,11 +19,13 @@
     <%= this.model.get('updated') %>
   </time>
 </td>
-<% if (!this.parentView.modal && this.app.profile.user &&
-    this.model.get('author').id === this.app.profile.user.id) { %>
-  <td class="profile-item-delete">
-    <i class="icon-cancel"></i>
-  </td>
-<% } else { %>
-  <td class="profile-item-delete-empty">&nbsp;</td>
+<% if (!this.parentView.modal) { %>
+  <% if (this.app.profile.user &&
+      this.model.get('author').id === this.app.profile.user.id) { %>
+    <td class="profile-item-delete">
+      <i class="icon-cancel"></i>
+    </td>
+  <% } else { %>
+    <td class="profile-item-delete-empty">&nbsp;</td>
+  <% } %>
 <% } %>

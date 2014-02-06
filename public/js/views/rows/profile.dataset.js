@@ -16,7 +16,10 @@ define([
     tagName: 'tr',
 
     attributes: function () {
-      return _.defaults({class: 'profile-dataset'},
+      var klass = 'profile-dataset';
+      if (this.model.get('public') === false)
+        klass += ' profile-dataset-locked';
+      return _.defaults({class: klass},
           Row.prototype.attributes.call(this));
     },
 

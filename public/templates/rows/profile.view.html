@@ -1,6 +1,7 @@
 <td class="main-cell">
   <span class="profile-item-title">
-    <i class="icon-folder-empty"></i> <%= this.model.get('name') %>
+    <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-folder-empty' %>"></i> 
+    <%= this.model.get('name') %>
   </span>
   <p class="profile-item-stats">
     <span><i class="icon-eye"></i> 0</span>
