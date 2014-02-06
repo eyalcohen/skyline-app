@@ -33,7 +33,7 @@ define([
 
       // Save refs.
       this.button = this.$('a.dataset-button');
-      this.title = this.$('.dataset-title', this.button);
+      this.title = this.$('.dataset-title span', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
       this.commentsButton = this.$('.dataset-control-comments');
 
@@ -88,7 +88,7 @@ define([
       this.background.width(w + 41);
       if (this.channels) this.channels.fit();
       this.updateOffset();
-      this.fitTitle(w - (this.app.embed ? 0: 35));
+      this.fitTitle(w - (this.app.embed ? 0: 70));
       this.leader();
     },
 

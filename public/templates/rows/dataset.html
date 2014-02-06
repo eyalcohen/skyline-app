@@ -12,10 +12,9 @@
 </div>
 <a class="dataset-button" href="javascript:;">
   <span class="dataset-title">
-    <%= this.model.get('title') %>
+    <i class="icon-<%= this.model.get('public') === false ? 'lock': 'database' %>"></i><span><%= this.model.get('title') %></span>
   </span>
   <span class="dataset-stats">
-    <!-- <i class="icon-lock"></i>  -->
     <%= this.model.get('meta').channel_cnt %> 
     <%= this.model.get('meta').channel_cnt > 1 ? 'channels': 'channel' %>
   </span>

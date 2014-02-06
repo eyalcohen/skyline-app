@@ -2269,6 +2269,17 @@ a.dataset-button .dataset-button-bg {
   font-weight: bold;
 }
 
+.dataset .dataset-title i.icon-database {
+  position: relative;
+  top: -1px;
+  font-size: 10px;
+  margin-right: 0.15em;
+}
+
+.dataset .dataset-title i:before {
+  margin: 0 0.1em 0 -0.1em;
+}
+
 .dataset .dataset-stats {
   position: relative;
   z-index: 1;
