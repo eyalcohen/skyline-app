@@ -27,10 +27,10 @@ define([
         }
         if (target.t === 'dataset') {
           type = 'data source';
-          icon = 'database';
+          icon = target.l ? 'lock': 'database';
         } else {
           type = 'mashup';
-          icon = 'folder-empty';
+          icon = target.l ? 'lock': 'folder-empty';
         }
         var owner = att.data.action.i === target.i ?
             'their own':
@@ -54,11 +54,11 @@ define([
         if (att.data.target.t === 'dataset') {
           verb = 'added';
           type = 'data source';
-          icon = 'database';
+          icon = att.data.target.l ? 'lock': 'database';
         } else {
           verb = 'created a new';
           type = 'mashup';
-          icon = 'folder-empty';
+          icon = att.data.target.l ? 'lock': 'folder-empty';
         }
         var link = '<a href="/' + att.data.target.s + '" class="navigate">';
 
@@ -73,10 +73,10 @@ define([
         var type, icon;
         if (att.data.target.t === 'dataset') {
           type = 'data source';
-          icon = 'database';
+          icon = att.data.target.l ? 'lock': 'database';
         } else {
           type = 'mashup';
-          icon = 'folder-empty';
+          icon = att.data.target.l ? 'lock': 'folder-empty';
         }
         var verb = 'forked';
         var link = '<a href="/' + att.data.target.s + '" class="navigate">';
