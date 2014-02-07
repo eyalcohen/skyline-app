@@ -46,7 +46,8 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
-        padding: 0
+        padding: 0,
+        modal: true
       });
 
       // Add placeholder shim if need to.
@@ -61,6 +62,7 @@ define([
 
     // Bind mouse events.
     events: {
+      'click .modal-close': 'close',
       'click .save-form input[type="submit"]': 'save',
       'keyup input[name="name"]': 'update',
       'click .save-private': 'checkPrivate'
@@ -133,6 +135,10 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.empty();
+    },
+
+    close: function (e) {
+      $.fancybox.close();
     },
 
     // Update save button status

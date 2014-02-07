@@ -52,7 +52,8 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
-        padding: 0
+        padding: 0,
+        modal: true
       });
 
       // Add placeholder shim if need to.
@@ -67,6 +68,7 @@ define([
 
     // Bind mouse events.
     events: {
+      'click .modal-close': 'close',
       'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
       'click .browser-private': 'checkPrivate'
@@ -135,6 +137,10 @@ define([
       if (this.datasets)
         this.datasets.destroy();
       this.empty();
+    },
+
+    close: function (e) {
+      $.fancybox.close();
     },
 
     dragover: function (e) {
