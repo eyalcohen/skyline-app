@@ -70,17 +70,31 @@ define([
     setup: function () {
 
       // Save refs.
-      this.saveForm = $('.save-form');
+      this.saveForm = this.$('.save-form');
       this.saveInput = $('input[name="name"]', this.saveForm);
       this.saveSubmit = $('input[type="submit"]', this.saveForm);
       this.saveError = $('.modal-error', this.saveForm);
-      this.saveButtonSpin = new Spin($('.button-spin', this.el), {
+      this.saveButtonSpin = new Spin(this.$('.button-spin'), {
         color: '#3f3f3f',
         lines: 13,
         length: 3,
         width: 2,
         radius: 6,
       });
+      this.privateButton = this.$('.save-private');
+
+      // Check if chart contains any private datasets.
+      this.allowPublic = !_.find(this.app.profile.content.datasets.items,
+          function (d) { return d.public === false; });
+      // If forking a dataset, only the first (leader) dataset matters.
+      if (this.options.target && this.options.target.type === 'dataset'
+          && this.app.profile.content.datasets.items[0].public !== false)
+        this.allowPublic = true;
+      if (!this.allowPublic) {
+        this.privateButton.attr({checked: true, disabled: true});
+        this.checkPrivate();
+        this.privateButton.addClass('disabled');
+      }
 
       // Handle error display.
       this.$('input[type="text"]').blur(function (e) {
@@ -160,6 +174,10 @@ define([
         return false;
       }
 
+      // Handle private / public.
+      payload.public = !this.allowPublic ?
+          false: !this.$('.save-private').is(':checked');
+
       // If there is no target, we are creating a new view from the current state.
       var resource, verb, type, name = payload.name;
       if (!this.options.target) {
@@ -190,8 +208,6 @@ define([
         } else
           type = 'mashup';
       }
-
-      payload.public = !this.$('.save-private').is(':checked');
 
       // Start load indicator.
       this.saveButtonSpin.start();
@@ -240,9 +256,9 @@ define([
     },
 
     checkPrivate: function (e) {
-      var box = this.$('.save-private');
-      var span = $('span', box.parent());
-      if (this.$('.save-private').is(':checked'))
+      if (this.privateButton.hasClass('disabled')) return;
+      var span = $('span', this.privateButton.parent());
+      if (this.privateButton.is(':checked'))
         span.html('<i class="icon-lock"></i> Private');
       else
         span.html('<i class="icon-lock-open"></i> Public');

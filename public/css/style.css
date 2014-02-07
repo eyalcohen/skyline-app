@@ -628,14 +628,6 @@ a.button.danger:active {
   border-color: #444;
 }
 
-.checkbox-styled input[type="checkbox"][value="sent"]:checked + span {
-  background: rgba(39, 205, 214, 0.8);
-}
-
-.checkbox-styled input[type="checkbox"]:checked + span i {
-  display: inline-block;
-}
-
 /*.........................................................................*/
 
 input.input-error {
@@ -1168,7 +1160,6 @@ a.header-action:active {
   color: #cc0f0f;
   font-size: 11px;
   text-align: left;
-  float: right;
 }
 
 .modal-body {
