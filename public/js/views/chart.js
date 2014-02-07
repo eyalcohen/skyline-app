@@ -75,8 +75,10 @@ define([
       // Set page title
       if (!embed) {
         var page = this.app.profile.content.page;
-        if (page && page.name) this.app.title(page.name);
-        else this.app.title('Chart', '');
+        if (page && page.name) {
+          var icon = page.public === false ? 'lock': 'folder-empty';
+          this.app.title('<i class="icon-' + icon + '"></i> ' + page.name);
+        } else this.app.title('Chart', '');
       }
 
       // UnderscoreJS rendering.
