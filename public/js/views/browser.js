@@ -69,8 +69,7 @@ define([
     events: {
       'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
-      'click .browser-private': 'checkPrivate',
-      'click .browser-public': 'checkPublic'
+      'click .browser-private': 'checkPrivate'
     },
 
     // Misc. setup.

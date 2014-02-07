@@ -34,6 +34,7 @@ define([
       // Save refs.
       this.button = this.$('a.dataset-button');
       this.title = this.$('.dataset-title span', this.button);
+      this.offset = this.$('.dataset-stats span', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
       this.commentsButton = this.$('.dataset-control-comments');
 
@@ -233,17 +234,12 @@ define([
         (offset_abs < 1000*60*60*24*7*4*12) ? (offset_abs / (1000*60*60*24*7*4)).toFixed(1) + 'Mo' :
         (offset_abs / (1000*60*60*24*7*4*12)).toFixed(1) + 'Yr';
         offset_abs;
+      var titleString = ((offset >= 0) ? '  +' : '  -') + offsetAsString;
 
-      var titleString =
-        this.model.get('title')
-        + ((offset >= 0) ? '  +' : '  -')
-        + offsetAsString;
-
-      if ((offset) == 0) {
-        this.title.text(this.model.get('title'));
-      } else {
-        this.title.text(titleString);
-      }
+      if (offset !== 0)
+        this.offset.text(', Offset ' + titleString);
+      else
+        this.offset.text('');
     },
 
   });

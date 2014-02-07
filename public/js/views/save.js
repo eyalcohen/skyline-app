@@ -63,6 +63,7 @@ define([
     events: {
       'click .save-form input[type="submit"]': 'save',
       'keyup input[name="name"]': 'update',
+      'click .save-private': 'checkPrivate'
     },
 
     // Misc. setup.
@@ -190,6 +191,8 @@ define([
           type = 'mashup';
       }
 
+      payload.public = !this.$('.save-private').is(':checked');
+
       // Start load indicator.
       this.saveButtonSpin.start();
       this.saveSubmit.addClass('loading');
@@ -234,6 +237,15 @@ define([
       }, this));
 
       return false;
+    },
+
+    checkPrivate: function (e) {
+      var box = this.$('.save-private');
+      var span = $('span', box.parent());
+      if (this.$('.save-private').is(':checked'))
+        span.html('<i class="icon-lock"></i> Private');
+      else
+        span.html('<i class="icon-lock-open"></i> Public');
     },
 
   });
