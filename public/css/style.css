@@ -550,6 +550,7 @@ a.button.danger:active {
 
 .checkbox-styled {
   display: block;
+  padding: 0;
 }
 
 .checkbox-styled.input-checkbox {
@@ -572,6 +573,7 @@ a.button.danger:active {
 .checkbox-styled input[type="checkbox"] + span {
   display: block;
   position: relative;
+  padding: 0 15px;
   font-size: 12px;
   font-weight: 700;
   text-align: center;
@@ -607,6 +609,7 @@ a.button.danger:active {
 }
 
 .checkbox-styled.input-checkbox input[type="checkbox"] + span {
+  padding: 0;
   -webkit-border-radius: 3px 0 0 3px;
   -moz-border-radius: 3px 0 0 3px;
   border-radius: 3px 0 0 3px;
@@ -614,7 +617,8 @@ a.button.danger:active {
 
 .checkbox-styled.table-checkbox input[type="checkbox"] + span {
   display: inline-block;
-  margin-left: 13px;
+  padding: 0;
+  margin-left: 12px;
   text-align: left;
   font-weight: normal;
   line-height: 40px;
@@ -622,14 +626,18 @@ a.button.danger:active {
   border: none;
 }
 
-.checkbox-styled.table-checkbox input[type="checkbox"] + span i {
+.checkbox-styled:not(.input-checkbox) input[type="checkbox"] + span i {
   display: none;
+}
+
+.checkbox-styled.table-checkbox input[type="checkbox"] + span i {
   position: absolute;
-  left: -15px;
+  left: -12px;
 }
 
 .checkbox-styled input[type="checkbox"] + span i:before {
-  margin: 0;
+  margin-left: -0.15em;
+  margin-right: 0;
 }
 
 .checkbox-styled:not(.table-checkbox) input[type="checkbox"] + span:active {
@@ -648,7 +656,7 @@ a.button.danger:active {
   font-weight: 700;
 }
 
-.checkbox-styled.table-checkbox input[type="checkbox"]:checked + span i {
+.checkbox-styled:not(.input-checkbox) input[type="checkbox"]:checked + span i {
   display: inline-block;
 }
 
@@ -2708,6 +2716,18 @@ a.comments-signin {
   white-space: nowrap;
 }
 
+.export-inner {
+  margin: 0 0 40px 0;
+}
+
+.export-inner table {
+  margin-top: 5px;
+}
+
+.export-inner input {
+  margin: 0;
+}
+
 .export .export-info {
   overflow-y: auto;
   border-top: 1px solid #d0d0d0;
@@ -2766,7 +2786,7 @@ a.comments-signin {
   vertical-align: middle;
 }
 
-.export .export-info tr td.number-cell {
+.export tr td.number-cell {
   vertical-align: middle;
 }
 

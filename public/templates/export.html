@@ -2,13 +2,13 @@
   <i class="icon-cancel"></i>
 </div>
 <span class="modal-title">
-  Export
+  Download as CSV
 </span>
 <span class="modal-heading">
-  Create a CSV from the current visible data.
+  Choose channels to export from the visible data in your chart.
 </span>
-<div class="export-info">
-  <form class="export-form" enctype="multipart/form-data" method="POST">
+<form class="export-form" enctype="multipart/form-data" method="POST">
+  <div class="export-info">
     <table>
       <tbody>
         <tr class="list-header">
@@ -45,19 +45,49 @@
         <% }, this)); %>
       </tbody>
     </table>
-  </form>
-</div>
-<div class="export-inner modal-inner">
-  <div>
-    <!-- <input class="export-resample-radio" type="radio" name="sampleType" value="resample">
-    <label for="export-resample-radio" class="export-label">Resample to:</label>
-    <input class="export-resample-input" type="text" value="1.0" >
-    <label for="export-resample-radio" class="export-label">seconds per sample</label>
-    <input class="export-noresample-radio" type="radio" name="sampleType" value="noResample" checked="checked">
-    <label for="export-noresample-radio" class="export-label">Don't resample</label>
-    <p class="export-error" style="visibility: hidden; color: red">Would export
-      <span class="export-error-row-count"></span> rows, maximum is
-      <span class="export-error-row-max"></span>.
-    </p> -->
   </div>
-</div>
+  <div class="export-inner modal-inner">
+    <div>
+      <span class="modal-heading">
+        Refine your data sample resolution.
+      </span>
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <label class="checkbox-styled">
+                <input type="checkbox" name="resample" value="resample" />
+                <span><i class="icon-check"></i> Resample to</span>
+              </label>
+            </td>
+            <td><input class="export-resample-input" type="text" value="1.0" ></td>
+            <td class="number-cell">sec. / sample, or</td>
+            <td>
+              <label class="checkbox-styled">
+                <input type="checkbox" name="noresample" value="noresample" checked />
+                <span><i class="icon-check"></i> Don't resample</span>
+              </label>
+            </td>
+            <td>
+              <input type="submit" disabled="disabled" value="Download" />
+              <div class="button-spin"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+
+<!-- 
+<input class="export-resample-radio" type="radio" name="sampleType" value="resample">
+<label for="export-resample-radio" class="export-label">Resample to:</label>
+<input class="export-resample-input" type="text" value="1.0" >
+<label for="export-resample-radio" class="export-label">seconds per sample</label>
+<input class="export-noresample-radio" type="radio" name="sampleType" value="noResample" checked="checked">
+<label for="export-noresample-radio" class="export-label">Don't resample</label>
+<p class="export-error" style="visibility: hidden; color: red">Would export
+  <span class="export-error-row-count"></span> rows, maximum is
+  <span class="export-error-row-max"></span>.
+</p> 
+-->
