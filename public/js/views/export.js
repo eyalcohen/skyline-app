@@ -6,17 +6,16 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'Modernizr',
   'mps',
   'rest',
   'util',
-  'text!../../templates/exportdata.html',
-], function ($, _, Backbone, Modernizr, mps, rest, util, template) {
+  'text!../../templates/export.html',
+], function ($, _, Backbone, mps, rest, util, template) {
 
   return Backbone.View.extend({
 
     // The DOM target element for this page.
-    className: 'exportdata',
+    className: 'export',
     working: false,
 
     // Module entry point.
@@ -29,9 +28,8 @@ define([
 
       this.expand = false;
 
-      // get some data from parent
+      // Get some data from parent
       this.graph = this.options.parentView.graph;
-      this.datasets = this.options.parentView.datasets.collection.models;
 
       // Shell events.
       this.on('rendered', this.setup, this);
@@ -39,43 +37,57 @@ define([
 
     // Draw the template
     render: function () {
-      var graphedChannels = this.graph.model.getChannels().map( function (channelObj) {
-        // get the parent dataset of this channel
-        var channelTitle =  _.find(this.datasets, function(dataset) {
-          return (dataset.id == channelObj.channelName.split('__')[1])
-        }).attributes.title
 
-        if (channelTitle === undefined)
-          displayName = channelObj.humanName;
-        else
-          displayName = channelTitle + ':' + channelObj.humanName;
+      // Get channels.
+      var datasets = this.options.parentView.datasets.collection.models;
+      this.datasets = [];
+      this.channels = this.graph.model.getChannels();
+      _.each(this.channels, _.bind(function (c) {
+        c.did = Number(c.channelName.split('__')[1]);
+        var d = _.find(this.datasets, function (d) { return d.id === c.did; });
+        if (!d) {
+          d = _.find(datasets, function (d) { return d.id === c.did; });
+          this.datasets.push({id: d.id, title: d.get('title'), num: 1});
+        } else d.num++;
+      }, this));
 
-        return {
-          channelName: channelObj.channelName,
-          humanName: displayName
-        }
-      }, this);
-      this.channels = [
-          { channelName: '$beginDate', humanName: 'Begin Date' },
-          { channelName: '$beginTime', humanName: 'Begin Time' },
-          { channelName: '$beginRelTime', humanName: 'Begin Since Start', units: 's' },
-          { channelName: '$endRelTime', humanName: 'End Since Start', units: 's' },
-      ].concat(graphedChannels);
+      // .map(function (channel) {
+
+      //   // Get the parent dataset of this channel
+      //   var channelTitle =  _.find(this.datasets, function(dataset) {
+      //     return (dataset.id == channel.channelName.split('__')[1])
+      //   }).get('title');
+
+      //   // Handle channel name.
+      //   var displayName = channelTitle === undefined ?
+      //       channel.humanName: channelTitle + ':' + channel.humanName;
+
+      //   return {
+      //     channelName: channel.channelName,
+      //     humanName: displayName
+      //   };
+      // }, this);
+
+      // Time channels to offer.
+      this.timeChannels = [
+        {channelName: '$beginDate', humanName: 'Begin Date'},
+        {channelName: '$beginTime', humanName: 'Begin Time'},
+        {channelName: '$beginRelTime', humanName: 'Begin Since Start', units: 's'},
+        {channelName: '$endRelTime', humanName: 'End Since Start', units: 's'},
+      ];
+
       // UnderscoreJS rendering.
-      this.template = _.template(template, {channels: this.channels});
-      this.$el.html(this.template)
+      this.template = _.template(template);
+      this.$el.html(this.template.call(this));
+
       // Dump content into modal.
       $.fancybox(this.$el, {
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
         padding: 0,
-        minWidth: 300
+        modal: true
       });
-
-      // Add placeholder shim if need to.
-      if (Modernizr.input.placeholder)
-        this.$('input').placeholder();
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');
@@ -85,8 +97,10 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .export-modal-download': 'exportCsv',
-      'click .export-modal-fold' : 'expandModal'
+      'click .modal-close': 'close',
+      'click .export-form input[type="submit"]': 'export',
+      // 'click .export-modal-download': 'exportCsv',
+      // 'click .export-modal-fold' : 'expandModal'
     },
 
     // Misc. setup.
@@ -111,20 +125,24 @@ define([
       this.empty();
     },
 
-    expandModal: function() {
-      if (this.expand) {
-        $('.export-modal-belowfold').hide();
-        $('.export-modal-fold').text('=');
-      }
-      else {
-        $('.export-modal-belowfold').show();
-        $('.export-modal-fold').text('^^^');
-      }
-      this.expand = !this.expand
-      $.fancybox.toggle();
+    close: function (e) {
+      $.fancybox.close();
     },
 
-    exportCsv: function () {
+    // expandModal: function() {
+    //   if (this.expand) {
+    //     $('.export-modal-belowfold').hide();
+    //     $('.export-modal-fold').text('=');
+    //   }
+    //   else {
+    //     $('.export-modal-belowfold').show();
+    //     $('.export-modal-fold').text('^^^');
+    //   }
+    //   this.expand = !this.expand
+    //   $.fancybox.toggle();
+    // },
+
+    export: function () {
 
       function checkExportOk() {
         var resampling = $('[value="resample"]').is(':checked');
@@ -146,7 +164,6 @@ define([
         }
       };
 
-
       if (!checkExportOk.apply(this)) return;
       var viewRange = this.graph.getVisibleTime();
       var resample = !$('[value="noResample"]').is(':checked');
@@ -156,10 +173,10 @@ define([
       // and give some kind of warning or something if it's ridiculous.
       // TODO: maybe use the new download attribute on an anchor element?
       // http://html5-demos.appspot.com/static/a.download.html
-      var lis = $('.export-channel-list input')
-      var channelsToGet = []
+      var lis = $('.export-channel-list input');
+      var channelsToGet = [];
       _.each(this.channels, function (item, idx) {
-        if (lis[idx].checked) channelsToGet.push(item)
+        if (lis[idx].checked) channelsToGet.push(item);
       });
       var href = '/api/datasets' +
           '?beg=' + Math.floor(viewRange.beg) +

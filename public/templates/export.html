@@ -1,0 +1,63 @@
+<div class="modal-close">
+  <i class="icon-cancel"></i>
+</div>
+<span class="modal-title">
+  Export
+</span>
+<span class="modal-heading">
+  Create a CSV from the current visible data.
+</span>
+<div class="export-info">
+  <form class="export-form" enctype="multipart/form-data" method="POST">
+    <table>
+      <tbody>
+        <tr class="list-header">
+          <td colspan="2" class="main-cell">Confirm channels:</td>
+          <td>Data points</td>
+          <td>File size</td>
+        </tr>
+        <% _.each(this.datasets, _.bind(function (d) { %>
+          <tr>
+            <td class="main-cell number-cell">
+              <%= d.num %>
+            </td>
+            <td class="table-cell">
+              <table>
+                <tr class="list-header">
+                  <td colspan="4"><%= d.title %></td>
+                </tr>
+                <% _.each(this.channels, function (c) {
+                  if (c.did !== d.id) return; %>
+                  <tr>
+                    <td class="table-cell">
+                      <label class="checkbox-styled table-checkbox">
+                        <input type="checkbox" name="<%= c.channelName %>" value="<%= c.channelName %>" checked />
+                        <span><i class="icon-check"></i> <%= c.humanName %></span>
+                      </label>
+                    </td>
+                  </tr>
+                <% }); %>
+              </table>
+            </td>
+            <td class="number-cell">?</td>
+            <td class="number-cell">?</td>
+          </tr>
+        <% }, this)); %>
+      </tbody>
+    </table>
+  </form>
+</div>
+<div class="export-inner modal-inner">
+  <div>
+    <!-- <input class="export-resample-radio" type="radio" name="sampleType" value="resample">
+    <label for="export-resample-radio" class="export-label">Resample to:</label>
+    <input class="export-resample-input" type="text" value="1.0" >
+    <label for="export-resample-radio" class="export-label">seconds per sample</label>
+    <input class="export-noresample-radio" type="radio" name="sampleType" value="noResample" checked="checked">
+    <label for="export-noresample-radio" class="export-label">Don't resample</label>
+    <p class="export-error" style="visibility: hidden; color: red">Would export
+      <span class="export-error-row-count"></span> rows, maximum is
+      <span class="export-error-row-max"></span>.
+    </p> -->
+  </div>
+</div>

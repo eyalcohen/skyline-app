@@ -45,7 +45,8 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
-        padding: 0
+        padding: 0,
+        modal: true
       });
 
       // Add placeholder shim if need to.
@@ -60,6 +61,7 @@ define([
 
     // Bind mouse events.
     events: {
+      'click .modal-close': 'close',
       'click .forgot-form input[type="submit"]': 'send',
       'keyup input[name="email"]': 'update',
     },
@@ -117,6 +119,10 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.empty();
+    },
+
+    close: function (e) {
+      $.fancybox.close();
     },
 
     // Update forgot button status

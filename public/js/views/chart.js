@@ -15,10 +15,10 @@ define([
   'views/lists/datasets',
   'views/lists/comments',
   'views/graph',
-  'views/exportdata',
+  'views/export',
   'views/overview'
 ], function ($, _, Backbone, mps, rest, util, units, Spin, template, Datasets,
-      Comments, Graph, ExportData, Overview) {
+      Comments, Graph, Export, Overview) {
 
   return Backbone.View.extend({
 
@@ -331,7 +331,7 @@ define([
 
     download: function (e) {
       e.preventDefault();
-      this.exportdata = new ExportData(this.app, {parentView: this}).render();
+      new Export(this.app, {parentView: this}).render();
     },
 
     panel: function (e) {
