@@ -18,8 +18,9 @@
         </tr>
         <% _.each(this.datasets, _.bind(function (d) { %>
           <tr>
-            <td class="main-cell number-cell">
-              <%= d.num %>
+            <td class="main-cell number-cell channel-cnt-<%= d.id %>"
+                  data-cnt="<%= d.count %>">
+              <%= d.count %> / <%= d.count %>
             </td>
             <td class="table-cell">
               <table>
@@ -31,7 +32,8 @@
                   <tr>
                     <td class="table-cell">
                       <label class="checkbox-styled table-checkbox">
-                        <input type="checkbox" name="<%= c.channelName %>" value="<%= c.channelName %>" checked />
+                        <input type="checkbox" name="<%= c.channelName %>"
+                            value="<%= c.channelName %>" checked />
                         <span><i class="icon-check"></i> <%= c.humanName %></span>
                       </label>
                     </td>
@@ -69,8 +71,13 @@
               </label>
             </td>
             <td>
-              <input type="submit" disabled="disabled" value="Download" />
+              <input type="submit" value="Download" />
               <div class="button-spin"></div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="4">
+              <span class="modal-error"></span>
             </td>
           </tr>
         </tbody>

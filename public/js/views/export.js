@@ -9,14 +9,15 @@ define([
   'mps',
   'rest',
   'util',
+  'Spin',
   'text!../../templates/export.html',
-], function ($, _, Backbone, mps, rest, util, template) {
+], function ($, _, Backbone, mps, rest, util, Spin, template) {
 
   return Backbone.View.extend({
 
     // The DOM target element for this page.
     className: 'export',
-    working: false,
+    maxSampleCount: 100000,
 
     // Module entry point.
     initialize: function (app, options) {
@@ -38,43 +39,18 @@ define([
     // Draw the template
     render: function () {
 
-      // Get channels.
+      // Gather channels.
       var datasets = this.options.parentView.datasets.collection.models;
       this.datasets = [];
-      this.channels = this.graph.model.getChannels();
+      this.channels = _.clone(this.graph.model.getChannels());
       _.each(this.channels, _.bind(function (c) {
         c.did = Number(c.channelName.split('__')[1]);
         var d = _.find(this.datasets, function (d) { return d.id === c.did; });
         if (!d) {
           d = _.find(datasets, function (d) { return d.id === c.did; });
-          this.datasets.push({id: d.id, title: d.get('title'), num: 1});
-        } else d.num++;
+          this.datasets.push({id: d.id, title: d.get('title'), count: 1});
+        } else d.count++;
       }, this));
-
-      // .map(function (channel) {
-
-      //   // Get the parent dataset of this channel
-      //   var channelTitle =  _.find(this.datasets, function(dataset) {
-      //     return (dataset.id == channel.channelName.split('__')[1])
-      //   }).get('title');
-
-      //   // Handle channel name.
-      //   var displayName = channelTitle === undefined ?
-      //       channel.humanName: channelTitle + ':' + channel.humanName;
-
-      //   return {
-      //     channelName: channel.channelName,
-      //     humanName: displayName
-      //   };
-      // }, this);
-
-      // Time channels to offer.
-      this.timeChannels = [
-        {channelName: '$beginDate', humanName: 'Begin Date'},
-        {channelName: '$beginTime', humanName: 'Begin Time'},
-        {channelName: '$beginRelTime', humanName: 'Begin Since Start', units: 's'},
-        {channelName: '$endRelTime', humanName: 'End Since Start', units: 's'},
-      ];
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -98,13 +74,35 @@ define([
     // Bind mouse events.
     events: {
       'click .modal-close': 'close',
-      'click .export-form input[type="submit"]': 'export',
-      // 'click .export-modal-download': 'exportCsv',
-      // 'click .export-modal-fold' : 'expandModal'
+      'click .table-checkbox input': 'onChannelClick',
+      'click input[name="resample"]': 'checkResample',
+      'click input[name="noresample"]': 'checkNoResample',
+      'click .export-form input[type="submit"]': 'export'
     },
 
     // Misc. setup.
     setup: function () {
+
+      // Save refs.
+      this.resample = this.$('input[name="resample"]');
+      this.noresample = this.$('input[name="noresample"]');
+      this.resampleTo = this.$('.export-resample-input');
+      this.downloadButtonSpin = new Spin(this.$('.button-spin'), {
+        color: '#3f3f3f',
+        lines: 13,
+        length: 3,
+        width: 2,
+        radius: 6,
+      });
+      this.exportError = this.$('.modal-error');
+
+      // Handle error highlight.
+      this.resampleTo.bind('keyup', function (e) {
+        var t = $(e.target);
+        if (t.hasClass('input-error'));
+          t.removeClass('input-error');
+      });
+
       return this;
     },
 
@@ -129,62 +127,85 @@ define([
       $.fancybox.close();
     },
 
-    // expandModal: function() {
-    //   if (this.expand) {
-    //     $('.export-modal-belowfold').hide();
-    //     $('.export-modal-fold').text('=');
-    //   }
-    //   else {
-    //     $('.export-modal-belowfold').show();
-    //     $('.export-modal-fold').text('^^^');
-    //   }
-    //   this.expand = !this.expand
-    //   $.fancybox.toggle();
-    // },
+    onChannelClick: function (e) {
 
-    export: function () {
-
-      function checkExportOk() {
-        var resampling = $('[value="resample"]').is(':checked');
-        var viewRange = this.graph.getVisibleTime();
-        var resampleTime = Math.round(Number($('.export-resample-input').val()) * 1e6);
-        var exportCount =
-            Math.ceil((viewRange.end - viewRange.beg) / resampleTime);
-        var maxCount = 100000;
-        if (resampling && !(exportCount <= maxCount)) {
-          $('.export-error-row-count').text(exportCount);
-          $('.export-error-row-max').text(maxCount);
-          $('.export-error').css('visibility', 'visible');
-          $('.export-modal-download').addClass('disabled');
-          return false;
-        } else {
-          $('.export-error').css('visibility', 'hidden');
-          $('.export-modal-download').removeClass('disabled');
-          return true;
-        }
-      };
-
-      if (!checkExportOk.apply(this)) return;
-      var viewRange = this.graph.getVisibleTime();
-      var resample = !$('[value="noResample"]').is(':checked');
-      var minmax = $('[name="minmax"]').is(':checked');
-      var resampleTime = $('#resample').val();
-      // TODO: calculate how many data points we'll generate with a resample,
-      // and give some kind of warning or something if it's ridiculous.
-      // TODO: maybe use the new download attribute on an anchor element?
-      // http://html5-demos.appspot.com/static/a.download.html
-      var lis = $('.export-channel-list input');
-      var channelsToGet = [];
-      _.each(this.channels, function (item, idx) {
-        if (lis[idx].checked) channelsToGet.push(item);
+      // Get channel.
+      var target = $(e.target);
+      var channel = _.find(this.channels, function (c) {
+        return c.channelName === target.attr('name');
       });
-      var href = '/api/datasets' +
-          '?beg=' + Math.floor(viewRange.beg) +
-          '&end=' + Math.ceil(viewRange.end) +
-          (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '') +
-          (resample && minmax ? '&minmax' : '') +
-          channelsToGet.map(function (c){return '&chan=' + c.channelName}).join('');
-      window.location.href = href;
+
+      // Mark to skip.
+      channel.skip = !target.is(':checked');
+
+      // Update counts.
+      var count = 0;
+      _.each(this.channels, function (c) {
+        if (c.did === channel.did && !c.skip)
+          ++count;
+      });
+      var counter = this.$('.channel-cnt-' + channel.did);
+      counter.text(count + ' / ' + counter.data('cnt'));
     },
+
+    checkResample: function (e) {
+      this.noresample.attr('checked', false);
+    },
+
+    checkNoResample: function (e) {
+      this.resample.attr('checked', false);
+    },
+
+    // TODO: calculate how many data points we'll generate with a resample,
+    // and give some kind of warning or something if it's ridiculous.
+    // TODO: maybe use the new download attribute on an anchor element?
+    // http://html5-demos.appspot.com/static/a.download.html
+    export: function (e) {
+      e.preventDefault();
+
+      // Options.
+      var resample = $('[value="resample"]').is(':checked');
+      var resampleTime =
+          Math.round(Number(this.resampleTo.val()) * 1e6);
+      var minmax = false; // FIXME
+
+      // Check max count.
+      var viewRange = this.graph.getVisibleTime();
+      var exportCount =
+          Math.ceil((viewRange.end - viewRange.beg) / resampleTime);
+      if (resample && !(exportCount <= this.maxSampleCount)) {
+        this.exportError.text('Max row count ('
+            + util.addCommas(this.maxSampleCount) + ') exceeded by '
+            + util.addCommas(exportCount - this.maxSampleCount) + ' rows.');
+        this.resampleTo.addClass('input-error').select();
+        return false;
+      } else {
+        this.exportError.text('');
+        this.resampleTo.removeClass('input-error');
+      }
+
+      // Include time channels.
+      var channels = [
+        {channelName: '$beginDate', humanName: 'Begin Date'},
+        {channelName: '$beginTime', humanName: 'Begin Time'},
+        {channelName: '$beginRelTime', humanName: 'Begin Since Start', units: 's'},
+        {channelName: '$endRelTime', humanName: 'End Since Start', units: 's'},
+      ];
+
+      // Filter channels.
+      channels = channels.concat(_.reject(this.channels,
+          function (c) { return c.skip; }));
+      
+      // Start download.
+      window.location.href = '/api/datasets'
+          + '?beg=' + Math.floor(viewRange.beg)
+          + '&end=' + Math.ceil(viewRange.end)
+          + (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '')
+          + (resample && minmax ? '&minmax' : '')
+          + channels.map(function (c) {
+            return '&chan=' + c.channelName;
+          }).join('');
+    },
+
   });
 });

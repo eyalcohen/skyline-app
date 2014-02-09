@@ -2711,13 +2711,18 @@ a.comments-signin {
   margin: 15px 0 10px 30px;
 }
 
+.export .modal-error {
+  margin-top: 10px;
+  min-height: 20px;
+}
+
 .export td {
   text-align: center;
   white-space: nowrap;
 }
 
 .export-inner {
-  margin: 0 0 40px 0;
+  margin: 0 0 10px 0;
 }
 
 .export-inner table {
