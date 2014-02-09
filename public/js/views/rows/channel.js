@@ -85,7 +85,7 @@ define([
 
     fit: function (w) {
       this.$el.width(w);
-      this.fitName(w - this.value.width());
+      this.fitName(w - 40);
     },
 
     fitName: function (w) {
