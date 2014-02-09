@@ -78,7 +78,7 @@ define([
       return this;
     },
 
-    // render the latest model
+    // Render the latest model
     // (could be newly arived or older ones from pagination)
     renderLast: function (pagination) {
       List.prototype.renderLast.call(this, pagination);
@@ -90,7 +90,15 @@ define([
     },
 
     setup: function () {
-      return List.prototype.setup.call(this);
+      List.prototype.setup.call(this);
+
+      // Handle height.
+      if (this.modal) {
+        $(window).resize(_.bind(this.parentView.resize, this.parentView));
+        _.delay(_.bind(this.parentView.resize, this.parentView), 0);
+      }
+
+      return this;
     },
 
     events: {},
@@ -201,24 +209,24 @@ define([
 
     // init pagination
     paginate: function () {
-      var wrap = this.modal ? this.$el.parent(): $(window);
+      this.wrap = this.modal ? this.$el.parent(): $(window);
       this._paginate = _.debounce(_.bind(function (e) {
         var pos;
         if (this.modal) {
           pos = this.$el.height()
-              - wrap.height() - wrap.scrollTop();
+              - this.wrap.height() - this.wrap.scrollTop();
         } else
           pos = this.$el.height() + this.$el.offset().top
-              - wrap.height() - wrap.scrollTop();
+              - this.wrap.height() - this.wrap.scrollTop();
         if (!this.nomore && pos < -this.spin.target.height() / 2)
           this.more();
       }, this), 50);
 
-      wrap.scroll(this._paginate).resize(this._paginate);
+      this.wrap.scroll(this._paginate).resize(this._paginate);
     },
 
     unpaginate: function () {
-      $(window).unbind('scroll', this._paginate);
+      $(window).unbind('scroll', this._paginate).unbind('resize', this._paginate);
     }
 
   });

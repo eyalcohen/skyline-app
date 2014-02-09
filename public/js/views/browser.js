@@ -143,6 +143,12 @@ define([
       $.fancybox.close();
     },
 
+    resize: function () {
+      if (!this.datasets) return;
+      this.datasets.$el.parent().height(
+          this.$el.height() - this.datasets.$el.position().top);
+    },
+
     dragover: function (e) {
       if (this.dragging) return false;
       this.dragging = true;
