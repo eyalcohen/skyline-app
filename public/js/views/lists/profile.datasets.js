@@ -30,15 +30,6 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
-      // Init the load indicator.
-      this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
-        lines: 13,
-        length: 3,
-        width: 2,
-        radius: 6,
-      });
-      this.spin.start();
-
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('dataset/new', _.bind(this.collect, this))
@@ -59,22 +50,35 @@ define([
     // Initial bulk render of list
     render: function (options) {
       List.prototype.render.call(this, options);
-      if (this.collection.length > 0 || this.latest_list.more)
-        _.delay(_.bind(function () {
-          this.checkHeight();
-        }, this), (this.collection.length + 1) * 30);
-      else {
-        this.nomore = true;
-        $('<span class="empty-feed">' + this.empty_label
-            + '</span>').appendTo(this.$el);
-        this.spin.stop();
-      }
-      if (this.modal)
+
+      // Handle height.
+      if (this.modal) {
+        $(window).resize(_.bind(this.parentView.resize, this.parentView));
+        _.delay(_.bind(this.parentView.resize, this.parentView), 0);
+
+        // Init the load indicator.
+        this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
+          lines: 13,
+          length: 3,
+          width: 2,
+          radius: 6,
+        });
+        this.spin.start();
+
+        this.wrap = this.$('.profile-items-wrap');
+        if (this.collection.length > 0 || this.latest_list.more)
+          _.delay(_.bind(function () {
+            this.checkHeight();
+          }, this), (this.collection.length + 1) * 30);
+        else {
+          this.nomore = true;
+          $('<span class="empty-feed">' + this.empty_label
+              + '</span>').appendTo(this.$el);
+          this.spin.stop();
+        }
         this.paginate();
-      else {
-        this.spin.stop(); 
-        this.spin.target.parent().hide();
       }
+
       return this;
     },
 
@@ -82,29 +86,22 @@ define([
     // (could be newly arived or older ones from pagination)
     renderLast: function (pagination) {
       List.prototype.renderLast.call(this, pagination);
-      _.delay(_.bind(function () {
-        if (pagination !== true)
-          this.checkHeight();
-      }, this), 60);
+      if (this.modal)
+        _.delay(_.bind(function () {
+          if (pagination !== true)
+            this.checkHeight();
+        }, this), 60);
       return this;
     },
 
     setup: function () {
-      List.prototype.setup.call(this);
-
-      // Handle height.
-      if (this.modal) {
-        $(window).resize(_.bind(this.parentView.resize, this.parentView));
-        _.delay(_.bind(this.parentView.resize, this.parentView), 0);
-      }
-
-      return this;
+      return List.prototype.setup.call(this);
     },
 
     events: {},
 
     destroy: function () {
-      this.unpaginate();
+      if (this.modal) this.unpaginate();
       return List.prototype.destroy.call(this);
     },
 
@@ -126,7 +123,7 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
-          this.checkHeight();
+          if (this.modal) this.checkHeight();
         }, this));
       }
     },
@@ -135,11 +132,10 @@ define([
      * Pagination support *
      **********************/
 
-    // Check the panel's empty space and get more
-    // notes to fill it up.
+    // Check the panel's empty space and get more items to fill it up.
     checkHeight: function () {
-      wh = $(window).height();
-      so = this.spin.target.offset().top;
+      var wh = this.$el.parent().parent().height();
+      var so = this.spin.target.position().top;
       if (wh - so > this.spin.target.height() / 2)
         this.more();
     },
@@ -151,10 +147,11 @@ define([
       function updateUI(list) {
         _.defaults(list, {items:[]});
         this.latest_list = list;
-        var showingall = this.parentView.$('.list-spin .empty-feed');
+        var showingall = this.$('.list-spin .empty-feed');
         if (list.items.length === 0) {
           this.nomore = true;
           this.spin.target.hide();
+          console.log(showingall[0])
           if (this.collection.length > 0)
             showingall.css('display', 'block');
           else {
@@ -209,15 +206,9 @@ define([
 
     // init pagination
     paginate: function () {
-      this.wrap = this.modal ? this.$el.parent(): $(window);
       this._paginate = _.debounce(_.bind(function (e) {
-        var pos;
-        if (this.modal) {
-          pos = this.$el.height()
-              - this.wrap.height() - this.wrap.scrollTop();
-        } else
-          pos = this.$el.height() + this.$el.offset().top
-              - this.wrap.height() - this.wrap.scrollTop();
+        var pos = $('table', this.wrap).height()
+            - this.wrap.height() - this.wrap.scrollTop();
         if (!this.nomore && pos < -this.spin.target.height() / 2)
           this.more();
       }, this), 50);
@@ -226,7 +217,7 @@ define([
     },
 
     unpaginate: function () {
-      $(window).unbind('scroll', this._paginate).unbind('resize', this._paginate);
+      this.wrap.unbind('scroll', this._paginate).unbind('resize', this._paginate);
     }
 
   });

@@ -709,7 +709,6 @@ input.file-input {
 span.empty-feed {
   display: inline-block;
   width: 100%;
-  margin: 10px 0;
   font-style: italic;
   color: #808080;
   text-align: center;
@@ -1639,6 +1638,7 @@ a.button.splash-button {
 .profile td {
   width: 170px;
   padding: 30px 20px;
+  vertical-align: middle;
 }
 
 .browser .profile-datasets td {
@@ -1673,18 +1673,26 @@ a.button.splash-button {
 }
 
 .profile tr.list-header td.main-cell {
-  padding-left: 70px;
   font-size: 14px;
 }
 
 .browser tr.list-header td.main-cell {
-  padding-left: 40px;
+  padding-left: 15px;
 }
 
 .profile-datasets,
 .profile-views {
   min-height: 72px;
   background: #f1f1f1;
+}
+
+.profile-items-wrap {
+  border-top: 1px solid #d0d0d0;
+  overflow-y: auto;
+}
+
+.profile-items-wrap .list-spin {
+  background: #fff;
 }
 
 .browser .profile-datasets {
@@ -1728,28 +1736,29 @@ a.button.splash-button {
   background: #dfdfdf;
 }
 
-.profile-avatar {
-  width: 60px;
-  height: 60px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-right: 1px solid #d0d0d0;
+img.profile-dataset-avatar {
+  vertical-align: top;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
 }
 
-.browser .profile-avatar {
-  width: 30px;
-  height: 30px;
+.browser img.profile-dataset-avatar {
+  vertical-align: text-top;
 }
 
 .profile-item-title {
-  display: block;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
   font-size: 16px;
   color: #3f3f3f;
 }
 
 .browser .profile-item-title {
   font-size: 11px;
+  margin-left: 6px;
 }
 
 .profile-item-title [class^="icon-"]:before,
@@ -3048,7 +3057,6 @@ a.comments-signin {
 }
 
 .browser-datasets {
-  overflow-y: auto;
   border-top: 1px solid #d0d0d0;
   margin-top: 20px;
 }

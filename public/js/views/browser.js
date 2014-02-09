@@ -150,8 +150,8 @@ define([
 
     resize: function () {
       if (!this.datasets) return;
-      this.datasets.$el.parent().height(
-          this.$el.height() - this.datasets.$el.position().top);
+      var wrap = $('.profile-items-wrap', this.datasets.$el);
+      wrap.height(this.$el.height() - wrap.position().top);
     },
 
     dragover: function (e) {
