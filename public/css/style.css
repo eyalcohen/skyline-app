@@ -328,6 +328,10 @@ input[type=search] {
   transition-duration: 100ms;
 }
 
+input[type=search] {
+  padding: 8px;
+}
+
 input[type=text]:focus,
 input[type=password]:focus,
 input[type=search]:focus {
@@ -416,6 +420,20 @@ a.button:focus,
 div[role=button]:focus,
 input[type=submit]:focus {
   border: 1px solid #98c1e6;
+}
+
+a.button.blue-button,
+div[role=button].blue-button,
+input[type='submit'].blue-button {
+  color: #fff;
+  background: rgba(39, 205, 214, 0.8);
+  border-color: rgba(39, 205, 214, 0.8);
+}
+
+a.button.blue-button:active,
+div[role=button].blue-button:active,
+input[type='submit'].blue-button:active {
+  background: rgba(39, 205, 214, 1);
 }
 
 input[type="checkbox"],
@@ -558,7 +576,6 @@ a.button.danger:active {
   z-index: 10;
   top: 0;
   left: 0;
-  width: 86px;
 }
 
 .checkbox-styled.table-checkbox {
@@ -574,7 +591,7 @@ a.button.danger:active {
   display: block;
   position: relative;
   padding: 0 15px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-align: center;
   line-height: 30px;
@@ -609,10 +626,21 @@ a.button.danger:active {
 }
 
 .checkbox-styled.input-checkbox input[type="checkbox"] + span {
-  padding: 0;
   -webkit-border-radius: 3px 0 0 3px;
   -moz-border-radius: 3px 0 0 3px;
   border-radius: 3px 0 0 3px;
+}
+
+.checkbox-styled.input-checkbox-split-left input[type="checkbox"] + span {
+  -webkit-border-radius: 3px 0 0 3px;
+  -moz-border-radius: 3px 0 0 3px;
+  border-radius: 3px 0 0 3px;
+}
+
+.checkbox-styled.input-checkbox-split-right input[type="checkbox"] + span {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
 }
 
 .checkbox-styled.table-checkbox input[type="checkbox"] + span {
@@ -626,7 +654,7 @@ a.button.danger:active {
   border: none;
 }
 
-.checkbox-styled:not(.input-checkbox) input[type="checkbox"] + span i {
+.checkbox-styled.toggle-checkbox input[type="checkbox"] + span i {
   display: none;
 }
 
@@ -656,7 +684,7 @@ a.button.danger:active {
   font-weight: 700;
 }
 
-.checkbox-styled:not(.input-checkbox) input[type="checkbox"]:checked + span i {
+.checkbox-styled.toggle-checkbox input[type="checkbox"]:checked + span i {
   display: inline-block;
 }
 
@@ -1073,16 +1101,9 @@ a.header-action:active {
   padding-right: 10px;
 }
 
-.header a.add-data-button {
+.header a.button.add-data-button {
   margin-left: 20px;
-  background: rgba(39, 205, 214, 0.8);
-  color: #fff;
-  border-color: #4f4f4f;
   font-size: 14px;
-}
-
-.header a.add-data-button:active {
-  background: rgba(39, 205, 214, 1);
 }
 
 .header [class^="icon-"]:before,
@@ -1146,7 +1167,7 @@ a.header-action:active {
 }
 
 .library .modal-inner form {
-  margin-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .modal-inner td input,
@@ -1156,10 +1177,6 @@ a.header-action:active {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box
-}
-
-.modal-inner td input[type="text"].input-indent {
-  text-indent: 86px;
 }
 
 .modal-inner-narrow {
@@ -1207,9 +1224,10 @@ a.header-action:active {
 
 .modal-heading {
   font-size: 12px;
-  line-height: 28px;
+  line-height: 36px;
   display: block;
-  color: #6f6f6f;
+  color: #666;
+  font-weight: 700;
 }
 
 .modal-error {
@@ -1364,19 +1382,9 @@ a.button.modal-button.full {
   text-align: center;
 }
 
-a.splash-button {
+a.button.splash-button {
   font-size: 20px;
   line-height: 36px;
-}
-
-a.splash-start-button {
-  background: rgba(39, 205, 214, 0.8);
-  color: #fff;
-  border-color: #4f4f4f;
-}
-
-a.splash-start-button:active {
-  background: rgba(39, 205, 214, 1);
 }
 
 .splash-buttons-or {
@@ -2708,7 +2716,7 @@ a.comments-signin {
 /*.........................................................................*/
 
 .export > .modal-heading {
-  margin: 15px 0 10px 30px;
+  margin: 15px 0 5px 30px;
 }
 
 .export .modal-error {
@@ -2726,6 +2734,7 @@ a.comments-signin {
 }
 
 .export-inner table {
+  table-layout: fixed;
   margin-top: 5px;
 }
 
@@ -3039,7 +3048,7 @@ a.comments-signin {
 .browser-datasets {
   overflow-y: auto;
   border-top: 1px solid #d0d0d0;
-  margin-top: 10px;
+  margin-top: 20px;
 }
 
 .browser .dnd {

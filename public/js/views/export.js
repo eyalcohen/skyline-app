@@ -150,9 +150,11 @@ define([
 
     checkResample: function (e) {
       this.noresample.attr('checked', false);
+      this.resample.attr('checked', true);
     },
 
     checkNoResample: function (e) {
+      this.noresample.attr('checked', true);
       this.resample.attr('checked', false);
     },
 

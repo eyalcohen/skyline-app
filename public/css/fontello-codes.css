@@ -11,7 +11,10 @@
 .icon-trash:before { content: '\e811'; } /* '' */
 .icon-folder-empty:before { content: '\e80d'; } /* '' */
 .icon-menu-1:before { content: '\e802'; } /* '' */
+.icon-floppy:before { content: '\e801'; } /* '' */
 .icon-plus:before { content: '\e812'; } /* '' */
+.icon-users:before { content: '\e819'; } /* '' */
+.icon-user-add:before { content: '\e81a'; } /* '' */
 .icon-check:before { content: '\e80f'; } /* '' */
 .icon-cancel:before { content: '\e80c'; } /* '' */
 .icon-eye:before { content: '\e809'; } /* '' */
@@ -22,4 +25,4 @@
 .icon-star-1:before { content: '\e80b'; } /* '' */
 .icon-down-fat:before { content: '\e814'; } /* '' */
 .icon-inbox-1:before { content: '\e80e'; } /* '' */
-.icon-floppy:before { content: '\e801'; } /* '' */
+.icon-user:before { content: '\e818'; } /* '' */

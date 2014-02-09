@@ -49,6 +49,7 @@ define([
       this.button = this.$('a.channel-button');
       this.name = this.$('.channel-name', this.button);
       this.txt = this.$('.channel-name span');
+      this.value = this.$('.channel-value');
 
       // Bind click event.
       this.button.click(_.bind(this.toggle, this));
@@ -84,7 +85,7 @@ define([
 
     fit: function (w) {
       this.$el.width(w);
-      this.fitName(w - 20);
+      this.fitName(w - this.value.width());
     },
 
     fitName: function (w) {
@@ -179,14 +180,11 @@ define([
 
     updateLegend: function(stats) {
       if (!this.active) return;
-      var item = _.find(stats, function(e) {
+      var item = _.find(stats, function (e) {
         return e.channelName === this.model.id;
       }, this);
-      if (item) {
-        var sel = this.$el.find('.channel-value');
-        sel.show();
-        sel.text(item.nearestPointData[1]);
-      }
+      if (item)
+        this.value.text(item.nearestPointData[1].toFixed(2)).show();
     }
 
   });

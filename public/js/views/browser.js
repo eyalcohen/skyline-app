@@ -71,13 +71,18 @@ define([
       'click .modal-close': 'close',
       'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
-      'click .browser-private': 'checkPrivate'
+      'click .browser-private': 'checkPrivate',
+      'click .browser-search-justme': 'checkJustMe',
+      'click .browser-search-allusers': 'checkAllUsers'
     },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs.
+      this.privacy = this.$('.browser-private');
+      this.justme = this.$('.browser-search-justme');
+      this.allusers = this.$('.browser-search-allusers');
       this.addNewFileForm = $('.browser-add-form');
       this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
       this.newFile = $('input[name="data_file"]', this.addNewFileForm);
@@ -283,12 +288,21 @@ define([
     },
 
     checkPrivate: function (e) {
-      var box = this.$('.browser-private');
-      var span = $('span', box.parent());
-      if (this.$('.browser-private').is(':checked'))
+      var span = $('span', this.privacy.parent());
+      if (this.privacy.is(':checked'))
         span.html('<i class="icon-lock"></i> Private');
       else
         span.html('<i class="icon-lock-open"></i> Public');
+    },
+
+    checkJustMe: function (e) {
+      this.justme.attr('checked', true);
+      this.allusers.attr('checked', false);
+    },
+
+    checkAllUsers: function (e) {
+      this.justme.attr('checked', false);
+      this.allusers.attr('checked', true);
     },
 
   });

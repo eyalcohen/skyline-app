@@ -13,9 +13,9 @@
   <div>
     <span class="modal-heading">
       <% if (lib) { %>
-        a) Create a new data source from a file on your computer
+        Create a new data source from a file on your computer,
       <% } else { %>
-        Add data from a file on your computer
+        Add data from a file on your computer.
       <% } %>
     </span>
     <form class="browser-add-form" enctype="multipart/form-data" method="POST">
@@ -23,7 +23,7 @@
         <tbody>
           <tr>
             <td>
-              <input class="input-indent" name="dummy_data_file" type="text" placeholder="Select file..." readonly />
+              <input name="dummy_data_file" type="text" placeholder="Select file..." style="text-indent:76px;" readonly />
               <input name="data_file" type="file" class="file-input" />
               <label class="checkbox-styled input-checkbox">
                 <input class="browser-private" type="checkbox" name="private" value="private" />
@@ -31,7 +31,7 @@
               </label>
             </td>
             <td style="width:120px;">
-              <input type="submit" disabled="disabled" value="Create new" />
+              <input class="blue-button" type="submit" disabled="disabled" value="Create new" />
               <div class="button-spin"></div>
             </td>
           </tr>
@@ -45,8 +45,25 @@
     </form>
     <% if (lib) { %>
       <span class="modal-heading">
-        b) Use an existing data source
+        or use an existing data source.
       </span>
+      <table>
+        <tbody>
+          <tr>
+            <td class="main-cell">
+              <input name="search" type="search" placeholder="Search..." style="text-indent:179px;" />
+              <label class="checkbox-styled input-checkbox input-checkbox-split-left">
+                <input class="browser-search-justme" type="checkbox" name="me" value="me" checked />
+                <span><i class="icon-user"></i> Just me</span>
+              </label>
+              <label class="checkbox-styled input-checkbox input-checkbox-split-right" style="left:89px;">
+                <input class="browser-search-allusers" type="checkbox" name="all" value="all" />
+                <span><i class="icon-users"></i> All users</span>
+              </label>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     <% } %>
   </div>
 </div>

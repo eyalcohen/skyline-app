@@ -85,6 +85,24 @@
       "src": "fontawesome"
     },
     {
+      "uid": "bbd66ef66bb8fa9edde54d9a90b89150",
+      "css": "user",
+      "code": 59416,
+      "src": "entypo"
+    },
+    {
+      "uid": "ecf8edb95c3f45eb433b4cce7ba9f740",
+      "css": "users",
+      "code": 59417,
+      "src": "entypo"
+    },
+    {
+      "uid": "6274e0601f2feef7eced89146e708de0",
+      "css": "user-add",
+      "code": 59418,
+      "src": "entypo"
+    },
+    {
       "uid": "14017aae737730faeda4a6fd8fb3a5f0",
       "css": "check",
       "code": 59407,
