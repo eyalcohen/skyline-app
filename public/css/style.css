@@ -709,6 +709,7 @@ input.file-input {
 span.empty-feed {
   display: inline-block;
   width: 100%;
+  margin: 10px 0;
   font-style: italic;
   color: #808080;
   text-align: center;
@@ -1691,6 +1692,10 @@ a.button.splash-button {
   background: #fff;
 }
 
+.browser span.empty-feed {
+  margin: 0;
+}
+
 .browser .profile-datasets {
   -webkit-border-radius: 0 0 3px 3px;
   -moz-border-radius: 0 0 3px 3px;
@@ -2528,6 +2533,7 @@ textarea.comment-input {
   text-align: right;
   background: #f2f2f2;
   border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
   font-size: 0;
 }
 

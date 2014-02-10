@@ -151,7 +151,6 @@ define([
         if (list.items.length === 0) {
           this.nomore = true;
           this.spin.target.hide();
-          console.log(showingall[0])
           if (this.collection.length > 0)
             showingall.css('display', 'block');
           else {
