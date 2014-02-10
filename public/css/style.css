@@ -1654,29 +1654,26 @@ a.button.splash-button {
   text-align: left;
 }
 
-.profile tr.list-header,
-.browser tr.list-header {
-  text-transform: uppercase;
-  font-size: 10px;
-  color: #8f8f8f;
+.profile tr.table-header,
+.browser tr.table-header {
+  color: #666;
   background: #f9f9f9;
   border-bottom: 1px solid #d0d0d0;
 }
 
-.profile tr.list-header td {
+.profile tr.table-header td {
   padding: 20px;
 }
 
-.browser tr.list-header td {
-  padding: 5px 0;
-  font-size: 10px;
+.browser tr.table-header td {
+  padding: 5px 15px;
 }
 
-.profile tr.list-header td.main-cell {
+.profile tr.table-header td.main-cell {
   font-size: 14px;
 }
 
-.browser tr.list-header td.main-cell {
+.browser tr.table-header td.main-cell {
   padding-left: 15px;
 }
 
@@ -1687,7 +1684,6 @@ a.button.splash-button {
 }
 
 .profile-items-wrap {
-  border-top: 1px solid #d0d0d0;
   overflow-y: auto;
 }
 
@@ -2786,10 +2782,8 @@ a.comments-signin {
   border-bottom: none;
 }
 
-.export .export-info tr.list-header {
-  text-transform: uppercase;
-  font-size: 10px;
-  color: #8f8f8f;
+.export .export-info tr.table-header {
+  color: #666;
   background: #f9f9f9;
   border-bottom: 1px solid #d0d0d0;
 }
@@ -2813,74 +2807,15 @@ a.comments-signin {
 
 .export tr td.number-cell {
   vertical-align: middle;
+  font-size: 11px;
 }
 
 .export .export-info tr td.table-cell {
   padding: 0;
 }
 
-.export .export-info tr.list-header td {
+.export .export-info tr.table-header td {
   padding: 5px 15px;
-  font-size: 10px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.export-channel-list {
-  list-style-type: none;
-}
-
-.export-modal-title {
-  text-align: center;
-}
-
-.export-modal-abovefold {
-  float: left;
-  padding: 10px 35px 0px 15px;
-}
-
-.export-modal-belowfold {
-  clear: both;
-  padding: 0px 15px 0px 15px;
-}
-
-.export-modal-download {
-  margin-top:30px;
-  margin-left: 20px;
-  margin-bottom:10px;
-}
-
-.export-modal .export-modal-fold {
-  text-align: center;
-  width: 100%;
-  height: 20px;
-  padding: 0;
-  margin: 0;
-  border: 0px;
-  line-height: 20px;
-}
-
-.export-resample-input {
-  width: 40px;
 }
 
 /*.........................................................................*/

@@ -11,7 +11,7 @@
   <div class="export-info">
     <table>
       <tbody>
-        <tr class="list-header">
+        <tr class="table-header">
           <td colspan="2" class="main-cell">Confirm channels:</td>
           <td>Data points</td>
           <td>File size</td>
@@ -24,8 +24,8 @@
             </td>
             <td class="table-cell">
               <table>
-                <tr class="list-header">
-                  <td colspan="4"><%= d.title %></td>
+                <tr class="table-header">
+                  <td colspan="4">"<%= d.title %>"</td>
                 </tr>
                 <% _.each(this.channels, function (c) {
                   if (c.did !== d.id) return; %>
@@ -63,7 +63,7 @@
                 <span><i class="icon-check"></i> Resample to</span>
               </label>
             </td>
-            <td class="number-cell" style="width:125px; text-align:left;">seconds / sample, or</td>
+            <td class="number-cell" style="width:115px; text-align:left;">seconds / sample, or</td>
             <td style="width:129px;">
               <label class="checkbox-styled toggle-checkbox">
                 <input type="checkbox" name="noresample" value="noresample" checked />
