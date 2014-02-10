@@ -77,7 +77,7 @@ define([
         var page = this.app.profile.content.page;
         if (page && page.name) {
           var icon = page.public === false ? 'lock': 'folder-empty';
-          this.app.title('<i class="icon-' + icon + '"></i> ' + page.name);
+          this.app.title(page.name, '<i class="icon-' + icon + '"></i> ' + page.name);
         } else this.app.title('Chart', '');
       }
 

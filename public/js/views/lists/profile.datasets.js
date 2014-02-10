@@ -20,12 +20,16 @@ define([
     fetching: false,
     nomore: false,
     limit: 10,
+    searching: false,
+    str: null,
 
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
       this.Row = Row;
       this.modal = options.modal;
+      this.options = options;
+      if (!this.options.searchQuery) this.options.searchQuery = {};
 
       // Call super init.
       List.prototype.initialize.call(this, app, options);
@@ -43,7 +47,7 @@ define([
       this.empty_label = 'No data sources.';
 
       // Reset the collection.
-      this.latest_list = options.datasets;
+      this.latest_list = this.options.datasets;
       this.collection.reset(this.latest_list.items);
     },
 
@@ -63,7 +67,6 @@ define([
           width: 2,
           radius: 6,
         });
-        this.spin.start();
 
         this.wrap = this.$('.profile-items-wrap');
         if (this.collection.length > 0 || this.latest_list.more)
@@ -73,8 +76,7 @@ define([
         else {
           this.nomore = true;
           $('<span class="empty-feed">' + this.empty_label
-              + '</span>').appendTo(this.$el);
-          this.spin.stop();
+              + '</span>').appendTo(this.wrap);
         }
         this.paginate();
       }
@@ -95,6 +97,10 @@ define([
     },
 
     setup: function () {
+
+      // Save refs.
+      this.showingall = this.$('.list-spin .full-feed');
+
       return List.prototype.setup.call(this);
     },
 
@@ -128,6 +134,67 @@ define([
       }
     },
 
+    search: function (str, refresh) {
+
+      // Check search string.
+      if (str.length === 0)
+        return this.restore();
+
+      // Clear items.
+      this.spin.stop();
+      this._clear();
+      this.showingall.hide();
+      this.$('.empty-feed').remove();
+
+      str = str === '' || str.length < 2 ? null: str;
+      if (str && str === this.str && !refresh) return;
+      this.str = str;
+
+      if (!str) {
+        $('<span class="empty-feed">Nothing found.</span>')
+            .appendTo(this.wrap);
+        return;
+      }
+
+      // Perform search.
+      this.searching = true;
+      this.spin.start();
+      rest.post('/api/datasets/search/' + str, this.options.searchQuery,
+          _.bind(function (err, data) {
+        if (err)
+          return console.log(err);
+
+        if (data.items.length === 0) {
+          $('<span class="empty-feed">Nothing found.</span>')
+              .appendTo(this.wrap);
+        } else {
+
+          // Add to collection.
+          _.each(data.items, _.bind(function (i) {
+            this.collection.unshift(i);
+          }, this));
+        }
+
+        this.spin.stop();
+      }, this));
+
+    },
+
+    restore: function () {
+      this.searching = false;
+      this.nomore = false;
+      this.latest_list = this.options.datasets;
+      this.collection.reset(this.latest_list.items);
+    },
+
+    // Clear the collection w/out re-rendering.
+    _clear: function () {
+      _.each(this.views, _.bind(function (v) {
+        v.destroy();
+        this.collection.remove(v.model);
+      }, this));
+    },
+
     /**********************
      * Pagination support *
      **********************/
@@ -142,22 +209,22 @@ define([
 
     // attempt to get more models (older) from server
     more: function () {
+      if (this.searching) return;
 
       // render models and handle edge cases
       function updateUI(list) {
         _.defaults(list, {items:[]});
         this.latest_list = list;
-        var showingall = this.$('.list-spin .empty-feed');
         if (list.items.length === 0) {
           this.nomore = true;
           this.spin.target.hide();
           if (this.collection.length > 0)
-            showingall.css('display', 'block');
+            this.showingall.css('display', 'block');
           else {
-            showingall.hide();
+            this.showingall.hide();
             if (this.$('.empty-feed').length === 0)
               $('<span class="empty-feed">' + this.empty_label + '</span>')
-                  .appendTo(this.$el);
+                  .appendTo(this.wrap);
           }
         } else
           _.each(list.items, _.bind(function (i) {
@@ -169,7 +236,7 @@ define([
           if (list.items.length < this.limit) {
             this.spin.target.hide();
             if (!this.$('.empty-feed').is(':visible'))
-              showingall.css('display', 'block');
+              this.showingall.css('display', 'block');
           }
         }, this), (list.items.length + 1) * 30);
       }
@@ -211,12 +278,12 @@ define([
         if (!this.nomore && pos < -this.spin.target.height() / 2)
           this.more();
       }, this), 50);
-
       this.wrap.scroll(this._paginate).resize(this._paginate);
     },
 
     unpaginate: function () {
-      this.wrap.unbind('scroll', this._paginate).unbind('resize', this._paginate);
+      this.wrap.unbind('scroll', this._paginate)
+          .unbind('resize', this._paginate);
     }
 
   });

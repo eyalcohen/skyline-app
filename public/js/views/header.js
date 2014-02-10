@@ -113,7 +113,7 @@ define([
 
       // Swap user header content.
       this.$('.user-box').remove();
-      $('<a class="signin-button button">Sign in</a>').prependTo(this.$el);
+      $('<a class="button signin-button">Sign in</a>').prependTo(this.$el);
     },
 
     title: function (str) {

@@ -6,12 +6,13 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
+  'Modernizr',
   'mps',
   'rest',
   'util',
   'Spin',
   'text!../../templates/signin.html'
-], function ($, _, Backbone, mps, rest, util, Spin, template) {
+], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template) {
 
   return Backbone.View.extend({
 
@@ -42,6 +43,10 @@ define([
         closeBtn: false,
         padding: 0
       });
+
+      // Add placeholder shim if need to.
+      if (Modernizr.input.placeholder)
+        this.$('input').placeholder();
 
       // Init the load indicators.
       this.$('.button-spin').each(function (el) {

@@ -96,6 +96,11 @@ define([
         width: 2,
         radius: 6,
       });
+      this.searchInput = this.$('input[name="search"]');
+
+      // Handle search input.
+      this.searchInput.bind('keyup', _.bind(this.search, this));
+      this.searchInput.bind('search', _.bind(this.search, this));
 
       // Drag & drop events.
       this.$el.bind('dragover', _.bind(this.dragover, this));
@@ -117,6 +122,7 @@ define([
             items: [],
             query: {author_id: this.app.profile.user.id}
           },
+          searchQuery: {author_id: this.app.profile.user.id},
           modal: true,
           parentView: this,
           reverse: true
@@ -298,11 +304,21 @@ define([
     checkJustMe: function (e) {
       this.justme.attr('checked', true);
       this.allusers.attr('checked', false);
+      this.datasets.options.searchQuery.author_id = this.app.profile.user.id;
+      if (this.datasets.searching)
+        this.search(null, true);
     },
 
     checkAllUsers: function (e) {
       this.justme.attr('checked', false);
       this.allusers.attr('checked', true);
+      delete this.datasets.options.searchQuery.author_id;
+      if (this.datasets.searching)
+        this.search(null, true);
+    },
+
+    search: function (e, refresh) {
+      this.datasets.search(util.sanitize(this.searchInput.val()), refresh);
     },
 
   });
