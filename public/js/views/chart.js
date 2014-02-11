@@ -76,8 +76,27 @@ define([
       if (!embed) {
         var page = this.app.profile.content.page;
         if (page && page.name) {
-          var icon = page.public === false ? 'lock': 'folder-empty';
-          this.app.title(page.name, '<i class="icon-' + icon + '"></i> ' + page.name);
+          var icon;
+          if (page.parent)
+            icon = '<i class="icon-folder-empty"><i class="icon-split"></i></i>';
+          else 
+            icon = page.public === false ?
+                '<i class="icon-lock"></i>': '<i class="icon-folder-empty">';
+          var klass = 'page-header-title';
+          if (page.parent) klass += ' forked';
+          if (page.public === false) klass += ' locked';
+          var title =
+              '<span class="' + klass + '">' + icon + ' ' + page.name;
+          
+          if (page.parent)
+            title += ' <span>(forked from <a href="/'
+                + page.parent.author.username + '/views/'
+                + page.parent.slug + '"' + ' class="navigate'
+                + (page.parent.public === false ? ' locked': '') + '">'
+                + '<i class="icon-folder-empty"></i>' + page.parent.name
+                + '</a>)</span>';
+          title += '</span>';
+          this.app.title(page.name, title);
         } else this.app.title('Chart', '');
       }
 

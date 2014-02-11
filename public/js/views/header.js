@@ -117,7 +117,7 @@ define([
     },
 
     title: function (str) {
-      this.$('.header-title').html(str);
+      this.$('.page-header').html(str);
     },
 
     widen: function () {

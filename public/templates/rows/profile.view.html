@@ -23,7 +23,7 @@
     <%= this.model.get('name') %>
     <% if (this.model.get('parent') && this.parentView.modal) { %>
       <span>
-        (forked from <a href="/<%= this.model.get('parent').author.username %>/<%= this.model.get('parent').id %>"
+        (forked from <a href="/<%= this.model.get('parent').author.username %>/views/<%= this.model.get('parent').slug %>"
         class="navigate<%= this.model.get('parent').public === false ? ' locked': '' %>">
         <i class="icon-folder-empty"></i><%= this.model.get('parent').name %></a>)
       </span>
@@ -32,7 +32,7 @@
   <p class="profile-item-stats">
     <% if (this.model.get('parent') && !this.parentView.modal) { %>
       <span>
-        Forked from <a href="/<%= this.model.get('parent').author.username %>/<%= this.model.get('parent').id %>"
+        Forked from <a href="/<%= this.model.get('parent').author.username %>/views/<%= this.model.get('parent').slug %>"
         class="navigate<%= this.model.get('parent').public === false ? ' locked': '' %>">
         <i class="icon-folder-empty"></i><%= this.model.get('parent').name %></a>
       </span>

@@ -231,7 +231,7 @@ body {
   font-size: 12px;
   font-weight: 400;
   line-height: 20px;
-  color: #4f4f4f;
+  color: #2f2f2f;
 
   -webkit-font-smoothing: antialiased;
   -moz-font-smoothing: antialiased;
@@ -265,7 +265,7 @@ a:focus {
 }
 
 a.locked {
-  background: #eff2bd;
+  background: rgba(230, 230, 0, 0.2);
 }
 
 a::-moz-focus-inner,
@@ -867,7 +867,20 @@ i i {
 .page-spin {
   position: absolute;
   top: 30px;
-  left: 120px;
+  left: 50px;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .1s;
+  -moz-animation-duration: .1s;
+  -o-animation-duration: .1s;
+  animation-duration: .1s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
 }
 
 body.embed .page-spin {
@@ -890,7 +903,7 @@ body.embed .page-spin {
   font-size: 14px;
   line-height: 32px;
   font-weight: bold;
-  color: #3f3f3f;
+  color: #2f2f2f;
 }
 
 .page-error {
@@ -980,7 +993,7 @@ body.embed .block-messages {
 .block-alert-txt {
   font-size: 11px;
   padding: 0 10px;
-  color: #3f3f3f;
+  color: #2f2f2f;
   font-weight: 700;
   line-height: 40px;
 }
@@ -1032,6 +1045,14 @@ body.embed .block-messages {
   font-weight: 600;
   text-transform: lowercase;
   line-height: 57px;
+
+  -webkit-transition: opacity 0.1s ease-out 0;
+  -moz-transition: opacity 0.1s ease-out 0;
+  transition: opacity 0.1s ease-out;
+}
+
+body.loading .header .header-logo a {
+  opacity: 0.1;
 }
 
 .header .header-logo img {
@@ -1040,36 +1061,52 @@ body.embed .block-messages {
   right: -13px;
 }
 
-.header .user-box {
-  position: relative;
-  z-index: 1;
-  float: right;
-  white-space: nowrap;
-  padding-left: 20px;
-  margin-right: 40px;
-  height: 60px;
-  border-left: 1px solid #d0d0d0;
-}
-
-.header .header-title {
-  display: none;
-  margin: 0 auto;
-  width: 100%;
-  text-align: center;
-  white-space: nowrap;
-  font-size: 18px;
-  line-height: 61px;
-  color: #8f8f8f;
-}
-
-.header.wide .header-title {
-  display: block;
-}
-
 .header-middle {
-  width: 980px;
-  margin: 0 auto;
+  position: relative;
   height: 60px;
+  float: left;
+}
+
+.page-header {
+  float: left;
+}
+
+.page-header a i {
+  color: #808080;
+}
+
+.page-header-title {
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 34px;
+  font-weight: 700;
+  margin-top: 13px;
+  display: inline-block;
+  margin-left: 20px;
+  padding: 0 10px;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.page-header-title.locked {
+  background: rgba(230, 230, 0, 0.2);
+}
+
+.page-header-title i i {
+  left: 14px;
+  top: -2px;
+}
+
+.page-header-title.forked i {
+  margin-right: 0.4em;
+}
+
+.page-header-title span {
+  font-size: 12px;
+  font-weight: normal;
+  color: #666;
 }
 
 .header input.header-search {
@@ -1092,12 +1129,23 @@ body.embed .block-messages {
   left: 140px;
 }
 
+.header .user-box {
+  position: relative;
+  z-index: 1;
+  float: right;
+  white-space: nowrap;
+  padding-left: 20px;
+  margin-right: 40px;
+  height: 60px;
+  border-left: 1px solid #d0d0d0;
+}
+
 a.header-action {
   position: relative;
   display: inline-block;
   line-height: 61px;
   font-size: 14px;
-  color: #4f4f4f;
+  color: #2f2f2f;
   padding-left: 10px;
   text-transform: uppercase;
   background: none;
@@ -1747,7 +1795,7 @@ a.button.splash-button {
 
 .profile-dataset.profile-dataset-locked,
 .profile-view.profile-view-locked {
-  background: rgba(205, 214, 39, 0.1);
+  background: rgba(230, 230, 0, .2);
 }
 
 .profile-dataset:hover:not(.profile-dataset-locked),
@@ -1816,7 +1864,7 @@ img.profile-dataset-parent-avatar {
   vertical-align: middle;
   margin-left: 10px;
   font-size: 16px;
-  color: #3f3f3f;
+  color: #2f2f2f;
 }
 
 .profile-dataset-fork .profile-item-title,
@@ -1841,7 +1889,7 @@ img.profile-dataset-parent-avatar {
 }
 
 .profile-item-title span {
-  color: #808080;
+  color: #666;
   font-size: 9px;
 }
 
@@ -1891,7 +1939,7 @@ img.profile-dataset-parent-avatar {
 td.profile-item-delete {
   width: 20px;
   cursor: pointer;
-  color: #4f4f4f;
+  color: #2f2f2f;
 }
 
 td.profile-item-delete-empty {
@@ -1987,13 +2035,13 @@ a.control-button {
   padding: 7px 0 0 0;
   text-align: center;
   font-size: 11px;
-  color: #3f3f3f;
+  color: #2f2f2f;
   font-weight: 700;
   background: #f9f9f9;
 }
 
 a.control-button:hover {
-  color: #3f3f3f;
+  color: #2f2f2f;
 }
 
 a.control-button:active {
@@ -2296,7 +2344,7 @@ a.control-button-save.saving {
   cursor: pointer;
   padding: 0 10px;
   line-height: 35px;
-  color: #4f4f4f;
+  color: #2f2f2f;
   font-size: 11px; 
   overflow: hidden;
 }
@@ -2409,7 +2457,7 @@ a.dataset-button .dataset-button-bg {
   z-index: 1;
   margin-left: 5px;
   font-size: 12px;
-  color: #3f3f3f;
+  color: #2f2f2f;
   line-height: 23px;
 }
 
@@ -2436,7 +2484,7 @@ a.dataset-button .dataset-button-bg {
   margin-top: -1px;
   line-height: 0;
   font-size: 9px;
-  color: #3f3f3f;
+  color: #2f2f2f;
 }
 
 .dataset:active .dataset-title,
@@ -2466,7 +2514,7 @@ a.dataset-add-button {
 }
 
 a.dataset-add-button:hover {
-  color: #3f3f3f;
+  color: #2f2f2f;
 }
 
 a.dataset-add-button:active {
@@ -2539,7 +2587,7 @@ a.channel-button {
 
 .channel-name {
   font-size: 11px;
-  color: #3f3f3f;
+  color: #2f2f2f;
 }
 
 .channel:not(.active) a.channel-button:hover .channel-name {
@@ -2714,7 +2762,7 @@ a.button.comment-input-button.primary:active {
   padding: 0 8px 0 34px;
   font-size: 11px;
   line-height: 14px;
-  color: #4f4f4f;
+  color: #2f2f2f;
   margin-bottom: -3px;
 }
 
@@ -2755,7 +2803,7 @@ a.comment-author {
   display: inline-block;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: #3f3f3f;
+  color: #2f2f2f;
   font-weight: bold;
   font-size: 11px;
   -webkit-text-shadow: 1px 1px 0 rgba(255,255,255,0.7);

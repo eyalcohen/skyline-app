@@ -30,8 +30,8 @@ block content
               | Skylin
           .header-middle
             input.header-search(type="search", placeholder="Search...")
-            span.header-title
-    - var hc = typeof embed !== 'undefined' && embed ? "main embed": "main";
+            .page-header
+    - var hc = typeof embed !== 'undefined' && embed ? 'main embed': 'main';
     div(class=hc, role="main")
     - if (typeof embed === 'undefined' || !embed)
       footer

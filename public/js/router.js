@@ -107,7 +107,7 @@ define([
       // Init page spinner.
       var sopts = this.app.embed ?
           {color: '#8f8f8f', lines: 17, length: 7, width: 3, radius: 12}: 
-          {color: '#bfbfbf', lines: 13, length: 3, width: 2, radius: 6};
+          {color: '#3f3f3f', lines: 13, length: 3, width: 2, radius: 6};
       this.spin = new Spin($('.page-spin'), sopts);
     },
 
@@ -173,6 +173,7 @@ define([
 
     start: function () {
       $(window).scrollTop(0);
+      $('body').addClass('loading');
       this.spin.start();
     },
 
@@ -180,6 +181,7 @@ define([
       _.delay(_.bind(function () {
         this.spin.stop();
         $(window).scrollTop(0);
+        $('body').removeClass('loading');
       }, this), 500);
     },
 
