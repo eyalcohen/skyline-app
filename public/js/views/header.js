@@ -72,7 +72,6 @@ define([
     events: {
       'click .header-logo': 'home',
       'click .signin-button': 'signin',
-      'click .username': 'username',
       'click .add-data-button': 'add',
       'click .navigate': 'navigate'
     },
@@ -91,14 +90,6 @@ define([
       mps.publish('modal/signin/open');
     },
 
-    username: function (e) {
-      e.preventDefault();
-
-      // Route to profile.
-      this.app.router.navigate('/' + this.app.profile.user.username,
-          {trigger: true});
-    },
-
     add: function (e) {
       e.preventDefault();
 
@@ -112,7 +103,7 @@ define([
       });
 
       // Swap user header content.
-      this.$('.user-box').remove();
+      this.$('.header-user-box').remove();
       $('<a class="button signin-button">Sign in</a>').prependTo(this.$el);
     },
 
@@ -135,8 +126,13 @@ define([
 
       // Route to wherever.
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
+        this.$('.header-user-menu').addClass('hide');
+        _.delay(_.bind(function () {
+          this.$('.header-user-menu').removeClass('hide');
+        }, this), 500);
+      }
     },
 
   });

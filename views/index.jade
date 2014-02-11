@@ -15,12 +15,20 @@ block content
           ul
         .header
           - if (typeof user !== 'undefined')
-            .user-box
-              a.username.header-action(href="/#{user.username}") #{user.displayName}
-              a.header-action.navigate(href="/settings")
-                i.icon-menu-1
-              a.header-action(href="/logout")
-                i.icon-logout
+            .header-user-box
+              .header-user
+                a.navigate(href="/#{user.username}")
+                  img(src="https://www.gravatar.com/avatar/" + user.gravatar + "?s=34&d=mm", width="34", height="34")
+                i.icon-down-dir
+                ul.header-user-menu
+                  li
+                    a.navigate(href="/settings")
+                      | Settings
+                      i.icon-cog
+                  li
+                    a(href="/logout")
+                      | Logout
+                      i.icon-logout(style="right:9px;")
               a.button.blue-button.add-data-button(href="javascript:;") Add Data
           - else
             a.button.signin-button(href="javascript:;") Sign in

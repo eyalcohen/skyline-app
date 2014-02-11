@@ -1009,7 +1009,6 @@ body.embed .block-messages {
   margin: 0 auto;
   width: 100%;
   min-width: 430px;
-  overflow: hidden;
 }
 
 .header .header-logo {
@@ -1129,43 +1128,124 @@ body.loading .header .header-logo a {
   left: 140px;
 }
 
-.header .user-box {
+.header-user-box {
   position: relative;
   z-index: 1;
   float: right;
   white-space: nowrap;
-  padding-left: 20px;
-  margin-right: 40px;
+  margin-right: 30px;
   height: 60px;
   border-left: 1px solid #d0d0d0;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-a.header-action {
-  position: relative;
+.header-user {
   display: inline-block;
-  line-height: 61px;
-  font-size: 14px;
-  color: #2f2f2f;
-  padding-left: 10px;
-  text-transform: uppercase;
-  background: none;
+  position: relative;
+  width: 56px;
+  height: 60px;
+  margin-right: 30px;
+  padding: 0 20px;
+  border-right: 1px solid #d0d0d0;
+  cursor: pointer;
 }
 
-a.header-action:hover {
-  color: #0f0f0f;
+.header-user:hover {
+  background: #f2f2f2;
 }
 
-a.header-action:active {
-  top: 1px;
+.header-user:active {
+  background: #f0f0f2;
 }
 
-.header a.username {
-  font-size: 11px;
-  padding-right: 10px;
+.header-user img {
+  position: relative;
+  top: 13px;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.header-user > i {
+  left: 13px;
+}
+
+ul.header-user-menu {
+  display: none;
+  position: absolute;
+  z-index: 0;
+  top: 60px;
+  left: -1px;
+  list-style: none;
+  background: #d0d0d0;
+  width: 100%;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+ul.header-user-menu li {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+ul.header-user-menu li a {
+  position: relative;
+  display: block;
+  padding: 5px 10px;
+  color: #4f4f4f;
+  font-size: 12px;
+  background-color: none;
+  border-left: 1px solid #d0d0d0;
+  border-right: 1px solid #d0d0d0;
+  width: 76px;
+
+  -webkit-transition: all 0.1s ease-in 0;
+  -moz-transition: all 0.1s ease-in;
+  transition: all 0.1s ease-in;
+}
+
+ul.header-user-menu li a:last-child {
+  border-bottom: 1px solid #d0d0d0;
+}
+
+ul.header-user-menu li a:hover {
+  background-color: #3f3f3f;
+  border-color: #3f3f3f;
+  color: #fff;
+}
+
+ul.header-user-menu li a i {
+  position: absolute;
+  right: 10px;
+}
+
+.header-user:hover ul.header-user-menu {
+  display: block;
+}
+
+.header-user ul.header-user-menu.hide {
+  display: none;
 }
 
 .header a.button.add-data-button {
-  margin-left: 20px;
+  position: relative;
+  top: 1px;
   font-size: 14px;
 }
 
