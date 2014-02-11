@@ -43,6 +43,15 @@ define([
       if ($(e.target).hasClass('profile-item-delete')
           || $(e.target).hasClass('icon-cancel')) return;
 
+      if ($(e.target).hasClass('navigate')) {
+        var path = $(e.target).closest('a').attr('href');
+        if (path) {
+          $.fancybox.close();
+          this.app.router.navigate(path, {trigger: true});
+        }
+        return;
+      }
+
       if (!this.parentView.modal) {
         var path = [this.model.get('author').username, this.model.id].join('/');
         this.app.router.navigate('/' + path, {trigger: true});

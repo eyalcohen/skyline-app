@@ -755,12 +755,12 @@ span.empty-list {
   font-weight: bold;
   font-size: 20px;
   color: #4d4d4d;
-  line-height: 40px;
+  line-height: 20px;
   text-align: center;
 }
 
 .http-notice {
-  font-size: 12px;
+  font-size: 14px;
   color: #4d4d4d;
   text-align: center;
 }
@@ -1735,7 +1735,15 @@ a.button.splash-button {
   background: #dfdfdf;
 }
 
-img.profile-dataset-avatar {
+.profile-dataset a i,
+.profile-view a i {
+  color: #808080;
+}
+
+img.profile-dataset-avatar,
+img.profile-dataset-parent-avatar {
+  position: relative;
+  z-index: 1;
   vertical-align: top;
 
   -webkit-border-radius: 3px;
@@ -1743,8 +1751,21 @@ img.profile-dataset-avatar {
   border-radius: 3px;
 }
 
-.browser img.profile-dataset-avatar {
+img.profile-dataset-parent-avatar {
+  position: absolute;
+  left: 15px;
+  top: 20px;
+  z-index: 0;
+}
+
+.browser img.profile-dataset-avatar,
+.browser img.profile-dataset-parent-avatar {
   vertical-align: text-top;
+}
+
+.browser img.profile-dataset-parent-avatar {
+  left: 12px;
+  top: 7px;
 }
 
 .profile-item-title {
@@ -1758,6 +1779,10 @@ img.profile-dataset-avatar {
 .browser .profile-item-title {
   font-size: 11px;
   margin-left: 6px;
+}
+
+.profile-item-title span {
+  color: #808080;
 }
 
 .profile-item-title [class^="icon-"]:before,
@@ -1781,21 +1806,25 @@ img.profile-dataset-avatar {
 }
 
 .profile-item-stats {
-  display: none;
   position: absolute;
-  left: 42px;
-  bottom: 5px;
+  left: 76px;
+  bottom: 8px;
   font-size: 0;
 }
 
 .browser .profile-item-stats {
-  display: none;
+  left: 76px;
+  bottom: 8px;
 }
 
 .profile-item-stats span {
   margin: 0 12px 0 0;
-  color: #8f8f8f;
+  color: #808080;
   font-weight: bold;
+  font-size: 11px;
+}
+
+.browser .profile-item-stats span {
   font-size: 10px;
 }
 

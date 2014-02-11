@@ -134,7 +134,7 @@ define([
       }
     },
 
-    search: function (str, refresh) {
+    search: function (str) {
 
       // Check search string.
       if (str.length === 0)
@@ -147,7 +147,6 @@ define([
       this.$('.empty-feed').remove();
 
       str = str === '' || str.length < 2 ? null: str;
-      if (str && str === this.str && !refresh) return;
       this.str = str;
 
       if (!str) {

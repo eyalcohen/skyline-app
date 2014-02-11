@@ -306,7 +306,7 @@ define([
       this.allusers.attr('checked', false);
       this.datasets.options.searchQuery.author_id = this.app.profile.user.id;
       if (this.datasets.searching)
-        this.search(null, true);
+        this.search();
     },
 
     checkAllUsers: function (e) {
@@ -314,11 +314,11 @@ define([
       this.allusers.attr('checked', true);
       delete this.datasets.options.searchQuery.author_id;
       if (this.datasets.searching)
-        this.search(null, true);
+        this.search();
     },
 
-    search: function (e, refresh) {
-      this.datasets.search(util.sanitize(this.searchInput.val()), refresh);
+    search: function (e) {
+      this.datasets.search(util.sanitize(this.searchInput.val()));
     },
 
   });

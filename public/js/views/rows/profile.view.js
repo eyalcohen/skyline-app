@@ -43,6 +43,13 @@ define([
       if ($(e.target).hasClass('profile-item-delete')
           || $(e.target).hasClass('icon-cancel')) return;
 
+      if ($(e.target).hasClass('navigate')) {
+        var path = $(e.target).closest('a').attr('href');
+        if (path)
+          this.app.router.navigate(path, {trigger: true});
+        return;
+      }
+
       // Route to a new chart.
       var path = [this.model.get('author').username, 'views',
           this.model.get('slug')].join('/');
