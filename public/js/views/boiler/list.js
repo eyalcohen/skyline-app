@@ -45,8 +45,10 @@ define([
     },
 
     renderLast: function (pagination) {
-      if (this.collection.models.length === 1)
+      if (this.collection.models.length === 1) {
         this.$('.empty-feed').hide();
+        this.$('.full-feed').hide();
+      }
       if (pagination !== true && this.collection.options &&
           this.collection.options.reverse) {
         this.row(this.collection.models[0]);

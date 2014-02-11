@@ -5,6 +5,11 @@
 
 %>
 
-<a href="/<%= link %>" class="navigate">
-  <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-folder-empty' %>"></i><%= this.model.get('name') %>
+<a href="/<%= link %>" class="navigate<%= this.model.get('public') === false ? ' locked': '' %>">
+  <% if (this.model.get('parent')) { %>
+    <i class="icon-folder-empty"><i class="icon-split"></i></i>
+  <% } else { %>
+    <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-folder-empty' %>"></i>
+  <% } %>
+  <%= this.model.get('name') %>
 </a>

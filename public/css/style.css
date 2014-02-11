@@ -264,6 +264,10 @@ a:focus {
   outline: none;
 }
 
+a.locked {
+  background: #eff2bd;
+}
+
 a::-moz-focus-inner,
 button::-moz-focus-inner {
   border: none;
@@ -799,6 +803,15 @@ a.info-delete {
   color: #8f8f8f;
   cursor: pointer;
   font-size: 9px;
+}
+
+i {
+  position: relative;
+}
+
+i i {
+  font-size: .6em;
+  position: absolute;
 }
 
 /*.........................................................................*/
@@ -1536,6 +1549,13 @@ a.button.splash-button {
   padding: 2px 0;
 }
 
+.home-datasets i i,
+.home-views i i {
+  font-size: .5em;
+  left: 12px;
+  top: 5px;
+}
+
 .home-datasets li.list-header,
 .home-views li.list-header {
   padding: 0;
@@ -1740,6 +1760,18 @@ a.button.splash-button {
   color: #808080;
 }
 
+.profile-dataset i i,
+.profile-view i i {
+  left: 14px;
+  top: 6px;
+}
+
+.browser .profile-dataset i i,
+.browser .profile-view i i {
+  left: 9px;
+  top: 3px; 
+}
+
 img.profile-dataset-avatar,
 img.profile-dataset-parent-avatar {
   position: relative;
@@ -1751,11 +1783,22 @@ img.profile-dataset-parent-avatar {
   border-radius: 3px;
 }
 
+.profile-dataset-fork img.profile-dataset-avatar,
+.profile-view-fork img.profile-dataset-avatar {
+  top: 5px;
+  left: 5px;
+}
+
 img.profile-dataset-parent-avatar {
   position: absolute;
-  left: 15px;
-  top: 20px;
+  left: 20px;
+  top: 22px;
   z-index: 0;
+}
+
+.browser .profile-dataset-fork img.profile-dataset-avatar,
+.browser .profile-view-fork img.profile-dataset-avatar {
+  left: 3px;
 }
 
 .browser img.profile-dataset-avatar,
@@ -1764,8 +1807,8 @@ img.profile-dataset-parent-avatar {
 }
 
 .browser img.profile-dataset-parent-avatar {
-  left: 12px;
-  top: 7px;
+  left: 15px;
+  top: 10px;
 }
 
 .profile-item-title {
@@ -1776,13 +1819,30 @@ img.profile-dataset-parent-avatar {
   color: #3f3f3f;
 }
 
+.profile-dataset-fork .profile-item-title,
+.profile-view-fork .profile-item-title {
+  margin-top: -18px;
+}
+
+.profile-dataset-fork .profile-item-title > i,
+.profile-view-fork .profile-item-title > i {
+  margin-right: .4em;
+}
+
+.browser .profile-dataset-fork .profile-item-title > i,
+.browser .profile-view-fork .profile-item-title > i {
+  margin-right: .2em;
+}
+
 .browser .profile-item-title {
   font-size: 11px;
   margin-left: 6px;
+  margin-top: 0;
 }
 
 .profile-item-title span {
   color: #808080;
+  font-size: 9px;
 }
 
 .profile-item-title [class^="icon-"]:before,
@@ -1797,7 +1857,7 @@ img.profile-dataset-parent-avatar {
 
 .profile-item-title .icon-lock:before {
   margin-right: .1em;
-  margin-left: -.1em;
+  margin-left: -.05em;
 }
 
 .browser .profile-item-title .icon-lock {
@@ -1807,8 +1867,8 @@ img.profile-dataset-parent-avatar {
 
 .profile-item-stats {
   position: absolute;
-  left: 76px;
-  bottom: 8px;
+  left: 54px;
+  top: 41px;
   font-size: 0;
 }
 

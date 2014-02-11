@@ -112,6 +112,7 @@ define([
     },
 
     collect: function (data) {
+      if (this.searching) return;
       var user_id = this.parentView.model ?
           this.parentView.model.id: this.app.profile.user.id;
       if (data.author.id === user_id)

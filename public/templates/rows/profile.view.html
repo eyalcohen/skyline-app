@@ -15,20 +15,26 @@
     <img src="<%= parent_gravatar %>" width="<%= size %>" height="<%= size %>" class="profile-dataset-parent-avatar" />
   <% } %>
   <span class="profile-item-title">
-    <i class="<%= this.model.get('public') === false ? 'icon-lock': (this.model.get('parent') ? 'icon-split': 'icon-folder-empty') %>"></i> 
+    <% if (this.model.get('parent')) { %>
+      <i class="icon-folder-empty"><i class="icon-split"></i></i>
+    <% } else { %>
+      <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-folder-empty' %>"></i>
+    <% } %>
     <%= this.model.get('name') %>
     <% if (this.model.get('parent') && this.parentView.modal) { %>
       <span>
-        (forked from <a href="/<%= this.model.get('parent').author.username %>/<%= this.model.get('parent').id %>" class="navigate">
-        <i class="<%= this.model.get('parent').public === false ? 'icon-lock': 'icon-folder-empty' %>"></i><%= this.model.get('parent').name %></a>)
+        (forked from <a href="/<%= this.model.get('parent').author.username %>/<%= this.model.get('parent').id %>"
+        class="navigate<%= this.model.get('parent').public === false ? ' locked': '' %>">
+        <i class="icon-folder-empty"></i><%= this.model.get('parent').name %></a>)
       </span>
     <% } %>
   </span>
   <p class="profile-item-stats">
     <% if (this.model.get('parent') && !this.parentView.modal) { %>
       <span>
-        Forked from <a href="/<%= this.model.get('parent').author.username %>/<%= this.model.get('parent').id %>" class="navigate">
-        <i class="<%= this.model.get('parent').public === false ? 'icon-lock': 'icon-folder-empty' %>"></i><%= this.model.get('parent').name %></a>.
+        Forked from <a href="/<%= this.model.get('parent').author.username %>/<%= this.model.get('parent').id %>"
+        class="navigate<%= this.model.get('parent').public === false ? ' locked': '' %>">
+        <i class="icon-folder-empty"></i><%= this.model.get('parent').name %></a>
       </span>
     <% } %>
   </p>

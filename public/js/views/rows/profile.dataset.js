@@ -19,6 +19,8 @@ define([
       var klass = 'profile-dataset';
       if (this.model.get('public') === false)
         klass += ' profile-dataset-locked';
+      if (this.model.get('parent'))
+        klass += ' profile-dataset-fork';
       return _.defaults({class: klass},
           Row.prototype.attributes.call(this));
     },

@@ -19,6 +19,8 @@ define([
       var klass = 'profile-view';
       if (this.model.get('public') === false)
         klass += ' profile-view-locked';
+      if (this.model.get('parent'))
+        klass += ' profile-view-fork';
       return _.defaults({class: klass},
           Row.prototype.attributes.call(this));
     },

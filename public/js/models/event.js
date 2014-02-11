@@ -36,7 +36,9 @@ define([
             'their own':
             '<a href="/' + target.u + '" class="navigate">'
             + target.a + '\'s</a>';
-        var link = '<a href="/' + target.s + '" class="navigate">';
+        var linkClass = 'navigate';
+        if (target.l) linkClass += ' locked';
+        var link = '<a href="/' + target.s + '" class="' + linkClass + '">';
         var gravatar = 'https://www.gravatar.com/avatar/'
             + att.data.action.g + '?s=16&d=mm';
 
@@ -60,7 +62,9 @@ define([
           type = 'mashup';
           icon = att.data.target.l ? 'lock': 'folder-empty';
         }
-        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
+        var linkClass = 'navigate';
+        if (att.data.target.l) linkClass += ' locked';
+        var link = '<a href="/' + att.data.target.s + '" class="' + linkClass + '">';
 
         return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
@@ -70,17 +74,23 @@ define([
             + att.data.target.n + '</a></span>';
 
       } else if (att.data.action.t === 'fork') {
-        var type, icon;
+        var type, icon, picon;
         if (att.data.target.t === 'dataset') {
           type = 'data source';
           icon = att.data.target.l ? 'lock': 'database';
+          picon = att.data.target.p.l ? 'lock': 'database';
         } else {
           type = 'mashup';
           icon = att.data.target.l ? 'lock': 'folder-empty';
+          picon = att.data.target.p.l ? 'lock': 'folder-empty';
         }
         var verb = 'forked';
-        var link = '<a href="/' + att.data.target.s + '" class="navigate">';
-        var plink = '<a href="/' + att.data.target.p.s + '" class="navigate">';
+        var linkClass = 'navigate';
+        if (att.data.target.l) linkClass += ' locked';
+        var link = '<a href="/' + att.data.target.s + '" class="' + linkClass + '">';
+        var plinkClass = 'navigate';
+        if (att.data.target.p.l) plinkClass += ' locked';
+        var plink = '<a href="/' + att.data.target.p.s + '" class="' + plinkClass + '">';
         var owner = att.data.action.i === att.data.target.p.i ?
             'their own':
             '<a href="/' + att.data.target.p.u + '" class="navigate">'
@@ -89,7 +99,7 @@ define([
         return '<a href="/' + att.data.action.u + '" class="navigate">'
             + att.data.action.a + '</a> '
             + verb + ' ' + owner + ' ' + type + ', '
-            + plink + '<i class="icon-' + icon + '"></i>'
+            + plink + '<i class="icon-' + picon + '"></i>'
             + att.data.target.p.n + '</a>.'
             + '<span class="event-body event-body-big">'
             + link + '<i class="icon-' + icon + '"></i>'
