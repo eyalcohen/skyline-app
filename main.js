@@ -323,7 +323,7 @@ if (cluster.isMaster) {
               // FIXME: Use a key map instead of
               // attaching this directly to the socket.
               socket.client = new Client(socket,
-                  app.get('pubsub'), app.get('samples'));
+                  app.get('pubsub'), app.get('samples'), app.get('reds'));
             });
 
             // Set pubsub sio
