@@ -92,7 +92,9 @@ define([
               + '<a href="/' + page.author.username
               + '" class="navigate page-header-username">'
               + page.author.username + '</a> / '
-              + '<a href="/' + page.author.username + '/views/' + page.slug + '" class="navigate page-header-main">' + page.name + '</a>';
+              + '<a href="/' + page.author.username + '/views/'
+              + page.slug + '" class="navigate page-header-main">'
+              + page.name + '</a>';
           title += '</span>';
           if (page.parent)
             title += ' <span class="page-header-subtitle">(forked from <a href="/'
@@ -101,8 +103,7 @@ define([
                 + (page.parent.public === false ? ' locked': '') + '">'
                 + '<i class="icon-folder-empty"></i> ' + page.parent.name
                 + '</a>)</span>';
-          
-          this.app.title(page.name, title);
+          this.app.title(page.author.username + '/' + page.name, title);
         } else this.app.title('Chart', '');
       }
 

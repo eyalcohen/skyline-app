@@ -39,7 +39,15 @@ define([
       this.model = new User(this.app.profile.content.page);
 
       // Set page title
-      this.app.title(this.model.get('displayName'));
+      var gravatar = '<img src="https://www.gravatar.com/avatar/'
+          + this.model.get('gravatar') + '?s=60&d=mm" width="60" height="60" />';
+      var title = '<span class="page-header-profile-title">'
+          + gravatar + '<a href="/' + this.model.get('username')
+          + '" class="navigate page-header-username">'
+          + this.model.get('displayName')
+          + ' (' + this.model.get('username') + ')</a>';
+      title += '</span>';
+      this.app.title(this.model.get('username'), title);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);

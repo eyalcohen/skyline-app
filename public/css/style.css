@@ -1008,7 +1008,6 @@ body.embed .block-messages {
 .header {
   height: 60px;
   width: 100%;
-  min-width: 430px;
   white-space: nowrap;
 }
 
@@ -1125,6 +1124,25 @@ body.loading .header .header-logo a {
   color: #666;
 }
 
+.page-header-profile-title {
+  position: relative;
+  white-space: nowrap;
+  font-size: 20px;
+  line-height: normal;
+}
+
+.page-header-profile-title a.page-header-username {
+  margin-left: 60px;
+}
+
+.page-header-profile-title img {
+  position: absolute;
+  left: -11px;
+  margin-right: 10px;
+  width: 60px;
+  height: 60px;
+}
+
 .header .header-search {
   display: inline-block;
   position: relative;
@@ -1158,7 +1176,7 @@ body.loading .header .header-logo a {
 
 .header-user-box {
   position: relative;
-  z-index: 1;
+  z-index: 100;
   float: right;
   white-space: nowrap;
   margin-right: 30px;
@@ -1211,7 +1229,12 @@ ul.header-user-menu {
   left: -1px;
   list-style: none;
   background: #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
   width: 100%;
+
+  -moz-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.3);
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -1239,7 +1262,7 @@ ul.header-user-menu li a {
   padding: 5px 10px;
   color: #4f4f4f;
   font-size: 12px;
-  background-color: none;
+  background-color: #f2f2f2;
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
   width: 76px;
@@ -1249,14 +1272,8 @@ ul.header-user-menu li a {
   transition: all 0.1s ease-in;
 }
 
-ul.header-user-menu li a:last-child {
-  border-bottom: 1px solid #d0d0d0;
-}
-
 ul.header-user-menu li a:hover {
-  background-color: #3f3f3f;
-  border-color: #3f3f3f;
-  color: #fff;
+  background-color: #e0e0e0;
 }
 
 ul.header-user-menu li a i {
