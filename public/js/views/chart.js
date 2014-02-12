@@ -12,13 +12,14 @@ define([
   'units',
   'Spin',
   'text!../../templates/chart.html',
+  'text!../../templates/chart.header.html',
   'views/lists/datasets',
   'views/lists/comments',
   'views/graph',
   'views/export',
   'views/overview'
-], function ($, _, Backbone, mps, rest, util, units, Spin, template, Datasets,
-      Comments, Graph, Export, Overview) {
+], function ($, _, Backbone, mps, rest, util, units, Spin, template,
+      header, Datasets, Comments, Graph, Export, Overview) {
 
   return Backbone.View.extend({
 
@@ -72,42 +73,16 @@ define([
       // Use model to store view data.
       this.model = new Backbone.Model;
 
-      // Set page title
+      // Set page title.
       if (!embed) {
         var page = this.app.profile.content.page;
         if (page && page.name) {
-          var gravatar = '<img src="https://www.gravatar.com/avatar/'
-              + page.author.gravatar + '?s=24&d=mm" width="24" height="24" />';
-          var icon;
-          if (page.parent)
-            icon = '<i class="icon-folder-empty"><i class="icon-split"></i></i>';
-          else 
-            icon = page.public === false ?
-                '<i class="icon-lock"></i>': '<i class="icon-folder-empty">';
-          var klass = 'page-header-title';
-          if (page.parent) klass += ' forked';
-          if (page.public === false) klass += ' locked';
-          var title = '<span class="' + klass + '">'
-              + gravatar + icon + ' '
-              + '<a href="/' + page.author.username
-              + '" class="navigate page-header-username">'
-              + page.author.username + '</a> / '
-              + '<a href="/' + page.author.username + '/views/'
-              + page.slug + '" class="navigate page-header-main">'
-              + page.name + '</a>';
-          title += '</span>';
-          if (page.parent)
-            title += ' <span class="page-header-subtitle">(forked from <a href="/'
-                + page.parent.author.username + '/views/'
-                + page.parent.slug + '"' + ' class="navigate'
-                + (page.parent.public === false ? ' locked': '') + '">'
-                + '<i class="icon-folder-empty"></i> ' + page.parent.name
-                + '</a>)</span>';
-          this.app.title(page.author.username + '/' + page.name, title, true);
+          this.app.title(page.author.username + '/' + page.name,
+              _.template(header)({page: page}), true);
         } else this.app.title('Chart', '');
       }
 
-      // UnderscoreJS rendering.
+      // Render main template.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('.main');
 
@@ -193,6 +168,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      this.app.title();
       this.datasets.destroy();
       this.graph.destroy();
       this.comments.destroy();

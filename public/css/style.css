@@ -378,13 +378,13 @@ input[type=submit] {
   -webkit-border-radius: 3px;
   border-radius: 3px;
 
-  background-color: #ccc;
+  background-color: #f1f1f1;
   background-image: -webkit-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: -moz-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: -ms-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: -o-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: linear-gradient(top,#f5f5f5,#f1f1f1);
-  color: #444;
+  color: #2f2f2f;
   border: 1px solid #ccc;
 
   -moz-user-select: none;
@@ -401,29 +401,44 @@ input[type=submit] {
   transition-duration: 100ms;
 }
 
+td a.button,
+td div[role=button],
+td input[type=submit] {
+  line-height: 21px;
+}
+
 input[type=submit] {
   height: 32px;
 }
 
-a.button:hover,
-div[role=button]:hover,
-input[type='submit']:hover {
-  -moz-box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+a.button:hover:not([disabled=disabled]),
+div[role=button]:hover:not([disabled=disabled]),
+input[type='submit']:hover:not([disabled=disabled]) {
+  background-color: #e0e0e0;
+  background-image: -webkit-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: -moz-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: -ms-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: -o-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: linear-gradient(top,#e5e5e5,#e0e0e0);
+
+  -webkit-transition: all 0.1s ease-in-out 0;
+  -moz-transition: all 0.1s ease-in-out 0;
+  transition: all 0.1s ease-in-out;
 }
 
-a.button:active,
-div[role=button]:active,
-input[type='submit']:active {
-  -moz-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.5);
-  -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.5);
+a.button:active:not([disabled=disabled]),
+div[role=button]:active:not([disabled=disabled]),
+input[type='submit']:active:not([disabled=disabled]) {
+  background: #d0d0d0;
+
+  -moz-box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+  -webkit-box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
 }
 
-a.button:focus,
-div[role=button]:focus,
-input[type=submit]:focus {
+a.button:focus:not([disabled=disabled]),
+div[role=button]:focus:not([disabled=disabled]),
+input[type=submit]:focus:not([disabled=disabled]) {
   border: 1px solid #98c1e6;
 }
 
@@ -435,9 +450,15 @@ input[type='submit'].blue-button {
   border-color: rgba(39, 205, 214, 0.8);
 }
 
-a.button.blue-button:active,
-div[role=button].blue-button:active,
-input[type='submit'].blue-button:active {
+a.button.blue-button:hover:not([disabled=disabled]),
+div[role=button].blue-button:hover:not([disabled=disabled]),
+input[type='submit'].blue-button:hover:not([disabled=disabled]) {
+  background: rgba(39, 205, 214, 1);
+}
+
+a.button.blue-button:active:not([disabled=disabled]),
+div[role=button].blue-button:active:not([disabled=disabled]),
+input[type='submit'].blue-button:active:not([disabled=disabled]) {
   background: rgba(39, 205, 214, 1);
 }
 
@@ -569,6 +590,11 @@ a.button.danger:active {
   background: rgba(208,76,56,1);
 }
 
+a.button.follow-button {
+  padding: 2px 10px;
+  font-size: 13px;
+}
+
 /*.........................................................................*/
 
 .checkbox-styled {
@@ -602,13 +628,13 @@ a.button.danger:active {
   line-height: 30px;
   cursor: pointer;
 
-  background-color: #ccc;
+  background-color: #f1f1f1;
   background-image: -webkit-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: -moz-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: -ms-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: -o-linear-gradient(top,#f5f5f5,#f1f1f1);
   background-image: linear-gradient(top,#f5f5f5,#f1f1f1);
-  color: #444;
+  color: #2f2f2f;
   border: 1px solid #ccc;
   
   -webkit-border-radius: 3px;
@@ -619,15 +645,40 @@ a.button.danger:active {
   -webkit-user-select: none;
   user-select: none;
 
-  -webkit-transition: background-color 0.15s ease-in 0;
-  -moz-transition: background-color 0.15s ease-in;
-  transition: background-color 0.15s ease-in;
-  -webkit-transition: border-color 0.15s ease-in 0;
-  -moz-transition: border-color 0.15s ease-in;
-  transition: border-color 0.15s ease-in;
-  -webkit-transition: -webkit-box-shadow 0.15s ease-in 0;
-  -moz-transition: -moz-box-shadow 0.15s ease-in;
-  transition: box-shadow 0.15s ease-in;
+  -webkit-transition: background-color 0.1s ease-in 0;
+  -moz-transition: background-color 0.1s ease-in;
+  transition: background-color 0.1s ease-in;
+  -webkit-transition: border-color 0.1s ease-in 0;
+  -moz-transition: border-color 0.1s ease-in;
+  transition: border-color 0.1s ease-in;
+  -webkit-transition: -webkit-box-shadow 0.1s ease-in 0;
+  -moz-transition: -moz-box-shadow 0.1s ease-in;
+  transition: box-shadow 0.1s ease-in;
+}
+
+.checkbox-styled input[type="checkbox"]:not([disabled=disabled]) + span:hover {
+  background-color: #e0e0e0;
+  background-image: -webkit-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: -moz-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: -ms-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: -o-linear-gradient(top,#e5e5e5,#e0e0e0);
+  background-image: linear-gradient(top,#e5e5e5,#e0e0e0);
+
+  -webkit-transition: all 0.1s ease-in-out 0;
+  -moz-transition: all 0.1s ease-in-out 0;
+  transition: all 0.1s ease-in-out;
+}
+
+.checkbox-styled input[type="checkbox"]:not([disabled=disabled]) + span:active {
+  background: #d0d0d0;
+
+  -moz-box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+  -webkit-box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.checkbox-styled input[type="checkbox"]:not([disabled=disabled]) + span:focus {
+  border: 1px solid #98c1e6;
 }
 
 .checkbox-styled.input-checkbox input[type="checkbox"] + span {
@@ -840,6 +891,10 @@ i i {
   float: right;
   width: 330px;
   margin-bottom: 100px;
+}
+
+.page .empty-feed {
+  margin-top: 15px;
 }
 
 .page td {
@@ -1132,15 +1187,21 @@ body.loading .header .header-logo a {
 }
 
 .page-header-profile-title a.page-header-username {
-  margin-left: 60px;
+  margin-left: 55px;
 }
 
 .page-header-profile-title img {
   position: absolute;
-  left: -11px;
-  margin-right: 10px;
+  left: -13px;
   width: 60px;
   height: 60px;
+}
+
+.page-header-profile-info {
+  display: inline-block;
+  margin-left: 5px;
+  position: relative;
+  top: -2px;
 }
 
 .header .header-search {
@@ -1859,7 +1920,7 @@ a.button.splash-button {
 }
 
 .profile tr.table-header td {
-  padding: 20px;
+  padding: 10px 20px;
 }
 
 .browser tr.table-header td {

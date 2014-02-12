@@ -1,0 +1,15 @@
+<%
+  
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + this.model.get('gravatar') + '?s=60&d=mm';
+
+%>
+
+<span class="page-header-profile-title">
+  <img src="<%= gravatar %>" width="60" height="60" />
+  <a href="/<%= this.model.get('username') %>" class="navigate page-header-username">
+    <%= this.model.get('username') %> (<%= this.model.get('displayName') %>)</a>
+</span>
+<div class="page-header-profile-info">
+  <a class="button follow-button"><i class="icon-user-add"></i> Follow</a>
+</div>
