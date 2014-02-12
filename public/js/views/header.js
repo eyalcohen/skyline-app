@@ -111,14 +111,12 @@ define([
       this.$('.page-header').html(str);
     },
 
-    widen: function () {
-      this.$el.addClass('wide');
-      // this.search.show();
+    normalize: function () {
+      this.$el.addClass('normal');
     },
 
-    unwiden: function () {
-      this.$el.removeClass('wide');
-      // this.search.show();
+    unnormalize: function () {
+      this.$el.removeClass('normal');
     },
 
     navigate: function (e) {

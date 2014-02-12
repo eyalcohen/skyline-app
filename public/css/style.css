@@ -244,7 +244,8 @@ body.embed {
 
 a,
 a:visited {
-  color: #27CDD6;
+  /*color: #27CDD6;*/
+  color: #1c9da3;
   background-color: #f9f9f9;
   padding: 0;
   border: none;
@@ -1068,6 +1069,8 @@ body.loading .header .header-logo a {
 
 .page-header {
   float: left;
+  height: 60px;
+  border-left: 1px solid #d0d0d0;
 }
 
 .page-header a i {
@@ -1108,10 +1111,14 @@ body.loading .header .header-logo a {
   color: #666;
 }
 
-.header input.header-search {
-  display: none;
-  width: 260px;
-  margin: 14px 0 0 0;
+.header .header-search {
+  float: left;
+  margin-right: 20px;
+}
+
+.header input.header-search-input {
+  width: 100px;
+  margin: 14px 0 0 20px;
   font-size: 12px;
 
   -webkit-transition: all 0.1s ease-in-out 0;
@@ -1119,13 +1126,12 @@ body.loading .header .header-logo a {
   transition: all 0.1s ease-in-out;
 }
 
-.header input.header-search:focus {
-  width: 300px; 
+.header.normal input.header-search-input {
+  width: 360px;
 }
 
-.header.wide input.header-search {
-  position: absolute;
-  left: 140px;
+.header input.header-search-input:focus {
+  width: 360px;
 }
 
 .header-user-box {
@@ -3169,8 +3175,8 @@ a.comments-signin {
 }
 
 .event-inner p {
-  margin: 3px 0 0 32px;
-  font-size: 12px;
+  margin: 2px 0 0 32px;
+  font-size: 14px;
   line-height: 16px;
 }
 

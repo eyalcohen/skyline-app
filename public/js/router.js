@@ -193,7 +193,7 @@ define([
             new Home(this.app).render():
             new Splash(this.app).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -203,7 +203,7 @@ define([
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -214,7 +214,7 @@ define([
         if (err) return;
         this.page = new Profile(this.app).render();
         this.stop();
-        this.header.widen();
+        this.header.unnormalize();
       }, this));
     },
 
@@ -224,7 +224,7 @@ define([
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -235,7 +235,7 @@ define([
         this.page = new Static(this.app,
             {title: 'About', template: aboutTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -246,7 +246,7 @@ define([
         this.page = new Static(this.app,
             {title: 'Contact', template: contactTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -257,7 +257,7 @@ define([
         this.page = new Static(this.app,
             {title: 'Privacy', template: privacyTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -268,7 +268,7 @@ define([
         this.page = new Static(this.app,
             {title: 'Terms', template: termsTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -279,6 +279,8 @@ define([
           || !slug) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
+        if (this.header)
+          this.header.unnormalize();
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
@@ -296,8 +298,6 @@ define([
         if (err) return;
         this.page = new Chart(this.app).render();        
         this.stop();
-        if (this.header)
-          this.header.widen();
       }, this));
     },
 
@@ -309,7 +309,7 @@ define([
           message: 'Sorry, this page isn\'t available'
         });
         if (this.header)
-          this.header.unwiden();
+          this.header.normalize();
       }, this));
     }
 
