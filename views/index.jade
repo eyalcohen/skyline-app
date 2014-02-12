@@ -36,10 +36,9 @@ block content
             a.navigate(href="/")
               img(src="#{root}/img/time.png", width="13", height="12")
               | Skylin
-          .header-middle
-            .header-search
-              input.header-search-input(type="search", placeholder="Search...")
-            .page-header
+          .header-search
+            input.header-search-input(type="search", placeholder="Search...")
+          .page-header
     - var hc = typeof embed !== 'undefined' && embed ? 'main embed': 'main';
     div(class=hc, role="main")
     - if (typeof embed === 'undefined' || !embed)

@@ -1007,17 +1007,18 @@ body.embed .block-messages {
 
 .header {
   height: 60px;
-  margin: 0 auto;
   width: 100%;
   min-width: 430px;
+  white-space: nowrap;
 }
 
 .header .header-logo {
   position: relative;
-  float: left;
+  display: inline-block;
   z-index: 1;
   width: 59px;
   height: 60px;
+  line-height: 60px;
   padding: 0 20px;
   border-right: 1px solid #d0d0d0;
   cursor: pointer;
@@ -1061,16 +1062,12 @@ body.loading .header .header-logo a {
   right: -13px;
 }
 
-.header-middle {
-  position: relative;
-  height: 60px;
-  float: left;
-}
-
 .page-header {
-  float: left;
+  display: inline;
   height: 60px;
-  border-left: 1px solid #d0d0d0;
+  line-height: 60px;
+  position: relative;
+  top: -2px;
 }
 
 .page-header a i {
@@ -1082,9 +1079,7 @@ body.loading .header .header-logo a {
   font-size: 16px;
   line-height: 34px;
   font-weight: 700;
-  margin-top: 13px;
   display: inline-block;
-  margin-left: 20px;
   padding: 0 10px;
 
   -webkit-border-radius: 3px;
@@ -1112,13 +1107,20 @@ body.loading .header .header-logo a {
 }
 
 .header .header-search {
-  float: left;
+  display: inline-block;
+  position: relative;
+  top: -2px;
   margin-right: 20px;
+  padding: 0 20px;
+  height: 60px;
+  line-height: 60px;
+  border-right: 1px solid #d0d0d0;
 }
 
 .header input.header-search-input {
   width: 100px;
-  margin: 14px 0 0 20px;
+  margin: 0;
+  margin: -2px 0 0 0;
   font-size: 12px;
 
   -webkit-transition: all 0.1s ease-in-out 0;
@@ -1142,6 +1144,7 @@ body.loading .header .header-logo a {
   margin-right: 30px;
   height: 60px;
   border-left: 1px solid #d0d0d0;
+  background: #f9f9f9;
 
   -moz-user-select: none;
   -webkit-user-select: none;
