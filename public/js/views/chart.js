@@ -103,7 +103,7 @@ define([
                 + (page.parent.public === false ? ' locked': '') + '">'
                 + '<i class="icon-folder-empty"></i> ' + page.parent.name
                 + '</a>)</span>';
-          this.app.title(page.author.username + '/' + page.name, title);
+          this.app.title(page.author.username + '/' + page.name, title, true);
         } else this.app.title('Chart', '');
       }
 

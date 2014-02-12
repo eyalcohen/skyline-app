@@ -44,10 +44,11 @@ define([
       var title = '<span class="page-header-profile-title">'
           + gravatar + '<a href="/' + this.model.get('username')
           + '" class="navigate page-header-username">'
-          + this.model.get('displayName')
-          + ' (' + this.model.get('username') + ')</a>';
+          + this.model.get('username')
+          + ' (' + this.model.get('displayName') + ')</a>';
       title += '</span>';
-      this.app.title(this.model.get('username'), title);
+      this.app.title(this.model.get('username')
+          + ' (' + this.model.get('displayName') + ')', title, true);
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
