@@ -7,11 +7,13 @@ define([
   'Underscore',
   'Backbone',
   'mps',
+  'rest',
   'text!../../templates/box.html'
-], function ($, _, Backbone, mps, box) {
+], function ($, _, Backbone, mps, rest, box) {
   return Backbone.View.extend({
 
     el: '.header',
+    working: false,
 
     initialize: function (app) {
 
@@ -71,8 +73,9 @@ define([
     // Bind mouse events.
     events: {
       'click .header-logo': 'home',
+      'click .follow-button': 'follow',
+      'click .unfollow-button': 'unfollow',
       'click .signin-button': 'signin',
-      'click .username': 'username',
       'click .add-data-button': 'add',
       'click .navigate': 'navigate'
     },
@@ -84,19 +87,73 @@ define([
       this.app.router.navigate('/', {trigger: true});
     },
 
+    follow: function (e) {
+      var btn = $(e.target);
+
+      // Prevent multiple requests.
+      if (this.working) return false;
+      this.working = true;
+
+      // Do the API request.
+      var username = this.app.profile.content.page.username;
+      rest.post('/api/users/' + username + '/follow', {},
+          _.bind(function (err, data) {
+
+        // Clear.
+        this.working = false;
+
+        if (err) {
+
+          // Show error.
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+          return false;
+        }
+
+        // Update button content.
+        btn.removeClass('follow-button').addClass('unfollow-button')
+            .html('<i class="icon-user-delete"></i> Unfollow');
+
+      }, this));
+
+      return false;  
+    },
+
+    unfollow: function (e) {
+      var btn = $(e.target);
+
+      // Prevent multiple requests.
+      if (this.working) return false;
+      this.working = true;
+
+      // Do the API request.
+      var username = this.app.profile.content.page.username;
+      rest.post('/api/users/' + username + '/unfollow', {},
+          _.bind(function (err, data) {
+
+        // Clear.
+        this.working = false;
+
+        if (err) {
+
+          // Show error.
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+          return false;
+        }
+
+        // Update button content.
+        btn.removeClass('unfollow-button').addClass('follow-button')
+            .html('<i class="icon-user-add"></i> Follow');
+
+      }, this));
+
+      return false;  
+    },
+
     signin: function (e) {
       e.preventDefault();
 
       // Render the signin view.
       mps.publish('modal/signin/open');
-    },
-
-    username: function (e) {
-      e.preventDefault();
-
-      // Route to profile.
-      this.app.router.navigate('/' + this.app.profile.user.username,
-          {trigger: true});
     },
 
     add: function (e) {
@@ -112,22 +169,20 @@ define([
       });
 
       // Swap user header content.
-      this.$('.user-box').remove();
-      $('<a class="signin-button button">Sign in</a>').prependTo(this.$el);
+      this.$('.header-user-box').remove();
+      $('<a class="button signin-button">Sign in</a>').prependTo(this.$el);
     },
 
     title: function (str) {
-      this.$('.header-title').html(str);
+      this.$('.page-header').html(str);
     },
 
-    widen: function () {
-      this.$el.addClass('wide');
-      // this.search.show();
+    normalize: function () {
+      this.$el.addClass('normal');
     },
 
-    unwiden: function () {
-      this.$el.removeClass('wide');
-      // this.search.show();
+    unnormalize: function () {
+      this.$el.removeClass('normal');
     },
 
     navigate: function (e) {
@@ -135,8 +190,13 @@ define([
 
       // Route to wherever.
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
+        this.$('.header-user-menu').addClass('hide');
+        _.delay(_.bind(function () {
+          this.$('.header-user-menu').removeClass('hide');
+        }, this), 500);
+      }
     },
 
   });

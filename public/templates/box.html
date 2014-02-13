@@ -1,18 +1,30 @@
 <%
   var user = this.app.profile.user;
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/' + user.gravatar + '?s=34&d=mm';
 %>
 
-<div class="user-box">
-  <a class="username header-action" href="/<%= user.username %>">
-    <%= user.username %>
-  </a>
-  <a class="header-action navigate" href="/settings">
-    <i class="icon-menu-1"></i>
-  </a>
-  <a class="header-action" href="/logout">
-    <i class="icon-logout"></i>
-  </a>
-  <a class="add-data-button button" href="javascript:;">
+<div class="header-user-box">
+  <div class="header-user">
+    <a href="/<%= user.username %>" class="navigate">
+      <img src=<%= gravatar %> width="34" height="34" />
+    </a>
+    <i class="icon-down-dir"></i>
+    <ul class="header-user-menu">
+      <li>
+        <a class="navigate" href="/settings">Settings
+          <i class="icon-cog"></i>
+        </a>
+      </li>
+      <li>
+        <a href="/logout">Logout
+          <i class="icon-logout" style="right:9px;"></i>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <a class="button blue-button add-data-button" href="javascript:;">
     Add Data
   </a>
 </div>

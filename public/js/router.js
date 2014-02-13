@@ -42,7 +42,7 @@ define([
       this.app = app;
 
       // Clear stuff that comes back from facebook.
-      if (window.location.hash !== '')
+      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1)
         try {
           window.history.replaceState('', '', window.location.pathname
               + window.location.search);
@@ -107,7 +107,7 @@ define([
       // Init page spinner.
       var sopts = this.app.embed ?
           {color: '#8f8f8f', lines: 17, length: 7, width: 3, radius: 12}: 
-          {color: '#bfbfbf', lines: 13, length: 3, width: 2, radius: 6};
+          {color: '#3f3f3f', lines: 13, length: 3, width: 2, radius: 6};
       this.spin = new Spin($('.page-spin'), sopts);
     },
 
@@ -173,6 +173,7 @@ define([
 
     start: function () {
       $(window).scrollTop(0);
+      $('body').addClass('loading');
       this.spin.start();
     },
 
@@ -180,6 +181,7 @@ define([
       _.delay(_.bind(function () {
         this.spin.stop();
         $(window).scrollTop(0);
+        $('body').removeClass('loading');
       }, this), 500);
     },
 
@@ -191,7 +193,7 @@ define([
             new Home(this.app).render():
             new Splash(this.app).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -201,7 +203,7 @@ define([
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -212,7 +214,7 @@ define([
         if (err) return;
         this.page = new Profile(this.app).render();
         this.stop();
-        this.header.widen();
+        this.header.unnormalize();
       }, this));
     },
 
@@ -222,7 +224,7 @@ define([
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -233,7 +235,7 @@ define([
         this.page = new Static(this.app,
             {title: 'About', template: aboutTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -244,7 +246,7 @@ define([
         this.page = new Static(this.app,
             {title: 'Contact', template: contactTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -255,7 +257,7 @@ define([
         this.page = new Static(this.app,
             {title: 'Privacy', template: privacyTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -266,7 +268,7 @@ define([
         this.page = new Static(this.app,
             {title: 'Terms', template: termsTemp}).render();
         this.stop();
-        this.header.unwiden();
+        this.header.normalize();
       }, this));
     },
 
@@ -277,6 +279,8 @@ define([
           || !slug) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
+        if (this.header)
+          this.header.unnormalize();
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
@@ -284,6 +288,7 @@ define([
       }
       if (this.app.profile && this.app.profile.user)
         state.user_id = this.app.profile.user.id;
+
       // NOTE: this should be the only place where state is directly set.
       // Elsewhere it should be done through App.prototype.state.
       store.set('state', state);
@@ -293,8 +298,6 @@ define([
         if (err) return;
         this.page = new Chart(this.app).render();        
         this.stop();
-        if (this.header)
-          this.header.widen();
       }, this));
     },
 
@@ -306,7 +309,7 @@ define([
           message: 'Sorry, this page isn\'t available'
         });
         if (this.header)
-          this.header.unwiden();
+          this.header.normalize();
       }, this));
     }
 

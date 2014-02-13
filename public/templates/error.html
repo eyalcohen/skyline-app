@@ -4,5 +4,5 @@
 <% } else { %>
   <span class="http-error"><%= this.error.code ? '(' + this.error.code + ')': '' %> 
       <%= this.error.message || 'Server Error' %></span>
-  <p class="http-notice">:( Looks like something went wrong. We track these errors automatically, but if the problem persists feel free to <a href="mailto:support@skyline-app.com">contact us</a>. In the meantime, try refreshing.</p>
+  <p class="http-notice"><%= this.error.explain || ':( Looks like something went wrong. We track these errors automatically, but if the problem persists feel free to <a href="mailto:support@skyline-app.com">contact us</a>. In the meantime, try refreshing.' %></p>
 <% } %>

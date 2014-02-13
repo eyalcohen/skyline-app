@@ -59,7 +59,7 @@ define([
         }, this), (this.collection.length + 1) * 30);
       else {
         this.nomore = true;
-        $('<span class="empty-feed">No events.</span>').appendTo(this.$el);
+        $('<span class="empty-feed">Nothing to see here yet.</span>').appendTo(this.$el);
         this.spin.stop();
       }
       this.paginate();

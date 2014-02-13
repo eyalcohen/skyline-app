@@ -46,7 +46,8 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
-        padding: 0
+        padding: 0,
+        modal: true
       });
 
       // Add placeholder shim if need to.
@@ -61,25 +62,41 @@ define([
 
     // Bind mouse events.
     events: {
+      'click .modal-close': 'close',
       'click .save-form input[type="submit"]': 'save',
       'keyup input[name="name"]': 'update',
+      'click .save-private': 'checkPrivate'
     },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs.
-      this.saveForm = $('.save-form');
+      this.saveForm = this.$('.save-form');
       this.saveInput = $('input[name="name"]', this.saveForm);
       this.saveSubmit = $('input[type="submit"]', this.saveForm);
       this.saveError = $('.modal-error', this.saveForm);
-      this.saveButtonSpin = new Spin($('.button-spin', this.el), {
-        color: '#3f3f3f',
+      this.saveButtonSpin = new Spin(this.$('.button-spin'), {
+        color: '#fff',
         lines: 13,
         length: 3,
         width: 2,
         radius: 6,
       });
+      this.privateButton = this.$('.save-private');
+
+      // Check if chart contains any private datasets.
+      this.allowPublic = !_.find(this.app.profile.content.datasets.items,
+          function (d) { return d.public === false; });
+      // If forking a dataset, only the first (leader) dataset matters.
+      if (this.options.target && this.options.target.type === 'dataset'
+          && this.app.profile.content.datasets.items[0].public !== false)
+        this.allowPublic = true;
+      if (!this.allowPublic) {
+        this.privateButton.attr({checked: true, disabled: true});
+        this.checkPrivate();
+        this.privateButton.addClass('disabled');
+      }
 
       // Handle error display.
       this.$('input[type="text"]').blur(function (e) {
@@ -120,6 +137,10 @@ define([
       this.empty();
     },
 
+    close: function (e) {
+      $.fancybox.close();
+    },
+
     // Update save button status
     update: function (e) {
       if (this.saveInput.val().trim().length === 0)
@@ -158,6 +179,10 @@ define([
 
         return false;
       }
+
+      // Handle private / public.
+      payload.public = !this.allowPublic ?
+          false: !this.$('.save-private').is(':checked');
 
       // If there is no target, we are creating a new view from the current state.
       var resource, verb, type, name = payload.name;
@@ -214,8 +239,7 @@ define([
         _.delay(_.bind(function () {
           mps.publish('flash/new', [{
             message: 'You ' + verb + ' a data ' + type + ': "' + name + '"',
-            level: 'alert',
-            sticky: false
+            level: 'alert'
           }]);
         }, this), 500);
 
@@ -234,6 +258,15 @@ define([
       }, this));
 
       return false;
+    },
+
+    checkPrivate: function (e) {
+      if (this.privateButton.hasClass('disabled')) return;
+      var span = $('span', this.privateButton.parent());
+      if (this.privateButton.is(':checked'))
+        span.html('<i class="icon-lock"></i> Private');
+      else
+        span.html('<i class="icon-lock-open"></i> Public');
     },
 
   });

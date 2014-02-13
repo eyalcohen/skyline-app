@@ -20,24 +20,19 @@ define([
     fetching: false,
     nomore: false,
     limit: 10,
+    searching: false,
+    str: null,
 
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
       this.Row = Row;
       this.modal = options.modal;
+      this.options = options;
+      if (!this.options.searchQuery) this.options.searchQuery = {};
 
       // Call super init.
       List.prototype.initialize.call(this, app, options);
-
-      // Init the load indicator.
-      this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
-        lines: 13,
-        length: 3,
-        width: 2,
-        radius: 6,
-      });
-      this.spin.start();
 
       // Client-wide subscriptions
       this.subscriptions = [
@@ -52,55 +47,72 @@ define([
       this.empty_label = 'No data sources.';
 
       // Reset the collection.
-      this.latest_list = options.datasets;
+      this.latest_list = this.options.datasets;
       this.collection.reset(this.latest_list.items);
     },
 
     // Initial bulk render of list
     render: function (options) {
       List.prototype.render.call(this, options);
-      if (this.collection.length > 0 || this.latest_list.more)
-        _.delay(_.bind(function () {
-          this.checkHeight();
-        }, this), (this.collection.length + 1) * 30);
-      else {
-        this.nomore = true;
-        $('<span class="empty-feed">' + this.empty_label
-            + '</span>').appendTo(this.$el);
-        this.spin.stop();
-      }
-      if (this.modal)
+
+      // Handle height.
+      if (this.modal) {
+        $(window).resize(_.bind(this.parentView.resize, this.parentView));
+        _.delay(_.bind(this.parentView.resize, this.parentView), 0);
+
+        // Init the load indicator.
+        this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
+          lines: 13,
+          length: 3,
+          width: 2,
+          radius: 6,
+        });
+
+        this.wrap = this.$('.profile-items-wrap');
+        if (this.collection.length > 0 || this.latest_list.more)
+          _.delay(_.bind(function () {
+            this.checkHeight();
+          }, this), (this.collection.length + 1) * 30);
+        else {
+          this.nomore = true;
+          $('<span class="empty-feed">' + this.empty_label
+              + '</span>').appendTo(this.wrap);
+        }
         this.paginate();
-      else {
-        this.spin.stop(); 
-        this.spin.target.parent().hide();
       }
+
       return this;
     },
 
-    // render the latest model
+    // Render the latest model
     // (could be newly arived or older ones from pagination)
     renderLast: function (pagination) {
       List.prototype.renderLast.call(this, pagination);
-      _.delay(_.bind(function () {
-        if (pagination !== true)
-          this.checkHeight();
-      }, this), 60);
+      if (this.modal)
+        _.delay(_.bind(function () {
+          if (pagination !== true)
+            this.checkHeight();
+        }, this), 60);
       return this;
     },
 
     setup: function () {
+
+      // Save refs.
+      this.showingall = this.$('.list-spin .full-feed');
+
       return List.prototype.setup.call(this);
     },
 
     events: {},
 
     destroy: function () {
-      this.unpaginate();
+      if (this.modal) this.unpaginate();
       return List.prototype.destroy.call(this);
     },
 
     collect: function (data) {
+      if (this.searching) return;
       var user_id = this.parentView.model ?
           this.parentView.model.id: this.app.profile.user.id;
       if (data.author.id === user_id)
@@ -118,42 +130,101 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
-          this.checkHeight();
+          if (this.modal) this.checkHeight();
         }, this));
       }
+    },
+
+    search: function (str) {
+
+      // Check search string.
+      if (str.length === 0)
+        return this.restore();
+
+      // Clear items.
+      this.spin.stop();
+      this._clear();
+      this.showingall.hide();
+      this.$('.empty-feed').remove();
+
+      str = str === '' || str.length < 2 ? null: str;
+      this.str = str;
+
+      if (!str) {
+        $('<span class="empty-feed">Nothing found.</span>')
+            .appendTo(this.wrap);
+        return;
+      }
+
+      // Perform search.
+      this.searching = true;
+      this.spin.start();
+      rest.post('/api/datasets/search/' + str, this.options.searchQuery,
+          _.bind(function (err, data) {
+        if (err)
+          return console.log(err);
+
+        if (data.items.length === 0) {
+          $('<span class="empty-feed">Nothing found.</span>')
+              .appendTo(this.wrap);
+        } else {
+
+          // Add to collection.
+          _.each(data.items, _.bind(function (i) {
+            this.collection.unshift(i);
+          }, this));
+        }
+
+        this.spin.stop();
+      }, this));
+
+    },
+
+    restore: function () {
+      this.searching = false;
+      this.nomore = false;
+      this.latest_list = this.options.datasets;
+      this.collection.reset(this.latest_list.items);
+    },
+
+    // Clear the collection w/out re-rendering.
+    _clear: function () {
+      _.each(this.views, _.bind(function (v) {
+        v.destroy();
+        this.collection.remove(v.model);
+      }, this));
     },
 
     /**********************
      * Pagination support *
      **********************/
 
-    // Check the panel's empty space and get more
-    // notes to fill it up.
+    // Check the panel's empty space and get more items to fill it up.
     checkHeight: function () {
-      wh = $(window).height();
-      so = this.spin.target.offset().top;
+      var wh = this.$el.parent().parent().height();
+      var so = this.spin.target.position().top;
       if (wh - so > this.spin.target.height() / 2)
         this.more();
     },
 
     // attempt to get more models (older) from server
     more: function () {
+      if (this.searching) return;
 
       // render models and handle edge cases
       function updateUI(list) {
         _.defaults(list, {items:[]});
         this.latest_list = list;
-        var showingall = this.parentView.$('.list-spin .empty-feed');
         if (list.items.length === 0) {
           this.nomore = true;
           this.spin.target.hide();
           if (this.collection.length > 0)
-            showingall.css('display', 'block');
+            this.showingall.css('display', 'block');
           else {
-            showingall.hide();
+            this.showingall.hide();
             if (this.$('.empty-feed').length === 0)
               $('<span class="empty-feed">' + this.empty_label + '</span>')
-                  .appendTo(this.$el);
+                  .appendTo(this.wrap);
           }
         } else
           _.each(list.items, _.bind(function (i) {
@@ -165,7 +236,7 @@ define([
           if (list.items.length < this.limit) {
             this.spin.target.hide();
             if (!this.$('.empty-feed').is(':visible'))
-              showingall.css('display', 'block');
+              this.showingall.css('display', 'block');
           }
         }, this), (list.items.length + 1) * 30);
       }
@@ -201,24 +272,18 @@ define([
 
     // init pagination
     paginate: function () {
-      var wrap = this.modal ? this.$el.parent(): $(window);
       this._paginate = _.debounce(_.bind(function (e) {
-        var pos;
-        if (this.modal) {
-          pos = this.$el.height()
-              - wrap.height() - wrap.scrollTop();
-        } else
-          pos = this.$el.height() + this.$el.offset().top
-              - wrap.height() - wrap.scrollTop();
+        var pos = $('table', this.wrap).height()
+            - this.wrap.height() - this.wrap.scrollTop();
         if (!this.nomore && pos < -this.spin.target.height() / 2)
           this.more();
       }, this), 50);
-
-      wrap.scroll(this._paginate).resize(this._paginate);
+      this.wrap.scroll(this._paginate).resize(this._paginate);
     },
 
     unpaginate: function () {
-      $(window).unbind('scroll', this._paginate);
+      this.wrap.unbind('scroll', this._paginate)
+          .unbind('resize', this._paginate);
     }
 
   });

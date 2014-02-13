@@ -4,6 +4,11 @@
 
 %>
 
-<a href="/<%= link %>" class="navigate">
-  <i class="icon-database"></i><%= this.model.get('title') %>
+<a href="/<%= link %>" class="navigate<%= this.model.get('public') === false ? ' locked': '' %>">
+  <% if (this.model.get('parent')) { %>
+      <i class="icon-database"><i class="icon-split"></i></i>
+  <% } else { %>
+    <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-database' %>"></i>
+  <% } %>
+  <%= this.model.get('title') %>
 </a>

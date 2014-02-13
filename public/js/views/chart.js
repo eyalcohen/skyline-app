@@ -12,13 +12,14 @@ define([
   'units',
   'Spin',
   'text!../../templates/chart.html',
+  'text!../../templates/chart.header.html',
   'views/lists/datasets',
   'views/lists/comments',
   'views/graph',
-  'views/exportdata',
+  'views/export',
   'views/overview'
-], function ($, _, Backbone, mps, rest, util, units, Spin, template, Datasets,
-      Comments, Graph, ExportData, Overview) {
+], function ($, _, Backbone, mps, rest, util, units, Spin, template,
+      header, Datasets, Comments, Graph, Export, Overview) {
 
   return Backbone.View.extend({
 
@@ -67,19 +68,21 @@ define([
     },
 
     // Draw our template from the profile.
-    render: function (embed) {
+    render: function () {
 
       // Use model to store view data.
       this.model = new Backbone.Model;
 
-      // Set page title
-      if (!embed) {
+      // Set page title.
+      if (!this.app.embed) {
         var page = this.app.profile.content.page;
-        if (page && page.name) this.app.title(page.name);
-        else this.app.title('Chart', '');
+        if (page && page.name) {
+          this.app.title(page.author.username + '/' + page.name,
+              _.template(header)({page: page}), true);
+        } else this.app.title('Chart', '');
       }
 
-      // UnderscoreJS rendering.
+      // Render main template.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('.main');
 
@@ -165,6 +168,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      this.app.title();
       this.datasets.destroy();
       this.graph.destroy();
       this.comments.destroy();
@@ -233,9 +237,8 @@ define([
 
         // Show error.
         mps.publish('flash/new', [{
-          message: 'No data found.',
-          level: 'error',
-          sticky: false
+          err: {message: {message: 'No data found.'}},
+          level: 'error'
         }]);
         this.working = false;
         return false;
@@ -272,11 +275,7 @@ define([
           if (err) {
             // Show error.
             _.delay(function () {
-              mps.publish('flash/new', [{
-                message: err,
-                level: 'error',
-                sticky: false
-              }]);
+              mps.publish('flash/new', [{err: err, level: 'error'}]);
             }, 500);
             this.working = false;
             return;
@@ -298,7 +297,6 @@ define([
             mps.publish('flash/new', [{
               message: 'Saved.',
               level: 'alert',
-              sticky: false,
               delay: 2000,
             }]);
           }, 500);
@@ -318,9 +316,8 @@ define([
       var target = this.target();
       if (!target.doc) {
         mps.publish('flash/new', [{
-          message: 'No data found.',
-          level: 'error',
-          sticky: false
+          err: {message: {message: 'No data found.'}},
+          level: 'error'
         }]);
         return;
       }
@@ -329,7 +326,7 @@ define([
 
     download: function (e) {
       e.preventDefault();
-      this.exportdata = new ExportData(this.app, {parentView: this}).render();
+      new Export(this.app, {parentView: this}).render();
     },
 
     panel: function (e) {
@@ -496,8 +493,7 @@ define([
             _.delay(function () {
               mps.publish('flash/new', [{
                 message: err,
-                level: 'error',
-                sticky: false
+                level: 'error'
               }]);
             }, 500);
             this.working = false;
@@ -510,8 +506,7 @@ define([
               message: 'You added a new data source: "'
                   + res.title + ', ' + res.meta.channel_cnt + ' channel'
                   + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-              level: 'alert',
-              sticky: false
+              level: 'alert'
             }]);
           }, 500);
 

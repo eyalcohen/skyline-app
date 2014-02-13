@@ -1,17 +1,6 @@
-<%
-
-  // Gravatar
-  var user = this.parentView.model ?
-      this.parentView.model.attributes: this.app.profile.user;
-  var gravatar = 'https://www.gravatar.com/avatar/' + user.gravatar + '?s=60&d=mm';
-%>
-
 <table>
-  <tr class="list-header">
+  <tr class="list-header table-header">
     <td class="main-cell">
-      <div class="profile-avatar">
-        <img src="<%= gravatar %>" width="60" height="60" />
-      </div>
       Mashups
     </td>
     <td>

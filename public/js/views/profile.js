@@ -10,9 +10,10 @@ define([
   'util',
   'models/user',
   'text!../../templates/profile.html',
+  'text!../../templates/profile.header.html',
   'views/lists/profile.datasets',
   'views/lists/profile.views'
-], function ($, _, Backbone, mps, util, User, template, Datasets, Views) {
+], function ($, _, Backbone, mps, util, User, template, header, Datasets, Views) {
 
   return Backbone.View.extend({
 
@@ -38,10 +39,12 @@ define([
       // Use a model for the main content.
       this.model = new User(this.app.profile.content.page);
 
-      // Set page title
-      this.app.title(this.model.get('displayName'));
+      // Set page title.
+      this.app.title(this.model.get('username')
+          + ' (' + this.model.get('displayName') + ')',
+          _.template(header).call(this), true);
 
-      // UnderscoreJS rendering.
+      // Render main template.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('.main');
 
@@ -86,6 +89,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      this.app.title();
       this.datasets.destroy();
       this.views.destroy();
       this.remove();

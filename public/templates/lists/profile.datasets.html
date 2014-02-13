@@ -1,19 +1,11 @@
-<%
-
-  // Gravatar
-  var size = this.modal ? 30: 60;
-  var user = this.parentView.model ?
-      this.parentView.model.attributes: this.app.profile.user;
-  var gravatar = 'https://www.gravatar.com/avatar/'
-      + user.gravatar + '?s=' + size + '&d=mm';
-%>
 
 <table>
-  <tr class="list-header">
+  <% if (!this.modal) { %>
+    <tr class="list-header table-header">
+  <% } else { %>
+    <tr class="table-header">
+  <% } %>
     <td class="main-cell">
-      <div class="profile-avatar">
-        <img src="<%= gravatar %>" width="<%= size %>" height="<%= size %>" />
-      </div>
       Data sources
     </td>
     <td>
@@ -26,9 +18,24 @@
       <td class="profile-item-delete-empty">&nbsp;</td>
     <% } %>
   </tr>
+  <% if (this.modal) { %>
+    </table>
+    <div class="profile-items-wrap">
+      <table>
+        <tr class="list-header"></tr>
+  <% } %>
   <% if (this.collection.models.length > 0) { %>
     <% _.each(this.collection.models, _.bind(function(row) { %>
       <%= this.row(row) %>
     <% }, this)); %>
   <% } %>
-</table>
+  <% if (this.modal) { %>
+      </table>
+      <div class="list-spin">
+        <div class="profile-datasets-spin"></div>
+        <span class="full-feed">Showing all.</span>
+      </div>
+    </div>
+  <% } else { %>
+    </table>
+  <% } %>

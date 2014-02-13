@@ -52,7 +52,8 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
-        padding: 0
+        padding: 0,
+        modal: true
       });
 
       // Add placeholder shim if need to.
@@ -67,14 +68,21 @@ define([
 
     // Bind mouse events.
     events: {
+      'click .modal-close': 'close',
       'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
+      'click .browser-private': 'checkPrivate',
+      'click .browser-search-justme': 'checkJustMe',
+      'click .browser-search-allusers': 'checkAllUsers'
     },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs.
+      this.privacy = this.$('.browser-private');
+      this.justme = this.$('.browser-search-justme');
+      this.allusers = this.$('.browser-search-allusers');
       this.addNewFileForm = $('.browser-add-form');
       this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
       this.newFile = $('input[name="data_file"]', this.addNewFileForm);
@@ -82,12 +90,17 @@ define([
       this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = $('.browser .dnd');
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
-        color: '#3f3f3f',
+        color: '#fff',
         lines: 13,
         length: 3,
         width: 2,
         radius: 6,
       });
+      this.searchInput = this.$('input[name="search"]');
+
+      // Handle search input.
+      this.searchInput.bind('keyup', _.bind(this.search, this));
+      this.searchInput.bind('search', _.bind(this.search, this));
 
       // Drag & drop events.
       this.$el.bind('dragover', _.bind(this.dragover, this));
@@ -109,6 +122,7 @@ define([
             items: [],
             query: {author_id: this.app.profile.user.id}
           },
+          searchQuery: {author_id: this.app.profile.user.id},
           modal: true,
           parentView: this,
           reverse: true
@@ -136,6 +150,16 @@ define([
       this.empty();
     },
 
+    close: function (e) {
+      $.fancybox.close();
+    },
+
+    resize: function () {
+      if (!this.datasets) return;
+      var wrap = $('.profile-items-wrap', this.datasets.$el);
+      wrap.height(this.$el.height() - wrap.position().top);
+    },
+
     dragover: function (e) {
       if (this.dragging) return false;
       this.dragging = true;
@@ -157,12 +181,12 @@ define([
       e.stopPropagation();
       e.preventDefault();
 
-      var files = e.originalEvent.dataTransfer.files;
-      this.update(null, files);
-      this.add(null, files);
-
       // Stop drag styles.
       this.$el.removeClass('dragging');
+
+      // Update the input field.
+      this.update(null, e.originalEvent.dataTransfer.files);
+      
       return false;
     },
 
@@ -178,7 +202,6 @@ define([
         this.newFileSubmit.attr({disabled: false});
       }
       this.newFileInput.val(name);
-      this.add(null, files);
     },
 
     // Create new dataset from file.
@@ -205,7 +228,7 @@ define([
 
         // Check file type for any supported...
         // The MIME type could be text/plain or application/vnd.ms-excel
-        // or a bunch of other options.  For now, switch to checking the
+        // or a bunch of other options. For now, switch to checking the
         // extension and consider improved validation down the road, particularly
         // as we add support for new file types
         var ext = file.name.split('.').pop();
@@ -215,6 +238,7 @@ define([
         // Construct the payload to send.
         var payload = {
           title: _.str.strLeft(file.name, '.'),
+          public: !this.$('.browser-private').is(':checked'),
           file: {
             size: file.size,
             type: file.type,
@@ -249,8 +273,7 @@ define([
                 message: 'You added a new data source: "'
                     + res.title + ', ' + res.meta.channel_cnt + ' channel'
                     + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-                level: 'alert',
-                sticky: false
+                level: 'alert'
               }]);
             }, 500);
 
@@ -267,6 +290,34 @@ define([
       reader.readAsDataURL(file);
 
       return false;
+    },
+
+    checkPrivate: function (e) {
+      var span = $('span', this.privacy.parent());
+      if (this.privacy.is(':checked'))
+        span.html('<i class="icon-lock"></i> Private');
+      else
+        span.html('<i class="icon-lock-open"></i> Public');
+    },
+
+    checkJustMe: function (e) {
+      this.justme.attr('checked', true);
+      this.allusers.attr('checked', false);
+      this.datasets.options.searchQuery.author_id = this.app.profile.user.id;
+      if (this.datasets.searching)
+        this.search();
+    },
+
+    checkAllUsers: function (e) {
+      this.justme.attr('checked', false);
+      this.allusers.attr('checked', true);
+      delete this.datasets.options.searchQuery.author_id;
+      if (this.datasets.searching)
+        this.search();
+    },
+
+    search: function (e) {
+      this.datasets.search(util.sanitize(this.searchInput.val()));
     },
 
   });

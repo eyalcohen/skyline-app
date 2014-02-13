@@ -3,9 +3,10 @@
 </div>
 <span class="block-<%= this.model.get('level') %>-txt">
   <% if (this.model.get('level') === 'alert') { %>
-    <i class="icon-attention"></i>  
+    <i class="icon-exclamation"></i>
+    <%= this.model.get('message') %>
   <% } else { %>
-    <i class="icon-error"></i>
+    <i class="icon-error-alt"></i>
+    Error<%= this.model.get('err').code ? ' ' + this.model.get('err').code: '' %>: <%= this.model.get('err').message.message %>
   <% } %>
-  <%= this.model.get('message') %>
 </span>

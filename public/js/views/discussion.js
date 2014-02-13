@@ -46,7 +46,8 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
-        padding: 0
+        padding: 0,
+        modal: true
       });
 
       // Done rendering ... trigger setup.
@@ -56,7 +57,9 @@ define([
     },
 
     // Bind mouse events.
-    events: {},
+    events: {
+      'click .modal-close': 'close',
+    },
 
     // Misc. setup.
     setup: function () {
@@ -109,6 +112,10 @@ define([
         clearInterval(this.timer);
       this.replies.destroy();
       this.empty();
+    },
+
+    close: function (e) {
+      $.fancybox.close();
     },
 
   });

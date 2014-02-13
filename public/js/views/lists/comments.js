@@ -60,7 +60,8 @@ define([
         comments_cnt = target.doc.comments_cnt;
       }
       _.each(this.app.profile.content.datasets.items, function (d, i) {
-        if (state.datasets[d.id] && state.datasets[d.id].comments === false)
+        if (!state.datasets[d.id] ||
+            (state.datasets[d.id] && state.datasets[d.id].comments === false))
           return;
         _.each(d.comments, function (c) {
           if (i === 0) c.leader = true;

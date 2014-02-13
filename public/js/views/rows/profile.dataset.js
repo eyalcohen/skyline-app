@@ -16,7 +16,12 @@ define([
     tagName: 'tr',
 
     attributes: function () {
-      return _.defaults({class: 'profile-dataset'},
+      var klass = 'profile-dataset';
+      if (this.model.get('public') === false)
+        klass += ' profile-dataset-locked';
+      if (this.model.get('parent'))
+        klass += ' profile-dataset-fork';
+      return _.defaults({class: klass},
           Row.prototype.attributes.call(this));
     },
 
@@ -39,6 +44,15 @@ define([
       e.preventDefault();
       if ($(e.target).hasClass('profile-item-delete')
           || $(e.target).hasClass('icon-cancel')) return;
+
+      if ($(e.target).hasClass('navigate')) {
+        var path = $(e.target).closest('a').attr('href');
+        if (path) {
+          $.fancybox.close();
+          this.app.router.navigate(path, {trigger: true});
+        }
+        return;
+      }
 
       if (!this.parentView.modal) {
         var path = [this.model.get('author').username, this.model.id].join('/');

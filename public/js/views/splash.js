@@ -65,7 +65,7 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .splash-start-button': 'signin',
+      'click .splash-button': 'signin',
     },
 
     // Similar to Backbone's remove method, but empties

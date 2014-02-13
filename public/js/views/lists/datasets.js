@@ -43,7 +43,11 @@ define([
       var items = this.app.profile.content.datasets ?
           this.app.profile.content.datasets.items: [];
       var stored = store.get('state').datasets;
-      items.sort(function(a, b) {
+      items = _.reject(items, function (i) {
+        return !_.find(store.get('state').datasets,
+            function (d, did) { return Number(i.id) === Number(did); });
+      });
+      items.sort(function (a, b) {
         return stored[a.id].index - stored[b.id].index;
       });
       this.collection.reset(items);
@@ -133,9 +137,8 @@ define([
       rest.get('/api/datasets/' + did, _.bind(function (err, dataset) {
         if (err) {
           mps.publish('flash/new', [{
-            message: err,
-            level: 'error',
-            sticky: true
+            err: err,
+            level: 'error'
           }]);
           return;
         }

@@ -67,12 +67,14 @@ define([
     return login;
   }
 
-  App.prototype.title = function (t1, t2) {
+  App.prototype.title = function (t1, t2, clear) {
     if (t1 === undefined) return;
 
     // Set the document title.
     var title = 'Skyline';
-    document.title = t1 !== '' ? title + ' | ' + t1: title;
+    if (clear)
+      document.title = t1 !== '' ? t1: title;
+    else document.title = t1 !== '' ? title + ' | ' + t1: title;
 
     // Set the app title.
     if (t2 === undefined) t2 = t1;

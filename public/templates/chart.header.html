@@ -1,0 +1,32 @@
+<%
+
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + page.author.gravatar + '?s=24&d=mm';
+
+  var icon;
+  if (page.parent)
+    icon = '<i class="icon-folder-empty"><i class="icon-split"></i></i>';
+  else 
+    icon = page.public === false ?
+        '<i class="icon-lock"></i>': '<i class="icon-folder-empty">';
+  var klass = 'page-header-title';
+  if (page.parent) klass += ' forked';
+  if (page.public === false) klass += ' locked';
+
+%>
+
+<span class="<%= klass %>">
+  <img src="<%= gravatar %>" width="24" height="24" /><%= icon %> 
+  <a href="/<%= page.author.username %>" class="navigate page-header-username">
+    <%= page.author.username %></a> / 
+    <a href="/<%= page.author.username %>/views/<%= page.parent.slug %>"
+      class="navigate page-header-main">
+      <%= page.name %></a>
+</span>
+<% if (page.parent) { %>
+  <span class="page-header-subtitle">(forked from 
+    <a href="/<%= page.parent.author.username %>/views/<%= page.parent.slug %>"
+      class="navigate<%= (page.parent.public === false ? ' locked': '') %>"><i
+      class="icon-folder-empty"></i> <%= page.parent.name %></a>)
+  </span>
+<% } %>

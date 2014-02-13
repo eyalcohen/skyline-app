@@ -1,8 +1,6 @@
 <%
 
-  var verb = this.options.target ? 'Fork': 'Save';
-  var type = this.resource === 'view' ? 'mashup': 'source';
-  var title = this.options.fork ? 'fork': type;
+  var btn = this.options.target ? 'Fork': 'Save';
 
   var verb, type, title, name;
   if (!this.options.target) {
@@ -26,6 +24,9 @@
 
 %>
 
+<div class="modal-close">
+  <i class="icon-cancel"></i>
+</div>
 <span class="modal-title">
   <%= header %>
 </span>
@@ -39,10 +40,14 @@
         <tbody>
           <tr>
             <td>
-              <input name="name" type="text" />
+              <input name="name" type="text" style="text-indent:85px;" />
+              <label class="checkbox-styled input-checkbox">
+                <input class="save-private" type="checkbox" name="private" value="private" />
+                <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
+              </label>
             </td>
             <td style="width:120px;">
-              <input type="submit" disabled="disabled" value="Save" />
+              <input class="blue-button" type="submit" disabled="disabled" value="<%= btn %>" />
               <div class="button-spin"></div>
             </td>
           </tr>

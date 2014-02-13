@@ -62,7 +62,8 @@ define([
           if (this.parentView) {
             if (this.parentView.$('.list-header').length !== 0) {
               var list = $(this.parentView.$('.list-header').get(0));
-              var lastSib = $('.' + this.attributes().class, list.parent()).last();
+              var lastSib = $('.' + this.attributes().class.split(' ')[0],
+                  list.parent()).last();
               if (lastSib.length !== 0)
                 this.$el.insertAfter(lastSib);
               else

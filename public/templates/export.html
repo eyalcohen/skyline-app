@@ -1,0 +1,87 @@
+<div class="modal-close">
+  <i class="icon-cancel"></i>
+</div>
+<span class="modal-title">
+  Download as CSV
+</span>
+<span class="modal-heading">
+  Choose channels to export from the visible data in your chart.
+</span>
+<form class="export-form" enctype="multipart/form-data" method="POST">
+  <div class="export-info">
+    <table>
+      <tbody>
+        <tr class="table-header">
+          <td colspan="2" class="main-cell">Confirm channels:</td>
+          <td>Data points</td>
+          <td>File size</td>
+        </tr>
+        <% _.each(this.datasets, _.bind(function (d) { %>
+          <tr>
+            <td class="main-cell number-cell channel-cnt-<%= d.id %>"
+                  data-cnt="<%= d.count %>">
+              <%= d.count %> / <%= d.count %>
+            </td>
+            <td class="table-cell">
+              <table>
+                <tr class="table-header">
+                  <td colspan="4">"<%= d.title %>"</td>
+                </tr>
+                <% _.each(this.channels, function (c) {
+                  if (c.did !== d.id) return; %>
+                  <tr>
+                    <td class="table-cell">
+                      <label class="checkbox-styled table-checkbox toggle-checkbox">
+                        <input type="checkbox" name="<%= c.channelName %>"
+                            value="<%= c.channelName %>" checked />
+                        <span><i class="icon-check"></i> <%= c.humanName %></span>
+                      </label>
+                    </td>
+                  </tr>
+                <% }); %>
+              </table>
+            </td>
+            <td class="number-cell">?</td>
+            <td class="number-cell">?</td>
+          </tr>
+        <% }, this)); %>
+      </tbody>
+    </table>
+  </div>
+  <div class="export-inner modal-inner">
+    <div>
+      <span class="modal-heading">
+        Refine your data sample resolution.
+      </span>
+      <table>
+        <tbody>
+          <tr>
+            <td colspan="2" style="width:200px;">
+              <input class="export-resample-input" type="text" value="1.0" style="text-indent:120px;">
+              <label class="checkbox-styled input-checkbox toggle-checkbox">
+                <input type="checkbox" name="resample" value="resample" />
+                <span style="width:115px; padding:0;"><i class="icon-check"></i> Resample to</span>
+              </label>
+            </td>
+            <td class="number-cell" style="width:115px; text-align:left;">seconds / sample, or</td>
+            <td style="width:129px;">
+              <label class="checkbox-styled toggle-checkbox">
+                <input type="checkbox" name="noresample" value="noresample" checked />
+                <span><i class="icon-check"></i> Don't resample</span>
+              </label>
+            </td>
+            <td>
+              <input class="blue-button" type="submit" value="Download" />
+              <div class="button-spin"></div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="4">
+              <span class="modal-error"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
