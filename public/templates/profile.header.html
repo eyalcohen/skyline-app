@@ -10,7 +10,7 @@
   <a href="/<%= this.model.get('username') %>" class="navigate page-header-username">
     <%= this.model.get('username') %> (<%= this.model.get('displayName') %>)</a>
 </span>
-<% if (this.app.profile.user.id !== this.model.id) { %>
+<% if (this.app.profile.user && this.app.profile.user.id !== this.model.id) { %>
   <% if (this.app.profile.sub) { %>
     <div class="page-header-profile-info">
       <a class="button unfollow-button"><i class="icon-user-delete"></i> Unfollow</a>

@@ -55,6 +55,8 @@ define([
         this.profile.user = profile.user;
         login = true;
       }
+      if (profile.sub && !this.profile.sub)
+        this.profile.sub = profile.sub;
     } else
       this.profile = profile;
 
