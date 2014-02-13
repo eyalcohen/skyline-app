@@ -90,7 +90,7 @@ define([
       this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = $('.browser .dnd');
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
-        color: '#3f3f3f',
+        color: '#fff',
         lines: 13,
         length: 3,
         width: 2,
@@ -273,8 +273,7 @@ define([
                 message: 'You added a new data source: "'
                     + res.title + ', ' + res.meta.channel_cnt + ' channel'
                     + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-                level: 'alert',
-                sticky: false
+                level: 'alert'
               }]);
             }, 500);
 

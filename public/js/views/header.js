@@ -7,11 +7,13 @@ define([
   'Underscore',
   'Backbone',
   'mps',
+  'rest',
   'text!../../templates/box.html'
-], function ($, _, Backbone, mps, box) {
+], function ($, _, Backbone, mps, rest, box) {
   return Backbone.View.extend({
 
     el: '.header',
+    working: false,
 
     initialize: function (app) {
 
@@ -71,6 +73,8 @@ define([
     // Bind mouse events.
     events: {
       'click .header-logo': 'home',
+      'click .follow-button': 'follow',
+      'click .unfollow-button': 'unfollow',
       'click .signin-button': 'signin',
       'click .add-data-button': 'add',
       'click .navigate': 'navigate'
@@ -81,6 +85,68 @@ define([
 
       // Route to home.
       this.app.router.navigate('/', {trigger: true});
+    },
+
+    follow: function (e) {
+      var btn = $(e.target);
+
+      // Prevent multiple requests.
+      if (this.working) return false;
+      this.working = true;
+
+      // Do the API request.
+      var username = this.app.profile.content.page.username;
+      rest.post('/api/users/' + username + '/follow', {},
+          _.bind(function (err, data) {
+
+        // Clear.
+        this.working = false;
+
+        if (err) {
+
+          // Show error.
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+          return false;
+        }
+
+        // Update button content.
+        btn.removeClass('follow-button').addClass('unfollow-button')
+            .html('<i class="icon-user-delete"></i> Unfollow');
+
+      }, this));
+
+      return false;  
+    },
+
+    unfollow: function (e) {
+      var btn = $(e.target);
+
+      // Prevent multiple requests.
+      if (this.working) return false;
+      this.working = true;
+
+      // Do the API request.
+      var username = this.app.profile.content.page.username;
+      rest.post('/api/users/' + username + '/unfollow', {},
+          _.bind(function (err, data) {
+
+        // Clear.
+        this.working = false;
+
+        if (err) {
+
+          // Show error.
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+          return false;
+        }
+
+        // Update button content.
+        btn.removeClass('unfollow-button').addClass('follow-button')
+            .html('<i class="icon-user-add"></i> Follow');
+
+      }, this));
+
+      return false;  
     },
 
     signin: function (e) {

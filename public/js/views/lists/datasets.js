@@ -137,9 +137,8 @@ define([
       rest.get('/api/datasets/' + did, _.bind(function (err, dataset) {
         if (err) {
           mps.publish('flash/new', [{
-            message: err,
-            level: 'error',
-            sticky: true
+            err: err,
+            level: 'error'
           }]);
           return;
         }

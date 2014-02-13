@@ -77,7 +77,7 @@ define([
       this.saveSubmit = $('input[type="submit"]', this.saveForm);
       this.saveError = $('.modal-error', this.saveForm);
       this.saveButtonSpin = new Spin(this.$('.button-spin'), {
-        color: '#3f3f3f',
+        color: '#fff',
         lines: 13,
         length: 3,
         width: 2,
@@ -239,8 +239,7 @@ define([
         _.delay(_.bind(function () {
           mps.publish('flash/new', [{
             message: 'You ' + verb + ' a data ' + type + ': "' + name + '"',
-            level: 'alert',
-            sticky: false
+            level: 'alert'
           }]);
         }, this), 500);
 

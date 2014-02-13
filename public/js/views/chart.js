@@ -68,13 +68,13 @@ define([
     },
 
     // Draw our template from the profile.
-    render: function (embed) {
+    render: function () {
 
       // Use model to store view data.
       this.model = new Backbone.Model;
 
       // Set page title.
-      if (!embed) {
+      if (!this.app.embed) {
         var page = this.app.profile.content.page;
         if (page && page.name) {
           this.app.title(page.author.username + '/' + page.name,
@@ -237,9 +237,8 @@ define([
 
         // Show error.
         mps.publish('flash/new', [{
-          message: 'No data found.',
-          level: 'error',
-          sticky: false
+          err: {message: {message: 'No data found.'}},
+          level: 'error'
         }]);
         this.working = false;
         return false;
@@ -276,11 +275,7 @@ define([
           if (err) {
             // Show error.
             _.delay(function () {
-              mps.publish('flash/new', [{
-                message: err,
-                level: 'error',
-                sticky: false
-              }]);
+              mps.publish('flash/new', [{err: err, level: 'error'}]);
             }, 500);
             this.working = false;
             return;
@@ -302,7 +297,6 @@ define([
             mps.publish('flash/new', [{
               message: 'Saved.',
               level: 'alert',
-              sticky: false,
               delay: 2000,
             }]);
           }, 500);
@@ -322,9 +316,8 @@ define([
       var target = this.target();
       if (!target.doc) {
         mps.publish('flash/new', [{
-          message: 'No data found.',
-          level: 'error',
-          sticky: false
+          err: {message: {message: 'No data found.'}},
+          level: 'error'
         }]);
         return;
       }
@@ -500,8 +493,7 @@ define([
             _.delay(function () {
               mps.publish('flash/new', [{
                 message: err,
-                level: 'error',
-                sticky: false
+                level: 'error'
               }]);
             }, 500);
             this.working = false;
@@ -514,8 +506,7 @@ define([
               message: 'You added a new data source: "'
                   + res.title + ', ' + res.meta.channel_cnt + ' channel'
                   + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-              level: 'alert',
-              sticky: false
+              level: 'alert'
             }]);
           }, 500);
 

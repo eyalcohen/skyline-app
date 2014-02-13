@@ -522,75 +522,77 @@ a.button.connect-button:focus {
   border: 1px solid #4f4f4f;
 }
 
-a.google-button {
+a.button.google-button {
   background: rgba(221,67,55,0.8);
 }
 
-a.google-button:hover {
+a.button.google-button:hover {
   background: rgba(221,67,55,0.9);
 }
 
-a.google-button:active {
+a.button.google-button:active {
   background: rgba(221,67,55,1);
 }
 
-a.google-button-disabled {
+a.button.google-button-disabled {
   background: rgba(221,67,55,0.5);
   cursor: default;
 }
 
-a.facebook-button {
+a.button.facebook-button {
   background: rgba(59,89,152,0.8);
 }
 
-a.facebook-button:hover {
+a.button.facebook-button:hover {
   background: rgba(59,89,152,0.9);
 }
 
-a.facebook-button:active {
+a.button.facebook-button:active {
   background: rgba(59,89,152,1);
 }
 
-a.facebook-button-disabled {
+a.button.facebook-button-disabled {
   background: rgba(59,89,152,0.5);
   cursor: default;
 }
 
-a.twitter-button {
+a.button.twitter-button {
   background: rgba(60,143,201,0.9);
 }
 
-a.twitter-button:hover {
+a.button.twitter-button:hover {
   background: rgba(60,143,201,0.75);
 }
 
-a.twitter-button:active {
+a.button.twitter-button:active {
   background: rgba(60,143,201,1);
 }
 
-a.twitter-button-disabled {
+a.button.twitter-button-disabled {
   background: rgba(60,143,201,0.5);
   cursor: default;
 }
 
-a.delete-button,
+a.button.delete-button,
 a.button.danger {
   background: rgba(208,76,56,0.8);
   border: 1px solid #2f2f2f;
   color: #fff;
 }
 
-a.delete-button:hover,
+a.button.delete-button:hover,
 a.button.danger:hover {
   background: rgba(208,76,56,0.9);
 }
 
-a.delete-button:active,
+a.button.delete-button:active,
 a.button.danger:active {
   background: rgba(208,76,56,1);
 }
 
-a.button.follow-button {
+a.button.follow-button,
+a.button.unfollow-button {
+  width: 77px;
   padding: 2px 10px;
   font-size: 13px;
 }
@@ -811,7 +813,7 @@ span.empty-list {
   font-weight: bold;
   font-size: 20px;
   color: #4d4d4d;
-  line-height: 20px;
+  line-height: 32px;
   text-align: center;
 }
 
@@ -2619,7 +2621,7 @@ a.dataset-button .dataset-button-bg {
 }
 
 .dataset.active a.dataset-button .dataset-button-bg {
-  background: #3f3f3f;
+  background: #4f4f4f;
   border-left: none;
   border-top: none;
   height: 35px;
@@ -3276,9 +3278,13 @@ a.comments-signin {
 }
 
 .event-inner p {
-  margin: 2px 0 0 32px;
+  margin: -1px 0 0 32px;
   font-size: 14px;
-  line-height: 16px;
+  line-height: 22px;
+}
+
+.event-inner p a {
+  white-space: nowrap;
 }
 
 .event-body {

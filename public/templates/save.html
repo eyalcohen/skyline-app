@@ -1,8 +1,6 @@
 <%
 
-  var verb = this.options.target ? 'Fork': 'Save';
-  var type = this.resource === 'view' ? 'mashup': 'source';
-  var title = this.options.fork ? 'fork': type;
+  var btn = this.options.target ? 'Fork': 'Save';
 
   var verb, type, title, name;
   if (!this.options.target) {
@@ -49,7 +47,7 @@
               </label>
             </td>
             <td style="width:120px;">
-              <input type="submit" disabled="disabled" value="Save" />
+              <input class="blue-button" type="submit" disabled="disabled" value="<%= btn %>" />
               <div class="button-spin"></div>
             </td>
           </tr>
