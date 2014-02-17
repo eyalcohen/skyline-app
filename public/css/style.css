@@ -393,12 +393,9 @@ input[type=submit] {
 
   cursor: pointer;
 
-  -moz-transition-timing-function: ease-out;
-  -moz-transition-duration: 100ms;
-  -webkit-transition-timing-function: ease-out;
-  -webkit-transition-duration: 100ms;
-  transition-timing-function: ease-out;
-  transition-duration: 100ms;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
 }
 
 td a.button,
@@ -420,10 +417,6 @@ input[type='submit']:hover:not([disabled=disabled]) {
   background-image: -ms-linear-gradient(top,#e5e5e5,#e0e0e0);
   background-image: -o-linear-gradient(top,#e5e5e5,#e0e0e0);
   background-image: linear-gradient(top,#e5e5e5,#e0e0e0);
-
-  -webkit-transition: all 0.1s ease-in-out 0;
-  -moz-transition: all 0.1s ease-in-out 0;
-  transition: all 0.1s ease-in-out;
 }
 
 a.button:active:not([disabled=disabled]),
@@ -647,13 +640,13 @@ a.button.unfollow-button {
   -webkit-user-select: none;
   user-select: none;
 
-  -webkit-transition: background-color 0.1s ease-in 0;
+  -webkit-transition: background-color 0.1s ease-in;
   -moz-transition: background-color 0.1s ease-in;
   transition: background-color 0.1s ease-in;
-  -webkit-transition: border-color 0.1s ease-in 0;
+  -webkit-transition: border-color 0.1s ease-in;
   -moz-transition: border-color 0.1s ease-in;
   transition: border-color 0.1s ease-in;
-  -webkit-transition: -webkit-box-shadow 0.1s ease-in 0;
+  -webkit-transition: -webkit-box-shadow 0.1s ease-in;
   -moz-transition: -moz-box-shadow 0.1s ease-in;
   transition: box-shadow 0.1s ease-in;
 }
@@ -666,8 +659,8 @@ a.button.unfollow-button {
   background-image: -o-linear-gradient(top,#e5e5e5,#e0e0e0);
   background-image: linear-gradient(top,#e5e5e5,#e0e0e0);
 
-  -webkit-transition: all 0.1s ease-in-out 0;
-  -moz-transition: all 0.1s ease-in-out 0;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
   transition: all 0.1s ease-in-out;
 }
 
@@ -1103,8 +1096,8 @@ body.embed .block-messages {
   text-transform: lowercase;
   line-height: 57px;
 
-  -webkit-transition: opacity 0.1s ease-out 0;
-  -moz-transition: opacity 0.1s ease-out 0;
+  -webkit-transition: opacity 0.1s ease-out;
+  -moz-transition: opacity 0.1s ease-out;
   transition: opacity 0.1s ease-out;
 }
 
@@ -1224,8 +1217,8 @@ body.loading .header .header-logo a {
   margin: -2px 0 0 0;
   font-size: 12px;
 
-  -webkit-transition: all 0.1s ease-in-out 0;
-  -moz-transition: all 0.1s ease-in-out 0;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
   transition: all 0.1s ease-in-out;
 }
 
@@ -1330,7 +1323,7 @@ ul.header-user-menu li a {
   border-right: 1px solid #d0d0d0;
   width: 76px;
 
-  -webkit-transition: all 0.1s ease-in 0;
+  -webkit-transition: all 0.1s ease-in;
   -moz-transition: all 0.1s ease-in;
   transition: all 0.1s ease-in;
 }
