@@ -158,7 +158,7 @@ define([
       // Get a profile, if needed.
       rest.get(service, data, _.bind(function (err, pro) {
         if (err) {
-          _render.call(this, err);
+          // _render.call(this, err);
           this.page = new Error(this.app).render(err);
           this.spin.stop();
         }

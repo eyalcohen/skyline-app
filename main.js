@@ -173,9 +173,9 @@ if (cluster.isMaster) {
       }, app.get('HOME_URI')));
 
       // PubSub init
-      app.set('pubsub', new PubSub({ mailer: app.get('mailer') }));
+      app.set('pubsub', new PubSub({mailer: app.get('mailer')}));
 
-      // General Express inits
+      // Express config.
       app.set('views', __dirname + '/views');
       app.set('view engine', 'jade');
       app.set('sessionStore', new RedisStore({client: rc, maxAge: 2592000000}));
@@ -216,12 +216,12 @@ if (cluster.isMaster) {
         });
 
         // Force HTTPS
-        if (app.get('package').protocol === 'https')
-          app.all('*', function (req, res, next) {
-            if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https')
-              return next();
-            res.redirect('https://' + req.headers.host + req.url);
-          });
+        // if (app.get('package').protocol === 'https')
+        //   app.all('*', function (req, res, next) {
+        //     if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https')
+        //       return next();
+        //     res.redirect('https://' + req.headers.host + req.url);
+        //   });
       }
 
       if (!module.parent) {
@@ -266,7 +266,7 @@ if (cluster.isMaster) {
             app.use(function (req, res) {
               var embed = req._parsedUrl.path.indexOf('/embed') === 0;
               res.render('index', {
-                member: req.user,
+                user: req.user,
                 root: app.get('ROOT_URI'),
                 embed: embed
               });

@@ -157,7 +157,6 @@ define([
       if (this.collection.get(-1)) return;
       
       // Add comment to profile.
-      // TODO: Rethink profile / state relationship! Getting ugly...
       var owner;
       if (dataset && data.parent_type === 'dataset')
         owner = _.find(this.app.profile.content.datasets.items, function (d) {
