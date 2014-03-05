@@ -335,6 +335,7 @@ input[type=search] {
 
 input[type=search] {
   padding: 8px;
+  -webkit-appearance: textfield;
 }
 
 input[type=text]:focus,
