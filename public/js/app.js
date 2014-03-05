@@ -102,6 +102,9 @@ define([
       var app = new App();
       app.router = new Router(app);
       Backbone.history.start({pushState: true});
+
+      // For local dev.
+      if (window.__s === '') window._app = app;
     }
 
   };
