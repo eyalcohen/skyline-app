@@ -100,7 +100,7 @@ define([
     _remove: function (data) {
       var index = -1;
       var view = _.find(this.views, function (v) {
-        ++index
+        ++index;
         return v.model.id === data.id;
       });
 
@@ -137,7 +137,7 @@ define([
             showingall.css('display', 'block');
           else {
             showingall.hide();
-            $('<span class="empty-feed">No notifications.</span>')
+            $('<span class="empty-feed">Nothing to see here yet.</span>')
                 .appendTo(this.$el);
           }
         } else

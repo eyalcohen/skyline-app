@@ -61,8 +61,8 @@ define([
     _remove: function (data) {
       var index = -1;
       var view = _.find(this.views, function (v) {
-        ++index
-        return v.model.id === data.id;
+        ++index;
+        return Number(v.model.id) === Number(data.id);
       });
 
       if (view) {

@@ -18,7 +18,7 @@ html(lang="en")
     <!--[if IE 7]><link rel="stylesheet" href="#{root}/css/fontello-ie7.css"><![endif]-->
     link(rel="stylesheet", href="#{root}/css/style.css")
     link(rel="shortcut icon", href="#{root}/img/favicon.ico", type="image/x-icon")
-  - var bc = typeof embed !== 'undefined' && embed ? "embed": "";
+  - var bc = typeof embed !== 'undefined' && embed ? "embed preload": "preload";
   body(class=bc)
     block content
     - if (process.env.NODE_ENV === 'production')
