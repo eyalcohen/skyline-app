@@ -17,11 +17,13 @@ define([
   return List.extend({
     
     el: '.profile-datasets',
+
     fetching: false,
     nomore: false,
-    limit: 10,
+
     searching: false,
     str: null,
+    num: 0,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -44,16 +46,19 @@ define([
       this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Misc.
-      this.empty_label = 'No data sources.';
+      this.emptyLabel = 'You don\'t have any yet!';
 
       // Reset the collection.
-      this.latest_list = this.options.datasets;
-      this.collection.reset(this.latest_list.items);
+      this.latestList = this.options.datasets;
+      this.collection.reset(this.latestList.items);
     },
 
     // Initial bulk render of list
     render: function (options) {
       List.prototype.render.call(this, options);
+
+      // Save refs.
+      this.showingAll = this.$('.list-spin .full-feed');
 
       // Handle height.
       if (this.modal) {
@@ -61,7 +66,8 @@ define([
         _.delay(_.bind(this.parentView.resize, this.parentView), 0);
 
         // Init the load indicator.
-        this.spin = new Spin($('.profile-datasets-spin', this.$el.parent()), {
+        this.listSpin = this.$('.list-spin');
+        this.spin = new Spin(this.$('.profile-datasets-spin'), {
           lines: 13,
           length: 3,
           width: 2,
@@ -69,17 +75,20 @@ define([
         });
 
         this.wrap = this.$('.profile-items-wrap');
-        if (this.collection.length > 0 || this.latest_list.more)
+        if (this.collection.length > 0 || this.latestList.more)
           _.delay(_.bind(function () {
             this.checkHeight();
           }, this), (this.collection.length + 1) * 30);
         else {
           this.nomore = true;
-          $('<span class="empty-feed">' + this.empty_label
+          this.listSpin.hide();
+          $('<span class="empty-feed">' + this.emptyLabel
               + '</span>').appendTo(this.wrap);
         }
         this.paginate();
-      }
+      } else if (this.collection.length === 0)
+        $('<span class="empty-feed">' + this.emptyLabel + '</span>')
+            .appendTo(this.$el);
 
       return this;
     },
@@ -92,15 +101,11 @@ define([
         _.delay(_.bind(function () {
           if (pagination !== true)
             this.checkHeight();
-        }, this), 60);
+        }, this), 20);
       return this;
     },
 
     setup: function () {
-
-      // Save refs.
-      this.showingall = this.$('.list-spin .full-feed');
-
       return List.prototype.setup.call(this);
     },
 
@@ -108,6 +113,8 @@ define([
 
     destroy: function () {
       if (this.modal) this.unpaginate();
+      this.app.rpc.socket.removeAllListeners('dataset.new');
+      this.app.rpc.socket.removeAllListeners('dataset.removed');
       return List.prototype.destroy.call(this);
     },
 
@@ -131,38 +138,42 @@ define([
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
           if (this.modal) this.checkHeight();
+          else if (this.collection.length === 0
+              && this.$('.empty-feed').length === 0)
+            $('<span class="empty-feed">' + this.emptyLabel + '</span>')
+                .appendTo(this.wrap || this.$el);
         }, this));
       }
     },
 
     search: function (str) {
-
-      // Check search string.
-      if (str.length === 0)
-        return this.restore();
-
-      // Clear items.
-      this.spin.stop();
-      this._clear();
-      this.showingall.hide();
-      this.$('.empty-feed').remove();
-
-      str = str === '' || str.length < 2 ? null: str;
+      if (this.searching) return false;
+      this.searching = true;
+      str = str.trim();
+      if (str === this.str) {
+        this.searching = false;
+        return false;
+      }
       this.str = str;
-
-      if (!str) {
+      if (str.length === 0) {
+        this.searching = false;
         $('<span class="empty-feed">Nothing found.</span>')
             .appendTo(this.wrap);
-        return;
+        this.restore();
+        return false;
       }
 
+      // Clear items.
+      this._clear();
+      this.showingAll.hide();
+      this.$('.empty-feed').remove();
+
       // Perform search.
-      this.searching = true;
       this.spin.start();
       rest.post('/api/datasets/search/' + str, this.options.searchQuery,
           _.bind(function (err, data) {
-        if (err)
-          return console.log(err);
+        this.searching = false;
+        if (err) return console.log(err);
 
         if (data.items.length === 0) {
           $('<span class="empty-feed">Nothing found.</span>')
@@ -183,8 +194,8 @@ define([
     restore: function () {
       this.searching = false;
       this.nomore = false;
-      this.latest_list = this.options.datasets;
-      this.collection.reset(this.latest_list.items);
+      this.latestList = this.options.datasets;
+      this.collection.reset(this.latestList.items);
     },
 
     // Clear the collection w/out re-rendering.
@@ -214,16 +225,22 @@ define([
       // render models and handle edge cases
       function updateUI(list) {
         _.defaults(list, {items:[]});
-        this.latest_list = list;
+        this.latestList = list;
         if (list.items.length === 0) {
           this.nomore = true;
-          this.spin.target.hide();
+          this.fetching = false;
+          if (this.modal) {
+            this.spin.stop();
+            this.spin.target.hide();
+          }
           if (this.collection.length > 0)
-            this.showingall.css('display', 'block');
+            this.showingAll.css('display', 'block');
           else {
-            this.showingall.hide();
+            this.showingAll.hide();
+            if (this.modal)
+              this.listSpin.hide();
             if (this.$('.empty-feed').length === 0)
-              $('<span class="empty-feed">' + this.empty_label + '</span>')
+              $('<span class="empty-feed">' + this.emptyLabel + '</span>')
                   .appendTo(this.wrap);
           }
         } else
@@ -231,12 +248,20 @@ define([
             this.collection.push(i, {silent: true});
             this.renderLast(true);
           }, this));
+
         _.delay(_.bind(function () {
           this.fetching = false;
-          if (list.items.length < this.limit) {
-            this.spin.target.hide();
+          if (this.modal)
+            this.spin.stop();
+          if (list.items.length < this.latestList.limit) {
+            if (this.modal)
+              this.spin.target.hide();
             if (!this.$('.empty-feed').is(':visible'))
-              this.showingall.css('display', 'block');
+              this.showingAll.css('display', 'block');
+          } else {
+            this.showingAll.hide();
+            if (this.modal)
+              this.spin.target.show();
           }
         }, this), (list.items.length + 1) * 30);
       }
@@ -244,21 +269,27 @@ define([
       // already waiting on server
       if (this.fetching) return;
 
+      // Show spin region.
+      if (this.modal)
+        this.listSpin.show();
+
       // there are no more, don't call server
-      if (this.nomore || !this.latest_list.more)
-        return updateUI.call(this, _.defaults({items:[]}, this.latest_list));
+      if (this.nomore || !this.latestList.more)
+        return updateUI.call(this, _.defaults({items:[]}, this.latestList));
 
       // get more
-      this.spin.start();
+      if (this.modal)
+        this.spin.start();
       this.fetching = true;
       rest.post('/api/datasets/list', {
-        limit: this.limit,
-        cursor: this.latest_list.cursor,
-        query: this.latest_list.query
+        limit: this.latestList.limit,
+        cursor: this.latestList.cursor,
+        query: this.latestList.query
       }, _.bind(function (err, data) {
 
         if (err) {
           this.spin.stop();
+          this.spin.target.hide();
           this.fetching = false;
           return console.error(err.stack);
         }

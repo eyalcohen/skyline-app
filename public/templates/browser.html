@@ -7,7 +7,11 @@
   <i class="icon-cancel"></i>
 </div>
 <span class="modal-title">
-  Add data
+  <% if (lib) { %>
+    Upload new or add existing data
+  <% } else { %>
+    Upload new data
+  <% } %>
 </span>
 <div class="browser-inner modal-inner">
   <div>

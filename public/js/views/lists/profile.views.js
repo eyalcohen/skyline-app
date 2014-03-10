@@ -34,6 +34,9 @@ define([
       this.app.rpc.socket.on('view.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
 
+      // Misc.
+      this.emptyLabel = 'You don\'t have any yet!';
+
       // Reset the collection.
       this.collection.reset(options.views.items);
     },
@@ -42,7 +45,7 @@ define([
     render: function (options) {
       List.prototype.render.call(this, options);
       if (this.collection.length === 0)
-        $('<span class="empty-feed">You don\'t have any yet!</span>')
+        $('<span class="empty-feed">' + this.emptyLabel + '</span>')
             .appendTo(this.$el);
       return this;
     },
@@ -71,6 +74,10 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
+          if (this.collection.length === 0
+              && this.$('.empty-feed').length === 0)
+            $('<span class="empty-feed">' + this.emptyLabel + '</span>')
+                .appendTo(this.$el);
         }, this));
       }
     },

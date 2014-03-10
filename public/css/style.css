@@ -1359,6 +1359,10 @@ ul.header-user-menu li a i {
   font-size: 14px;
 }
 
+.header a.button.add-data-button i {
+  margin-right: 10px;
+}
+
 .header [class^="icon-"]:before,
 .header [class*=" icon-"]:before {
   margin: 0;
