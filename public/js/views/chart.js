@@ -470,6 +470,7 @@ define([
         var payload = {
           title: _.str.strLeft(file.name, '.'),
           file: {
+            name: file.name,
             size: file.size,
             type: file.type,
             ext: ext
@@ -503,7 +504,7 @@ define([
           // Show alert
           _.delay(function () {
             mps.publish('flash/new', [{
-              message: 'You added a new data source: "'
+              message: 'You added a new dataset: "'
                   + res.title + ', ' + res.meta.channel_cnt + ' channel'
                   + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
               level: 'alert'

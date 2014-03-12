@@ -244,8 +244,10 @@ define([
           return false;
 
         // Construct the payload to send.
+        var title = this.newFileTitle.val();
+        if (title === '') title = _.str.strLeft(file.name, '.');
         var payload = {
-          title: util.sanitize(this.newFileTitle.val()),
+          title: util.sanitize(title),
           tags: util.sanitize(this.newFileTags.val()),
           description: util.sanitize(this.newFileDescription.val()),
           public: !this.$('.browser-private').is(':checked'),
@@ -283,7 +285,7 @@ define([
             // Show alert
             _.delay(function () {
               mps.publish('flash/new', [{
-                message: 'You added a new data source: "'
+                message: 'You added a new dataset: "'
                     + res.title + ', ' + res.meta.channel_cnt + ' channel'
                     + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
                 level: 'alert'

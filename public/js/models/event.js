@@ -50,7 +50,7 @@ define([
         var actor = user.id === att.data.action.i ? 'You': att.data.action.a;
         if (att.data.target.t === 'dataset') {
           verb = 'added';
-          type = 'data source';
+          type = 'dataset';
           icon = att.data.target.l ? 'lock': 'database';
         } else {
           verb = 'created';
@@ -72,7 +72,7 @@ define([
         var type, icon, picon;
         var actor = user.id === att.data.action.i ? 'You': att.data.action.a;
         if (att.data.target.t === 'dataset') {
-          type = 'data source';
+          type = 'dataset';
           icon = att.data.target.l ? 'lock': 'database';
           picon = att.data.target.p.l ? 'lock': 'database';
         } else {

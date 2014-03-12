@@ -72,7 +72,7 @@ define([
 
       // Render the confirm modal.
       $.fancybox(_.template(confirm)({
-        message: 'I want to delete this data source.',
+        message: 'I want to delete this dataset.',
       }), {
         openEffect: 'fade',
         closeEffect: 'fade',
