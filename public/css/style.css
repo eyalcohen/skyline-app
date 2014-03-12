@@ -1076,7 +1076,7 @@ body.embed .block-messages {
   width: 59px;
   height: 60px;
   line-height: 60px;
-  padding: 0 20px;
+  padding: 0 30px 0 20px;
   border-right: 1px solid #d0d0d0;
   cursor: pointer;
 
@@ -1117,6 +1117,14 @@ body.loading .header .header-logo a {
   margin-top: 25px;
   position: absolute;
   right: -13px;
+}
+
+.header .header-logo a span {
+  position: absolute;
+  top: -21px;
+  left: 56px;
+  font-size: 10px;
+  color: #808080;
 }
 
 .page-header {
