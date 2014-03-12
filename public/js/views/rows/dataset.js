@@ -131,7 +131,7 @@ define([
       // Get the schema for this channel.
       this.app.rpc.do('fetchSamples', this.model.id, '_schema', {},
           _.bind(function (err, data) {
-        console.log(err, data);
+        console.log('FETCHED CHANNELS');
         if (err) return console.error(err);
         var channels = data.samples;
         if (!channels) return console.error('No channels found');
@@ -149,7 +149,6 @@ define([
         this.model.set('end', prevEnd);
 
         // Create channel list.
-        console.log(channels)
         this.channels = new Channels(this.app, {
           items: channels,
           parentView: this
