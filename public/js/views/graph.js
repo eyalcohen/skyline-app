@@ -59,6 +59,7 @@ define([
           beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
           end: Date.now() * 1e3,
         };
+      console.log(time)
       this.model = new Graph(this.app, {view: this, time: time});
 
       // UnderscoreJS rendering.

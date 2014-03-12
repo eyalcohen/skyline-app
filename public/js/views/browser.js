@@ -21,6 +21,7 @@ define([
     className: 'browser',
     dragging: false,
     working: false,
+    files: null,
     
     // Module entry point.
     initialize: function (app, options) {
@@ -192,20 +193,20 @@ define([
 
     // Update new file input value
     update: function (e, files) {
-      var files = files || e.target.files;
+      this.files = files || e.target.files;
       var name;
-      if (files.length === 0) {
+      if (this.files.length === 0) {
         name = '';
         this.newFileSubmit.attr({disabled: 'disabled'});
       } else {
-        name = files[0].name;
+        name = this.files[0].name;
         this.newFileSubmit.attr({disabled: false});
       }
       this.newFileInput.val(name);
     },
 
     // Create new dataset from file.
-    add: function (e, files) {
+    add: function (e) {
       if (e) e.preventDefault();
 
       // Prevent multiple uploads at the same time.
@@ -217,7 +218,7 @@ define([
       this.newFileSubmit.addClass('loading');
 
       // Get the file.
-      var files = files || this.newFile.get(0).files;
+      var files = this.files || this.newFile.get(0).files;
 
       if (files.length === 0) return false;
       var file = files[0];
@@ -257,6 +258,8 @@ define([
           this.newFileInput.val('');
 
           if (err) {
+            if (_.isObject(err))
+              err = 'Error 500: Looks like something went wrong!';
             this.newFileError.text(err);
             this.working = false;
             return;
