@@ -321,7 +321,8 @@ label.export-label {
 
 input[type=text],
 input[type=password],
-input[type=search] {
+input[type=search],
+textarea {
   background: white;
   font-size: 12px;
   margin: 0 0 10px 0;
@@ -347,7 +348,8 @@ input[type=search] {
 
 input[type=text]:focus,
 input[type=password]:focus,
-input[type=search]:focus {
+input[type=search]:focus,
+textarea:focus {
   background: #F8F8F8 !important;
 
   -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
@@ -365,7 +367,8 @@ input[type=password].saved {
   color: gray !important;
 }
 
-input:not([type=submit]):focus {
+input:not([type=submit]):focus,
+textarea:focus {
   background: rgba(255,255,255,0.1);
 }
 
@@ -1121,7 +1124,7 @@ body.loading .header .header-logo a {
 
 .header .header-logo a span {
   position: absolute;
-  top: -21px;
+  top: -19px;
   left: 56px;
   font-size: 10px;
   color: #808080;
@@ -1904,6 +1907,7 @@ a.button.splash-button {
 
 .profile td,
 .browser td {
+  position: relative;
   text-align: center;
   white-space: nowrap;
 }
@@ -2000,9 +2004,10 @@ a.button.splash-button {
   background: rgba(230, 230, 0, .05);
 }
 
-.profile-dataset:hover:not(.profile-dataset-locked),
-.profile-view:hover:not(.profile-view-locked) {
+.profile-dataset:hover:not(.profile-dataset-locked) td,
+.profile-view:hover:not(.profile-view-locked) td {
   background: #dfdfdf;
+  /*border-bottom: none;*/
 }
 
 .profile-dataset a i,
@@ -3385,6 +3390,13 @@ a.comments-signin {
 
 .browser.library .dnd i {
   line-height: 500px;
+}
+
+.browser textarea {
+  width: 614px;
+  min-height: 44px;
+  margin-bottom: 5px;
+  resize: none;
 }
 
 /*.........................................................................*/

@@ -26,7 +26,7 @@
       <table>
         <tbody>
           <tr>
-            <td>
+            <td colspan="3">
               <input name="dummy_data_file" type="text" placeholder="Select file..." style="text-indent:85px;" readonly />
               <input name="data_file" type="file" class="file-input" />
               <label class="checkbox-styled input-checkbox">
@@ -34,13 +34,27 @@
                 <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
               </label>
             </td>
+          </tr>
+          <tr>
+            <td colspan="3">
+              <textarea name="description" class="" tabindex="2" 
+                  placeholder="Write something about your data..."></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input name="title" type="text" placeholder="title" tabindex="3" />
+            </td>
+            <td>
+              <input name="tags" type="text" placeholder="tags" tabindex="4" />
+            </td>
             <td style="width:120px;">
-              <input class="blue-button" type="submit" disabled="disabled" value="Create new" />
+              <input class="blue-button" type="submit" disabled="disabled" value="Create new" tabindex="5" />
               <div class="button-spin"></div>
             </td>
           </tr>
           <tr>
-            <td colspan="2">
+            <td colspan="3">
               <span class="modal-error"></span>
             </td>
           </tr>

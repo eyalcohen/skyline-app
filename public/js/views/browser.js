@@ -54,6 +54,7 @@ define([
         closeEffect: 'fade',
         closeBtn: false,
         padding: 0,
+        margin: [-30,0,0,0],
         modal: true
       });
 
@@ -87,6 +88,9 @@ define([
       this.addNewFileForm = $('.browser-add-form');
       this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
       this.newFile = $('input[name="data_file"]', this.addNewFileForm);
+      this.newFileDescription = $('textarea[name="description"]', this.addNewFileForm);
+      this.newFileTitle = $('input[name="title"]', this.addNewFileForm);
+      this.newFileTags = $('input[name="tags"]', this.addNewFileForm);
       this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
       this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = $('.browser .dnd');
@@ -98,6 +102,9 @@ define([
         radius: 6,
       });
       this.searchInput = this.$('input[name="search"]');
+
+      // Handle textarea.
+      this.newFileDescription.bind('keyup', $.fancybox.reposition).autogrow();
 
       // Handle search input.
       this.searchInput.bind('keyup', _.bind(this.search, this));
@@ -238,9 +245,12 @@ define([
 
         // Construct the payload to send.
         var payload = {
-          title: _.str.strLeft(file.name, '.'),
+          title: util.sanitize(this.newFileTitle.val()),
+          tags: util.sanitize(this.newFileTags.val()),
+          description: util.sanitize(this.newFileDescription.val()),
           public: !this.$('.browser-private').is(':checked'),
           file: {
+            name: file.name,
             size: file.size,
             type: file.type,
             ext: ext

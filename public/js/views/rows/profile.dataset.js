@@ -77,6 +77,7 @@ define([
         openEffect: 'fade',
         closeEffect: 'fade',
         closeBtn: false,
+        margin: [-30,0,0,0],
         padding: 0
       });
 
