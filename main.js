@@ -313,6 +313,7 @@ if (cluster.isMaster) {
 
             // Socket connect
             sio.sockets.on('connection', function (socket) {
+              console.log('CLIENT CONNECTED OVER: ' + sio.transports[socket.id].name);
               socket.join('datasets');
               socket.join('views');
               socket.join('events');

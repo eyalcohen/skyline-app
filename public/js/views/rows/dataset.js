@@ -154,9 +154,8 @@ define([
         // Check if was open.
         var state = store.get('state');
         var did = this.model.id;
-        if ((state.datasets && state.datasets[did]
-            && state.datasets[did].open)
-            || !state.author_id) {
+        if (!this.app.embed && state.datasets && state.datasets[did]
+            && state.datasets[did].open) {
           this.channels.active = true;
           this.channels.expand(true);
           this.$el.addClass('active');
