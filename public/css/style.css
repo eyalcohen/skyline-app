@@ -522,8 +522,9 @@ a.button.connect-button {
   box-shadow: none;
 }
 
+a.button.connect-button:active,
 a.button.connect-button:focus {
-  border: 1px solid #4f4f4f;
+  border-color: #fff;
 }
 
 a.button.google-button {
@@ -538,7 +539,8 @@ a.button.google-button:active {
   background: rgba(221,67,55,1);
 }
 
-a.button.google-button-disabled {
+a.button.google-button-disabled,
+a.button.google-button-disabled:hover {
   background: rgba(221,67,55,0.5);
   cursor: default;
 }
@@ -555,7 +557,8 @@ a.button.facebook-button:active {
   background: rgba(59,89,152,1);
 }
 
-a.button.facebook-button-disabled {
+a.button.facebook-button-disabled,
+a.button.facebook-button-disabled:hover {
   background: rgba(59,89,152,0.5);
   cursor: default;
 }
@@ -572,7 +575,8 @@ a.button.twitter-button:active {
   background: rgba(60,143,201,1);
 }
 
-a.button.twitter-button-disabled {
+a.button.twitter-button-disabled,
+a.button.twitter-button-disabled:hover {
   background: rgba(60,143,201,0.5);
   cursor: default;
 }
@@ -582,6 +586,10 @@ a.button.danger {
   background: rgba(208,76,56,0.8);
   border: 1px solid #2f2f2f;
   color: #fff;
+}
+
+a.button.delete-button {
+  border-color: #fff;
 }
 
 a.button.delete-button:hover,
