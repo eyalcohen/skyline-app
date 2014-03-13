@@ -30,7 +30,6 @@ define([
     },
 
     setup: function () {
-      console.log('SETUP');
 
       // Save refs.
       this.button = this.$('a.dataset-button');

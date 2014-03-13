@@ -91,6 +91,7 @@ define([
       this.newFileDescription = $('textarea[name="description"]', this.addNewFileForm);
       this.newFileTitle = $('input[name="title"]', this.addNewFileForm);
       this.newFileTags = $('input[name="tags"]', this.addNewFileForm);
+      this.newFileSource = $('input[name="source"]', this.addNewFileForm);
       this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
       this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = $('.browser .dnd');
@@ -250,6 +251,7 @@ define([
           title: util.sanitize(title),
           tags: util.sanitize(this.newFileTags.val()),
           description: util.sanitize(this.newFileDescription.val()),
+          source: util.sanitize(this.newFileSource.val()),
           public: !this.$('.browser-private').is(':checked'),
           file: {
             name: file.name,
