@@ -81,6 +81,7 @@ define([
     searchFocus: function (e) {
       this.input.attr({placeholder: this.options.placeholder});
       this.input.parent().addClass('active');
+      this.app.router.header.normalize();
       this.active = true;
       if (this.searchVal() && this.collection.length > 0)
         this.showResults();
@@ -98,8 +99,8 @@ define([
             this.views[this.selecting.el.index() - 1].choose();
             if (!this.options.choose)
               this.input.select();
-            return false;
           }
+          return false;
         }
 
         // If tab, then proceed with blur.
@@ -131,6 +132,7 @@ define([
       if (!this.searchVal())
         this.input.attr({placeholder: 'Search...'});
       this.input.parent().removeClass('active');
+      this.app.router.header.unnormalize();
       this.hideResults();
       this.resetHighlight();
       this.active = false;
@@ -194,10 +196,8 @@ define([
             items[t] = data.items;
           }
           done();
-
         }, this));
       }, this));
-
     },
 
     // Clear the collection w/out re-rendering.

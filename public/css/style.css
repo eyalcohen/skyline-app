@@ -1281,10 +1281,6 @@ body.loading .header .header-logo a {
   width: 360px;
 }
 
-.header input.header-search-input:focus {
-  width: 360px;
-}
-
 .header-user-box {
   position: relative;
   z-index: 100;
