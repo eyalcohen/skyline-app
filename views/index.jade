@@ -22,6 +22,10 @@ block content
                 i.icon-down-dir
                 ul.header-user-menu
                   li
+                    a.navigate(href="/" + user.username)
+                      | Library
+                      i.icon-library
+                  li
                     a.navigate(href="/settings")
                       | Settings
                       i.icon-cog

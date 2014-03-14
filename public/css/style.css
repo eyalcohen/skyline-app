@@ -1313,7 +1313,7 @@ body.loading .header .header-logo a {
 
 .header-user:hover {
   background: #fff;
-  height: 129px;
+  height: 162px;
 
   -webkit-border-radius: 0 0 3px 3px;
   -moz-border-radius: 0 0 3px 3px;
@@ -3002,12 +3002,17 @@ a.channel-button {
 textarea.comment-input {
   display: block;
   width: 280px;
+  margin: 0;
   padding: 10px;
   background: #fff;
   resize: none;
   overflow: hidden;
   font-size: 12px;
   border: none;
+
+  -moz-border-radius: 0;
+  -webkit-border-radius: 0;
+  border-radius: 0;
 
   -webkit-transition: height 0.2s;
   -webkit-transition-timing-function: height 0.2s;
