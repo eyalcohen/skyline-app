@@ -279,12 +279,12 @@ define([
           || !slug) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
-        if (this.header)
-          this.header.unnormalize();
+        if (this.header && key) this.header.unnormalize();
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
         this.navigate('/chart', {trigger: false, replace: true});
+        this.header.normalize();
       }
       if (this.app.profile && this.app.profile.user)
         state.user_id = this.app.profile.user.id;
@@ -296,7 +296,8 @@ define([
       if (this.app.embed) data.embed = true;
       this.render('/service/chart.profile/', data, _.bind(function (err) {
         if (err) return;
-        this.page = new Chart(this.app).render();        
+        this.page = new Chart(this.app).render();
+        if (this.header && !key) this.header.normalize();        
         this.stop();
       }, this));
     },

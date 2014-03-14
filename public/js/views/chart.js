@@ -136,7 +136,7 @@ define([
           .bind('drop', _.bind(this.drop, this));
 
       // Handle save button.
-      if (store.get('state').author_id)
+      if (store.get('state').author && store.get('state').author.id)
         // This is a view, so intially it's already saved.
         this.saveButton.addClass('saved');
 
@@ -260,7 +260,7 @@ define([
 
       // If this is a view and user is view owner, do "save".
       // Other cases should not happen because the button will not be presented.
-      if (this.app.profile.content.page.author_id === user.id) {
+      if (this.app.profile.content.page.author.id === user.id) {
 
         // Indicate save.
         this.saveButton.addClass('saving');
@@ -540,10 +540,10 @@ define([
       var user = this.app.profile.user;
 
       // If this is explore mode, i.e. (/chart), do nothing.
-      if (!state.author_id || !user) return;
+      if (!state.author || !state.author.id || !user) return;
 
       // If this is a view and user is view owner, indicate state is not saved.
-      if (state.author_id === user.id)
+      if (state.author.id === user.id)
         this.saveButton.removeClass('saved');
     },
 

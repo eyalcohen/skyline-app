@@ -36,10 +36,12 @@ define([
     },
 
     render: function (options) {
+      this.collection.off('reset', this.reset, this);
       options = options || {};
       if (this.parentView && this.$el.attr('class'))
         this.setElement(this.parentView.$('.' + _.str.strLeft(this.$el.attr('class'), ' ')));
-      this.$el.html(this.template(options));
+      if (this.template)
+        this.$el.html(this.template(options));
       this.trigger('rendered');
       return this;
     },

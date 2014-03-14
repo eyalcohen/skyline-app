@@ -8,8 +8,9 @@ define([
   'Backbone',
   'mps',
   'rest',
+  'views/lists/choices',
   'text!../../templates/box.html'
-], function ($, _, Backbone, mps, rest, box) {
+], function ($, _, Backbone, mps, rest, Choices, box) {
   return Backbone.View.extend({
 
     el: '.header',
@@ -53,9 +54,6 @@ define([
       // Shell event.
       this.delegateEvents();
 
-      // Save refs.
-      this.search = this.$('.header-search');
-
       // Shell listeners / subscriptions.
       // Do this here intead of init ... re-renders often.
       if (this.app.profile && this.app.profile.user) {
@@ -68,6 +66,16 @@ define([
       // For graph titles...
       this.subscriptions.push(mps.subscribe('title/set',
           _.bind(this.title, this)));
+
+      // Start search choices.
+      if(!this.choices)
+        this.choices = new Choices(this.app, {
+          reverse: true,
+          el: '.header-search',
+          placeholder: 'Search for something...',
+          route: true,
+          types: ['users', 'views', 'datasets']
+        });
     },
 
     // Bind mouse events.

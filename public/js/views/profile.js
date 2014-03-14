@@ -40,8 +40,8 @@ define([
       this.model = new User(this.app.profile.content.page);
 
       // Set page title.
-      this.app.title(this.model.get('username')
-          + ' (' + this.model.get('displayName') + ')',
+      this.app.title(this.model.get('displayName')
+          + ' (@' + this.model.get('username') + ')',
           _.template(header).call(this), true);
 
       // Render main template.

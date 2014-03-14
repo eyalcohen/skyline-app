@@ -40,7 +40,10 @@ block content
               span
                 | beta
           .header-search
-            input.header-search-input(type="search", placeholder="Search...")
+            .header-search-inner
+              input.header-search-input(type="search", tabindex="1", placeholder="Search...")
+              .search-display
+                .list-header
           .page-header
     - var hc = typeof embed !== 'undefined' && embed ? 'main embed': 'main';
     div(class=hc, role="main")

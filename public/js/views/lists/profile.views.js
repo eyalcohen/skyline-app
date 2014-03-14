@@ -56,6 +56,12 @@ define([
 
     events: {},
 
+    destroy: function () {
+      this.app.rpc.socket.removeAllListeners('view.new');
+      this.app.rpc.socket.removeAllListeners('view.removed');
+      return List.prototype.destroy.call(this);
+    },
+
     collect: function (data) {
       var user_id = this.parentView.model ?
           this.parentView.model.id: this.app.profile.user.id;

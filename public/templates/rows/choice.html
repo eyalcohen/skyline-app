@@ -1,0 +1,17 @@
+<%
+
+  var image;
+  if (this.model.get('gravatar'))
+    image = 'https://www.gravatar.com/avatar/'
+        + this.model.get('gravatar') + '?s=16&d=mm';
+
+%>
+
+<% if (image) { %>
+  <span class="choice-prefix">
+    <img src=<%= image %> width="16" height="16" />
+  </span>
+<% } %>
+<span class="choice-name">
+  <%= this.model.title() %>
+</span>

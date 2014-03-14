@@ -5,16 +5,16 @@
   var verb, type, title, name;
   if (!this.options.target) {
     verb = 'Save the current chart as a';
-    type = 'mashup';
+    type = 'view';
     title = type;
   } else {
     verb = 'Fork this';
     title = 'fork';
     if (this.options.target.type === 'dataset') {
-      type = 'source';
+      type = 'dataset';
       name = this.options.target.doc.title;
     } else {
-      type = 'mashup';
+      type = 'view';
       name = this.options.target.doc.name;
     }
   }

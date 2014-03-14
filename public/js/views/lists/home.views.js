@@ -53,6 +53,12 @@ define([
 
     events: {},
 
+    destroy: function () {
+      this.app.rpc.socket.removeAllListeners('view.new');
+      this.app.rpc.socket.removeAllListeners('view.removed');
+      return List.prototype.destroy.call(this);
+    },
+
     collect: function (data) {
       if (data.author.id === this.app.profile.user.id)
         this.collection.unshift(data);
