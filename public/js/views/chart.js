@@ -326,7 +326,8 @@ define([
 
     download: function (e) {
       e.preventDefault();
-      new Export(this.app, {parentView: this}).render();
+      if (this.graph.model.getChannels().length > 0)
+        new Export(this.app, {parentView: this}).render();
     },
 
     panel: function (e) {

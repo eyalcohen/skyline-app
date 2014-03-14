@@ -117,7 +117,7 @@ define([
               $('.datapoints-' + e.did).text(count);
               this.datapoints.push({did: e.did, count: count})
             }
-          }))
+          }, this))
         }
       }, this)
 
