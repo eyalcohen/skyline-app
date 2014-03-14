@@ -200,9 +200,9 @@ define([
       var path = $(e.target).closest('a').attr('href');
       if (path) {
         this.app.router.navigate(path, {trigger: true});
-        this.$('.header-user-menu').addClass('hide');
+        this.$('.header-user').addClass('blur');
         _.delay(_.bind(function () {
-          this.$('.header-user-menu').removeClass('hide');
+          this.$('.header-user').removeClass('blur');
         }, this), 500);
       }
     },

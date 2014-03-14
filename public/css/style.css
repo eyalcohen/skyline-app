@@ -1305,14 +1305,19 @@ body.loading .header .header-logo a {
   padding: 0 20px;
   border-right: 1px solid #d0d0d0;
   cursor: pointer;
+
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
 }
 
 .header-user:hover {
-  background: #f2f2f2;
-}
+  background: #fff;
+  height: 129px;
 
-.header-user:active {
-  background: #f0f0f2;
+  -webkit-box-shadow: 0 0 16px 1px rgba(0,0,0,0.12);
+  -moz-box-shadow: 0 0 16px 1px rgba(0,0,0,0.12);
+  box-shadow: 0 0 16px 1px rgba(0,0,0,0.12);
 }
 
 .header-user img {
@@ -1335,26 +1340,12 @@ ul.header-user-menu {
   top: 60px;
   left: -1px;
   list-style: none;
-  background: #d0d0d0;
   border-bottom: 1px solid #d0d0d0;
-  width: 100%;
+  width: 97px;
 
-  -moz-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.2);
-  -webkit-box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.2);
-  box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.2);
-
-  -webkit-animation-name: fadeIn;
-  -moz-animation-name: fadeIn;
-  -o-animation-name: fadeIn;
-  animation-name: fadeIn;
-  -webkit-animation-duration: 0.2s;
-  -moz-animation-duration: 0.2s;
-  -o-animation-duration: 0.2s;
-  animation-duration: 0.2s;
-  -webkit-animation-fill-mode: both;
-  -moz-animation-fill-mode: both;
-  -o-animation-fill-mode: both;
-  animation-fill-mode: both;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
 }
 
 ul.header-user-menu li {
@@ -1366,21 +1357,25 @@ ul.header-user-menu li {
 ul.header-user-menu li a {
   position: relative;
   display: block;
+  width: 76px;
   padding: 5px 10px;
   color: #4f4f4f;
   font-size: 12px;
-  background-color: #f2f2f2;
+  line-height: 24px;
+  background-color: #fff;
   border-left: 1px solid #d0d0d0;
-  border-right: 1px solid #d0d0d0;
-  width: 76px;
 
-  -webkit-transition: all 0.1s ease-in;
-  -moz-transition: all 0.1s ease-in;
-  transition: all 0.1s ease-in;
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
 }
 
 ul.header-user-menu li a:hover {
-  background-color: #e0e0e0;
+  background-color: rgba(39, 205, 214, 0.2);
+}
+
+ul.header-user-menu li a:active {
+  background-color: rgba(39, 205, 214, 0.3);
 }
 
 ul.header-user-menu li a i {
@@ -1388,11 +1383,15 @@ ul.header-user-menu li a i {
   right: 10px;
 }
 
+.header-user.blur {
+  height: 60px;
+}
+
 .header-user:hover ul.header-user-menu {
   display: block;
 }
 
-.header-user ul.header-user-menu.hide {
+.header-user.blur ul.header-user-menu {
   display: none;
 }
 
@@ -2013,7 +2012,7 @@ a.button.splash-button {
 
 .settings-gravatar a {
   font-weight: bold;
-  margin-left: 2px;
+  margin-left: 5px;
   font-size: 11px;
 }
 
