@@ -14,7 +14,6 @@
         <tr class="table-header">
           <td colspan="2" class="main-cell">Confirm channels:</td>
           <td>Data points</td>
-          <td>File size</td>
         </tr>
         <% _.each(this.datasets, _.bind(function (d) { %>
           <tr>
@@ -41,8 +40,7 @@
                 <% }); %>
               </table>
             </td>
-            <td class="number-cell">?</td>
-            <td class="number-cell">?</td>
+            <td class="number-cell datapoints-<%= d.id %>">...</td>
           </tr>
         <% }, this)); %>
       </tbody>
