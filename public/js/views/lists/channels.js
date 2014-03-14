@@ -46,6 +46,11 @@ define([
       // Show this now.
       this.$el.show();
 
+      // Handle last active style.
+      _.delay(_.bind(function () {
+        this.$('.channel.active:last').addClass('last-active');
+      }, this), 1000);
+
       return List.prototype.setup.call(this);
     },
 
@@ -74,6 +79,7 @@ define([
     expand: function (active) {
       this.$el.addClass('open');
       _.each(this.views, function (v) { v.expand(); });
+      this.$('.channel.active:last').removeClass('last-active');
       this.resize(null, active);
     },
 
@@ -82,6 +88,7 @@ define([
         _.each(this.views, function (v) { v.collapse(); });
         this.$el.removeClass('open');
       }
+      this.$('.channel.active:last').addClass('last-active');
       this.resize();
     },
 

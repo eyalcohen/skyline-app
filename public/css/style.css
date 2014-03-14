@@ -1315,6 +1315,10 @@ body.loading .header .header-logo a {
   background: #fff;
   height: 129px;
 
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
+
   -webkit-box-shadow: 0 0 16px 1px rgba(0,0,0,0.12);
   -moz-box-shadow: 0 0 16px 1px rgba(0,0,0,0.12);
   box-shadow: 0 0 16px 1px rgba(0,0,0,0.12);
@@ -1343,6 +1347,10 @@ ul.header-user-menu {
   border-bottom: 1px solid #d0d0d0;
   width: 97px;
 
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
+
   -webkit-transition: all 0.1s ease-in-out;
   -moz-transition: all 0.1s ease-in-out;
   transition: all 0.1s ease-in-out;
@@ -1368,6 +1376,12 @@ ul.header-user-menu li a {
   -webkit-transition: all 0.1s ease-in-out;
   -moz-transition: all 0.1s ease-in-out;
   transition: all 0.1s ease-in-out;
+}
+
+ul.header-user-menu li:last-child a {
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
 }
 
 ul.header-user-menu li a:hover {
@@ -1513,16 +1527,19 @@ a.choice:last-child {
 }
 
 a.choice.locked {
+  /*background-color: #fafacc;*/
   background: rgba(230, 230, 0, 0.2);
 }
 
 a.choice.hover,
 a.choice:hover {
+  /*background-color: #d3f5f7;*/
   background-color: rgba(39, 205, 214, 0.2);
 }
 
 a.choice.active,
 a.choice:active {
+  /*background-color: #bef0f3;*/
   background-color: rgba(39, 205, 214, 0.3);
 }
 
@@ -2864,12 +2881,10 @@ a.dataset-add-button:active {
 }
 
 .channels-wrap {
-  /*position: absolute;*/
   position: relative;
   z-index: 12;
   left: 33px;
   right: 0;
-  /*top: 35px;*/
   width: 271px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -2917,6 +2932,12 @@ a.dataset-add-button:active {
 
 .channel.active {
   top: -1px;
+}
+
+.channel.last-active {
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
 }
 
 a.channel-button {

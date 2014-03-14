@@ -279,7 +279,7 @@ define([
           || !slug) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
-        if (this.header && key) this.header.unnormalize();
+        if (this.header && key && !this.app.searchIsActive) this.header.unnormalize();
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};

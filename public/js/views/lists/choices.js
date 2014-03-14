@@ -83,6 +83,7 @@ define([
       this.input.parent().addClass('active');
       this.app.router.header.normalize();
       this.active = true;
+      this.app.searchIsActive = true;
       if (this.searchVal() && this.collection.length > 0)
         this.showResults();
     },
@@ -136,6 +137,7 @@ define([
       this.hideResults();
       this.resetHighlight();
       this.active = false;
+      this.app.searchIsActive = false;
     },
 
     searchVal: function () {
