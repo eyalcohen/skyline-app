@@ -33,7 +33,12 @@ define([
               + ' (@' + this.get('username') + ')';
           break;
         case 'datasets':
-          title = '<i class="icon-database"></i>';
+          if (this.get('parent'))
+            title = '<i class="icon-database"><i class="icon-split"></i></i>';
+          else if (this.get('public') === false)
+            title = '<i class="icon-lock"></i>';
+          else
+            title = '<i class="icon-database"></i>';
           var tmp = this.get('author').username + '/';
           if (this.get('title') && this.get('title') !== '')
             tmp += '<strong>' + this.get('title') + '</strong>';
@@ -42,7 +47,12 @@ define([
           else title += tmp;
           break;
         case 'views':
-          title = '<i class="icon-folder-empty"></i>';
+          if (this.get('parent'))
+            title = '<i class="icon-folder-empty"><i class="icon-split"></i></i>';
+          else if (this.get('public') === false)
+            title = '<i class="icon-lock"></i>';
+          else
+            title = '<i class="icon-folder-empty"></i>';
           var tmp = this.get('author').username + '/';
           if (this.get('name') && this.get('name') !== '')
             tmp += '<strong>' + this.get('name') + '</strong>';

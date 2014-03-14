@@ -1512,6 +1512,10 @@ a.choice:last-child {
   border-radius: 0 0 3px 3px;
 }
 
+a.choice.locked {
+  background: rgba(230, 230, 0, 0.2);
+}
+
 a.choice.hover,
 a.choice:hover {
   background-color: rgba(39, 205, 214, 0.2);
@@ -1538,6 +1542,12 @@ span.choice-name i {
   margin-right: 10px;
   font-size: 14px;
   vertical-align: -1px;
+}
+
+span.choice-name i i {
+  font-size: .5em;
+  left: 12px;
+  top: 3px;
 }
 
 /*.........................................................................*/

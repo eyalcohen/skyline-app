@@ -14,7 +14,10 @@ define([
     tagName: 'a',
 
     attributes: function () {
-      return _.defaults({class: 'choice'},
+      var klass = 'choice';
+      if (this.model.get('public') === false)
+        klass += ' locked';
+      return _.defaults({class: klass},
           Row.prototype.attributes.call(this));
     },
 
