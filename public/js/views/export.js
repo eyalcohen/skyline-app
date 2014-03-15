@@ -103,6 +103,25 @@ define([
           t.removeClass('input-error');
       });
 
+      var viewRange = this.graph.getVisibleTime();
+      console.log('vr', viewRange)
+
+      this.datapoints = [];
+
+      // for each channel, have server fetch # of datapoints
+      _.each(this.channels, function(e) {
+        if (!_.contains(_.pluck(this.datapoints, 'did'), e.did)) {
+          this.app.rpc.do('exportCalculations', e.did, e.channelName, viewRange.beg,
+                          viewRange.end, _.bind(function (err, count) {
+            if (!err) {
+              $('.datapoints-' + e.did).text(count);
+              this.datapoints.push({did: e.did, count: count})
+            }
+          }, this))
+        }
+      }, this)
+
+
       return this;
     },
 
@@ -197,7 +216,7 @@ define([
       // Filter channels.
       channels = channels.concat(_.reject(this.channels,
           function (c) { return c.skip; }));
-      
+
       // Start download.
       window.location.href = '/api/datasets'
           + '?beg=' + Math.floor(viewRange.beg)
