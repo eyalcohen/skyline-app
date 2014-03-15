@@ -29,6 +29,7 @@ define([
         mps.subscribe('channel/added', _.bind(this.added, this)),
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
         mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
+        mps.subscribe('channel/yaxisUpdate', _.bind(this.updateYAxis, this)),
         /*
         mps.subscribe('channel/responseLineStyle', _.bind(function (style) {
           this.model.lineStyle = style;
@@ -48,7 +49,7 @@ define([
       // Save refs.
       this.button = this.$('a.channel-button');
       this.name = this.$('.channel-name', this.button);
-      this.txt = this.$('.channel-name span');
+      this.txt = this.$('.channel-name .channel-name-text');
       this.value = this.$('.channel-value');
 
       // Bind click event.
@@ -74,18 +75,23 @@ define([
     },
 
     events: {
-      'mouseenter .icon-chart-line' : function(e) {
-        if (!this.linestyle && this.$el.hasClass('active'))
-          this.linestyle =
-            new LineStyle(this.app, {parentView: this, channel:this.model})
-            .render();
+      'mouseenter': function (e) {
+        if (!this.linestyle && this.$el.hasClass('active')) {
+          this.cancelLineStyleTimer = false;
+          this.lineStyleTimer = setTimeout(_.bind(function () {
+            if (!this.cancelLineStyleTimer)
+              this.linestyle = new LineStyle(this.app,
+                  {parentView: this, channel: this.model}).render();
+          }, this), 100);
+          
+        }
       },
-      'mouseleave' : 'removeLineStyle',
+      'mouseleave': 'removeLineStyle',
     },
 
     fit: function (w) {
       this.$el.width(w);
-      this.fitName(w - 40);
+      this.fitName(w - 80);
     },
 
     fitName: function (w) {
@@ -155,10 +161,12 @@ define([
         backgroundColor: 'transparent',
         borderColor: '#d0d0d0'
       });
+      this.$el.removeClassWithPrefix('yaxis-');
     },
 
     destroy: function () {
       Row.prototype.destroy.call(this);
+      this.removeLineStyle();
 
       // Remove channel from graph.
       mps.publish('channel/remove', [this.model.get('did'),
@@ -173,9 +181,9 @@ define([
     },
 
     removeLineStyle: function(e) {
-      if (this.linestyle) {
+      this.cancelLineStyleTimer = true;
+      if (this.linestyle)
         this.linestyle.destroy(_.bind(function() { delete this.linestyle }, this));
-      }
     },
 
     updateLegend: function(stats) {
@@ -185,6 +193,19 @@ define([
       }, this);
       if (item)
         this.value.text(item.nearestPointData[1].toFixed(2)).show();
+    },
+
+    updateYAxis: function (channel) {
+      if (this.model.id !== channel.channelName) return;
+      this.$el.removeClass('yaxis-left').removeClass('yaxis-right');
+      switch (channel.yaxisNum) {
+        case 1:
+          this.$el.addClass('yaxis-left');
+          break;
+        case 2:
+          this.$el.addClass('yaxis-right');
+          break;
+      }
     }
 
   });

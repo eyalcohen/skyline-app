@@ -35,11 +35,11 @@ define([
     // Draw the template
     render: function () {
       this.template = _.template(template, {channels: this.channels});
-      this.$el.html(this.template).appendTo(this.options.parentView.$el);
+      this.$el.html(this.template).appendTo('body');
       var offset = this.options.parentView.$el.offset();
-      this.$el.css('top', offset.top+20);
-      this.$el.css('left', offset.left+10);
-      this.$el.show('fast');
+      this.$el.css('top', offset.top);
+      this.$el.css('left', offset.left + this.options.parentView.$el.outerWidth());
+      this.$el.show();
       this.trigger('rendered');
       return this;
     },
@@ -100,10 +100,8 @@ define([
         mps.unsubscribe(s);
       });
       this.stopListening();
-      this.$el.hide('fast', function () {
-        this.remove();
-        cb();
-      });
+      this.remove();
+      cb();
     },
 
     linetypeUpdate: function(e) {

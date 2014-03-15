@@ -1313,7 +1313,7 @@ body.loading .header .header-logo a {
 
 .header-user:hover {
   background: #fff;
-  height: 162px;
+  height: 180px;
 
   -webkit-border-radius: 0 0 3px 3px;
   -moz-border-radius: 0 0 3px 3px;
@@ -1366,7 +1366,7 @@ ul.header-user-menu li a {
   position: relative;
   display: block;
   width: 76px;
-  padding: 5px 10px;
+  padding: 8px 10px;
   color: #4f4f4f;
   font-size: 12px;
   line-height: 24px;
@@ -2886,7 +2886,6 @@ a.dataset-add-button:active {
   left: 33px;
   right: 0;
   width: 271px;
-  overflow-x: hidden;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
 }
@@ -2934,7 +2933,7 @@ a.dataset-add-button:active {
   top: -1px;
 }
 
-.channel.last-active {
+.channels:not(.open) .channel.last-active {
   -webkit-border-radius: 0 0 3px 3px;
   -moz-border-radius: 0 0 3px 3px;
   border-radius: 0 0 3px 3px;
@@ -2959,6 +2958,40 @@ a.channel-button {
 
 .channel.active .channel-name {
   color: #fff;
+  font-weight: bold;
+}
+
+.channel .channel-yaxis-code-wrap {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 2px;
+  vertical-align: -2px;
+  background: transparent;
+}
+
+.channel.yaxis-left .channel-yaxis-code-wrap,
+.channel.yaxis-right .channel-yaxis-code-wrap {
+  background: #999;
+}
+
+.channel .channel-yaxis-code {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+
+.channel.yaxis-left .channel-yaxis-code {
+  background: #666;
+}
+
+.channel.yaxis-right .channel-yaxis-code {
+  background: #d0d0d0;
 }
 
 .channel-value {
@@ -3369,26 +3402,33 @@ a.comments-signin {
   position: fixed;
   background: #f9f9f9;
   padding: 0;
-  padding-bottom: 4px;
-  border: 1px solid #3f3f3f;
-  border-radius: 1px;
-  z-index: 100;
+  padding-bottom: 10px;
+  border: solid #d0d0d0;
+  z-index: 10000;
   display: none;
-}
+  border-width: 1px 1px 1px 0;
 
-.linestyle-modal h2 {
-  text-align: center;
-  font-size: 12px;
-  line-height: 14px;
-  margin-bottom: 2px;
-  padding: 2px;
-  background-color: #3f3f3f;
-  color: #f9f9f9;
+  -webkit-border-radius: 0 2px 2px 0;
+  -moz-border-radius: 0 2px 2px 0;
+  border-radius: 0 2px 2px 0;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
 }
 
 .linestyle-wrap {
-  margin-left: 4px;
-  margin-right: 4px;
+  margin-left: 7px;
+  margin-right: 7px;
 }
 
 .linestyle-box {
@@ -3397,11 +3437,14 @@ a.comments-signin {
   height: 16px;
   padding: 2px;
   margin: 4px;
-  border: 1px solid #3f3f3f;
-  border-radius: 2px;
+  border: 1px solid #d0d0d0;
   background-size: 100% 100%;
   background-color: #f9f9f9;
   vertical-align: top;
+
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 
 .linestyle-color {
@@ -3411,7 +3454,19 @@ a.comments-signin {
 .linestyle-modal p {
   font-size: 10px;
   line-height: 14px;
-  margin: 4px 2px 2px 2px;
+  margin: 10px 0 0 10px;
+}
+
+.minicolors-swatch {
+  top: 4px !important;
+  left: 11px !important;
+  width: 21px !important;
+  height: 21px !important;
+  border: solid 1px #d0d0d0 !important;
+
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 
 /*.........................................................................*/

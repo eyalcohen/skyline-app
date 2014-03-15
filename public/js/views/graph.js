@@ -328,29 +328,72 @@ define([
     },
 
     draw: function () {
-      if (!this.plot) this.create();
 
-      var channels = [];
-      _.each(this.model.getChannels(), function (c) {
-        channels.push($.extend(true, {}, c));
-      });
-
-      if (channels.length === 0) {
-        channels.push({ channelName: 'empty' });
-        this.model.lineStyleOptions['empty'] = this.model.DEFAULT_LINE_STYLE;
-        _.each(this.plot.getYAxes(),
-              function (a) { a.options.show = false; });
-      } else {
-        _.each(this.plot.getYAxes(),
-              function (a) { a.options.show = null; });
+      function rangeFitsAxis(range, axis) {
+        if (range.min === Infinity || range.max === -Infinity)
+          return false;
+        if (axis.min === Infinity || axis.max === -Infinity)
+          return false;
+        if (range.min / 10 > axis.max || range.max * 10 < axis.min)
+          return false;
+        else return true;
       }
 
-      var opts = this.plot.getOptions();
+      // Create the graph if first run.
+      if (!this.plot) this.create();
+
+      // Save ref to channels.
+      var channels = this.model.getChannels();
+
+      // Use and empty channel if no channels.
+      if (channels.length === 0) {
+        channels.push({channelName: 'empty'});
+        this.model.lineStyleOptions['empty'] = this.model.DEFAULT_LINE_STYLE;
+        _.each(this.plot.getYAxes(),
+            function (a) { a.options.show = false; });
+      } else {
+        _.each(this.plot.getYAxes(),
+            function (a) { a.options.show = null; });
+      }
+
+      // Draw each series (channel).
       var series = [];
+      var yaxes = [{min: Infinity, max: -Infinity, cnt: 0},
+          {min: Infinity, max: -Infinity, cnt: 0}];
       _.each(channels, _.bind(function (channel, i) {
         var lineStyleOpts = this.model.lineStyleOptions[channel.channelName]
         var highlighted = this.highlightedChannel === channel.channelName;
 
+        // Pick a yaxis for this channel.
+        _.find(yaxes, function (a, i) {
+          if (channel.range && rangeFitsAxis(channel.range, a)) {
+            // console.log(channel.channelName, 'FIT', i+1);
+            channel.yaxisNum = i + 1;
+            return true;
+          } else {
+            // console.log(channel.channelName, 'NOFIT', i+1);
+            channel.yaxisNum = null;
+            return false;
+          }
+        });
+
+        // If no suitable axis, pick less populated.
+        if (!channel.yaxisNum)
+          channel.yaxisNum = yaxes[0].cnt > yaxes[1].cnt ? 2: 1;
+        
+        // Keep track of min and max and count for the choses axis.
+        if (channel.range) {
+          yaxes[channel.yaxisNum - 1].min =
+              Math.min(yaxes[channel.yaxisNum - 1].min, channel.range.min);
+          yaxes[channel.yaxisNum - 1].max =
+              Math.max(yaxes[channel.yaxisNum - 1].max, channel.range.max);
+        }
+        yaxes[channel.yaxisNum - 1].cnt++;
+
+        // Inform channel list of axis choice.
+        mps.publish('channel/yaxisUpdate', [channel]);
+
+        // Setup series.
         var seriesBase = {
           xaxis: 1,
           yaxis: channel.yaxisNum,
@@ -423,8 +466,8 @@ define([
           labelsInside: true,
         },
         yaxes: [
-          { position: 'right' },
-          { position: 'left', alignTicksWithAxis: 1 },
+          {position: 'left', alignTicksWithAxis: 1},
+          {position: 'right'}
         ],
         series: {
           lines: {
@@ -728,6 +771,8 @@ define([
       var channels = this.model.getChannels();
       if (channels.length === 0) return;
       var yAxes = this.plot.getYAxes();
+      yAxes[0].options.color = '#666';
+      yAxes[1].options.color = '#d0d0d0';
       series.forEach(_.bind(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = this.highlightedChannel === channel.channelName;
@@ -758,9 +803,6 @@ define([
           s.zorder = highlighted ? 50000 : s.channelIndex;
         else
           s.zorder = 10000 + (highlighted ? 50000 : s.channelIndex);
-        if (i < yAxes.length) {
-          yAxes[i].options.color = color;
-        }
       }, this));
     },
 

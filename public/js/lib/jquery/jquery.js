@@ -37,5 +37,12 @@ define(['lib/jquery/jquery.min'], function () {
     return sort(array);
   }
 
+  jQuery.fn.removeClassWithPrefix = function (prefix) {
+    var classes = this.attr('class').split(' ').filter(function (c) {
+      return c.lastIndexOf(prefix, 0) !== 0;
+    });
+    this.attr('class', classes.join(' '));
+  }
+
   return jQuery;
 });

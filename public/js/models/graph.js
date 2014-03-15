@@ -193,25 +193,12 @@ define([
         }
       }
 
-      // Choose an axis.
-      var numSeriesRightAxis = 0, numSeriesLeftAxis = 0;
-      _.each(this.getChannels(), _.bind(function (channel) {
-        if (!channel.yaxisNum) return;
-        if (channel.yaxisNum === 1)
-          numSeriesRightAxis++;
-        else
-          numSeriesLeftAxis++;
-      }, this));
-      var yAxisNumToUse = numSeriesRightAxis > numSeriesLeftAxis ? 2 : 1;
-
       // Update client.
       var client = this.getOrCreateClient(dataset);
       _.each(channels, _.bind(function (channel) {
         if (_.pluck(client.channels, 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
-        if (!channel.yaxisNum)
-          channel.yaxisNum = yAxisNumToUse;
         if (channel.colorNum === undefined) {
           var usedColors = _.pluck(this.getChannels(), 'colorNum');
           for (var c = 0; _.include(usedColors, c); ++c) {}
@@ -259,9 +246,22 @@ define([
     },
 
     updateSampleSet: function (dataset, sampleSet) {
+      var channels = this.getChannels();
       var offset = dataset.get('offset')
       _.each(sampleSet, _.bind(function (ss, cn) {
-        this.sampleCollection[cn] = {sampleSet:ss, offset:offset};
+        this.sampleCollection[cn] = {sampleSet: ss, offset: offset};
+        var channel = _.find(channels, function (c) {
+          return c.channelName === cn;
+        });
+        if (channel) {
+          channel.range = {min: Infinity, max: -Infinity};
+          _.each(ss, function (s) {
+            if (s.val < channel.range.min)
+              channel.range.min = s.val;
+            if (s.val > channel.range.max)
+              channel.range.max = s.val;
+          });
+        }
       }, this));
       this.view.draw();
     },

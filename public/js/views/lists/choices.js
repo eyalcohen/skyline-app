@@ -133,7 +133,8 @@ define([
       if (!this.searchVal())
         this.input.attr({placeholder: 'Search...'});
       this.input.parent().removeClass('active');
-      this.app.router.header.unnormalize();
+      if ($('.page-header', this.app.router.header.el).html() !== '')
+        this.app.router.header.unnormalize();
       this.hideResults();
       this.resetHighlight();
       this.active = false;
