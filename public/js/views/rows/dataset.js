@@ -47,7 +47,7 @@ define([
           this.channels.expand(true);
       }, this));
       this.$el.bind('mouseleave', _.bind(function (e) {
-        if (this.channels) this.channels.collapse();
+        if (this.channels) this.channels.collapse(e);
       }, this));
 
       // Handle leader.

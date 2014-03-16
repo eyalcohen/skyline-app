@@ -16,6 +16,7 @@ define([
     
     el: '.channels',
     active: false,
+    lineStyleOpen: false,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -77,19 +78,20 @@ define([
     },
 
     expand: function (active) {
+      if (this.$el.hasClass('open')) return;
       this.$el.addClass('open');
       _.each(this.views, function (v) { v.expand(); });
       this.$('.channel.active:last').removeClass('last-active');
       this.resize(null, active);
     },
 
-    collapse: function () {
-      if (!this.active) {
+    collapse: function (e) {
+      if (!this.active && !this.lineStyleOpen) {
         _.each(this.views, function (v) { v.collapse(); });
-        this.$el.removeClass('open');
+        this.$el.removeClass('open'); 
+        this.$('.channel.active:last').addClass('last-active');
+        _.delay(_.bind(this.resize, this), 100);
       }
-      this.$('.channel.active:last').addClass('last-active');
-      this.resize();
     },
 
     _remove: function (data) {

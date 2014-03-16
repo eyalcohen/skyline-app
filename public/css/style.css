@@ -3402,7 +3402,7 @@ a.comments-signin {
   position: fixed;
   background: #f9f9f9;
   padding: 0;
-  padding-bottom: 10px;
+  padding-bottom: 15px;
   border: solid #d0d0d0;
   z-index: 10000;
   display: none;
@@ -3463,6 +3463,7 @@ a.comments-signin {
   width: 21px !important;
   height: 21px !important;
   border: solid 1px #d0d0d0 !important;
+  cursor: pointer;
 
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;

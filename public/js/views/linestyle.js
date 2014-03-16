@@ -46,6 +46,7 @@ define([
 
     // Bind events.
     events: {
+      'mouseleave': 'mouseleave',
       'click .linestyle-box' : 'linetypeUpdate',
       'mouseenter .linestyle-box' : 'linetypeUpdate',
       'mouseleave .linestyle-box' : 'linetypeUpdate',
@@ -102,6 +103,14 @@ define([
       this.stopListening();
       this.remove();
       cb();
+    },
+
+    mouseleave: function (e) {
+      var over = document.elementFromPoint(e.clientX, e.clientY);
+      if ($(over).attr('id') !== this.options.parentView.model.id
+          && $(over).parent().attr('id') !== this.options.parentView.model.id) {
+        this.options.parentView.removeLineStyle(over);
+      }
     },
 
     linetypeUpdate: function(e) {

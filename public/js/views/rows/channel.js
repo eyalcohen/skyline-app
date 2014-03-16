@@ -75,18 +75,26 @@ define([
     },
 
     events: {
-      'mouseenter': function (e) {
-        if (!this.linestyle && this.$el.hasClass('active')) {
-          this.cancelLineStyleTimer = false;
-          this.lineStyleTimer = setTimeout(_.bind(function () {
-            if (!this.cancelLineStyleTimer)
-              this.linestyle = new LineStyle(this.app,
-                  {parentView: this, channel: this.model}).render();
-          }, this), 100);
-          
-        }
+      'mouseenter': 'mouseenter',
+      'mouseleave': function (e) {
+        var over = document.elementFromPoint(e.clientX, e.clientY);
+        if (!$(over).hasClass('linestyle-linetype')
+            && !$(over).hasClass('linestyle-modal'))
+          this.removeLineStyle();
       },
-      'mouseleave': 'removeLineStyle',
+    },
+
+    mouseenter: function (e) {
+      if (!this.linestyle && this.$el.hasClass('active')) {
+        this.cancelLineStyleTimer = false;
+        this.lineStyleTimer = setTimeout(_.bind(function () {
+          if (!this.cancelLineStyleTimer) {
+            this.options.parentView.lineStyleOpen = true;
+            this.linestyle = new LineStyle(this.app,
+                {parentView: this, channel: this.model}).render();
+          }
+        }, this), 200);
+      }
     },
 
     fit: function (w) {
@@ -122,6 +130,7 @@ define([
         mps.publish('channel/add', [this.model.get('did'),
             this.model.get('val')]);
         this.active = true;
+        this.mouseenter();
       }
       return false;
     },
@@ -180,13 +189,18 @@ define([
       }, this));
     },
 
-    removeLineStyle: function(e) {
+    removeLineStyle: function (over) {
+      this.options.parentView.lineStyleOpen = false;
+      if (over && !$(over).hasClass('channel') && !$(over).hasClass('channel-button'))
+        this.options.parentView.collapse();
       this.cancelLineStyleTimer = true;
       if (this.linestyle)
-        this.linestyle.destroy(_.bind(function() { delete this.linestyle }, this));
+        this.linestyle.destroy(_.bind(function () {
+          delete this.linestyle;
+        }, this));
     },
 
-    updateLegend: function(stats) {
+    updateLegend: function (stats) {
       if (!this.active) return;
       var item = _.find(stats, function (e) {
         return e.channelName === this.model.id;
