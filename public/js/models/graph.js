@@ -24,6 +24,7 @@ define([
       this.DEFAULT_LINE_STYLE = {
         showPoints: true,
         showLines: true,
+        showArea: false,
         interpolation: 'linear', // also 'none'
         lineWidth: 2,
         pointRadius: 3,

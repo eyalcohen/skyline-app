@@ -3427,6 +3427,10 @@ a.comments-signin {
   background-image:url("../img/line-graph-dots.png");
 }
 
+.linestyle-area {
+  background-image:url("../img/line-graph-area.png");
+}
+
 .linestyle-interp-linear {
   background-image:url("../img/line-graph.png");
 }

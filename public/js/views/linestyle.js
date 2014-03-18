@@ -143,14 +143,22 @@ define([
       if (target === 'linestyle-scatter') {
         this.currentLineStyle.showPoints = true;
         this.currentLineStyle.showLines = false;
+        this.currentLineStyle.showArea = false;
         updatePoints = true;
       } else if (target === 'linestyle-line') {
         this.currentLineStyle.showPoints = false;
         this.currentLineStyle.showLines = true;
+        this.currentLineStyle.showArea = false;
         updatePoints = true;
       } else if (target === 'linestyle-line-with-points') {
         this.currentLineStyle.showPoints = true;
         this.currentLineStyle.showLines = true;
+        this.currentLineStyle.showArea = false;
+        updatePoints = true;
+      } else if (target === 'linestyle-area') {
+        this.currentLineStyle.showPoints = false;
+        this.currentLineStyle.showLines = true;
+        this.currentLineStyle.showArea = true;
         updatePoints = true;
       } else if (target === 'linestyle-interp-linear') {
         this.currentLineStyle.interpolation = 'linear';

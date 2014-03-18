@@ -829,6 +829,7 @@ define([
         obj.lines.show = lineStyleOpts.showLines;
         obj.lines.lineWidth = lineStyleOpts.lineWidth;
         obj.points.radius = lineStyleOpts.pointRadius;
+        obj.lines.fill = lineStyleOpts.showArea;
 
         // compare object properties and decide whether we ned to redraw
         if (JSON.stringify(obj.lines) !== JSON.stringify(oldLines)
