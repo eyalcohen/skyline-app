@@ -257,7 +257,8 @@ define([
       var payload = {
         datasets: state.datasets,
         time: state.time,
-        lineStyleOptions: state.lineStyleOptions
+        lineStyleOptions: state.lineStyleOptions,
+        staticImg: $('.flot-base').get(0).toDataURL('image/png'),
       };
 
       // If this is a view and user is view owner, do "save".
