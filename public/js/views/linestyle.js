@@ -213,7 +213,9 @@ define([
     setViewLineStyle: function() {
       var style = this.currentLineStyle;
       var selector;
-      if (style.showPoints && style.showLines)
+      if (style.showArea)
+        selector = $('.linestyle-area');
+      else if (style.showPoints && style.showLines)
         selector = $('.linestyle-line-with-points');
       else if (style.showPoints)
         selector = $('.linestyle-scatter');
