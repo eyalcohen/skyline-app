@@ -21,6 +21,10 @@ define([
   var m = exports.m = 60 * s;
   var h = exports.h = 60 * m;
   var d = exports.d = 24 * h;
+  var wk = exports.wk = 7 * d;
+  var mo = exports.mo = 30 * d;
+  var yr = exports.yr = 365 * d;
+  var cen = exports.cen = 100 * yr;
 
   // The smallest duration which fits in each bucket, in us.
   exports.bucketThresholds = [
@@ -33,7 +37,12 @@ define([
     30 * s,
     5 * m,
     30 * m,
-    5 * h,  // TODO: make this 6 hours! Think about DB changes...
+    12 * h,
+    3 * d,
+    15 * d,
+    6 * mo,
+    5 * yr,
+    50 * yr,
   ];
 
   exports.syntheticDurations = [
@@ -47,6 +56,11 @@ define([
     10 * m,
     1 * h,
     1 * d,
+    1 * wk,
+    1 * mo,
+    1 * yr,
+    10 * yr,
+    100 * yr,
   ];
 
   // Number of synthetic buckets per db row.
