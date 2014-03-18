@@ -17,9 +17,10 @@ define([
   'views/lists/comments',
   'views/graph',
   'views/export',
-  'views/overview'
+  'views/overview',
+  'views/share'
 ], function ($, _, Backbone, mps, rest, util, units, Spin, template,
-      header, Datasets, Comments, Graph, Export, Overview) {
+      header, Datasets, Comments, Graph, Export, Overview, Share) {
 
   return Backbone.View.extend({
 
@@ -101,6 +102,7 @@ define([
       'click .control-button-fork': 'fork',
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
+      'click .control-button-share': 'share',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment',
@@ -255,7 +257,8 @@ define([
       var payload = {
         datasets: state.datasets,
         time: state.time,
-        lineStyleOptions: state.lineStyleOptions
+        lineStyleOptions: state.lineStyleOptions,
+        staticImg: $('.flot-base').get(0).toDataURL('image/png'),
       };
 
       // If this is a view and user is view owner, do "save".
@@ -284,7 +287,7 @@ define([
           // Updates.
           this.saveButton.addClass('saved');
           var now = new Date().toISOString();
-          this.app.profile.content.page = res;
+          _.extend(this.app.profile.content, res);
           _.extend(state, {
             updated: now,
           });
@@ -328,6 +331,17 @@ define([
       e.preventDefault();
       if (this.graph.model.getChannels().length > 0)
         new Export(this.app, {parentView: this}).render();
+    },
+
+    share: function (e) {
+      e.preventDefault();
+      var options = {
+        parentView: this,
+        userName: this.app.profile.user.username,
+        viewName: this.app.profile.content.page.name,
+      };
+      if (options.userName && options.viewName)
+        new Share(this.app, options).render();
     },
 
     panel: function (e) {
