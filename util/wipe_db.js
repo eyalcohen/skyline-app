@@ -36,11 +36,11 @@ boots.start(function (client) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      _.each(docs, function (d) {
+      _.each(docs, _.bind(function (d) {
 
         // Remove samples for this dataset.
-        samples.removeDataset(d._id, this.parallel());
-      });
+        client.samples.removeDataset(d._id, this.parallel());
+      }, this));
     },
     function (err) {
       boots.error(err);
