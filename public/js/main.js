@@ -15,6 +15,7 @@ require.config({
     Modernizr: 'lib/modernizr/modernizr.src',
     mps: 'lib/minpubsub/minpubsub',
     Spin: 'lib/spin/spin',
+    html2canvas: 'lib/html2canvas/html2canvas',
     excanvas: 'lib/excanvas/excanvas.src',
     plugins: 'lib/jquery/plugins',
     flot_plugins: 'lib/jquery/flot.plugins',
@@ -42,6 +43,9 @@ require.config({
     },
     Spin: {
       exports: 'Spin'
+    },
+    html2canvas: {
+      exports: 'html2canvas'
     },
     plugins: {
       deps: ['jQuery']

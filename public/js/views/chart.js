@@ -11,6 +11,7 @@ define([
   'util',
   'units',
   'Spin',
+  'html2canvas',
   'text!../../templates/chart.html',
   'text!../../templates/chart.header.html',
   'views/lists/datasets',
@@ -19,7 +20,7 @@ define([
   'views/export',
   'views/overview',
   'views/share'
-], function ($, _, Backbone, mps, rest, util, units, Spin, template,
+], function ($, _, Backbone, mps, rest, util, units, Spin, html2canvas, template,
       header, Datasets, Comments, Graph, Export, Overview, Share) {
 
   return Backbone.View.extend({
@@ -103,6 +104,7 @@ define([
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
       'click .control-button-share': 'share',
+      'click .control-button-snap': 'snapshot',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'click .comment-button': 'comment',
@@ -342,6 +344,29 @@ define([
       };
       if (options.userName && options.viewName)
         new Share(this.app, options).render();
+    },
+
+    snapshot: function(e) {
+      var canvas = document.createElement('canvas');
+      // get canvas of legend, which is a DOM structure
+      var upperPanel = $('.upper-panel').get(0);
+      var chartCanvas = $('.flot-base').get(0)
+
+      console.log(upperPanel, chartCanvas);
+
+      html2canvas($('.datasets').get(0), {
+        onrendered: function (legendCanvas) {
+          var panelHeight = $('.upper-panel').height();
+          canvas.height = panelHeight + chartCanvas.height;
+          canvas.width = chartCanvas.width;
+          console.log(canvas, panelHeight, chartCanvas.height)
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(chartCanvas, 0, panelHeight);
+          ctx.drawImage(legendCanvas, 0, 0);
+          console.log(canvas, ctx)
+          console.log(canvas.toDataURL('image/png'));
+        }
+      });
     },
 
     panel: function (e) {
