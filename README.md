@@ -3,11 +3,11 @@
 ### Development
 
 1. Download and install [Node.JS](http://nodejs.org/download/) from the latest stable source or package installer (recommended).
-2. Download and install [MongoDB](http://www.mongodb.org/downloads) from the latest stable source. Use ```$ bin/mongod``` to start a local db server in the background.
+2. Download and install [MongoDB](http://www.mongodb.org/downloads) from the latest stable source. Use ```$ bin/mongod``` to start a local DB server in the background.
 3. Download and install [Redis](http://redis.io/download). Do something like [this](http://reistiago.wordpress.com/2011/07/23/installing-on-redis-mac-os-x/) to start the Redis server via a launch daemon, or just do ```$ redis-server``` whenever developing.
 4. Install application dependencies with ```$ npm install```. This will install everything specified in ```package.json```.
-5. Install ```nodemon``` globally with ```$ npm install nodemon -g```. This will restart the local server whenever changes are made... very handy.
-5. Now you can start the local web server:
+5. Install ```nodemon``` globally with ```$ npm install nodemon -g```. Use ```nodemon``` in place of ```node``` to restart your local web server whenever changes are made... very handy.
+5. Now you can start your local web server:
 
 ```
 $ nodemon main.js
@@ -107,7 +107,7 @@ Notification Protocol=email
 
 ```
 
-Lastly, install the front-end builder globally.
+Lastly, install the frontend builder globally.
 
 ```
 $ npm install grunt-cli -g
@@ -115,7 +115,7 @@ $ npm install grunt-cli -g
 
 ##### Shipping
 
-Now that everyting is setup, you can concat and minify JS files and push the frontend to Amazon S3:
+Now that everyting is setup, you can concat and minify JS files and send the frontend to Amazon S3:
 
 ```
 $ ./ship .
@@ -126,5 +126,7 @@ Deploy to EBS with ```eb push``` or just do it via ```ship``:
 ```
 $ ./ship --push .
 ```
+
+Check that your new version of Skyline is running at ```http://skyline.elasticbeanstalk.com```.
 
 That's it!
