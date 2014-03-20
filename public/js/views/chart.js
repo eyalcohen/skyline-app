@@ -346,7 +346,10 @@ define([
         new Share(this.app, options).render();
     },
 
-    snapshot: function(e) {
+    // creates a snapshot of this chart.  We use the html2canvas library
+    // to create a canvas of the legend, then stich it to the canvas.
+    // This function will completely break if the DOM changes substantially.
+    snapshot: function() {
       var canvas = document.createElement('canvas');
       // get canvas of legend, which is a DOM structure
       var upperPanel = $('.upper-panel').get(0);
