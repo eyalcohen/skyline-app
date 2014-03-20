@@ -34,16 +34,16 @@ Skyline runs in production on [AWS Elastic Beanstalk](http://aws.amazon.com/elas
 	optionsettings.skyline
 ```
 
-```.aws/aws_credential_file```: (_Get these values from Sander or Eyal_)
+```.aws/aws_credential_file``` : (_Get these values from Sander or Eyal_)
 
 ```
 AWSAccessKeyId=<YOUR_IAM_ACCESS_KEY_ID>
 AWSSecretKey=<YOUR_IAM_SECRET_KEY>
 ```
 
-```.aws/skyline.pem```: (_Used to ```tail``` logs... get this from from Sander or Eyal_)
+```.aws/skyline.pem``` : (_Used to ```tail``` logs... get this from from Sander or Eyal_)
 
-```.elasticbeanstalk/config```: (_\<PATH\_TO\_SKYLINE\> must be absolute_)
+```.elasticbeanstalk/config``` : (_\<PATH\_TO\_SKYLINE\> must be absolute_)
 
 ```
 [global]
@@ -60,7 +60,7 @@ SolutionStack=64bit Amazon Linux 2014.02 running Node.js
 
 ```
 
-```.elasticbeanstalk/optionsettings.skyline```: ()
+```.elasticbeanstalk/optionsettings.skyline``` :
 
 ```
 [aws:autoscaling:asg]
