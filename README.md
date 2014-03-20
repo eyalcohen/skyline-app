@@ -43,7 +43,7 @@ AWSSecretKey=<YOUR_IAM_SECRET_KEY>
 
 ```.aws/skyline.pem```: (_Used to ```tail``` logs... get this from from Sander or Eyal_)
 
-```.elasticbeanstalk/config```: (_<PATH\_TO\_SKYLINE> must be absolute_)
+```.elasticbeanstalk/config```: (_\<PATH\_TO\_SKYLINE\> must be absolute_)
 
 ```
 [global]
@@ -127,6 +127,6 @@ Then deploy to EBS with ```eb push``` or just do it via ```ship``:
 $ ./ship --push .
 ```
 
-Check that your new version of Skyline is running at ```http://skyline.elasticbeanstalk.com```.
+Check that your new version of Skyline is running at [```http://skyline.elasticbeanstalk.com```](http://skyline.elasticbeanstalk.com).
 
 That's it!
