@@ -112,7 +112,7 @@ if (cluster.isMaster) {
       else {
 
         // App params
-        app.set('ROOT_URI', [app.get('package').cloudfront,
+        app.set('ROOT_URI', [app.get('package').builds.cloudfront,
             app.get('package').version].join('/'));
         app.set('HOME_URI', [app.get('package').protocol,
             app.get('package').domain].join('://'));
@@ -279,13 +279,8 @@ if (cluster.isMaster) {
               key: app.get('sessionKey'),
               secret: app.get('sessionSecret'),
               store: app.get('sessionStore'),
-              fail: function(data, msg, err, accept) {
-                if (err) throw new Error(msg);
-                accept(null, false);
-              },
-              success: function(data, accept) {
-                accept(null, true);
-              }
+              fail: function(data, accept) { accept(null, false); },
+              success: function(data, accept) { accept(null, true); }
             }));
 
             // Socket connect
