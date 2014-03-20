@@ -53,10 +53,10 @@ var lv = parseInt(_.strRightBack(pack.version, '.')) + 1;
 var nv = bv + '.' + String(lv);
 
 // AWS credentials.
-var aws = JSON.parse(fs.readFileSync(rel + 'aws/aws_credential_file.json', 'utf8'));
+var acf = fs.readFileSync(rel + '.aws/aws_credential_file', 'utf8');
 var client = knox.createClient({
-  key: aws.accessKeyId,
-  secret: aws.secretAccessKey,
+  key: acf.match(/AWSAccessKeyId=(.+)/)[1],
+  secret: acf.match(/AWSSecretKey=(.+)/)[1],
   bucket: pack.builds.bucket
 });
 
@@ -86,6 +86,8 @@ Step(
     this();
   },
   function (err) {
+    console.log(err, '............')
+    boots.error(err);
 
     // Walk the build dir.
     var walker = walk.walk(rel + dir, {
@@ -114,6 +116,7 @@ Step(
     walker.on('end', this);
   },
   function (err) {
+    console.log(err, '............')
     boots.error(err);
 
     // Update package.
@@ -137,6 +140,7 @@ Step(
     } else this();
   },
   function (err) {
+    console.log(err, '............')
     boots.error(err);
 
     // Done.
