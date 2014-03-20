@@ -1,4 +1,4 @@
 #!/bin/zsh
 
-# mongodb://rider:hummmcycles@zoe.mongohq.com:10014/skyline
-mongo --port 10014 --host zoe.mongohq.com --username rider --password hummmcycles skyline
+# mongodb://skyliner:time@candidate.12.mongolayer.com:10259/skyline
+mongo --port 10259 --host candidate.12.mongolayer.com --username skyliner --password time skyline

@@ -1,4 +1,0 @@
-#!/bin/zsh
-
-# mongodb://rider:hummmcycles@zoe.mongohq.com:10014/skyline
-mongodump --port 10014 --host zoe.mongohq.com --username rider --password hummmcycles --db skyline --out /opt/backup

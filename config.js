@@ -7,9 +7,9 @@ exports.get = function (env) {
   return env === 'production' ?
       {
         MONGO_URI: 'mongodb://skyliner:time@candidate.13.mongolayer.com:10265,candidate.12.mongolayer.com:10259/skyline',
-        REDIS_HOST: 'skyline.i7jw04.0001.use1.cache.amazonaws.com',
-        // REDIS_PASS: '8e79e951bd58df62a99fef22e32f6ede',
-        REDIS_PORT: 6379,
+        REDIS_HOST: 'crestfish.redistogo.com',
+        REDIS_PASS: '1b8a95ad4e582be0a56783b95392ce98',
+        REDIS_PORT: 9084,
         google: {
           returnURL: '...',
           realm: null
