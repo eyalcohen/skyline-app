@@ -266,10 +266,10 @@ if (cluster.isMaster) {
               sio.set('log level', 1);
               sio.set('transports', [
                 'websocket'
-                // 'flashsocket',
-                // 'htmlfile',
-                // 'xhr-polling',
-                // 'jsonp-polling'
+                'flashsocket',
+                'htmlfile',
+                'xhr-polling',
+                'jsonp-polling'
               ]);
             }
 
