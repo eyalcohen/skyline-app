@@ -18,7 +18,7 @@ define([
     this.rpc = rpc.init();
 
     // Location of static assets
-    this.cfuri = 'https://d2t5v5bzkrqpjm.cloudfront.net';
+    this.cfuri = 'https://dq5scpwh6tc71.cloudfront.net';
 
     // App model subscriptions.
     mps.subscribe('user/delete', _.bind(this.logout, this));
