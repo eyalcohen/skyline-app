@@ -1556,9 +1556,10 @@ span.choice-prefix img {
 }
 
 span.choice-name i {
-  margin-right: 10px;
-  font-size: 14px;
+  margin-right: 11px;
+  margin-left: 1px;
   vertical-align: -1px;
+  font-size: 14px;
 }
 
 span.choice-name i i {
@@ -2967,7 +2968,7 @@ a.channel-button {
   width: 12px;
   height: 12px;
   margin-right: 2px;
-  vertical-align: -2px;
+  vertical-align: -3px;
   background: transparent;
 }
 

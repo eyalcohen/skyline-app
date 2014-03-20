@@ -86,15 +86,6 @@ if (cluster.isMaster) {
     app.set(k, v);
   });
 
-  // Twitter params
-  app.set('twitter', {
-    consumerKey: 'ViEOzmAwsh8LEiCrL52HwQ',
-    consumerSecret: 'KWpNvp1rUU2ZXjttVmVdtypGluNFEn4xUgka5afDEEI'
-  });
-
-  // Google params
-  app.set('google', {returnURL: '...', realm: null});
-
   Step(
     function () {
 
@@ -104,13 +95,6 @@ if (cluster.isMaster) {
         // App params
         app.set('ROOT_URI', '');
         app.set('HOME_URI', 'http://localhost:' + app.get('PORT'));
-
-        // Facebook params
-        app.set('facebook', {
-          name: 'Skyline (dev)',
-          clientID: 248099122008971,
-          clientSecret: '8f534bc1ec6504dd640fa7ac663a9529'
-        });
 
         // Job scheduling.
         app.set('SCHEDULE_JOBS', argv.jobs);
@@ -132,13 +116,6 @@ if (cluster.isMaster) {
             app.get('package').version].join('/'));
         app.set('HOME_URI', [app.get('package').protocol,
             app.get('package').domain].join('://'));
-
-        // Facebook params
-        app.set('facebook', {
-          name: 'Skyline',
-          clientID: 533526143400722,
-          clientSecret: '9147a4bee3391b0307add85e1cb959e7'
-        });
 
         // Job scheduling.
         app.set('SCHEDULE_JOBS', true);
@@ -165,12 +142,7 @@ if (cluster.isMaster) {
       require('./lib/common').init(app.get('ROOT_URI'));
 
       // Mailer init
-      app.set('mailer', new Mailer({
-        user: app.get('package').gmail.user,
-        password: app.get('package').gmail.password,
-        host: 'smtp.gmail.com',
-        ssl: true
-      }, app.get('HOME_URI')));
+      app.set('mailer', new Mailer(app.get('gmail'), app.get('HOME_URI')));
 
       // PubSub init
       app.set('pubsub', new PubSub({mailer: app.get('mailer')}));
@@ -179,7 +151,7 @@ if (cluster.isMaster) {
       app.set('views', __dirname + '/views');
       app.set('view engine', 'jade');
       app.set('sessionStore', new RedisStore({client: rc, maxAge: 2592000000}));
-      app.set('sessionSecret', 'hummmcycles');
+      app.set('sessionSecret', 'time');
       app.set('sessionKey', 'express.sid');
       app.set('cookieParser', express.cookieParser(app.get('sessionKey')));
       app.use(express.favicon(__dirname + '/public/img/favicon.ico'));
@@ -216,12 +188,12 @@ if (cluster.isMaster) {
         });
 
         // Force HTTPS
-        // if (app.get('package').protocol === 'https')
-        //   app.all('*', function (req, res, next) {
-        //     if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https')
-        //       return next();
-        //     res.redirect('https://' + req.headers.host + req.url);
-        //   });
+        if (app.get('package').protocol === 'https')
+          app.all('*', function (req, res, next) {
+            if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https')
+              return next();
+            res.redirect('https://' + req.headers.host + req.url);
+          });
       }
 
       if (!module.parent) {
@@ -307,8 +279,13 @@ if (cluster.isMaster) {
               key: app.get('sessionKey'),
               secret: app.get('sessionSecret'),
               store: app.get('sessionStore'),
-              fail: function(data, accept) { accept(null, true); },
-              success: function(data, accept) { accept(null, true); }
+              fail: function(data, msg, err, accept) {
+                if (err) throw new Error(msg);
+                accept(null, false);
+              },
+              success: function(data, accept) {
+                accept(null, true);
+              }
             }));
 
             // Socket connect
