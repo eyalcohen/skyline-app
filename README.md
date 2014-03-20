@@ -85,8 +85,6 @@ VPCId=
 Application Healthcheck URL=
 
 [aws:elasticbeanstalk:application:environment]
-AWS_ACCESS_KEY_ID=AKIAJVM2DIROIDYGRXEA
-AWS_SECRET_KEY=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
 NODE_ENV=production
 
 [aws:elasticbeanstalk:container:nodejs]
@@ -101,9 +99,8 @@ LogPublicationControl=true
 [aws:elasticbeanstalk:monitoring]
 Automatically Terminate Unhealthy Instances=true
 
-[aws:elasticbeanstalk:sns:topics]
-Notification Endpoint=
-Notification Protocol=email
+[aws:elb:loadbalancer]
+LoadBalancerPortProtocol=TCP
 
 ```
 
