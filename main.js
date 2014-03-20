@@ -265,11 +265,11 @@ if (cluster.isMaster) {
               sio.enable('browser client gzip');
               sio.set('log level', 1);
               sio.set('transports', [
-                'websocket',
-                'flashsocket',
-                'htmlfile',
-                'xhr-polling',
-                'jsonp-polling'
+                'websocket'
+                // 'flashsocket',
+                // 'htmlfile',
+                // 'xhr-polling',
+                // 'jsonp-polling'
               ]);
             }
 
