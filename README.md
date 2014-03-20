@@ -34,16 +34,16 @@ Skyline runs in production on [AWS Elastic Beanstalk](http://aws.amazon.com/elas
 	optionsettings.skyline
 ```
 
-```.aws/aws_credential_file``` (_Get these values from Sander or Eyal_)
+```.aws/aws_credential_file```: (_Get these values from Sander or Eyal_)
 
 ```
 AWSAccessKeyId=<YOUR_IAM_ACCESS_KEY_ID>
 AWSSecretKey=<YOUR_IAM_SECRET_KEY>
 ```
 
-```.aws/skyline.pem``` (_Used to ```tail``` logs... get this from from Sander or Eyal_)
+```.aws/skyline.pem```: (_Used to ```tail``` logs... get this from from Sander or Eyal_)
 
-```.elasticbeanstalk/config``` (_<PATH_TO_SKYLINE> must be absolute_)
+```.elasticbeanstalk/config```: (_<PATH_TO_SKYLINE> must be absolute_)
 
 ```
 [global]
@@ -60,7 +60,7 @@ SolutionStack=64bit Amazon Linux 2014.02 running Node.js
 
 ```
 
-```.elasticbeanstalk/optionsettings.skyline```
+```.elasticbeanstalk/optionsettings.skyline```:
 
 ```
 [aws:autoscaling:asg]
@@ -121,7 +121,7 @@ Now that everyting is setup, you can concat and minify JS files and send the fro
 $ ./ship .
 ```
 
-Deploy to EBS with ```eb push``` or just do it via ```ship``:
+Then deploy to EBS with ```eb push``` or just do it via ```ship``:
 
 ```
 $ ./ship --push .
