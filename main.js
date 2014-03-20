@@ -98,14 +98,6 @@ if (cluster.isMaster) {
 
         // Job scheduling.
         app.set('SCHEDULE_JOBS', argv.jobs);
-
-        // Redis connect
-        this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-            app.get('REDIS_HOST')));
-        this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-            app.get('REDIS_HOST')));
-        this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-            app.get('REDIS_HOST')));
       }
 
       // Production only
@@ -120,20 +112,27 @@ if (cluster.isMaster) {
         // Job scheduling.
         app.set('SCHEDULE_JOBS', true);
 
-        // Redis connect
-        var clients = [
-          redis.createClient(app.get('REDIS_PORT'), app.get('REDIS_HOST')),
-          redis.createClient(app.get('REDIS_PORT'), app.get('REDIS_HOST')),
-          redis.createClient(app.get('REDIS_PORT'), app.get('REDIS_HOST'))
-        ];
-        var next = _.after(clients.length, this);
-        _.each(clients, function (c) {
-          c.auth(app.get('REDIS_PASS'), function (err) {
-            next(err, clients[0], clients[1], clients[2]);
-          });
-        });
+        // // Redis connect
+        // var clients = [
+        //   redis.createClient(app.get('REDIS_PORT'), app.get('REDIS_HOST')),
+        //   redis.createClient(app.get('REDIS_PORT'), app.get('REDIS_HOST')),
+        //   redis.createClient(app.get('REDIS_PORT'), app.get('REDIS_HOST'))
+        // ];
+        // var next = _.after(clients.length, this);
+        // _.each(clients, function (c) {
+        //   c.auth(app.get('REDIS_PASS'), function (err) {
+        //     next(err, clients[0], clients[1], clients[2]);
+        //   });
+        // });
       }
 
+      // Redis connect
+      this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
+          app.get('REDIS_HOST')));
+      this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
+          app.get('REDIS_HOST')));
+      this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
+          app.get('REDIS_HOST')));
     },
     function (err, rc, rp, rs) {
       if (err) return util.error(err);
