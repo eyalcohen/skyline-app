@@ -1,7 +1,7 @@
 {
   "author": "Mission Motor Company (git://github.com/humcycles)",
   "name": "skyline",
-  "version": "0.0.43",
+  "version": "0.0.44",
   "protocol": "http",
   "domain": "www.skyline-app.com",
   "bucket": "builds-skyline",
