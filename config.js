@@ -24,7 +24,7 @@ exports.get = function (env) {
           consumerSecret: 'KWpNvp1rUU2ZXjttVmVdtypGluNFEn4xUgka5afDEEI'
         },
         cloudfront: {
-          build: 'https://dq5scpwh6tc71.cloudfront.net'
+          snapshots: 'https://d3jyblv3lavppq.cloudfront.net'
         },
         gmail: {
           user: '...',
@@ -52,7 +52,7 @@ exports.get = function (env) {
           consumerSecret: 'KWpNvp1rUU2ZXjttVmVdtypGluNFEn4xUgka5afDEEI'
         },
         cloudfront: {
-          build: 'URL'
+          snapshots: 'https://d3jyblv3lavppq.cloudfront.net'
         },
         gmail: {
           user: '...',
