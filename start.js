@@ -3,7 +3,7 @@
  * start.js: Run app.
  *
  */
-
+console.log('...............', process.env.NODE_ENV, '......................');
 // Module Dependencies
 var fork = require('child_process').fork;
 

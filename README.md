@@ -115,13 +115,13 @@ $ npm install grunt-cli -g
 Now that everyting is setup, you can concat and minify JS files and send the frontend to Amazon S3:
 
 ```
-$ ./ship .
+$ ./ship.js .
 ```
 
-Then deploy to EBS with ```eb push``` or just do it via ```ship``:
+Then deploy to EBS with ```eb push``` or just do it via ```ship.js``:
 
 ```
-$ ./ship --push .
+$ ./ship.js --push .
 ```
 
 Check that your new version of Skyline is running at [```http://skyline.elasticbeanstalk.com```](http://skyline.elasticbeanstalk.com).
