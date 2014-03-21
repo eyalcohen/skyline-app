@@ -46,7 +46,7 @@ define([
       this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Misc.
-      this.emptyLabel = 'You don\'t have any yet!';
+      this.emptyLabel = 'Nothing to see here.';
 
       // Reset the collection.
       this.latestList = this.options.datasets;

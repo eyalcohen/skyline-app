@@ -35,7 +35,7 @@ define([
       this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
 
       // Misc.
-      this.emptyLabel = 'You don\'t have any yet!';
+      this.emptyLabel = 'Nothing to see here.';
 
       // Reset the collection.
       this.collection.reset(options.views.items);

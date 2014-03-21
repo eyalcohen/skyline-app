@@ -42,7 +42,7 @@ define([
     render: function (options) {
       List.prototype.render.call(this, options);
       if (this.collection.length === 0)
-        $('<span class="empty-feed">You don\'t have any yet!</span>')
+        $('<span class="empty-feed">Nothing to see here.</span>')
             .appendTo(this.$el);
       return this;
     },
