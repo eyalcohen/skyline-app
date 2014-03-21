@@ -7,7 +7,7 @@
 3. Download and install [Redis](http://redis.io/download). Do something like [this](http://reistiago.wordpress.com/2011/07/23/installing-on-redis-mac-os-x/) to start the Redis server via a launch daemon, or just do ```$ redis-server``` whenever developing.
 4. Install application dependencies with ```$ npm install```. This will install everything specified in ```package.json```.
 5. Install ```nodemon``` globally with ```$ npm install nodemon -g```. Use ```nodemon``` in place of ```node``` to restart your local web server whenever changes are made... very handy.
-5. Now you can start your local web server:
+5. Now you can start your local web server.
 
 ```
 $ nodemon main.js
@@ -41,7 +41,7 @@ AWSAccessKeyId=<YOUR_IAM_ACCESS_KEY_ID>
 AWSSecretKey=<YOUR_IAM_SECRET_KEY>
 ```
 
-```.aws/skyline.pem``` : (_Used to ```tail``` logs... get this from from Sander or Eyal_)
+```.aws/skyline.pem``` : (_Used to ```tail``` logs... get this from Sander or Eyal_)
 
 ```.elasticbeanstalk/config``` : (_\<PATH\_TO\_SKYLINE\> must be absolute_)
 
@@ -112,13 +112,13 @@ $ npm install grunt-cli -g
 
 ##### Shipping
 
-Now that everyting is setup, you can concat and minify JS files and send the frontend to Amazon S3:
+Now that everyting is setup, you can concat and minify JS files and send the frontend to Amazon S3.
 
 ```
 $ ./ship.js .
 ```
 
-Then deploy to EBS with ```eb push``` or just do it via ```ship.js``:
+Then deploy to EBS with ```eb push``` or just do it via ```ship.js``.
 
 ```
 $ ./ship.js --push .
