@@ -7,7 +7,7 @@ exports.get = function (env) {
   return env === 'production' ?
       {
         MONGO_URI: 'mongodb://skyliner:time@candidate.13.mongolayer.com:10265,candidate.12.mongolayer.com:10259/skyline',
-        REDIS_HOST: 'skyline.i7jw04.0001.use1.cache.amazonaws.com',
+        REDIS_HOST: 'skyline-cache.i7jw04.0001.use1.cache.amazonaws.com',
         REDIS_PORT: 6379,
         google: {
           returnURL: '...',
