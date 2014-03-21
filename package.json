@@ -54,6 +54,6 @@
     "node": "~0.10.26"
   },
   "scripts": {
-    "start": "./main.js"
+    "start": "./util/index.js && ./main.js --index"
   }
 }
