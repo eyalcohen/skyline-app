@@ -118,7 +118,7 @@ Now that everyting is setup, you can concat and minify JS files and send the fro
 $ ./ship.js .
 ```
 
-Then deploy to EBS with ```eb push``` or just do it via ```ship.js``.
+Then deploy to EBS with ```eb push``` or just do it via ```ship.js```.
 
 ```
 $ ./ship.js --push .
