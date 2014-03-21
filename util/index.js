@@ -104,6 +104,7 @@ boots.start(function (client) {
     },
     function (err) {
       boots.error(err);
+      util.log('Redis: Indexed users, datasets, and views');
       process.exit(0);
     }
   );
