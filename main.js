@@ -3,7 +3,7 @@
  * main.js: Entry point for the Skyline app.
  *
  */
-console.log('...............', process.env.NODE_ENV, '......................');
+
 var cluster = require('cluster');
 var util = require('util');
 

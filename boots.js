@@ -15,7 +15,7 @@ var Connection = require('./lib/db').Connection;
 var resources = require('./lib/resources');
 var Samples = require('./lib/samples').Samples
 var c = require('./config').get(process.env.NODE_ENV);
-console.log('...............', process.env.NODE_ENV, '......................');
+console.log('...............', c, '......................');
 
 var error = exports.error = function(err) {
   if (!err) return;
