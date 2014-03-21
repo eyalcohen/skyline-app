@@ -54,6 +54,6 @@
     "node": "~0.10.26"
   },
   "scripts": {
-    "start": "NODE_ENV=production ./util/index.js && ./main.js --index"
+    "start": "./util/index.js && ./main.js --index"
   }
 }
