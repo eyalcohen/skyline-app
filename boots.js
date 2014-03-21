@@ -15,7 +15,6 @@ var Connection = require('./lib/db').Connection;
 var resources = require('./lib/resources');
 var Samples = require('./lib/samples').Samples
 var c = require('./config').get(process.env.NODE_ENV);
-console.log('...............', c, '......................');
 
 var error = exports.error = function(err) {
   if (!err) return;
@@ -39,8 +38,10 @@ exports.start = function (opts, cb) {
         rc.auth(c.REDIS_PASS, _.bind(function (err) {
           this(err, rc);
         }, this));
-      } else
+      } else {
         this(null, redis.createClient(c.REDIS_PORT, c.REDIS_HOST));
+        console.log('.........................', c.REDIS_PORT, c.REDIS_HOST);
+      }
 
     },
     function (err, rc) {
