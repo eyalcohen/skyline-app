@@ -29,12 +29,12 @@ var com = require('../lib/common');
 boots.start(function (client) {
 
   // Create searches.
+  reds.client = client.redisClient;
   var searches = {
     users: reds.createSearch('users'),
     datasets: reds.createSearch('datasets'),
     views: reds.createSearch('views')
   };
-  _.each(searches, function (s) { s.client = client.redisClient; });
 
   Step(
     function () {

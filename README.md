@@ -89,7 +89,7 @@ NODE_ENV=production
 
 [aws:elasticbeanstalk:container:nodejs]
 GzipCompression=false
-NodeCommand=node main.js
+NodeCommand=node start.js
 NodeVersion=0.10.26
 ProxyServer=none
 
