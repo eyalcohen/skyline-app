@@ -1,7 +1,7 @@
 {
   "author": "Mission Motor Company (git://github.com/humcycles)",
   "name": "skyline",
-  "version": "0.0.64",
+  "version": "0.0.65",
   "protocol": "http",
   "domain": "skyline.elasticbeanstalk.com",
   "builds": {
