@@ -123,7 +123,7 @@ define([
       if (this.plot) {
         var width = w || this.$el.parent().width();
         var height = h || this.$el.parent().height();
-        height = Math.max(height, 300);
+        // height = Math.max(height, 300);
         this.plot.setCanvasDimensions(width, height);
         this.plot.setupGrid();
         this.plot.draw();

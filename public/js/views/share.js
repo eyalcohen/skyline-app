@@ -108,9 +108,7 @@ define([
     },
 
     positionLabelForCode: function (code) {
-      // code.height('auto');
       var scrollHeight = code.get(0).scrollHeight;
-      console.log(scrollHeight)
       var padding = parseInt(code.css('padding-top'))
           + parseInt(code.css('padding-bottom'));
       code.height(scrollHeight - padding).focus().blur();

@@ -30,7 +30,7 @@ define([
 
       // Attach a ref to 'update' to the window so it can be
       // reached by the iframe source.
-      document.__update = _.bind(this.update, this);
+      document.__update = _.bind(this.updateCodes, this);
     },
 
     // Draw our template from the profile JSON.
@@ -53,12 +53,11 @@ define([
     setup: function () {
 
       // Save refs.
-      this.code = this.$('.code');
-      this.label = this.$('.embed-label');
+      this.embedCode = this.$('.embed-code .code');
       this.iframe = this.$('iframe');
 
-      // Fill in the embed code.
-      this.update(this.iframe.attr('src'));
+      // Fill in the codes.
+      this.updateCodes({embed: this.iframe.attr('src').toLowerCase()});
 
       return this;
     },
@@ -92,15 +91,21 @@ define([
       mps.publish('modal/signin/open');
     },
 
-    update: function (str) {
-      this.code.html('<iframe width="100%" height="100%" '
-          + 'src="' + str + '" frameborder="0"></iframe>');
-      this.code.height('auto');
-      var scrollHeight = this.code.get(0).scrollHeight;
-      var padding = parseInt(this.code.css('padding-top'))
-          + parseInt(this.code.css('padding-bottom'));
-      this.code.height(scrollHeight - padding).focus().blur();
-      this.label.css('line-height', scrollHeight + 'px');
+    updateCodes: function (data) {
+
+      // Embed
+      if (this.iframe.length > 0) this.iframe.attr('src', data.embed);
+      this.embedCode.html('<iframe width="100%" height="100%" '
+          + 'src="' + data.embed + '" frameborder="0"></iframe>');
+      this.positionLabelForCode(this.embedCode);
+    },
+
+    positionLabelForCode: function (code) {
+      var scrollHeight = code.get(0).scrollHeight;
+      var padding = parseInt(code.css('padding-top'))
+          + parseInt(code.css('padding-bottom'));
+      code.height(scrollHeight - padding).focus().blur();
+      $('.share-label', code.parent()).css('line-height', (scrollHeight + 1) + 'px');
     }
 
   });

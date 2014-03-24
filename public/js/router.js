@@ -101,7 +101,7 @@ define([
       // Update iframe src when embed code changes.
       mps.subscribe('embed/update', _.bind(function (str) {
         if (!this.app.embed) return;
-        parent.document.__update('//' + str);
+        parent.document.__update({embed: '//' + str});
       }, this));
 
       // Init page spinner.
