@@ -331,6 +331,13 @@ define([
       e.preventDefault();
       if (this.graph.model.getChannels().length > 0)
         new Export(this.app, {parentView: this}).render();
+      else
+        mps.publish('flash/new', [{
+          err: {
+            message: 'sdfvdfsv'
+          },
+          level: 'error'
+        }]);
     },
 
     share: function (e) {

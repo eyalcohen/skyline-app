@@ -6,13 +6,15 @@
 <div class="upper-panel">
   <div class="datasets"></div>
   <div class="controls">
-    <a class="control-button control-button-share" href="javascript:;">
-      <i class="icon-share"></i>
-    </a>
+    <% if (user && this.app.profile.content.page.name) { %>
+      <a class="control-button control-button-share" href="javascript:;">
+        <i class="icon-share"></i>
+      </a>
+    <% } %>
     <a class="control-button control-button-comments" href="javascript:;">
       <i class="icon-comment"></i>
     </a>
-    <% if (user) { %>
+    <% if (user && !this.app.embed) { %>
       <a class="control-button control-button-download" href="javascript:;">
         <i class="icon-download"></i>
       </a>
