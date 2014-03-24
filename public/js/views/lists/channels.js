@@ -13,7 +13,7 @@ define([
   'views/rows/channel'
 ], function ($, _, List, mps, util, template, Collection, Row, Spin) {
   return List.extend({
-    
+
     el: '.channels',
     active: false,
     lineStyleOpen: false,
@@ -57,7 +57,7 @@ define([
 
     // Bind mouse events.
     events: {
-      
+
     },
 
     resize: function (e, active) {
@@ -77,9 +77,21 @@ define([
       });
     },
 
+    getExpandedHeight: function() {
+      return _.foldl(this.views, function(memo, it) {
+        return memo + it.$el.height();
+      }, 0);
+    },
+
     expand: function (active) {
       if (this.$el.hasClass('open')) return;
       this.$el.addClass('open');
+      var len = this.views.length;
+      var el = this.$el;
+      // We want the scrollbar to be outside the channellist, but overflow puts
+      // it inside.  We add some padding to solve this issue
+      if (this.getExpandedHeight() > el.get(0).clientHeight)
+        el.parent().css('padding-right', '13px');
       _.each(this.views, function (v) { v.expand(); });
       this.$('.channel.active:last').removeClass('last-active');
       this.resize(null, active);
@@ -87,10 +99,16 @@ define([
 
     collapse: function (e) {
       if (!this.active && !this.lineStyleOpen) {
+        var len = this.views.length;
+        var el = this.$el;
         _.each(this.views, function (v) { v.collapse(); });
-        this.$el.removeClass('open'); 
+        this.$el.removeClass('open');
         this.$('.channel.active:last').addClass('last-active');
-        _.delay(_.bind(this.resize, this), 100);
+        _.delay(_.bind(function() {
+          if (this.getExpandedHeight() > el.get(0).clientHeight)
+            el.parent().css('padding-right', '0px');
+          this.resize();
+        }, this), 100);
       }
     },
 

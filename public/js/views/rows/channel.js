@@ -77,10 +77,13 @@ define([
     events: {
       'mouseenter': 'mouseenter',
       'mouseleave': function (e) {
+        // A scrollbar being present triggers the mouse-leave event.
+        // We deal with this by adding +20 to the mouse location
         var over = document.elementFromPoint(e.clientX, e.clientY);
         if (!$(over).hasClass('linestyle-linetype')
-            && !$(over).hasClass('linestyle-modal'))
+            && !$(over).hasClass('linestyle-modal')) {
           this.removeLineStyle();
+        }
       },
     },
 
@@ -135,16 +138,16 @@ define([
       return false;
     },
 
-    expand: function () {
+    expand: function (cb) {
       if (!this.$el.hasClass('active')) {
-        this.$el.slideDown('fast');
+        this.$el.slideDown('fast', cb);
         this.$el.css({opacity: 1});
       }
     },
 
-    collapse: function () {
+    collapse: function (cb) {
       if (!this.$el.hasClass('active')) {
-        this.$el.slideUp('fast');
+        this.$el.slideUp('fast', cb);
         this.$el.css({opacity: 0});
       }
     },
