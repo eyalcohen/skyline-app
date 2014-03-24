@@ -1779,6 +1779,66 @@ a.button.modal-button.full {
 
 /*.........................................................................*/
 
+.embed-chart-wrap {
+  width: 568px;
+  margin: 0 0 0 68px;
+  border: 2px solid #f2f2f2;
+  background: #f2f2f2;
+}
+
+.embed-chart {
+  height: 360px;
+  background: #f2f2f2;
+  /*border-style: solid;
+  border-width: 27px;
+  -moz-border-image: url(../img/splash_border.png) 27 repeat;
+  -webkit-border-image: url(../img/splash_border.png) 27 repeat;
+  -o-border-image: url(../img/splash_border.png) 27 repeat;
+  border-image: url(../img/splash_border.png) 27 fill repeat;
+  border-right-color: #f2f2f2;*/
+}
+
+.share-code {
+  margin: 10px auto 0 auto;
+  background: #f2f2f2;
+  border: 1px solid #f2f2f2;
+}
+
+.share-label {
+  display: block;
+  float: left;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #27CDD6;
+  font-size: 12px;
+  text-align: right;
+  width: 58px;
+}
+
+.share-code textarea.code {
+  float: right;
+  width: 550px;
+  height: 14px;
+  margin: 0;
+  padding: 12px 10px 10px;
+  border: 1px solid #f2f2f2;
+  font-size: 14px;
+
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+}
+
+.share-code textarea.code:focus {
+  border: 1px solid #f2f2f2;
+
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+/*.........................................................................*/
+
 .splash .page {
   width: 980px;
 }
@@ -1853,44 +1913,6 @@ a.button.splash-button {
   white-space: nowrap;
 }
 
-.splash-chart-wrap {
-  margin-top: -15px;
-  border: 1px solid #f2f2f2;
-}
-
-.splash-chart {
-  height: 420px;
-  border-style: solid;
-  border-width: 27px;
-  -moz-border-image: url(../img/splash_border.png) 27 repeat;
-  -webkit-border-image: url(../img/splash_border.png) 27 repeat;
-  -o-border-image: url(../img/splash_border.png) 27 repeat;
-  border-image: url(../img/splash_border.png) 27 fill repeat;
-  border-right-color: #f2f2f2;
-}
-
-.splash-embed {
-  background: #f2f2f2;
-}
-
-.splash-embed-label {
-  display: block;
-  float: left;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: #27CDD6;
-  font-size: 16px;
-  line-height: 58px;
-  padding-left: 10px;
-}
-
-.splash-embed textarea.code {
-  float: right;
-  width: 878px;
-  font-size: 16px;
-  padding: 12px 10px 10px;
-}
-
 .splash-section {
   margin-top: 40px;
 }
@@ -1922,6 +1944,21 @@ a.button.splash-button {
 
 .splash-section-right p {
   margin-left: 20px;
+}
+
+.splash .embed-chart-wrap {
+  margin-top: -15px;
+}
+
+.splash .embed-chart {
+  /*height: 420px;
+  border-style: solid;
+  border-width: 27px;
+  -moz-border-image: url(../img/splash_border.png) 27 repeat;
+  -webkit-border-image: url(../img/splash_border.png) 27 repeat;
+  -o-border-image: url(../img/splash_border.png) 27 repeat;
+  border-image: url(../img/splash_border.png) 27 fill repeat;
+  border-right-color: #f2f2f2;*/
 }
 
 /*.........................................................................*/
@@ -3363,56 +3400,13 @@ a.comments-signin {
 
 /*.........................................................................*/
 
-.share-embed{
-  width: 600px;
-  height: 400px;
-  margin: 10px;
-  border-style: solid;
-  border-width: 26px;
-  -moz-border-image: url(../img/share_border.png) 27 repeat;
-  -webkit-border-image: url(../img/share_border.png) 27 repeat;
-  -o-border-image: url(../img/share_border.png) 27 repeat;
-  border-image: url(../img/share_border.png) 27 fill repeat;
-  border-right-color: #f2f2f2;
+.share {
+  
 }
 
-.share-link {
-  width: 100%;
-  height: 40px;
+.share-inner {
+  margin-bottom: 30px;
 }
-
-.share-embed-link {
-}
-
-.share-embed-label {
-  display: block;
-  float: left;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: #27CDD6;
-  font-size: 16px;
-  line-height: 58px;
-  padding-left: 10px;
-}
-
-.share-embed-link textarea.code {
-  float: right;
-  width: 500px;
-  font-size: 16px;
-  padding: 12px 10px 10px;
-  margin-right: 2px;
-}
-
-.share-text {
-  display: block;
-  font-weight: 700;
-  font-size: 20px;
-  color: #27CDD6;
-  margin-left: 26px;
-  margin-top: 20px;
-}
-
-
 
 /*.........................................................................*/
 

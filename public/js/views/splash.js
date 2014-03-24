@@ -54,7 +54,7 @@ define([
 
       // Save refs.
       this.code = this.$('.code');
-      this.label = this.$('.splash-embed-label');
+      this.label = this.$('.embed-label');
       this.iframe = this.$('iframe');
 
       // Fill in the embed code.
@@ -101,7 +101,6 @@ define([
           + parseInt(this.code.css('padding-bottom'));
       this.code.height(scrollHeight - padding).focus().blur();
       this.label.css('line-height', scrollHeight + 'px');
-      
     }
 
   });

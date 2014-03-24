@@ -265,7 +265,7 @@ if (cluster.isMaster) {
               key: app.get('sessionKey'),
               secret: app.get('sessionSecret'),
               store: app.get('sessionStore'),
-              fail: function(data, accept) { accept(null, false); },
+              fail: function(data, accept) { accept(null, true); },
               success: function(data, accept) { accept(null, true); }
             }));
 

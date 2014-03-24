@@ -333,10 +333,8 @@ define([
         new Export(this.app, {parentView: this}).render();
       else
         mps.publish('flash/new', [{
-          err: {
-            message: 'sdfvdfsv'
-          },
-          level: 'error'
+          message: 'No data to download.',
+          level: 'alert'
         }]);
     },
 
@@ -344,10 +342,9 @@ define([
       e.preventDefault();
       var options = {
         parentView: this,
-        userName: this.app.profile.user.username,
-        viewName: this.app.profile.content.page.name,
+        view: this.app.profile.content.page,
       };
-      if (options.userName && options.viewName)
+      if (options.view.name)
         new Share(this.app, options).render();
     },
 

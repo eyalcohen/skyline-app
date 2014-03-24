@@ -55,14 +55,20 @@ define([
 
     // Misc. setup.
     setup: function () {
-      this.code = this.$('.code');
+      this.linkCode = this.$('.link-code .code');
+      this.embedCode = this.$('.embed-code .code');
       this.iframe = this.$('iframe');
 
-      // Fill in the embed code.
-      var host = window.location.protocol+'//'+window.location.host+'/';
-      var url = host + 'embed/' + this.options.userName + '/views/' + this.options.viewName;
-      url = url.toLowerCase();
-      this.update(url);
+      // Fill in the codes.
+      var link = window.location.protocol + '//' + window.location.host + '/'
+          + this.options.view.author.username + '/views/'
+          + this.options.view.slug;
+      var embed = (window.location.protocol === 'https:'
+          ? window.location.protocol: '')
+          + '//' + window.location.host + '/embed/'
+          + this.options.view.author.username + '/views/'
+          + this.options.view.slug;
+      this.updateCodes({link: link.toLowerCase(), embed: embed.toLowerCase()});
 
       return this;
     },
@@ -88,16 +94,27 @@ define([
       $.fancybox.close();
     },
 
-    update: function (str) {
-      this.iframe.attr('src', str);
-      this.code.html('<iframe width="100%" height="100%" '
-          + 'src="' + str + '" frameborder="0"></iframe>');
-      this.code.height('auto');
-      var scrollHeight = this.code.get(0).scrollHeight;
-      var padding = parseInt(this.code.css('padding-top'))
-          + parseInt(this.code.css('padding-bottom'));
-      this.code.height(scrollHeight - padding).focus().blur();
-      //this.label.css('line-height', scrollHeight + 'px');
+    updateCodes: function (data) {
+
+      // Link
+      this.linkCode.html(data.link);
+      this.positionLabelForCode(this.linkCode);
+      
+      // Embed
+      if (this.iframe.length > 0) this.iframe.attr('src', data.embed);
+      this.embedCode.html('<iframe width="100%" height="100%" '
+          + 'src="' + data.embed + '" frameborder="0"></iframe>');
+      this.positionLabelForCode(this.embedCode);
+    },
+
+    positionLabelForCode: function (code) {
+      // code.height('auto');
+      var scrollHeight = code.get(0).scrollHeight;
+      console.log(scrollHeight)
+      var padding = parseInt(code.css('padding-top'))
+          + parseInt(code.css('padding-bottom'));
+      code.height(scrollHeight - padding).focus().blur();
+      $('.share-label', code.parent()).css('line-height', (scrollHeight + 1) + 'px');
     }
 
   });
