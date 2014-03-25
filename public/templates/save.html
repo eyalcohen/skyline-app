@@ -33,21 +33,32 @@
 <div class="save-inner modal-inner">
   <div>
     <span class="modal-heading">
-      Name your <%= title %>
+      Give your new <%= type %> a name.
     </span>
     <form class="save-form" enctype="multipart/form-data" method="POST">
       <table>
         <tbody>
           <tr>
-            <td>
-              <input name="name" type="text" style="text-indent:85px;" />
+            <td colspan="2">
+              <input name="name" type="text" style="text-indent:85px;" placeholder="name" tabindex="1" />
               <label class="checkbox-styled input-checkbox">
                 <input class="save-private" type="checkbox" name="private" value="private" />
                 <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
               </label>
             </td>
-            <td style="width:120px;">
-              <input class="blue-button" type="submit" disabled="disabled" value="<%= btn %>" />
+          </tr>
+          <tr>
+            <td colspan="2">
+              <textarea name="description" class="" tabindex="4" 
+                  placeholder="Write something about your data..."></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input name="tags" type="text" placeholder="tags" tabindex="5" />
+            </td>
+            <td>
+              <input class="blue-button" type="submit" disabled="disabled" value="<%= btn %>" tabindex="6" />
               <div class="button-spin"></div>
             </td>
           </tr>

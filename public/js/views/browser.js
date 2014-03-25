@@ -270,6 +270,10 @@ define([
           this.newFileButtonSpin.stop();
           this.newFileSubmit.removeClass('loading').attr({disabled: 'disabled'});
           this.newFileInput.val('');
+          this.newFileTitle.val('');
+          this.newFileTags.val('');
+          this.newFileDescription.val('');
+          this.newFileSource.val('');
 
           if (err) {
             if (_.isObject(err))

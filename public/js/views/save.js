@@ -74,6 +74,8 @@ define([
       // Save refs.
       this.saveForm = this.$('.save-form');
       this.saveInput = $('input[name="name"]', this.saveForm);
+      this.saveDescription = $('textarea[name="description"]', this.saveForm);
+      this.saveTags = $('input[name="tags"]', this.saveForm);
       this.saveSubmit = $('input[type="submit"]', this.saveForm);
       this.saveError = $('.modal-error', this.saveForm);
       this.saveButtonSpin = new Spin(this.$('.button-spin'), {
@@ -84,6 +86,9 @@ define([
         radius: 6,
       });
       this.privateButton = this.$('.save-private');
+
+      // Handle textarea.
+      this.saveDescription.bind('keyup', $.fancybox.reposition).autogrow();
 
       // Check if chart contains any private datasets.
       this.allowPublic = !_.find(this.app.profile.content.datasets.items,
@@ -157,7 +162,11 @@ define([
       this.working = true;
 
       // Grab the form data.
-      var payload = this.saveForm.serializeObject();
+      var payload = {
+        name: util.sanitize(this.saveInput.val()),
+        tags: util.sanitize(this.saveTags.val()),
+        description: util.sanitize(this.saveDescription.val())
+      };
 
       // Client-side form check.
       var check = util.ensure(payload, ['name']);
@@ -189,7 +198,7 @@ define([
       if (!this.options.target) {
         resource = 'views';
         verb = 'saved';
-        type = 'mashup';
+        type = 'view';
 
         // Add state data.
         var state = store.get('state');
@@ -206,13 +215,13 @@ define([
         verb = 'forked';
 
         if (this.options.target.type === 'dataset') {
-          type = 'source';
+          type = 'dataset';
 
           // Dataset has title, not name.
           payload.title = payload.name;
           delete payload.name;
         } else
-          type = 'mashup';
+          type = 'view';
       }
 
       // Start load indicator.
@@ -226,6 +235,8 @@ define([
         this.saveButtonSpin.stop();
         this.saveSubmit.removeClass('loading').attr({disabled: 'disabled'});
         this.saveInput.val('');
+        this.saveTags.val('');
+        this.saveDescription.val('');
 
         if (err) {
           this.saveError.text(err);
@@ -238,7 +249,7 @@ define([
         // Show alert
         _.delay(_.bind(function () {
           mps.publish('flash/new', [{
-            message: 'You ' + verb + ' a data ' + type + ': "' + name + '"',
+            message: 'You ' + verb + ' a new ' + _.str.titleize(type) + ': "' + name + '"',
             level: 'alert'
           }]);
         }, this), 500);

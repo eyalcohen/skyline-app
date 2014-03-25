@@ -54,7 +54,7 @@ define([
           icon = att.data.target.l ? 'lock': 'database';
         } else {
           verb = 'created';
-          type = 'mashup';
+          type = 'view';
           icon = att.data.target.l ? 'lock': 'folder-empty';
         }
         var linkClass = 'navigate';
@@ -76,7 +76,7 @@ define([
           icon = att.data.target.l ? 'lock': 'database';
           picon = att.data.target.p.l ? 'lock': 'database';
         } else {
-          type = 'mashup';
+          type = 'view';
           icon = att.data.target.l ? 'lock': 'folder-empty';
           picon = att.data.target.p.l ? 'lock': 'folder-empty';
         }

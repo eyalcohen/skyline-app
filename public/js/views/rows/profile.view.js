@@ -63,7 +63,7 @@ define([
 
       // Render the confirm modal.
       $.fancybox(_.template(confirm)({
-        message: 'I want to delete this data mashup.',
+        message: 'I want to delete this View.',
       }), {
         openEffect: 'fade',
         closeEffect: 'fade',

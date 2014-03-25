@@ -3668,7 +3668,8 @@ body.embed .share {
   line-height: 500px;
 }
 
-.browser textarea {
+.browser textarea,
+.save textarea {
   width: 614px;
   min-height: 44px;
   margin-bottom: 5px;
