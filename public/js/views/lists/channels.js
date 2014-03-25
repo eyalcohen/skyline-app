@@ -61,10 +61,13 @@ define([
     },
 
     resize: function (e, active) {
-      if (this.active || active)
+      if (this.active || active
+          || this.getExpandedHeight() > $('.graphs').height()) {
         this.$el.height($('.graphs').height() - 1);
-      else
-      this.$el.height('auto');
+      }
+      else {
+        this.$el.height('auto');
+      }
       this.fit();
     },
 
@@ -77,6 +80,7 @@ define([
       });
     },
 
+    // the height of the channel list when it is expanded
     getExpandedHeight: function() {
       return _.foldl(this.views, function(memo, it) {
         return memo + it.$el.height();
@@ -105,7 +109,7 @@ define([
         this.$el.removeClass('open');
         this.$('.channel.active:last').addClass('last-active');
         _.delay(_.bind(function() {
-          if (this.getExpandedHeight() > el.get(0).clientHeight)
+          if (el.get(0).scrollHeight <= el.get(0).clientHeight)
             el.parent().css('padding-right', '0px');
           this.resize();
         }, this), 100);
