@@ -58,7 +58,6 @@ define([
       this.route('embed/:username/views/:slug', 'chart', this.chart);
       this.route(':username/views/:slug', 'chart', this.chart);
       this.route(':username', 'profile', this.profile);
-      this.route('chart', 'chart', this.chart);
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
       this.route('about', 'about', this.about);
@@ -293,7 +292,6 @@ define([
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
-        this.navigate('/chart', {trigger: false, replace: true});
         if (this.header)
           this.header.normalize();
       }
