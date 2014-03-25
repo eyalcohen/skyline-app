@@ -2737,6 +2737,7 @@ a.control-button-save.saving {
 
 .dataset-control {
   position: absolute;
+  right: 35px;
   top: 0;
   z-index: 1;
   cursor: pointer;
@@ -2747,16 +2748,7 @@ a.control-button-save.saving {
   overflow: hidden;
 }
 
-.dataset-control-remove {
-  right: -1px;
-  border-right: 1px solid #d0d0d0;
-}
-
-.dataset-control-comments {
-  right: 35px;
-}
-
-.main.embed .dataset-control-comments {
+.dataset-control:first-child {
   right: -1px;
   border-right: 1px solid #d0d0d0;
 }
@@ -2765,13 +2757,11 @@ a.control-button-save.saving {
   color: #fff;
 }
 
-.dataset.active .dataset-control-remove,
-.main.embed .dataset.active .dataset-control-comments {
+.dataset.active .dataset-control:first-child {
   border-right: 1px solid #3f3f3f;
 }
 
-.dataset.leader .dataset-control-remove,
-.main.embed .dataset.leader .dataset-control-comments {
+.dataset.leader .dataset-control:first-child {
   border-right: 1px solid rgba(39, 205, 214, 0.8);
 }
 
@@ -3402,11 +3392,11 @@ a.comments-signin {
 
 /*.........................................................................*/
 
-body .share {
+.main .share {
   min-height: 526px;
 }
 
-body.embed .share {
+.main.embed .share {
   min-height: 0;
 }
 

@@ -284,11 +284,12 @@ define([
     chart: function (un, slug) {
       this.start();
       var state = {};
-      if (window.location.pathname.toLowerCase().indexOf('/views/') !== -1
-          || !slug) {
+      var path = window.location.pathname.toLowerCase();
+      if (!slug || path.indexOf('/views/') !== -1) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
-        if (this.header && key && !this.app.searchIsActive) this.header.unnormalize();
+        if (this.header && key && !this.app.searchIsActive)
+          this.header.unnormalize();
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
