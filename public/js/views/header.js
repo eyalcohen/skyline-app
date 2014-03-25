@@ -74,6 +74,7 @@ define([
           el: '.header-search',
           placeholder: 'Search for something...',
           route: true,
+          choose: true,
           types: ['users', 'views', 'datasets']
         });
     },

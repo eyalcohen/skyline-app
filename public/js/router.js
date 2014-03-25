@@ -120,6 +120,7 @@ define([
     render: function (service, data, secure, cb) {
 
       function _render(err, login) {
+        delete this.pageType;
 
         // Render page elements.
         if (!this.app.embed) {
@@ -296,6 +297,7 @@ define([
       if (this.app.embed) data.embed = true;
       this.render('/service/chart.profile/', data, _.bind(function (err) {
         if (err) return;
+        this.pageType = 'chart';
         this.page = new Chart(this.app).render();
         if (this.header && !key) this.header.normalize();        
         this.stop();

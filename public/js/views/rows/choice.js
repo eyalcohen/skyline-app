@@ -48,7 +48,10 @@ define([
 
       // Go to page.
       if (!this.parentView.options.route) return;
-      this.app.router.navigate(this.$el.attr('href'), {trigger: true});
+      if (this.app.router.pageType === 'chart')
+        mps.publish('dataset/select', [this.model.get('id')]);
+      else
+        this.app.router.navigate(this.$el.attr('href'), {trigger: true});
     },
 
   });
