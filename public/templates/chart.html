@@ -18,9 +18,11 @@
       <a class="control-button control-button-download" href="javascript:;">
         <i class="icon-download"></i>
       </a>
-      <a class="control-button control-button-fork" href="javascript:;">
-        <i class="icon-split"></i>
-      </a>
+      <% if (this.app.profile.content.page) { %>
+        <a class="control-button control-button-fork" href="javascript:;">
+          <i class="icon-split"></i>
+        </a>
+      <% } %>
       <a class="control-button control-button-save" href="javascript:;">
         <div class="button-spin save-button-spin"></div>
         <i class="icon-floppy"></i>
