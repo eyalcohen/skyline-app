@@ -48,7 +48,8 @@ define([
 
       // Go to page.
       if (!this.parentView.options.route) return;
-      if (this.app.router.pageType === 'chart')
+      if (this.app.router.pageType === 'chart'
+          && this.model.get('_type') === 'datasets')
         mps.publish('dataset/select', [this.model.get('id')]);
       else
         this.app.router.navigate(this.$el.attr('href'), {trigger: true});
