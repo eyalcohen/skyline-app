@@ -9,9 +9,10 @@ define([
   'mps',
   'rest',
   'util',
+  'Spin',
   'collections/choices',
   'views/rows/choice'
-], function ($, _, List, mps, rest, util, Collection, Row) {
+], function ($, _, List, mps, rest, util, Spin, Collection, Row) {
   return List.extend({
 
     active: false,
@@ -49,6 +50,13 @@ define([
       this.results = this.$('.search-display');
       this.choiceWrap = this.$('.search-choice');
       this.choiceContent = this.$('.search-choice-content');
+      this.spin = new Spin($('.search-spin', this.el), {
+        color: '#4d4d4d',
+        lines: 11,
+        length: 2,
+        width: 1,
+        radius: 3,
+      });
 
       // Handle searching.
       this.input.bind('focus', _.bind(this.searchFocus, this));
@@ -189,9 +197,11 @@ define([
       }, this));
 
       // Perform searches.
+      this.spin.start();
       _.each(types, _.bind(function (t) {
         rest.post('/api/' + t + '/search/' + str, this.options.query,
             _.bind(function (err, data) {
+          this.spin.stop();
           if (err) return console.log(err);
 
           if (data.items.length !== 0) {
