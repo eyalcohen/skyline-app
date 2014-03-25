@@ -3006,14 +3006,14 @@ a.channel-button {
   display: inline-block;
   width: 12px;
   height: 12px;
-  margin-right: 2px;
-  vertical-align: -3px;
+  margin-right: 5px;
+  vertical-align: 2px;
   background: transparent;
 }
 
 .channel.yaxis-left .channel-yaxis-code-wrap,
 .channel.yaxis-right .channel-yaxis-code-wrap {
-  background: #999;
+  /*background: #999;*/
 }
 
 .channel .channel-yaxis-code {
@@ -3023,15 +3023,15 @@ a.channel-button {
   display: inline-block;
   width: 10px;
   height: 10px;
-  background: transparent;
+  color: transparent;
 }
 
 .channel.yaxis-left .channel-yaxis-code {
-  background: #666;
+  color: #666;
 }
 
 .channel.yaxis-right .channel-yaxis-code {
-  background: #d0d0d0;
+  color: #d0d0d0;
 }
 
 .channel-value {
