@@ -340,12 +340,18 @@ define([
 
     share: function (e) {
       e.preventDefault();
-      var options = {
-        parentView: this,
-        view: this.app.profile.content.page,
-      };
-      if (options.view.name)
+      if (this.graph.model.getChannels().length > 0) {
+        var options = {
+          parentView: this,
+          view: this.app.profile.content.page,
+          dataset: this.app.profile.content.datasets.items[0]
+        };
         new Share(this.app, options).render();
+      } else
+        mps.publish('flash/new', [{
+          message: 'No data to share.',
+          level: 'alert'
+        }]);
     },
 
     panel: function (e) {

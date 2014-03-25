@@ -194,7 +194,8 @@ define([
             new Home(this.app).render():
             new Splash(this.app).render();
         this.stop();
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }, this));
     },
 
@@ -204,7 +205,8 @@ define([
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }, this));
     },
 
@@ -215,7 +217,8 @@ define([
         if (err) return;
         this.page = new Profile(this.app).render();
         this.stop();
-        this.header.unnormalize();
+        if (this.header)
+          this.header.unnormalize();
       }, this));
     },
 
@@ -225,7 +228,8 @@ define([
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }, this));
     },
 
@@ -236,7 +240,8 @@ define([
         this.page = new Static(this.app,
             {title: 'About', template: aboutTemp}).render();
         this.stop();
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }, this));
     },
 
@@ -247,7 +252,8 @@ define([
         this.page = new Static(this.app,
             {title: 'Contact', template: contactTemp}).render();
         this.stop();
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }, this));
     },
 
@@ -258,7 +264,8 @@ define([
         this.page = new Static(this.app,
             {title: 'Privacy', template: privacyTemp}).render();
         this.stop();
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }, this));
     },
 
@@ -269,7 +276,8 @@ define([
         this.page = new Static(this.app,
             {title: 'Terms', template: termsTemp}).render();
         this.stop();
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }, this));
     },
 
@@ -285,7 +293,8 @@ define([
         state.datasets = {};
         state.datasets[slug] = {index: 0};
         this.navigate('/chart', {trigger: false, replace: true});
-        this.header.normalize();
+        if (this.header)
+          this.header.normalize();
       }
       if (this.app.profile && this.app.profile.user)
         state.user_id = this.app.profile.user.id;

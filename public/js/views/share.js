@@ -60,14 +60,16 @@ define([
       this.iframe = this.$('iframe');
 
       // Fill in the codes.
-      var link = window.location.protocol + '//' + window.location.host + '/'
-          + this.options.view.author.username + '/views/'
-          + this.options.view.slug;
+      var path = this.options.view ?
+          this.options.view.author.username + '/views/'
+          + this.options.view.slug:
+          this.options.dataset.author.username + '/'
+          + this.options.dataset.id;
+      var link = window.location.protocol + '//'
+          + window.location.host + '/' + path;
       var embed = (window.location.protocol === 'https:'
           ? window.location.protocol: '')
-          + '//' + window.location.host + '/embed/'
-          + this.options.view.author.username + '/views/'
-          + this.options.view.slug;
+          + '//' + window.location.host + '/embed/' + path;
       this.updateCodes({link: link.toLowerCase(), embed: embed.toLowerCase()});
 
       return this;
