@@ -115,10 +115,11 @@ define([
         _.each(this.views, function (v) { v.collapse(); });
         this.$el.removeClass('open');
         this.$('.channel.active:last').addClass('last-active');
-        _.delay(_.bind(function() {
-          if (el.get(0).scrollHeight <= el.get(0).clientHeight)
-            el.parent().css('padding-right', '0px');
+        _.delay(_.bind(function() { 
           this.resize();
+          if (this.getChildrenHeight() <= $('.graphs').height()) {
+            el.parent().css('padding-right', '0px');
+          }
         }, this), 100);
       }
     },
