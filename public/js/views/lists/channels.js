@@ -62,7 +62,7 @@ define([
 
     resize: function (e, active) {
       if (this.active || active
-          || this.getExpandedHeight() > $('.graphs').height()) {
+          || this.getChildrenHeight() > $('.graphs').height()) {
         this.$el.height($('.graphs').height() - 1);
       }
       else {
@@ -81,6 +81,13 @@ define([
     },
 
     // the height of the channel list when it is expanded
+    getChildrenHeight: function() {
+      return _.foldl(this.views, function(memo, it) {
+        return memo + it.$el.is(':visible') ? it.$el.height() : 0;
+      }, 0);
+    },
+
+    // the height of the channel list when it is expanded
     getExpandedHeight: function() {
       return _.foldl(this.views, function(memo, it) {
         return memo + it.$el.height();
@@ -94,7 +101,7 @@ define([
       var el = this.$el;
       // We want the scrollbar to be outside the channellist, but overflow puts
       // it inside.  We add some padding to solve this issue
-      if (this.getExpandedHeight() > el.get(0).clientHeight)
+      if (this.getExpandedHeight() > ($('.graphs').height() - 1))
         el.parent().css('padding-right', '13px');
       _.each(this.views, function (v) { v.expand(); });
       this.$('.channel.active:last').removeClass('last-active');
