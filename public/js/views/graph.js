@@ -37,6 +37,10 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
+        mps.subscribe('graph/draw', _.bind(function() {
+          this.model.updateCacheSubscription();
+          this.draw();
+        }, this)),
         mps.subscribe('channel/lineStyleUpdate',
               _.bind(function (channel, opts, save) {
           this.model.setUserLineStyle(channel, opts, save);
@@ -642,7 +646,7 @@ define([
         this.trigger('VisibleWidthChange');
         this.prevWidth = t.width;
       }
-      mps.publish('graph/draw');
+      mps.publish('graph/drawComplete');
     },
 
     onDrawGrid: function () {

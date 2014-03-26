@@ -34,12 +34,14 @@ define([
       // Save refs.
       this.button = this.$('a.dataset-button');
       this.title = this.$('.dataset-title span', this.button);
-      this.offset = this.$('.dataset-stats span', this.button);
+      this.offset = this.$('.dataset-offset', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
       this.commentsButton = this.$('.dataset-control-comments');
 
+/*
       // Toggle.
       this.button.click(_.bind(this.toggle, this));
+*/
 
       // Expand / collapse.
       this.$el.bind('mouseenter', _.bind(function (e) {
@@ -70,7 +72,15 @@ define([
 
     events: {
       'click .dataset-control-remove': 'delete',
-      'click .dataset-control-comments': 'comments'
+      'click .dataset-control-comments': 'comments',
+      'click .dataset-offset': function(e) {
+        this.model.set('offset', 0);
+        this.updateOffset();
+        mps.publish('graph/draw', []);
+        return false; // prevent propagation
+      },
+      'click a.dataset-button': 'toggle'
+
     },
 
     leader: function () {
@@ -121,7 +131,6 @@ define([
         state.datasets[this.model.id].open = true;
       }
       this.app.state(state);
-      return false;
     },
 
     fetchChannels: function () {

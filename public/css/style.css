@@ -2875,6 +2875,10 @@ a.dataset-button .dataset-button-bg {
   color: #2f2f2f;
 }
 
+.dataset-offset:hover {
+  color: red;
+}
+
 .dataset:active .dataset-title,
 .dataset:active .dataset-stats {
   color: #0f0f0f;

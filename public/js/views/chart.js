@@ -62,7 +62,7 @@ define([
           this.refreshComments();
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
-        mps.subscribe('graph/draw', _.bind(this.updateIcons, this)),
+        mps.subscribe('graph/drawComplete', _.bind(this.updateIcons, this)),
         mps.subscribe('comment/end', _.bind(this.uncomment, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
       ];
