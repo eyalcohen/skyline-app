@@ -72,8 +72,7 @@ define([
     },
 
     // Bind mouse events.
-    events: {
-    },
+    events: {},
 
     // Misc. setup.
     setup: function () {

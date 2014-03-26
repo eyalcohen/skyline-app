@@ -1,5 +1,5 @@
 {
-  "author": "Mission Motor Company (git://github.com/humcycles)",
+  "author": "Skyline (git://github.com/Skyline-Data)",
   "name": "skyline",
   "version": "0.0.73",
   "protocol": "http",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/sanderpick/skyline.git"
+    "url": "git://github.com/Skyline-Data/skyline-app.git"
   },
   "dependencies": {
     "jade": "~0.30.0",
