@@ -34,7 +34,7 @@ exports.get = function (env) {
         }
       }:
       {
-        MONGO_URI: 'mongodb://localhost:27017/island',
+        MONGO_URI: 'mongodb://localhost:27017/skyline',
         REDIS_HOST: 'localhost',
         REDIS_PORT: 6379,
         google: {
