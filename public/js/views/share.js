@@ -67,9 +67,7 @@ define([
           + this.options.dataset.id;
       var link = window.location.protocol + '//'
           + window.location.host + '/' + path;
-      var embed = (window.location.protocol === 'https:'
-          ? window.location.protocol: '')
-          + '//' + window.location.host + '/embed/' + path;
+      var embed = '//' + window.location.host + '/embed/' + path;
       this.updateCodes({link: link.toLowerCase(), embed: embed.toLowerCase()});
 
       return this;
@@ -114,7 +112,8 @@ define([
       var padding = parseInt(code.css('padding-top'))
           + parseInt(code.css('padding-bottom'));
       code.height(scrollHeight - padding).focus().blur();
-      $('.share-label', code.parent()).css('line-height', (scrollHeight + 1) + 'px');
+      $('.share-label', code.parent())
+          .css('line-height', (scrollHeight + 1) + 'px');
     }
 
   });

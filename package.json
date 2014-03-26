@@ -38,7 +38,8 @@
     "request": "~2.27.0",
     "passport-facebook": "~1.0.1",
     "passport-twitter": "~1.0.2",
-    "cli-color": "~0.2.2"
+    "cli-color": "~0.2.2",
+    "aws-sdk": "^2.0.0-rc13"
   },
   "devDependencies": {
     "grunt": "0.4.4",
