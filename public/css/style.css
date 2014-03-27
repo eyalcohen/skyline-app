@@ -2688,6 +2688,11 @@ a.control-button-save.saving {
   opacity: 0.1;
 }
 
+#overview-text {
+  width: auto;
+  font-size: 18px;
+}
+
 .main.embed .overview .overview-selection {
   height: 70px;
 }

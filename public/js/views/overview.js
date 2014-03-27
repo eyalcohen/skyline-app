@@ -269,6 +269,11 @@ define([
         return x / w * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
       }
 
+      var timeText = $('<div class="overview-time-diff" id="overview-text">')
+                       .insertBefore(this.visTimePlot);
+      var textTop = this.visTimePlot.offset().top + this.visTimePlot.height()/2;
+      timeText.offset({ top: textTop, left: e.pageX+20 });
+
       var x = e.pageX;
       var w = this.visTimePlot.width();
       var select = [getTime(x, w)];
@@ -279,9 +284,12 @@ define([
         else
           this.selection.css({left: e.pageX, width: x - e.pageX});
         select[1] = getTime(e.pageX, w);
+        timeText.text(util.getDuration(_.max(select)*1000 - _.min(select)*1000, false));
+        timeText.offset({left: (e.pageX - x)/2 + x - timeText.width()/2})
       }, this);
       var mouseup = _.bind(function (e) {
         $(document).unbind('mouseup', mouseup);
+        timeText.remove();
         this.visTimePlot.unbind('mousemove', mousemove);
         this.selection.hide();
         if (select.length === 2)
