@@ -56,7 +56,6 @@ define([
 
     // Bind mouse events.
     events: {
-
     },
 
     // Misc. setup.
@@ -65,17 +64,18 @@ define([
       // Safe refs.
       this.selection = this.$('.overview-selection');
 
-      this.visTimeSvg = $('<div class="overview-vis">').appendTo(this.$el);
+      this.visTimePlot = $('<div class="overview-vis">').appendTo(this.$el);
+      this.visTimePlot.bind('mousedown', _.bind(this.overviewZoom, this));
 
       var path = d3.svg.area()
         .x(this.$el.width()/2)
         .y0(0)
-        .y1(this.visTimeSvg.height())
+        .y1(this.visTimePlot.height())
 
-      var svg = d3.select(this.visTimeSvg.get(0))
+      var svg = d3.select(this.visTimePlot.get(0))
         .append('svg:svg')
         .attr('width', this.$el.width())
-        .attr('height', this.visTimeSvg.height())
+        .attr('height', this.visTimePlot.height())
         .append('svg:g')
         .append('svg:path')
         .attr('d', path([0, 0]))
@@ -151,7 +151,7 @@ define([
 
         // Render.
         _.each(this.series, _.bind(function (series) {
-          var plot = $('<div class="overview-plot">').appendTo(this.$el);
+          var plot = $('<div class="overview-plot">').insertBefore(this.visTimePlot);
           var height = plot.height();
           var min = _.first(series.data).t;
           var max = _.last(series.data).t;
@@ -182,38 +182,6 @@ define([
               .duration(750)
               .attr('d', path(series.data))
 
-          // Map x-coordinate to time.
-          function getTime(x, w) {
-            return x / w * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
-          }
-
-          // Handle snap to time range.
-          plot.bind('mousedown', _.bind(function (e) {
-            var x = e.pageX;
-            var w = plot.width();
-            var select = [getTime(x, w)];
-            this.selection.css({left: x, width: 0}).show();
-            var mousemove = _.bind(function (e) {
-              if (e.pageX > x)
-                this.selection.css({left: x, width: e.pageX - x});
-              else
-                this.selection.css({left: e.pageX, width: x - e.pageX});
-              select[1] = getTime(e.pageX, w);
-            }, this);
-            var mouseup = _.bind(function (e) {
-              $(document).unbind('mouseup', mouseup);
-              plot.unbind('mousemove', mousemove);
-              this.selection.hide();
-              if (select.length === 2)
-                mps.publish('chart/zoom', [{
-                  min: _.min(select),
-                  max: _.max(select)
-                }]);
-              select = [];
-            }, this);
-            $(document).bind('mouseup', mouseup);
-            plot.bind('mousemove', mousemove);
-          }, this));
         }, this));
 
         // Check width change for resize.
@@ -229,7 +197,7 @@ define([
       if (!time.beg) return;
       var vs = this.getVisibleTime();
       if (!vs.beg) return;
-      var height = this.visTimeSvg.height();
+      var height = this.visTimePlot.height();
       var width = this.$el.width();
 
       var width_per = (time.end-time.beg) / (vs.end - vs.beg);
@@ -251,7 +219,7 @@ define([
                   {x:(begin+width_per)*width, y:height*2/3},
                   {x:(begin+width_per)*width, y:0}];
 
-      d3.select(this.visTimeSvg.get(0)).select('path')
+      d3.select(this.visTimePlot.get(0)).select('path')
         .transition()
         .attr('d', path(trap))
         .attr('fill', '#fcd744')
@@ -288,6 +256,41 @@ define([
         width: this.$el.width(),
         static: true
       };
+    },
+
+    overviewZoom: function(e) {
+
+      var time = this.getVisibleTime();
+
+      // Map x-coordinate to time.
+      function getTime(x, w) {
+        return x / w * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
+      }
+
+      var x = e.pageX;
+      var w = this.visTimePlot.width();
+      var select = [getTime(x, w)];
+      this.selection.css({left: x, width: 0}).show();
+      var mousemove = _.bind(function (e) {
+        if (e.pageX > x)
+          this.selection.css({left: x, width: e.pageX - x});
+        else
+          this.selection.css({left: e.pageX, width: x - e.pageX});
+        select[1] = getTime(e.pageX, w);
+      }, this);
+      var mouseup = _.bind(function (e) {
+        $(document).unbind('mouseup', mouseup);
+        this.visTimePlot.unbind('mousemove', mousemove);
+        this.selection.hide();
+        if (select.length === 2)
+          mps.publish('chart/zoom', [{
+            min: _.min(select),
+            max: _.max(select)
+          }]);
+        select = [];
+      }, this);
+      $(document).bind('mouseup', mouseup);
+      this.visTimePlot.bind('mousemove', mousemove);
     },
 
     updateColor: function(channel, opts) {
