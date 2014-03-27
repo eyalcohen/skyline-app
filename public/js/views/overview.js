@@ -39,6 +39,7 @@ define([
           _.debounce(this.drawCurrentTimeOverlay(visTime), 250);
         }, this)),
       ];
+
     },
 
     // Draw template.
@@ -65,16 +66,19 @@ define([
       this.selection = this.$('.overview-selection');
 
       this.visTimeSvg = $('<div class="overview-vis">').appendTo(this.$el);
+
+      var path = d3.svg.area()
+        .x(this.$el.width()/2)
+        .y0(0)
+        .y1(this.visTimeSvg.height())
+
       var svg = d3.select(this.visTimeSvg.get(0))
         .append('svg:svg')
         .attr('width', this.$el.width())
         .attr('height', this.visTimeSvg.height())
         .append('svg:g')
-        .append('svg:rect')
-        .attr('width', 0)
-        .attr('height', this.visTimeSvg.height())
-        .attr('x', this.$el.width()/2)
-        .attr('y', 0)
+        .append('svg:path')
+        .attr('d', path([0, 0]))
 
       // Do resize on window change.
       $(window).resize(_.debounce(_.bind(this.draw, this), 40));
@@ -229,13 +233,29 @@ define([
       var width = this.$el.width();
 
       var width_per = (time.end-time.beg) / (vs.end - vs.beg);
+      var begin = (time.beg - vs.beg) / (vs.end - vs.beg)
 
-      d3.select(this.visTimeSvg.get(0)).select('rect')
+      var path = d3.svg.area()
+          .x(function (t) { return t.x; })
+          .y0(function (t) { return 0; })
+          .y1(function (t) { return t.y; })
+          .interpolate('linear');
+
+      var factor = .01 // for scaling the trapzeoid
+
+      // create a trapezoid
+      var trap = [{x:begin*width, y:0},
+                  {x:begin*width, y:height*2/3},
+                  {x:Math.min((begin+factor), (begin+width_per/2))*width, y:height},
+                  {x:Math.max((begin+width_per-factor), (begin + width_per/2))*width, y:height},
+                  {x:(begin+width_per)*width, y:height*2/3},
+                  {x:(begin+width_per)*width, y:0}];
+
+      d3.select(this.visTimeSvg.get(0)).select('path')
         .transition()
-        .attr('width', width_per * width)
-        .attr('x', (time.beg - vs.beg) / (vs.end - vs.beg) * width)
-        .attr('fill', '#0099FF')
-        .attr('opacity', 1-width_per);
+        .attr('d', path(trap))
+        .attr('fill', '#fcd744')
+        .attr('opacity', (1-width_per)*2);
 
     },
 
