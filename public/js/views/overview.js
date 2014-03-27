@@ -170,9 +170,13 @@ define([
               .attr('height', height)
               .append('svg:g')
               .append('svg:path')
-              .attr('d', path(series.data))
+              .attr('d', path(_.map(series.data, function(x) {
+                return {t: x.t, v: series.max}})))
               .attr('class', 'area')
-              .attr('fill', series.color);
+              .attr('fill', series.color)
+              .transition()
+              .duration(750)
+              .attr('d', path(series.data))
 
           // Map x-coordinate to time.
           function getTime(x, w) {
