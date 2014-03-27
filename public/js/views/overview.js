@@ -35,6 +35,9 @@ define([
             _.bind(function (channel, opts) {
           this.model.setUserLineStyle(channel, opts);
         }, this)),
+        mps.subscribe('graph/drawComplete', _.bind(function (visTime) {
+          _.debounce(this.drawCurrentTimeOverlay(visTime), 250);
+        }, this)),
       ];
     },
 
@@ -52,7 +55,7 @@ define([
 
     // Bind mouse events.
     events: {
-      
+
     },
 
     // Misc. setup.
@@ -60,6 +63,18 @@ define([
 
       // Safe refs.
       this.selection = this.$('.overview-selection');
+
+      this.visTimeSvg = $('<div class="overview-vis">').appendTo(this.$el);
+      var svg = d3.select(this.visTimeSvg.get(0))
+        .append('svg:svg')
+        .attr('width', this.$el.width())
+        .attr('height', this.visTimeSvg.height())
+        .append('svg:g')
+        .append('svg:rect')
+        .attr('width', 0)
+        .attr('height', this.visTimeSvg.height())
+        .attr('x', this.$el.width()/2)
+        .attr('y', 0)
 
       // Do resize on window change.
       $(window).resize(_.debounce(_.bind(this.draw, this), 40));
@@ -94,7 +109,7 @@ define([
       var width = this.$el.width();
 
       // Clear plots.
-      this.$(':not(.overview-selection)').remove();
+      this.$('.overview-plot').remove();
 
       // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
@@ -199,6 +214,25 @@ define([
           this.prevWidth = time.width;
         }
       }, this));
+
+    },
+
+    drawCurrentTimeOverlay: function(time) {
+      if (!time.beg) return;
+      var vs = this.getVisibleTime();
+      if (!vs.beg) return;
+      var height = this.visTimeSvg.height();
+      var width = this.$el.width();
+
+      var width_per = (time.end-time.beg) / (vs.end - vs.beg);
+
+      d3.select(this.visTimeSvg.get(0)).select('rect')
+        .transition()
+        .attr('width', width_per * width)
+        .attr('x', (time.beg - vs.beg) / (vs.end - vs.beg) * width)
+        .attr('fill', '#0099FF')
+        .attr('opacity', 1-width_per);
+
     },
 
     getSeriesData: function (channel) {
