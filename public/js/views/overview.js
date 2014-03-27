@@ -223,7 +223,9 @@ define([
         .transition()
         .attr('d', path(trap))
         .attr('fill', '#fcd744')
-        .attr('opacity', (1-width_per)*2);
+        .attr('opacity', (1-width_per)*2)
+        .attr('stroke-width', 1)
+        .attr('stroke', '#b2b2b2');
 
     },
 
