@@ -112,9 +112,6 @@ define([
       var time = this.getVisibleTime();
       var width = this.$el.width();
 
-      // Clear plots.
-      this.$('.overview-plot').remove();
-
       // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
 
@@ -141,8 +138,18 @@ define([
             s.data.push({t: _.last(s.data).t, v: null});
             s.data.push({t: time.end / 1e3, v: null});
           }
+          s.name = channel.channelName;
           this.series.push(s);
         }, this));
+
+        // remove all plots where we don't have series data
+        var allPlotIds = $('.overview-plot').map(function() { return this.id }).get()
+        var toRemove = _.reject(allPlotIds, function(s) { 
+          return _.contains(_.pluck(this.series, 'name'), s.split('-')[1]);
+        }, this);
+        _.each(toRemove, function(s) { 
+          $('#' + s).remove();
+        });
 
         // Series with less samples should appear on top.
         this.series.sort(function (a, b) {
@@ -151,8 +158,7 @@ define([
 
         // Render.
         _.each(this.series, _.bind(function (series) {
-          var plot = $('<div class="overview-plot">').insertBefore(this.visTimePlot);
-          var height = plot.height();
+
           var min = _.first(series.data).t;
           var max = _.last(series.data).t;
 
@@ -167,19 +173,34 @@ define([
               })
               .interpolate('linear');
 
+          var plot = $('#overview-'+series.name);
+          var height;
+          if (plot.length != 0) {
+            height = plot.height();
+          }
+          else {
+            plot = $('<div class="overview-plot">').insertBefore(this.visTimePlot);
+            plot.attr('id', 'overview-' + series.name);
+            height = plot.height();
+
+            var svg = d3.select(plot.get(0))
+                .append('svg:svg')
+                .attr('width', width)
+                .attr('height', height)
+                .append('svg:g')
+                .append('svg:path')
+                .attr('d', path(_.map(series.data, function(x) {
+                  return {t: x.t, v: series.min}})))
+                .attr('class', 'area')
+                .attr('fill', series.color)
+
+          }
+
           // Create SVG elements.
-          var svg = d3.select(plot.get(0))
-              .append('svg:svg')
-              .attr('width', width)
-              .attr('height', height)
-              .append('svg:g')
-              .append('svg:path')
-              .attr('d', path(_.map(series.data, function(x) {
-                return {t: x.t, v: series.max}})))
-              .attr('class', 'area')
-              .attr('fill', series.color)
+          var svg = d3.select(plot.get(0)).select('path')
               .transition()
               .duration(750)
+              .attr('fill', series.color)
               .attr('d', path(series.data))
 
         }, this));
@@ -209,21 +230,21 @@ define([
           .y1(function (t) { return t.y; })
           .interpolate('linear');
 
-      var factor = .01 // for scaling the trapzeoid
+      var factor = 0.01 // for scaling the trapzeoid
 
       // create a trapezoid
-      var trap = [{x:begin*width, y:0},
-                  {x:begin*width, y:height*2/3},
-                  {x:Math.min((begin+factor), (begin+width_per/2))*width, y:height},
-                  {x:Math.max((begin+width_per-factor), (begin + width_per/2))*width, y:height},
-                  {x:(begin+width_per)*width, y:height*2/3},
-                  {x:(begin+width_per)*width, y:0}];
+      var trap = [
+        {x:Math.max((begin-factor)*width,0), y:0},
+        {x:begin*width, y:height},
+        {x:(begin+width_per)*width, y:height},
+        {x:Math.min((begin+width_per+factor)*width, width), y:0},
+      ];
 
       d3.select(this.visTimePlot.get(0)).select('path')
         .transition()
         .attr('d', path(trap))
         .attr('fill', '#fcd744')
-        .attr('opacity', (1-width_per)*2)
+        .attr('opacity', (1-width_per)*1.5)
         .attr('stroke-width', 1)
         .attr('stroke', '#b2b2b2');
 
