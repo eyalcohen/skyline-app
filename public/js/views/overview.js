@@ -35,7 +35,11 @@ define([
             _.bind(function (channel, opts) {
           this.model.setUserLineStyle(channel, opts);
         }, this)),
+        mps.subscribe('graph/drawComplete', _.bind(function (visTime) {
+          _.debounce(this.drawCurrentTimeOverlay(visTime), 250);
+        }, this)),
       ];
+
     },
 
     // Draw template.
@@ -52,7 +56,6 @@ define([
 
     // Bind mouse events.
     events: {
-      
     },
 
     // Misc. setup.
@@ -60,6 +63,22 @@ define([
 
       // Safe refs.
       this.selection = this.$('.overview-selection');
+
+      this.visTimePlot = $('<div class="overview-vis">').appendTo(this.$el);
+      this.visTimePlot.bind('mousedown', _.bind(this.overviewZoom, this));
+
+      var path = d3.svg.area()
+        .x(this.$el.width()/2)
+        .y0(0)
+        .y1(this.visTimePlot.height())
+
+      var svg = d3.select(this.visTimePlot.get(0))
+        .append('svg:svg')
+        .attr('width', this.$el.width())
+        .attr('height', this.visTimePlot.height())
+        .append('svg:g')
+        .append('svg:path')
+        .attr('d', path([0, 0]))
 
       // Do resize on window change.
       $(window).resize(_.debounce(_.bind(this.draw, this), 40));
@@ -93,9 +112,6 @@ define([
       var time = this.getVisibleTime();
       var width = this.$el.width();
 
-      // Clear plots.
-      this.$(':not(.overview-selection)').remove();
-
       // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
 
@@ -122,8 +138,18 @@ define([
             s.data.push({t: _.last(s.data).t, v: null});
             s.data.push({t: time.end / 1e3, v: null});
           }
+          s.name = channel.channelName;
           this.series.push(s);
         }, this));
+
+        // remove all plots where we don't have series data
+        var allPlotIds = $('.overview-plot').map(function() { return this.id }).get()
+        var toRemove = _.reject(allPlotIds, function(s) { 
+          return _.contains(_.pluck(this.series, 'name'), s.split('-')[1]);
+        }, this);
+        _.each(toRemove, function(s) { 
+          $('#' + s).remove();
+        });
 
         // Series with less samples should appear on top.
         this.series.sort(function (a, b) {
@@ -132,8 +158,7 @@ define([
 
         // Render.
         _.each(this.series, _.bind(function (series) {
-          var plot = $('<div class="overview-plot">').appendTo(this.$el);
-          var height = plot.height();
+
           var min = _.first(series.data).t;
           var max = _.last(series.data).t;
 
@@ -148,49 +173,36 @@ define([
               })
               .interpolate('linear');
 
-          // Create SVG elements.
-          var svg = d3.select(plot.get(0))
-              .append('svg:svg')
-              .attr('width', width)
-              .attr('height', height)
-              .append('svg:g')
-              .append('svg:path')
-              .attr('d', path(series.data))
-              .attr('class', 'area')
-              .attr('fill', series.color);
+          var plot = $('#overview-'+series.name);
+          var height;
+          if (plot.length != 0) {
+            height = plot.height();
+          }
+          else {
+            plot = $('<div class="overview-plot">').insertBefore(this.visTimePlot);
+            plot.attr('id', 'overview-' + series.name);
+            height = plot.height();
 
-          // Map x-coordinate to time.
-          function getTime(x, w) {
-            return x / w * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
+            var svg = d3.select(plot.get(0))
+                .append('svg:svg')
+                .attr('width', width)
+                .attr('height', height)
+                .append('svg:g')
+                .append('svg:path')
+                .attr('d', path(_.map(series.data, function(x) {
+                  return {t: x.t, v: series.min}})))
+                .attr('class', 'area')
+                .attr('fill', series.color)
+
           }
 
-          // Handle snap to time range.
-          plot.bind('mousedown', _.bind(function (e) {
-            var x = e.pageX;
-            var w = plot.width();
-            var select = [getTime(x, w)];
-            this.selection.css({left: x, width: 0}).show();
-            var mousemove = _.bind(function (e) {
-              if (e.pageX > x)
-                this.selection.css({left: x, width: e.pageX - x});
-              else
-                this.selection.css({left: e.pageX, width: x - e.pageX});
-              select[1] = getTime(e.pageX, w);
-            }, this);
-            var mouseup = _.bind(function (e) {
-              $(document).unbind('mouseup', mouseup);
-              plot.unbind('mousemove', mousemove);
-              this.selection.hide();
-              if (select.length === 2)
-                mps.publish('chart/zoom', [{
-                  min: _.min(select),
-                  max: _.max(select)
-                }]);
-              select = [];
-            }, this);
-            $(document).bind('mouseup', mouseup);
-            plot.bind('mousemove', mousemove);
-          }, this));
+          // Create SVG elements.
+          var svg = d3.select(plot.get(0)).select('path')
+              .transition()
+              .duration(750)
+              .attr('fill', series.color)
+              .attr('d', path(series.data))
+
         }, this));
 
         // Check width change for resize.
@@ -199,6 +211,43 @@ define([
           this.prevWidth = time.width;
         }
       }, this));
+
+    },
+
+    drawCurrentTimeOverlay: function(time) {
+      if (!time.beg) return;
+      var vs = this.getVisibleTime();
+      if (!vs.beg) return;
+      var height = this.visTimePlot.height();
+      var width = this.$el.width();
+
+      var width_per = (time.end-time.beg) / (vs.end - vs.beg);
+      var begin = (time.beg - vs.beg) / (vs.end - vs.beg)
+
+      var path = d3.svg.area()
+          .x(function (t) { return t.x; })
+          .y0(function (t) { return 0; })
+          .y1(function (t) { return t.y; })
+          .interpolate('linear');
+
+      var factor = 0.01 // for scaling the trapzeoid
+
+      // create a trapezoid
+      var trap = [
+        {x:Math.max((begin-factor)*width,0), y:0},
+        {x:begin*width, y:height},
+        {x:(begin+width_per)*width, y:height},
+        {x:Math.min((begin+width_per+factor)*width, width), y:0},
+      ];
+
+      d3.select(this.visTimePlot.get(0)).select('path')
+        .transition()
+        .attr('d', path(trap))
+        .attr('fill', '#fcd744')
+        .attr('opacity', (1-width_per)*1.5)
+        .attr('stroke-width', 1)
+        .attr('stroke', '#b2b2b2');
+
     },
 
     getSeriesData: function (channel) {
@@ -230,6 +279,49 @@ define([
         width: this.$el.width(),
         static: true
       };
+    },
+
+    overviewZoom: function(e) {
+
+      var time = this.getVisibleTime();
+
+      // Map x-coordinate to time.
+      function getTime(x, w) {
+        return x / w * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
+      }
+
+      var timeText = $('<div class="overview-time-diff" id="overview-text">')
+                       .insertBefore(this.visTimePlot);
+      var textTop = this.visTimePlot.offset().top + this.visTimePlot.height()/2;
+      timeText.offset({ top: textTop, left: e.pageX+20 });
+
+      var x = e.pageX;
+      var w = this.visTimePlot.width();
+      var select = [getTime(x, w)];
+      this.selection.css({left: x, width: 0}).show();
+      var mousemove = _.bind(function (e) {
+        if (e.pageX > x)
+          this.selection.css({left: x, width: e.pageX - x});
+        else
+          this.selection.css({left: e.pageX, width: x - e.pageX});
+        select[1] = getTime(e.pageX, w);
+        timeText.text(util.getDuration(_.max(select)*1000 - _.min(select)*1000, false));
+        timeText.offset({left: (e.pageX - x)/2 + x - timeText.width()/2})
+      }, this);
+      var mouseup = _.bind(function (e) {
+        $(document).unbind('mouseup', mouseup);
+        timeText.remove();
+        this.visTimePlot.unbind('mousemove', mousemove);
+        this.selection.hide();
+        if (select.length === 2)
+          mps.publish('chart/zoom', [{
+            min: _.min(select),
+            max: _.max(select)
+          }]);
+        select = [];
+      }, this);
+      $(document).bind('mouseup', mouseup);
+      this.visTimePlot.bind('mousemove', mousemove);
     },
 
     updateColor: function(channel, opts) {

@@ -646,7 +646,7 @@ define([
         this.trigger('VisibleWidthChange');
         this.prevWidth = t.width;
       }
-      mps.publish('graph/drawComplete');
+      mps.publish('graph/drawComplete', [t]);
     },
 
     onDrawGrid: function () {

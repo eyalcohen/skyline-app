@@ -225,20 +225,26 @@ define([
       return result;
     },
 
-    getDuration: function (delta) {
+    getDuration: function (delta, shortened) {
       delta = parseFloat(delta) / 1e6;
       if (delta === 0)
-        return 'n / a';
+        return '';
       if (delta < 1)
-        return (delta * 1e3).toFixed(1) + ' milliseconds';
+        return (delta * 1e3).toFixed(1) + (shortened ? ' ms' : ' milliseconds');
       else if (delta < 60)
-        return delta.toFixed(1) + ' seconds';
+        return delta.toFixed(1) + (shortened ? ' s' : ' seconds');
       else if (delta < (45 * 60))
-        return (delta / 60).toFixed(1) + ' minutes';
+        return (delta / 60).toFixed(1) + (shortened ? ' m' : ' minutes');
       else if (delta < (24 * 60 * 60))
-        return (delta / 3600).toFixed(1) + ' hours';
+        return (delta / 3600).toFixed(1) + (shortened ? ' hr ' : ' hours');
+      else if (delta < (24 * 60 * 60 * 7))
+        return (delta / (24 * 60 * 60)).toFixed(1) + (shortened ? ' Dy' : ' days');
+      else if (delta < (24 * 60 * 60 * 31))
+        return (delta / (24 * 60 * 60 * 7)).toFixed(1) + (shortened ? ' Wk' : ' weeks');
+      else if (delta < (24 * 60 * 60 * 365))
+        return (delta / (24 * 60 * 60 * 30)).toFixed(1) + (shortened ? ' Mo' : ' months');
       else
-        return (delta / 86400).toFixed(1) + ' days';
+        return (delta / (24 * 60 * 60 * 365)).toFixed(1) + (shortened ? ' Yr' : ' years');
     },
 
     toLocaleString: function (utcDate, mask) {
