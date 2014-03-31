@@ -342,7 +342,7 @@ define([
     refresh: function () {
       var frag = Backbone.history.fragment;
       Backbone.history.fragment = null;
-      this.app.router.navigate('/' + frag, {trigger: true});
+      window.location.href = '/';
     },
 
     forgot: function (e) {

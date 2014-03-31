@@ -251,11 +251,11 @@ if (cluster.isMaster) {
               sio.enable('browser client gzip');
               sio.set('log level', 1);
               sio.set('transports', [
-                'websocket'
-                // 'flashsocket',
-                // 'htmlfile',
-                // 'xhr-polling',
-                // 'jsonp-polling'
+                'websocket',
+                'flashsocket',
+                'htmlfile',
+                'xhr-polling',
+                'jsonp-polling'
               ]);
             }
 
@@ -271,7 +271,6 @@ if (cluster.isMaster) {
 
             // Socket connect
             sio.sockets.on('connection', function (socket) {
-              console.log('CLIENT CONNECTED OVER: ' + sio.transports[socket.id].name);
               socket.join('datasets');
               socket.join('views');
               socket.join('events');
