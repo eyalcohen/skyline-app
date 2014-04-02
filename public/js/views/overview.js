@@ -222,7 +222,7 @@ define([
       var width = this.$el.width();
 
       var width_per = (time.end-time.beg) / (vs.end - vs.beg);
-      var begin = (time.beg - vs.beg) / (vs.end - vs.beg)
+      var begin = (time.beg - vs.beg) / (vs.end - vs.beg);
 
       var path = d3.svg.area()
           .x(function (t) { return t.x; })
@@ -230,7 +230,7 @@ define([
           .y1(function (t) { return t.y; })
           .interpolate('linear');
 
-      var factor = 0.01 // for scaling the trapzeoid
+      var factor = 0.01; // for scaling the trapzeoid
 
       // create a trapezoid
       var trap = [

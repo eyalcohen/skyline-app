@@ -25,7 +25,7 @@ define([
         showPoints: false,
         showLines: true,
         showArea: false,
-        interpolation: 'linear', // also 'none'
+        interpolation: 'none', // also 'none'
         lineWidth: 2,
         pointRadius: 3,
         color: null,
@@ -227,7 +227,7 @@ define([
 
     removeChannel: function (dataset, channel) {
       if (!dataset) return;
-      var datasetId = dataset.get('id')
+      var datasetId = dataset.get('id');
       var client = this.getOrCreateClient(dataset);
       var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);

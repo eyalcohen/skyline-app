@@ -45,7 +45,9 @@ boots.start(function (client) {
     function (err) {
       boots.error(err);
 
-      db.Users.remove({}, this.parallel());
+      // db.Users.remove({}, this.parallel());
+      db.Streams.remove({}, this.parallel());
+      db.Producers.remove({}, this.parallel());
       db.Datasets.remove({}, this.parallel());
       db.Views.remove({}, this.parallel());
       db.Comments.remove({}, this.parallel());

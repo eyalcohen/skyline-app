@@ -416,6 +416,7 @@ define([
           data: data.data,
           label: channel.title,
         }, seriesBase));
+
         // TODO: Turned off MinMax plotting until I beter understand what
         // its trying to do.
         /*

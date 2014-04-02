@@ -30,21 +30,12 @@ define([
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
         mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
         mps.subscribe('channel/yaxisUpdate', _.bind(this.updateYAxis, this)),
-        /*
-        mps.subscribe('channel/responseLineStyle', _.bind(function (style) {
-          this.model.lineStyle = style;
-        }, this))
-        */
       ];
 
       Row.prototype.initialize.call(this, options);
     },
 
     setup: function () {
-
-/*
-      mps.publish('channel/requestLineStyle', [this.model.id]);
-*/
 
       // Save refs.
       this.button = this.$('a.channel-button');
@@ -140,14 +131,24 @@ define([
 
     expand: function (cb) {
       if (!this.$el.hasClass('active')) {
-        this.$el.slideDown('fast', cb);
+        if (this.parentView.collection.length < 20)
+          this.$el.slideDown('fast', cb);
+        else {
+          this.$el.show();
+          if (cb) cb();
+        }
         this.$el.css({opacity: 1});
       }
     },
 
     collapse: function (cb) {
       if (!this.$el.hasClass('active')) {
-        this.$el.slideUp('fast', cb);
+        if (this.parentView.collection.length < 20)
+          this.$el.slideUp('fast', cb);
+        else {
+          this.$el.hide();
+          if (cb) cb();
+        }
         this.$el.css({opacity: 0});
       }
     },

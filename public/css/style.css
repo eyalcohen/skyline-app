@@ -2953,11 +2953,11 @@ a.dataset-add-button:active {
   border-bottom-width: 1px;
   opacity: 1;
 
-  -webkit-transition: opacity 0.2s;
+  /*-webkit-transition: opacity 0.2s;
   -moz-transition: opacity 0.2s;
   -ms-transition: opacity 0.2s;
   -o-transition: opacity 0.2s;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s;*/
 }
 
 .channel:hover {

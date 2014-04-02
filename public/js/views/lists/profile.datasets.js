@@ -157,8 +157,9 @@ define([
       this.str = str;
       if (str.length === 0) {
         this.searching = false;
-        $('<span class="empty-feed">Nothing found.</span>')
-            .appendTo(this.wrap);
+        if (this.$('.empty-feed').length === 0)
+          $('<span class="empty-feed">Nothing found.</span>')
+              .appendTo(this.wrap);
         this.restore();
         return false;
       }
