@@ -232,7 +232,7 @@ define([
           .y1(function (t) { return t.y; })
           .interpolate('linear');
 
-      var factor = 0.005; // for scaling the trapzeoid
+      var factor = 0; // for scaling the trapzeoid
 
       // create a trapezoid
       var trap = [
@@ -243,7 +243,7 @@ define([
       ];
 
       d3.select(this.visTimePlot.get(0)).select('path')
-        .transition()
+        // .transition()
         .attr('d', path(trap))
         .attr('fill', '#27CDD6')
         .attr('opacity', (1-width_per)*0.5)
