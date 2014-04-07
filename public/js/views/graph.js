@@ -546,10 +546,16 @@ define([
           var closestChannel =
             _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
           if (!closestChannel) return;
+          
+          // FIXME: Allow dataset offsetting with some key combo
+          // (harder to do accidentally)
+          /*
           if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
             this.beginOffset(e);
             this.changingOffset = true;
           }
+          */
+
           this.mousedown = true;
           this.prevPageX = e.pageX;
         }, this))

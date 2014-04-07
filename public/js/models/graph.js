@@ -180,6 +180,7 @@ define([
       var visTime = this.view.getVisibleTime();
       var offsetChanged = false;
 
+      /*
       if (!visTime.static) {
         // we consider a dataset that is completely off the screen by a factor
         // of 2 as one that needs to be 'brought over'
@@ -193,6 +194,7 @@ define([
           }
         }
       }
+      */
 
       // Update client.
       var client = this.getOrCreateClient(dataset);

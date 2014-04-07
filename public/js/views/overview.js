@@ -55,8 +55,7 @@ define([
     },
 
     // Bind mouse events.
-    events: {
-    },
+    events: {},
 
     // Misc. setup.
     setup: function () {
@@ -119,6 +118,7 @@ define([
         this.series = [];
         _.each(channels, _.bind(function (channel) {
           var s = this.getSeriesData(channel);
+
           if (s.data.length === 0) return;
           s.color = this.app.getColors(channel.colorNum);
 
@@ -167,9 +167,12 @@ define([
               .x(function (s) {
                 return (s.t - time.beg/1e3) / (time.end/1e3 - time.beg/1e3) * width;
               })
-              .y0(height)
+              .y0(function () {
+                return height;
+              })
               .y1(function (s) {
-                return height - ((s.v - series.min) / (series.max - series.min) * height);
+                return s.v === null ? height:
+                    height - ((s.v - series.min) / (series.max - series.min) * height);
               })
               .interpolate('linear');
 
@@ -193,7 +196,6 @@ define([
                   return {t: x.t, v: series.min}})))
                 .attr('class', 'area')
                 .attr('fill', series.color)
-
           }
 
           // Create SVG elements.
@@ -230,7 +232,7 @@ define([
           .y1(function (t) { return t.y; })
           .interpolate('linear');
 
-      var factor = 0.01; // for scaling the trapzeoid
+      var factor = 0.005; // for scaling the trapzeoid
 
       // create a trapezoid
       var trap = [
@@ -243,11 +245,10 @@ define([
       d3.select(this.visTimePlot.get(0)).select('path')
         .transition()
         .attr('d', path(trap))
-        .attr('fill', '#fcd744')
-        .attr('opacity', (1-width_per)*1.5)
-        .attr('stroke-width', 1)
-        .attr('stroke', '#b2b2b2');
-
+        .attr('fill', '#27CDD6')
+        .attr('opacity', (1-width_per)*0.5)
+        // .attr('stroke-width', 1)
+        // .attr('stroke', '#b2b2b2');
     },
 
     getSeriesData: function (channel) {
@@ -282,7 +283,6 @@ define([
     },
 
     overviewZoom: function(e) {
-
       var time = this.getVisibleTime();
 
       // Map x-coordinate to time.
