@@ -113,11 +113,15 @@ define([
 
       // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
+        var min = Number.MAX_VALUE;
+        var max = -Number.MAX_VALUE;
 
         // Get channel samples.
         this.series = [];
         _.each(channels, _.bind(function (channel) {
           var s = this.getSeriesData(channel);
+          min = Math.min(min, s.min);
+          max = Math.max(max, s.max);
 
           if (s.data.length === 0) return;
           s.color = this.app.getColors(channel.colorNum);
@@ -142,14 +146,13 @@ define([
           this.series.push(s);
         }, this));
 
+
         // remove all plots where we don't have series data
         var allPlotIds = $('.overview-plot').map(function() { return this.id }).get()
         var toRemove = _.reject(allPlotIds, function(s) { 
           return _.contains(_.pluck(this.series, 'name'), s.split('-')[1]);
         }, this);
-        _.each(toRemove, function(s) { 
-          $('#' + s).remove();
-        });
+        _.each(toRemove, function (s) { $('#' + s).remove(); });
 
         // Series with less samples should appear on top.
         this.series.sort(function (a, b) {
@@ -158,9 +161,6 @@ define([
 
         // Render.
         _.each(this.series, _.bind(function (series) {
-
-          var min = _.first(series.data).t;
-          var max = _.last(series.data).t;
 
           // Map samples to x,y coordinates.
           var path = d3.svg.area()
@@ -171,28 +171,27 @@ define([
                 return height;
               })
               .y1(function (s) {
+                var _height = height * series.max / max;
                 return s.v === null ? height:
-                    height - ((s.v - series.min) / (series.max - series.min) * height);
+                    height - ((s.v - series.min) / (series.max - series.min) * _height);
               })
               .interpolate('linear');
 
           var plot = $('#overview-'+series.name);
           var height;
-          if (plot.length != 0) {
+          if (plot.length != 0)
             height = plot.height();
-          }
           else {
             plot = $('<div class="overview-plot">').insertBefore(this.visTimePlot);
             plot.attr('id', 'overview-' + series.name);
             height = plot.height();
-
             var svg = d3.select(plot.get(0))
                 .append('svg:svg')
                 .attr('width', width)
                 .attr('height', height)
                 .append('svg:g')
                 .append('svg:path')
-                .attr('d', path(_.map(series.data, function(x) {
+                .attr('d', path(_.map(series.data, function (x) {
                   return {t: x.t, v: series.min}})))
                 .attr('class', 'area')
                 .attr('fill', series.color)
@@ -204,7 +203,6 @@ define([
               .duration(750)
               .attr('fill', series.color)
               .attr('d', path(series.data))
-
         }, this));
 
         // Check width change for resize.
