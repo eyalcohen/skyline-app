@@ -939,6 +939,17 @@ i i {
   margin-bottom: 5px;
 }
 
+.page p {
+  margin: 5px 0 30px;
+  font-size: 16px;
+  line-height: 28px;
+}
+
+.page h4 {
+  margin: 10px 0 0 0;
+  font-size: 16px;
+}
+
 .page-spin {
   position: absolute;
   top: 30px;
@@ -1969,8 +1980,13 @@ a.button.splash-button {
   width: 980px;
 }
 
-.static .page ul {
+.static .page-left ul,
+.static .page-left ol {
   margin: 20px 0 20px 40px;
+}
+
+.static .page-left ol.ordered {
+  list-style-type: upper-roman;
 }
 
 .home-datasets,
