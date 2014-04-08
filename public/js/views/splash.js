@@ -95,7 +95,7 @@ define([
 
       // Embed
       if (this.iframe.length > 0) this.iframe.attr('src', data.embed);
-      this.embedCode.html('<iframe width="100%" height="100%" '
+      this.embedCode.text('<iframe width="100%" height="100%" '
           + 'src="' + data.embed + '" frameborder="0"></iframe>');
       this.positionLabelForCode(this.embedCode);
     },
