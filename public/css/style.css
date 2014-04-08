@@ -950,6 +950,11 @@ i i {
   font-size: 16px;
 }
 
+.page ol + h4,
+.page ul + h4 {
+  margin-top: 30px;
+}
+
 .page-spin {
   position: absolute;
   top: 30px;
@@ -1982,11 +1987,16 @@ a.button.splash-button {
 
 .static .page-left ul,
 .static .page-left ol {
-  margin: 20px 0 20px 40px;
+  margin: -10px 0 20px 40px;
+}
+
+.static .page-left ol[type="i"],
+.static .page-left ol[type="a"] {
+  margin-top: 20px;
 }
 
 .static .page-left ol.ordered {
-  list-style-type: upper-roman;
+  list-style-type: lower-roman;
 }
 
 .home-datasets,
