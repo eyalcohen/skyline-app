@@ -196,7 +196,7 @@ define([
         if (series.data.length < 3) return null;
 
         // Excluse empty and min-max series.
-        if (!series.channelName || series.lines.fill) return null;
+        if (!series.channelName) return null;
 
         // Ensure series is valid for the time.
         if (time === null) return null;
@@ -857,6 +857,7 @@ define([
     // if mouse is near cursor, bold it
     mouseLineStyle: function(e, stats) {
       var plotData = this.plot.getData();
+      console.log(plotData, stats);
       var opts = this.plot.getOptions();
       // lookup closest channel to mouse cursor
       var closestChannel =
