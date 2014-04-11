@@ -456,9 +456,11 @@ define([
             var visible = this.getVisibleTime();
             var span = (visible.end - visible.beg) / 1e3;
             var date = new Date(val);
-            return span < 86400000 ?
+            return span < 10000 ?
+              util.toLocaleString(date, 'h:MM:ss.L TT') :
+              span < 86400000 ?
               util.toLocaleString(date, 'h:MM:ss TT') :
-              util.toLocaleString(date, 'm/d/yy');
+              util.toLocaleString(date, 'm/d/yyyy');
           }, this)
         },
         yaxis: {
