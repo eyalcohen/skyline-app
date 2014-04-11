@@ -25,7 +25,7 @@ define([
         showPoints: false,
         showLines: true,
         showArea: false,
-        interpolation: 'none', // also 'none'
+        interpolation: 'linear', // also 'none'
         lineWidth: 2,
         pointRadius: 3,
         color: null,

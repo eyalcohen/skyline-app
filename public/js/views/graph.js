@@ -196,7 +196,7 @@ define([
         if (series.data.length < 3) return null;
 
         // Excluse empty and min-max series.
-        if (!series.channelName) return null;
+        if (!series.channelName || series.channelName.indexOf('minmax') != -1) return null;
 
         // Ensure series is valid for the time.
         if (time === null) return null;
@@ -401,7 +401,6 @@ define([
           xaxis: 1,
           yaxis: channel.yaxisNum,
           channelIndex: i,
-          channelName: channel.channelName,
         };
         var data = this.getSeriesData(channel);
         series.push(_.extend({
@@ -414,12 +413,10 @@ define([
             fill: false,
           },
           data: data.data,
+          channelName: channel.channelName,
           label: channel.title,
         }, seriesBase));
 
-        // TODO: Turned off MinMax plotting until I beter understand what
-        // its trying to do.
-        /*
         if (data.minMax.length > 0) {
           series.push(_.extend({
             points: {
@@ -430,10 +427,10 @@ define([
               lineWidth: 0,
               fill: 0.6,
             },
+            channelName: channel.channelName + '__minmax',
             data: data.minMax,
           }, seriesBase));
         }
-        */
       }, this));
       this.updateSeriesColors(series);
       this.plot.setData(series);
@@ -824,28 +821,30 @@ define([
       var numPoints = this.getVisiblePoints();
       var needsUpdate = false;
 
-      _.each(plotData, function(obj, idx) {
+      _.each(plotData, function(series, idx) {
 
-        var lineStyleOpts = this.model.lineStyleOptions[obj.channelName];
+        if (series.channelName.indexOf('__minmax') != -1)
+          return;
+        var lineStyleOpts = this.model.lineStyleOptions[series.channelName];
 
         // copy over some series data
         var oldPoints = {}, oldLines = {};
-        _.extend(oldPoints, obj.points);
-        _.extend(oldLines, obj.lines);
+        _.extend(oldPoints, series.points);
+        _.extend(oldLines, series.lines);
 
         // don't display line series points if we have a lot of data
-        obj.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW)
+        series.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW)
                           || !lineStyleOpts.showLines)
                           && lineStyleOpts.showPoints;
 
-        obj.lines.show = lineStyleOpts.showLines;
-        obj.lines.lineWidth = lineStyleOpts.lineWidth;
-        obj.points.radius = lineStyleOpts.pointRadius;
-        obj.lines.fill = lineStyleOpts.showArea;
+        series.lines.show = lineStyleOpts.showLines;
+        series.lines.lineWidth = lineStyleOpts.lineWidth;
+        series.points.radius = lineStyleOpts.pointRadius;
+        series.lines.fill = lineStyleOpts.showArea;
 
-        // compare object properties and decide whether we ned to redraw
-        if (JSON.stringify(obj.lines) !== JSON.stringify(oldLines)
-            || JSON.stringify(obj.points) !== JSON.stringify(oldPoints))
+        // compare seriesect properties and decide whether we ned to redraw
+        if (JSON.stringify(series.lines) !== JSON.stringify(oldLines)
+            || JSON.stringify(series.points) !== JSON.stringify(oldPoints))
             needsUpdate = true;
       }, this);
 
@@ -857,7 +856,6 @@ define([
     // if mouse is near cursor, bold it
     mouseLineStyle: function(e, stats) {
       var plotData = this.plot.getData();
-      console.log(plotData, stats);
       var opts = this.plot.getOptions();
       // lookup closest channel to mouse cursor
       var closestChannel =
@@ -866,14 +864,17 @@ define([
       var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
 
       var series =  _.find(plotData, function (obj) {
-        return obj.channelName == closestChannel.channelName;
+        return obj.channelName === closestChannel.channelName;
       });
 
       this.plot.unhighlight();
 
       var needsUpdate = false;
       _.each(plotData, function (obj) {
-        var lso = this.model.lineStyleOptions[obj.channelName];
+        // minmax plots have the same line-style
+        if (obj.channelName.indexOf('__minmax') != -1)
+          return;
+        var lso = this.model.lineStyleOptions[obj.channelName.split('__minmax')[0]];
         needsUpdate = needsUpdate | (obj.lines.lineWidth !== lso.lineWidth)
         obj.lines.lineWidth = lso.lineWidth;
         obj.points.radius = lso.pointRadius;

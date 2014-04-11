@@ -73,7 +73,7 @@ define([
           mmm:  dF.i18n.monthNames[m],
           mmmm: dF.i18n.monthNames[m + 12],
           yy:   String(y).slice(2),
-          yyyy: String(y).replace(/,/g, ''),
+          yyyy: y,
           h:    H % 12 || 12,
           hh:   pad(H % 12 || 12),
           H:    H,
