@@ -102,7 +102,7 @@ define([
       // We want the scrollbar to be outside the channellist, but overflow puts
       // it inside.  We add some padding to solve this issue
       if (this.getExpandedHeight() > ($('.graphs').height() - 1))
-        el.parent().css('padding-right', '13px');
+        el.parent().css('padding-right', '15px');
       _.each(this.views, function (v) { v.expand(); });
       this.$('.channel.active:last').removeClass('last-active');
       this.resize(null, active);

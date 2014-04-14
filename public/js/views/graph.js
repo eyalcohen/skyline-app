@@ -425,7 +425,7 @@ define([
             lines: {
               show: true,
               lineWidth: 0,
-              fill: 0.6,
+              fill: 0.3,
             },
             channelName: channel.channelName + '__minmax',
             data: data.minMax,
@@ -743,8 +743,10 @@ define([
           var max = s.max == null ? val : s.max * conv.factor + conv.offset;
           var min = s.min == null ? val : s.min * conv.factor + conv.offset;
           minMax.push([s.beg / 1000, max, min]);
-          if (s.end !== s.beg)
-            minMax.push([s.end / 1000, max, min]);
+          if (lineStyleOpts.interpolation === 'none') {
+            if (s.end !== s.beg)
+              minMax.push([s.end / 1000, max, min]);
+          }
           prevMinMaxEnd = s.end;
         }
       }, this);
