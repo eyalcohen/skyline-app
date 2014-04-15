@@ -2167,6 +2167,12 @@ a.button.splash-button {
   text-align: left;
 }
 
+.profile td.main-cell-vis {
+  width: 600px;
+  padding: 5px 0px 0px 0px;
+  margin: 0px;
+}
+
 .profile tr.table-header,
 .browser tr.table-header {
   color: #666;

@@ -12,8 +12,10 @@ define([
   'text!../../templates/profile.html',
   'text!../../templates/profile.header.html',
   'views/lists/profile.datasets',
-  'views/lists/profile.views'
-], function ($, _, Backbone, mps, util, User, template, header, Datasets, Views) {
+  'views/lists/profile.views',
+  'd3'
+], function ($, _, Backbone, mps, util, User, template, header, 
+             Datasets, Views) {
 
   return Backbone.View.extend({
 
@@ -72,6 +74,7 @@ define([
         reverse: true
       });
 
+      this.drawVis();
       return this;
     },
 
@@ -93,6 +96,78 @@ define([
       this.datasets.destroy();
       this.views.destroy();
       this.remove();
+    },
+
+    drawVis: function() {
+
+      var createSvg = function(sampleObj, selector) {
+
+        var width = selector.width();
+        var height = selector.height();
+
+        var beg = sampleObj.range.beg;
+        var end = sampleObj.range.end;
+
+        var t_0 = sampleObj.samples[0].beg;
+        var t_max = sampleObj.samples[sampleObj.samples.length-1].beg
+        var t_diff = t_max - t_0;
+
+        var v_max = _.max(_.pluck(sampleObj.samples, 'val'));
+        var v_min = _.min(_.pluck(sampleObj.samples, 'val'));
+        var v_diff = v_max - v_min;
+
+        var path = d3.svg.area()
+            .x(function (s) {
+              return ((s.beg - t_0) / (t_diff) * width);
+            })
+            .y0(function () {
+              return height;
+            })
+            .y1(function (s) {
+              return height - ((s.val - v_min) / (v_diff) * height);
+            })
+            .interpolate('step-before');
+
+        var svg = d3.select(selector.get(0))
+            .append('svg:svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('svg:g')
+            .append('svg:path')
+            .attr('d', path(sampleObj.samples))
+            .attr('class', 'area')
+            .attr('fill', 'grey')
+
+      }
+
+      // collect sample data for each profile
+      _.each(this.datasets.collection.models, function (dataset, idx) {
+        this.app.rpc.do('fetchSamples', dataset.id, '_schema', {}, _.bind(function (err, data) {
+
+          if (err) return console.error(err);
+          var channels = data.samples;
+          if (!channels) return console.error('No channels found');
+
+          // Add dataset ID to channel models, and calculate dataset beg/end
+          var prevBeg = Number.MAX_VALUE;
+          var prevEnd = -Number.MAX_VALUE;
+          _.each(channels, _.bind(function (c) {
+            if (c.beg < prevBeg) prevBeg = c.beg;
+            if (c.end > prevEnd) prevEnd = c.end;
+          }, this));
+
+          var options = {
+            beginTime: prevBeg,
+            endTime: prevEnd,
+            minDuration: (prevEnd - prevBeg) / 100
+          };
+
+          this.app.rpc.do('fetchSamples', dataset.id, channels[0].val.channelName,
+            options, _.bind(function(err, samples) {
+            createSvg(samples, $('td.main-cell-vis').eq(idx))
+          }));
+        }, this));
+      }, this);
     },
 
   });
