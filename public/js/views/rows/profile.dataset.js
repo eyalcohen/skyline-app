@@ -39,9 +39,22 @@ define([
     events: {
       'click': 'navigate',
       'click .profile-item-delete': 'delete',
+      'click .profile-channel-wrap': 'navigate',
+      'mouseenter .main-cell-vis': function(e) {
+        $(e.currentTarget).css('overflow-y', 'auto');
+      },
+      'mouseleave .main-cell-vis': function(e) {
+        $(e.currentTarget).css('overflow-y', 'hidden');
+      },
+      'mouseenter .profile-channel-wrap': function(e) {
+        this.$el.addClass('no-hover');
+      },
+      'mouseleave .profile-channel-wrap': function(e) {
+        this.$el.removeClass('no-hover');
+      }
     },
 
-    navigate: function (e) {
+    navigate: function (e, channelName) {
       e.preventDefault();
       if ($(e.target).hasClass('profile-item-delete')
           || $(e.target).hasClass('icon-cancel')) return;
@@ -152,11 +165,9 @@ define([
             .append('svg:path')
             .attr('d', path(sampleObj.samples))
             .attr('class', 'area')
-            .attr('fill', 'grey')
+            .attr('fill', '#c0c0c0')
 
       }
-
-      console.log(this.model.id);
 
       this.app.rpc.do('fetchSamples', this.model.id, '_schema', {}, _.bind(function (err, data) {
 
@@ -181,7 +192,8 @@ define([
         var selector = this.$el.find('div.main-cell-vis table');
 
         _.each(channels, function (channel, channelIdx) {
-          selector.append('<tr><td><div class="profile-channel-name"></div></td>' +
+          selector.append('<tr class="profile-channel-wrap" id="profile-'+channel.val.channelName+'">' +
+                          '<td><div class="profile-channel-name"></div></td>' +
                           '<td class="profile-channel-vis"></td></tr>')
         });
 

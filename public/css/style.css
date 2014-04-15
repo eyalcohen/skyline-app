@@ -2176,9 +2176,9 @@ a.button.splash-button {
 .profile div.main-cell-vis {
   width: 600px;
   height: 120px;
-  padding: 0px 0px 0px 0px;
+  padding: 0px;
   margin: 0px;
-  overflow: auto;
+  overflow: hidden;
 }
 
 /*
@@ -2281,8 +2281,18 @@ a.button.splash-button {
   background: rgba(230, 230, 0, .05);
 }
 
-.profile-dataset:hover:not(.profile-dataset-locked) td,
-.profile-view:hover:not(.profile-view-locked) td {
+/*
+.profile-channel-wrap:hover {
+  background: rgba(39, 205, 214, 0.2);
+}
+*/
+
+.profile-channel-wrap:hover td {
+  background: rgba(39, 205, 214, 0.2);
+}
+
+.profile-dataset:hover:not(.profile-dataset-locked):not(.no-hover)>td,
+.profile-view:hover:not(.profile-view-locked) td.main-cell {
   background: rgba(39, 205, 214, 0.2);
 }
 
