@@ -2167,14 +2167,49 @@ a.button.splash-button {
   text-align: left;
 }
 
-.profile td.main-cell-vis {
-  width: 600px;
-  padding: 5px 0px 0px 0px;
+.profile td.main-cell-vis-wrap {
+  padding: 0px;
   margin: 0px;
 }
 
+
+.profile div.main-cell-vis {
+  width: 600px;
+  height: 120px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px;
+  overflow: auto;
+}
+
+/*
+.profile div.main-cell-vis tr {
+  width: 600px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px;
+}
+*/
+
+.main-cell-vis td {
+  width: 100px;
+  padding: 0px;
+}
+
+.profile .profile-channel-name {
+  text-align: left;
+  width: 100px;
+  padding: 0px 0px 0px 0px;
+  margin: 0px;
+}
+
+.profile td .profile-channel-vis {
+  padding: 0px 0px 0px 0px;
+  margin: 0px;
+  width: 100%;
+  height: 40px;
+}
+
 .profile tr.table-header,
-.browser tr.table-header {
+.browser tr.table-header /{
   color: #666;
   background: #f9f9f9;
   border-bottom: 1px solid #d0d0d0;

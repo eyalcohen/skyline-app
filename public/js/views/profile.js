@@ -162,10 +162,20 @@ define([
             minDuration: (prevEnd - prevBeg) / 100
           };
 
-          this.app.rpc.do('fetchSamples', dataset.id, channels[0].val.channelName,
-            options, _.bind(function(err, samples) {
-            createSvg(samples, $('td.main-cell-vis').eq(idx))
-          }));
+          var selector = $('div.main-cell-vis table').eq(idx)
+
+          _.each(channels, function (channel, channelIdx) {
+            selector.append('<tr><td><div class="profile-channel-name"></div></td>' + 
+                            '<td class="profile-channel-vis"></td></tr>')
+          });
+
+          _.each(channels, function (channel, channelIdx) {
+            selector.find('.profile-channel-name').eq(channelIdx).text(channel.val.humanName);
+            this.app.rpc.do('fetchSamples', dataset.id, channel.val.channelName,
+                            options, _.bind(function(err, samples) {
+              createSvg(samples, selector.find('.profile-channel-vis').eq(channelIdx));
+            }));
+          }, this);
         }, this));
       }, this);
     },
