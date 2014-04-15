@@ -127,7 +127,6 @@ define([
     },
 
     drawVis: function() {
-      console.log('here');
 
       var createSvg = function(sampleObj, selector) {
 
@@ -192,9 +191,9 @@ define([
         var selector = this.$el.find('div.main-cell-vis table');
 
         _.each(channels, function (channel, channelIdx) {
-          selector.append('<tr class="profile-channel-wrap" id="profile-'+channel.val.channelName+'">' +
-                          '<td><div class="profile-channel-name"></div></td>' +
-                          '<td class="profile-channel-vis"></td></tr>')
+          selector.append('<tr class="profile-channel-wrap" id="profile-'+channel.val.channelName+'"><td>' +
+                          '<div class="profile-channel-name"></div>' +
+                          '<div class="profile-channel-vis"></div></td></tr>')
         });
 
         _.each(channels, function (channel, channelIdx) {
