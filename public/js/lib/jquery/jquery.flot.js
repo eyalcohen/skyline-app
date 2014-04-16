@@ -926,6 +926,7 @@
         }
 
         function addCommas(nStr) {
+          if (!isFinite(nStr)) return nStr;
           nStr += '';
           var x = nStr.split('.');
           var x1 = x[0];
@@ -1208,6 +1209,7 @@
                 
                 // map of app. size of time units in milliseconds
                 var timeUnitSize = {
+                    "millisecond": 1,
                     "second": 1000,
                     "minute": 60 * 1000,
                     "hour": 60 * 60 * 1000,
@@ -1220,6 +1222,9 @@
                 // the allowed tick sizes, after 1 year we use
                 // an integer algorithm
                 var spec = [
+                    [1, "millisecond"], [2, "millisecond"], [5, "millisecond"],
+                    [10, "millisecond"],[20, "millisecond"],[50, "millisecond"],
+                    [100, "millisecond"],[200, "millisecond"],[500, "millisecond"],
                     [1, "second"], [2, "second"], [5, "second"], [10, "second"],
                     [30, "second"], 
                     [1, "minute"], [2, "minute"], [5, "minute"], [10, "minute"],
