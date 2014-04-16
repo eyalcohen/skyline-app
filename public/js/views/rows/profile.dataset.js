@@ -198,10 +198,12 @@ define([
 
         _.each(channels, function (channel, channelIdx) {
           selector.find('.profile-channel-name').eq(channelIdx).text(channel.val.humanName);
-          this.app.rpc.do('fetchSamples', this.model.id, channel.val.channelName,
-                          options, _.bind(function(err, samples) {
-            createSvg(samples, selector.find('.profile-channel-vis').eq(channelIdx));
-          }));
+          if (!this.parentView.modal) {
+            this.app.rpc.do('fetchSamples', this.model.id, channel.val.channelName,
+                            options, _.bind(function(err, samples) {
+              createSvg(samples, selector.find('.profile-channel-vis').eq(channelIdx));
+            }));
+          }
         }, this);
       }, this));
     },
