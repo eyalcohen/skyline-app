@@ -61,6 +61,9 @@ define([
         mps.subscribe('comments/refresh', _.bind(function () {
           this.refreshComments();
         }, this)),
+        mps.subscribe('channel/channelListFetched', _.bind(function (did, channels) {
+          this.openRequestedChannels(did, channels);
+        }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/drawComplete', _.bind(this.updateIcons, this)),
         mps.subscribe('comment/end', _.bind(this.uncomment, this)),
@@ -570,6 +573,18 @@ define([
       // If this is a view and user is view owner, indicate state is not saved.
       if (state.author.id === user.id)
         this.saveButton.removeClass('saved');
+    },
+
+    openRequestedChannels: function(did, channels) {
+      var state = store.get('state');
+      // check if we have any channels open
+      var anyOpen = _.find(state.datasets, function( dataset) {
+        return (dataset.channels)
+      });
+      // we automatically open the first channel if none are open or requested
+      if (!anyOpen) {
+        mps.publish('channel/add', [did, channels[0].val]);
+      }
     },
 
   });
