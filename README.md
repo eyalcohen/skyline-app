@@ -23,7 +23,9 @@ Skyline is now running at [```http://localhost:8080/```](http://localhost:8080/)
 Skyline runs in production on [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
 
 1. Install the [command line interface](http://aws.amazon.com/code/6752709412171743) for EBS.
-2. Create the following file structure at the top-level of your local repo.
+2. Install ruby (```apt-get install ruby``` on Linux)
+3. Run ```eb init``` to initialize the Amazon file structure and supply the correct Git commands
+4. Modify the file structure at the top-level of your local repo.
 
 ```
 .aws
