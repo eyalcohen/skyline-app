@@ -39,7 +39,9 @@ define([
     events: {
       'click': 'navigate',
       'click .profile-item-delete': 'delete',
-      'click .profile-channel-wrap': 'navigate',
+      'click .profile-channel-wrap': function(e) {
+        this.navigate(e, e.currentTarget.id.split('profile-')[1]);
+      },
       'mouseenter .main-cell-vis': function(e) {
         $(e.currentTarget).css('overflow-y', 'auto');
       },
@@ -56,6 +58,7 @@ define([
 
     navigate: function (e, channelName) {
       e.preventDefault();
+      e.stopPropagation();
       if ($(e.target).hasClass('profile-item-delete')
           || $(e.target).hasClass('icon-cancel')) return;
 
@@ -70,8 +73,13 @@ define([
 
       if (!this.parentView.modal) {
         var path = [this.model.get('author').username, this.model.id].join('/');
+        if (channelName)
+          path += '/' + channelName
         this.app.router.navigate('/' + path, {trigger: true});
       } else {
+
+        if (channelName)
+          mps.publish('dataset/requestOpenChannel', [channelName]);
 
         // Add this dataset to the existing chart.
         mps.publish('dataset/select', [this.model.get('id')]);
@@ -79,6 +87,7 @@ define([
         // Close the modal.
         $.fancybox.close();
       }
+      return false;
     },
 
     delete: function (e) {

@@ -53,8 +53,9 @@ define([
       this.app.embed = rx.test(window.location.href);
 
       // Page routes
-      this.route('embed/:username/:id', 'chart', this.chart);
+      this.route('embed/:username/:channel', 'chart', this.chart);
       this.route(':username/:id', 'chart', this.chart);
+      this.route(':username/:id/:channel', 'chart', this.chart);
       this.route('embed/:username/views/:slug', 'chart', this.chart);
       this.route(':username/views/:slug', 'chart', this.chart);
       this.route(':username', 'profile', this.profile);
@@ -280,7 +281,7 @@ define([
       }, this));
     },
 
-    chart: function (un, slug) {
+    chart: function (un, slug, channelName) {
       this.start();
       var state = {};
       var path = window.location.pathname.toLowerCase();
@@ -306,7 +307,10 @@ define([
       this.render('/service/chart.profile/', data, _.bind(function (err) {
         if (err) return;
         this.pageType = 'chart';
-        this.page = new Chart(this.app).render();
+        var chart = new Chart(this.app)
+        if (channelName)
+          mps.publish('dataset/requestOpenChannel', [channelName]);
+        this.page = chart.render();
         if (this.header && !key) this.header.normalize();        
         this.stop();
       }, this));

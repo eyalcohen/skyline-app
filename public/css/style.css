@@ -2160,6 +2160,10 @@ a.button.splash-button {
   font-size: 11px;
 }
 
+.browser .profile-datasets .main-cell-vis-wrap td {
+  padding: 0px 0px 0px 0px;
+}
+
 .profile td.main-cell,
 .browser td.main-cell {
   position: relative;
@@ -2168,28 +2172,40 @@ a.button.splash-button {
   margin: 0px 0px 10px 0px;
 }
 
-.profile td.main-cell-vis-wrap {
+.td.main-cell-vis-wrap {
   padding: 0px;
   margin: 0px;
 }
 
+.profile .main-cell-vis-wrap,
+.browser .main-cell-vis-wrap {
+  padding: 0px;
+}
 
-.profile div.main-cell-vis {
-  width: 700px;
+.profile-channel-wrap td {
+  padding: 0px;
+}
+
+.profile .main-cell-vis {
   height: 120px;
+  width: 700px;
   padding: 0px;
   margin: 10px 0px 10px 0px;
-  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
 
-.main-cell-vis td {
-  width: 100px;
+.browser .main-cell-vis {
+  height: 120px;
+  width: 80px;
   padding: 0px;
+  margin: 10px 0px 10px 0px;
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
 
-.profile .profile-channel-name {
+.profile-channel-name {
   text-align: left;
-  width: 100px;
   padding: 0px 0px 0px 0px;
   margin: 0px;
 }
@@ -2201,6 +2217,10 @@ a.button.splash-button {
   height: 30px;
 }
 
+.browser .profile-channel-vis {
+  display: none;
+}
+
 .profile tr.table-header,
 .browser tr.table-header /{
   color: #666;
@@ -2208,7 +2228,8 @@ a.button.splash-button {
   border-bottom: 1px solid #d0d0d0;
 }
 
-.profile td.table-header-channels {
+.profile td.table-header-channels,
+.browser td.table-header-channels {
   text-align: left;
 }
 
