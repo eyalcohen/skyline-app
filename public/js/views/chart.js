@@ -593,13 +593,9 @@ define([
       });
 
       // check if we have any channels open
-      var state = store.get('state');
-      var anyOpen = _.find(state.datasets, function( dataset) {
-        return (dataset.channels)
-      });
-
       // we automatically open the first channel if none are open or requested
-      if (!anyOpen) {
+      var state = store.get('state');
+      if (!state.datasets[did].channels) {
         mps.publish('channel/add', [did, channels[0].val]);
       }
 
