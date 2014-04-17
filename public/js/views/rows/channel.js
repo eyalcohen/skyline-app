@@ -130,7 +130,7 @@ define([
     },
 
     expand: function (cb) {
-      if (!this.$el.hasClass('active')) {
+      //if (!this.$el.hasClass('active')) {
         if (this.parentView.collection.length < 20)
           this.$el.slideDown('fast', cb);
         else {
@@ -138,7 +138,7 @@ define([
           if (cb) cb();
         }
         this.$el.css({opacity: 1});
-      }
+      //}
     },
 
     collapse: function (cb) {
@@ -159,6 +159,13 @@ define([
       this.model.lineStyle = style;
       var color = style.color || this.app.getColors(channel.colorNum);
 
+      // handles the case where we add the channel from outside the toggle function
+      if (!this.$el.hasClass('active')) {
+        this.$el.addClass('active');
+        this.active = true;
+        this.expand();
+      }
+
       this.$el.css({
         backgroundColor: color,
         borderColor: color
@@ -168,6 +175,12 @@ define([
     removed: function (did, channel) {
       if (this.model.get('did') !== did
           || this.model.id !== channel.channelName) return;
+
+      if (this.$el.hasClass('active')) {
+        this.$el.removeClass('active');
+        this.active = false;
+        this.removeLineStyle();
+      }
 
       // Set colors.
       this.$el.css({

@@ -12,8 +12,10 @@ define([
   'text!../../templates/profile.html',
   'text!../../templates/profile.header.html',
   'views/lists/profile.datasets',
-  'views/lists/profile.views'
-], function ($, _, Backbone, mps, util, User, template, header, Datasets, Views) {
+  'views/lists/profile.views',
+  'd3'
+], function ($, _, Backbone, mps, util, User, template, header, 
+             Datasets, Views) {
 
   return Backbone.View.extend({
 
@@ -94,6 +96,5 @@ define([
       this.views.destroy();
       this.remove();
     },
-
   });
 });

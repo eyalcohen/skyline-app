@@ -38,6 +38,8 @@ define([
       // Shell events.
       this.on('rendered', this.setup, this);
 
+      this.requestedChannels = [];
+
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('channel/add', _.bind(function (did, channel) {
@@ -61,10 +63,17 @@ define([
         mps.subscribe('comments/refresh', _.bind(function () {
           this.refreshComments();
         }, this)),
+        mps.subscribe('channel/channelListFetched', _.bind(function (did, channels) {
+          this.openRequestedChannels(did, channels);
+        }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/drawComplete', _.bind(this.updateIcons, this)),
         mps.subscribe('comment/end', _.bind(this.uncomment, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
+        mps.subscribe('dataset/requestOpenChannel', _.bind(function (channelName) {
+          console.log('requested...');
+          this.requestedChannels.push(channelName);
+        }, this))
       ];
     },
 
@@ -570,6 +579,27 @@ define([
       // If this is a view and user is view owner, indicate state is not saved.
       if (state.author.id === user.id)
         this.saveButton.removeClass('saved');
+    },
+
+    // adds any pending channel requests, or at least one if none are open
+    openRequestedChannels: function(did, channels) {
+
+      _.each(this.requestedChannels, function (requestedChannel) {
+        var found = _.find(channels, function (chn) {
+          return requestedChannel === chn.val.channelName;
+        });
+        if (found)
+          mps.publish('channel/add', [did, found.val]);
+      });
+
+      // check if we have any channels open
+      // we automatically open the first channel if none are open or requested
+      var state = store.get('state');
+      if (!state.datasets[did].channels) {
+        mps.publish('channel/add', [did, channels[0].val]);
+      }
+
+
     },
 
   });

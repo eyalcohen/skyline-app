@@ -12,6 +12,17 @@
 
 %>
 
+<% if (!this.parentView.modal) { %>
+  <% if (this.app.profile.user &&
+      this.model.get('author').id === this.app.profile.user.id) { %>
+    <td class="profile-item-delete">
+      <i class="icon-cancel"></i>
+    </td>
+  <% } else { %>
+    <td class="profile-item-delete-empty">&nbsp;</td>
+  <% } %>
+<% } %>
+
 <td class="main-cell">
   <img src="<%= gravatar %>" width="<%= size %>" height="<%= size %>" class="profile-dataset-avatar" />
   <% if (this.model.get('parent')) { %>
@@ -52,13 +63,10 @@
     <%= this.model.get('updated') %>
   </time>
 </td>
-<% if (!this.parentView.modal) { %>
-  <% if (this.app.profile.user &&
-      this.model.get('author').id === this.app.profile.user.id) { %>
-    <td class="profile-item-delete">
-      <i class="icon-cancel"></i>
-    </td>
-  <% } else { %>
-    <td class="profile-item-delete-empty">&nbsp;</td>
-  <% } %>
-<% } %>
+<td class = "main-cell-vis-wrap">
+  <div class="main-cell-vis">
+    <table>
+    </table>
+  </div>
+</td>
+

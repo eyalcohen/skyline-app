@@ -155,6 +155,9 @@ define([
 
         this.model.set('beg', prevBeg);
         this.model.set('end', prevEnd);
+        this.model.set('channel_names', _.map(channels, function(c) {
+          return c.val.channelName;
+        }));
 
         // Create channel list.
         this.channels = new Channels(this.app, {
@@ -173,6 +176,8 @@ define([
           state.datasets[did].open = true;
           store.set('state', state);
         }
+
+        mps.publish('channel/channelListFetched', [did, channels])
 
         // Check if comments off.
         if (state.datasets && state.datasets[did]

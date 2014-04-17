@@ -18,9 +18,10 @@ define([
         parent.id = Number(parent.id);
         this.set('parent', parent, {silent: true});
       }
-      this.set('offset', Number(0))
-      this.set('beg', Number(0))
-      this.set('end', Number(0))
+      this.set('offset', Number(0));
+      this.set('beg', Number(0));
+      this.set('end', Number(0));
+      this.set('channel_names', []);
     },
 
     size: function () {

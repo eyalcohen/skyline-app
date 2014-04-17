@@ -5,6 +5,9 @@
   <% } else { %>
     <tr class="table-header">
   <% } %>
+    <% if (!this.modal) { %>
+      <td class="profile-item-delete-empty">&nbsp;</td>
+    <% } %>
     <td class="main-cell">
       Data sources
     </td>
@@ -14,9 +17,9 @@
     <td>
       Last updated
     </td>
-    <% if (!this.modal) { %>
-      <td class="profile-item-delete-empty">&nbsp;</td>
-    <% } %>
+    <td class ="table-header-channels">
+      Channels
+    </td>
   </tr>
   <% if (this.modal) { %>
     </table>

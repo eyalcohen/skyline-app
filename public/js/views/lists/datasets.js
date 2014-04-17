@@ -132,7 +132,6 @@ define([
     },
 
     collect: function (did) {
-
       // Get the dataset.
       rest.get('/api/datasets/' + did, _.bind(function (err, dataset) {
         if (err) {
