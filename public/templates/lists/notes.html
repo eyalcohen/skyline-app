@@ -1,0 +1,38 @@
+<%
+  var user = this.app.profile.user;
+%>
+
+<div class="note-wrap">
+  <div class="comment-input-wrap">
+    <% if (user) { %>
+      <div class="comment">
+        <div class="comment-body">
+          <form enctype="multipart/form-data" method="POST" class="comment-input-form">
+            <textarea name="body" class="comment-input" 
+                placeholder="Add a note..."></textarea>
+            <div class="comment-input-buttons">
+              <a href="javascript:;" id="c_cancel" class="button comment-input-button">
+                <i class="icon-trash"></i>
+              </a>
+              <a href="javascript:;" id="c_submit" class="button comment-input-button primary">
+                Save
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    <% } else if (!this.app.embed) { %>
+      <a href="javascript:;" class="comments-signin">
+        Sign in to add a note.
+      </a>
+    <% } %>
+  </div>
+</div>
+<div class="note-selector"></div>
+<div class="note-bookmarks">
+  <% if (this.collection.models.length > 0) { %>
+    <% _.each(this.collection.models, _.bind(function(row) { %>
+      <%= this.row(row) %>
+    <% }, this)); %>
+  <% } %>
+</div>

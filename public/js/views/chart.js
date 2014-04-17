@@ -15,14 +15,14 @@ define([
   'text!../../templates/chart.html',
   'text!../../templates/chart.header.html',
   'views/lists/datasets',
+  'views/lists/notes',
   'views/lists/comments',
   'views/graph',
   'views/export',
   'views/overview',
   'views/share'
 ], function ($, _, Backbone, mps, rest, util, units, common, Spin, template,
-      header, Datasets, Comments, Graph, Export, Overview, Share) {
-
+      header, Datasets, Notes, Comments, Graph, Export, Overview, Share) {
   return Backbone.View.extend({
 
     // The DOM target element for this page.
@@ -56,20 +56,20 @@ define([
               _.clone(channel));
         }, this)),
         mps.subscribe('dataset/added', _.bind(function () {
-          this.refreshComments();
+          this.refreshNotes();
         }, this)),
         mps.subscribe('dataset/removed', _.bind(function () {
-          this.refreshComments();
+          this.refreshNotes();
         }, this)),
-        mps.subscribe('comments/refresh', _.bind(function () {
-          this.refreshComments();
+        mps.subscribe('notes/refresh', _.bind(function () {
+          this.refreshNotes();
         }, this)),
         mps.subscribe('channel/channelListFetched', _.bind(function (did, channels) {
           this.openRequestedChannels(did, channels);
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/drawComplete', _.bind(this.updateIcons, this)),
-        mps.subscribe('comment/end', _.bind(this.uncomment, this)),
+        mps.subscribe('note/end', _.bind(this.unnote, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
         mps.subscribe('dataset/requestOpenChannel', _.bind(function (channelName) {
           console.log('requested...');
@@ -115,8 +115,10 @@ define([
       'click .control-button-share': 'share',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
-      'click .comment-button': 'comment',
-      'click .comment-cancel-button': 'comment'
+      'click .note-button': 'note',
+      // 'mousedown .note-button': 'note',
+      'click .note-duration-button': 'note',
+      'click .note-cancel-button': 'note'
     },
 
     // Misc. setup.
@@ -155,7 +157,8 @@ define([
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
-      this.comments = new Comments(this.app, {parentView: this});
+      // this.comments = new Comments(this.app, {parentView: this});
+      this.notes = new Notes(this.app, {parentView: this});
       this.overview = new Overview(this.app, {parentView: this}).render();
 
       // Do resize on window change.
@@ -183,7 +186,8 @@ define([
       this.app.title();
       this.datasets.destroy();
       this.graph.destroy();
-      this.comments.destroy();
+      this.notes.destroy();
+      // this.comments.destroy();
       this.remove();
     },
 
@@ -388,43 +392,46 @@ define([
         this.cursor.fadeOut('fast');
     },
 
-    comment: function (e) {
+    note: function (e) {
       if (this.app.embed) return;
       if (!this.target().id) return;
       if (!this.cursorData) return;
-      if (this.cursor.hasClass('active'))
-        mps.publish('comment/end');
-      else {
-        this.cursor.addClass('active');
+
+      // Designating duration...
+      if (this.cursor.hasClass('start')) {
+        this.cursor.removeClass('start').addClass('duration');
+        mps.publish('note/duration');
+
+      // Designating cancel...
+      } else if (this.cursor.hasClass('duration')) {
+        this.cursor.removeClass('duration').removeClass('active');
+        mps.publish('note/end');
+      
+      // Start the note...
+      } else {
+        this.cursor.addClass('active').addClass('start');
         this.graph.$el.css({'pointer-events': 'none'});
-        if (!this.sidePanel.hasClass('open')) {
-          this.sidePanel.addClass('open');
-          store.set('comments', true);
-          _.delay(_.bind(function () {
-            mps.publish('comment/start', [this.cursorData]);
-          }, this), 300);
-        } else
-          mps.publish('comment/start', [this.cursorData]);
+        mps.publish('note/start', [this.cursorData]);
       }
     },
 
-    uncomment: function () {
+    unnote: function () {
       if (this.app.embed) return;
       this.cursor.removeClass('active');
       this.graph.$el.css({'pointer-events': 'auto'});
     },
 
-    refreshComments: function () {
-      this.comments.reset();
+    refreshNotes: function () {
+      this.notes.reset();
       this.updateIcons();
     },
 
     saved: function () {
-      if (this.comments) this.comments.empty();
-      this.comments = new Comments(this.app, {parentView: this, type: 'view'});
-      this.$('.control-button').removeClass('view-only');
-      this.saveButton.addClass('saved');
-      this.app.title(this.app.profile.content.page.name);
+      // if (this.comments) this.comments.empty();
+      // this.comments = new Comments(this.app, {parentView: this, type: 'view'});
+      // this.$('.control-button').removeClass('view-only');
+      // this.saveButton.addClass('saved');
+      // this.app.title(this.app.profile.content.page.name);
     },
 
     updateIcons: function () {
@@ -432,7 +439,7 @@ define([
       var xaxis = this.graph.plot.getXAxes()[0];
 
       // Update x-pos of each comment.
-      _.each(this.comments.views, _.bind(function (v) {
+      _.each(this.notes.views, _.bind(function (v) {
         v.model.set('xpos', xaxis.p2c(v.model.get('time')) - 8);
         if (!$.contains(document.documentElement, v.icon.get(0))) {
           v.icon.appendTo(this.icons);
