@@ -31,10 +31,11 @@ define([
       //     this.icon.addClass('icon-code-dataset-leader');
       //   else
       //     this.icon.addClass('icon-code-dataset');
-      // this.model.on('change:xpos', _.bind(function () {
-      //   if (!this.icon) return;
-      //   this.icon.css({left: this.model.get('xpos') - 8});
-      // }, this));
+      this.model.on('change:xpos', _.bind(function () {
+        if (!this.icon) return;
+        
+        this.$el.css({left: this.model.get('xpos')});
+      }, this));
     },
 
     events: {
@@ -69,6 +70,7 @@ define([
 
     setup: function () {
       Row.prototype.setup.call(this);
+      this.$el.width(50)
 
       // Icon events.
       // this.icon.bind('mouseover', _.bind(function (e) {
@@ -121,11 +123,11 @@ define([
     },
 
     highlight: function (e) {
-      this.icon.addClass('hover');
+      // this.icon.addClass('hover');
     },
 
     unhighlight: function (e) {
-      this.icon.removeClass('hover');
+      // this.icon.removeClass('hover');
     }
 
   });

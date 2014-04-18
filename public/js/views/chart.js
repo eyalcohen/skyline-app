@@ -68,7 +68,7 @@ define([
           this.openRequestedChannels(did, channels);
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
-        mps.subscribe('graph/drawComplete', _.bind(this.updateIcons, this)),
+        mps.subscribe('graph/drawComplete', _.bind(this.updateNotes, this)),
         mps.subscribe('note/cancel', _.bind(this.unnote, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
         mps.subscribe('dataset/requestOpenChannel', _.bind(function (channelName) {
@@ -444,7 +444,7 @@ define([
 
     refreshNotes: function () {
       this.notes.reset();
-      this.updateIcons();
+      this.updateNotes();
     },
 
     saved: function () {
@@ -455,16 +455,18 @@ define([
       this.app.title(this.app.profile.content.page.name);
     },
 
-    updateIcons: function () {
-      if (!this.graph || !this.graph.plot || !this.comments) return;
+    updateNotes: function () {
+      if (!this.graph || !this.graph.plot || !this.notes) return;
       var xaxis = this.graph.plot.getXAxes()[0];
 
-      // Update x-pos of each comment.
+      // Update x-pos of each note.
       _.each(this.notes.views, _.bind(function (v) {
-        v.model.set('xpos', xaxis.p2c(v.model.get('time')) - 8);
-        if (!$.contains(document.documentElement, v.icon.get(0))) {
-          v.icon.appendTo(this.icons);
-        }
+        if (!v.model.get('beg')) return;
+        console.log(xaxis.p2c(v.model.get('beg')))
+        v.model.set('xpos', xaxis.p2c(v.model.get('beg')));
+        // if (!$.contains(document.documentElement, v.icon.get(0))) {
+        //   v.icon.appendTo(this.icons);
+        // }
       }, this));
     },
 

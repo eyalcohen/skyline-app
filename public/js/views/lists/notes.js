@@ -121,7 +121,6 @@ define([
       this.$('textarea[name="body"]').autogrow();
       this.$('#c_cancel').click(_.bind(function (e) {
         e.preventDefault();
-        // this.cancel();
         mps.publish('note/cancel');
       }, this));
       this.$('#c_submit').click(_.bind(function (e) {
@@ -259,7 +258,8 @@ define([
       var payload = this.form.serializeObject();
       payload.body = util.sanitize(payload.body);
       payload.parent_id = parent.id;
-      payload.time = this.selection;
+      payload.beg = this.selection.beg;
+      payload.end = this.selection.end;
 
       // Mock note.
       var data = {
@@ -269,15 +269,13 @@ define([
         author: this.app.profile.user,
         body: payload.body,
         created: new Date().toISOString(),
-        time: this.selection
+        beg: this.selection.beg,
+        end: this.selection.end
       };
 
       // Optimistically add note to page.
       this.collect(data);
       this.input.val('').keyup();
-
-      console.log(payload)
-      return;
 
       // Now save the note to server.
       rest.post('/api/notes/' + parent.type, payload,
@@ -288,11 +286,9 @@ define([
         var note = this.collection.get(-1);
         note.set('id', data.id);
         this.$('#-1').attr('id', data.id);
-
       }, this));
 
       // Done noting.
-      // this.cancel();
       mps.publish('note/cancel');
 
       return false;
