@@ -36,7 +36,7 @@ define([
       this.title = this.$('.dataset-title span', this.button);
       this.offset = this.$('.dataset-offset', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
-      this.commentsButton = this.$('.dataset-control-comments');
+      this.notesButton = this.$('.dataset-control-notes');
 
 /*
       // Toggle.
@@ -72,7 +72,7 @@ define([
 
     events: {
       'click .dataset-control-remove': 'delete',
-      'click .dataset-control-comments': 'comments',
+      'click .dataset-control-notes': 'notes',
       'click .dataset-offset': function(e) {
         this.model.set('offset', 0);
         this.updateOffset();
@@ -177,30 +177,30 @@ define([
           store.set('state', state);
         }
 
-        mps.publish('channel/channelListFetched', [did, channels])
+        mps.publish('channel/channelListFetched', [did, channels]);
 
-        // Check if comments off.
+        // Check if notes off.
         if (state.datasets && state.datasets[did]
-            && state.datasets[did].comments === false) {
-          this.commentsButton.addClass('off');
+            && state.datasets[did].notes === false) {
+          this.notesButton.addClass('off');
         }
       }, this));
     },
 
-    comments: function (e) {
+    notes: function (e) {
       e.preventDefault();
       var state = store.get('state');
       var did = this.model.id;
       if (state.datasets && state.datasets[did]) {
-        state.datasets[did].comments =
-            state.datasets[did].comments === undefined
-            || state.datasets[did].comments === true ? false: true;
+        state.datasets[did].notes =
+            state.datasets[did].notes === undefined
+            || state.datasets[did].notes === true ? false: true;
         this.app.state(state);
       }
-      mps.publish('comments/refresh');
-      if (this.commentsButton.hasClass('off'))
-        this.commentsButton.removeClass('off');
-      else this.commentsButton.addClass('off');
+      mps.publish('notes/refresh');
+      if (this.notesButton.hasClass('off'))
+        this.notesButton.removeClass('off');
+      else this.notesButton.addClass('off');
     },
 
     delete: function (e) {

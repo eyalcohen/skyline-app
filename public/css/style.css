@@ -2697,21 +2697,23 @@ a.control-button-save.saving {
 }
 
 .main.embed .cursor a.note-button,
-.main.embed .cursor a.note-duration,
+.main.embed .cursor a.note-duration-button,
 .main.embed .cursor a.note-cancel-button {
   display: none;
 }
 
 .cursor a.note-duration-button {
   display: none;
-  left: -22px;
-  background: rgb(39, 205, 214);
+  background: #9FFF0D;
+  cursor: default;
+  color: #2F2F2F;
+  font-weight: bold;
 }
 
 .cursor a.note-cancel-button {
   display: none;
   left: -28px;
-  background: rgb(39, 205, 214);
+  background: #27CDD6;
 }
 
 .cursor a [class^="icon-"]:before,
@@ -2733,12 +2735,12 @@ a.control-button-save.saving {
   display: none;
 }
 
-.cursor.start a.note-duration-button {
+.cursor.active a.note-cancel-button {
   display: block;
 }
 
-.cursor.duration a.note-cancel-button {
-  display: block;
+.cursor a.note-duration-button i {
+  margin: 0 2px;
 }
 
 .icons {
@@ -3472,9 +3474,16 @@ a.comments-signin {
   left: 700px;
   top: 0;
   bottom: 1px;
-  background: #9FFF0D;
+  background: rgba(159, 255, 13, 0.2);
   z-index: 2;
-  opacity: 0.2;
+}
+
+.note-selector.rightsided {
+  border-left: 1px solid #9FFF0D;
+}
+
+.note-selector.leftsided {
+  border-right: 1px solid #9FFF0D;
 }
 
 /*.icon.hover {
@@ -3502,7 +3511,7 @@ a.comments-signin {
   width: 300px;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
-  border-left: 1px solid #27CDD6;
+  border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
 
   -webkit-animation-name: fadeIn;

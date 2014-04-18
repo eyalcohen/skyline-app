@@ -45,8 +45,7 @@ define([
       'mouseout': 'unhighlight',
     },
 
-    render: function (single, prepend, re) {
-      console.log(this)
+    // render: function (single, prepend, re) {
       // if (re) return;
       // this.parentView.off('rendered');
       // this.$el.html(this.template.call(this));
@@ -64,9 +63,9 @@ define([
       // }
       // this.$el.show();
       // this.time = null;
-      this.trigger('rendered');
-      return this;
-    },
+    //   this.trigger('rendered');
+    //   return this;
+    // },
 
     setup: function () {
       Row.prototype.setup.call(this);

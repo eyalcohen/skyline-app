@@ -69,7 +69,7 @@ define([
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
         mps.subscribe('graph/drawComplete', _.bind(this.updateIcons, this)),
-        mps.subscribe('note/end', _.bind(this.unnote, this)),
+        mps.subscribe('note/cancel', _.bind(this.unnote, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
         mps.subscribe('dataset/requestOpenChannel', _.bind(function (channelName) {
           console.log('requested...');
@@ -115,9 +115,7 @@ define([
       'click .control-button-share': 'share',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
-      'click .note-button': 'note',
-      // 'mousedown .note-button': 'note',
-      'click .note-duration-button': 'note',
+      'mousedown .note-button': 'note',
       'click .note-cancel-button': 'note'
     },
 
@@ -125,6 +123,7 @@ define([
     setup: function () {
 
       // Save refs.
+      this.noteDuration = this.$('.note-duration-button');
       this.sidePanel = this.$('.side-panel');
       this.lowerPanel = this.$('.lower-panel');
       this.controls = this.$('.controls');
@@ -137,7 +136,7 @@ define([
         lines: 13,
         length: 3,
         width: 2,
-        radius: 6,
+        radius: 6
       });
 
       // Handle comments panel.
@@ -145,9 +144,11 @@ define([
         $('.side-panel').addClass('open');
 
       // Drag & drop events.
-      this.$el.bind('dragover', _.bind(this.dragover, this));
-      this.dropZone.bind('dragleave', _.bind(this.dragout, this))
-          .bind('drop', _.bind(this.drop, this));
+      if (this.app.embed) {
+        this.$el.bind('dragover', _.bind(this.dragover, this));
+        this.dropZone.bind('dragleave', _.bind(this.dragout, this))
+            .bind('drop', _.bind(this.drop, this));
+      }
 
       // Handle save button.
       if (store.get('state').author && store.get('state').author.id)
@@ -165,6 +166,7 @@ define([
       this.resize();
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 500));
 
       return this;
     },
@@ -384,7 +386,7 @@ define([
       this.cursorData = this.graph.cursor(e);
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
-      this.cursor.css({left: this.cursorData.x});
+      this.cursor.css({left: Math.ceil(this.cursorData.x)});
     },
 
     hideCursor: function (e) {
@@ -393,30 +395,49 @@ define([
     },
 
     note: function (e) {
+      e.preventDefault();
       if (this.app.embed) return;
       if (!this.target().id) return;
       if (!this.cursorData) return;
 
-      // Designating duration...
-      if (this.cursor.hasClass('start')) {
-        this.cursor.removeClass('start').addClass('duration');
-        mps.publish('note/duration');
-
       // Designating cancel...
-      } else if (this.cursor.hasClass('duration')) {
-        this.cursor.removeClass('duration').removeClass('active');
-        mps.publish('note/end');
+      if (this.cursor.hasClass('active')) {
+        this.cursor.removeClass('active');
+        mps.publish('note/cancel');
       
       // Start the note...
       } else {
-        this.cursor.addClass('active').addClass('start');
         this.graph.$el.css({'pointer-events': 'none'});
+        this.cursor.addClass('active').addClass('selecting');
         mps.publish('note/start', [this.cursorData]);
+
+        var doc = $(document);
+        var mousemove = _.bind(function (e) {
+          e.preventDefault();
+          var current = this.graph.cursor(e);
+          var abs = Math.abs(this.cursorData.t - current.t);
+          if (abs > 0) {
+            $('span', this.noteDuration).text(util.getDuration(abs*1000, false));
+            this.noteDuration.css({left: current.x - this.cursorData.x
+                - this.noteDuration.outerWidth()/2}).show();
+          } else this.noteDuration.hide();
+          mps.publish('note/move', [this.cursorData, this.graph.cursor(e)]);
+          return false;
+        }, this);
+        var mouseup = _.bind(function (e) {
+          e.preventDefault();
+          doc.unbind('mouseup', mouseup).unbind('mousemove', mousemove);
+          this.cursor.removeClass('selecting');
+          mps.publish('note/end', [this.graph.cursor(e), e]);
+          return false;
+        }, this);
+        doc.bind('mouseup', mouseup).bind('mousemove', mousemove);
       }
     },
 
     unnote: function () {
       if (this.app.embed) return;
+      this.noteDuration.hide();
       this.cursor.removeClass('active');
       this.graph.$el.css({'pointer-events': 'auto'});
     },
@@ -427,11 +448,11 @@ define([
     },
 
     saved: function () {
-      // if (this.comments) this.comments.empty();
-      // this.comments = new Comments(this.app, {parentView: this, type: 'view'});
-      // this.$('.control-button').removeClass('view-only');
-      // this.saveButton.addClass('saved');
-      // this.app.title(this.app.profile.content.page.name);
+      if (this.comments) this.comments.empty();
+      this.comments = new Comments(this.app, {parentView: this, type: 'view'});
+      this.$('.control-button').removeClass('view-only');
+      this.saveButton.addClass('saved');
+      this.app.title(this.app.profile.content.page.name);
     },
 
     updateIcons: function () {

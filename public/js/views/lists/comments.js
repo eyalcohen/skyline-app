@@ -265,7 +265,6 @@ define([
       var payload = this.form.serializeObject();
       payload.body = util.sanitize(payload.body);
       payload.parent_id = parent.id;
-      payload.time = this.time;
 
       // Mock comment.
       var data = {
@@ -274,8 +273,7 @@ define([
         parent_type: parent.type,
         author: this.app.profile.user,
         body: payload.body,
-        created: new Date().toISOString(),
-        time: this.time
+        created: new Date().toISOString()
       };
 
       // Optimistically add comment to page.

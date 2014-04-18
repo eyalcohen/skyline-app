@@ -16,7 +16,7 @@ define([
   return List.extend({
     
     el: '.notes',
-    time: {beg: null, end: null},
+    selection: {beg: null, end: null},
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -29,7 +29,9 @@ define([
       // Client-wide subscriptions.
       this.subscriptions = [
         mps.subscribe('note/start', _.bind(this.start, this)),
+        mps.subscribe('note/move', _.bind(this.move, this)),
         mps.subscribe('note/end', _.bind(this.end, this)),
+        mps.subscribe('note/cancel', _.bind(this.cancel, this)),
       ];
 
       // Socket subscriptions.
@@ -119,8 +121,8 @@ define([
       this.$('textarea[name="body"]').autogrow();
       this.$('#c_cancel').click(_.bind(function (e) {
         e.preventDefault();
-        this.end();
-        mps.publish('note/end');
+        // this.cancel();
+        mps.publish('note/cancel');
       }, this));
       this.$('#c_submit').click(_.bind(function (e) {
         e.preventDefault();
@@ -135,7 +137,7 @@ define([
       'click .comments-signin': 'signin',
     },
 
-    // Collect new comments from socket events.
+    // Collect new notes from socket events.
     collect: function (data) {
 
       // Determine how to display this comment.
@@ -146,7 +148,7 @@ define([
       var dataset = _.find(state.datasets, function (d, id) {
         did = Number(id);
         return did === data.parent_id
-            && (d.comments === true || d.comments === undefined);
+            && (d.notes === true || d.notes === undefined);
       });
       if (dataset && dataset.index === 0)
         data.leader = true;
@@ -162,8 +164,8 @@ define([
         });
       else if (data.parent_type === 'view')
         owner = target.doc;
-      if (owner) owner.comments.push(data);
-        owner.comments_cnt += 1;
+      if (owner) owner.notes.push(data);
+        owner.notes_cnt += 1;
 
       // Finally, add comment.
       data._new = true;
@@ -190,10 +192,10 @@ define([
       }
 
       _.each(this.app.profile.content.datasets.items, function (d) {
-        d.comments = _.reject(d.comments, function (c) {
-          return c.id === data.id;
+        d.notes = _.reject(d.notes, function (n) {
+          return n.id === data.id;
         });
-        d.comments_cnt = d.comments.length;
+        d.notes_cnt = d.notes.length;
       });
     },
 
@@ -212,29 +214,37 @@ define([
     },
 
     start: function (data) {
-      this.time.beg = data.t;
-
-      this.selector.css({left: data.x, right: data.x}).show();
-      $(document).bind('mousemove', _.bind(function (e) {
-        var w = this.selector.parent().width();
-        if (e.clientX > data.x)
-          this.selector.css({left: data.x, right: w - e.clientX});
-        else
-          this.selector.css({left: e.clientX, right: w - data.x});
-      }, this));
-
+      this.selection.beg = data.t;
+      this.selector.css({left: data.x, right: this.selector.parent().width() - data.x}).show();
     },
 
-    duration: function (data) {
-      this.time.end = data.t;
-      this.wrap.css({left: data.x}).show();
+    move: function (start, end) {
+      var w = this.selector.parent().width();
+      if (end.x > start.x)
+        this.selector.css({left: Math.ceil(start.x), right: Math.ceil(w - end.x -1)})
+            .removeClass('rightsided').addClass('leftsided');
+      else
+        this.selector.css({left: Math.ceil(end.x), right: Math.ceil(w - start.x)})
+            .removeClass('leftsided').addClass('rightsided');
+    },
+
+    end: function (end) {
+      this.selection.end = end.t;
+      var left = parseInt(this.selector.css('left'));
+      var sw = Math.ceil(this.selector.width());
+      var ww = this.wrap.width();
+      if (this.selection.end < this.selection.beg)
+        this.wrap.css({left: left - ww - 2}).show();
+      else
+        this.wrap.css({left: left + sw + 1}).show();
       this.inputWrap.show();
       this.input.focus();
     },
 
-    end: function () {
+    cancel: function () {
       this.wrap.hide();
       this.inputWrap.hide();
+      this.selector.hide();
     },
 
     write: function (e) {
@@ -249,7 +259,7 @@ define([
       var payload = this.form.serializeObject();
       payload.body = util.sanitize(payload.body);
       payload.parent_id = parent.id;
-      payload.time = this.time;
+      payload.time = this.selection;
 
       // Mock note.
       var data = {
@@ -259,12 +269,15 @@ define([
         author: this.app.profile.user,
         body: payload.body,
         created: new Date().toISOString(),
-        time: this.time
+        time: this.selection
       };
 
       // Optimistically add note to page.
       this.collect(data);
       this.input.val('').keyup();
+
+      console.log(payload)
+      return;
 
       // Now save the note to server.
       rest.post('/api/notes/' + parent.type, payload,
@@ -279,8 +292,8 @@ define([
       }, this));
 
       // Done noting.
-      this.end();
-      mps.publish('note/end');
+      // this.cancel();
+      mps.publish('note/cancel');
 
       return false;
     },
