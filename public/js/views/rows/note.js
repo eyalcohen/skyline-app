@@ -22,19 +22,21 @@ define([
       this.template = _.template(template);
       Row.prototype.initialize.call(this, options);
 
-      // // Icon handling.
-      // this.icon = $('<i class="icon icon-bookmark">');
-      // if (this.model.get('parent_type') === 'view')
-      //   this.icon.addClass('icon-code-view');
-      // else if (this.model.get('parent_type') === 'dataset')
-      //   if (this.model.get('leader'))
-      //     this.icon.addClass('icon-code-dataset-leader');
-      //   else
-      //     this.icon.addClass('icon-code-dataset');
+      // Type handling.
+      if (this.model.get('parent_type') === 'view')
+        this.$el.addClass('note-view');
+      else if (this.model.get('parent_type') === 'dataset')
+        if (this.model.get('leader'))
+          this.$el.addClass('note-dataset-leader');
+        else
+          this.$el.addClass('note-dataset');
+
+      // Set position.
       this.model.on('change:xpos', _.bind(function () {
-        if (!this.icon) return;
-        
-        this.$el.css({left: this.model.get('xpos')});
+        this.$el.css({
+          left: this.model.get('xpos'),
+          opacity: this.model.get('opacity')
+        }).width(this.model.get('width'));
       }, this));
     },
 
@@ -46,31 +48,8 @@ define([
       'mouseout': 'unhighlight',
     },
 
-    // render: function (single, prepend, re) {
-      // if (re) return;
-      // this.parentView.off('rendered');
-      // this.$el.html(this.template.call(this));
-      // if (!single || this.model.collection.length === 1)
-      //   this.$el.insertAfter(this.parentView.$('.list-header'));
-      // else {
-      //   var i; var v = _.find(this.parentView.views, _.bind(function (_v, _i) {
-      //     i = _i;
-      //     return _v.model.get('time') < this.model.get('time');
-      //   }, this));
-      //   if (!v && i === this.parentView.views.length - 1)
-      //     this.$el.insertBefore(this.parentView.views[this.parentView.views.length - 1].$el);
-      //   else
-      //     this.$el.insertAfter(this.parentView.views[i + 0].$el);
-      // }
-      // this.$el.show();
-      // this.time = null;
-    //   this.trigger('rendered');
-    //   return this;
-    // },
-
     setup: function () {
       Row.prototype.setup.call(this);
-      this.$el.width(50)
 
       // Icon events.
       // this.icon.bind('mouseover', _.bind(function (e) {
@@ -100,11 +79,6 @@ define([
       var path = $(e.target).closest('a').attr('href');
       if (path)
         this.app.router.navigate(path, {trigger: true});
-    },
-
-    destroy: function () {
-      this.icon.remove();
-      Row.prototype.destroy.call(this);
     },
 
     _remove: function (cb) {

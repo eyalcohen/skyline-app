@@ -164,6 +164,9 @@ define([
 
       // Do resize on window change.
       this.resize();
+      _.delay(_.bind(this.resize, this), 20);
+      _.delay(_.bind(this.resize, this), 100);
+      _.delay(_.bind(this.resize, this), 500);
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
       $(window).resize(_.debounce(_.bind(this.resize, this), 500));
@@ -458,15 +461,20 @@ define([
     updateNotes: function () {
       if (!this.graph || !this.graph.plot || !this.notes) return;
       var xaxis = this.graph.plot.getXAxes()[0];
+      var vs = this.graph.getVisibleTime();
+      if (!vs.beg) return;
 
       // Update x-pos of each note.
       _.each(this.notes.views, _.bind(function (v) {
-        if (!v.model.get('beg')) return;
-        console.log(xaxis.p2c(v.model.get('beg')))
-        v.model.set('xpos', xaxis.p2c(v.model.get('beg')));
-        // if (!$.contains(document.documentElement, v.icon.get(0))) {
-        //   v.icon.appendTo(this.icons);
-        // }
+        if (!v.model.get('beg')) return v.$el.hide();
+        var beg = v.model.get('beg');
+        var end = v.model.get('end');
+        var xpos = xaxis.p2c(v.model.get('beg'));
+        var width = xaxis.p2c(v.model.get('end')) - xpos;
+        var width_per = 1e3 * (end - beg) / (vs.end - vs.beg);
+        v.model.set('opacity', (1-width_per)*0.3);
+        v.model.set('width', width);
+        v.model.set('xpos', xpos);
       }, this));
     },
 

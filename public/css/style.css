@@ -3447,25 +3447,12 @@ a.comments-signin {
 
 .note {
   position: absolute;
-  width: 2px;
-  left: 200px;
+  width: 0;
   top: 0;
   bottom: 1px;
   background: #9FFF0D;
   z-index: 2;
-
-  -webkit-animation-name: fadeIn;
-  -moz-animation-name: fadeIn;
-  -o-animation-name: fadeIn;
-  animation-name: fadeIn;
-  -webkit-animation-duration: .2s;
-  -moz-animation-duration: .2s;
-  -o-animation-duration: .2s;
-  animation-duration: .2s;
-  -webkit-animation-fill-mode: both;
-  -moz-animation-fill-mode: both;
-  -o-animation-fill-mode: both;
-  animation-fill-mode: both;
+  pointer-events: none;
 }
 
 .note-selector {
@@ -3474,7 +3461,7 @@ a.comments-signin {
   left: 700px;
   top: 0;
   bottom: 1px;
-  background: rgba(159, 255, 13, 0.2);
+  background: rgba(159, 255, 13, 0.3);
   z-index: 2;
 }
 
