@@ -502,8 +502,10 @@ define([
         .mousemove(_.bind(function (e) {
           // panning behavior, unless we're highlight on a line.
           if (this.mousedown) {
-            if (this.changingOffset) {
-              this.endOffset(e);
+            // if (this.changingOffset) {
+            //   this.endOffset(e);
+            //   return;
+            if (e.shiftKey) {
               return;
             } else {
               this.plot.pan({ left: this.prevPageX - e.pageX});
@@ -522,6 +524,12 @@ define([
 
         .mousedown(_.bind(function (e) {
           this.plot.unhighlight();
+
+          if (e.shiftKey) {
+            this.parentView.note();
+            return;
+          }
+
           var closestChannel =
             _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
           if (!closestChannel) return;

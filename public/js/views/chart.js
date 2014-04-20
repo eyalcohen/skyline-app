@@ -398,7 +398,7 @@ define([
     },
 
     note: function (e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
       if (this.app.embed) return;
       if (!this.target().id) return;
       if (!this.cursorData) return;
@@ -466,13 +466,13 @@ define([
 
       // Update x-pos of each note.
       _.each(this.notes.views, _.bind(function (v) {
-        if (!v.model.get('beg')) return v.$el.hide();
         var beg = v.model.get('beg');
         var end = v.model.get('end');
         var xpos = xaxis.p2c(v.model.get('beg'));
         var width = xaxis.p2c(v.model.get('end')) - xpos;
+        width = width < 2 ? 2: width;
         var width_per = 1e3 * (end - beg) / (vs.end - vs.beg);
-        v.model.set('opacity', (1-width_per)*0.3);
+        v.model.set('opacity', (1-width_per)*0.5);
         v.model.set('width', width);
         v.model.set('xpos', xpos);
       }, this));

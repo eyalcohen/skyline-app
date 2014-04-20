@@ -169,7 +169,7 @@ define([
       // Finally, add comment.
       data._new = true;
       this.collection.push(data);
-      this.parentView.updateIcons();
+      this.parentView.updateNotes();
     },
 
     // Remove a model.
@@ -220,22 +220,27 @@ define([
     move: function (start, end) {
       var w = this.selector.parent().width();
       if (end.x > start.x)
-        this.selector.css({left: Math.ceil(start.x), right: Math.ceil(w - end.x -1)})
+        this.selector.css({left: Math.ceil(start.x) - 1, right: Math.ceil(w - end.x)})
             .removeClass('rightsided').addClass('leftsided');
       else
-        this.selector.css({left: Math.ceil(end.x), right: Math.ceil(w - start.x)})
+        this.selector.css({left: Math.ceil(end.x), right: Math.ceil(w - start.x) - 1})
             .removeClass('leftsided').addClass('rightsided');
     },
 
     end: function (end) {
       this.selection.end = end.t;
-      var left = parseInt(this.selector.css('left'));
-      var sw = Math.ceil(this.selector.width());
-      var ww = this.wrap.width();
-      if (this.selection.end < this.selection.beg)
-        this.wrap.css({left: left - ww - 2}).show();
-      else
-        this.wrap.css({left: left + sw + 1}).show();
+      var left = parseInt(this.parentView.cursor.css('left'));
+      var sw = Math.ceil(this.selector.outerWidth());
+      var ww = this.wrap.outerWidth();
+      if (this.selection.end === this.selection.beg)
+        this.wrap.css({left: left + 1}).show();
+      else if (this.selection.end < this.selection.beg) {
+        var beg = this.selection.beg;
+        this.selection.beg = this.selection.end;
+        this.selection.end = beg;
+        this.wrap.css({left: left - sw - ww}).show();
+      } else
+        this.wrap.css({left: left + sw - 1}).show();
       this.inputWrap.show();
       this.input.focus();
     },
