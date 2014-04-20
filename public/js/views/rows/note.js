@@ -44,25 +44,16 @@ define([
       'click': 'open',
       'click .navigate': 'navigate',
       'click .info-delete': 'delete',
-      'mouseover': 'highlight',
-      'mouseout': 'unhighlight',
+      'mouseover': 'over',
+      'mousemove': 'pass',
+      'mousedown': 'pass',
+      'mouseup': 'pass',
+      'mousewheel': 'pass',
+      'mouseout': 'out'
     },
 
     setup: function () {
       Row.prototype.setup.call(this);
-
-      // Icon events.
-      // this.icon.bind('mouseover', _.bind(function (e) {
-      //   this.icon.addClass('hover');
-      //   this.$el.addClass('hover');
-      // }, this));
-      // this.icon.bind('mouseout', _.bind(function (e) {
-      //   this.icon.removeClass('hover');
-      //   this.$el.removeClass('hover');
-      // }, this));
-      // this.icon.click(_.bind(function (e) {
-      //   // this.discussion = new Discussion(this.app, {model: this.model}).render();
-      // }, this));
 
       return this;
     },
@@ -89,19 +80,25 @@ define([
     },
 
     open: function (e) {
-      if ($(e.target).hasClass('info-delete')
-          || $(e.target).hasClass('navigate')
-          || $(e.target).parent().hasClass('navigate')) return;
-      this.discussion = new Discussion(this.app, {model: this.model}).render();
-      mps.publish('chart/zoom', [{center: this.model.get('time')}]);
+      var avg = Math.round(((this.model.get('beg') + this.model.get('end')) / 2));
+      // mps.publish('chart/zoom', [{center: avg}]);
+
+      this.parentView.open(this);
     },
 
-    highlight: function (e) {
-      // this.icon.addClass('hover');
+    over: function (e) {
+      e.preventDefault();
+      
     },
 
-    unhighlight: function (e) {
-      // this.icon.removeClass('hover');
+    pass: function (e) {
+      if (this.parentView.parentView.graph.$el.css('pointer-events') === 'none')
+        return;
+      this.parentView.parentView.graph.$el.trigger(e);
+    },
+
+    out: function (e) {
+
     }
 
   });

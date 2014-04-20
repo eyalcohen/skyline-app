@@ -229,18 +229,34 @@ define([
 
     end: function (end) {
       this.selection.end = end.t;
+      var w = this.selector.parent().width();
       var left = parseInt(this.parentView.cursor.css('left'));
       var sw = Math.ceil(this.selector.outerWidth());
       var ww = this.wrap.outerWidth();
-      if (this.selection.end === this.selection.beg)
-        this.wrap.css({left: left + 1}).show();
-      else if (this.selection.end < this.selection.beg) {
+      if (this.selection.end >= this.selection.beg) {
+        var p = this.selection.end === this.selection.beg ?
+            left + 1: left + sw - 1;
+        var pan = 0;
+
+        // Ensure wrap will be entirely on screen.
+        if (p > w - ww) {
+          pan = ww - (w - p) + 20;
+          mps.publish('chart/pan', [pan]);
+          this.selector.css({
+            left: parseInt(this.selector.css('left')) - pan,
+            right: parseInt(this.selector.css('right')) + pan
+          });
+          this.parentView.cursor.css({
+              left: parseInt(this.parentView.cursor.css('left')) - pan});
+        }
+        this.wrap.css({left: p - pan});
+      } else {
         var beg = this.selection.beg;
         this.selection.beg = this.selection.end;
         this.selection.end = beg;
-        this.wrap.css({left: left - sw - ww}).show();
-      } else
-        this.wrap.css({left: left + sw - 1}).show();
+        this.wrap.css({left: left - sw - ww});
+      }
+      this.wrap.show()
       this.inputWrap.show();
       this.input.focus();
     },
@@ -297,6 +313,15 @@ define([
       mps.publish('note/cancel');
 
       return false;
+    },
+
+    open: function (note) {
+      var ww = this.wrap.outerWidth();
+      var left = parseInt(note.$el.css('left'));
+      var width = note.$el.outerWidth();
+      this.wrap.css({left: left + width}).show();
+      this.inputWrap.show();
+      this.input.focus();
     },
 
     signin: function (e) {

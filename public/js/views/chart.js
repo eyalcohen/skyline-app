@@ -472,7 +472,7 @@ define([
         var width = xaxis.p2c(v.model.get('end')) - xpos;
         width = width < 2 ? 2: width;
         var width_per = 1e3 * (end - beg) / (vs.end - vs.beg);
-        v.model.set('opacity', (1-width_per)*0.5);
+        v.model.set('opacity', (1-width_per)*0.25);
         v.model.set('width', width);
         v.model.set('xpos', xpos);
       }, this));

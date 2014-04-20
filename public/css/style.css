@@ -355,7 +355,7 @@ input[type=text]:focus,
 input[type=password]:focus,
 input[type=search]:focus,
 textarea:focus {
-  background: #F8F8F8 !important;
+  /*background: #F8F8F8 !important;*/
 
   -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
@@ -2648,6 +2648,11 @@ a.control-button-save.saving {
   height: 100% !important;
   /*min-height: 300px;*/
   font-weight: 400;
+  cursor: default;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .graph:focus {
@@ -2704,10 +2709,7 @@ a.control-button-save.saving {
 
 .cursor a.note-duration-button {
   display: none;
-  background: #9FFF0D;
   cursor: default;
-  color: #2F2F2F;
-  font-weight: bold;
 }
 
 .cursor a.note-cancel-button {
@@ -3234,6 +3236,10 @@ textarea.comment-input {
   transition-timing-function: height 0.2s;
 }
 
+textarea.comment-input:focus {
+  background: #fff;
+}
+
 .discussion textarea.comment-input {
   width: 634px;
   padding: 10px 6px;
@@ -3450,9 +3456,27 @@ a.comments-signin {
   width: 0;
   top: 0;
   bottom: 1px;
-  background: #9FFF0D;
   z-index: 2;
-  pointer-events: none;
+  cursor: pointer;
+
+  border-left: 1px dashed rgba(0,0,0,0.3);
+  border-right: 1px dashed rgba(0,0,0,0.3);
+}
+
+.note.hover {
+  opacity: 0.5;
+}
+
+.note.note-view {
+  background: #9FFF0D;
+}
+
+.note.note-dataset {
+  background: #666;
+}
+
+.note.note-dataset-leader {
+  background: #27CDD6;
 }
 
 .note-selector {
@@ -3461,33 +3485,17 @@ a.comments-signin {
   left: 700px;
   top: 0;
   bottom: 1px;
-  background: rgba(159, 255, 13, 0.5);
+  background: rgba(0, 0, 0, 0.15);
   z-index: 2;
 }
 
 .note-selector.rightsided {
-  border-left: 1px solid #9FFF0D;
+  border-left: 1px solid rgba(0,0,0,0.3);
 }
 
 .note-selector.leftsided {
-  border-right: 1px solid #9FFF0D;
+  border-right: 1px solid rgba(0,0,0,0.3);
 }
-
-/*.icon.hover {
-  opacity: 1;
-}
-
-.icon-code-view {
-  color: #9FFF0D;
-}
-
-.icon-code-dataset {
-  color: #d0d0d0;
-}
-
-.icon-code-dataset-leader {
-  color: #27CDD6;
-}*/
 
 .note-wrap {
   display: none;
@@ -3500,6 +3508,10 @@ a.comments-signin {
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
+
+  -webkit-box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
+  -mozbox-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;

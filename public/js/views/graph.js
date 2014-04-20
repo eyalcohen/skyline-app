@@ -37,6 +37,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
+        mps.subscribe('chart/pan', _.bind(this.pan, this)),
         mps.subscribe('graph/draw', _.bind(function() {
           this.model.updateCacheSubscription();
           this.draw();
@@ -154,6 +155,11 @@ define([
       this.plot.setupGrid();
       this.plot.draw();
       this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);
+    },
+
+    pan: function (left) {
+      this.plot.pan({left: left});
+      this.prevPageX -= left;
     },
 
     // returns an array of objects containing {
@@ -508,7 +514,7 @@ define([
             if (e.shiftKey) {
               return;
             } else {
-              this.plot.pan({ left: this.prevPageX - e.pageX});
+              this.plot.pan({left: this.prevPageX - e.pageX});
               this.prevPageX = e.pageX;
             }
           }
