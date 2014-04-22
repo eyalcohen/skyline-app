@@ -42,7 +42,7 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('channel/add', _.bind(function (did, channel) {
+        mps.subscribe('channel/add', _.bind(function (did, channel, yaxis) {
           this.graph.model.addChannel(this.datasets.collection.get(did),
               _.clone(channel));
           this.overview.model.addChannel(this.datasets.collection.get(did),

@@ -13,6 +13,7 @@ define([
 
       // Use name as id.
       this.set('id', this.get('val').channelName, {silent: true});
+      this.set('lineStyleOptions', {});
     },
 
     name: function () {

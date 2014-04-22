@@ -24,7 +24,7 @@ define([
       this.app = app;
       this.options = options;
       this.channel = this.options.channel;
-      this.currentLineStyle = this.channel.lineStyle;
+      this.currentLineStyle = this.channel.get('lineStyleOptions');
 
       // Shell events.
       this.on('rendered', this.setup, this);

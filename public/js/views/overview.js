@@ -215,38 +215,45 @@ define([
     },
 
     drawCurrentTimeOverlay: function(time) {
-      if (!time.beg) return;
-      var vs = this.getVisibleTime();
-      if (!vs.beg) return;
-      var height = this.visTimePlot.height();
-      var width = this.$el.width();
+      this.model.fetchGraphedChannels(_.bind(function (channels) {
+        if (channels.length === 0) {
+          return;
+        }
+        else {
+          if (!time.beg) return;
+          var vs = this.getVisibleTime();
+          if (!vs.beg) return;
+          var height = this.visTimePlot.height();
+          var width = this.$el.width();
 
-      var width_per = (time.end-time.beg) / (vs.end - vs.beg);
-      var begin = (time.beg - vs.beg) / (vs.end - vs.beg);
+          var width_per = (time.end-time.beg) / (vs.end - vs.beg);
+          var begin = (time.beg - vs.beg) / (vs.end - vs.beg);
 
-      var path = d3.svg.area()
-          .x(function (t) { return t.x; })
-          .y0(function (t) { return 0; })
-          .y1(function (t) { return t.y; })
-          .interpolate('linear');
+          var path = d3.svg.area()
+              .x(function (t) { return t.x; })
+              .y0(function (t) { return 0; })
+              .y1(function (t) { return t.y; })
+              .interpolate('linear');
 
-      var factor = 0; // for scaling the trapzeoid
+          var factor = 0; // for scaling the trapzeoid
 
-      // create a trapezoid
-      var trap = [
-        {x:Math.max((begin-factor)*width,0), y:0},
-        {x:begin*width, y:height},
-        {x:(begin+width_per)*width, y:height},
-        {x:Math.min((begin+width_per+factor)*width, width), y:0},
-      ];
+          // create a trapezoid
+          var trap = [
+            {x:Math.max((begin-factor)*width,0), y:0},
+            {x:begin*width, y:height},
+            {x:(begin+width_per)*width, y:height},
+            {x:Math.min((begin+width_per+factor)*width, width), y:0},
+          ];
 
-      d3.select(this.visTimePlot.get(0)).select('path')
-        // .transition()
-        .attr('d', path(trap))
-        .attr('fill', '#27CDD6')
-        .attr('opacity', (1-width_per)*0.5)
-        // .attr('stroke-width', 1)
-        // .attr('stroke', '#b2b2b2');
+          d3.select(this.visTimePlot.get(0)).select('path')
+            // .transition()
+            .attr('d', path(trap))
+            .attr('fill', '#27CDD6')
+            .attr('opacity', (1-width_per)*0.5)
+            // .attr('stroke-width', 1)
+            // .attr('stroke', '#b2b2b2');
+        }
+      }, this));
     },
 
     getSeriesData: function (channel) {

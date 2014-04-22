@@ -29,7 +29,6 @@ define([
         mps.subscribe('channel/added', _.bind(this.added, this)),
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
         mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
-        mps.subscribe('channel/yaxisUpdate', _.bind(this.updateYAxis, this)),
       ];
 
       Row.prototype.initialize.call(this, options);
@@ -45,6 +44,26 @@ define([
 
       // Bind click event.
       this.button.click(_.bind(this.toggle, this));
+      this.$el.find('.channel-yaxis-code').click(_.bind(function(e) {
+        if (!this.active)
+          return;
+        e.stopPropagation();
+        var lso = this.model.get('lineStyleOptions');
+        switch (this.model.get('lineStyleOptions').yaxis) {
+          default:
+          case 1:
+            lso.yaxis = 2;
+            this.model.set('lineStyleOptions', lso);
+            break;
+          case 2:
+            lso.yaxis = 1;
+            this.model.set('lineStyleOptions', lso);
+            break;
+        };
+        this.updateYAxisView();
+        mps.publish('channel/lineStyleUpdate',
+            [this.model.get('val').channelName, this.model.get('lineStyleOptions'), true]);
+      }, this));
 
       // Check if active in state.
       var state = store.get('state');
@@ -57,6 +76,7 @@ define([
         this.model.set('val', v);
         mps.publish('channel/add', [this.model.get('did'), v]);
         this.active = true;
+        this.updateYAxisView();
         this.$el.addClass('active').show();
       }
 
@@ -68,8 +88,6 @@ define([
     events: {
       'mouseenter': 'mouseenter',
       'mouseleave': function (e) {
-        // A scrollbar being present triggers the mouse-leave event.
-        // We deal with this by adding +20 to the mouse location
         var over = document.elementFromPoint(e.clientX, e.clientY);
         if (!$(over).hasClass('linestyle-linetype')
             && !$(over).hasClass('linestyle-modal')) {
@@ -125,6 +143,7 @@ define([
             this.model.get('val')]);
         this.active = true;
         this.mouseenter();
+        this.updateYAxisView();
       }
       return false;
     },
@@ -156,7 +175,7 @@ define([
     added: function (did, channel, style) {
       if (this.model.get('did') !== did
           || this.model.id !== channel.channelName) return;
-      this.model.lineStyle = style;
+      this.model.set('lineStyleOptions', style);
       var color = style.color || this.app.getColors(channel.colorNum);
 
       // handles the case where we add the channel from outside the toggle function
@@ -164,6 +183,7 @@ define([
         this.$el.addClass('active');
         this.active = true;
         this.expand();
+        this.updateYAxisView();
       }
 
       this.$el.css({
@@ -222,22 +242,31 @@ define([
       var item = _.find(stats, function (e) {
         return e.channelName === this.model.id;
       }, this);
-      if (item)
-        this.value.text(item.nearestPointData[1].toFixed(2)).show();
+      if (item) {
+        var val = item.nearestPointData[1];
+        // make scientific notation if necessary
+        val = val > 10000 ? val.toExponential(2) : val.toFixed(2);
+        this.value.text(val).show();
+      }
     },
 
-    updateYAxis: function (channel) {
-      if (this.model.id !== channel.channelName) return;
+    updateYAxisView: function () {
+      if (!this.active)
+        return;
+      var lso = this.model.get('lineStyleOptions');
+      var currentYAxis = lso.yaxis;
+      if (!currentYAxis) return;
       this.$el.removeClass('yaxis-left').removeClass('yaxis-right');
-      switch (channel.yaxisNum) {
-        case 1:
-          this.$el.addClass('yaxis-left');
-          break;
-        case 2:
-          this.$el.addClass('yaxis-right');
-          break;
+      var icon = this.$el.find('i')
+      if (currentYAxis === 1) {
+        this.$el.addClass('yaxis-left');
+        icon.removeClass().addClass('icon-left-dir');
       }
-    }
+      else if (currentYAxis === 2) {
+        this.$el.addClass('yaxis-right');
+        icon.removeClass().addClass('icon-right-dir');
+      }
+    },
 
   });
 });

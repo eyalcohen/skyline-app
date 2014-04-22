@@ -367,39 +367,10 @@ define([
         var lineStyleOpts = this.model.lineStyleOptions[channel.channelName]
         var highlighted = this.highlightedChannel === channel.channelName;
 
-        // Pick a yaxis for this channel.
-        _.find(yaxes, function (a, i) {
-          if (channel.range && rangeFitsAxis(channel.range, a)) {
-            // console.log(channel.channelName, 'FIT', i+1);
-            channel.yaxisNum = i + 1;
-            return true;
-          } else {
-            // console.log(channel.channelName, 'NOFIT', i+1);
-            channel.yaxisNum = null;
-            return false;
-          }
-        });
-
-        // If no suitable axis, pick less populated.
-        if (!channel.yaxisNum)
-          channel.yaxisNum = yaxes[0].cnt > yaxes[1].cnt ? 2: 1;
-        
-        // Keep track of min and max and count for the choses axis.
-        if (channel.range) {
-          yaxes[channel.yaxisNum - 1].min =
-              Math.min(yaxes[channel.yaxisNum - 1].min, channel.range.min);
-          yaxes[channel.yaxisNum - 1].max =
-              Math.max(yaxes[channel.yaxisNum - 1].max, channel.range.max);
-        }
-        yaxes[channel.yaxisNum - 1].cnt++;
-
-        // Inform channel list of axis choice.
-        mps.publish('channel/yaxisUpdate', [channel]);
-
         // Setup series.
         var seriesBase = {
           xaxis: 1,
-          yaxis: channel.yaxisNum,
+          yaxis: lineStyleOpts.yaxis,
           channelIndex: i,
         };
         var data = this.getSeriesData(channel);
@@ -417,7 +388,16 @@ define([
           label: channel.title,
         }, seriesBase));
 
-        if (data.minMax.length > 0) {
+        // minMax view hacks
+        // count number of nulls in the data, don't show if too many
+        // don't show minMax if a fill plot is on
+        numNulls = _.foldl(data.minMax, function(memo, it) {
+          return memo + (it === null ? 1 : 0);
+        }, 0);
+
+        var showMinMax = numNulls < data.minMax.length * .33;
+
+        if (data.minMax.length > 0 && showMinMax) {
           series.push(_.extend({
             points: {
               show: false
@@ -783,7 +763,8 @@ define([
       if (channels.length === 0) return;
       var yAxes = this.plot.getYAxes();
       yAxes[0].options.color = '#666';
-      yAxes[1].options.color = '#d0d0d0';
+      yAxes[1].options.color = '#666';
+      //yAxes[1].options.color = '#d0d0d0';
       series.forEach(_.bind(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = this.highlightedChannel === channel.channelName;
