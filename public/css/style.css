@@ -3496,18 +3496,16 @@ a.comments-signin {
   display: none;
   position: absolute;
   z-index: 11;
-  top: 0;
   bottom: 0;
   width: 300px;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
-  border-left: 1px solid #d0d0d0;
-  border-right: 1px solid #d0d0d0;
+  border-top: 1px solid #d0d0d0;
   pointer-events: auto;
 
-  -webkit-box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
-  -mozbox-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
-  box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  -mozbox-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3521,6 +3519,14 @@ a.comments-signin {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+}
+
+.note-wrap.rightsided {
+  border-left: 1px solid #d0d0d0;
+}
+
+.note-wrap.leftsided {
+  border-right: 1px solid #d0d0d0;
 }
 
 .note-wrap-new {

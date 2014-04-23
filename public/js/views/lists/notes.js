@@ -244,6 +244,8 @@ define([
 
         // Ensure wrap will be entirely on screen.
         if (p > w - ww) pan = ww - (w - p) + 20;
+
+        this.wrap.removeClass('rightsided').addClass('leftsided');
       } else {
         var beg = this.selection.beg;
         this.selection.beg = this.selection.end;
@@ -252,6 +254,8 @@ define([
 
         // Ensure wrap will be entirely on screen.
         if (p < 0) pan = p - 20;
+
+        this.wrap.removeClass('leftsided').addClass('rightsided');
       }
       if (pan) {
         mps.publish('chart/pan', [pan]);
