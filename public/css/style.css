@@ -307,6 +307,10 @@ footer {
   bottom: 0;
 }
 
+form {
+  background: none;
+}
+
 table {
   width: 100%;
 }
@@ -3213,6 +3217,15 @@ a.channel-button {
   animation-fill-mode: both;
 }
 
+.comment-input-wrap span {
+  font-weight: normal;
+  font-size: 10px;
+  padding: 0 10px;
+  color: #666;
+  text-align: right;
+  display: block;
+}
+
 textarea.comment-input {
   display: block;
   width: 280px;
@@ -3223,6 +3236,11 @@ textarea.comment-input {
   overflow: hidden;
   font-size: 12px;
   border: none;
+  border-bottom: 1px solid #D0D0D0;
+
+  -webkit-box-shadow: none;
+  -mozbox-shadow: none;
+  box-shadow: none;
 
   -moz-border-radius: 0;
   -webkit-border-radius: 0;
@@ -3303,14 +3321,9 @@ a.button.comment-input-button.primary:active {
   animation-fill-mode: both;
 }
 
-.comment:nth-last-child(2) {
+/*.comment:nth-last-child(2) {
   border-bottom: none;
-}
-
-.comment:hover,
-.comment.hover {
-  background: #f2f2f2;
-}
+}*/
 
 .comment-input-wrap .comment {
   display: block;
@@ -3318,29 +3331,11 @@ a.button.comment-input-button.primary:active {
   border-bottom: none;
 }
 
-.discussion .comment {
-  width: 700px;
-  cursor: inherit;
-}
-
-.discussion .comment:hover {
-  background: inherit;
-}
-
-.discussion .comment {
-  border-bottom: none;
-  border-top: 1px solid #e0e0e0;
-}
-
 .comment-body {
   padding: 6px;
 }
 
 .comment-input-wrap .comment-body {
-  padding: 0;
-}
-
-.discussion-inner .comment-body {
   padding: 0;
 }
 
@@ -3352,10 +3347,8 @@ a.button.comment-input-button.primary:active {
   margin-bottom: -3px;
 }
 
-.discussion-inner .comment-body p {
-  padding: 0;
-  font-size: 14px;
-  line-height: 21px;
+.note-wrap .comment-body p {
+  padding-right: 20px;
 }
 
 span.comment-avatar,
@@ -3379,10 +3372,6 @@ a.comment-avatar img {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
-}
-
-.discussion .comment-input-wrap span.comment-avatar {
-  margin-right: 0;
 }
 
 a.comment-author {
@@ -3432,12 +3421,7 @@ a.comments-signin {
   background: rgba(39, 205, 214, 0.8);
 }
 
-.discussion a.comments-signin {
-  border-top: 1px solid #e0e0e0;
-  border-bottom: none;
-}
-
-.showolder {
+.comments-older {
   padding: 5px 5px;
   display: block;
   min-height: 0;
@@ -3449,33 +3433,43 @@ a.comments-signin {
 
 /*.........................................................................*/
 
-.notes {}
+.notes {
+  position: absolute;
+  z-index: 9;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
 .note {
   position: absolute;
-  width: 0;
   top: 0;
+  left: -1000px;
   bottom: 1px;
   z-index: 2;
+  pointer-events: auto;
+}
+
+.note .note-bar {
+  position: absolute;
+  width: 0;
+  top: 0;
+  bottom: 0;
   cursor: pointer;
 
   border-left: 1px dashed rgba(0,0,0,0.3);
   border-right: 1px dashed rgba(0,0,0,0.3);
 }
 
-.note.hover {
-  opacity: 0.5;
-}
-
-.note.note-view {
+.note.note-view .note-bar {
   background: #9FFF0D;
 }
 
-.note.note-dataset {
+.note.note-dataset .note-bar {
   background: #666;
 }
 
-.note.note-dataset-leader {
+.note.note-dataset-leader .note-bar {
   background: #27CDD6;
 }
 
@@ -3487,6 +3481,7 @@ a.comments-signin {
   bottom: 1px;
   background: rgba(0, 0, 0, 0.15);
   z-index: 2;
+  pointer-events: auto;
 }
 
 .note-selector.rightsided {
@@ -3502,12 +3497,13 @@ a.comments-signin {
   position: absolute;
   z-index: 11;
   top: 0;
-  bottom: 1px;
+  bottom: 0;
   width: 300px;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
   border-right: 1px solid #d0d0d0;
+  pointer-events: auto;
 
   -webkit-box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
   -mozbox-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.1);
@@ -3527,6 +3523,25 @@ a.comments-signin {
   animation-fill-mode: both;
 }
 
+.note-wrap-new {
+  bottom: 1px;
+}
+
+.note .note-cancel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+  display: block;
+  cursor: pointer;
+  padding: 0 0 5px 5px;
+  font-size: 14px;
+  color: #666;
+}
+
+.note .note-cancel:hover {
+  color: #2f2f2f;
+}
 
 /*.........................................................................*/
 

@@ -1,0 +1,47 @@
+<%
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + this.model.get('author').gravatar + '?s=28&d=mm';
+%>
+
+<div class="note-bar"></div>
+<div class="note-wrap">
+  <span class="note-cancel">
+    <i class="icon-cancel"></i>
+  </span>
+  <div class="comment">
+    <a href="/<%= this.model.get('author').username %>" class="comment-avatar navigate">
+      <img src="<%= gravatar %>" width="28" height="28" />
+    </a>
+    <div class="comment-body">
+      <p>
+        <a href="/<%= this.model.get('author').username %>" class="comment-author navigate">
+          <%= this.model.get('author').displayName %>
+        </a>
+        <%= this.model.body() %>
+      </p>
+      <div class="comment-info">
+        <% if (this.model.get('parent_type') === 'view') { %>
+          <span class="comment-code comment-code-view"></span>
+        <% } else if (this.model.get('parent_type') === 'dataset') { %>
+          <% if (this.model.get('leader')) { %>
+            <span class="comment-code comment-code-dataset-leader"></span>
+          <% } else { %>
+            <span class="comment-code comment-code-dataset"></span>
+          <% } %>
+        <% } %>
+        <time class="created" 
+            datetime="<%= this.model.get('created') %>" 
+            title="<%= this.model.get('created') %>">
+          <%= this.model.get('created') %>
+        </time>
+        <% if (this.app.profile.user &&
+            this.model.get('author').id === this.app.profile.user.id) { %>
+          <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+          <a class="info-delete">delete</a>
+        <% } %>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+  </div>
+  <div class="replies"></div>
+</div>

@@ -109,24 +109,26 @@ define([
     setup: function () {
 
       // Save refs.
-      this.wrap = this.$('.note-wrap');
-      this.bookmarks = this.$('.note-bookmarks');
       this.selector = this.$('.note-selector');
-      this.form = this.$('.comment-input-form');
-      this.inputWrap = this.$('.comment-input-wrap');
-      this.input = this.$('.comment-input');
+      this.wrap = this.$('.note-wrap-new');
+      this.form = $('.comment-input-form', this.wrap);
+      this.inputWrap = this.$('.comment-input-wrap', this.wrap);
+      this.input = this.$('.comment-input', this.wrap);
       this.footer = this.$('.list-footer');
 
-      // Autogrow the write comment box.
-      this.$('textarea[name="body"]').autogrow();
-      this.$('#c_cancel').click(_.bind(function (e) {
-        e.preventDefault();
-        mps.publish('note/cancel');
-      }, this));
-      this.$('#c_submit').click(_.bind(function (e) {
-        e.preventDefault();
-        this.write();
-      }, this));
+      // Handle comment box keys.
+      this.$('textarea[name="body"]')
+          .bind('keyup', _.bind(function (e) {
+        if (e.shiftKey) return;
+        if (e.keyCode === 13 || e.which === 13)
+          this.write();
+        else if (e.keyCode === 27 || e.which === 27)
+          mps.publish('note/cancel');
+      }, this))
+          .bind('keydown', _.bind(function (e) {
+        if (!e.shiftKey && (e.keyCode === 13 || e.which === 13))
+          return false;
+      }, this)).autogrow();
 
       return List.prototype.setup.call(this);
     },
@@ -169,7 +171,6 @@ define([
       // Finally, add comment.
       data._new = true;
       this.collection.push(data);
-      this.parentView.updateNotes();
     },
 
     // Remove a model.
@@ -214,7 +215,10 @@ define([
 
     start: function (data) {
       this.selection.beg = data.t;
-      this.selector.css({left: data.x, right: this.selector.parent().width() - data.x}).show();
+      this.selector.css({
+        left: data.x, 
+        right: this.selector.parent().width() - data.x
+      }).show();
     },
 
     move: function (start, end) {
@@ -233,30 +237,35 @@ define([
       var left = parseInt(this.parentView.cursor.css('left'));
       var sw = Math.ceil(this.selector.outerWidth());
       var ww = this.wrap.outerWidth();
+      var p, pan;
       if (this.selection.end >= this.selection.beg) {
-        var p = this.selection.end === this.selection.beg ?
+        p = this.selection.end === this.selection.beg ?
             left + 1: left + sw - 1;
-        var pan = 0;
 
         // Ensure wrap will be entirely on screen.
-        if (p > w - ww) {
-          pan = ww - (w - p) + 20;
-          mps.publish('chart/pan', [pan]);
-          this.selector.css({
-            left: parseInt(this.selector.css('left')) - pan,
-            right: parseInt(this.selector.css('right')) + pan
-          });
-          this.parentView.cursor.css({
-              left: parseInt(this.parentView.cursor.css('left')) - pan});
-        }
-        this.wrap.css({left: p - pan});
+        if (p > w - ww) pan = ww - (w - p) + 20;
       } else {
         var beg = this.selection.beg;
         this.selection.beg = this.selection.end;
         this.selection.end = beg;
-        this.wrap.css({left: left - sw - ww});
+        p = left - sw - ww;
+
+        // Ensure wrap will be entirely on screen.
+        if (p < 0) pan = p - 20;
       }
-      this.wrap.show()
+      if (pan) {
+        mps.publish('chart/pan', [pan]);
+        this.selector.css({
+          left: parseInt(this.selector.css('left')) - pan,
+          right: parseInt(this.selector.css('right')) + pan
+        });
+        this.parentView.cursor.css({
+          left: parseInt(this.parentView.cursor.css('left')) - pan
+        });
+      } else {
+        pan = 0;
+      }
+      this.wrap.css({left: p - pan}).show();
       this.inputWrap.show();
       this.input.focus();
     },

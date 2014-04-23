@@ -11,7 +11,7 @@ define([
     model: Model,
 
     comparator: function (model) {
-      return -model.get('time');
+      return -model.get('beg');
     },
 
   });

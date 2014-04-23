@@ -8,8 +8,9 @@ define([
   'mps',
   'rest',
   'views/boiler/row',
-  'text!../../../templates/rows/note.html'
-], function ($, _, mps, rest, Row, template) {
+  'text!../../../templates/rows/note.html',
+  'views/lists/replies'
+], function ($, _, mps, rest, Row, template, Replies) {
   return Row.extend({
 
     attributes: function () {
@@ -34,16 +35,22 @@ define([
       // Set position.
       this.model.on('change:xpos', _.bind(function () {
         this.$el.css({
-          left: this.model.get('xpos'),
+          left: Math.ceil(this.model.get('xpos'))
+        });
+        this.bar.css({
           opacity: this.model.get('opacity')
-        }).width(this.model.get('width'));
+        }).width(Math.ceil(this.model.get('width')));
+        this.wrap.css({
+          left: Math.ceil(this.model.get('width')) + 2
+        });
       }, this));
     },
 
     events: {
-      'click': 'open',
       'click .navigate': 'navigate',
       'click .info-delete': 'delete',
+      'click .note-bar': 'open',
+      'click .icon-cancel': 'open',
       'mouseover': 'over',
       'mousemove': 'pass',
       'mousedown': 'pass',
@@ -52,10 +59,27 @@ define([
       'mouseout': 'out'
     },
 
-    setup: function () {
-      Row.prototype.setup.call(this);
+    render: function (single, prepend, re) {
+      Row.prototype.render.apply(this, arguments);
+
+      // Save refs.
+      this.bar = this.$('.note-bar');
+      this.wrap = this.$('.note-wrap');
+
+      if (single)
+        this.parentView.parentView.updateNotes();
 
       return this;
+    },
+
+    setup: function () {
+      return Row.prototype.setup.call(this);
+    },
+
+    destroy: function () {
+      if (this.replies)
+        this.replies.destroy();
+      return Row.prototype.destroy.call(this);
     },
 
     delete: function (e) {
@@ -80,10 +104,34 @@ define([
     },
 
     open: function (e) {
-      var avg = Math.round(((this.model.get('beg') + this.model.get('end')) / 2));
-      // mps.publish('chart/zoom', [{center: avg}]);
+      if (e) e.preventDefault();
 
-      this.parentView.open(this);
+      // Toggle
+      if (this.replies) {
+        this.replies.destroy();
+        delete this.replies;
+        this.wrap.hide();
+        return false;
+      }
+      this.wrap.show();
+      this.$('.comment').show();
+
+      // Get replies.
+      rest.get('/api/notes/' + this.model.id, {},
+          _.bind(function (err, data) {
+        if (err) return console.log(err);
+
+        // Set comments on model.
+        this.model.set({
+          comments: data.comments,
+          comments_cnt: data.comments_cnt
+        });
+
+        // Render replies.
+        this.replies = new Replies(this.app, {parentView: this});
+      }, this));
+
+      return false;
     },
 
     over: function (e) {
@@ -99,7 +147,7 @@ define([
 
     out: function (e) {
 
-    }
+    },
 
   });
 });

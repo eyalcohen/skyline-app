@@ -529,6 +529,8 @@ define([
         }, this))
 
         .mousedown(_.bind(function (e) {
+          if (e.which === 3) return false; // ignore right-click
+
           this.plot.unhighlight();
 
           if (e.shiftKey) {
