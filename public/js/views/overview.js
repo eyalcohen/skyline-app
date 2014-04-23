@@ -113,15 +113,21 @@ define([
 
       // Make a plot for each channel.
       this.model.fetchGraphedChannels(_.bind(function (channels) {
-        var min = Number.MAX_VALUE;
-        var max = -Number.MAX_VALUE;
+        var min = [Number.MAX_VALUE, Number.MAX_VALUE];
+        var max = [-Number.MAX_VALUE, -Number.MAX_VALUE];
 
         // Get channel samples.
         this.series = [];
         _.each(channels, _.bind(function (channel) {
           var s = this.getSeriesData(channel);
-          min = Math.min(min, s.min);
-          max = Math.max(max, s.max);
+          var axis = this.model.lineStyleOptions[channel.channelName].yaxis;
+          if (axis === 2) {
+            min[1] = Math.min(min[1], s.min);
+            max[1] = Math.max(max[1], s.max);
+          } else {
+            min[0] = Math.min(min[0], s.min);
+            max[0] = Math.max(max[0], s.max);
+          }
 
           if (s.data.length === 0) return;
           s.color = this.app.getColors(channel.colorNum);
@@ -143,6 +149,7 @@ define([
             s.data.push({t: time.end / 1e3, v: null});
           }
           s.name = channel.channelName;
+          s.axis = axis;
           this.series.push(s);
         }, this));
 
@@ -171,7 +178,8 @@ define([
                 return height;
               })
               .y1(function (s) {
-                var _height = height * series.max / max;
+                var local_max = series.axis === 2 ? max[1] : max[0];
+                var _height = height * series.max / local_max;
                 return s.v === null ? height:
                     height - ((s.v - series.min) / (series.max - series.min) * _height);
               })
