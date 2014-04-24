@@ -60,9 +60,6 @@ define([
       }, this));
 
       // Show other elements.
-      this.$('.comments-older.comment').show();
-      this.$('.comment-input-wrap').show();
-      this.$('.comment-input-wrap .comment').show();
       this.$('textarea.comment-input').focus();
 
       return List.prototype.setup.call(this);

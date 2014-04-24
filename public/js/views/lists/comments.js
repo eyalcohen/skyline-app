@@ -26,17 +26,11 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Client-wide subscriptions.
-      this.subscriptions = [
-        mps.subscribe('comment/start', _.bind(this.start, this)),
-        mps.subscribe('comment/end', _.bind(this.end, this)),
-      ];
+      this.subscriptions = [];
 
       // Socket subscriptions.
       this.app.rpc.socket.on('comment.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('comment.removed', _.bind(this._remove, this));
-
-      // Misc.
-      this.empty_label = 'No comments.';
 
       this.reset(true);
     },
@@ -73,61 +67,50 @@ define([
       this.collection.reset(comments);
     },
 
-    // Initial bulk render of list
-    render: function (options) {
-      List.prototype.render.call(this, options);
-      if (this.collection.length === 0)
-        $('<span class="empty-feed">' + this.empty_label
-            + '</span>').appendTo(this.$el);
-
-      return this;
-    },
-
     // Render a model, placing it in the correct order.
-    renderLast: function () {
-      if (this.collection.models.length === 1)
-        this.$('.empty-feed').remove();
-      var model = _.find(this.collection.models, _.bind(function (m) {
-        return m.get('_new');
-      }, this));
-      model.set('_new', false);
-      this.row(model, true);
-      return this;
-    },
+    // renderLast: function () {
+    //   if (this.collection.models.length === 1)
+    //     this.$('.empty-feed').remove();
+    //   var model = _.find(this.collection.models, _.bind(function (m) {
+    //     return m.get('_new');
+    //   }, this));
+    //   model.set('_new', false);
+    //   this.row(model, true);
+    //   return this;
+    // },
 
-    row: function (model, single) {
-      var view = new this.Row({
-        parentView: this,
-        model: model
-      }, this.app);
-      if (single) view.render(true);
-      this.views.push(view);
-      this.views.sort(function (a, b) {
-        return b.model.get('time') - a.model.get('time');
-      });
+    // row: function (model, single) {
+    //   var view = new this.Row({
+    //     parentView: this,
+    //     model: model
+    //   }, this.app);
+    //   if (single) view.render(true);
+    //   this.views.push(view);
+    //   this.views.sort(function (a, b) {
+    //     return b.model.get('time') - a.model.get('time');
+    //   });
       
-      return view.toHTML();
-    },
+    //   return view.toHTML();
+    // },
 
     setup: function () {
 
       // Save refs.
       this.form = this.$('.comment-input-form');
-      this.inputWrap = this.$('.comment-input-wrap');
       this.input = this.$('.comment-input');
       this.footer = this.$('.list-footer');
 
-      // Autogrow the write comment box.
-      this.$('textarea[name="body"]').autogrow();
-      this.$('#c_cancel').click(_.bind(function (e) {
-        e.preventDefault();
-        this.end();
-        mps.publish('comment/end');
-      }, this));
-      this.$('#c_submit').click(_.bind(function (e) {
-        e.preventDefault();
-        this.write();
-      }, this));
+      // Handle comment box keys.
+      this.$('textarea[name="body"]')
+          .bind('keyup', _.bind(function (e) {
+        if (e.shiftKey) return;
+        if (e.keyCode === 13 || e.which === 13)
+          this.write();
+      }, this))
+          .bind('keydown', _.bind(function (e) {
+        if (!e.shiftKey && (e.keyCode === 13 || e.which === 13))
+          return false;
+      }, this)).autogrow();
 
       return List.prototype.setup.call(this);
     },
@@ -170,7 +153,6 @@ define([
       // Finally, add comment.
       data._new = true;
       this.collection.push(data);
-      this.parentView.updateIcons();
     },
 
     // Remove a model.
@@ -185,9 +167,6 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
-          if (this.collection.length === 0)
-            $('<span class="empty-feed">' + this.empty_label
-                + '</span>').appendTo(this.$el);
         }, this));
       }
 
@@ -213,46 +192,6 @@ define([
       return this;
     },
 
-    start: function (data) {
-      this.time = data.t;
-      
-      // Find out where to put the input wrapper.
-      if (this.collection.length === 0) {
-        this.inputWrap.show();
-        this.input.focus();
-        return;
-      }
-      var w = this.inputWrap.detach();
-      var i; var v = _.find(this.views, _.bind(function (_v, _i) {
-        i = _i;
-        return _v.model.get('time') < this.time;
-      }, this));
-      if (!v && i === this.views.length - 1)
-        w.insertBefore(_.last(this.views).$el);
-      else
-        w.insertAfter(v.$el);
-      w.show();
-      this.$el.parent().animate({scrollTop: w.position().top
-          - this.$el.position().top},
-          {duration: 400, easing: 'easeOutExpo'});
-      this.input.focus();
-    },
-
-    end: function () {
-      this.inputWrap.hide();
-    },
-
-    //
-    // Optimistically writes a comment.
-    //
-    // This function assumes that a comment will successfully be created on the
-    // server. Based on that assumption we render it in the UI before the 
-    // success callback fires.
-    //
-    // When the success callback fires, we update the comment model id from the
-    // comment created on the server. If the error callback fires, we remove 
-    // the comment from the UI and notify the user (or retry).
-    //
     write: function (e) {
       if (e) e.preventDefault();
       var parent = this.parentView.target();
@@ -289,14 +228,42 @@ define([
         var comment = this.collection.get(-1);
         comment.set('id', data.id);
         this.$('#-1').attr('id', data.id);
+      }, this));
+
+      return false;
+    },
+
+    older: function (e) {
+
+      var limit = this.collection.older;
+      this.collection.older = 0;
+
+      // Get the older comments.
+      rest.post('/api/comments/list', {
+        cursor: 0, 
+        limit: limit,
+        parent_id: this.parentView.model.id,
+      }, _.bind(function (err, data) {
+
+        if (err) return console.log(err);
+
+        // Update the collection.
+        var ids = _.pluck(this.collection.models, 'id');
+        this.collection.options.reverse = true;
+        var i = 0;
+        _.each(data.comments.items, _.bind(function (c) {
+          if (!_.contains(ids, c.id)) {
+            this.collection.unshift(c);
+            ++i;
+          }
+        }, this));
+        this.collection.options.reverse = false;
+
+        // Hide the button.
+        this.$('.comments-older.comment').hide();
 
       }, this));
 
-      // Done commenting.
-      this.end();
-      mps.publish('comment/end');
-
-      return false;
     },
 
     signin: function (e) {

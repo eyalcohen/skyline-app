@@ -2756,36 +2756,6 @@ a.control-button-save.saving {
   margin: 0 2px;
 }
 
-.icons {
-  position: absolute;
-  z-index: 9;
-  top: -2px;
-  left: 0;
-}
-
-.icon {
-  position: absolute;
-  cursor: pointer;
-  font-size: 24px;
-  opacity: 0.9;
-}
-
-.icon.hover {
-  opacity: 1;
-}
-
-.icon-code-view {
-  color: #9FFF0D;
-}
-
-.icon-code-dataset {
-  color: #d0d0d0;
-}
-
-.icon-code-dataset-leader {
-  color: #27CDD6;
-}
-
 /*.........................................................................*/
 
 .overview {
@@ -2910,7 +2880,7 @@ a.control-button-save.saving {
   border-right: 1px solid rgba(39, 205, 214, 0.8);
 }
 
-.dataset .dataset-control-comments.off {
+.dataset .dataset-control-notes.off {
   color: rgba(128,128,128,0.2);
 }
 
@@ -3208,7 +3178,7 @@ a.channel-button {
 }
 
 .comment-input-wrap {
-  display: none;
+  /*display: none;*/
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3303,7 +3273,6 @@ a.button.comment-input-button.primary:active {
 }
 
 .comments {
-  border-bottom: 1px solid #d0d0d0;
   margin-bottom: -1px;
 }
 

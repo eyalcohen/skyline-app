@@ -2,34 +2,30 @@
   var user = this.app.profile.user;
 %>
 
-<div class="comment-input-wrap">
-  <% if (user) { %>
-    <div class="comment">
-      <div class="comment-body">
-        <form enctype="multipart/form-data" method="POST" class="comment-input-form">
-          <textarea name="body" class="comment-input" 
-              placeholder="Write a comment..."></textarea>
-          <div class="comment-input-buttons">
-            <a href="javascript:;" id="c_cancel" class="button comment-input-button">
-              <i class="icon-trash"></i>
-            </a>
-            <a href="javascript:;" id="c_submit" class="button comment-input-button primary">
-              Save
-            </a>
-          </div>
-        </form>
-      </div>
-    </div>
-  <% } else if (!this.app.embed) { %>
-    <a href="javascript:;" class="comments-signin">
-      Sign in to comment.
-    </a>
-  <% } %>
-</div>
-<div class="list-header"></div>
+<% if (this.collection.older > 0) { %>
+  <a href="javascript:;" class="comments-older comment list-header">
+    Show <%= this.collection.older %> older <%= this.collection.older > 1 ? 'comments': 'comment' %>
+  </a>
+<% } %>
 <% if (this.collection.models.length > 0) { %>
   <% _.each(this.collection.models, _.bind(function(row) { %>
     <%= this.row(row) %>
   <% }, this)); %>
 <% } %>
-<div class="clearfix"></div>
+<div class="comment-input-wrap list-footer">
+  <% if (user) { %>
+    <div class="comment">
+      <div class="comment-body">
+        <form enctype="multipart/form-data" method="POST" class="comment-input-form">
+          <textarea name="body" class="comment-input" 
+              placeholder="Add a comment..."></textarea>
+          <span>Press enter to comment.</span>
+        </form>
+      </div>
+    </div>
+  <% } else if (!this.app.embed) { %>
+    <a href="javascript:;" class="comments-signin">
+      Sign in to add a comment.
+    </a>
+  <% } %>
+</div>

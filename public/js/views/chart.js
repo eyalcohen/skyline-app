@@ -158,7 +158,7 @@ define([
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
-      // this.comments = new Comments(this.app, {parentView: this});
+      this.comments = new Comments(this.app, {parentView: this});
       this.notes = new Notes(this.app, {parentView: this});
       this.overview = new Overview(this.app, {parentView: this}).render();
 
@@ -192,7 +192,7 @@ define([
       this.datasets.destroy();
       this.graph.destroy();
       this.notes.destroy();
-      // this.comments.destroy();
+      this.comments.destroy();
       this.remove();
     },
 

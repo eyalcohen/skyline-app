@@ -39,9 +39,6 @@ define([
       this.app.rpc.socket.on('note.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('note.removed', _.bind(this._remove, this));
 
-      // Misc.
-      this.empty_label = 'No notes.';
-
       this.reset(true);
     },
 
@@ -77,12 +74,6 @@ define([
       this.collection.reset(notes);
     },
 
-    // Initial bulk render of list
-    render: function (options) {
-      List.prototype.render.call(this, options);
-      return this;
-    },
-
     // Render a model, placing it in the correct order.
     renderLast: function () {
       var model = _.find(this.collection.models, _.bind(function (m) {
@@ -113,7 +104,6 @@ define([
       this.selector = this.$('.note-selector');
       this.wrap = this.$('.note-wrap-new');
       this.form = $('.comment-input-form', this.wrap);
-      this.inputWrap = this.$('.comment-input-wrap', this.wrap);
       this.input = this.$('.comment-input', this.wrap);
       this.footer = this.$('.list-footer');
 
@@ -186,9 +176,6 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
-          if (this.collection.length === 0)
-            $('<span class="empty-feed">' + this.empty_label
-                + '</span>').appendTo(this.$el);
         }, this));
       }
 
@@ -269,13 +256,11 @@ define([
         pan = 0;
       }
       this.wrap.css({left: p - pan}).show();
-      this.inputWrap.show();
       this.input.focus();
     },
 
     cancel: function () {
       this.wrap.hide();
-      this.inputWrap.hide();
       this.selector.hide();
     },
 

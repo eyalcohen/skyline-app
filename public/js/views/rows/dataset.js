@@ -134,12 +134,12 @@ define([
     },
 
     fetchChannels: function () {
-      console.log('FETCH CHANNELS');
+      // console.log('FETCH CHANNELS');
 
       // Get the schema for this channel.
       this.app.rpc.do('fetchSamples', this.model.id, '_schema', {},
           _.bind(function (err, data) {
-        console.log('FETCHED CHANNELS');
+        // console.log('FETCHED CHANNELS');
         if (err) return console.error(err);
         var channels = data.samples;
         if (!channels) return console.error('No channels found');
