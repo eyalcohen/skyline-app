@@ -66,8 +66,8 @@ define([
       this.bar = this.$('.note-bar');
       this.wrap = this.$('.note-wrap');
 
-      if (single)
-        this.parentView.parentView.updateNotes();
+      // Newly created notes.
+      if (single) this.open();
 
       return this;
     },
@@ -105,6 +105,7 @@ define([
 
     open: function (e) {
       if (e) e.preventDefault();
+      if (this.model.id === -1) return false;
 
       // Toggle
       if (this.replies) {
@@ -129,6 +130,7 @@ define([
 
         // Render replies.
         this.replies = new Replies(this.app, {parentView: this});
+        this.parentView.parentView.updateNotes();
       }, this));
 
       return false;

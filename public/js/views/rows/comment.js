@@ -24,23 +24,19 @@ define([
     },
 
     events: {
-      'click': 'open',
       'click .navigate': 'navigate',
       'click .info-delete': 'delete',
     },
 
-    setup: function () {
-      Row.prototype.setup.call(this);
-      return this;
-    },
-
     delete: function (e) {
+      e.stopPropagation();
       e.preventDefault();
       rest.delete('/api/comments/' + this.model.id, {});
       this.parentView._remove({id: this.model.id});
     },
 
     navigate: function (e) {
+      e.stopPropagation();
       e.preventDefault();
       if ($(e.target).hasClass('info-delete')) return;
       var path = $(e.target).closest('a').attr('href');

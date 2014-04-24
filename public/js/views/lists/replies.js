@@ -11,7 +11,7 @@ define([
   'util',
   'text!../../../templates/lists/replies.html',
   'collections/comments',
-  'views/rows/reply'
+  'views/rows/comment'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     

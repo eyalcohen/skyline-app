@@ -141,7 +141,7 @@ define([
     // Collect new notes from socket events.
     collect: function (data) {
 
-      // Determine how to display this comment.
+      // Determine how to display this note.
       var state = store.get('state');
       var target = this.parentView.target();
       if (!state.datasets) return;
@@ -157,7 +157,7 @@ define([
       if (!dataset && target.type === 'view' && data.parent_id !== target.id) return;
       if (this.collection.get(-1)) return;
       
-      // Add comment to profile.
+      // Add note to profile.
       var owner;
       if (dataset && data.parent_type === 'dataset')
         owner = _.find(this.app.profile.content.datasets.items, function (d) {
@@ -168,7 +168,7 @@ define([
       if (owner) owner.notes.push(data);
         owner.notes_cnt += 1;
 
-      // Finally, add comment.
+      // Finally, add note.
       data._new = true;
       this.collection.push(data);
     },
@@ -239,14 +239,14 @@ define([
       var ww = this.wrap.outerWidth();
       var p, pan;
       if (this.selection.end >= this.selection.beg) {
+        this.wrap.removeClass('rightsided').addClass('leftsided');
         p = this.selection.end === this.selection.beg ?
             left + 1: left + sw - 1;
 
         // Ensure wrap will be entirely on screen.
         if (p > w - ww) pan = ww - (w - p) + 20;
-
-        this.wrap.removeClass('rightsided').addClass('leftsided');
       } else {
+        this.wrap.removeClass('leftsided').addClass('rightsided');
         var beg = this.selection.beg;
         this.selection.beg = this.selection.end;
         this.selection.end = beg;
@@ -254,8 +254,6 @@ define([
 
         // Ensure wrap will be entirely on screen.
         if (p < 0) pan = p - 20;
-
-        this.wrap.removeClass('leftsided').addClass('rightsided');
       }
       if (pan) {
         mps.publish('chart/pan', [pan]);
