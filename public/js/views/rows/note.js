@@ -49,7 +49,7 @@ define([
     events: {
       'click .navigate': 'navigate',
       'click .info-delete': 'delete',
-      'click .note-bar': 'open',
+      'click .note-bar': 'openFromParent',
       'click .icon-cancel': 'open',
       'mouseover': 'over',
       'mousemove': 'pass',
@@ -103,7 +103,11 @@ define([
       }, this));
     },
 
-    open: function (e) {
+    openFromParent: function (e) {
+      this.parentView.pickBestChild(e.pageX);
+    },
+
+    open: function (e, z) {
       if (e) e.preventDefault();
       if (this.model.id === -1) return false;
 
@@ -112,8 +116,10 @@ define([
         this.replies.destroy();
         delete this.replies;
         this.wrap.hide();
+        this.$el.css('z-index', 0);
         return false;
       }
+      this.$el.css('z-index', z);
       this.wrap.show();
       this.$('.comment').show();
 

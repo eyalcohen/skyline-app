@@ -3446,7 +3446,7 @@ a.comments-signin {
   top: 0;
   left: -1000px;
   bottom: 1px;
-  z-index: 2;
+  z-index: 0;
   pointer-events: auto;
 }
 

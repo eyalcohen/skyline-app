@@ -17,6 +17,7 @@ define([
     
     el: '.notes',
     selection: {beg: null, end: null},
+    latestNoteZ: 0,
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -326,13 +327,31 @@ define([
       return false;
     },
 
-    open: function (note) {
-      var ww = this.wrap.outerWidth();
-      var left = parseInt(note.$el.css('left'));
-      var width = note.$el.outerWidth();
-      this.wrap.css({left: left + width}).show();
-      this.inputWrap.show();
-      this.input.focus();
+    pickBestChild: function (x) {
+      var picks = [];
+      var pick;
+
+      // Find views containing x.
+      _.each(this.views, function (v) {
+        var x1 = Math.floor(v.model.get('xpos'));
+        var x2 = Math.ceil(x1 + v.model.get('width')) + 2;
+        if (x >= x1 && x <= x2)
+          picks.push(v);
+      });
+      
+      // Choose narrowest one.
+      var minWidth = Number.MAX_VALUE;
+      _.each(picks, function (v) {
+        var w = v.model.get('width');
+        if (w < minWidth) {
+          minWidth = w;
+          pick = v;
+        }
+      });
+
+      if (pick) {
+        pick.open(null, ++this.latestNoteZ);
+      }
     },
 
     signin: function (e) {
