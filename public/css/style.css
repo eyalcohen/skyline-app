@@ -3280,7 +3280,7 @@ a.button.comment-input-button.primary:active {
   width: 300px;
   position: relative;
   display: none;
-  cursor: pointer;
+  background: #F9F9F9;
   
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3297,13 +3297,14 @@ a.button.comment-input-button.primary:active {
 }
 
 .comment + .comment {
-  border-bottom: 1px solid #e0e0e0;
+  border-top: 1px solid #e0e0e0;
 }
 
 .comment-input-wrap .comment {
   display: block;
   cursor: inherit;
   border-bottom: none;
+  background: none;
 }
 
 .comment + .comment-input-wrap .comment {
@@ -3312,6 +3313,10 @@ a.button.comment-input-button.primary:active {
 
 .replies .comment:first-child {
   border-top: 1px solid #e0e0e0;
+}
+
+.comments > .comment:first-child {
+  border-top: none;
 }
 
 .comment-body {
@@ -3409,13 +3414,13 @@ a.comments-signin {
 }
 
 .comments-older {
-  padding: 5px 5px;
+  padding: 5px 0;
   display: block;
   min-height: 0;
-  width: 480px;
   text-align: center;
   color: #8f8f8f;
   font-style: italic;
+  font-size: 10px;
 }
 
 /*.........................................................................*/
@@ -3489,6 +3494,7 @@ a.comments-signin {
   z-index: 11;
   bottom: 0;
   width: 300px;
+  max-height: 100%;
   overflow-y: auto;
   background: rgba(249,249,249,0.8);
   border-top: 1px solid #d0d0d0;

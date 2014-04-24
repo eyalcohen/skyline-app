@@ -52,46 +52,21 @@ define([
       if (target.type === 'view') {
         _.each(target.doc.comments, function (c) { comments.push(c); });
         comments_cnt = target.doc.comments_cnt;
-      }
-      _.each(this.app.profile.content.datasets.items, function (d, i) {
-        if (!state.datasets[d.id] ||
-            (state.datasets[d.id] && state.datasets[d.id].comments === false))
-          return;
-        _.each(d.comments, function (c) {
-          if (i === 0) c.leader = true;
-          comments.push(c);
+      } else {
+        _.each(this.app.profile.content.datasets.items, function (d, i) {
+          if (!state.datasets[d.id] ||
+              (state.datasets[d.id] && state.datasets[d.id].comments === false))
+            return;
+          _.each(d.comments, function (c) {
+            if (i === 0) c.leader = true;
+            comments.push(c);
+          });
+          comments_cnt += d.comments_cnt;
         });
-        comments_cnt += d.comments_cnt;
-      });
+      }
       this.collection.older = comments_cnt - comments.length;
       this.collection.reset(comments);
     },
-
-    // Render a model, placing it in the correct order.
-    // renderLast: function () {
-    //   if (this.collection.models.length === 1)
-    //     this.$('.empty-feed').remove();
-    //   var model = _.find(this.collection.models, _.bind(function (m) {
-    //     return m.get('_new');
-    //   }, this));
-    //   model.set('_new', false);
-    //   this.row(model, true);
-    //   return this;
-    // },
-
-    // row: function (model, single) {
-    //   var view = new this.Row({
-    //     parentView: this,
-    //     model: model
-    //   }, this.app);
-    //   if (single) view.render(true);
-    //   this.views.push(view);
-    //   this.views.sort(function (a, b) {
-    //     return b.model.get('time') - a.model.get('time');
-    //   });
-      
-    //   return view.toHTML();
-    // },
 
     setup: function () {
 
@@ -118,6 +93,7 @@ define([
     // Bind mouse events.
     events: {
       'click .comments-signin': 'signin',
+      'click .comments-older': 'older',
     },
 
     // Collect new comments from socket events.
@@ -234,17 +210,17 @@ define([
     },
 
     older: function (e) {
-
+      var parent = this.parentView.target();
       var limit = this.collection.older;
       this.collection.older = 0;
 
       // Get the older comments.
       rest.post('/api/comments/list', {
-        cursor: 0, 
+        skip: this.collection.length,
         limit: limit,
-        parent_id: this.parentView.model.id,
+        type: parent.type,
+        parent_id: parent.id,
       }, _.bind(function (err, data) {
-
         if (err) return console.log(err);
 
         // Update the collection.
@@ -252,6 +228,7 @@ define([
         this.collection.options.reverse = true;
         var i = 0;
         _.each(data.comments.items, _.bind(function (c) {
+          c.leader = true;
           if (!_.contains(ids, c.id)) {
             this.collection.unshift(c);
             ++i;
@@ -260,8 +237,7 @@ define([
         this.collection.options.reverse = false;
 
         // Hide the button.
-        this.$('.comments-older.comment').hide();
-
+        this.$('.comments-older.comment').remove();
       }, this));
 
     },

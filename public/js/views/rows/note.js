@@ -49,14 +49,14 @@ define([
     events: {
       'click .navigate': 'navigate',
       'click .info-delete': 'delete',
-      'click .note-bar': 'openFromParent',
       'click .icon-cancel': 'open',
-      'mouseover': 'over',
-      'mousemove': 'pass',
-      'mousedown': 'pass',
-      'mouseup': 'pass',
-      'mousewheel': 'pass',
-      'mouseout': 'out'
+      'click .note-bar': 'openFromParent',
+      'mouseover .note-bar': 'over',
+      'mousemove .note-bar': 'pass',
+      'mousedown .note-bar': 'pass',
+      'mouseup .note-bar': 'pass',
+      'mousewheel .note-bar': 'pass',
+      'mouseout .note-bar': 'out'
     },
 
     render: function (single, prepend, re) {
@@ -144,7 +144,7 @@ define([
 
     over: function (e) {
       e.preventDefault();
-      
+      return false;
     },
 
     pass: function (e) {
@@ -154,7 +154,8 @@ define([
     },
 
     out: function (e) {
-
+      e.preventDefault();
+      return false;
     },
 
   });

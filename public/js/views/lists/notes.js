@@ -70,7 +70,6 @@ define([
         });
         notes_cnt += d.notes_cnt;
       });
-      this.collection.older = notes_cnt - notes.length;
       this.collection.reset(notes);
     },
 

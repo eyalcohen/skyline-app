@@ -10,5 +10,9 @@ define([
 
     model: Model,
 
+    comparator: function (model) {
+      return model.get('created');
+    },
+
   });
 });
