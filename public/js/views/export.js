@@ -104,7 +104,6 @@ define([
       });
 
       var viewRange = this.graph.getVisibleTime();
-      console.log('vr', viewRange)
 
       this.datapoints = [];
 

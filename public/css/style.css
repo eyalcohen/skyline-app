@@ -722,7 +722,10 @@ a.button.unfollow-button {
   border-radius: 0;
 }
 
-.checkbox-styled.table-checkbox input[type="checkbox"] + span {
+.checkbox-styled.table-checkbox input[type="checkbox"] + span,
+.checkbox-styled.table-checkbox input[type="checkbox"] + span:hover,
+.checkbox-styled.table-checkbox input[type="checkbox"] + span:active,
+.checkbox-styled.table-checkbox input[type="checkbox"] + span:focus {
   display: inline-block;
   padding: 0;
   margin-left: 12px;
@@ -731,6 +734,10 @@ a.button.unfollow-button {
   line-height: 40px;
   background: none;
   border: none;
+
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 
 .checkbox-styled.toggle-checkbox input[type="checkbox"] + span i {
@@ -760,11 +767,11 @@ a.button.unfollow-button {
 }
 
 .checkbox-styled.table-checkbox input[type="checkbox"]:checked + span {
-  font-weight: 700;
+  /*font-weight: 700;*/
 }
 
 .checkbox-styled.toggle-checkbox input[type="checkbox"]:checked + span i {
-  display: inline-block;
+  display: inline;
 }
 
 /*.........................................................................*/
