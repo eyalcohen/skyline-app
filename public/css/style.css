@@ -3280,7 +3280,6 @@ a.button.comment-input-button.primary:active {
   width: 300px;
   position: relative;
   display: none;
-  border-bottom: 1px solid #e0e0e0;
   cursor: pointer;
   
   -webkit-animation-name: fadeIn;
@@ -3297,14 +3296,22 @@ a.button.comment-input-button.primary:active {
   animation-fill-mode: both;
 }
 
-/*.comment:nth-last-child(2) {
-  border-bottom: none;
-}*/
+.comment + .comment {
+  border-bottom: 1px solid #e0e0e0;
+}
 
 .comment-input-wrap .comment {
   display: block;
   cursor: inherit;
   border-bottom: none;
+}
+
+.comment + .comment-input-wrap .comment {
+  border-top: 1px solid #e0e0e0;
+}
+
+.replies .comment:first-child {
+  border-top: 1px solid #e0e0e0;
 }
 
 .comment-body {
@@ -3371,7 +3378,11 @@ a.comments-signin {
   text-align: center;
   line-height: 18px;
   font-size: 10px;
-  border-bottom: 1px solid #e0e0e0;
+}
+
+.comments a.comments-signin,
+.replies a.comments-signin {
+  border-top: 1px solid #e0e0e0;
 }
 
 .comment-info {
@@ -3435,6 +3446,10 @@ a.comments-signin {
 
   border-left: 1px dashed rgba(0,0,0,0.3);
   border-right: 1px dashed rgba(0,0,0,0.3);
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .note.note-view .note-bar {
@@ -3759,6 +3774,7 @@ a.comments-signin {
 
 .event {
   display: none;
+  width: 600px;
   border-bottom: 1px solid #f0f0f0;
   padding: 15px 0;
 

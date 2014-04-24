@@ -124,14 +124,14 @@ define([
         $(this).val(_.str.slugify($(this).val()).substr(0, 30));
       });
 
-      var _username = $('.saved-ghost input[name="username"]').val();
-      var _password = $('.saved-ghost input[name="password"]').val();
-      if (_username !== '')
-        this.$('input[name="username"]').val(_username)
-            .data('saved', _username).addClass('saved');
-      if (_password !== '')
-        this.$('input[name="password"]').val(_password)
-            .data('saved', _password).addClass('saved');
+      // var _username = $('.saved-ghost input[name="username"]').val();
+      // var _password = $('.saved-ghost input[name="password"]').val();
+      // if (_username !== '')
+      //   this.$('input[name="username"]').val(_username)
+      //       .data('saved', _username).addClass('saved');
+      // if (_password !== '')
+      //   this.$('input[name="password"]').val(_password)
+      //       .data('saved', _password).addClass('saved');
 
       // Focus cursor initial.
       _.delay(_.bind(function () { this.focus(); }, this), 1);

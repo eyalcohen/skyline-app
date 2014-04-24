@@ -73,7 +73,7 @@ define([
       _.delay(_.bind(function () {
         if (pagination !== true)
           this.checkHeight();
-      }, this), 60);
+      }, this), 20);
       return this;
     },
 

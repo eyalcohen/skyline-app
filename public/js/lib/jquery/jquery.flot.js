@@ -886,7 +886,7 @@
                 t.lines = [];
                 t.width = t.height = 0;
 
-                if (!t.label)
+                if (!t.label || !t.label.replace)
                     continue;
 
                 // accept various kinds of newlines, including HTML ones
