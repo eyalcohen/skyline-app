@@ -12,20 +12,22 @@ define([
   'util',
   'Spin',
   'text!../../templates/browser.html',
-  'views/lists/profile.datasets'
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template, Datasets) {
+  'views/lists/profile.datasets',
+  'views/upload'
+], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template,
+            Datasets, Upload) {
 
   return Backbone.View.extend({
-    
+
     // The DOM target element for this page.
     className: 'browser',
     dragging: false,
     working: false,
     files: null,
-    
+
     // Module entry point.
     initialize: function (app, options) {
-      
+
       // Save app reference.
       this.app = app;
       this.options = options;
@@ -55,7 +57,8 @@ define([
         closeBtn: false,
         padding: 0,
         margin: [-30,0,0,0],
-        modal: true
+        modal: true,
+        closeClick: true
       });
 
       // Add placeholder shim if need to.
@@ -73,7 +76,6 @@ define([
       'click .modal-close': 'close',
       'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
-      'click .browser-private': 'checkPrivate',
       'click .browser-search-justme': 'checkJustMe',
       'click .browser-search-allusers': 'checkAllUsers'
     },
@@ -88,11 +90,17 @@ define([
       this.addNewFileForm = $('.browser-add-form');
       this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
       this.newFile = $('input[name="data_file"]', this.addNewFileForm);
-      this.newFileDescription = $('textarea[name="description"]', this.addNewFileForm);
-      this.newFileTitle = $('input[name="title"]', this.addNewFileForm);
-      this.newFileTags = $('input[name="tags"]', this.addNewFileForm);
-      this.newFileSource = $('input[name="source"]', this.addNewFileForm);
-      this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
+
+      this.uploadDatasetForm = $('.upload-add-form');
+      this.newFileDescription = $('textarea[name="description"]', this.uploadNewFileForm);
+      this.newFileTitle = $('input[name="title"]', this.uploadNewFileForm);
+      this.newFileTags = $('input[name="tags"]', this.uploadNewFileForm);
+      this.newFileSource = $('input[name="source"]', this.uploadNewFileForm);
+      this.newFileSourceLink = $('input[name="source"]', this.uploadNewFileForm);
+      this.newFileTimeCol = $('select[name="timecol"]', this.uploadNewFileForm);
+      this.newFileTimeColFormat = $('select[name="timecolformat"]', this.uploadNewFileForm);
+      this.newFileSubmit = $('input[type="submit"]', this.uploadNewFileForm);
+
       this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = $('.browser .dnd');
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
@@ -195,7 +203,7 @@ define([
 
       // Update the input field.
       this.update(null, e.originalEvent.dataTransfer.files);
-      
+
       return false;
     },
 
@@ -223,7 +231,7 @@ define([
 
       // Start load indicator.
       this.newFileButtonSpin.start();
-      this.newFileSubmit.addClass('loading');
+      this.newFileSubmit.addClass('loading').prop('disabled', 'disabled');
 
       // Get the file.
       var files = this.files || this.newFile.get(0).files;
@@ -241,84 +249,79 @@ define([
         // extension and consider improved validation down the road, particularly
         // as we add support for new file types
         var ext = file.name.split('.').pop();
+
+        /*
         if (ext !== 'csv' && ext !== 'xls')
           return false;
+        */
 
-        // Construct the payload to send.
-        var title = this.newFileTitle.val();
-        if (title === '') title = _.str.strLeft(file.name, '.');
-        var payload = {
-          title: util.sanitize(title),
-          tags: util.sanitize(this.newFileTags.val()),
-          description: util.sanitize(this.newFileDescription.val()),
-          source: util.sanitize(this.newFileSource.val()),
-          public: !this.$('.browser-private').is(':checked'),
-          file: {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            ext: ext
-          },
-          base64: reader.result.replace(/^[^,]*,/,''),
-        };
+        var chunkSize = 16384;
+        var base64 = reader.result.replace(/^[^,]*,/,'');
+        var encodedSize = base64.length;
+        var chunks = util.chunkify(base64, chunkSize);
 
-        // Create the dataset.
-        this.app.rpc.do('insertSamples', payload,
-            _.bind(function (err, res) {
+        var segment = 0;
+        var segments = chunks.length;
+        var uid = uid = util.rid32();
 
-          // Start load indicator.
-          this.newFileButtonSpin.stop();
-          this.newFileSubmit.removeClass('loading').attr({disabled: 'disabled'});
-          this.newFileInput.val('');
-          this.newFileTitle.val('');
-          this.newFileTags.val('');
-          this.newFileDescription.val('');
-          this.newFileSource.val('');
+        // closure around segment
+        var payload = _.bind(function() {
+          return {
+            uid: uid,
+            file: {
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              ext: ext
+            },
+            encodedSize: encodedSize,
+            segment: segment,
+            base64: chunks[segment],
+          }
+        }, this);
 
+        // this function sends individual pieces of files.  On completion
+        var sendChunk = _.bind(function (err, res) {
           if (err) {
-            if (_.isObject(err))
-              err = 'Error 500: Looks like something went wrong!';
             this.newFileError.text(err);
             this.working = false;
-            return;
+            $('.browser-progress-bar').width('0%');
+            this.newFileSubmit.removeClass('loading').prop('disabled', false);
           }
+          else if (segment < segments) {
+            this.app.rpc.do('sendPartialFile', payload(), _.bind(function (err, res) {
+              if (err) {
+                this.newFileButtonSpin.stop();
+                sendChunk(err, null);
+              } else {
+                //progress bar
+                $('.browser-progress-bar').width((segment/segments*100).toString() + '%');
+                segment = segment + 1;
+                sendChunk(null, res);
+              }
+            }, this));
+          } else {
+            $('.browser-progress-bar').width('100%');
+            var args =  {
+              uid: uid,
+              channelNames: res.channelNames,
+              fileName: file.name,
+              timecolGuess: res.timecolGuess
+            };
+            _.delay(_.bind(function() {
+              this.close();
+              new Upload(this.app, args).render();
+            }, this), 500)
 
-          // Publish new dataset.
-          mps.publish('dataset/new', [res]);
-
-          if (!this.datasets) {
-
-            // Show alert
-            _.delay(function () {
-              mps.publish('flash/new', [{
-                message: 'You added a new dataset: "'
-                    + res.title + ', ' + res.meta.channel_cnt + ' channel'
-                    + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-                level: 'alert'
-              }]);
-            }, 500);
-
-            // Close the modal.
-            $.fancybox.close();
           }
+        }, this);
 
-          // Ready for more.
-          this.working = false;
-
-        }, this));
+        sendChunk(null, null)
 
       }, this);
       reader.readAsDataURL(file);
 
       return false;
-    },
-
-    checkPrivate: function (e) {
-      var span = $('span', this.privacy.parent());
-      if (this.privacy.is(':checked'))
-        span.html('<i class="icon-lock"></i> Private');
-      else
-        span.html('<i class="icon-lock-open"></i> Public');
     },
 
     checkJustMe: function (e) {

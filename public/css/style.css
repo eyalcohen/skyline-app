@@ -3793,7 +3793,7 @@ a.comments-signin {
   line-height: 500px;
 }
 
-.browser textarea,
+.upload textarea,
 .save textarea {
   width: 614px;
   min-height: 44px;
@@ -3801,7 +3801,36 @@ a.comments-signin {
   resize: none;
 }
 
+.browser .browser-progress-bar {
+  height: 10px;
+  /* border: 1px solid #ccc; */
+  margin: 5px 0px 5px 0px;
+  width: 0%;
+  background-color: rgba(39, 205, 214, .8);
+  border-radius: 3px;
+}
+
 /*.........................................................................*/
+
+.upload .upload-channel-rename {
+  height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 10px 0px 10px 0px;
+  padding: 10px;
+  border: 1px lightgray solid;
+  border-radius: 3px;
+}
+
+.upload td {
+  text-align: center;
+}
+
+.upload .align-left,
+.upload .align-left td{
+  text-align: left;
+}
+
 /*.........................................................................*/
 
 .ir { display: block; text-indent: -999em; overflow: hidden; background-repeat: no-repeat; text-align: left; direction: ltr; }
