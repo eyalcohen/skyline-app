@@ -106,7 +106,7 @@ define([
       });
 
       // Preload select inputs
-      $('input[name="timecol"]', this.uploadForm).val(this.timecolGuess.column);
+      $('select[name="timecol"]', this.uploadForm).val(this.timecolGuess.column);
 
       var hint = 'Date';
       var hintList = _.map(this.timecolGuess.parseHints, function(f) {
@@ -115,7 +115,8 @@ define([
       if (_.contains(hintList, this.timecolGuess.dateHint)) {
         hint = this.timecolGuess.dateHint;
       }
-      $('input[name="timecolformat"]', this.uploadForm).val(hint);
+      console.log(hint);
+      $('select[name="timecolformat"]', this.uploadForm).val(hint);
 
       this.timeColChange();
 
