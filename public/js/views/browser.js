@@ -155,6 +155,7 @@ define([
     },
 
     close: function (e) {
+      this.working = false;
       $.fancybox.close();
     },
 
@@ -239,10 +240,14 @@ define([
       var cbProgress = _.bind(function(perc) {
         $('.browser-progress-bar').width(perc);
       }, this);
+      var stopFcn = _.bind(function() {
+        return !this.working;
+      }, this);
 
       var reader = new FileReader();
       reader.onload = _.bind(function () {
-        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress);
+        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress,
+                      null, stopFcn);
       }, this);
 
       reader.readAsDataURL(file);

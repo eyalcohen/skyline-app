@@ -17,11 +17,12 @@ define([
    */
   return { 
   
-    upload: function(file, reader, app, cbSuccess, cbFail, cbProgress, cbUpload) {
+    upload: function(file, reader, app, cbSuccess, 
+                     cbFail, cbProgress, cbUpload, stopFcn) {
 
       var ext = file.name.split('.').pop();
 
-      var chunkSize = 16384;
+      var chunkSize = 65536;
       var base64 = reader.result.replace(/^[^,]*,/,'');
       var encodedSize = base64.length;
       var chunks = util.chunkify(base64, chunkSize);
@@ -50,6 +51,10 @@ define([
       var sendChunk = _.bind(function (err, res) {
         if (err) {
           cbFail(err);
+          return false;
+        }
+        else if (stopFcn && stopFcn()) {
+          return false;
         }
         else if (segment < segments) {
           app.rpc.do('sendPartialFile', payload(), _.bind(function (err, res) {
@@ -72,7 +77,8 @@ define([
           };
           _.delay(_.bind(function() {
             new Upload(app, args).render();
-          }, this), 500)
+          }, this), 500);
+          return true;
 
         }
       }, this);
