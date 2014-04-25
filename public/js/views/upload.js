@@ -36,7 +36,6 @@ define([
       this.fileName = options.fileName;
       this.timecolGuess = options.timecolGuess;
       this.cbUpload = options.cbUpload;
-      console.log(options);
 
       // Client-wide subscriptions
       this.subscriptions = [];
@@ -86,7 +85,6 @@ define([
     setup: function () {
 
       this.uploadForm = $('.upload form');
-      console.log(this.uploadForm);
       this.newFileDescription = $('textarea[name="description"]', this.uploadForm);
 
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
@@ -221,7 +219,6 @@ define([
               level: 'alert'
             }]);
           }, 500);
-          console.log(res);
           if (this.cbUpload) {
             this.cbUpload(res);
           }
