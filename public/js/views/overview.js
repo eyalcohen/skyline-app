@@ -279,8 +279,8 @@ define([
         if (val < min) min = val;
         if (val > max) max = val;
         data.push({t: s.beg / 1e3, v: val});
-        if (s.beg !== s.end)
-          data.push({t: s.end / 1e3, v: val});
+        //if (s.beg !== s.end)
+        //  data.push({t: s.end / 1e3, v: val});
         prevEnd = s.end;
       });
       return {data: data, min: min, max: max};
