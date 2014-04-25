@@ -92,6 +92,7 @@ define([
 
     // Bind mouse events.
     events: {
+      'click .navigate': 'navigate',
       'click .comments-signin': 'signin',
       'click .comments-older': 'older',
     },
@@ -240,6 +241,14 @@ define([
         this.$('.comments-older.comment').remove();
       }, this));
 
+    },
+
+    navigate: function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      var path = $(e.target).closest('a').attr('href');
+      if (path)
+        this.app.router.navigate(path, {trigger: true});
     },
 
     signin: function (e) {

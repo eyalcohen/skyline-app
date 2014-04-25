@@ -3166,17 +3166,6 @@ a.channel-button {
 
 /*.........................................................................*/
 
-.discussion {
-  max-height: 500px;
-  overflow: hidden;
-}
-
-.discussion-inner {
-  padding: 15px 20px 0;
-  width: 660px;
-  margin-bottom: 10px;
-}
-
 .comment-input-wrap {
   /*display: none;*/
 
@@ -3208,7 +3197,7 @@ textarea.comment-input {
   width: 280px;
   margin: 0;
   padding: 10px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.8);
   resize: none;
   overflow: hidden;
   font-size: 12px;
@@ -3233,15 +3222,6 @@ textarea.comment-input {
 
 textarea.comment-input:focus {
   background: #fff;
-}
-
-.discussion textarea.comment-input {
-  width: 634px;
-  padding: 10px 6px;
-}
-
-.discussion textarea.comment-input:focus {
-  border-color: #b0b0b0;
 }
 
 .comment-input-buttons {
@@ -3280,7 +3260,7 @@ a.button.comment-input-button.primary:active {
   width: 300px;
   position: relative;
   display: none;
-  background: #F9F9F9;
+  background: rgba(249,249,249,0.8);
   
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3319,6 +3299,10 @@ a.button.comment-input-button.primary:active {
   border-top: none;
 }
 
+.comment.target {
+  display: block;
+}
+
 .comment-body {
   padding: 6px;
 }
@@ -3337,6 +3321,14 @@ a.button.comment-input-button.primary:active {
 
 .note-wrap .comment-body p {
   padding-right: 20px;
+}
+
+.target .comment-body p {
+  font-size: 12px;
+  line-height: 16px;
+  color: #2f2f2f;
+  margin-bottom: 0;
+  padding: 0 8px 0;
 }
 
 span.comment-avatar,
@@ -3394,6 +3386,10 @@ a.comments-signin {
   margin-left: 34px;
 }
 
+.target .comment-info {
+  margin-left: 8px;
+}
+
 .comment-code {
   display: inline-block;
   width: 12px;
@@ -3421,6 +3417,51 @@ a.comments-signin {
   color: #8f8f8f;
   font-style: italic;
   font-size: 10px;
+}
+
+/*.........................................................................*/
+
+.target {
+  padding-top: 4px;
+}
+
+.target-name {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 13px;
+  font-style: italic;
+}
+
+.target-description {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.target-info {
+  padding: 0 8px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #666;
+}
+
+.target-info-heading {
+  display: block;
+  font-weight: bold;
+}
+
+ul.target-info-list {
+  margin-bottom: 5px;
+  list-style: none;
+}
+
+ul.target-info-list li {
+  
+}
+
+ul.target-info-list li:before {
+  content: "- ";
 }
 
 /*.........................................................................*/

@@ -25,7 +25,6 @@ define([
       header, Datasets, Notes, Comments, Graph, Export, Overview, Share) {
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
     className: 'chart',
     working: false,
 
@@ -206,20 +205,20 @@ define([
 
     // Return the current view or index level zero dataset.
     target: function () {
-      if (this.app.profile.content.page)
+      if (this.app.profile.content.page) {
         return {
           doc: this.app.profile.content.page,
           id: Number(this.app.profile.content.page.id), 
           type: 'view'
         };
-      else if (this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length !== 0)
+      } else if (this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length !== 0) {
         return {
           doc: this.app.profile.content.datasets.items[0],
           id: Number(this.app.profile.content.datasets.items[0].id),
           type: 'dataset'
         };
-      else return {};
+      } else return {};
     },
 
     fit: function () {
