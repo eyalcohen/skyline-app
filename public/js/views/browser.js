@@ -11,10 +11,11 @@ define([
   'rest',
   'util',
   'Spin',
+  'common', 
   'text!../../templates/browser.html',
   'views/lists/profile.datasets',
   'views/upload'
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template,
+], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, common, template,
             Datasets, Upload) {
 
   return Backbone.View.extend({
@@ -240,85 +241,23 @@ define([
       var file = files[0];
 
       // Use a FileReader to read the file as a base64 string.
+      var cbFail = _.bind(function(err) {
+        this.newFileError.text(err);
+        this.working = false;
+        $('.browser-progress-bar').width('0%');
+        this.newFileSubmit.removeClass('loading').prop('disabled', false);
+      }, this);
+      var cbSuccess = _.bind(function() {
+      }, this);
+      var cbProgress = _.bind(function(perc) {
+        $('.browser-progress-bar').width(perc);
+      }, this);
+
       var reader = new FileReader();
       reader.onload = _.bind(function () {
-
-        // Check file type for any supported...
-        // The MIME type could be text/plain or application/vnd.ms-excel
-        // or a bunch of other options. For now, switch to checking the
-        // extension and consider improved validation down the road, particularly
-        // as we add support for new file types
-        var ext = file.name.split('.').pop();
-
-        /*
-        if (ext !== 'csv' && ext !== 'xls')
-          return false;
-        */
-
-        var chunkSize = 16384;
-        var base64 = reader.result.replace(/^[^,]*,/,'');
-        var encodedSize = base64.length;
-        var chunks = util.chunkify(base64, chunkSize);
-
-        var segment = 0;
-        var segments = chunks.length;
-        var uid = uid = util.rid32();
-
-        // closure around segment
-        var payload = _.bind(function() {
-          return {
-            uid: uid,
-            file: {
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              ext: ext
-            },
-            encodedSize: encodedSize,
-            segment: segment,
-            base64: chunks[segment],
-          }
-        }, this);
-
-        // this function sends individual pieces of files.  On completion
-        var sendChunk = _.bind(function (err, res) {
-          if (err) {
-            this.newFileError.text(err);
-            this.working = false;
-            $('.browser-progress-bar').width('0%');
-            this.newFileSubmit.removeClass('loading').prop('disabled', false);
-          }
-          else if (segment < segments) {
-            this.app.rpc.do('sendPartialFile', payload(), _.bind(function (err, res) {
-              if (err) {
-                this.newFileButtonSpin.stop();
-                sendChunk(err, null);
-              } else {
-                //progress bar
-                $('.browser-progress-bar').width((segment/segments*100).toString() + '%');
-                segment = segment + 1;
-                sendChunk(null, res);
-              }
-            }, this));
-          } else {
-            $('.browser-progress-bar').width('100%');
-            var args =  {
-              uid: uid,
-              channelNames: res.channelNames,
-              fileName: file.name,
-              timecolGuess: res.timecolGuess
-            };
-            _.delay(_.bind(function() {
-              this.close();
-              new Upload(this.app, args).render();
-            }, this), 500)
-
-          }
-        }, this);
-
-        sendChunk(null, null)
-
+        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress);
       }, this);
+
       reader.readAsDataURL(file);
 
       return false;

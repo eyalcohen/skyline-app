@@ -10,6 +10,7 @@ define([
   'rest',
   'util',
   'units',
+  'common',
   'Spin',
   'text!../../templates/chart.html',
   'text!../../templates/chart.header.html',
@@ -19,7 +20,7 @@ define([
   'views/export',
   'views/overview',
   'views/share'
-], function ($, _, Backbone, mps, rest, util, units, Spin, template,
+], function ($, _, Backbone, mps, rest, util, units, common, Spin, template,
       header, Datasets, Comments, Graph, Export, Overview, Share) {
 
   return Backbone.View.extend({
@@ -486,85 +487,46 @@ define([
       var file = files[0];
 
       // Use a FileReader to read the file as a base64 string.
+      var cbFail = _.bind(function(err) {
+        // Stop load indicator.
+        this.app.router.stop();
+        this.$el.removeClass('dragging');
+        // Show error.
+        _.delay(function () {
+          mps.publish('flash/new', [{
+            message: err,
+            level: 'error'
+          }]);
+        }, 500);
+        this.working = false;
+      }, this);
+
+      var cbSuccess = _.bind(function() {
+        // Stop load indicator.
+        this.app.router.stop();
+        this.$el.removeClass('dragging');
+
+        // Ready for more.
+        this.working = false;
+      }, this);
+
+      var cbProgress = _.bind(function(perc) {
+      }, this);
+
+      var cbUpload = _.bind(function(res) {
+        if (res.meta.channels[0])
+          mps.publish('dataset/requestOpenChannel', [res.meta.channels[0].val.channelName]);
+
+        // Add this dataset to the existing chart.
+        mps.publish('dataset/select', [res.id]);
+      }, this);
+
+
       var reader = new FileReader();
       reader.onload = _.bind(function () {
-
-        // Check file type for any supported...
-        // The MIME type could be text/plain or application/vnd.ms-excel
-        // or a bunch of other options.  For now, switch to checking the
-        // extension and consider improved validation down the road, particularly
-        // as we add support for new file types
-        var ext = file.name.split('.').pop();
-        if (ext !== 'csv' && ext !== 'xls') {
-          this.$el.removeClass('dragging');
-          return false;
-        }
-
-        // Construct the payload to send.
-        var payload = {
-          title: _.str.strLeft(file.name, '.'),
-          file: {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            ext: ext
-          },
-          base64: reader.result.replace(/^[^,]*,/,'')
-        };
-        if (this.app.embed)
-          payload.user = 'demo';
-
-        // Create the dataset.
-        this.app.rpc.do('insertSamples', payload,
-            _.bind(function (err, res) {
-
-          // Stop load indicator.
-          this.app.router.stop();
-          this.$el.removeClass('dragging');
-
-          if (err) {
-
-            // Show error.
-            _.delay(function () {
-              mps.publish('flash/new', [{
-                message: err,
-                level: 'error'
-              }]);
-            }, 500);
-            this.working = false;
-            return;
-          }
-
-          // Show alert
-          _.delay(function () {
-            mps.publish('flash/new', [{
-              message: 'You added a new dataset: "'
-                  + res.title + ', ' + res.meta.channel_cnt + ' channel'
-                  + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-              level: 'alert'
-            }]);
-          }, 500);
-
-          // Publish new dataset.
-          if (!this.app.embed) {
-            mps.publish('dataset/new', [res]);
-
-            // Add this dataset to the existing chart.
-            mps.publish('dataset/select', [res.id]);
-          
-          // TODO: This should function like the above case,
-          // but will be confusing until we have a macro view.
-          } else {
-            var path = [res.author.username, res.id].join('/');
-            this.app.router.navigate('/' + path, {trigger: true});
-            mps.publish('embed/update', [window.location.host + '/embed/' + path]);
-          }
-
-          // Ready for more.
-          this.working = false;
-        }, this));
-
+        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress, cbUpload);
       }, this);
+
       reader.readAsDataURL(file);
 
       return false;

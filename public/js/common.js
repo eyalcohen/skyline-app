@@ -13,10 +13,11 @@ define([
   /* upload - handles the first stage of uploading files to the server.
    * Takes a closure around 'file', 'this.app', and 'reader'
    * cbProgress is a function that takes a string percentage
+   * cbUpload is a callback for the second stage of upload completion
    */
   return { 
   
-    upload: function(file, reader, app, cbSuccess, cbFail, cbProgress) {
+    upload: function(file, reader, app, cbSuccess, cbFail, cbProgress, cbUpload) {
 
       var ext = file.name.split('.').pop();
 
@@ -67,7 +68,8 @@ define([
             uid: uid,
             channelNames: res.channelNames,
             fileName: file.name,
-            timecolGuess: res.timecolGuess
+            timecolGuess: res.timecolGuess,
+            cbUpload: cbUpload
           };
           _.delay(_.bind(function() {
             new Upload(app, args).render();

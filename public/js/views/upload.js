@@ -34,6 +34,8 @@ define([
       this.channelNames = options.channelNames;
       this.fileName = options.fileName;
       this.timecolGuess = options.timecolGuess;
+      this.cbUpload = options.cbUpload;
+      console.log(options);
 
       // Client-wide subscriptions
       this.subscriptions = [];
@@ -213,6 +215,10 @@ define([
               level: 'alert'
             }]);
           }, 500);
+
+          if (this.cbUpload) {
+            this.cbUpload(res);
+          }
 
           this.close();
         }
