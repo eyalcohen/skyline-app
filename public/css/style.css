@@ -3319,8 +3319,9 @@ a.button.comment-input-button.primary:active {
   margin-bottom: -3px;
 }
 
-.note-wrap .comment-body p {
+.note-wrap > .comment .comment-body p {
   padding-right: 20px;
+  min-height: 31px;
 }
 
 .target .comment-body p {
@@ -3586,6 +3587,33 @@ ul.target-info-list li:before {
 .note .note-cancel:hover {
   color: #2f2f2f;
 }
+
+.note-channels {
+  margin-top: 10px;
+  padding: 0 8px 0 34px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #666;
+}
+
+.note-channels-heading {
+  display: block;
+  font-weight: bold;
+}
+
+ul.note-channels-list {
+  margin-bottom: 5px;
+  list-style: none;
+}
+
+ul.note-channels-list li {
+  
+}
+
+ul.note-channels-list li:before {
+  content: "- ";
+}
+
 
 /*.........................................................................*/
 

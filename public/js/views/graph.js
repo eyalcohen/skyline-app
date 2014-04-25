@@ -710,6 +710,30 @@ define([
       this.plot.draw();
     },
 
+    getChannelsInBounds: function (t1, t2) {
+      t1 *= 1e3;
+      t2 *= 1e3;
+      var channels = [];
+      _.each(this.model.getChannels(), _.bind(function (channel) {
+        var samples = this.model.sampleCollection[channel.channelName];
+        if (!samples) return;
+        var cmin = Number.MAX_VALUE;
+        var cmax = Number.MIN_VALUE;
+        _.each(samples.sampleSet, function (s, i) {
+          if (s.beg < cmin) {
+            cmin = s.beg;
+          }
+          if (s.end > cmax) {
+            cmax = s.end;
+          }
+        }, this);
+        if (cmin <= t2 && cmax >= t1) {
+          channels.push(channel);
+        }
+      }, this));
+      return channels;
+    },
+
     getSeriesData: function (channel) {
       var conv = units.findConversion(channel.units,
           channel.displayUnits || channel.units);

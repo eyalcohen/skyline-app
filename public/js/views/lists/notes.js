@@ -268,6 +268,15 @@ define([
       var parent = this.parentView.target();
       if (!parent.id) return;
 
+      // Get channels under note.
+      var channels = _.map(this.parentView.graph.getChannelsInBounds(
+          this.selection.beg, this.selection.end), function (c) {
+        return {
+          channelName: c.channelName, 
+          humanName: c.humanName,
+        };
+      });
+
       this.input.val(util.sanitize(this.input.val()));
       if (this.input.val().trim() === '') return;
 
@@ -277,6 +286,7 @@ define([
       payload.parent_id = parent.id;
       payload.beg = this.selection.beg;
       payload.end = this.selection.end;
+      payload.channels = channels;
 
       // Mock note.
       var data = {
@@ -287,7 +297,8 @@ define([
         body: payload.body,
         created: new Date().toISOString(),
         beg: this.selection.beg,
-        end: this.selection.end
+        end: this.selection.end,
+        channels: channels,
       };
 
       // Optimistically add note to page.
