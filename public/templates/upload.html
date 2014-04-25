@@ -1,0 +1,101 @@
+<div class="modal-close">
+  <i class="icon-cancel"></i>
+</div>
+<span class="modal-title">
+    Upload
+</span>
+<div class="upload-inner modal-inner">
+  <div>
+    <span class="modal-heading">
+        Details for '<%= fileName %>'
+    </span>
+    <form enctype="multipart/form-data" method="POST">
+      <table>
+        <tbody>
+          <tr>
+            <td>
+              <input name="title" type="text" placeholder="title" tabindex="1" />
+            </td>
+            <td>
+              <input name="tags" type="text" placeholder="tags" tabindex="2" />
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <textarea name="description" class="" tabindex="3" 
+                  placeholder="Write something about your data..."></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input name="source" type="text" placeholder="source" tabindex="4" />
+            </td>
+            <td>
+              <input name="source_link" type="text" placeholder="source link" tabindex="5" />
+            </td>
+          </tr>
+          <tr class="align-left">
+            <td>
+              <span> Select time column:&nbsp </span>
+              <select name="timecol" tabindex="6">
+                <% _.each(channelNames, _.bind(function (c, idx) { %>
+                  <option> <%= c.substring(0,39) %> </option> 
+                <% }, this)); %>
+              </select>
+            </td>
+            <td>
+              <span> Time column format:&nbsp</span>
+              <select name="timecolformat" tabindex="7">
+                <% _.each(timecolGuess.parseHints, _.bind(function (c) { %>
+                  <option> <%= c %> </option> 
+                <% }, this)); %>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <div class ="upload-channel-rename">
+                <% var tabIdx = 7 %>
+                <table> 
+                  <tbody>
+                    <tr>
+                      <td class="align-left"> <span> Rename channel </span> </td>
+                      <td> <span> Include? </span> </td>
+                    </tr>
+                    <% _.each(channelNames, _.bind(function (c, idx) { %>
+                      <tr class="upload-channel-rows">
+                          <td>
+                            <input name="channelRename" type="text" placeholder="<%= c.substring(0, 39) %>" maxlength="40" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
+                          </td>
+                          <td>
+                            <input name="channelEnable" type="checkbox" checked="true" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
+                          </td>
+                      </tr>
+                    <% }, this)); %>
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label class="checkbox-styled input-checkbox">
+                <input type="checkbox" name="private" value="private" />
+                <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
+              </label>
+            </td>
+            <td>
+              <input class="blue-button" type="submit" value="Complete" tabindex="<%= tabIdx %>" />
+              <div class="button-spin"></div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <span class="modal-error"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </div>
+</div>

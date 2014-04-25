@@ -11,21 +11,24 @@ define([
   'rest',
   'util',
   'Spin',
+  'common', 
   'text!../../templates/browser.html',
-  'views/lists/profile.datasets'
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template, Datasets) {
+  'views/lists/profile.datasets',
+  'views/upload'
+], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, common, template,
+            Datasets, Upload) {
 
   return Backbone.View.extend({
-    
+
     // The DOM target element for this page.
     className: 'browser',
     dragging: false,
     working: false,
     files: null,
-    
+
     // Module entry point.
     initialize: function (app, options) {
-      
+
       // Save app reference.
       this.app = app;
       this.options = options;
@@ -55,7 +58,8 @@ define([
         closeBtn: false,
         padding: 0,
         margin: [-30,0,0,0],
-        modal: true
+        modal: true,
+        closeClick: true
       });
 
       // Add placeholder shim if need to.
@@ -73,7 +77,6 @@ define([
       'click .modal-close': 'close',
       'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
-      'click .browser-private': 'checkPrivate',
       'click .browser-search-justme': 'checkJustMe',
       'click .browser-search-allusers': 'checkAllUsers'
     },
@@ -82,17 +85,11 @@ define([
     setup: function () {
 
       // Save refs.
-      this.privacy = this.$('.browser-private');
       this.justme = this.$('.browser-search-justme');
       this.allusers = this.$('.browser-search-allusers');
       this.addNewFileForm = $('.browser-add-form');
       this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
       this.newFile = $('input[name="data_file"]', this.addNewFileForm);
-      this.newFileDescription = $('textarea[name="description"]', this.addNewFileForm);
-      this.newFileTitle = $('input[name="title"]', this.addNewFileForm);
-      this.newFileTags = $('input[name="tags"]', this.addNewFileForm);
-      this.newFileSource = $('input[name="source"]', this.addNewFileForm);
-      this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
       this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = $('.browser .dnd');
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
@@ -103,9 +100,7 @@ define([
         radius: 6,
       });
       this.searchInput = this.$('input[name="search"]');
-
-      // Handle textarea.
-      this.newFileDescription.bind('keyup', $.fancybox.reposition).autogrow();
+      this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
 
       // Handle search input.
       this.searchInput.bind('keyup', _.bind(this.search, this));
@@ -160,6 +155,7 @@ define([
     },
 
     close: function (e) {
+      this.working = false;
       $.fancybox.close();
     },
 
@@ -195,7 +191,7 @@ define([
 
       // Update the input field.
       this.update(null, e.originalEvent.dataTransfer.files);
-      
+
       return false;
     },
 
@@ -223,7 +219,7 @@ define([
 
       // Start load indicator.
       this.newFileButtonSpin.start();
-      this.newFileSubmit.addClass('loading');
+      this.newFileSubmit.addClass('loading').prop('disabled', 'disabled');
 
       // Get the file.
       var files = this.files || this.newFile.get(0).files;
@@ -232,93 +228,31 @@ define([
       var file = files[0];
 
       // Use a FileReader to read the file as a base64 string.
+      var cbFail = _.bind(function(err) {
+        this.newFileButtonSpin.stop();
+        this.newFileError.text(err);
+        this.working = false;
+        $('.browser-progress-bar').width('0%');
+        this.newFileSubmit.removeClass('loading').prop('disabled', false);
+      }, this);
+      var cbSuccess = _.bind(function() {
+      }, this);
+      var cbProgress = _.bind(function(perc) {
+        $('.browser-progress-bar').width(perc);
+      }, this);
+      var stopFcn = _.bind(function() {
+        return !this.working;
+      }, this);
+
       var reader = new FileReader();
       reader.onload = _.bind(function () {
-
-        // Check file type for any supported...
-        // The MIME type could be text/plain or application/vnd.ms-excel
-        // or a bunch of other options. For now, switch to checking the
-        // extension and consider improved validation down the road, particularly
-        // as we add support for new file types
-        var ext = file.name.split('.').pop();
-        if (ext !== 'csv' && ext !== 'xls')
-          return false;
-
-        // Construct the payload to send.
-        var title = this.newFileTitle.val();
-        if (title === '') title = _.str.strLeft(file.name, '.');
-        var payload = {
-          title: util.sanitize(title),
-          tags: util.sanitize(this.newFileTags.val()),
-          description: util.sanitize(this.newFileDescription.val()),
-          source: util.sanitize(this.newFileSource.val()),
-          public: !this.$('.browser-private').is(':checked'),
-          file: {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            ext: ext
-          },
-          base64: reader.result.replace(/^[^,]*,/,''),
-        };
-
-        // Create the dataset.
-        this.app.rpc.do('insertSamples', payload,
-            _.bind(function (err, res) {
-
-          // Start load indicator.
-          this.newFileButtonSpin.stop();
-          this.newFileSubmit.removeClass('loading').attr({disabled: 'disabled'});
-          this.newFileInput.val('');
-          this.newFileTitle.val('');
-          this.newFileTags.val('');
-          this.newFileDescription.val('');
-          this.newFileSource.val('');
-
-          if (err) {
-            if (_.isObject(err))
-              err = 'Error 500: Looks like something went wrong!';
-            this.newFileError.text(err);
-            this.working = false;
-            return;
-          }
-
-          // Publish new dataset.
-          mps.publish('dataset/new', [res]);
-
-          if (!this.datasets) {
-
-            // Show alert
-            _.delay(function () {
-              mps.publish('flash/new', [{
-                message: 'You added a new dataset: "'
-                    + res.title + ', ' + res.meta.channel_cnt + ' channel'
-                    + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
-                level: 'alert'
-              }]);
-            }, 500);
-
-            // Close the modal.
-            $.fancybox.close();
-          }
-
-          // Ready for more.
-          this.working = false;
-
-        }, this));
-
+        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress,
+                      null, stopFcn);
       }, this);
+
       reader.readAsDataURL(file);
 
       return false;
-    },
-
-    checkPrivate: function (e) {
-      var span = $('span', this.privacy.parent());
-      if (this.privacy.is(':checked'))
-        span.html('<i class="icon-lock"></i> Private');
-      else
-        span.html('<i class="icon-lock-open"></i> Public');
     },
 
     checkJustMe: function (e) {

@@ -17,7 +17,7 @@ define([
     },
 
     name: function () {
-      return _.str.strLeft(this.get('val').channelName, '__');
+      return this.get('val').humanName;
     },
 
   });

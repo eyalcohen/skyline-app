@@ -472,6 +472,22 @@ define([
       var rgb = str.match(/\d+/g);
       r = +rgb[0]; g = +rgb[1]; b = +rgb[2];
       return '#' + (0x1000000 + (r<255?r<1?0:r:255)*0x10000 + (g<255?g<1?0:g:255)*0x100 + (b<255?b<1?0:b:255)).toString(16).slice(1);
+    },
+
+    // converts '123456789', with chunksize 2 into '12', '34', '56', '78', '9'
+    chunkify:function (str, chunkSize) {
+      var chunks = [];
+
+      while (str) {
+        if (str.length < chunkSize) {
+          chunks.push(str);
+          break;
+        } else {
+          chunks.push(str.substr(0, chunkSize));
+          str = str.substr(chunkSize);
+        }
+      }
+      return chunks;
     }
 
   }
