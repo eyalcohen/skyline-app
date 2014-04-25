@@ -3141,7 +3141,7 @@ a.channel-button {
 }
 
 .channel.yaxis-right .channel-yaxis-code {
-  color: #666;
+  color: #d0d0d0;
 }
 
 .channel.yaxis-left .channel-yaxis-code:hover {
@@ -3149,7 +3149,7 @@ a.channel-button {
 }
 
 .channel.yaxis-right .channel-yaxis-code:hover {
-  color: #d0d0d0;
+  color: #666;
 }
 
 

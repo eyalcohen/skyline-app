@@ -763,8 +763,7 @@ define([
       if (channels.length === 0) return;
       var yAxes = this.plot.getYAxes();
       yAxes[0].options.color = '#666';
-      yAxes[1].options.color = '#666';
-      //yAxes[1].options.color = '#d0d0d0';
+      yAxes[1].options.color = '#d0d0d0';
       series.forEach(_.bind(function (s, i) {
         var channel = channels[s.channelIndex];
         var highlighted = this.highlightedChannel === channel.channelName;
