@@ -85,23 +85,11 @@ define([
     setup: function () {
 
       // Save refs.
-      this.privacy = this.$('.browser-private');
       this.justme = this.$('.browser-search-justme');
       this.allusers = this.$('.browser-search-allusers');
       this.addNewFileForm = $('.browser-add-form');
       this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
       this.newFile = $('input[name="data_file"]', this.addNewFileForm);
-
-      this.uploadDatasetForm = $('.upload-add-form');
-      this.newFileDescription = $('textarea[name="description"]', this.uploadNewFileForm);
-      this.newFileTitle = $('input[name="title"]', this.uploadNewFileForm);
-      this.newFileTags = $('input[name="tags"]', this.uploadNewFileForm);
-      this.newFileSource = $('input[name="source"]', this.uploadNewFileForm);
-      this.newFileSourceLink = $('input[name="source"]', this.uploadNewFileForm);
-      this.newFileTimeCol = $('select[name="timecol"]', this.uploadNewFileForm);
-      this.newFileTimeColFormat = $('select[name="timecolformat"]', this.uploadNewFileForm);
-      this.newFileSubmit = $('input[type="submit"]', this.uploadNewFileForm);
-
       this.newFileError = $('.modal-error', this.addNewFileForm);
       this.dropZone = $('.browser .dnd');
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
@@ -112,9 +100,7 @@ define([
         radius: 6,
       });
       this.searchInput = this.$('input[name="search"]');
-
-      // Handle textarea.
-      this.newFileDescription.bind('keyup', $.fancybox.reposition).autogrow();
+      this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
 
       // Handle search input.
       this.searchInput.bind('keyup', _.bind(this.search, this));
@@ -242,6 +228,7 @@ define([
 
       // Use a FileReader to read the file as a base64 string.
       var cbFail = _.bind(function(err) {
+        this.newFileButtonSpin.stop();
         this.newFileError.text(err);
         this.working = false;
         $('.browser-progress-bar').width('0%');

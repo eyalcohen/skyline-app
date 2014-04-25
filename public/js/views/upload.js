@@ -1,5 +1,6 @@
 /*
- * Data browser modal view
+ * Upload view for setting dataset attributes to be sent to the server.
+ * Used after a file has been successfully uploaded to the server
  */
 
 define([
@@ -77,15 +78,16 @@ define([
       'click .modal-close': 'close',
       'change input[name="data_file"]': 'update',
       'click .upload-private': 'checkPrivate',
-      'click .upload-add-form input[type="submit"]': 'submit',
-      'change .upload-add-form select[name="timecol"]': 'timeColChange'
+      'click input[type="submit"]': 'submit',
+      'change select[name="timecol"]': 'timeColChange'
     },
 
     // Misc. setup.
     setup: function () {
 
-      this.uploadDatasetForm = $('.upload-add-form');
-      this.newFileDescription = $('textarea[name="description"]', this.uploadNewFileForm);
+      this.uploadForm = $('.upload form');
+      console.log(this.uploadForm);
+      this.newFileDescription = $('textarea[name="description"]', this.uploadForm);
 
       this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
         color: '#fff',
@@ -99,14 +101,14 @@ define([
       this.newFileDescription.bind('keyup', $.fancybox.reposition).autogrow();
 
       // Handle error display.
-      this.$('input[type="text"]').blur(function (e) {
+      this.$('input[type="text"]', this.uploadForm).blur(function (e) {
         var el = $(e.target);
         if (el.hasClass('input-error'))
           el.removeClass('input-error');
       });
 
       // Preload select inputs
-      $('.upload-timecolselect').val(this.timecolGuess.column);
+      $('input[name="timecol"]', this.uploadForm).val(this.timecolGuess.column);
 
       var hint = 'Date';
       var hintList = _.map(this.timecolGuess.parseHints, function(f) {
@@ -115,7 +117,7 @@ define([
       if (_.contains(hintList, this.timecolGuess.dateHint)) {
         hint = this.timecolGuess.dateHint;
       }
-      $('.upload-timecolformat').val(hint);
+      $('input[name="timecolformat"]', this.uploadForm).val(hint);
 
       this.timeColChange();
 
@@ -168,30 +170,32 @@ define([
 
       // Start load indicator.
       this.newFileButtonSpin.start();
-      $('input[type="submit"]').addClass('loading').prop('disabled', 'disabled');
+      $('input[type="submit"]', this.uploadForm)
+        .addClass('loading')
+        .prop('disabled', 'disabled');
 
       // Construct the payload to send.
-      var title = $('input[name="title"]').val();
+      var title = $('input[name="title"]', this.uploadForm).val();
       if (title === '') title = _.str.strLeft(this.fileName, '.');
 
       var channelPayload = {};
       _.each(this.channelNames, function(val, idx) {
         channelPayload[val] = {
-          humanName: $('input[name="channelRename"]').eq(idx).val(),
-          enabled: $('input[name="channelEnable"]').eq(idx).is(':checked')
+          humanName: $('input[name="channelRename"]', this.uploadForm).eq(idx).val(),
+          enabled: $('input[name="channelEnable"]', this.uploadForm).eq(idx).is(':checked')
         };
       });
 
       var payload = {
         title: util.sanitize(title),
-        tags: util.sanitize($('input[name="tags"]').val()),
-        description: util.sanitize($('textarea[name="description"]').val()),
-        source: util.sanitize($('input[name="source"]').val()),
-        sourceLink: util.sanitize($('input[name="source_link"]').val()),
-        timecol:$('select[name="timecol"]').val(),
-        timecolformat:$('select[name="timecolformat"]').val(),
+        tags: util.sanitize($('input[name="tags"]', this.uploadForm).val()),
+        description: util.sanitize($('textarea[name="description"]', this.uploadForm).val()),
+        source: util.sanitize($('input[name="source"]', this.uploadForm).val()),
+        sourceLink: util.sanitize($('input[name="source_link"]', this.uploadForm).val()),
+        timecol:$('select[name="timecol"]', this.uploadForm).val(),
+        timecolformat:$('select[name="timecolformat"]', this.uploadForm).val(),
         channels: channelPayload,
-        public: !this.$('.upload-private').is(':checked'),
+        public: !this.$('input[name="private"]', this.uploadForm).is(':checked'),
         uid: this.uid,
         fileName: this.fileName
       }
@@ -201,7 +205,9 @@ define([
         this.newFileButtonSpin.stop();
 
         if (err) {
-          $('input[type="submit"]').removeClass('loading').prop('disabled', false);
+          $('input[type="submit"]', this.uploadForm)
+            .removeClass('loading')
+            .prop('disabled', false);
           $('.modal-error').text(err);
         }
         else {
@@ -215,11 +221,10 @@ define([
               level: 'alert'
             }]);
           }, 500);
-
+          console.log(res);
           if (this.cbUpload) {
             this.cbUpload(res);
           }
-
           this.close();
         }
 
@@ -227,7 +232,7 @@ define([
     },
 
     checkPrivate: function (e) {
-      var privacy = $('.upload-private');
+      var privacy = $('input[name="private"]', this.uploadForm);
       var span = $('span', privacy.parent());
       if (privacy.is(':checked'))
         span.html('<i class="icon-lock"></i> Private');
@@ -236,9 +241,9 @@ define([
     },
 
     timeColChange: function(e) {
-      var timecol = $('select[name="timecol"]').val();
+      var timecol = $('select[name="timecol"]', this.uploadForm).val();
       var idx = $.inArray(timecol, this.channelNames);
-      var channelInputs = $('.upload-channel-rows');
+      var channelInputs = $('.upload-channel-rows', this.uploadForm);
       channelInputs.eq(idx).hide(e ? 250 : 0);
       channelInputs.each(function(index, c) {
         if (index !== idx) $(c).show(250);

@@ -37,7 +37,7 @@
           <tr class="align-left">
             <td>
               <span> Select time column:&nbsp </span>
-              <select name="timecol" class="upload-timecolselect" tabindex="6">
+              <select name="timecol" tabindex="6">
                 <% _.each(channelNames, _.bind(function (c, idx) { %>
                   <option> <%= c.substring(0,39) %> </option> 
                 <% }, this)); %>
@@ -45,7 +45,7 @@
             </td>
             <td>
               <span> Time column format:&nbsp</span>
-              <select name="timecolformat" class="upload-timecolformat" tabindex="7">
+              <select name="timecolformat" tabindex="7">
                 <% _.each(timecolGuess.parseHints, _.bind(function (c) { %>
                   <option> <%= c %> </option> 
                 <% }, this)); %>
@@ -59,16 +59,16 @@
                 <table> 
                   <tbody>
                     <tr>
-                      <td class="align-left"> <span> Channel Name </span> </td>
-                      <td> <span> Enabled </span> </td>
+                      <td class="align-left"> <span> Rename channel </span> </td>
+                      <td> <span> Include? </span> </td>
                     </tr>
                     <% _.each(channelNames, _.bind(function (c, idx) { %>
                       <tr class="upload-channel-rows">
                           <td>
-                            <input class="upload-new-name" name="channelRename" type="text" placeholder="<%= c.substring(0, 39) %>" maxlength="40" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
+                            <input name="channelRename" type="text" placeholder="<%= c.substring(0, 39) %>" maxlength="40" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
                           </td>
                           <td>
-                            <input class="upload-checkbox" name="channelEnable" type="checkbox" checked="true" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
+                            <input name="channelEnable" type="checkbox" checked="true" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
                           </td>
                       </tr>
                     <% }, this)); %>
@@ -80,12 +80,12 @@
           <tr>
             <td>
               <label class="checkbox-styled input-checkbox">
-                <input class="upload-private" type="checkbox" name="private" value="private" />
+                <input type="checkbox" name="private" value="private" />
                 <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
               </label>
             </td>
             <td>
-              <input class="blue-button" type="submit" value="Create new" tabindex="<%= tabIdx %>" />
+              <input class="blue-button" type="submit" value="Complete" tabindex="<%= tabIdx %>" />
               <div class="button-spin"></div>
             </td>
           </tr>

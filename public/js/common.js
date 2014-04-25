@@ -49,12 +49,11 @@ define([
       // this function sends individual pieces of files.  On completion
       var sendChunk = _.bind(function (err, res) {
         if (err) {
-          cbFail();
+          cbFail(err);
         }
         else if (segment < segments) {
           app.rpc.do('sendPartialFile', payload(), _.bind(function (err, res) {
             if (err) {
-              this.newFileButtonSpin.stop();
               sendChunk(err, null);
             } else {
               cbProgress(((segment+1)/segments*100).toString() + '%')
