@@ -1,11 +1,9 @@
 <%
   var user = this.app.profile.user;
-  var gravatar = user ? 'https://www.gravatar.com/avatar/'
-      + user.gravatar + '?s=28&d=mm': null;
 %>
 
 <% if (this.collection.older > 0) { %>
-  <a href="javascript:;" class="showolder comment list-header">
+  <a href="javascript:;" class="comments-older comment list-header">
     Show <%= this.collection.older %> older <%= this.collection.older > 1 ? 'comments': 'comment' %>
   </a>
 <% } %>
@@ -17,19 +15,17 @@
 <div class="comment-input-wrap list-footer">
   <% if (user) { %>
     <div class="comment">
-      <span class="comment-avatar navigate">
-        <img src=<%= gravatar %> width="28" height="28" />
-      </span>
       <div class="comment-body">
         <form enctype="multipart/form-data" method="POST" class="comment-input-form">
           <textarea name="body" class="comment-input" 
-              placeholder="Write a reply..."></textarea>
+              placeholder="Add a comment..."></textarea>
+          <span>Press enter to comment or escape to close.</span>
         </form>
       </div>
     </div>
   <% } else if (!this.app.embed) { %>
     <a href="javascript:;" class="comments-signin">
-      Sign in to reply.
+      Sign in to add a comment.
     </a>
   <% } %>
 </div>

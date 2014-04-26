@@ -15,17 +15,16 @@ define([
   'text!../../templates/chart.html',
   'text!../../templates/chart.header.html',
   'views/lists/datasets',
+  'views/lists/notes',
   'views/lists/comments',
   'views/graph',
   'views/export',
   'views/overview',
   'views/share'
 ], function ($, _, Backbone, mps, rest, util, units, common, Spin, template,
-      header, Datasets, Comments, Graph, Export, Overview, Share) {
-
+      header, Datasets, Notes, Comments, Graph, Export, Overview, Share) {
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
     className: 'chart',
     working: false,
 
@@ -56,20 +55,20 @@ define([
               _.clone(channel));
         }, this)),
         mps.subscribe('dataset/added', _.bind(function () {
-          this.refreshComments();
+          this.refreshNotes();
         }, this)),
         mps.subscribe('dataset/removed', _.bind(function () {
-          this.refreshComments();
+          this.refreshNotes();
         }, this)),
-        mps.subscribe('comments/refresh', _.bind(function () {
-          this.refreshComments();
+        mps.subscribe('notes/refresh', _.bind(function () {
+          this.refreshNotes();
         }, this)),
         mps.subscribe('channel/channelListFetched', _.bind(function (did, channels) {
           this.openRequestedChannels(did, channels);
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
-        mps.subscribe('graph/drawComplete', _.bind(this.updateIcons, this)),
-        mps.subscribe('comment/end', _.bind(this.uncomment, this)),
+        mps.subscribe('graph/drawComplete', _.bind(this.updateNotes, this)),
+        mps.subscribe('note/cancel', _.bind(this.unnote, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
         mps.subscribe('dataset/requestOpenChannel', _.bind(function (channelName) {
           console.log('requested...');
@@ -115,14 +114,15 @@ define([
       'click .control-button-share': 'share',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
-      'click .comment-button': 'comment',
-      'click .comment-cancel-button': 'comment'
+      'mousedown .note-button': 'note',
+      'click .note-cancel-button': 'note'
     },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs.
+      this.noteDuration = this.$('.note-duration-button');
       this.sidePanel = this.$('.side-panel');
       this.lowerPanel = this.$('.lower-panel');
       this.controls = this.$('.controls');
@@ -135,7 +135,7 @@ define([
         lines: 13,
         length: 3,
         width: 2,
-        radius: 6,
+        radius: 6
       });
 
       // Handle comments panel.
@@ -143,9 +143,11 @@ define([
         $('.side-panel').addClass('open');
 
       // Drag & drop events.
-      this.$el.bind('dragover', _.bind(this.dragover, this));
-      this.dropZone.bind('dragleave', _.bind(this.dragout, this))
-          .bind('drop', _.bind(this.drop, this));
+      if (this.app.embed) {
+        this.$el.bind('dragover', _.bind(this.dragover, this));
+        this.dropZone.bind('dragleave', _.bind(this.dragout, this))
+            .bind('drop', _.bind(this.drop, this));
+      }
 
       // Handle save button.
       if (store.get('state').author && store.get('state').author.id)
@@ -156,12 +158,17 @@ define([
       this.graph = new Graph(this.app, {parentView: this}).render();
       this.datasets = new Datasets(this.app, {parentView: this});
       this.comments = new Comments(this.app, {parentView: this});
+      this.notes = new Notes(this.app, {parentView: this});
       this.overview = new Overview(this.app, {parentView: this}).render();
 
       // Do resize on window change.
       this.resize();
+      _.delay(_.bind(this.resize, this), 20);
+      _.delay(_.bind(this.resize, this), 100);
+      _.delay(_.bind(this.resize, this), 500);
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
+      $(window).resize(_.debounce(_.bind(this.resize, this), 500));
 
       return this;
     },
@@ -183,6 +190,7 @@ define([
       this.app.title();
       this.datasets.destroy();
       this.graph.destroy();
+      this.notes.destroy();
       this.comments.destroy();
       this.remove();
     },
@@ -197,20 +205,20 @@ define([
 
     // Return the current view or index level zero dataset.
     target: function () {
-      if (this.app.profile.content.page)
+      if (this.app.profile.content.page) {
         return {
           doc: this.app.profile.content.page,
           id: Number(this.app.profile.content.page.id), 
           type: 'view'
         };
-      else if (this.app.profile.content.datasets
-          && this.app.profile.content.datasets.items.length !== 0)
+      } else if (this.app.profile.content.datasets
+          && this.app.profile.content.datasets.items.length !== 0) {
         return {
           doc: this.app.profile.content.datasets.items[0],
           id: Number(this.app.profile.content.datasets.items[0].id),
           type: 'dataset'
         };
-      else return {};
+      } else return {};
     },
 
     fit: function () {
@@ -380,7 +388,7 @@ define([
       this.cursorData = this.graph.cursor(e);
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
-      this.cursor.css({left: this.cursorData.x});
+      this.cursor.css({left: Math.ceil(this.cursorData.x)});
     },
 
     hideCursor: function (e) {
@@ -388,35 +396,57 @@ define([
         this.cursor.fadeOut('fast');
     },
 
-    comment: function (e) {
+    note: function (e) {
+      if (e) e.preventDefault();
       if (this.app.embed) return;
       if (!this.target().id) return;
       if (!this.cursorData) return;
-      if (this.cursor.hasClass('active'))
-        mps.publish('comment/end');
-      else {
-        this.cursor.addClass('active');
+
+      // Designating cancel...
+      if (this.cursor.hasClass('active')) {
+        this.cursor.removeClass('active');
+        mps.publish('note/cancel');
+      
+      // Start the note...
+      } else {
         this.graph.$el.css({'pointer-events': 'none'});
-        if (!this.sidePanel.hasClass('open')) {
-          this.sidePanel.addClass('open');
-          store.set('comments', true);
-          _.delay(_.bind(function () {
-            mps.publish('comment/start', [this.cursorData]);
-          }, this), 300);
-        } else
-          mps.publish('comment/start', [this.cursorData]);
+        this.cursor.addClass('active').addClass('selecting');
+        mps.publish('note/start', [this.cursorData]);
+
+        var doc = $(document);
+        var mousemove = _.bind(function (e) {
+          e.preventDefault();
+          var current = this.graph.cursor(e);
+          var abs = Math.abs(this.cursorData.t - current.t);
+          if (abs > 0) {
+            $('span', this.noteDuration).text(util.getDuration(abs*1000, false));
+            this.noteDuration.css({left: current.x - this.cursorData.x
+                - this.noteDuration.outerWidth()/2}).show();
+          } else this.noteDuration.hide();
+          mps.publish('note/move', [this.cursorData, this.graph.cursor(e)]);
+          return false;
+        }, this);
+        var mouseup = _.bind(function (e) {
+          e.preventDefault();
+          doc.unbind('mouseup', mouseup).unbind('mousemove', mousemove);
+          this.cursor.removeClass('selecting');
+          mps.publish('note/end', [this.graph.cursor(e), e]);
+          return false;
+        }, this);
+        doc.bind('mouseup', mouseup).bind('mousemove', mousemove);
       }
     },
 
-    uncomment: function () {
+    unnote: function () {
       if (this.app.embed) return;
+      this.noteDuration.hide();
       this.cursor.removeClass('active');
       this.graph.$el.css({'pointer-events': 'auto'});
     },
 
-    refreshComments: function () {
-      this.comments.reset();
-      this.updateIcons();
+    refreshNotes: function () {
+      this.notes.reset();
+      this.updateNotes();
     },
 
     saved: function () {
@@ -427,16 +457,23 @@ define([
       this.app.title(this.app.profile.content.page.name);
     },
 
-    updateIcons: function () {
-      if (!this.graph || !this.graph.plot || !this.comments) return;
+    updateNotes: function () {
+      if (!this.graph || !this.graph.plot || !this.notes) return;
       var xaxis = this.graph.plot.getXAxes()[0];
+      var vs = this.graph.getVisibleTime();
+      if (!vs.beg) return;
 
-      // Update x-pos of each comment.
-      _.each(this.comments.views, _.bind(function (v) {
-        v.model.set('xpos', xaxis.p2c(v.model.get('time')) - 8);
-        if (!$.contains(document.documentElement, v.icon.get(0))) {
-          v.icon.appendTo(this.icons);
-        }
+      // Update x-pos of each note.
+      _.each(this.notes.views, _.bind(function (v) {
+        var beg = v.model.get('beg');
+        var end = v.model.get('end');
+        var xpos = xaxis.p2c(v.model.get('beg'));
+        var width = xaxis.p2c(v.model.get('end')) - xpos;
+        width = width < 2 ? 2: width;
+        var width_per = 1e3 * (end - beg) / (vs.end - vs.beg);
+        v.model.set('opacity', (1-width_per)*0.25);
+        v.model.set('width', width);
+        v.model.set('xpos', xpos);
       }, this));
     },
 

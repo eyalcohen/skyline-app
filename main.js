@@ -274,6 +274,7 @@ if (cluster.isMaster) {
               socket.join('datasets');
               socket.join('views');
               socket.join('events');
+              socket.join('notes');
               socket.join('comments');
               if (socket.handshake.user)
                 socket.join('usr-' + socket.handshake.user._id);

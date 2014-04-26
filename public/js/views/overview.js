@@ -200,7 +200,7 @@ define([
                 .append('svg:g')
                 .append('svg:path')
                 .attr('d', path(_.map(series.data, function (x) {
-                  return {t: x.t, v: series.min}})))
+                  return {t: x.t, v: 0}})))
                 .attr('class', 'area')
                 .attr('fill', series.color)
           }
@@ -208,6 +208,7 @@ define([
           // Create SVG elements.
           var svg = d3.select(plot.get(0)).select('path')
               .transition()
+              .ease('cubic-out')
               .duration(750)
               .attr('fill', series.color)
               .attr('d', path(series.data))

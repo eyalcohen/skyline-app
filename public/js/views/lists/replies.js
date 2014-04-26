@@ -11,7 +11,7 @@ define([
   'util',
   'text!../../../templates/lists/replies.html',
   'collections/comments',
-  'views/rows/reply'
+  'views/rows/comment'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
@@ -48,8 +48,11 @@ define([
       this.$('textarea[name="body"]').autogrow();
       this.$('textarea[name="body"]')
           .bind('keyup', _.bind(function (e) {
-        if (!e.shiftKey && (e.keyCode === 13 || e.which === 13))
+        if (e.shiftKey) return;
+        if (e.keyCode === 13 || e.which === 13)
           this.write();
+        else if (e.keyCode === 27 || e.which === 27)
+          this.parentView.open();
       }, this))
           .bind('keydown', _.bind(function (e) {
         if (!e.shiftKey && (e.keyCode === 13 || e.which === 13))
@@ -57,9 +60,7 @@ define([
       }, this));
 
       // Show other elements.
-      this.$('.showolder.comment').show();
-      this.$('.comment-input-wrap').show();
-      this.$('.comment-input-wrap .comment').show();
+      this.$('textarea.comment-input').focus();
 
       return List.prototype.setup.call(this);
     },
@@ -67,7 +68,7 @@ define([
     // Bind mouse events.
     events: {
       'click .comments-signin': 'signin',
-      'click .showolder': 'older',
+      'click .comments-older': 'older',
     },
 
     // Collect new replies from socket events.
@@ -75,9 +76,23 @@ define([
       if (data.parent_id !== this.parentView.model.id) return;
       if (this.collection.get(-1)) return;
       this.collection.push(data);
+    },
 
-      // Resize modal.
-      $.fancybox.reposition(null, null, true);
+    destroy: function () {
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
+      _.each(this.views, function (v) {
+        v.destroy();
+      });
+      this.undelegateEvents();
+      this.stopListening();
+      this.empty();
+    },
+
+    empty: function () {
+      this.$el.empty();
+      return this;
     },
 
     // remove a model
@@ -92,24 +107,10 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
-          
-          // Resize modal.
-          $.fancybox.reposition(null, null, true);
         }, this));
       }
     },
 
-    //
-    // Optimistically writes a comment.
-    //
-    // This function assumes that a comment will successfully be created on the
-    // server. Based on that assumption we render it in the UI before the 
-    // success callback fires.
-    //
-    // When the success callback fires, we update the comment model id from the
-    // comment created on the server. If the error callback fires, we remove 
-    // the comment from the UI and notify the user (or retry).
-    //
     write: function (e) {
       if (e) e.preventDefault();
 
@@ -138,7 +139,7 @@ define([
       input.val('').keyup();
 
       // Now save the comment to server.
-      rest.post('/api/comments/comment', payload,
+      rest.post('/api/comments/note', payload,
           _.bind(function (err, data) {
 
         if (err) {
@@ -151,7 +152,6 @@ define([
         var comment = this.collection.get(-1);
         comment.set('id', data.id);
         this.$('#-1').attr('id', data.id);
-
       }, this));
 
       return false;
@@ -164,11 +164,10 @@ define([
 
       // Get the older comments.
       rest.post('/api/comments/list', {
-        cursor: 0, 
+        skip: this.collection.length,
         limit: limit,
         parent_id: this.parentView.model.id,
       }, _.bind(function (err, data) {
-
         if (err) return console.log(err);
 
         // Update the collection.
@@ -184,8 +183,7 @@ define([
         this.collection.options.reverse = false;
 
         // Hide the button.
-        this.$('.showolder.comment').hide();
-
+        this.$('.comments-older.comment').hide();
       }, this));
 
     },

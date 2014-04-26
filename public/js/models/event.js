@@ -13,15 +13,38 @@ define([
       var att = this.attributes;
       var user = this.app.profile.user;
 
-      if (att.data.action.t === 'comment') {
+      if (att.data.action.t === 'note') {
         var verb, target, type, icon;
         var actor = user.id === att.data.action.i ? 'You': att.data.action.a;
-        if (att.data.target.t === 'comment') {
+        verb = 'wrote a note on';
+        target = att.data.target;
+        if (target.t === 'dataset')
+          icon = target.l ? 'lock': 'database';
+        else
+          icon = target.l ? 'lock': 'folder-empty';
+        var linkClass = 'navigate';
+        if (target.l) linkClass += ' locked';
+        var link = '<a href="/' + target.s + '" class="' + linkClass + '">';
+        var gravatar = 'https://www.gravatar.com/avatar/'
+            + att.data.action.g + '?s=16&d=mm';
+
+        return '<a href="/' + att.data.action.u + '" class="navigate">'
+            + actor + '</a> ' + verb + ' '
+            + link + '<i class="icon-' + icon + '"></i> '
+            + att.data.target.u + '/' + att.data.target.n + '</a>.'
+            + (att.data.action.b ? '<span class="event-body">"'
+            + '<img src=' + gravatar + ' width="16" height="16" />'
+            + att.data.action.b + '"</span>': '');
+
+      } else if (att.data.action.t === 'comment') {
+        var verb, target, type, icon;
+        var actor = user.id === att.data.action.i ? 'You': att.data.action.a;
+        if (att.data.target.t === 'note') {
           var cowner = user.id === att.data.target.i ? 'your':
               (att.data.action.i === att.data.target.i ? 'their':
               '<a href="/' + att.data.target.u + '" class="navigate">'
               + att.data.target.a + '\'s</a>');
-          verb = 'replied to ' + cowner + ' comment on';
+          verb = 'replied to ' + cowner + ' note on';
           target = att.data.target.p;
         } else {
           verb = 'commented on';

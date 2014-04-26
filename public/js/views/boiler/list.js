@@ -6,8 +6,9 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'mps'
-], function ($, _, Backbone, mps) {
+  'mps',
+  'util'
+], function ($, _, Backbone, mps, util) {
   return Backbone.View.extend({
 
     initialize: function (app, options) {
@@ -41,7 +42,7 @@ define([
       if (this.parentView && this.$el.attr('class'))
         this.setElement(this.parentView.$('.' + _.str.strLeft(this.$el.attr('class'), ' ')));
       if (this.template)
-        this.$el.html(this.template(options));
+        this.$el.html(this.template(_.extend(options, {util: util})));
       this.trigger('rendered');
       return this;
     },
@@ -68,7 +69,6 @@ define([
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);

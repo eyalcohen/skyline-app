@@ -307,6 +307,10 @@ footer {
   bottom: 0;
 }
 
+form {
+  background: none;
+}
+
 table {
   width: 100%;
 }
@@ -355,7 +359,7 @@ input[type=text]:focus,
 input[type=password]:focus,
 input[type=search]:focus,
 textarea:focus {
-  background: #F8F8F8 !important;
+  /*background: #F8F8F8 !important;*/
 
   -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
@@ -718,7 +722,10 @@ a.button.unfollow-button {
   border-radius: 0;
 }
 
-.checkbox-styled.table-checkbox input[type="checkbox"] + span {
+.checkbox-styled.table-checkbox input[type="checkbox"] + span,
+.checkbox-styled.table-checkbox input[type="checkbox"] + span:hover,
+.checkbox-styled.table-checkbox input[type="checkbox"] + span:active,
+.checkbox-styled.table-checkbox input[type="checkbox"] + span:focus {
   display: inline-block;
   padding: 0;
   margin-left: 12px;
@@ -727,6 +734,10 @@ a.button.unfollow-button {
   line-height: 40px;
   background: none;
   border: none;
+
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
 }
 
 .checkbox-styled.toggle-checkbox input[type="checkbox"] + span i {
@@ -756,11 +767,11 @@ a.button.unfollow-button {
 }
 
 .checkbox-styled.table-checkbox input[type="checkbox"]:checked + span {
-  font-weight: 700;
+  /*font-weight: 700;*/
 }
 
 .checkbox-styled.toggle-checkbox input[type="checkbox"]:checked + span i {
-  display: inline-block;
+  display: inline;
 }
 
 /*.........................................................................*/
@@ -2648,6 +2659,11 @@ a.control-button-save.saving {
   height: 100% !important;
   /*min-height: 300px;*/
   font-weight: 400;
+  cursor: default;
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .graph:focus {
@@ -2679,8 +2695,9 @@ a.control-button-save.saving {
   border-left-color: rgb(39, 205, 214);
 }
 
-.cursor a.comment-button,
-.cursor a.comment-cancel-button {
+.cursor a.note-button,
+.cursor a.note-duration-button,
+.cursor a.note-cancel-button {
   position: absolute;
   bottom: -20px;
   background: #3f3f3f;
@@ -2688,22 +2705,28 @@ a.control-button-save.saving {
   font-size: 8px;
   text-transform: uppercase;
   padding: 0 5px;
-  left: -34px;
+  left: -22px;
   white-space: nowrap;
   pointer-events: auto;
   line-height: 21px;
   height: 21px;
 }
 
-.main.embed .cursor a.comment-button,
-.main.embed .cursor a.comment-cancel-button {
+.main.embed .cursor a.note-button,
+.main.embed .cursor a.note-duration-button,
+.main.embed .cursor a.note-cancel-button {
   display: none;
 }
 
-.cursor a.comment-cancel-button {
+.cursor a.note-duration-button {
+  display: none;
+  cursor: default;
+}
+
+.cursor a.note-cancel-button {
   display: none;
   left: -28px;
-  background: rgb(39, 205, 214);
+  background: #27CDD6;
 }
 
 .cursor a [class^="icon-"]:before,
@@ -2712,51 +2735,25 @@ a.control-button-save.saving {
   width: 8px;
 }
 
-.cursor a.comment-cancel-button i {
+.cursor a.note-cancel-button i {
   font-size: 11px;
   vertical-align: -1px;
 }
 
-.cursor a.comment-button:active {
+.cursor a.note-button:active {
   background: #1f1f1f;
 }
 
-.cursor.active a.comment-button {
+.cursor.active a.note-button {
   display: none;
 }
 
-.cursor.active a.comment-cancel-button {
+.cursor.active a.note-cancel-button {
   display: block;
 }
 
-.icons {
-  position: absolute;
-  z-index: 9;
-  top: -2px;
-  left: 0;
-}
-
-.icon {
-  position: absolute;
-  cursor: pointer;
-  font-size: 24px;
-  opacity: 0.9;
-}
-
-.icon.hover {
-  opacity: 1;
-}
-
-.icon-code-view {
-  color: #9FFF0D;
-}
-
-.icon-code-dataset {
-  color: #d0d0d0;
-}
-
-.icon-code-dataset-leader {
-  color: #27CDD6;
+.cursor a.note-duration-button i {
+  margin: 0 2px;
 }
 
 /*.........................................................................*/
@@ -2883,7 +2880,7 @@ a.control-button-save.saving {
   border-right: 1px solid rgba(39, 205, 214, 0.8);
 }
 
-.dataset .dataset-control-comments.off {
+.dataset .dataset-control-notes.off {
   color: rgba(128,128,128,0.2);
 }
 
@@ -3169,19 +3166,8 @@ a.channel-button {
 
 /*.........................................................................*/
 
-.discussion {
-  max-height: 500px;
-  overflow: hidden;
-}
-
-.discussion-inner {
-  padding: 15px 20px 0;
-  width: 660px;
-  margin-bottom: 10px;
-}
-
 .comment-input-wrap {
-  display: none;
+  /*display: none;*/
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3197,16 +3183,30 @@ a.channel-button {
   animation-fill-mode: both;
 }
 
+.comment-input-wrap span {
+  font-weight: normal;
+  font-size: 10px;
+  padding: 0 10px;
+  color: #666;
+  text-align: right;
+  display: block;
+}
+
 textarea.comment-input {
   display: block;
   width: 280px;
   margin: 0;
   padding: 10px;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.8);
   resize: none;
   overflow: hidden;
   font-size: 12px;
   border: none;
+  border-bottom: 1px solid #D0D0D0;
+
+  -webkit-box-shadow: none;
+  -mozbox-shadow: none;
+  box-shadow: none;
 
   -moz-border-radius: 0;
   -webkit-border-radius: 0;
@@ -3220,13 +3220,8 @@ textarea.comment-input {
   transition-timing-function: height 0.2s;
 }
 
-.discussion textarea.comment-input {
-  width: 634px;
-  padding: 10px 6px;
-}
-
-.discussion textarea.comment-input:focus {
-  border-color: #b0b0b0;
+textarea.comment-input:focus {
+  background: #fff;
 }
 
 .comment-input-buttons {
@@ -3258,7 +3253,6 @@ a.button.comment-input-button.primary:active {
 }
 
 .comments {
-  border-bottom: 1px solid #d0d0d0;
   margin-bottom: -1px;
 }
 
@@ -3266,8 +3260,7 @@ a.button.comment-input-button.primary:active {
   width: 300px;
   position: relative;
   display: none;
-  border-bottom: 1px solid #e0e0e0;
-  cursor: pointer;
+  background: rgba(249,249,249,0.8);
   
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3283,33 +3276,31 @@ a.button.comment-input-button.primary:active {
   animation-fill-mode: both;
 }
 
-.comment:nth-last-child(2) {
-  border-bottom: none;
-}
-
-.comment:hover,
-.comment.hover {
-  background: #f2f2f2;
+.comment + .comment {
+  border-top: 1px solid #e0e0e0;
 }
 
 .comment-input-wrap .comment {
   display: block;
   cursor: inherit;
   border-bottom: none;
+  background: none;
 }
 
-.discussion .comment {
-  width: 700px;
-  cursor: inherit;
-}
-
-.discussion .comment:hover {
-  background: inherit;
-}
-
-.discussion .comment {
-  border-bottom: none;
+.comment + .comment-input-wrap .comment {
   border-top: 1px solid #e0e0e0;
+}
+
+.replies .comment:first-child {
+  border-top: 1px solid #e0e0e0;
+}
+
+.comments > .comment:first-child {
+  border-top: none;
+}
+
+.comment.target {
+  display: block;
 }
 
 .comment-body {
@@ -3317,10 +3308,6 @@ a.button.comment-input-button.primary:active {
 }
 
 .comment-input-wrap .comment-body {
-  padding: 0;
-}
-
-.discussion-inner .comment-body {
   padding: 0;
 }
 
@@ -3332,10 +3319,17 @@ a.button.comment-input-button.primary:active {
   margin-bottom: -3px;
 }
 
-.discussion-inner .comment-body p {
-  padding: 0;
-  font-size: 14px;
-  line-height: 21px;
+.note-wrap > .comment .comment-body p {
+  padding-right: 20px;
+  min-height: 31px;
+}
+
+.target .comment-body p {
+  font-size: 12px;
+  line-height: 16px;
+  color: #2f2f2f;
+  margin-bottom: 0;
+  padding: 0 8px 0;
 }
 
 span.comment-avatar,
@@ -3361,10 +3355,6 @@ a.comment-avatar img {
   border-radius: 2px;
 }
 
-.discussion .comment-input-wrap span.comment-avatar {
-  margin-right: 0;
-}
-
 a.comment-author {
   display: inline-block;
   white-space: nowrap;
@@ -3386,11 +3376,19 @@ a.comments-signin {
   text-align: center;
   line-height: 18px;
   font-size: 10px;
-  border-bottom: 1px solid #e0e0e0;
+}
+
+.comments a.comments-signin,
+.replies a.comments-signin {
+  border-top: 1px solid #e0e0e0;
 }
 
 .comment-info {
   margin-left: 34px;
+}
+
+.target .comment-info {
+  margin-left: 8px;
 }
 
 .comment-code {
@@ -3412,19 +3410,204 @@ a.comments-signin {
   background: rgba(39, 205, 214, 0.8);
 }
 
-.discussion a.comments-signin {
-  border-top: 1px solid #e0e0e0;
-  border-bottom: none;
-}
-
-.showolder {
-  padding: 5px 5px;
+.comments-older {
+  padding: 5px 0;
   display: block;
   min-height: 0;
-  width: 480px;
   text-align: center;
   color: #8f8f8f;
   font-style: italic;
+  font-size: 10px;
+}
+
+/*.........................................................................*/
+
+.target {
+  padding-top: 4px;
+}
+
+.target-name {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 13px;
+  font-style: italic;
+}
+
+.target-description {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.target-info {
+  padding: 0 8px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #666;
+}
+
+.target-info-heading {
+  display: block;
+  font-weight: bold;
+}
+
+ul.target-info-list {
+  margin-bottom: 5px;
+  list-style: none;
+}
+
+ul.target-info-list li {
+  
+}
+
+ul.target-info-list li:before {
+  content: "- ";
+}
+
+/*.........................................................................*/
+
+.notes {
+  position: absolute;
+  z-index: 9;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.note {
+  position: absolute;
+  top: 0;
+  left: -1000px;
+  bottom: 1px;
+  z-index: 0;
+  pointer-events: auto;
+}
+
+.note .note-bar {
+  position: absolute;
+  width: 0;
+  top: 0;
+  bottom: 0;
+  cursor: pointer;
+
+  border-left: 1px dashed rgba(0,0,0,0.3);
+  border-right: 1px dashed rgba(0,0,0,0.3);
+
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.note.note-view .note-bar {
+  background: #9FFF0D;
+}
+
+.note.note-dataset .note-bar {
+  background: #666;
+}
+
+.note.note-dataset-leader .note-bar {
+  background: #27CDD6;
+}
+
+.note-selector {
+  display: none;
+  position: absolute;
+  left: 700px;
+  top: 0;
+  bottom: 1px;
+  background: rgba(0, 0, 0, 0.15);
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.note-selector.rightsided {
+  border-left: 1px solid rgba(0,0,0,0.3);
+}
+
+.note-selector.leftsided {
+  border-right: 1px solid rgba(0,0,0,0.3);
+}
+
+.note-wrap {
+  display: none;
+  position: absolute;
+  z-index: 11;
+  bottom: 0;
+  width: 300px;
+  max-height: 100%;
+  overflow-y: auto;
+  background: rgba(249,249,249,0.8);
+  border-top: 1px solid #d0d0d0;
+  pointer-events: auto;
+
+  -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  -mozbox-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.note-wrap.rightsided {
+  border-left: 1px solid #d0d0d0;
+}
+
+.note-wrap.leftsided {
+  border-right: 1px solid #d0d0d0;
+}
+
+.note-wrap-new {
+  bottom: 1px;
+}
+
+.note .note-cancel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+  display: block;
+  cursor: pointer;
+  padding: 0 0 5px 5px;
+  font-size: 14px;
+  color: #666;
+}
+
+.note .note-cancel:hover {
+  color: #2f2f2f;
+}
+
+.note-channels {
+  margin-top: 10px;
+  padding: 0 8px 0 34px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #666;
+}
+
+.note-channels-heading {
+  display: block;
+  font-weight: bold;
+}
+
+ul.note-channels-list {
+  margin-bottom: 5px;
+  list-style: none;
+}
+
+ul.note-channels-list li {
+  
 }
 
 /*.........................................................................*/
@@ -3661,6 +3844,7 @@ a.comments-signin {
 
 .event {
   display: none;
+  width: 600px;
   border-bottom: 1px solid #f0f0f0;
   padding: 15px 0;
 

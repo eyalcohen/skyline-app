@@ -37,6 +37,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
+        mps.subscribe('chart/pan', _.bind(this.pan, this)),
         mps.subscribe('graph/draw', _.bind(function() {
           this.model.updateCacheSubscription();
           this.draw();
@@ -154,6 +155,11 @@ define([
       this.plot.setupGrid();
       this.plot.draw();
       this.plot.getPlaceholder().trigger('plotzoom', [this.plot]);
+    },
+
+    pan: function (left) {
+      this.plot.pan({left: left});
+      this.prevPageX -= left;
     },
 
     // returns an array of objects containing {
@@ -502,11 +508,13 @@ define([
         .mousemove(_.bind(function (e) {
           // panning behavior, unless we're highlight on a line.
           if (this.mousedown) {
-            if (this.changingOffset) {
-              this.endOffset(e);
+            // if (this.changingOffset) {
+            //   this.endOffset(e);
+            //   return;
+            if (e.shiftKey) {
               return;
             } else {
-              this.plot.pan({ left: this.prevPageX - e.pageX});
+              this.plot.pan({left: this.prevPageX - e.pageX});
               this.prevPageX = e.pageX;
             }
           }
@@ -521,7 +529,15 @@ define([
         }, this))
 
         .mousedown(_.bind(function (e) {
+          if (e.which === 3) return false; // ignore right-click
+
           this.plot.unhighlight();
+
+          if (e.shiftKey) {
+            this.parentView.note();
+            return;
+          }
+
           var closestChannel =
             _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
           if (!closestChannel) return;
@@ -692,6 +708,30 @@ define([
       this.plot.setData(series);
       this.plot.setupGrid();
       this.plot.draw();
+    },
+
+    getChannelsInBounds: function (t1, t2) {
+      t1 *= 1e3;
+      t2 *= 1e3;
+      var channels = [];
+      _.each(this.model.getChannels(), _.bind(function (channel) {
+        var samples = this.model.sampleCollection[channel.channelName];
+        if (!samples) return;
+        var cmin = Number.MAX_VALUE;
+        var cmax = Number.MIN_VALUE;
+        _.each(samples.sampleSet, function (s, i) {
+          if (s.beg < cmin) {
+            cmin = s.beg;
+          }
+          if (s.end > cmax) {
+            cmax = s.end;
+          }
+        }, this);
+        if (cmin <= t2 && cmax >= t1) {
+          channels.push(channel);
+        }
+      }, this));
+      return channels;
     },
 
     getSeriesData: function (channel) {

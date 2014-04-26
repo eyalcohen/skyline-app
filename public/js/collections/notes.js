@@ -1,17 +1,17 @@
 /*
- * Comments collection.
+ * Notes collection.
  */
 
 define([
   'collections/boiler/list',
-  'models/comment'
+  'models/note'
 ], function (List, Model) {
   return List.extend({
 
     model: Model,
 
     comparator: function (model) {
-      return model.get('created');
+      return -model.get('beg');
     },
 
   });

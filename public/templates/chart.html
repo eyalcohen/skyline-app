@@ -12,17 +12,17 @@
       </a>
     <% } %>
     <a class="control-button control-button-comments" href="javascript:;">
-      <i class="icon-comment"></i>
+      <i class="icon-info-circled"></i>
     </a>
     <% if (user && !this.app.embed) { %>
       <a class="control-button control-button-download" href="javascript:;">
         <i class="icon-download"></i>
       </a>
-      <% if (this.app.profile.content.page) { %>
+      <!-- < if (this.app.profile.content.page) { >
         <a class="control-button control-button-fork" href="javascript:;">
           <i class="icon-split"></i>
         </a>
-      <% } %>
+      < } > -->
       <a class="control-button control-button-save" href="javascript:;">
         <div class="button-spin save-button-spin"></div>
         <i class="icon-floppy"></i>
@@ -38,14 +38,17 @@
 </div>
 <div class="graphs">
   <div class="cursor">
-    <a href="javascript:;" class="comment-button">
-      <i class="icon-bookmark"></i>Comment
+    <a href="javascript:;" class="note-button">
+      <i class="icon-bookmark"></i>Note
     </a>
-    <a href="javascript:;" class="comment-cancel-button">
+    <a href="javascript:;" class="note-cancel-button">
       <i class="icon-cancel"></i>Cancel
     </a>
+    <a href="javascript:;" class="note-duration-button">
+      <i class="icon-clock"></i><span></span>
+    </a>
   </div>
-  <div class="icons"></div>
+  <div class="notes"></div>
 </div>
 <div class="lower-panel">
   <div class="overview">
