@@ -51,30 +51,37 @@ define([
             this.$el.show();
           }, this), single ? 0 : d);
         }
-      } else this.$el.show();
-      if (single && !re)
+      } else {
+        this.$el.show();
+      }
+      if (single && !re) {
         if (prepend) {
-          if (this.parentView.$('.list-header').length !== 0)
+          if (this.parentView.$('.list-header').length !== 0) {
             this.$el.insertAfter(this.parentView.$('.list-header'));
-          else
+          } else {
             this.$el.prependTo(this.parentView.$el);
+          }
         } else {
           if (this.parentView) {
-            if (this.parentView.$('.list-header').length !== 0) {
+            if (this.parentView.footer) {
+              this.$el.insertBefore(this.parentView.footer);
+            } else if (this.parentView.$('.list-header').length !== 0) {
               var list = $(this.parentView.$('.list-header').get(0));
               var lastSib = $('.' + this.attributes().class.split(' ')[0],
                   list.parent()).last();
-              if (lastSib.length !== 0)
+              if (lastSib.length !== 0) {
                 this.$el.insertAfter(lastSib);
-              else
+              } else {
                 this.$el.insertAfter(list);
-            } else if (this.parentView.footer)
-              this.$el.insertBefore(this.parentView.footer);
-            else
+              }
+            } else {
               this.$el.appendTo(this.parentView.$el);
-          } else
+            }
+          } else {
             this.$el.appendTo(this.wrap);
+          }
         }
+      }
       this.time = null;
       this.trigger('rendered');
       return this;
