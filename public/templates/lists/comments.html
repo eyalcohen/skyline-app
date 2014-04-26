@@ -1,6 +1,5 @@
 <%
   var target = this.parentView.target();
-
   var num_datasets = 0;
   var num_channels = 0;
   if (target.type === 'dataset') {
@@ -8,7 +7,7 @@
   } else {
     _.each(target.doc.datasets, function (d) {
       ++num_datasets;
-      num_channels += _.size(d);
+      num_channels += _.size(d.channels);
     });
   }
   if (num_datasets !== 1) {
@@ -21,6 +20,22 @@
   } else {
     num_channels += ' channel';
   }
+
+  var source = '';
+  if (target.type === 'dataset') {
+    if (target.doc.source && target.doc.source !== '') {
+      source += target.doc.source;
+    }
+    if (target.doc.sourceLink && target.doc.sourceLink !== '') {
+      if (source !== '') {
+        source = '<a href="' + target.doc.sourceLink + '" target="_blank">' + source + '</a>';
+      } else {
+        source = '<a href="' + target.doc.sourceLink + '" target="_blank">' + target.doc.sourceLink + '</a>';
+      }
+    }
+  }
+
+  var meta = target.type === 'dataset' ? target.doc.meta: target.doc.time;
 %>
 
 <div class="comment target">
@@ -45,22 +60,20 @@
     <div class="target-info">
       <span class="target-info-heading">Info</span>
       <ul class="target-info-list">
-        <% if (target.doc.type === 'dataset') { %>
+        <% if (target.type === 'dataset') { %>
           <li><%= num_channels %></li>
         <% } else { %>
           <li><%= num_datasets %></li>
           <li><%= num_channels %></li>
-          <li>begining at <%= util.toLocaleString(new Date(target.doc.time.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
-          <li>spanning <%= util.getDuration(target.doc.time.end - target.doc.time.beg, false) %></li>
+          <li>begining at <%= util.toLocaleString(new Date(meta.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
+          <li>spanning <%= util.getDuration(meta.end - meta.beg, false) %></li>
         <% } %>
-        <li>last updated <%= util.toLocaleString(new Date(target.doc.created), 'mm/d/yy HH:MM:ss') %></li>
+        <li>last updated <%= util.toLocaleString(new Date(target.doc.updated), 'mm/d/yy HH:MM:ss') %></li>
       </ul>
-      <% if (target.doc.sources && target.doc.sources.length > 0) { %>
-        <span class="target-info-heading">Sources</span>
+      <% if (source !== '') { %>
+        <span class="target-info-heading">Source</span>
         <ul class="target-info-list">
-          <% _.each(target.doc.sources, function(s) { %>
-            <li><%= util.formatText(s) %></li>
-          <% }); %>
+          <li><%= source %></li>
         </ul>
       <% } %>
       <% if (target.doc.tags && target.doc.tags.length > 0) { %>
