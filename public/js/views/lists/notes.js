@@ -104,7 +104,6 @@ define([
       this.wrap = this.$('.note-wrap-new');
       this.form = $('.comment-input-form', this.wrap);
       this.input = this.$('.comment-input', this.wrap);
-      this.footer = this.$('.list-footer');
 
       // Handle comment box keys.
       this.$('textarea[name="body"]')
