@@ -3449,10 +3449,12 @@ a.comments-signin {
 .target-info-heading {
   display: block;
   font-weight: bold;
+  margin-bottom: 2px;
 }
 
 ul.target-info-list {
   margin-bottom: 5px;
+  margin-left: 5px;
   list-style: none;
 }
 
@@ -3461,7 +3463,7 @@ ul.target-info-list li {
 }
 
 ul.target-info-list li:before {
-  content: "- ";
+  /*content: "- ";*/
 }
 
 /*.........................................................................*/

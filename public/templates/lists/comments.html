@@ -10,16 +10,7 @@
       num_channels += _.size(d.channels);
     });
   }
-  if (num_datasets !== 1) {
-    num_datasets += ' datasets';
-  } else {
-    num_datasets += ' dataset';
-  }
-  if (num_channels !== 1) {
-    num_channels += ' channels';
-  } else {
-    num_channels += ' channel';
-  }
+  
 
   var source = '';
   if (target.type === 'dataset') {
@@ -58,17 +49,17 @@
       <% } %>
     </p>
     <div class="target-info">
-      <span class="target-info-heading">Info</span>
+      <span class="target-info-heading">Information</span>
       <ul class="target-info-list">
         <% if (target.type === 'dataset') { %>
-          <li><%= num_channels %></li>
+          <li>Channels: <%= num_channels %></li>
         <% } else { %>
-          <li><%= num_datasets %></li>
-          <li><%= num_channels %></li>
-          <li>begining at <%= util.toLocaleString(new Date(meta.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
-          <li>spanning <%= util.getDuration(meta.end - meta.beg, false) %></li>
+          <li>Datasets: <%= num_datasets %></li>
+          <li>Channels: <%= num_channels %></li>
+          <li>Begin time: <%= util.toLocaleString(new Date(meta.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
+          <li>Duration: <%= util.getDuration(meta.end - meta.beg, false) %></li>
         <% } %>
-        <li>last updated <%= util.toLocaleString(new Date(target.doc.updated), 'mm/d/yy HH:MM:ss') %></li>
+        <li>Last updated: <%= util.toLocaleString(new Date(target.doc.updated), 'mm/d/yy HH:MM:ss') %></li>
       </ul>
       <% if (source !== '') { %>
         <span class="target-info-heading">Source</span>
