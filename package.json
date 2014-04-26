@@ -39,7 +39,8 @@
     "passport-facebook": "~1.0.1",
     "passport-twitter": "~1.0.2",
     "cli-color": "~0.2.2",
-    "aws-sdk": "^2.0.0-rc13"
+    "aws-sdk": "^2.0.0-rc13",
+    "xlsjs": "^0.6.17"
   },
   "devDependencies": {
     "grunt": "0.4.4",
