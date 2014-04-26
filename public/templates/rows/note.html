@@ -27,7 +27,9 @@
           <ul class="note-channels-list">
             <% _.each(channels, function (c) { %>
               <li>
-                <a href="javascript:;" data-channel="<%= c.channelName %>"><%= c.humanName %></a>
+                <a href="javascript:;" class="note-channel" data-channel="<%= c.channelName %>">
+                  <i class="icon-chart-line"></i> <%= c.humanName %>
+                </a>
               </li>
             <% }); %>
           </ul>

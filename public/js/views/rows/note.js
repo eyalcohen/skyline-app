@@ -51,6 +51,7 @@ define([
       'click .info-delete': 'delete',
       'click .icon-cancel': 'open',
       'click .note-bar': 'openFromParent',
+      'click .note-channel': 'requestChannel',
       'mouseover .note-bar': 'over',
       'mousemove .note-bar': 'pass',
       'mousedown .note-bar': 'pass',
@@ -101,6 +102,10 @@ define([
         this.destroy();
         cb();
       }, this));
+    },
+
+    requestChannel: function (e) {
+      e.preventDefault();
     },
 
     openFromParent: function (e) {

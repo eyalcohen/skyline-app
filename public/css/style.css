@@ -3610,11 +3610,6 @@ ul.note-channels-list li {
   
 }
 
-ul.note-channels-list li:before {
-  content: "- ";
-}
-
-
 /*.........................................................................*/
 
 .export > .modal-heading {
