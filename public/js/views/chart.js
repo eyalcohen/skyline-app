@@ -597,8 +597,6 @@ define([
       if (!state.datasets[did].channels) {
         mps.publish('channel/add', [did, channels[0].val]);
       }
-
-
     },
 
   });
