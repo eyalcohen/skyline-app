@@ -399,6 +399,7 @@ define([
     note: function (e) {
       if (e) e.preventDefault();
       if (this.app.embed) return;
+      if (!this.app.profile.user) return;
       if (!this.target().id) return;
       if (!this.cursorData) return;
 
