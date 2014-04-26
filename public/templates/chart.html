@@ -38,15 +38,17 @@
 </div>
 <div class="graphs">
   <div class="cursor">
-    <a href="javascript:;" class="note-button">
-      <i class="icon-bookmark"></i>Note
-    </a>
-    <a href="javascript:;" class="note-cancel-button">
-      <i class="icon-cancel"></i>Cancel
-    </a>
-    <a href="javascript:;" class="note-duration-button">
-      <i class="icon-clock"></i><span></span>
-    </a>
+    <% if (user && !this.app.embed) { %>
+      <a href="javascript:;" class="note-button">
+        <i class="icon-bookmark"></i>Note
+      </a>
+      <a href="javascript:;" class="note-cancel-button">
+        <i class="icon-cancel"></i>Cancel
+      </a>
+      <a href="javascript:;" class="note-duration-button">
+        <i class="icon-clock"></i><span></span>
+      </a>
+    <% } %>
   </div>
   <div class="notes"></div>
 </div>

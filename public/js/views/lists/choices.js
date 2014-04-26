@@ -141,12 +141,12 @@ define([
       if (!this.searchVal())
         this.input.attr({placeholder: 'Search...'});
       this.input.parent().removeClass('active');
-      if ($('.page-header', this.app.router.header.el).html() !== '')
-        this.app.router.header.unnormalize();
       this.hideResults();
       this.resetHighlight();
       this.active = false;
       this.app.searchIsActive = false;
+      if ($('.page-header', this.app.router.header.el).html() !== '')
+        this.app.router.header.unnormalize();
     },
 
     searchVal: function () {

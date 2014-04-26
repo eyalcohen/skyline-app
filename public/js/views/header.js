@@ -191,7 +191,8 @@ define([
     },
 
     unnormalize: function () {
-      this.$el.removeClass('normal');
+      if (!this.choices.active)
+        this.$el.removeClass('normal');
     },
 
     navigate: function (e) {
