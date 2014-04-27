@@ -44,33 +44,60 @@ define([
 
     // Reset the collection.
     reset: function (initial) {
-
-      // Kill each row view.
-      _.each(this.views, function (v) {
-        v.destroy();
-      });
-      this.views = [];
-
-      // Gather notes.
-      var notes = [];
-      var notes_cnt = 0;
       var target = this.parentView.target();
       var state = store.get('state');
-      if (target.type === 'view') {
-        _.each(target.doc.notes, function (n) { notes.push(n); });
-        notes_cnt = target.doc.notes_cnt;
-      }
-      _.each(this.app.profile.content.datasets.items, function (d, i) {
-        if (!state.datasets[d.id] ||
-            (state.datasets[d.id] && state.datasets[d.id].notes === false))
-          return;
-        _.each(d.notes, function (n) {
-          if (i === 0) n.leader = true;
-          notes.push(n);
+
+      function _gather() {
+        var notes = [];
+        if (target.type === 'view') {
+          _.each(target.doc.notes, function (n) { notes.push(n); });
+        }
+        _.each(this.app.profile.content.datasets.items, function (d, i) {
+          if (!state.datasets[d.id] ||
+              (state.datasets[d.id] && state.datasets[d.id].notes === false))
+            return;
+          _.each(d.notes, function (n) {
+            if (i === 0) n.leader = true;
+            notes.push(n);
+          });
         });
-        notes_cnt += d.notes_cnt;
-      });
-      this.collection.reset(notes);
+        return notes;
+      }
+
+      if (this.views.length === 0) {
+        this.collection.reset(_gather.call(this));
+      } else {
+
+        // Validate old views.
+        var reject = [];
+        var dids = _.map(_.keys(state.datasets),function (k) {
+          return Number(k);
+        });
+        var vid = state.id ? Number(state.id): null;
+        _.each(this.views, function (v) {
+          var pid = v.model.get('parent_id');
+          if (!_.contains(dids, pid) && pid !== vid) {
+            reject.push(v);
+          }
+        });
+        _.each(reject, _.bind(function (v) {
+          this._remove(v.model)
+        }, this));
+
+        var notes = _gather.call(this);
+
+        // Add new raw notes (from a new dataset).
+        _.each(notes, _.bind(function (n) {
+          var exists = _.find(this.views, function (v) {
+            return v.model.id === n.id;
+          });
+          if (!exists) {
+            n._new = true;
+            this.collection.push(n);
+          }
+        }, this));
+
+      }
     },
 
     // Render a model, placing it in the correct order.
@@ -140,22 +167,24 @@ define([
         return did === data.parent_id
             && (d.notes === true || d.notes === undefined);
       });
-      if (dataset && dataset.index === 0)
+      if (dataset && dataset.index === 0) {
         data.leader = true;
+      }
       if (target.type === 'dataset' && !dataset) return;
       if (!dataset && target.type === 'view' && data.parent_id !== target.id) return;
       if (this.collection.get(-1)) return;
       
       // Add note to profile.
-      var owner;
-      if (dataset && data.parent_type === 'dataset')
-        owner = _.find(this.app.profile.content.datasets.items, function (d) {
-          return did === Number(d.id);
-        });
-      else if (data.parent_type === 'view')
-        owner = target.doc;
-      if (owner) owner.notes.push(data);
-        owner.notes_cnt += 1;
+      // var owner;
+      // if (dataset && data.parent_type === 'dataset') {
+      //   owner = _.find(this.app.profile.content.datasets.items, function (d) {
+      //     return did === Number(d.id);
+      //   });
+      // } else if (data.parent_type === 'view') {
+      //   owner = target.doc;
+      // } if (owner) owner.notes.push(data); {
+      //   owner.notes_cnt += 1;
+      // }
 
       // Finally, add note.
       data._new = true;
@@ -172,17 +201,23 @@ define([
 
       if (view) {
         this.views.splice(index, 1);
-        view._remove(_.bind(function () {
-          this.collection.remove(view.model);
-        }, this));
+        view.destroy();
+        this.collection.remove(view.model);
       }
 
-      _.each(this.app.profile.content.datasets.items, function (d) {
-        d.notes = _.reject(d.notes, function (n) {
-          return n.id === data.id;
-        });
-        d.notes_cnt = d.notes.length;
-      });
+      // _.each(this.app.profile.content.datasets.items, function (d) {
+      //   d.notes = _.reject(d.notes, function (n) {
+      //     return n.id === data.id;
+      //   });
+      //   d.notes_cnt = d.notes.length;
+      // });
+      // var page = this.app.profile.content.page;
+      // if (page) {
+      //   page.notes = _.reject(page.notes, function (n) {
+      //     return n.id === data.id;
+      //   });
+      //   page.notes_cnt = page.notes.length;
+      // }
     },
 
     // Empty this view.

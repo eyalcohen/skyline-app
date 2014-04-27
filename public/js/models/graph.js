@@ -218,7 +218,7 @@ define([
         client.channels.push(channel);
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel,
-                                       this.lineStyleOptions[channel.channelName]]);
+              this.lineStyleOptions[channel.channelName]]);
           console.log('addChannel(', channel, ')...');
         }
       }, this));

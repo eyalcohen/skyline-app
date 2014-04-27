@@ -53,16 +53,17 @@ define([
         _.each(target.doc.comments, function (c) { comments.push(c); });
         comments_cnt = target.doc.comments_cnt;
       } else {
-        _.each(this.app.profile.content.datasets.items, function (d, i) {
-          if (!state.datasets[d.id] ||
-              (state.datasets[d.id] && state.datasets[d.id].comments === false))
+        var leader = this.app.profile.content.datasets.items[0];
+        if (leader) {
+          if (!state.datasets[leader.id]) {
             return;
-          _.each(d.comments, function (c) {
-            if (i === 0) c.leader = true;
+          }
+          _.each(leader.comments, function (c) {
+            c.leader = true;
             comments.push(c);
           });
-          comments_cnt += d.comments_cnt;
-        });
+          comments_cnt = leader.comments_cnt;
+        }
       }
       this.collection.older = comments_cnt - comments.length;
       this.collection.reset(comments);
@@ -107,25 +108,23 @@ define([
       var did;
       var dataset = _.find(state.datasets, function (d, id) {
         did = Number(id);
-        return did === data.parent_id
-            && (d.comments === true || d.comments === undefined);
+        return did === data.parent_id;
       });
-      if (dataset && dataset.index === 0)
-        data.leader = true;
-      if (target.type === 'dataset' && !dataset) return;
-      if (!dataset && target.type === 'view' && data.parent_id !== target.id) return;
+      if (dataset) {
+        if (dataset.index !== 0) {
+          return;
+        } else {
+          data.leader = true;
+        }
+      } else {
+        if (target.type === 'dataset') {
+          return;
+        }
+        if (target.type === 'view' && data.parent_id !== target.id) {
+          return;
+        }
+      }
       if (this.collection.get(-1)) return;
-      
-      // Add comment to profile.
-      var owner;
-      if (dataset && data.parent_type === 'dataset')
-        owner = _.find(this.app.profile.content.datasets.items, function (d) {
-          return did === Number(d.id);
-        });
-      else if (data.parent_type === 'view')
-        owner = target.doc;
-      if (owner) owner.comments.push(data);
-        owner.comments_cnt += 1;
 
       // Finally, add comment.
       data._new = true;
@@ -146,13 +145,6 @@ define([
           this.collection.remove(view.model);
         }, this));
       }
-
-      _.each(this.app.profile.content.datasets.items, function (d) {
-        d.comments = _.reject(d.comments, function (c) {
-          return c.id === data.id;
-        });
-        d.comments_cnt = d.comments.length;
-      });
     },
 
     // Empty this view.

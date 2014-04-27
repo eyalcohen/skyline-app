@@ -32,6 +32,7 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('dataset/select', _.bind(this.collect, this)),
+        mps.subscribe('channel/request', _.bind(this.channelRequest, this)),
         mps.subscribe('channel/added', _.bind(this.channelAdded, this)),
         mps.subscribe('channel/removed', _.bind(this.channelRemoved, this)),
       ];
@@ -132,6 +133,7 @@ define([
     },
 
     collect: function (did) {
+
       // Get the dataset.
       rest.get('/api/datasets/' + did, _.bind(function (err, dataset) {
         if (err) {
@@ -143,6 +145,17 @@ define([
         }
         this.collection.push(dataset);
       }, this));
+    },
+
+    channelRequest: function (did, channelName, cb) {
+      var channel;
+      _.each(this.views, function (v) {
+        if (v.model.id !== did) return;
+        channel = _.find(v.channels.collection.models, function (c) {
+          return c.id === channelName;
+        });
+      });
+      cb(channel);
     },
 
     channelAdded: function (did, channel) {

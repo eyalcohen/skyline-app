@@ -59,8 +59,8 @@ define([
           return false;
       }, this));
 
-      // Show other elements.
-      this.$('textarea.comment-input').focus();
+      // Focus the textbox.
+      // this.$('textarea.comment-input').focus();
 
       return List.prototype.setup.call(this);
     },

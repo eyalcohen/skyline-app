@@ -97,15 +97,20 @@ define([
         this.app.router.navigate(path, {trigger: true});
     },
 
-    _remove: function (cb) {
-      this.$el.slideUp('fast', _.bind(function () {
-        this.destroy();
-        cb();
-      }, this));
-    },
-
     requestChannel: function (e) {
       e.preventDefault();
+      var channelName = $(e.target).data('channel');
+      var did = channelName.match(/__(\d+)$/);
+      if (!did) return false;
+      did = Number(did[1]);
+      mps.publish('channel/request', [did, channelName, function (channel) {
+        if (channel) {
+          mps.publish('channel/add', [did, channel.get('val')]);
+        } else {
+          mps.publish('dataset/requestOpenChannel', [channelName]);
+          mps.publish('dataset/select', [did]);
+        }
+      }]);
     },
 
     openFromParent: function (e) {
