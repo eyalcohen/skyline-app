@@ -163,7 +163,7 @@ define([
             .y1(function (s) {
               return height - ((s.val - v_min) / (v_diff) * height);
             })
-            .interpolate('step-before');
+            .interpolate('linear');
 
         var svg = d3.select(selector.get(0))
             .append('svg:svg')

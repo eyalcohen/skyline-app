@@ -520,7 +520,10 @@ define([
       // Get the file.
       var files = files || this.newFile.get(0).files;
 
-      if (files.length === 0) return false;
+      if (files.length === 0) {
+        this.working = false;
+        return false;
+      }
       var file = files[0];
 
       // Use a FileReader to read the file as a base64 string.
