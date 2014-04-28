@@ -136,10 +136,9 @@ define([
     fetchChannels: function () {
 
       // Get the schema for this channel.
-      this.app.rpc.do('fetchSamples', this.model.id, '_schema', {},
-          _.bind(function (err, data) {
+      rest.get('/api/datasets/' + this.model.id, _.bind(function (err, data) {
         if (err) return console.error(err);
-        var channels = data.samples;
+        var channels = data.meta.channels;
         if (!channels) return console.error('No channels found');
 
         // Add dataset ID to channel models, and calculate dataset beg/end

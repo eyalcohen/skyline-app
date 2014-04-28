@@ -142,11 +142,12 @@ define([
         var width = selector.width();
         var height = selector.height();
 
-        var beg = sampleObj.range.beg;
-        var end = sampleObj.range.end;
+        var beg = sampleObj.range.beg || 0;
+        var end = sampleObj.range.end || 0;
 
+        if (!sampleObj.samples[0]) return
         var t_0 = sampleObj.samples[0].beg;
-        var t_max = sampleObj.samples[sampleObj.samples.length-1].beg
+        var t_max = sampleObj.samples[sampleObj.samples.length-1].beg;
         var t_diff = t_max - t_0;
 
         var v_max = _.max(_.pluck(sampleObj.samples, 'val'));
@@ -177,11 +178,13 @@ define([
 
       }
 
-      this.app.rpc.do('fetchSamples', this.model.id, '_schema', {}, _.bind(function (err, data) {
+      //this.app.rpc.do('fetchSamples', this.model.id, '_schema', {}, _.bind(function (err, data) {
+      rest.get('/api/datasets/' + this.model.id, _.bind(function (err, data) {
 
         if (err) return console.error(err);
-        var channels = data.samples;
+        var channels = data.meta.channels;
         if (!channels) return console.error('No channels found');
+        console.log(channels);
 
         // Add dataset ID to channel models, and calculate dataset beg/end
         var prevBeg = Number.MAX_VALUE;

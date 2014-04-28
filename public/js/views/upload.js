@@ -115,7 +115,6 @@ define([
       if (_.contains(hintList, this.timecolGuess.dateHint)) {
         hint = this.timecolGuess.dateHint;
       }
-      console.log(hint);
       $('select[name="timecolformat"]', this.uploadForm).val(hint);
 
       this.timeColChange();
