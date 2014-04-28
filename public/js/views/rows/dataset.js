@@ -7,10 +7,11 @@ define([
   'Underscore',
   'mps',
   'Spin',
+  'rest', 
   'views/boiler/row',
   'text!../../../templates/rows/dataset.html',
   'views/lists/channels'
-], function ($, _, mps, Spin, Row, template, Channels) {
+], function ($, _, mps, Spin, rest, Row, template, Channels) {
   return Row.extend({
 
     attributes: function () {
