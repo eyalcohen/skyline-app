@@ -24,7 +24,8 @@ define([
           icon = target.l ? 'lock': 'folder-empty';
         var linkClass = 'navigate';
         if (target.l) linkClass += ' locked';
-        var link = '<a href="/' + target.s + '" class="' + linkClass + '">';
+        var href = target.s + '/?n=' + att.action_id;
+        var link = '<a href="/' + href + '" class="' + linkClass + '">';
         var gravatar = 'https://www.gravatar.com/avatar/'
             + att.data.action.g + '?s=16&d=mm';
 
@@ -56,7 +57,8 @@ define([
           icon = target.l ? 'lock': 'folder-empty';
         var linkClass = 'navigate';
         if (target.l) linkClass += ' locked';
-        var link = '<a href="/' + target.s + '" class="' + linkClass + '">';
+        var href = target.s + '/?n=' + att.target_id;
+        var link = '<a href="/' + href + '" class="' + linkClass + '">';
         var gravatar = 'https://www.gravatar.com/avatar/'
             + att.data.action.g + '?s=16&d=mm';
 

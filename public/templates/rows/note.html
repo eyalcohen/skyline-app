@@ -3,6 +3,15 @@
       + this.model.get('author').gravatar + '?s=28&d=mm';
 
   var channels = this.model.get('channels');
+  var link;
+  if (this.model.id !== -1) {
+    link = this.model.get('parent_type') === 'view' ?
+        [this.model.get('parent').author.username, 'views', this.model.get('parent').slug]:
+        [this.model.get('parent').author.username, this.model.get('parent').id];
+    link = link.join('/') + '/?n=' + this.model.id;
+  } else {
+    link = '#';
+  }
 %>
 
 <div class="note-bar"></div>
@@ -45,11 +54,13 @@
             <span class="comment-code comment-code-dataset"></span>
           <% } %>
         <% } %>
-        <time class="created" 
-            datetime="<%= this.model.get('created') %>" 
-            title="<%= this.model.get('created') %>">
-          <%= this.model.get('created') %>
-        </time>
+        <a href="/<%= link %>" class="note-permalink navigate">
+          <time class="created" 
+              datetime="<%= this.model.get('created') %>" 
+              title="<%= this.model.get('created') %>">
+            <%= this.model.get('created') %>
+          </time>
+        </a>
         <% if (this.app.profile.user &&
             this.model.get('author').id === this.app.profile.user.id) { %>
           <span class="info-divider">&nbsp;&middot;&nbsp;</span>

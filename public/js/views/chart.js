@@ -71,7 +71,6 @@ define([
         mps.subscribe('note/cancel', _.bind(this.unnote, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
         mps.subscribe('dataset/requestOpenChannel', _.bind(function (channelName) {
-          console.log('requested...');
           this.requestedChannels.push(channelName);
         }, this))
       ];

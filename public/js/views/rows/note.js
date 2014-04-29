@@ -7,10 +7,11 @@ define([
   'Underscore',
   'mps',
   'rest',
+  'util',
   'views/boiler/row',
   'text!../../../templates/rows/note.html',
   'views/lists/replies'
-], function ($, _, mps, rest, Row, template, Replies) {
+], function ($, _, mps, rest, util, Row, template, Replies) {
   return Row.extend({
 
     attributes: function () {
@@ -67,8 +68,17 @@ define([
       this.bar = this.$('.note-bar');
       this.wrap = this.$('.note-wrap');
 
-      // Newly created notes.
-      if (single) this.open();
+      // Determine if this note should be opended.
+      var requested_id = util.getParameterByName('n');
+      if (this.model.id === requested_id) {
+        this.open();
+        var dur = this.model.get('end') - this.model.get('beg');
+        var min = this.model.get('beg') - 2*dur;
+        var max = this.model.get('end') + 3*dur;
+        mps.publish('chart/zoom', [{min: min, max: max}]);
+      } else if (single) {
+        this.open();
+      }
 
       return this;
     },
@@ -90,6 +100,7 @@ define([
     },
 
     navigate: function (e) {
+      e.stopPropagation();
       e.preventDefault();
       if ($(e.target).hasClass('info-delete')) return;
       var path = $(e.target).closest('a').attr('href');

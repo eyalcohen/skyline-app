@@ -307,7 +307,7 @@ define([
       this.render('/service/chart.profile/', data, _.bind(function (err) {
         if (err) return;
         this.pageType = 'chart';
-        var chart = new Chart(this.app)
+        var chart = new Chart(this.app);
         if (channelName)
           mps.publish('dataset/requestOpenChannel', [channelName]);
         this.page = chart.render();

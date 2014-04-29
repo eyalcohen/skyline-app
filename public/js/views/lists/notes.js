@@ -18,6 +18,7 @@ define([
     el: '.notes',
     selection: {beg: null, end: null},
     latestNoteZ: 0,
+    requestedNotes: [],
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -50,13 +51,17 @@ define([
       function _gather() {
         var notes = [];
         if (target.type === 'view') {
-          _.each(target.doc.notes, function (n) { notes.push(n); });
+          _.each(target.doc.notes, function (n) {
+            n.parent = target.doc;
+            notes.push(n);
+          });
         }
         _.each(this.app.profile.content.datasets.items, function (d, i) {
           if (!state.datasets[d.id] ||
               (state.datasets[d.id] && state.datasets[d.id].notes === false))
             return;
           _.each(d.notes, function (n) {
+            n.parent = d;
             if (i === 0) n.leader = true;
             notes.push(n);
           });
@@ -84,9 +89,8 @@ define([
           this._remove(v.model)
         }, this));
 
-        var notes = _gather.call(this);
-
         // Add new raw notes (from a new dataset).
+        var notes = _gather.call(this);
         _.each(notes, _.bind(function (n) {
           var exists = _.find(this.views, function (v) {
             return v.model.id === n.id;
@@ -173,18 +177,6 @@ define([
       if (target.type === 'dataset' && !dataset) return;
       if (!dataset && target.type === 'view' && data.parent_id !== target.id) return;
       if (this.collection.get(-1)) return;
-      
-      // Add note to profile.
-      // var owner;
-      // if (dataset && data.parent_type === 'dataset') {
-      //   owner = _.find(this.app.profile.content.datasets.items, function (d) {
-      //     return did === Number(d.id);
-      //   });
-      // } else if (data.parent_type === 'view') {
-      //   owner = target.doc;
-      // } if (owner) owner.notes.push(data); {
-      //   owner.notes_cnt += 1;
-      // }
 
       // Finally, add note.
       data._new = true;
@@ -204,20 +196,6 @@ define([
         view.destroy();
         this.collection.remove(view.model);
       }
-
-      // _.each(this.app.profile.content.datasets.items, function (d) {
-      //   d.notes = _.reject(d.notes, function (n) {
-      //     return n.id === data.id;
-      //   });
-      //   d.notes_cnt = d.notes.length;
-      // });
-      // var page = this.app.profile.content.page;
-      // if (page) {
-      //   page.notes = _.reject(page.notes, function (n) {
-      //     return n.id === data.id;
-      //   });
-      //   page.notes_cnt = page.notes.length;
-      // }
     },
 
     // Empty this view.
@@ -325,6 +303,7 @@ define([
       // Mock note.
       var data = {
         id: -1,
+        parent: parent.doc,
         parent_id: payload.parent_id,
         parent_type: parent.type,
         author: this.app.profile.user,
