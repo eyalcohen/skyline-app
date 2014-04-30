@@ -62,7 +62,7 @@ define([
         };
         this.updateYAxisView();
         mps.publish('channel/lineStyleUpdate',
-            [this.model.get('val').channelName, this.model.get('lineStyleOptions'), true]);
+            [this.model.get('channelName'), this.model.get('lineStyleOptions'), true]);
       }, this));
 
       // Check if active in state.
@@ -70,11 +70,9 @@ define([
       var d = state.datasets && state.datasets[this.model.get('did')];
       if (d && d.channels && d.channels[this.model.id]) {
         var c = d.channels[this.model.id];
-        var v = this.model.get('val');
-        v.colorNum = c.colorNum;
-        v.yaxisNum = c.yaxisNum;
-        this.model.set('val', v);
-        mps.publish('channel/add', [this.model.get('did'), v]);
+        this.model.set('colorNum') = c.colorNum;
+        this.model.set('yaxisNum') = c.yaxisNum;
+        mps.publish('channel/add', [this.model.get('did'), this.model.toJSON()]);
         this.active = true;
         this.updateYAxisView();
         this.$el.addClass('active').show();
@@ -134,13 +132,13 @@ define([
       if (this.$el.hasClass('active')) {
         this.$el.removeClass('active');
         mps.publish('channel/remove', [this.model.get('did'),
-            this.model.get('val')]);
+            this.model.toJSON()]);
         this.active = false;
         this.removeLineStyle();
       } else {
         this.$el.addClass('active');
         mps.publish('channel/add', [this.model.get('did'),
-            this.model.get('val')]);
+            this.model.toJSON()]);
         this.active = true;
         this.mouseenter();
         this.updateYAxisView();
@@ -216,7 +214,7 @@ define([
 
       // Remove channel from graph.
       mps.publish('channel/remove', [this.model.get('did'),
-          this.model.get('val')]);
+          this.model.toJSON()]);
     },
 
     _remove: function (cb) {

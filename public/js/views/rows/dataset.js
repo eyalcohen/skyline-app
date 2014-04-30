@@ -139,7 +139,7 @@ define([
       // Get the schema for this channel.
       rest.get('/api/datasets/' + this.model.id, _.bind(function (err, data) {
         if (err) return console.error(err);
-        var channels = data.meta.channels;
+        var channels = data.channels;
         if (!channels) return console.error('No channels found');
 
         // Add dataset ID to channel models, and calculate dataset beg/end
@@ -154,7 +154,7 @@ define([
         this.model.set('beg', prevBeg);
         this.model.set('end', prevEnd);
         this.model.set('channel_names', _.map(channels, function(c) {
-          return c.val.channelName;
+          return c.channelName;
         }));
 
         // Create channel list.

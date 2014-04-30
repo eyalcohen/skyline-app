@@ -116,7 +116,7 @@ define([
       did = Number(did[1]);
       mps.publish('channel/request', [did, channelName, function (channel) {
         if (channel) {
-          mps.publish('channel/add', [did, channel.get('val')]);
+          mps.publish('channel/add', [did, channel.toJSON()]);
         } else {
           mps.publish('dataset/requestOpenChannel', [channelName]);
           mps.publish('dataset/select', [did]);

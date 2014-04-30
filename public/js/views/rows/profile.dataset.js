@@ -182,7 +182,7 @@ define([
       rest.get('/api/datasets/' + this.model.id, _.bind(function (err, data) {
 
         if (err) return console.error(err);
-        var channels = data.meta.channels;
+        var channels = data.channels;
         if (!channels) return console.error('No channels found');
         console.log(channels);
 
@@ -203,15 +203,15 @@ define([
         var selector = this.$el.find('div.main-cell-vis table');
 
         _.each(channels, function (channel, channelIdx) {
-          selector.append('<tr class="profile-channel-wrap" id="profile-'+channel.val.channelName+'"><td>' +
+          selector.append('<tr class="profile-channel-wrap" id="profile-'+channel.channelName+'"><td>' +
                           '<div class="profile-channel-name"></div>' +
                           '<div class="profile-channel-vis"></div></td></tr>')
         });
 
         _.each(channels, function (channel, channelIdx) {
-          selector.find('.profile-channel-name').eq(channelIdx).text(channel.val.humanName);
+          selector.find('.profile-channel-name').eq(channelIdx).text(channel.humanName);
           if (!this.parentView.modal) {
-            this.app.rpc.do('fetchSamples', this.model.id, channel.val.channelName,
+            this.app.rpc.do('fetchSamples', this.model.id, channel.channelName,
                             options, _.bind(function(err, samples) {
               createSvg(samples, selector.find('.profile-channel-vis').eq(channelIdx));
             }));

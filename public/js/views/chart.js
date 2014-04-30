@@ -49,6 +49,7 @@ define([
               _.clone(channel));
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
+          console.log('chart', channel);
           this.graph.model.removeChannel(this.datasets.collection.get(did),
               _.clone(channel));
           this.overview.model.removeChannel(this.datasets.collection.get(did),
@@ -554,8 +555,8 @@ define([
       }, this);
 
       var cbUpload = _.bind(function(res) {
-        if (res.meta.channels[0])
-          mps.publish('dataset/requestOpenChannel', [res.meta.channels[0].val.channelName]);
+        if (res.channels[0])
+          mps.publish('dataset/requestOpenChannel', [res.channels[0].channelName]);
 
         // Add this dataset to the existing chart.
         mps.publish('dataset/select', [res.id]);
@@ -588,17 +589,17 @@ define([
 
       _.each(this.requestedChannels, function (requestedChannel) {
         var found = _.find(channels, function (chn) {
-          return requestedChannel === chn.val.channelName;
+          return requestedChannel === chn.channelName;
         });
         if (found)
-          mps.publish('channel/add', [did, found.val]);
+          mps.publish('channel/add', [did, found]);
       });
 
       // check if we have any channels open
       // we automatically open the first channel if none are open or requested
       var state = store.get('state');
       if (!state.datasets[did].channels) {
-        mps.publish('channel/add', [did, channels[0].val]);
+        mps.publish('channel/add', [did, channels[0]]);
       }
     },
 
