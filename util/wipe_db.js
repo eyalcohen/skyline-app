@@ -29,22 +29,6 @@ boots.start(function (client) {
   Step(
     function () {
 
-      // Get all datasets.
-      db.Datasets.list({}, this);
-    },
-    function (err, docs) {
-      boots.error(err);
-
-      if (docs.length === 0) return this();
-      _.each(docs, _.bind(function (d) {
-
-        // Remove samples for this dataset.
-        client.samples.removeDataset(d._id, this.parallel());
-      }, this));
-    },
-    function (err) {
-      boots.error(err);
-
       // db.Users.remove({}, this.parallel());
       db.Streams.remove({}, this.parallel());
       db.Producers.remove({}, this.parallel());
@@ -56,6 +40,17 @@ boots.start(function (client) {
       db.Notifications.remove({}, this.parallel());
       db.Subscriptions.remove({}, this.parallel());
       db.Channels.remove({}, this.parallel());
+
+      // Remove docs from real sample collections.
+      _.each(client.samples.realCollections, _.bind(function (col) {
+        col.remove({}, this.parallel());
+      }, this));
+
+      // Remove docs from synthetic sample collections.
+      _.each(client.samples.syntheticCollections, _.bind(function (col) {
+        col.remove({}, this.parallel());
+      }, this));
+
     },
     function (err) {
       boots.error(err);
