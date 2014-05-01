@@ -10,8 +10,8 @@ define([
   'rest',
   'util',
   'Spin',
-  'collections/choices',
-  'views/rows/choice'
+  'collections/search.choices',
+  'views/rows/search.choice'
 ], function ($, _, List, mps, rest, util, Spin, Collection, Row) {
   return List.extend({
 

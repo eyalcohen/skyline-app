@@ -271,11 +271,15 @@ if (cluster.isMaster) {
 
             // Socket connect
             sio.sockets.on('connection', function (socket) {
-              socket.join('datasets');
-              socket.join('views');
-              socket.join('events');
-              socket.join('notes');
-              socket.join('comments');
+              socket.join('dataset');
+              socket.join('view');
+              socket.join('event');
+              socket.join('note');
+              socket.join('comment');
+              socket.join('follow');
+              socket.join('request');
+              socket.join('accept');
+              socket.join('watch');
               if (socket.handshake.user)
                 socket.join('usr-' + socket.handshake.user._id);
 

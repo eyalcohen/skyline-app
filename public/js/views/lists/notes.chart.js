@@ -9,9 +9,9 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/notes.html',
+  'text!../../../templates/lists/notes.chart.html',
   'collections/notes',
-  'views/rows/note'
+  'views/rows/note.chart'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     

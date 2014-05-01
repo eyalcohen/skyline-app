@@ -1,5 +1,46 @@
-<% if (this.collection.models.length > 0) { %>
-  <% _.each(this.collection.models, _.bind(function (row) { %>
-    <%= this.row(row) %>
-  <% }, this)); %>  
+<%
+
+  var user = this.app.profile.user;
+  var gravatar = user ? 'https://www.gravatar.com/avatar/'
+      + user.gravatar + '?s=50&d=mm': null;
+  var feed = store.get('feed') || {};
+  var private = this.app.profile.content.private;
+
+%>
+
+<% if (!private && this.collection.options.filters !== false) { %>
+  <div class="events-filter">
+    <div class="subtabs">
+      <ul>
+        <li data-filter="all" class="subtab<%= !feed.actions || feed.actions === 'all' ? ' active': '' %>">
+          <a href="javascript:;" class="navigate">All</a>
+        </li>
+        <li data-filter="dataset" class="subtab<%= feed.actions && feed.actions === 'dataset' ? ' active': '' %>">
+          <a href="javascript:;" class="navigate">Datasets</a>
+        </li>
+        <li data-filter="view" class="subtab<%= feed.actions && feed.actions === 'view' ? ' active': '' %>">
+          <a href="javascript:;" class="navigate">Views</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+<% } %>
+<% if (!private) { %>
+  <div class="list-header"></div>
+  <% if (this.collection.models.length > 0) {
+    var day;
+    _.each(this.collection.models, _.bind(function (m) { %>
+      <% var _date = new Date(m.get('date')) %>
+      <% var _day = _date.getDay() %>
+      <% if (_day !== day) { %>
+        <% var beg = new Date(_date.getFullYear(), _date.getMonth(), _date.getDate()); %>
+        <% var end = new Date(_date.getFullYear(), _date.getMonth(), _date.getDate(), 23, 59, 59, 999); %>
+        <div class="event-day-header" data-beg="<%= beg.valueOf() %>" data-end="<%= end.valueOf() %>">
+          <span><%= (end.format('mmmm dd, yyyy')) %></span>
+        </div>
+      <% } %>
+      <%= this.row(m) %>
+      <% day = _day %>
+    <% }, this)); %>
+  <% } %>
 <% } %>

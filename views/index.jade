@@ -51,7 +51,11 @@ block content
                 .list-header
           .page-header
     - var hc = typeof embed !== 'undefined' && embed ? 'main embed': 'main';
-    div(class=hc, role="main")
+    .folder
+      .page-spin
+      .tabs
+      .content
+        div(class=hc, role="main")
     - if (typeof embed === 'undefined' || !embed)
       footer
         .footer

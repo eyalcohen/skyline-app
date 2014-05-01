@@ -15,10 +15,11 @@ define([
   'views/forgot',
   'views/lists/flashes',
   'views/save',
-  'views/browser',
+  'views/finder',
   'views/header',
+  'views/tabs',
   'views/footer',
-  'views/home',
+  'views/dashboard',
   'views/splash',
   'views/settings',
   'views/reset',
@@ -30,8 +31,8 @@ define([
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
-    Flashes, Save, Browser, Header, Footer, Home, Splash, Settings, Reset, Profile,
-    Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
+    Flashes, Save, Finder, Header, Tabs, Footer, Dashboard, Splash, Settings,
+    Reset, Profile, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -65,7 +66,7 @@ define([
       this.route('contact', 'contact', this.contact);
       this.route('privacy', 'privacy', this.privacy);
       this.route('terms', 'terms', this.terms);
-      this.route('', 'home', this.home);
+      this.route('', 'dashboard', this.dashboard);
       this.route('_blank', 'blank', function(){});
 
       // Fullfill navigation request from mps.
@@ -85,7 +86,7 @@ define([
 
       // Show the browser modal.
       mps.subscribe('modal/browser/open', _.bind(function (lib) {
-        this.browser = new Browser(this.app, {lib: lib}).render();
+        this.browser = new Finder(this.app, {lib: lib}).render();
       }, this));
 
       // Show the save modal.
@@ -172,6 +173,14 @@ define([
       }, this));
     },
 
+    renderTabs: function (params) {
+      if (this.tabs) {
+        this.tabs.params = params || {};
+        this.tabs.render();
+      } else
+        this.tabs = new Tabs(this.app, params).render();
+    },
+
     start: function () {
       $(window).scrollTop(0);
       $('body').addClass('loading');
@@ -186,17 +195,31 @@ define([
       }, this), 500);
     },
 
-    home: function () {
+    getEventActions: function () {
+      var feed = store.get('feed') || {};
+      return feed.actions || 'all';
+    },
+
+    // Routes //
+
+    dashboard: function () {
       this.start();
-      this.render('/service/home.profile', _.bind(function (err) {
+      var query = {actions: this.getEventActions()};
+      this.render('/service/dashboard.profile', query, _.bind(function (err) {
         if (err) return;
         this.page = this.app.profile.user ?
-            new Home(this.app).render():
+            new Dashboard(this.app).render():
             new Splash(this.app).render();
         this.stop();
         if (this.header)
           this.header.normalize();
       }, this));
+      if (this.app.profile && this.app.profile.user) {
+        this.renderTabs({tabs: [
+          {title: 'Activity', href: '/', active: true},
+          {title: 'Notifications', href: '/notifications'}
+        ]});
+      }
     },
 
     reset: function () {

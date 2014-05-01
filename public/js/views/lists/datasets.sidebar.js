@@ -1,5 +1,5 @@
 /*
- * Home Views List view
+ * Datasets List view for sidebar
  */
 
 define([
@@ -9,13 +9,13 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/home.views.html',
-  'collections/views',
-  'views/rows/home.view'
+  'text!../../../templates/lists/datasets.sidebar.html',
+  'collections/datasets',
+  'views/rows/dataset.sidebar'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.home-views',
+    el: '.home-datasets',
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -27,15 +27,15 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('view/new', _.bind(this.collect, this))
+        mps.subscribe('dataset/new', _.bind(this.collect, this))
       ];
 
       // Socket subscriptions
-      this.app.rpc.socket.on('view.new', _.bind(this.collect, this));
-      this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
+      this.app.rpc.socket.on('dataset.new', _.bind(this.collect, this));
+      this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Reset the collection.
-      this.collection.reset(this.app.profile.content.views.items);
+      this.collection.reset(this.app.profile.content.datasets.items);
     },
 
     // Initial bulk render of list.
@@ -54,8 +54,9 @@ define([
     events: {},
 
     destroy: function () {
-      this.app.rpc.socket.removeAllListeners('view.new');
-      this.app.rpc.socket.removeAllListeners('view.removed');
+      if (this.modal) this.unpaginate();
+      this.app.rpc.socket.removeAllListeners('dataset.new');
+      this.app.rpc.socket.removeAllListeners('dataset.removed');
       return List.prototype.destroy.call(this);
     },
 

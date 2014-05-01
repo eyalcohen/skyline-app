@@ -24,20 +24,21 @@ define([
     },
 
     events: {
-      'click a.navigate': 'navigate',
+      'click .navigate': 'navigate',
       'click .info-delete': 'delete',
     },
 
     delete: function (e) {
+      e.stopPropagation();
       e.preventDefault();
       rest.delete('/api/comments/' + this.model.id, {});
       this.parentView._remove({id: this.model.id});
     },
 
     navigate: function (e) {
+      e.stopPropagation();
       e.preventDefault();
-
-      // Route to wherever.
+      if ($(e.target).hasClass('info-delete')) return;
       var path = $(e.target).closest('a').attr('href');
       if (path)
         this.app.router.navigate(path, {trigger: true});

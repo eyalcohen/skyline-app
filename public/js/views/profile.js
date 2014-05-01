@@ -11,11 +11,11 @@ define([
   'models/user',
   'text!../../templates/profile.html',
   'text!../../templates/profile.header.html',
-  'views/lists/profile.datasets',
-  'views/lists/profile.views',
+  // 'views/lists/datasets.finder',
+  // 'views/lists/views.finder',
   'd3'
-], function ($, _, Backbone, mps, util, User, template, header, 
-             Datasets, Views) {
+], function ($, _, Backbone, mps, util, User, template, header) {
+    // Datasets, Views) {
 
   return Backbone.View.extend({
 

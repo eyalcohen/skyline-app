@@ -9,8 +9,8 @@ define([
   'Spin',
   'rest', 
   'views/boiler/row',
-  'text!../../../templates/rows/dataset.html',
-  'views/lists/channels'
+  'text!../../../templates/rows/dataset.chart.html',
+  'views/lists/channels.chart'
 ], function ($, _, mps, Spin, rest, Row, template, Channels) {
   return Row.extend({
 
@@ -38,11 +38,6 @@ define([
       this.offset = this.$('.dataset-offset', this.button);
       this.background = this.$('.dataset-button-bg', this.button);
       this.notesButton = this.$('.dataset-control-notes');
-
-/*
-      // Toggle.
-      this.button.click(_.bind(this.toggle, this));
-*/
 
       // Expand / collapse.
       this.$el.bind('mouseenter', _.bind(function (e) {

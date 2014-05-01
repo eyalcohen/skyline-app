@@ -8,8 +8,8 @@ define([
   'Backbone',
   'mps',
   'util',
-  'views/lists/home.datasets',
-  'views/lists/home.views'
+  'views/lists/datasets.sidebar',
+  'views/lists/views.sidebar'
 ], function ($, _, Backbone, mps, util, Datasets, Views) {
 
   return Backbone.View.extend({

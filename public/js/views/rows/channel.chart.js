@@ -7,7 +7,7 @@ define([
   'Underscore',
   'mps',
   'views/boiler/row',
-  'text!../../../templates/rows/channel.html',
+  'text!../../../templates/rows/channel.chart.html',
   'views/linestyle'
 ], function ($, _, mps, Row, template, LineStyle) {
   return Row.extend({

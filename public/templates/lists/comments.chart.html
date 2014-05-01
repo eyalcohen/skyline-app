@@ -1,0 +1,125 @@
+<%
+  var target = this.parentView.target();
+  var num_datasets = 0;
+  var num_channels = 0;
+  if (target.type === 'dataset') {
+    num_channels = target.doc.meta.channel_cnt;
+  } else {
+    _.each(target.doc.datasets, function (d) {
+      ++num_datasets;
+      num_channels += _.size(d.channels);
+    });
+  }
+  
+
+  var source = '';
+  if (target.type === 'dataset') {
+    if (target.doc.source && target.doc.source !== '') {
+      source += target.doc.source;
+    }
+    if (target.doc.sourceLink && target.doc.sourceLink !== '') {
+      if (source !== '') {
+        source = '<a href="' + target.doc.sourceLink + '" target="_blank">' + source + '</a>';
+      } else {
+        source = '<a href="' + target.doc.sourceLink + '" target="_blank">' + target.doc.sourceLink + '</a>';
+      }
+    }
+  }
+
+  var meta = target.type === 'dataset' ? target.doc.meta: target.doc.time;
+%>
+
+<div class="comment target">
+  <div class="comment-body">
+    <p>
+      <% if (target.doc.title && target.doc.title !== '') { %>
+        <span class="target-name">
+          <i class="icon-database"></i> <%= target.doc.title %>
+        </span>
+      <% } %>
+      <% if (target.doc.name && target.doc.name !== '') { %>
+        <span class="target-name">
+          <i class="icon-folder-empty"></i> <%= target.doc.name %>
+        </span>
+      <% } %>
+      <% if (target.doc.description !== '') { %>
+        <span class="target-description">
+          <%= target.doc.description %>
+        </span>
+      <% } %>
+    </p>
+    <div class="target-info">
+      <span class="target-info-heading">Information</span>
+      <ul class="target-info-list">
+        <% if (target.type === 'dataset') { %>
+          <li>Channels: <%= num_channels %></li>
+        <% } else { %>
+          <li>Datasets: <%= num_datasets %></li>
+          <li>Channels: <%= num_channels %></li>
+          <li>Begin time: <%= util.toLocaleString(new Date(meta.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
+          <li>Duration: <%= util.getDuration(meta.end - meta.beg, false) %></li>
+        <% } %>
+        <li>Last updated: <%= util.toLocaleString(new Date(target.doc.updated), 'mm/d/yy HH:MM:ss') %></li>
+      </ul>
+      <% if (source !== '') { %>
+        <span class="target-info-heading">Source</span>
+        <ul class="target-info-list">
+          <li><%= source %></li>
+        </ul>
+      <% } %>
+      <% if (target.doc.tags && target.doc.tags.length > 0) { %>
+        <span class="target-info-heading">Tags</span>
+        <ul class="target-info-list">
+          <li>
+            <% _.each(target.doc.tags, function(t, i) { %>
+              <%= t %><% if (i < target.doc.tags.length - 1) { %>,<% } %>
+            <% }); %>
+          </li>
+        </ul>
+      <% } %>
+    </div>
+    <div class="comment-info">
+      <% if (target.type === 'view') { %>
+        <span class="comment-code comment-code-view"></span>
+      <% } else if (target.type === 'dataset') { %>
+        <span class="comment-code comment-code-dataset-leader"></span>
+      <% } %>
+      <time class="created" 
+          datetime="<%= target.doc.created %>" 
+          title="<%= target.doc.created %>">
+        Added by <a href="/<%= target.doc.author.username %>" class="navigate">
+          <%= target.doc.author.displayName %>
+        </a> on <%= util.toLocaleString(new Date(target.doc.created), 'mmm, d yyyy') %>.
+      </time>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+</div>
+
+<% if (this.collection.older > 0) { %>
+  <a href="javascript:;" class="comments-older comment list-header">
+    Show <%= this.collection.older %> older <%= this.collection.older > 1 ? 'comments': 'comment' %>
+  </a>
+<% } %>
+<% if (this.collection.models.length > 0) { %>
+  <% _.each(this.collection.models, _.bind(function(row) { %>
+    <%= this.row(row) %>
+  <% }, this)); %>
+<% } %>
+<div class="comment-input-wrap list-footer">
+  <% if (this.app.profile.user) { %>
+    <div class="comment">
+      <div class="comment-body">
+        <form enctype="multipart/form-data" method="POST" class="comment-input-form">
+          <textarea name="body" class="comment-input" 
+              placeholder="Add a comment..."></textarea>
+          <span>Press enter to comment.</span>
+        </form>
+      </div>
+    </div>
+  <% } else if (!this.app.embed) { %>
+    <a href="javascript:;" class="comments-signin">
+      Sign in to add a comment.
+    </a>
+  <% } %>
+</div>

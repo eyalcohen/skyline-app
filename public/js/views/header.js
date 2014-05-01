@@ -8,7 +8,7 @@ define([
   'Backbone',
   'mps',
   'rest',
-  'views/lists/choices',
+  'views/lists/search.choices',
   'text!../../templates/box.html'
 ], function ($, _, Backbone, mps, rest, Choices, box) {
   return Backbone.View.extend({
