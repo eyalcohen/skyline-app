@@ -39,10 +39,10 @@ define([
     setup: function () {
 
       // Do resize on window change.
-      _.delay(_.bind(this.resize, this), 250);
-      $(window).resize(_.debounce(_.bind(this.resize, this), 20));
-      $(window).resize(_.debounce(_.bind(this.resize, this), 150));
-      $(window).resize(_.debounce(_.bind(this.resize, this), 300));
+      _.delay(_.bind(this.resizeAndFit, this), 250);
+      $(window).resize(_.debounce(_.bind(this.resizeAndFit, this), 20));
+      $(window).resize(_.debounce(_.bind(this.resizeAndFit, this), 150));
+      $(window).resize(_.debounce(_.bind(this.resizeAndFit, this), 300));
 
       // Show this now.
       this.$el.show();
@@ -60,6 +60,11 @@ define([
 
     },
 
+    resizeAndFit: function (e) {
+      this.resize(e);
+      this.fit();
+    },
+
     resize: function (e, active) {
       if (this.active || active
           || this.getChildrenHeight() > $('.graphs').height()) {
@@ -68,7 +73,6 @@ define([
       else {
         this.$el.height('auto');
       }
-      this.fit();
     },
 
     fit: function () {
@@ -120,7 +124,7 @@ define([
           if (this.getChildrenHeight() <= $('.graphs').height()) {
             el.parent().css('padding-right', '0px');
           }
-        }, this), 100);
+        }, this), 20);
       }
     },
 

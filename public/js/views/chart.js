@@ -520,7 +520,10 @@ define([
       // Get the file.
       var files = files || this.newFile.get(0).files;
 
-      if (files.length === 0) return false;
+      if (files.length === 0) {
+        this.working = false;
+        return false;
+      }
       var file = files[0];
 
       // Use a FileReader to read the file as a base64 string.
@@ -551,8 +554,8 @@ define([
       }, this);
 
       var cbUpload = _.bind(function(res) {
-        if (res.meta.channels[0])
-          mps.publish('dataset/requestOpenChannel', [res.meta.channels[0].val.channelName]);
+        if (res.channels[0])
+          mps.publish('dataset/requestOpenChannel', [res.channels[0].channelName]);
 
         // Add this dataset to the existing chart.
         mps.publish('dataset/select', [res.id]);
@@ -585,17 +588,17 @@ define([
 
       _.each(this.requestedChannels, function (requestedChannel) {
         var found = _.find(channels, function (chn) {
-          return requestedChannel === chn.val.channelName;
+          return requestedChannel === chn.channelName;
         });
         if (found)
-          mps.publish('channel/add', [did, found.val]);
+          mps.publish('channel/add', [did, found]);
       });
 
       // check if we have any channels open
       // we automatically open the first channel if none are open or requested
       var state = store.get('state');
       if (!state.datasets[did].channels) {
-        mps.publish('channel/add', [did, channels[0].val]);
+        mps.publish('channel/add', [did, channels[0]]);
       }
     },
 

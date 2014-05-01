@@ -75,7 +75,6 @@ define([
     // Bind mouse events.
     events: {
       'click .modal-close': 'close',
-      'click .browser-add-form input[type="submit"]': 'add',
       'change input[name="data_file"]': 'update',
       'click .browser-search-justme': 'checkJustMe',
       'click .browser-search-allusers': 'checkAllUsers'
@@ -100,7 +99,6 @@ define([
         radius: 6,
       });
       this.searchInput = this.$('input[name="search"]');
-      this.newFileSubmit = $('input[type="submit"]', this.addNewFileForm);
 
       // Handle search input.
       this.searchInput.bind('keyup', _.bind(this.search, this));
@@ -199,14 +197,15 @@ define([
     update: function (e, files) {
       this.files = files || e.target.files;
       var name;
+      this.newFileInput.val(name);
       if (this.files.length === 0) {
         name = '';
-        this.newFileSubmit.attr({disabled: 'disabled'});
+        this.newFileInput.val(name);
       } else {
         name = this.files[0].name;
-        this.newFileSubmit.attr({disabled: false});
+        this.newFileInput.val(name);
+        this.add();
       }
-      this.newFileInput.val(name);
     },
 
     // Create new dataset from file.
@@ -219,7 +218,6 @@ define([
 
       // Start load indicator.
       this.newFileButtonSpin.start();
-      this.newFileSubmit.addClass('loading').prop('disabled', 'disabled');
 
       // Get the file.
       var files = this.files || this.newFile.get(0).files;
@@ -233,7 +231,6 @@ define([
         this.newFileError.text(err);
         this.working = false;
         $('.browser-progress-bar').width('0%');
-        this.newFileSubmit.removeClass('loading').prop('disabled', false);
       }, this);
       var cbSuccess = _.bind(function() {
       }, this);

@@ -48,9 +48,26 @@ define([
 
       // Go to page.
       if (!this.parentView.options.route) return;
-      if (this.app.router.pageType === 'chart'
-          && this.model.get('_type') === 'datasets')
-        mps.publish('dataset/select', [this.model.get('id')]);
+      if (this.app.router.pageType === 'chart') {
+        switch (this.model.get('_type')) {
+          case 'datasets':
+            mps.publish('dataset/select', [this.model.get('id')]);
+            break;
+          case 'channels':
+            var cn = this.model.get('channelName');
+            var did = Number(this.model.get('parent').id);
+            mps.publish('channel/request', [did, cn, function (channel) {
+              if (channel) {
+                mps.publish('channel/add', [did, channel.toJSON()]);
+              } else {
+                mps.publish('dataset/requestOpenChannel', [cn]);
+                mps.publish('dataset/select', [did]);
+              }
+            }]);
+
+            break;
+        }
+      }
       else
         this.app.router.navigate(this.$el.attr('href'), {trigger: true});
     },

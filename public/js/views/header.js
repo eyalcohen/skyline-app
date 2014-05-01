@@ -75,7 +75,7 @@ define([
           placeholder: 'Search for something...',
           route: true,
           choose: true,
-          types: ['users', 'views', 'datasets']
+          types: ['users', 'views', 'datasets', 'channels']
         });
     },
 

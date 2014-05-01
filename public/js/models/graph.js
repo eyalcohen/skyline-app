@@ -138,7 +138,7 @@ define([
     findDatasetFromChannel: function(channelName) {
       var client =  _.find(this.clients, function (client) {
         return _.find(client.channels, function (channels) {
-          return channels.channelName == channelName;
+          return channels.channelName === channelName;
         });
       });
       return client ? client.dataset : undefined;

@@ -12,12 +12,12 @@ define([
     initialize: function () {
 
       // Use name as id.
-      this.set('id', this.get('val').channelName, {silent: true});
+      this.set('id', this.get('channelName'), {silent: true});
       this.set('lineStyleOptions', {});
     },
 
     name: function () {
-      return this.get('val').humanName;
+      return this.get('humanName');
     },
 
   });
