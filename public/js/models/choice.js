@@ -10,7 +10,7 @@ define([
   return Backbone.Model.extend({
 
     href: function () {
-      var href;
+      var href = '';
       switch (this.get('_type')) {
         case 'users':
           href = '/' + this.get('username');
@@ -21,7 +21,12 @@ define([
         case 'views':
           href = [this.get('author').username, 'views', this.get('slug')].join('/');
           break;
+        case 'channels':
+          href = [this.get('parent').author.username, this.get('parent').id, 
+                 this.get('channelName')].join('/');
+          break;
       }
+      console.log('href', href);
       return href;
     },
 
@@ -60,6 +65,16 @@ define([
             title += this.get('key');
           else title += tmp;
           break;
+        case 'channels':
+          if (this.get('dataset') && this.get('dataset').public === false)
+            title = '<i class="icon-lock"></i>';
+          else
+            title = '<i class="icon-chart-line"></i>';
+          title += '<strong>' +  this.get('humanName') + '</strong>' || [''];
+          if (this.get('parent'))
+            title += ' in ' + this.get('parent').title;
+          break;
+          
       }
       return title;
     },
@@ -75,6 +90,9 @@ define([
           break;
         case 'views':
           term += this.get('name');
+          break;
+        case 'channels':
+          term += this.get('humanName');
           break;
       }
       return term;

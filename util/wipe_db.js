@@ -55,6 +55,7 @@ boots.start(function (client) {
       db.Events.remove({}, this.parallel());
       db.Notifications.remove({}, this.parallel());
       db.Subscriptions.remove({}, this.parallel());
+      db.Channels.remove({}, this.parallel());
     },
     function (err) {
       boots.error(err);
