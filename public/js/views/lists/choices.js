@@ -183,7 +183,7 @@ define([
           this.hideResults();
           return;
         }
-        
+
         // Add to collection.
         _.each(types, _.bind(function (t) {
           if (items[t])

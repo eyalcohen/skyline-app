@@ -26,7 +26,6 @@ define([
                  this.get('channelName')].join('/');
           break;
       }
-      console.log('href', href);
       return href;
     },
 
@@ -72,7 +71,7 @@ define([
             title = '<i class="icon-chart-line"></i>';
           title += '<strong>' +  this.get('humanName') + '</strong>' || [''];
           if (this.get('parent'))
-            title += ' in ' + this.get('parent').title;
+            title += '<small> in ' + this.get('parent').title + '</small>';
           break;
           
       }

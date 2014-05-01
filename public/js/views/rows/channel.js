@@ -70,8 +70,8 @@ define([
       var d = state.datasets && state.datasets[this.model.get('did')];
       if (d && d.channels && d.channels[this.model.id]) {
         var c = d.channels[this.model.id];
-        this.model.set('colorNum') = c.colorNum;
-        this.model.set('yaxisNum') = c.yaxisNum;
+        this.model.set('colorNum', c.colorNum);
+        this.model.set('yaxisNum', c.yaxisNum);
         mps.publish('channel/add', [this.model.get('did'), this.model.toJSON()]);
         this.active = true;
         this.updateYAxisView();

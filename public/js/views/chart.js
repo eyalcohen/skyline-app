@@ -49,7 +49,6 @@ define([
               _.clone(channel));
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
-          console.log('chart', channel);
           this.graph.model.removeChannel(this.datasets.collection.get(did),
               _.clone(channel));
           this.overview.model.removeChannel(this.datasets.collection.get(did),
