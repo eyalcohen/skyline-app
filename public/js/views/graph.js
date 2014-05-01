@@ -53,17 +53,10 @@ define([
     render: function () {
 
       // Init a model for this view.
-      var time;
-      if (store.get('state').time)
-        time = store.get('state').time;
-      else if (this.app.profile.content.datasets 
-          && this.app.profile.content.datasets.items.length > 0) {
-        time = this.app.profile.content.datasets.items[0].meta;
-      } else
-        time = {
-          beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
-          end: Date.now() * 1e3,
-        };
+      var time = {
+        beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
+        end: Date.now() * 1e3,
+      };
       this.model = new Graph(this.app, {view: this, time: time});
 
       // UnderscoreJS rendering.

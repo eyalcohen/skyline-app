@@ -43,6 +43,9 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('channel/add', _.bind(function (did, channel, yaxis) {
+          if (this.graph.model.getChannels().length === 0) {
+            mps.publish('chart/zoom', [{min: channel.beg / 1000, max: channel.end / 1000}]);
+          }
           this.graph.model.addChannel(this.datasets.collection.get(did),
               _.clone(channel));
           this.overview.model.addChannel(this.datasets.collection.get(did),
@@ -590,8 +593,9 @@ define([
         var found = _.find(channels, function (chn) {
           return requestedChannel === chn.channelName;
         });
-        if (found)
+        if (found) {
           mps.publish('channel/add', [did, found]);
+        }
       });
 
       // check if we have any channels open

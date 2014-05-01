@@ -64,12 +64,11 @@ define([
                 mps.publish('dataset/select', [did]);
               }
             }]);
-
             break;
         }
-      }
-      else
+      } else {
         this.app.router.navigate(this.$el.attr('href'), {trigger: true});
+      }
     },
 
   });
