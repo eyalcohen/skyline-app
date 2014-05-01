@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * index.js: Index all users, datasets, and views for search.
+ * index.js: Index all users, datasets, views, and channels for search.
  *
  */
 
@@ -26,14 +26,15 @@ var db = require('../lib/db');
 var com = require('../lib/common');
 
 
-boots.start(function (client) {
+boots.start({redis: true}, function (client) {
 
   // Create searches.
   reds.client = client.redisClient;
   var searches = {
     users: reds.createSearch('users'),
     datasets: reds.createSearch('datasets'),
-    views: reds.createSearch('views')
+    views: reds.createSearch('views'),
+    channels: reds.createSearch('channels')
   };
 
   Step(
@@ -104,7 +105,29 @@ boots.start(function (client) {
     },
     function (err) {
       boots.error(err);
-      util.log('Redis: Indexed users, datasets, and views');
+
+      // Get all channels.
+      db.Channels.list({}, this);
+    },
+    function (err, docs) {
+      boots.error(err);
+
+      if (docs.length === 0) return this();
+      var _this = _.after(docs.length, this);
+      _.each(docs, function (d) {
+
+        // Remove existing index.
+        searches.channels.remove(d._id, function (err) {
+          boots.error(err);
+
+          // Add new.
+          com.index(searches.channels, d, ['humanName'], _this);
+        });
+      });
+    },
+    function (err) {
+      boots.error(err);
+      util.log('Redis: Indexed users, datasets, views, and channels');
       process.exit(0);
     }
   );

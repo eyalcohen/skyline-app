@@ -31,6 +31,7 @@ exports.start = function (opts, cb) {
 
   Step(
     function () {
+      if (!opts.redis) return this();
 
       // Redis connect
       if (c.REDIS_PASS) {
@@ -44,7 +45,9 @@ exports.start = function (opts, cb) {
     },
     function (err, rc) {
       error(err);
-      props.redisClient = rc;
+      if (rc) {
+        props.redisClient = rc;
+      }
 
       Step(
         function () {
