@@ -184,7 +184,6 @@ define([
         if (err) return console.error(err);
         var channels = data.channels;
         if (!channels) return console.error('No channels found');
-        console.log(channels);
 
         // Add dataset ID to channel models, and calculate dataset beg/end
         var prevBeg = Number.MAX_VALUE;
