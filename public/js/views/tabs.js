@@ -14,7 +14,6 @@ define([
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
     el: '.tabs',
     working: false,
 
@@ -30,7 +29,6 @@ define([
       this.subscriptions = [];
     },
 
-    // Draw our template from the profile JSON.
     render: function () {
       if (!this.params.tabs) this.params.tabs = [];
 
@@ -57,7 +55,6 @@ define([
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .navigate': 'navigate',
       'click .follow-button': 'follow',
@@ -71,14 +68,11 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);

@@ -207,18 +207,22 @@ define([
       var query = {actions: this.getEventActions()};
       this.render('/service/dashboard.profile', query, _.bind(function (err) {
         if (err) return;
-        this.page = this.app.profile.user ?
-            new Dashboard(this.app).render():
-            new Splash(this.app).render();
+        if (this.app.profile.user) {
+          this.renderTabs({tabs: [
+            {title: 'Activity', href: '/', active: true},
+            {title: 'Notifications', href: '/notifications'}
+          ]});
+          this.page = new Dashboard(this.app).render();
+        } else {
+          this.page = new Splash(this.app).render();
+        }
         this.stop();
         if (this.header)
           this.header.normalize();
       }, this));
+
       if (this.app.profile && this.app.profile.user) {
-        this.renderTabs({tabs: [
-          {title: 'Activity', href: '/', active: true},
-          {title: 'Notifications', href: '/notifications'}
-        ]});
+        
       }
     },
 

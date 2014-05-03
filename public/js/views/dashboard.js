@@ -11,16 +11,11 @@ define([
   'text!../../templates/dashboard.html',
   'views/lists/events'
 ], function ($, _, Backbone, mps, util, template, Events) {
-
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
     el: '.main',
 
-    // Module entry point:
     initialize: function (app) {
-
-      // Save app reference.
       this.app = app;
 
       // Shell events.
@@ -30,11 +25,7 @@ define([
       this.subscriptions = [];
     },
 
-    // Draw our template from the profile JSON.
     render: function () {
-
-      // Set page title
-      this.title();
 
       // Content rendering.
       this.template = _.template(template);
@@ -46,27 +37,21 @@ define([
       return this;
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Render lists.
       this.events = new Events(this.app, {
-        parentView: this,
-        reverse: true,
-        input: true
+        parentView: this
       });
 
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -78,8 +63,7 @@ define([
     },
 
     title: function () {
-      this.app.title('Skyline | ' + this.app.profile.user.displayName
-          + ' - Home');
+      this.app.title(this.app.profile.user.displayName + ' - Home');
     }
 
   });

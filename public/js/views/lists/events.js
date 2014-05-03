@@ -31,7 +31,8 @@ define([
       List.prototype.initialize.call(this, app, options);
 
       // Init the load indicator.
-      this.spin = new Spin($('.events-spin', this.$el.parent()));
+      this.spin = new Spin($('.events-spin', this.$el.parent()),
+          {color: '#8f8f8f', lines: 13, length: 3, width: 2, radius: 6});
       this.spin.start();
 
       // Client-wide subscriptions

@@ -52,10 +52,12 @@ define([
         this.profile.user = profile.user;
         login = true;
       }
-      if (profile.sub && !this.profile.sub)
+      if (profile.sub && !this.profile.sub) {
         this.profile.sub = profile.sub;
-    } else
+      }
+    } else {
       this.profile = profile;
+    }
 
     // Pull out state, if exists.
     if (profile && profile.state) {
@@ -71,13 +73,16 @@ define([
 
     // Set the document title.
     var title = 'Skyline';
-    if (clear)
+    if (clear) {
       document.title = t1 !== '' ? t1: title;
-    else document.title = t1 !== '' ? title + ' | ' + t1: title;
+    } else {
+      document.title = t1 !== '' ? title + ' | ' + t1: title;
+    }
 
     // Set the app title.
-    if (t2 === undefined) t2 = t1;
-    mps.publish('title/set', [t2]);
+    if (t2) {
+      mps.publish('title/set', [t2]);
+    }
   }
 
   App.prototype.logout = function () {
@@ -102,7 +107,9 @@ define([
       Backbone.history.start({pushState: true});
 
       // For local dev.
-      if (window.__s === '') window._app = app;
+      if (window.__s === '') {
+        window._app = app;
+      }
     }
 
   };

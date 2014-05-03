@@ -59,23 +59,19 @@ define([
           return false;
       }, this));
 
-      // Focus the textbox.
-      // this.$('textarea.comment-input').focus();
-
       return List.prototype.setup.call(this);
     },
 
-    // Bind mouse events.
     events: {
       'click .comments-signin': 'signin',
       'click .comments-older': 'older',
     },
 
-    // Collect new replies from socket events.
     collect: function (data) {
-      if (data.parent_id !== this.parentView.model.id) return;
-      if (this.collection.get(-1)) return;
-      this.collection.push(data);
+      if (data.parent_id === this.parentView.model.id
+        && !this.collection.get(-1)) {
+        this.collection.push(data);
+      }
     },
 
     destroy: function () {
