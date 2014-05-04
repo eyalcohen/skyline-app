@@ -273,6 +273,7 @@ if (cluster.isMaster) {
             sio.sockets.on('connection', function (socket) {
               socket.join('dataset');
               socket.join('view');
+              socket.join('channel');
               socket.join('event');
               socket.join('note');
               socket.join('comment');
