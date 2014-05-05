@@ -249,8 +249,6 @@ body.embed {
   overflow: hidden;
 }
 
-
-
 a, a:visited {
   color: #1c9da3;
   padding: 0;
@@ -2616,6 +2614,23 @@ a.comments-signin {
   margin: 5px 0 11px;
 }
 
+.event-source {
+  float: right;
+  font-size: 11px;
+}
+
+p.event-description {
+  width: 600px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #404040;
+}
+
+.event-tags {
+  font-size: 11px;
+  color: #666;
+}
+
 .event-info {
   width: 600px;
   margin: 10px 0 3px;
@@ -2649,6 +2664,12 @@ a.comments-signin {
   -webkit-transition: all 0.15s ease-in-out;
   -moz-transition: all 0.15s ease-in-out;
   transition: all 0.15s ease-in-out;
+}
+
+.event-timeline-label-first {
+  left: -40px;
+  top: 10px;
+  border-bottom: none;
 }
 
 .event-timeline-label i {
@@ -2862,17 +2883,6 @@ textarea.event-comment-input {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
-}
-
-.event-dataset-title {
-  color: #b1dc36;
-}
-
-p.event-dataset-note {
-  width: 600px;
-  font-size: 13px;
-  line-height: 18px;
-  color: #3d3d3d;
 }
 
 ul.event-dataset-channels {

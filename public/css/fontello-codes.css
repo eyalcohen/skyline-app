@@ -20,6 +20,7 @@
 .icon-check:before { content: '\e80f'; } /* '' */
 .icon-cancel:before { content: '\e80c'; } /* '' */
 .icon-plus:before { content: '\e812'; } /* '' */
+.icon-link:before { content: '\e828'; } /* '' */
 .icon-eye:before { content: '\e809'; } /* '' */
 .icon-cog:before { content: '\e81d'; } /* '' */
 .icon-share:before { content: '\e823'; } /* '' */
