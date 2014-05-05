@@ -68,7 +68,7 @@ button {  width: auto; overflow: visible; }
 .ie7 img { -ms-interpolation-mode: bicubic; }
 
 body, select, input, textarea {  color: #444; }
-h1, h2, h3, h4, h5, h6 { font-weight: bold; margin: 10px 0; }
+h1, h2, h3, h4, h5, h6 { font-weight: bold; margin: 0; }
 
 /*.........................................................................*/
 /*.........................................................................*/
@@ -296,6 +296,36 @@ a.title i:before {
 
 a.title-large {
   font-size: 18px;
+}
+
+h1.title-left {
+  display: inline-block;
+  margin-left: 30px;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 40px;
+  color: #404040;
+}
+h1.title-right {
+  font-size: 14px;
+  font-weight: normal;
+  line-height: normal;
+  color: #404040;
+  padding: 10px 0 0 0;
+}
+h1.title-static {
+  font-size: 16px;
+  font-weight: normal;
+  line-height: normal;
+  color: #404040;
+}
+h1.title-sub {
+  display: inline-block;
+  font-size: 11px;
+  padding: 0 0 0 10px;
+  line-height: 6px;
+  color: #666;
+  font-weight: bold;
 }
 
 canvas {
@@ -947,7 +977,7 @@ i i {
 }
 
 .folder .main {
-  margin-bottom: 9;
+  margin-bottom: 0;
 }
 
 .wrap {

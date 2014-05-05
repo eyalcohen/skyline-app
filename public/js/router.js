@@ -225,8 +225,9 @@ define([
           this.page = new Splash(this.app).render();
         }
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
     },
 
@@ -236,20 +237,26 @@ define([
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
+      this.renderTabs({title: 'Password reset'});
     },
 
     profile: function (username) {
       this.start();
-      this.render('/service/user.profile/' + username,
+      this.renderTabs();
+      var query = {actions: this.getEventActions()};
+      this.render('/service/user.profile/' + username, query,
           _.bind(function (err) {
         if (err) return;
         this.page = new Profile(this.app).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.unnormalize();
+        }
       }, this));
     },
 
@@ -259,9 +266,11 @@ define([
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
+      this.renderTabs({title: 'Account Settings'});
     },
 
     about: function () {
@@ -271,9 +280,11 @@ define([
         this.page = new Static(this.app,
             {title: 'About', template: aboutTemp}).render();
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
+      this.renderTabs({title: 'About', subtitle: 'What\'s going on here?'});
     },
 
     contact: function () {
@@ -283,9 +294,11 @@ define([
         this.page = new Static(this.app,
             {title: 'Contact', template: contactTemp}).render();
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
+      this.renderTabs({title: 'Contact', subtitle: 'Get in touch'});
     },
 
     privacy: function () {
@@ -295,9 +308,11 @@ define([
         this.page = new Static(this.app,
             {title: 'Privacy', template: privacyTemp}).render();
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
+      this.renderTabs({title: 'Privacy Policy', subtitle: 'Last updated 7.27.2013'});
     },
 
     terms: function () {
@@ -307,9 +322,11 @@ define([
         this.page = new Static(this.app,
             {title: 'Terms', template: termsTemp}).render();
         this.stop();
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
+      this.renderTabs({title: 'Terms and Conditions', subtitle: 'Last updated 7.27.2013'});
     },
 
     chart: function (un, slug, channelName) {
@@ -354,9 +371,11 @@ define([
           code: 404,
           message: 'Sorry, this page isn\'t available'
         });
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }, this));
+      this.renderTabs();
     }
 
   });
