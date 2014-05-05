@@ -1,5 +1,5 @@
 /*
- * Comment Row view
+ * Home Dataset Row view
  */
 
 define([
@@ -8,12 +8,14 @@ define([
   'mps',
   'rest',
   'views/boiler/row',
-  'text!../../../templates/rows/comment.html'
+  'text!../../../templates/rows/dataset.sidebar.html'
 ], function ($, _, mps, rest, Row, template) {
   return Row.extend({
 
+    tagName: 'li',
+
     attributes: function () {
-      return _.defaults({class: 'comment'},
+      return _.defaults({class: 'home-dataset'},
           Row.prototype.attributes.call(this));
     },
 
@@ -23,29 +25,23 @@ define([
       Row.prototype.initialize.call(this, options);
     },
 
-    events: {
-      'click .navigate': 'navigate',
-      'click .info-delete': 'delete',
+    setup: function () {
+      return Row.prototype.setup.call(this);
     },
 
-    delete: function (e) {
-      e.stopPropagation();
-      e.preventDefault();
-      rest.delete('/api/comments/' + this.model.id, {});
-      this.parentView._remove({id: this.model.id});
+    events: {
+      'click .navigate': 'navigate'
     },
 
     navigate: function (e) {
-      e.stopPropagation();
       e.preventDefault();
-      if ($(e.target).hasClass('info-delete')) return;
       var path = $(e.target).closest('a').attr('href');
       if (path)
         this.app.router.navigate(path, {trigger: true});
     },
 
     _remove: function (cb) {
-      this.$el.slideUp('fast', _.bind(function () {
+      this.$el.children().fadeOut('fast', _.bind(function () {
         this.destroy();
         cb();
       }, this));

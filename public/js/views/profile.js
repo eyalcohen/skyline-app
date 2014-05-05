@@ -11,31 +11,18 @@ define([
   'models/user',
   'text!../../templates/profile.html',
   'text!../../templates/profile.header.html',
-  'views/lists/profile.datasets',
-  'views/lists/profile.views',
-  'd3'
-], function ($, _, Backbone, mps, util, User, template, header, 
-             Datasets, Views) {
-
+  'views/lists/events'
+], function ($, _, Backbone, mps, util, User, template, header, Events) {
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
-    className: 'profile',
+    el: '.main',
 
-    // Module entry point:
     initialize: function (app) {
-
-      // Save app ref.
       this.app = app;
-
-      // Shell events:
       this.on('rendered', this.setup, this);
-
-      // Client-wide subscriptions
       this.subscriptions = [];
     },
 
-    // Draw our template from the profile JSON.
     render: function () {
 
       // Use a model for the main content.
@@ -46,55 +33,51 @@ define([
           + ' (@' + this.model.get('username') + ')',
           _.template(header).call(this), true);
 
-      // Render main template.
-      this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('.main');
 
-      // Done rendering ... trigger setup.
+      this.template = _.template(template);
+      this.$el.html(this.template.call(this));
+
+      // Set page title
+      var doctitle = 'Skyline | ' + this.model.get('displayName');
+      doctitle += ' (@' + this.model.get('username') + ')';
+      this.app.title(doctitle);
+
+      // Render title.
+      this.title = _.template(header).call(this);
+
       this.trigger('rendered');
 
       return this;
     },
 
-    // Bind mouse events.
     events: {},
 
-    // Misc. setup.
     setup: function () {
 
-      // Render lists.
-      this.datasets = new Datasets(this.app, {
-        datasets: this.app.profile.content.datasets,
+      // Render events.
+      this.events = new Events(this.app, {
         parentView: this,
-        reverse: true
-      });
-      this.views = new Views(this.app, {
-        views: this.app.profile.content.views,
-        parentView: this, 
+        parentId: this.model.id,
+        parentType: 'member',
         reverse: true
       });
 
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
+      this.events.destroy();
       this.undelegateEvents();
       this.stopListening();
-      this.app.title();
-      this.datasets.destroy();
-      this.views.destroy();
-      this.remove();
+      this.empty();
     },
   });
 });

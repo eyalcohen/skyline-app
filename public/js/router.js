@@ -15,10 +15,10 @@ define([
   'views/forgot',
   'views/lists/flashes',
   'views/save',
-  'views/browser',
+  'views/finder',
   'views/header',
-  'views/footer',
-  'views/home',
+  'views/tabs',
+  'views/dashboard',
   'views/splash',
   'views/settings',
   'views/reset',
@@ -30,8 +30,8 @@ define([
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
-    Flashes, Save, Browser, Header, Footer, Home, Splash, Settings, Reset, Profile,
-    Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
+    Flashes, Save, Finder, Header, Tabs, Dashboard, Splash, Settings,
+    Reset, Profile, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -48,7 +48,7 @@ define([
               + window.location.search);
         } catch (err) {}
 
-      // Determine if this is an embeded widget.
+      // Determine if this is an embedded widget.
       var rx = new RegExp([window.location.host, 'embed'].join('/'), 'i');
       this.app.embed = rx.test(window.location.href);
 
@@ -65,7 +65,7 @@ define([
       this.route('contact', 'contact', this.contact);
       this.route('privacy', 'privacy', this.privacy);
       this.route('terms', 'terms', this.terms);
-      this.route('', 'home', this.home);
+      this.route('', 'dashboard', this.dashboard);
       this.route('_blank', 'blank', function(){});
 
       // Fullfill navigation request from mps.
@@ -84,8 +84,8 @@ define([
       }, this));
 
       // Show the browser modal.
-      mps.subscribe('modal/browser/open', _.bind(function (lib) {
-        this.browser = new Browser(this.app, {lib: lib}).render();
+      mps.subscribe('modal/finder/open', _.bind(function (lib) {
+        this.browser = new Finder(this.app, {lib: lib}).render();
       }, this));
 
       // Show the save modal.
@@ -124,24 +124,29 @@ define([
 
         // Render page elements.
         if (!this.app.embed) {
-          if (!this.header)
+          if (!this.header) {
             this.header = new Header(this.app).render();
-          else if (login) this.header.render(true);
-          if (!this.footer)
-            this.footer = new Footer(this.app).render();
+          } else if (login) {
+            this.header.render(true);
+          }
+          // if (!this.notifications && this.app.profile && this.app.profile.member) {
+          //   this.notifications = new Notifications(this.app, {reverse: true});
+          // }
         }
 
         // Start block messages.
-        if(!this.flashes)
+        if(!this.flashes) {
           this.flashes = new Flashes(this.app);
+        }
 
         // Callback to route.
         cb(err);
       }
 
       // Kill the page view if it exists.
-      if (this.page)
+      if (this.page) {
         this.page.destroy();
+      }
 
       if (typeof service === 'function') {
         cb = service;
@@ -172,6 +177,15 @@ define([
       }, this));
     },
 
+    renderTabs: function (params) {
+      if (this.tabs) {
+        this.tabs.params = params || {};
+        this.tabs.render();
+      } else {
+        this.tabs = new Tabs(this.app, params).render();
+      }
+    },
+
     start: function () {
       $(window).scrollTop(0);
       $('body').addClass('loading');
@@ -186,118 +200,133 @@ define([
       }, this), 500);
     },
 
-    home: function () {
+    getEventActions: function () {
+      var feed = store.get('feed') || {};
+      return feed.actions || 'all';
+    },
+
+    // Routes //
+
+    dashboard: function () {
       this.start();
-      this.render('/service/home.profile', _.bind(function (err) {
+      this.renderTabs();
+      $('.container').removeClass('wide');
+      var query = {actions: this.getEventActions()};
+      this.render('/service/dashboard.profile', query, _.bind(function (err) {
         if (err) return;
-        this.page = this.app.profile.user ?
-            new Home(this.app).render():
-            new Splash(this.app).render();
+        if (this.app.profile.user) {
+          this.page = new Dashboard(this.app).render();
+          this.renderTabs({tabs: [
+            {title: 'Activity', href: '/', active: true},
+            // {title: 'Notifications', href: '/notifications'}
+          ]});
+        } else {
+          this.page = new Splash(this.app).render();
+        }
         this.stop();
-        if (this.header)
-          this.header.normalize();
       }, this));
     },
 
     reset: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
-        if (this.header)
-          this.header.normalize();
       }, this));
+      this.renderTabs({title: 'Password reset'});
     },
 
     profile: function (username) {
       this.start();
-      this.render('/service/user.profile/' + username,
+      this.renderTabs();
+      $('.container').removeClass('wide');
+      var query = {actions: this.getEventActions()};
+      this.render('/service/user.profile/' + username, query,
           _.bind(function (err) {
         if (err) return;
         this.page = new Profile(this.app).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
-        if (this.header)
-          this.header.unnormalize();
       }, this));
     },
 
     settings: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/settings.profile', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
-        if (this.header)
-          this.header.normalize();
       }, this));
+      this.renderTabs({title: 'Account Settings'});
     },
 
     about: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'About', template: aboutTemp}).render();
         this.stop();
-        if (this.header)
-          this.header.normalize();
       }, this));
+      this.renderTabs({title: 'About', subtitle: 'What\'s going on here?'});
     },
 
     contact: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Contact', template: contactTemp}).render();
         this.stop();
-        if (this.header)
-          this.header.normalize();
       }, this));
+      this.renderTabs({title: 'Contact', subtitle: 'Get in touch'});
     },
 
     privacy: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Privacy', template: privacyTemp}).render();
         this.stop();
-        if (this.header)
-          this.header.normalize();
       }, this));
+      this.renderTabs({title: 'Privacy Policy', subtitle: 'Last updated 7.27.2013'});
     },
 
     terms: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Terms', template: termsTemp}).render();
         this.stop();
-        if (this.header)
-          this.header.normalize();
       }, this));
+      this.renderTabs({title: 'Terms and Conditions', subtitle: 'Last updated 7.27.2013'});
     },
 
     chart: function (un, slug, channelName) {
       this.start();
+      this.renderTabs();
+      $('.container').addClass('wide');
       var state = {};
       var path = window.location.pathname.toLowerCase();
       if (!slug || path.indexOf('/views/') !== -1) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
-        if (this.header && key && !this.app.searchIsActive)
-          this.header.unnormalize();
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
-        if (this.header)
-          this.header.normalize();
       }
-      if (this.app.profile && this.app.profile.user)
+      if (this.app.profile && this.app.profile.user) {
         state.user_id = this.app.profile.user.id;
+      }
 
       // NOTE: this should be the only place where state is directly set.
       // Elsewhere it should be done through App.prototype.state.
@@ -308,23 +337,23 @@ define([
         if (err) return;
         this.pageType = 'chart';
         var chart = new Chart(this.app);
-        if (channelName)
+        if (channelName) {
           mps.publish('dataset/requestOpenChannel', [channelName]);
+        }
         this.page = chart.render();
-        if (this.header && !key) this.header.normalize();        
         this.stop();
       }, this));
     },
 
     default: function () {
+      this.renderTabs();
+      $('.container').removeClass('wide');
       this.render(_.bind(function (err) {
         if (err) return;
         this.page = new Error(this.app).render({
           code: 404,
           message: 'Sorry, this page isn\'t available'
         });
-        if (this.header)
-          this.header.normalize();
       }, this));
     }
 

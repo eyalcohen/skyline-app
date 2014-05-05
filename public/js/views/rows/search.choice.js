@@ -7,7 +7,7 @@ define([
   'Underscore',
   'mps',
   'views/boiler/row',
-  'text!../../../templates/rows/choice.html'
+  'text!../../../templates/rows/search.choice.html'
 ], function ($, _, mps, Row, template) {
   return Row.extend({
 

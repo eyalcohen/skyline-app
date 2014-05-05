@@ -6,17 +6,16 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'Modernizr',
   'mps',
   'rest',
   'util',
   'Spin',
   'common', 
-  'text!../../templates/browser.html',
-  'views/lists/profile.datasets',
+  'text!../../templates/finder.html',
+  'views/lists/datasets.finder',
   'views/upload'
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, common, template,
-            Datasets, Upload) {
+], function ($, _, Backbone, mps, rest, util, Spin, common, template,
+      Datasets, Upload) {
 
   return Backbone.View.extend({
 
@@ -48,8 +47,9 @@ define([
       this.$el.html(this.template.call(this));
 
       // Add library class
-      if (this.options.lib && this.app.profile && this.app.profile.user)
+      if (this.options.lib && this.app.profile && this.app.profile.user) {
         this.$el.addClass('library');
+      }
 
       // Dump content into modal.
       $.fancybox(this.$el, {
@@ -61,10 +61,6 @@ define([
         modal: true,
         closeClick: true
       });
-
-      // Add placeholder shim if need to.
-      if (Modernizr.input.placeholder)
-        this.$('input').placeholder();
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');

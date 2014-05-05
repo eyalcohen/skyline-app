@@ -8,7 +8,7 @@ define([
   'mps',
   'rest',
   'views/boiler/row',
-  'text!../../../templates/rows/home.view.html'
+  'text!../../../templates/rows/view.sidebar.html'
 ], function ($, _, mps, rest, Row, template) {
   return Row.extend({
 

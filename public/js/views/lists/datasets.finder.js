@@ -9,9 +9,9 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/profile.datasets.html',
+  'text!../../../templates/lists/datasets.finder.html',
   'collections/datasets',
-  'views/rows/profile.dataset',
+  'views/rows/dataset.finder',
   'Spin'
 ], function ($, _, List, mps, rest, util, template, Collection, Row, Spin) {
   return List.extend({

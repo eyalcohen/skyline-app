@@ -1,5 +1,5 @@
 /*
- * Replies List view
+ * Comments List view
  */
 
 define([
@@ -9,17 +9,18 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/replies.html',
+  'text!../../../templates/lists/comments.event.html',
   'collections/comments',
-  'views/rows/comment'
+  'views/rows/comment.event',
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.replies',
+    el: '.event-comments',
 
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
+      this.type = options.type;
       this.Row = Row;
 
       // Call super init.
@@ -51,48 +52,37 @@ define([
         if (e.shiftKey) return;
         if (e.keyCode === 13 || e.which === 13)
           this.write();
-        else if (e.keyCode === 27 || e.which === 27)
-          this.parentView.open();
       }, this))
           .bind('keydown', _.bind(function (e) {
         if (!e.shiftKey && (e.keyCode === 13 || e.which === 13))
           return false;
       }, this));
 
-      // Focus the textbox.
-      // this.$('textarea.comment-input').focus();
+      // Show other elements.
+      this.$('.event-comments-older.event-comment').show();
+      this.$('#comment_input .event-comment').show();
 
       return List.prototype.setup.call(this);
     },
 
+    destroy: function () {
+      // this.app.rpc.socket.removeAllListeners('comment.new');
+      // this.app.rpc.socket.removeAllListeners('comment.removed');
+      return List.prototype.destroy.call(this);
+    },
+
     // Bind mouse events.
     events: {
-      'click .comments-signin': 'signin',
-      'click .comments-older': 'older',
+      'click .event-comments-signin': 'signin',
+      'click .event-comments-older': 'older',
     },
 
-    // Collect new replies from socket events.
+    // Collect new data from socket events.
     collect: function (data) {
-      if (data.parent_id !== this.parentView.model.id) return;
-      if (this.collection.get(-1)) return;
-      this.collection.push(data);
-    },
-
-    destroy: function () {
-      _.each(this.subscriptions, function (s) {
-        mps.unsubscribe(s);
-      });
-      _.each(this.views, function (v) {
-        v.destroy();
-      });
-      this.undelegateEvents();
-      this.stopListening();
-      this.empty();
-    },
-
-    empty: function () {
-      this.$el.empty();
-      return this;
+      if (data.parent_id === this.parentView.model.id
+        && !this.collection.get(-1)) {
+        this.collection.push(data);
+      }
     },
 
     // remove a model
@@ -114,8 +104,8 @@ define([
     write: function (e) {
       if (e) e.preventDefault();
 
-      var form = $('form.comment-input-form', this.el);
-      var input = this.$('textarea.comment-input');
+      var form = $('form.event-comment-input-form', this.el);
+      var input = this.$('textarea.event-comment-input');
       input.val(util.sanitize(input.val()));
       if (input.val().trim() === '') return;
 
@@ -139,13 +129,11 @@ define([
       input.val('').keyup();
 
       // Now save the comment to server.
-      rest.post('/api/comments/note', payload,
+      rest.post('/api/comments/' + this.type, payload,
           _.bind(function (err, data) {
-
         if (err) {
-          console.log(err);
           this.collection.pop();
-          return;
+          return console.log(err);
         }
 
         // Update the comment id.
@@ -183,7 +171,7 @@ define([
         this.collection.options.reverse = false;
 
         // Hide the button.
-        this.$('.comments-older.comment').hide();
+        this.$('.event-comments-older.event-comment').hide();
       }, this));
 
     },

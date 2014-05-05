@@ -9,9 +9,9 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/datasets.html',
+  'text!../../../templates/lists/datasets.chart.html',
   'collections/datasets',
-  'views/rows/dataset'
+  'views/rows/dataset.chart'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
 
@@ -73,8 +73,8 @@ define([
     add: function (e) {
       e.preventDefault();
 
-      // Render the browser view.
-      mps.publish('modal/browser/open', [true]);
+      // Render the finder view.
+      mps.publish('modal/finder/open', [false]);
     },
 
     added: function (d) {

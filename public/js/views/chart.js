@@ -14,9 +14,9 @@ define([
   'Spin',
   'text!../../templates/chart.html',
   'text!../../templates/chart.header.html',
-  'views/lists/datasets',
-  'views/lists/notes',
-  'views/lists/comments',
+  'views/lists/datasets.chart',
+  'views/lists/notes.chart',
+  'views/lists/comments.chart',
   'views/graph',
   'views/export',
   'views/overview',
@@ -130,7 +130,7 @@ define([
       this.controls = this.$('.controls');
       this.cursor = this.$('.cursor');
       this.icons = this.$('.icons');
-      this.dropZone = this.$('.dnd');
+      // this.dropZone = this.$('.dnd');
       this.saveButton = this.$('.control-button-save');
       this.saveButtonSpin = new Spin($('.save-button-spin', this.el), {
         color: '#3f3f3f',
@@ -141,20 +141,22 @@ define([
       });
 
       // Handle comments panel.
-      if (!this.app.embed && store.get('comments'))
+      if (!this.app.embed && store.get('comments')) {
         $('.side-panel').addClass('open');
-
-      // Drag & drop events.
-      if (this.app.embed) {
-        this.$el.bind('dragover', _.bind(this.dragover, this));
-        this.dropZone.bind('dragleave', _.bind(this.dragout, this))
-            .bind('drop', _.bind(this.drop, this));
       }
 
+      // Drag & drop events.
+      // if (this.app.embed) {
+      //   this.$el.bind('dragover', _.bind(this.dragover, this));
+      //   this.dropZone.bind('dragleave', _.bind(this.dragout, this))
+      //       .bind('drop', _.bind(this.drop, this));
+      // }
+
       // Handle save button.
-      if (store.get('state').author && store.get('state').author.id)
+      if (store.get('state').author && store.get('state').author.id) {
         // This is a view, so intially it's already saved.
         this.saveButton.addClass('saved');
+      }
 
       // Render children views.
       this.graph = new Graph(this.app, {parentView: this}).render();
@@ -480,100 +482,100 @@ define([
       }, this));
     },
 
-    dragover: function (e) {
-      if (this.dragging) return false;
-      this.dragging = true;
-      e.stopPropagation();
-      e.preventDefault();
-      e.originalEvent.dataTransfer.dropEffect = 'copy';
-      this.$el.addClass('dragging');
-      return false;
-    },
+    // dragover: function (e) {
+    //   if (this.dragging) return false;
+    //   this.dragging = true;
+    //   e.stopPropagation();
+    //   e.preventDefault();
+    //   e.originalEvent.dataTransfer.dropEffect = 'copy';
+    //   this.$el.addClass('dragging');
+    //   return false;
+    // },
 
-    dragout: function (e) {
-      if ($(e.target).prop('tagName') === 'I') return false;
-      this.dragging = false;
-      this.$el.removeClass('dragging');
-      return false;
-    },
+    // dragout: function (e) {
+    //   if ($(e.target).prop('tagName') === 'I') return false;
+    //   this.dragging = false;
+    //   this.$el.removeClass('dragging');
+    //   return false;
+    // },
 
-    drop: function (e) {
-      e.stopPropagation();
-      e.preventDefault();
+    // drop: function (e) {
+    //   e.stopPropagation();
+    //   e.preventDefault();
 
-      var files = e.originalEvent.dataTransfer.files;
-      this.add(null, files);
+    //   var files = e.originalEvent.dataTransfer.files;
+    //   this.add(null, files);
 
-      return false;
-    },
+    //   return false;
+    // },
 
-    // Create new dataset from file.
-    // TODO: Redundant fn. Move this and this
-    // same fn in browser.js somewhere shared.
-    add: function (e, files) {
-      if (e) e.preventDefault();
+    // // Create new dataset from file.
+    // // TODO: Redundant fn. Move this and this
+    // // same fn in browser.js somewhere shared.
+    // add: function (e, files) {
+    //   if (e) e.preventDefault();
 
-      // Prevent multiple uploads at the same time.
-      if (this.working) return false;
-      this.working = true;
+    //   // Prevent multiple uploads at the same time.
+    //   if (this.working) return false;
+    //   this.working = true;
 
-      // Start load indicator.
-      this.app.router.start();
+    //   // Start load indicator.
+    //   this.app.router.start();
 
-      // Get the file.
-      var files = files || this.newFile.get(0).files;
+    //   // Get the file.
+    //   var files = files || this.newFile.get(0).files;
 
-      if (files.length === 0) {
-        this.working = false;
-        return false;
-      }
-      var file = files[0];
+    //   if (files.length === 0) {
+    //     this.working = false;
+    //     return false;
+    //   }
+    //   var file = files[0];
 
-      // Use a FileReader to read the file as a base64 string.
-      var cbFail = _.bind(function(err) {
-        // Stop load indicator.
-        this.app.router.stop();
-        this.$el.removeClass('dragging');
-        // Show error.
-        _.delay(function () {
-          mps.publish('flash/new', [{
-            message: err,
-            level: 'error'
-          }]);
-        }, 500);
-        this.working = false;
-      }, this);
+    //   // Use a FileReader to read the file as a base64 string.
+    //   var cbFail = _.bind(function(err) {
+    //     // Stop load indicator.
+    //     this.app.router.stop();
+    //     this.$el.removeClass('dragging');
+    //     // Show error.
+    //     _.delay(function () {
+    //       mps.publish('flash/new', [{
+    //         message: err,
+    //         level: 'error'
+    //       }]);
+    //     }, 500);
+    //     this.working = false;
+    //   }, this);
 
-      var cbSuccess = _.bind(function() {
-        // Stop load indicator.
-        this.app.router.stop();
-        this.$el.removeClass('dragging');
+    //   var cbSuccess = _.bind(function() {
+    //     // Stop load indicator.
+    //     this.app.router.stop();
+    //     this.$el.removeClass('dragging');
 
-        // Ready for more.
-        this.working = false;
-      }, this);
+    //     // Ready for more.
+    //     this.working = false;
+    //   }, this);
 
-      var cbProgress = _.bind(function(perc) {
-      }, this);
+    //   var cbProgress = _.bind(function(perc) {
+    //   }, this);
 
-      var cbUpload = _.bind(function(res) {
-        if (res.channels[0])
-          mps.publish('dataset/requestOpenChannel', [res.channels[0].channelName]);
+    //   var cbUpload = _.bind(function(res) {
+    //     if (res.channels[0])
+    //       mps.publish('dataset/requestOpenChannel', [res.channels[0].channelName]);
 
-        // Add this dataset to the existing chart.
-        mps.publish('dataset/select', [res.id]);
-      }, this);
+    //     // Add this dataset to the existing chart.
+    //     mps.publish('dataset/select', [res.id]);
+    //   }, this);
 
 
-      var reader = new FileReader();
-      reader.onload = _.bind(function () {
-        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress, cbUpload);
-      }, this);
+    //   var reader = new FileReader();
+    //   reader.onload = _.bind(function () {
+    //     common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress, cbUpload);
+    //   }, this);
 
-      reader.readAsDataURL(file);
+    //   reader.readAsDataURL(file);
 
-      return false;
-    },
+    //   return false;
+    // },
 
     onStateChange: function (state) {
       var user = this.app.profile.user;

@@ -1,0 +1,49 @@
+<%
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + this.model.get('author').gravatar + '?s=26&d=mm';
+
+  var tags = this.model.get('tags') || [];
+%>
+
+<div class="event-title">
+  <a href="/<%= this.model.get('author').username %>" class="title navigate">
+    <%= this.model.formatAuthorFor(this.app.profile.user) %></a> created a 
+    <a href="/<%= this.model.get('author').username %>/views/<%= this.model.get('slug') %>" class="title navigate">view</a>.
+</div>
+<span class="event-title-text">
+  <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>" class="title-large navigate">
+    <%= this.model.formatTitle() %>
+  </a>
+</span>
+<span class="event-timeline-label event-timeline-label-first">
+  <i class="icon-folder-empty"></i>
+</span>
+<% if (this.model.get('description') || tags.length > 0) { %>
+  <p class="event-description">
+    <% if (this.model.get('description')) { %>
+      <%= this.model.get('description') %>
+    <% } %>
+    <% if (tags.length > 0) { %>
+      <span class="event-tags">
+        Tags: 
+        <% _.each(tags, function(t, i) { %>
+          <%= t %><% if (i < tags.length - 1) { %>,<% } %>
+        <% }); %>
+      </span>
+    <% } %>
+  </p>
+<% } %>
+<div class="event-info">
+  Added <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
+        class="navigate"><time class="created" 
+        datetime="<%= this.model.get('created') %>" 
+        title="<%= this.model.get('created') %>">
+    <%= this.model.get('created') %>
+  </time></a>
+  <% if (this.app.profile.user &&
+      this.model.get('author').id === this.app.profile.user.id) { %>
+    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+    <a href="javascript:;" class="info-delete">Delete</a>
+  <% } %>
+</div>
+<div class="event-comments"></div>

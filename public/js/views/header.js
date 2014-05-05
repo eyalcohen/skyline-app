@@ -8,7 +8,7 @@ define([
   'Backbone',
   'mps',
   'rest',
-  'views/lists/choices',
+  'views/lists/search.choices',
   'text!../../templates/box.html'
 ], function ($, _, Backbone, mps, rest, Choices, box) {
   return Backbone.View.extend({
@@ -54,19 +54,6 @@ define([
       // Shell event.
       this.delegateEvents();
 
-      // Shell listeners / subscriptions.
-      // Do this here intead of init ... re-renders often.
-      if (this.app.profile && this.app.profile.user) {
-        
-        // For logout...
-        this.subscriptions.push(mps.subscribe('user/delete',
-            _.bind(this.logout, this)));
-      }
-
-      // For graph titles...
-      this.subscriptions.push(mps.subscribe('title/set',
-          _.bind(this.title, this)));
-
       // Start search choices.
       if(!this.choices)
         this.choices = new Choices(this.app, {
@@ -96,68 +83,6 @@ define([
       this.app.router.navigate('/', {trigger: true});
     },
 
-    follow: function (e) {
-      var btn = $(e.target);
-
-      // Prevent multiple requests.
-      if (this.working) return false;
-      this.working = true;
-
-      // Do the API request.
-      var username = this.app.profile.content.page.username;
-      rest.post('/api/users/' + username + '/follow', {},
-          _.bind(function (err, data) {
-
-        // Clear.
-        this.working = false;
-
-        if (err) {
-
-          // Show error.
-          mps.publish('flash/new', [{err: err, level: 'error'}]);
-          return false;
-        }
-
-        // Update button content.
-        btn.removeClass('follow-button').addClass('unfollow-button')
-            .html('<i class="icon-user-delete"></i> Unfollow');
-
-      }, this));
-
-      return false;  
-    },
-
-    unfollow: function (e) {
-      var btn = $(e.target);
-
-      // Prevent multiple requests.
-      if (this.working) return false;
-      this.working = true;
-
-      // Do the API request.
-      var username = this.app.profile.content.page.username;
-      rest.post('/api/users/' + username + '/unfollow', {},
-          _.bind(function (err, data) {
-
-        // Clear.
-        this.working = false;
-
-        if (err) {
-
-          // Show error.
-          mps.publish('flash/new', [{err: err, level: 'error'}]);
-          return false;
-        }
-
-        // Update button content.
-        btn.removeClass('unfollow-button').addClass('follow-button')
-            .html('<i class="icon-user-add"></i> Follow');
-
-      }, this));
-
-      return false;  
-    },
-
     signin: function (e) {
       e.preventDefault();
 
@@ -168,31 +93,8 @@ define([
     add: function (e) {
       e.preventDefault();
 
-      // Render the browser view.
-      mps.publish('modal/browser/open');
-    },
-
-    logout: function () {
-      _.each(this.subscriptions, function (s) {
-        mps.unsubscribe(s);
-      });
-
-      // Swap user header content.
-      this.$('.header-user-box').remove();
-      $('<a class="button signin-button">Sign in</a>').prependTo(this.$el);
-    },
-
-    title: function (str) {
-      this.$('.page-header').html(str);
-    },
-
-    normalize: function () {
-      this.$el.addClass('normal');
-    },
-
-    unnormalize: function () {
-      if (!this.choices.active)
-        this.$el.removeClass('normal');
+      // Render the finder view.
+      mps.publish('modal/finder/open');
     },
 
     navigate: function (e) {

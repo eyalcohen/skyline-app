@@ -8,7 +8,7 @@ define([
   'mps',
   'rest',
   'views/boiler/row',
-  'text!../../../templates/rows/profile.dataset.html',
+  'text!../../../templates/rows/dataset.finder.html',
   'text!../../../templates/confirm.html'
 ], function ($, _, mps, rest, Row, template, confirm) {
   return Row.extend({

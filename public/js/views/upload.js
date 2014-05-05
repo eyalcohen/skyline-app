@@ -214,8 +214,8 @@ define([
           _.delay(function() {
             mps.publish('flash/new', [{
               message: 'You added a new dataset: "'
-                  + res.title + ', ' + res.meta.channel_cnt + ' channel'
-                  + (res.meta.channel_cnt !== 1 ? 's':'') + '"',
+                  + res.title + ', ' + res.channels_cnt + ' channel'
+                  + (res.channels_cnt !== 1 ? 's':'') + '"',
               level: 'alert'
             }]);
           }, 500);

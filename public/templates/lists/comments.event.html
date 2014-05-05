@@ -1,0 +1,35 @@
+<%
+  var user = this.app.profile.user;
+  var gravatar = user ? 'https://www.gravatar.com/avatar/'
+      + user.gravatar + '?s=34&d=mm': null;
+%>
+
+<% if (this.collection.older > 0) { %>
+  <a href="javascript:;" class="event-comments-older event-comment list-header">
+    Show <%= this.collection.older %> older <%= this.collection.older > 1 ? 'comments': 'comment' %>
+  </a>
+<% } %>
+<% if (this.collection.models.length > 0) { %>
+  <% _.each(this.collection.models, _.bind(function(row) { %>
+    <%= this.row(row) %>
+  <% }, this)); %>
+<% } %>
+<div id="comment_input" class="list-footer">
+  <% if (user) { %>
+    <div class="event-comment">
+      <span class="event-comment-avatar navigate">
+        <img src=<%= gravatar %> width="34" height="34" />
+      </span>
+      <div class="event-comment-body-input">
+        <form enctype="multipart/form-data" method="POST" class="event-comment-input-form">
+          <textarea name="body" class="event-comment-input" 
+              placeholder="Leave a comment ..."></textarea>
+        </form>
+      </div>
+    </div>
+  <% } else { %>
+    <a href="javascript:;" class="event-comments-signin">
+      <span class="empty-list">Sign in to comment.</span>
+    </a>
+  <% } %>
+</div>

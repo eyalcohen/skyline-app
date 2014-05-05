@@ -9,8 +9,8 @@ define([
   'rest',
   'util',
   'views/boiler/row',
-  'text!../../../templates/rows/note.html',
-  'views/lists/replies'
+  'text!../../../templates/rows/note.chart.html',
+  'views/lists/replies.chart'
 ], function ($, _, mps, rest, util, Row, template, Replies) {
   return Row.extend({
 

@@ -8,9 +8,9 @@ define([
   'views/boiler/list',
   'mps',
   'util',
-  'text!../../../templates/lists/channels.html',
+  'text!../../../templates/lists/channels.chart.html',
   'collections/channels',
-  'views/rows/channel'
+  'views/rows/channel.chart'
 ], function ($, _, List, mps, util, template, Collection, Row, Spin) {
   return List.extend({
 

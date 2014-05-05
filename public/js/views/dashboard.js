@@ -1,5 +1,5 @@
 /*
- * Page view for a static page.
+ * Page view for all activity.
  */
 
 define([
@@ -7,19 +7,18 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'util'
-], function ($, _, Backbone, mps, util) {
+  'util',
+  'text!../../templates/dashboard.html',
+  'views/lists/events'
+], function ($, _, Backbone, mps, util, template, Events) {
   return Backbone.View.extend({
 
     el: '.main',
 
-    initialize: function (app, options) {
-
-      // Save app reference.
+    initialize: function (app) {
       this.app = app;
-      this.options = options;
 
-      // Shell events:
+      // Shell events.
       this.on('rendered', this.setup, this);
 
       // Client-wide subscriptions
@@ -28,22 +27,27 @@ define([
 
     render: function () {
 
-      // Set page title.
-      this.app.title(this.options.title);
+      // Set page title
+      this.title();
 
-      this.template = _.template(this.options.template);
+      // Content rendering.
+      this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
+      // Trigger setup.
       this.trigger('rendered');
 
       return this;
     },
 
-    events: {
-      'click .navigate': 'navigate',
-    },
-
     setup: function () {
+
+      // Render lists.
+      this.events = new Events(this.app, {
+        parentView: this,
+        reverse: true
+      });
+
       return this;
     },
 
@@ -56,19 +60,15 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
+      this.events.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.empty();
     },
 
-    navigate: function (e) {
-      e.preventDefault();
-
-      // Route to wherever.
-      var path = $(e.target).closest('a').attr('href');
-      if (path)
-        this.app.router.navigate(path, {trigger: true});
-    },
+    title: function () {
+      this.app.title(this.app.profile.user.displayName + ' - Home');
+    }
 
   });
 });

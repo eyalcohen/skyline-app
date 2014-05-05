@@ -3,14 +3,13 @@
   var num_datasets = 0;
   var num_channels = 0;
   if (target.type === 'dataset') {
-    num_channels = target.doc.meta.channel_cnt;
+    num_channels = target.doc.channels_cnt;
   } else {
     _.each(target.doc.datasets, function (d) {
       ++num_datasets;
       num_channels += _.size(d.channels);
     });
   }
-  
 
   var source = '';
   if (target.type === 'dataset') {
@@ -25,8 +24,6 @@
       }
     }
   }
-
-  var meta = target.type === 'dataset' ? target.doc.meta: target.doc.time;
 %>
 
 <div class="comment target">
@@ -56,8 +53,8 @@
         <% } else { %>
           <li>Datasets: <%= num_datasets %></li>
           <li>Channels: <%= num_channels %></li>
-          <li>Begin time: <%= util.toLocaleString(new Date(meta.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
-          <li>Duration: <%= util.getDuration(meta.end - meta.beg, false) %></li>
+          <li>Begin time: <%= util.toLocaleString(new Date(target.doc.time.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
+          <li>Duration: <%= util.getDuration(target.doc.time.end - target.doc.time.beg, false) %></li>
         <% } %>
         <li>Last updated: <%= util.toLocaleString(new Date(target.doc.updated), 'mm/d/yy HH:MM:ss') %></li>
       </ul>
