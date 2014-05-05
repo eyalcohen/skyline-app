@@ -672,6 +672,42 @@ a.button.unfollow-button {
   font-size: 13px;
 }
 
+a.button.title-button {
+  float: right;
+  margin-top: -1px;
+  line-height: 40px;
+  font-size: 12px;
+  border: none;
+  border-left: 2px solid #808080;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  padding: 0 20px;
+}
+a.button.title-button.disabled {
+  opacity: 0.8;
+  cursor: default;
+}
+a.button.title-buy-button {
+  color: #396400;
+  background: #b1dc36;
+  border: none;
+  border-left: 2px solid #396400;
+}
+a.button.title-button:hover:not(.disabled),
+a.button.title-button:focus:not(.disabled) {
+  color: #1a1a1a;
+  border: none;
+  border-left: 2px solid #808080;
+}
+a.button.title-buy-button:hover:not(.disabled),
+a.button.title-buy-button:focus:not(.disabled) {
+  color: #2f5a00;
+  border: none;
+  border-left: 2px solid #396400;
+  background: #a7d22c;
+}
+
 /*.........................................................................*/
 
 .checkbox-styled {
@@ -969,14 +1005,23 @@ i i {
   border: 1px solid #e6e6e6;
 }
 
+.container.wide .content {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+}
+
 .main {
   width: 100%;
   height: 100%;
   margin: 0;
-  margin-bottom: 23px;
+  /*margin-bottom: 23px;*/
 }
 
-.folder .main {
+.container.wide .main {
   margin-bottom: 0;
 }
 
@@ -1005,6 +1050,11 @@ i i {
   background: none;
 }
 
+.container.wide .folder {
+  margin: 0;
+  width: 100%;
+}
+
 .leftside {
   float: left;
   width: 719px;
@@ -1020,6 +1070,13 @@ i i {
   border-left: 1px solid #f2f2f2;
 }
 
+.splash {
+  width: 1150px;
+  margin: 0 auto;
+}
+
+/*.........................................................................*/
+
 .tabs {
   position: relative;
   z-index: 1;
@@ -1029,6 +1086,10 @@ i i {
   -moz-border-radius: 2px 2px 0 0;
   border-radius: 2px 2px 0 0;
   height: 40px;
+}
+
+.container.wide .tabs {
+  border: none;
 }
 
 .tabs ul,
@@ -1094,6 +1155,8 @@ li.tab.active a {
   padding-top: 12px;
   top: 5px;
 }
+
+/*.........................................................................*/
 
 .subtabs {
   position: relative;
@@ -1181,6 +1244,126 @@ li.subtab.disabled a {
   cursor: default;
 }
 
+/*.........................................................................*/
+
+.page-title {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #666;
+  line-height: normal;
+  height: 30px;
+}
+
+.page-title a {
+  background: none;
+}
+
+.page-title a .page-title-sub {
+  font-size: 14px;
+}
+
+.folder-title .page-title {
+  margin: 0 0 0 30px;
+  font-size: 18px;
+  color: #666;
+  line-height: 40px;
+  height: auto;
+}
+
+img.page-title-avatar {
+  position: relative;
+  top: 6px;
+  width: 26px;
+  height: 26px;
+  margin-right: 5px;
+
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+/*.........................................................................*/
+
+.page-header a i {
+  color: #2f2f2f;
+}
+
+.page-header-title {
+  position: relative;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 34px;
+  display: inline-block;
+  padding: 0 5px;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.page-header-title.locked {
+  background: rgba(230, 230, 0, 0.1);
+}
+
+.page-header-title img {
+  position: relative;
+  top: 6px;
+  margin-right: 7px;
+  width: 24px;
+  height: 24px;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.page-header-title i i {
+  left: 14px;
+  top: -2px;
+}
+
+.page-header-title.forked > i {
+  margin-right: 0.5em;
+}
+
+.page-header-title a.page-header-username {
+  font-weight: normal;
+}
+
+.page-header-title a.page-header-main {
+  font-weight: 700;
+}
+
+.page-header-subtitle {
+  font-size: 11px;
+  font-weight: normal;
+  color: #666;
+}
+
+/*.page-header-profile-title {
+  position: relative;
+  white-space: nowrap;
+  font-size: 20px;
+  line-height: normal;
+}
+
+.page-header-profile-title a.page-header-username {
+  margin-left: 55px;
+}
+
+.page-header-profile-title img {
+  position: absolute;
+  left: -13px;
+  width: 60px;
+  height: 60px;
+}
+
+.page-header-profile-info {
+  display: inline-block;
+  margin-left: 5px;
+  position: relative;
+  top: -2px;
+}*/
 
 
 
@@ -1449,101 +1632,22 @@ body.loading .header .header-logo a {
   color: #808080;
 }
 
-.header .page-header {
+ul.header-navigation {
   display: inline;
   position: relative;
-  left: 151px;
+  left: 401px;
   height: 60px;
   line-height: 60px;
-
-  -webkit-transition: all 0.1s ease-in-out;
-  -moz-transition: all 0.1s ease-in-out;
-  transition: all 0.1s ease-in-out;
+  list-style: none;
 }
 
-.header.normal .page-header {
-  left: 411px;
+ul.header-navigation li {
+  display: inline;
+  margin-left: 20px;
 }
 
-.page-header a i {
-  color: #2f2f2f;
-}
+ul.header-navigation li a {
 
-.page-header-title {
-  position: relative;
-  white-space: nowrap;
-  font-size: 16px;
-  line-height: 34px;
-  display: inline-block;
-  padding: 0 5px;
-
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-}
-
-.page-header-title.locked {
-  background: rgba(230, 230, 0, 0.1);
-}
-
-.page-header-title img {
-  position: relative;
-  top: 6px;
-  margin-right: 7px;
-  width: 24px;
-  height: 24px;
-
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-}
-
-.page-header-title i i {
-  left: 14px;
-  top: -2px;
-}
-
-.page-header-title.forked > i {
-  margin-right: 0.5em;
-}
-
-.page-header-title a.page-header-username {
-  font-weight: normal;
-}
-
-.page-header-title a.page-header-main {
-  font-weight: 700;
-}
-
-.page-header-subtitle {
-  font-size: 11px;
-  font-weight: normal;
-  color: #666;
-}
-
-.page-header-profile-title {
-  position: relative;
-  white-space: nowrap;
-  font-size: 20px;
-  line-height: normal;
-}
-
-.page-header-profile-title a.page-header-username {
-  margin-left: 55px;
-}
-
-.page-header-profile-title img {
-  position: absolute;
-  left: -13px;
-  width: 60px;
-  height: 60px;
-}
-
-.page-header-profile-info {
-  display: inline-block;
-  margin-left: 5px;
-  position: relative;
-  top: -2px;
 }
 
 .header .header-search {
@@ -1578,7 +1682,7 @@ body.loading .header .header-logo a {
 }
 
 .header input.header-search-input {
-  width: 100px;
+  width: 360px;
   height: 32px;
   margin: 0;
   margin: -2px 0 0 0;
@@ -1589,9 +1693,9 @@ body.loading .header .header-logo a {
   transition: all 0.1s ease-in-out;
 }
 
-.header.normal input.header-search-input {
+/*.header.normal input.header-search-input {
   width: 360px;
-}
+}*/
 
 .search-spin {
   position: absolute;
@@ -2262,7 +2366,7 @@ a.button.splash-button {
 
 .splash .embed-chart-wrap {
   width: auto;
-  margin: -15px 0 0 0;
+  margin: 40px 0 0 0;
 }
 
 .splash .embed-chart {
@@ -2594,13 +2698,7 @@ a.comments-signin {
   margin-bottom: -30px;
 }
 
-.event.single {
-  width: 1024px;
-  margin: 30px 0;
-  padding: 0;
-}
-
-.event .comment,
+/*.event .comment,
 .event .comments {
   width: 404px;
 }
@@ -2610,7 +2708,7 @@ a.comments-signin {
   margin-left: 46px;
   top: 6px;
   position: relative;
-}
+}*/
 
 .event-left {
   float: left;
@@ -2778,8 +2876,8 @@ p.event-description {
 
 .event-comment-body p {
   padding: 0 40px;
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 12px;
+  line-height: 16px;
   font-weight: normal;
   color: #4d4d4d;
   margin: 0;
@@ -2843,12 +2941,8 @@ a.event-comment-author {
   display: inline-block;
   white-space: nowrap;
   text-overflow: ellipsis;
-  /*color: #666;*/
+  color: #3f3f3f;
   font-weight: bold;
-  /*background: none;*/
-  /*-webkit-text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
-  -moz-text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.7);*/
 }
 
 a.event-comment-author:hover {
@@ -3538,7 +3632,7 @@ td.profile-item-delete:active {
   overflow: hidden;
 }
 
-.chart .dnd {
+/*.chart .dnd {
   display: none;
   width: 100%;
   height: 100%;
@@ -3564,7 +3658,7 @@ td.profile-item-delete:active {
 
 .chart.dragging .dnd {
   display: block;
-}
+}*/
 
 .upper-panel {
   position: relative;

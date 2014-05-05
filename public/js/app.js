@@ -68,21 +68,10 @@ define([
     return login;
   }
 
-  App.prototype.title = function (t1, t2, clear) {
-    if (t1 === undefined) return;
+  App.prototype.title = function (str) {
 
     // Set the document title.
-    var title = 'Skyline';
-    if (clear) {
-      document.title = t1 !== '' ? t1: title;
-    } else {
-      document.title = t1 !== '' ? title + ' | ' + t1: title;
-    }
-
-    // Set the app title.
-    if (t2) {
-      mps.publish('title/set', [t2]);
-    }
+    document.title = str;
   }
 
   App.prototype.logout = function () {

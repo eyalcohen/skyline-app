@@ -73,8 +73,8 @@ define([
     add: function (e) {
       e.preventDefault();
 
-      // Render the browser view.
-      mps.publish('modal/browser/open', [true]);
+      // Render the finder view.
+      mps.publish('modal/finder/open', [false]);
     },
 
     added: function (d) {

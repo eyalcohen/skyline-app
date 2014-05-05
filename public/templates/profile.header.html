@@ -1,23 +1,38 @@
 <%
-  
-  var gravatar = 'https://www.gravatar.com/avatar/'
-      + this.model.get('gravatar') + '?s=60&d=mm';
+  // Save model attributes
+  var data = this.model.attributes;
+  var sub = this.app.profile.sub;
 
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + data.gravatar + '?s=26&d=mm';
 %>
 
-<span class="page-header-profile-title">
-  <img src="<%= gravatar %>" width="60" height="60" />
-  <a href="/<%= this.model.get('username') %>" class="navigate page-header-username">
-    <%= this.model.get('username') %> (<%= this.model.get('displayName') %>)</a>
-</span>
-<% if (this.app.profile.user && this.app.profile.user.id !== this.model.id) { %>
-  <% if (this.app.profile.sub) { %>
-    <div class="page-header-profile-info">
-      <a class="button unfollow-button"><i class="icon-user-delete"></i> Unfollow</a>
-    </div>
+<% if (this.app.profile.user) { %>
+  <% if (this.app.profile.user.id === data.id) { %>
+    <a href="/settings" class="button title-button navigate">
+      <i class="icon-params"></i> Settings</a>
   <% } else { %>
-    <div class="page-header-profile-info">
-      <a class="button follow-button"><i class="icon-user-add"></i> Follow</a>
-    </div>
+    <% if (sub && sub.subscribee_id === data.id) { %>
+      <% if (sub.meta.style === 'request') { %>
+        <a href="javascript:;" class="button title-button disabled">
+          <i class="icon-user"></i> Requested</a>
+      <% } else { %>
+        <a href="javascript:;" class="button title-button unfollow-button"
+            data-path="/api/users/<%= this.model.get('username') %>/unfollow"
+            data-_path="/api/users/<%= this.model.get('username') %>/follow">
+          <i class="icon-user-delete"></i> Unfollow</a>
+      <% } %>
+    <% } else { %>
+      <a href="javascript:;" class="button title-button follow-button"
+          data-path="/api/users/<%= this.model.get('username') %>/follow"
+          data-_path="/api/users/<%= this.model.get('username') %>/unfollow">
+        <i class="icon-user-add"></i> Follow</a>
+    <% } %>
   <% } %>
 <% } %>
+<div class="page-title">
+  <img src="<%= gravatar %>" class="page-title-avatar" width="26" height="26" />
+  <a href="<%= data.username %>" class="navigate"><%= data.displayName %>
+      <span class="page-title-sub">(@<%= data.username %>)</span></a>
+</div>

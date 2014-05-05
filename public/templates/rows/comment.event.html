@@ -8,14 +8,14 @@
 </a>
 <div class="event-comment-body"><p><%= this.model.body(true) %></p></div>
 <div class="event-comment-info">
-  <% if (this.app.profile.user &&
-        this.model.get('author').id === this.app.profile.user.id) { %>
-    <a href="javascript:;" class="info-delete">Delete</a>
-    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-  <% } %>
   <time class="created static" 
       datetime="<%= this.model.get('created') %>" 
       title="<%= this.model.get('created') %>">
     <%= this.model.get('created') %>
   </time>
+  <% if (this.app.profile.user &&
+        this.model.get('author').id === this.app.profile.user.id) { %>
+    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+    <a href="javascript:;" class="info-delete">delete</a>
+  <% } %>
 </div>

@@ -23,7 +23,7 @@ block content
                 ul.header-user-menu
                   li
                     a.navigate(href="/" + user.username)
-                      | Library
+                      | Profile
                       i.icon-library
                   li
                     a.navigate(href="/settings")
@@ -49,12 +49,7 @@ block content
               .search-spin
               .search-display
                 .list-header
-          .page-header
-    block main
-    - if (typeof embed === 'undefined' || !embed)
-      footer
-        .footer
-          ul
+          ul.header-navigation
             li
               a(href="/about", class="navigate") About
             li
@@ -63,3 +58,5 @@ block content
               a(href="/privacy", class="navigate") Privacy Policy
             li
               a(href="/terms", class="navigate") Terms of Use
+    block main
+          

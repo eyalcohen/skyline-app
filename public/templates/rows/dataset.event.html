@@ -83,16 +83,16 @@
   </p>
 <% } %>
 <div class="event-info">
-  <% if (this.app.profile.user &&
-      this.model.get('author').id === this.app.profile.user.id) { %>
-    <a href="javascript:;" class="info-delete">Delete</a>
-    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-  <% } %>
   Added <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
         class="navigate"><time class="created" 
         datetime="<%= this.model.get('created') %>" 
         title="<%= this.model.get('created') %>">
     <%= this.model.get('created') %>
   </time></a>
+  <% if (this.app.profile.user &&
+      this.model.get('author').id === this.app.profile.user.id) { %>
+    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+    <a href="javascript:;" class="info-delete">Delete</a>
+  <% } %>
 </div>
 <div class="event-comments"></div>

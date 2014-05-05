@@ -89,7 +89,6 @@ define([
     searchFocus: function (e) {
       this.input.attr({placeholder: this.options.placeholder});
       this.input.parent().addClass('active');
-      this.app.router.header.normalize();
       this.active = true;
       this.app.searchIsActive = true;
       if (this.searchVal() && this.collection.length > 0)
@@ -145,8 +144,6 @@ define([
       this.resetHighlight();
       this.active = false;
       this.app.searchIsActive = false;
-      if ($('.page-header', this.app.router.header.el).html() !== '')
-        this.app.router.header.unnormalize();
     },
 
     searchVal: function () {

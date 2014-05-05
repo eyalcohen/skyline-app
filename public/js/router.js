@@ -18,7 +18,6 @@ define([
   'views/finder',
   'views/header',
   'views/tabs',
-  'views/footer',
   'views/dashboard',
   'views/splash',
   'views/settings',
@@ -31,7 +30,7 @@ define([
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
-    Flashes, Save, Finder, Header, Tabs, Footer, Dashboard, Splash, Settings,
+    Flashes, Save, Finder, Header, Tabs, Dashboard, Splash, Settings,
     Reset, Profile, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -85,7 +84,7 @@ define([
       }, this));
 
       // Show the browser modal.
-      mps.subscribe('modal/browser/open', _.bind(function (lib) {
+      mps.subscribe('modal/finder/open', _.bind(function (lib) {
         this.browser = new Finder(this.app, {lib: lib}).render();
       }, this));
 
@@ -129,9 +128,6 @@ define([
             this.header = new Header(this.app).render();
           } else if (login) {
             this.header.render(true);
-          }
-          if (!this.footer) {
-            this.footer = new Footer(this.app).render();
           }
           // if (!this.notifications && this.app.profile && this.app.profile.member) {
           //   this.notifications = new Notifications(this.app, {reverse: true});
@@ -185,8 +181,9 @@ define([
       if (this.tabs) {
         this.tabs.params = params || {};
         this.tabs.render();
-      } else
+      } else {
         this.tabs = new Tabs(this.app, params).render();
+      }
     },
 
     start: function () {
@@ -212,6 +209,8 @@ define([
 
     dashboard: function () {
       this.start();
+      this.renderTabs();
+      $('.container').removeClass('wide');
       var query = {actions: this.getEventActions()};
       this.render('/service/dashboard.profile', query, _.bind(function (err) {
         if (err) return;
@@ -225,21 +224,16 @@ define([
           this.page = new Splash(this.app).render();
         }
         this.stop();
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
     },
 
     reset: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
       this.renderTabs({title: 'Password reset'});
     },
@@ -247,6 +241,7 @@ define([
     profile: function (username) {
       this.start();
       this.renderTabs();
+      $('.container').removeClass('wide');
       var query = {actions: this.getEventActions()};
       this.render('/service/user.profile/' + username, query,
           _.bind(function (err) {
@@ -254,97 +249,80 @@ define([
         this.page = new Profile(this.app).render();
         this.renderTabs({html: this.page.title});
         this.stop();
-        if (this.header) {
-          this.header.unnormalize();
-        }
       }, this));
     },
 
     settings: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/settings.profile', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
       this.renderTabs({title: 'Account Settings'});
     },
 
     about: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'About', template: aboutTemp}).render();
         this.stop();
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
       this.renderTabs({title: 'About', subtitle: 'What\'s going on here?'});
     },
 
     contact: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Contact', template: contactTemp}).render();
         this.stop();
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
       this.renderTabs({title: 'Contact', subtitle: 'Get in touch'});
     },
 
     privacy: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Privacy', template: privacyTemp}).render();
         this.stop();
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
       this.renderTabs({title: 'Privacy Policy', subtitle: 'Last updated 7.27.2013'});
     },
 
     terms: function () {
       this.start();
+      $('.container').removeClass('wide');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Terms', template: termsTemp}).render();
         this.stop();
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
       this.renderTabs({title: 'Terms and Conditions', subtitle: 'Last updated 7.27.2013'});
     },
 
     chart: function (un, slug, channelName) {
       this.start();
+      this.renderTabs();
+      $('.container').addClass('wide');
       var state = {};
       var path = window.location.pathname.toLowerCase();
       if (!slug || path.indexOf('/views/') !== -1) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
-        if (this.header && key && !this.app.searchIsActive) {
-          this.header.unnormalize();
-        }
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
-        if (this.header) {
-          this.header.normalize();
-        }
       }
       if (this.app.profile && this.app.profile.user) {
         state.user_id = this.app.profile.user.id;
@@ -363,25 +341,20 @@ define([
           mps.publish('dataset/requestOpenChannel', [channelName]);
         }
         this.page = chart.render();
-        if (this.header && !key) {
-          this.header.normalize();
-        }
         this.stop();
       }, this));
     },
 
     default: function () {
+      this.renderTabs();
+      $('.container').removeClass('wide');
       this.render(_.bind(function (err) {
         if (err) return;
         this.page = new Error(this.app).render({
           code: 404,
           message: 'Sorry, this page isn\'t available'
         });
-        if (this.header) {
-          this.header.normalize();
-        }
       }, this));
-      this.renderTabs();
     }
 
   });
