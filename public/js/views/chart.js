@@ -43,7 +43,8 @@ define([
       // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('channel/add', _.bind(function (did, channel, yaxis) {
-          if (this.graph.model.getChannels().length === 0) {
+          if (this.graph.model.getChannels().length === 0
+              && !this.app.profile.content.page) {
             mps.publish('chart/zoom', [{min: channel.beg / 1000, max: channel.end / 1000}]);
           }
           this.graph.model.addChannel(this.datasets.collection.get(did),

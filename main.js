@@ -281,13 +281,14 @@ if (cluster.isMaster) {
               socket.join('request');
               socket.join('accept');
               socket.join('watch');
-              if (socket.handshake.user)
+              if (socket.handshake.user) {
                 socket.join('usr-' + socket.handshake.user._id);
+              }
 
               // FIXME: Use a key map instead of
               // attaching this directly to the socket.
-              socket.client = new Client(socket,
-                  app.get('pubsub'), app.get('samples'), app.get('reds'));
+              socket.client = new Client(socket, app.get('pubsub'),
+                  app.get('samples'), app.get('reds'));
             });
 
             // Set pubsub sio

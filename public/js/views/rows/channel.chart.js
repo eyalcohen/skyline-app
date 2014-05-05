@@ -72,7 +72,9 @@ define([
         var c = d.channels[this.model.id];
         this.model.set('colorNum', c.colorNum);
         this.model.set('yaxisNum', c.yaxisNum);
-        mps.publish('channel/add', [this.model.get('did'), this.model.toJSON()]);
+        _.defer(_.bind(function () {
+          mps.publish('channel/add', [this.model.get('did'), this.model.toJSON()]);
+        }, this));
         this.active = true;
         this.updateYAxisView();
         this.$el.addClass('active').show();
@@ -147,7 +149,7 @@ define([
     },
 
     expand: function (cb) {
-      //if (!this.$el.hasClass('active')) {
+      // if (!this.$el.hasClass('active')) {
         if (this.parentView.collection.length < 20)
           this.$el.slideDown('fast', cb);
         else {
@@ -155,7 +157,7 @@ define([
           if (cb) cb();
         }
         this.$el.css({opacity: 1});
-      //}
+      // }
     },
 
     collapse: function (cb) {
