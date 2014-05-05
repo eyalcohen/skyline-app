@@ -18,7 +18,7 @@
 <% if (this.model.get('channels').length !== 0) { %>
   <ul class="event-dataset-channels">
     <% _.each(this.model.get('channels'), _.bind(function (c) { %>
-      <li id="<%= c.channelName %>">
+      <li id="<%= c.channelName %>" data-id="<%= c.id %>">
         <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/<%= c.channelName %>"
             class="navigate">
           <span class="event-timeline-label">
@@ -32,6 +32,9 @@
           <p class="event-dataset-channel-note">
             
           </p>
+          <a href="javascript:;" class="event-dataset-channel-delete">
+            <i class="icon-cancel"></i>
+          </a>
         </a>
       </li>
     <% }, this)); %>

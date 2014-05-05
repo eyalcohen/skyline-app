@@ -40,7 +40,8 @@ define([
 
     events: {
       'click .navigate': 'navigate',
-      'click .info-delete': 'delete'
+      'click .info-delete': 'delete',
+      'click .event-dataset-channel-delete': 'deleteChannel'
     },
 
     render: function () {
@@ -87,6 +88,8 @@ define([
 
     navigate: function (e) {
       e.preventDefault();
+      if ($(e.target).hasClass('event-dataset-channel-delete')
+          || $(e.target).hasClass('icon-cancel')) return;
 
       // Route to wherever.
       var path = $(e.target).closest('a').attr('href');
@@ -121,6 +124,21 @@ define([
           // close the modal.
           $.fancybox.close();
         }, this));
+      }, this));
+
+      return false;
+    },
+
+    deleteChannel: function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Delete the doc.
+      var li = $(e.target).closest('li');
+      rest.delete('/api/channels/' + li.data('id'),
+          {}, _.bind(function (err, data) {
+        if (err) return console.log(err);
+        li.remove();
       }, this));
 
       return false;

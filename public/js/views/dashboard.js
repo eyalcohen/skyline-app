@@ -41,7 +41,8 @@ define([
 
       // Render lists.
       this.events = new Events(this.app, {
-        parentView: this
+        parentView: this,
+        reverse: true
       });
 
       return this;

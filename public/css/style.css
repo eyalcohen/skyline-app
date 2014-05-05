@@ -2940,10 +2940,25 @@ p.event-dataset-channel-note {
   margin-top: 5px;
   font-size: 12px;
   line-height: 18px;
-  color: #3d3d3d;
+  color: #404040;
 }
 
+a.event-dataset-channel-delete {
+  position: absolute;
+  top: 1px;
+  right: 5px;
+  color: #D0D0D0;
+  font-size: 11px;
+  background: none;
+}
 
+a.event-dataset-channel-delete:hover {
+  color: #404040;
+}
+
+a.event-dataset-channel-delete:active {
+  top: 2px;
+}
 
 
 
