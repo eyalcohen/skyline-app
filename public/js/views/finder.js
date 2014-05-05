@@ -47,8 +47,9 @@ define([
       this.$el.html(this.template.call(this));
 
       // Add library class
-      if (this.options.lib && this.app.profile && this.app.profile.user)
+      if (this.options.lib && this.app.profile && this.app.profile.user) {
         this.$el.addClass('library');
+      }
 
       // Dump content into modal.
       $.fancybox(this.$el, {

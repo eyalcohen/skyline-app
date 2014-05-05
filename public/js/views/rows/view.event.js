@@ -26,7 +26,6 @@ define([
       this.app = app;
       this.model = new Model(options.model || this.app.profile.content.page);
       this.parentView = options.parentView;
-      this.wrap = options.wrap;
       this.template = _.template(template);
 
       // Shell events.
@@ -132,65 +131,65 @@ define([
     },
 
     drawView: function(channel) {
-      var opts = {
-        beginTime: channel.beg,
-        endTime: channel.end,
-        minDuration: (channel.end - channel.beg) / 100
-      };
-      this.app.rpc.do('fetchSamples', this.model.id, channel.channelName,
-          opts, _.bind(function (err, sampleObj) {
-        if (err) {
-          console.log(err);
-          return;
-        }
+      // var opts = {
+      //   beginTime: channel.beg,
+      //   endTime: channel.end,
+      //   minDuration: (channel.end - channel.beg) / 100
+      // };
+      // this.app.rpc.do('fetchSamples', this.model.id, channel.channelName,
+      //     opts, _.bind(function (err, sampleObj) {
+      //   if (err) {
+      //     console.log(err);
+      //     return;
+      //   }
 
-        var li = this.$('#' + channel.channelName);
-        var selector = $('.event-view-svg', li);
-        var width = selector.width();
-        var height = selector.height();
+      //   var li = this.$('#' + channel.channelName);
+      //   var selector = $('.event-view-svg', li);
+      //   var width = selector.width();
+      //   var height = selector.height();
 
-        var beg = sampleObj.range.beg || 0;
-        var end = sampleObj.range.end || 0;
+      //   var beg = sampleObj.range.beg || 0;
+      //   var end = sampleObj.range.end || 0;
 
-        if (!sampleObj.samples[0]) return;
-        var t_0 = sampleObj.samples[0].beg;
-        var t_max = sampleObj.samples[sampleObj.samples.length-1].beg;
-        var t_diff = t_max - t_0;
+      //   if (!sampleObj.samples[0]) return;
+      //   var t_0 = sampleObj.samples[0].beg;
+      //   var t_max = sampleObj.samples[sampleObj.samples.length-1].beg;
+      //   var t_diff = t_max - t_0;
 
-        var v_max = _.max(_.pluck(sampleObj.samples, 'val'));
-        var v_min = _.min(_.pluck(sampleObj.samples, 'val'));
-        var v_diff = v_max - v_min;
+      //   var v_max = _.max(_.pluck(sampleObj.samples, 'val'));
+      //   var v_min = _.min(_.pluck(sampleObj.samples, 'val'));
+      //   var v_diff = v_max - v_min;
 
-        var path = d3.svg.area()
-            .x(function (s, i) {
-              if (t_diff === 0) {
-                return i === 0 ? 0: width;
-              } else {
-                return ((s.beg - t_0) / t_diff * width);
-              }
-            })
-            .y0(function () {
-              return height;
-            })
-            .y1(function (s) {
-              return v_diff === 0 ? v_max: height - ((s.val - v_min) / v_diff * height);
-            })
-            .interpolate('linear');
+      //   var path = d3.svg.area()
+      //       .x(function (s, i) {
+      //         if (t_diff === 0) {
+      //           return i === 0 ? 0: width;
+      //         } else {
+      //           return ((s.beg - t_0) / t_diff * width);
+      //         }
+      //       })
+      //       .y0(function () {
+      //         return height;
+      //       })
+      //       .y1(function (s) {
+      //         return v_diff === 0 ? v_max: height - ((s.val - v_min) / v_diff * height);
+      //       })
+      //       .interpolate('linear');
 
-        if (sampleObj.samples.length === 1) {
-          sampleObj.samples.push(_.clone(sampleObj.samples[0]));
-        }
+      //   if (sampleObj.samples.length === 1) {
+      //     sampleObj.samples.push(_.clone(sampleObj.samples[0]));
+      //   }
 
-        var svg = d3.select(selector.get(0))
-            .append('svg:svg')
-            .attr('width', width)
-            .attr('height', height)
-            .append('svg:g')
-            .append('svg:path')
-            .attr('d', path(sampleObj.samples))
-            .attr('class', 'area')
-            .attr('fill', '#000000');
-      }, this));
+      //   var svg = d3.select(selector.get(0))
+      //       .append('svg:svg')
+      //       .attr('width', width)
+      //       .attr('height', height)
+      //       .append('svg:g')
+      //       .append('svg:path')
+      //       .attr('d', path(sampleObj.samples))
+      //       .attr('class', 'area')
+      //       .attr('fill', '#000000');
+      // }, this));
     },
 
   });

@@ -228,6 +228,8 @@ define([
       this.saveButtonSpin.start();
       this.saveSubmit.addClass('loading');
 
+      console.log(payload)
+      return;
       // Create the resource.
       rest.post('/api/' + resource, payload, _.bind(function (err, res) {
 

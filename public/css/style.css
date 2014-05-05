@@ -2995,7 +2995,8 @@ textarea.event-comment-input {
 
 /*.........................................................................*/
 
-.event-dataset {
+.event-dataset,
+.event-view {
   position: relative;
   width: 600px;
 

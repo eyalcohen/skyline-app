@@ -26,7 +26,6 @@ define([
       this.app = app;
       this.model = new Model(options.model || this.app.profile.content.page);
       this.parentView = options.parentView;
-      this.wrap = options.wrap;
       this.template = _.template(template);
 
       // Shell events.
