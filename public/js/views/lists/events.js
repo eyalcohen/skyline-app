@@ -83,12 +83,13 @@ define([
       else {
         this.nomore = true;
         this.listSpin.hide();
-        if (this.app.profile.content.private)
-          $('<span class="empty-feed">This athlete is private.</span>')
+        if (this.app.profile.content.private) {
+          $('<span class="empty-feed">This user is private.</span>')
             .appendTo(this.$el);
-        else
+        } else {
           $('<span class="empty-feed">Nothing to see here!</span>')
               .appendTo(this.$el);
+        }
         this.spin.stop();
         this.spin.target.hide();
       }
@@ -196,9 +197,9 @@ define([
           this.fetching = false;
           this.spin.stop();
           this.spin.target.hide();
-          if (this.collection.length > 0)
+          if (this.collection.length > 0) {
             this.showingAll.css('display', 'block');
-          else {
+          } else {
             this.showingAll.hide();
             this.listSpin.hide();
             if (this.$('.empty-feed').length === 0) {
@@ -206,19 +207,21 @@ define([
                   .appendTo(this.$el);
             }
           }
-        } else
-          _.each(list.items, _.bind(function (i,o) {
+        } else {
+          _.each(list.items, _.bind(function (i, o) {
             this.collection.push(i, {silent: true});
             this.renderLast(true);
           }, this));
+        }
 
         _.delay(_.bind(function () {
           this.fetching = false;
           this.spin.stop();
           if (list.items.length < this.latestList.limit) {
             this.spin.target.hide();
-            if (!this.$('.empty-feed').is(':visible'))
+            if (!this.$('.empty-feed').is(':visible')) {
               this.showingAll.css('display', 'block');
+            }
           } else {
             this.showingAll.hide();
             this.spin.target.show();
@@ -228,6 +231,9 @@ define([
 
       // already waiting on server
       if (this.fetching) return;
+
+      // Hide old label.
+      this.$('.empty-feed').remove();
 
       // Show spin region.
       this.listSpin.show();

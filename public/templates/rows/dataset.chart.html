@@ -1,6 +1,5 @@
 <%
-  var numChannels = this.model.get('meta').channels ?
-      this.model.get('meta').channels.length: this.model.get('meta').channel_cnt;
+  var numChannels = this.model.get('channels_cnt');
 %>
 
 <% if (this.app.profile.user && !this.app.embed) { %>

@@ -121,14 +121,14 @@ define([
       }
 
       function set(c) {
-        var offset = c.dataset.get('offset');
+        // var offset = c.dataset.get('offset');
         var beg, end;
         if (viewRange.static) {
           beg = this.prevRange.beg;
           end = this.prevRange.end;
         } else {
-          beg = this.prevRange.beg - offset;
-          end = this.prevRange.end - offset;
+          beg = this.prevRange.beg;
+          end = this.prevRange.end;
         }
         this.cache.setClientView(c.id, c.dataset.get('id'),
             _.pluck(c.channels, 'channelName'), dur, beg, end);
@@ -179,7 +179,7 @@ define([
       // if this channel is way off the screen, and there is no
       // offset, bring it over.
       var visTime = this.view.getVisibleTime();
-      var offsetChanged = false;
+      // var offsetChanged = false;
 
       /*
       if (!visTime.static) {
@@ -223,8 +223,8 @@ define([
         }
       }, this));
       this.updateCacheSubscription(client);
-      if (offsetChanged)
-        mps.publish('graph/offsetChanged', []);
+      // if (offsetChanged)
+      //   mps.publish('graph/offsetChanged', []);
       return this;
     },
 
@@ -251,9 +251,9 @@ define([
 
     updateSampleSet: function (dataset, sampleSet) {
       var channels = this.getChannels();
-      var offset = dataset.get('offset')
+      // var offset = dataset.get('offset')
       _.each(sampleSet, _.bind(function (ss, cn) {
-        this.sampleCollection[cn] = {sampleSet: ss, offset: offset};
+        this.sampleCollection[cn] = {sampleSet: ss, offset: 0};
         var channel = _.find(channels, function (c) {
           return c.channelName === cn;
         });
@@ -270,18 +270,18 @@ define([
       this.view.draw();
     },
 
-    setDatasetOffset: function(channelName, newOffset) {
-      var dataset = this.findDatasetFromChannel(channelName);
+    // setDatasetOffset: function(channelName, newOffset) {
+    //   var dataset = this.findDatasetFromChannel(channelName);
 
-      // Update offset by adding to old offset.
-      dataset.set('offset', newOffset);
-      this.updateCacheSubscription(this.getOrCreateClient(dataset));
-    },
+    //   // Update offset by adding to old offset.
+    //   dataset.set('offset', newOffset);
+    //   this.updateCacheSubscription(this.getOrCreateClient(dataset));
+    // },
 
-    getDatasetOffset: function(channelName) {
-      var dataset = this.findDatasetFromChannel(channelName);
-      return dataset.get('offset') || 0;
-    },
+    // getDatasetOffset: function(channelName) {
+    //   var dataset = this.findDatasetFromChannel(channelName);
+    //   return dataset.get('offset') || 0;
+    // },
 
     setUserLineStyle: function(channel, opts, save) {
       for (var attrname in opts)

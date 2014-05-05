@@ -595,39 +595,39 @@ define([
       }
     },
 
-    beginOffset: function(e) {
-      var mouse = this.getMouse(e);
-      var xaxis = this.plot.getXAxes()[0];
+    // beginOffset: function(e) {
+    //   var mouse = this.getMouse(e);
+    //   var xaxis = this.plot.getXAxes()[0];
 
-      this.channelForOffset =
-        _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0].channelName
+    //   this.channelForOffset =
+    //     _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0].channelName
 
-      var plotData = this.plot.getData();
-      var c = _.find(plotData, function(f) {
-        return plotData.channelName === this.channelForOffset;
-      });
-      var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
-      this.lightened[did] = true;
-      this.plot.setData(plotData);
+    //   var plotData = this.plot.getData();
+    //   var c = _.find(plotData, function(f) {
+    //     return plotData.channelName === this.channelForOffset;
+    //   });
+    //   var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
+    //   this.lightened[did] = true;
+    //   this.plot.setData(plotData);
 
-      this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
-    },
+    //   this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
+    // },
 
-    endOffset: function(e) {
-      // get the desired time offset
-      var mouse = this.getMouse(e);
-      var xaxis = this.plot.getXAxes()[0];
+    // endOffset: function(e) {
+    //   // get the desired time offset
+    //   var mouse = this.getMouse(e);
+    //   var xaxis = this.plot.getXAxes()[0];
 
-      var offsetTimeEnd = xaxis.c2p(mouse.x) * 1000;
-      var offset = (xaxis.c2p(mouse.x) * 1000 - this.offsetTimeBegin);
-      this.offsetTimeBegin = offsetTimeEnd;
+    //   var offsetTimeEnd = xaxis.c2p(mouse.x) * 1000;
+    //   var offset = (xaxis.c2p(mouse.x) * 1000 - this.offsetTimeBegin);
+    //   this.offsetTimeBegin = offsetTimeEnd;
 
-      var newOffset = this.model.getDatasetOffset(this.channelForOffset) + offset;
+    //   var newOffset = this.model.getDatasetOffset(this.channelForOffset) + offset;
 
-      // update the dataset model
-      this.model.setDatasetOffset(this.channelForOffset, newOffset);
-      mps.publish('graph/offsetChanged', []);
-    },
+    //   // update the dataset model
+    //   this.model.setDatasetOffset(this.channelForOffset, newOffset);
+    //   mps.publish('graph/offsetChanged', []);
+    // },
 
     onDraw: function () {
       var t = this.getVisibleTime();
@@ -733,28 +733,28 @@ define([
       var data = [];
       var minMax = [];
       var samples = [];
-      var offset = 0;
+      // var offset = 0;
       if (this.model.sampleCollection[channel.channelName]) {
         samples = this.model.sampleCollection[channel.channelName].sampleSet;
-        offset = this.model.sampleCollection[channel.channelName].offset;
+        // offset = this.model.sampleCollection[channel.channelName].offset;
       }
       var prevEnd = null, prevMinMaxEnd = null;
       _.each(samples, function (s, i) {
         if (prevEnd != s.beg)
           data.push(null);
-        var val = s.val * conv.factor + conv.offset;
-        data.push([(s.beg + offset) / 1000, val]);
+        var val = s.val * conv.factor;
+        data.push([(s.beg) / 1000, val]);
         var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
         if (lineStyleOpts.interpolation === 'none') {
           if (s.end !== s.beg)
-            data.push([(s.end + offset) / 1000, val]);
+            data.push([(s.end) / 1000, val]);
         }
         prevEnd = s.end;
         if (s.min != null || s.max != null) {
           if (prevMinMaxEnd != s.beg)
             minMax.push(null);
-          var max = s.max == null ? val : s.max * conv.factor + conv.offset;
-          var min = s.min == null ? val : s.min * conv.factor + conv.offset;
+          var max = s.max == null ? val : s.max * conv.factor;
+          var min = s.min == null ? val : s.min * conv.factor;
           minMax.push([s.beg / 1000, max, min]);
           if (lineStyleOpts.interpolation === 'none') {
             if (s.end !== s.beg)

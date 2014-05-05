@@ -27,6 +27,9 @@ define([
 
     render: function () {
 
+      // Set page title
+      this.title();
+
       // Content rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));

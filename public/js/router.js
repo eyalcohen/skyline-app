@@ -219,7 +219,7 @@ define([
           this.page = new Dashboard(this.app).render();
           this.renderTabs({tabs: [
             {title: 'Activity', href: '/', active: true},
-            {title: 'Notifications', href: '/notifications'}
+            // {title: 'Notifications', href: '/notifications'}
           ]});
         } else {
           this.page = new Splash(this.app).render();
@@ -336,16 +336,19 @@ define([
       if (!slug || path.indexOf('/views/') !== -1) {
         var key = un && slug ? {un: un, slug: slug}: null;
         state = key ? {key: key}: store.get('state');
-        if (this.header && key && !this.app.searchIsActive)
+        if (this.header && key && !this.app.searchIsActive) {
           this.header.unnormalize();
+        }
       } else {
         state.datasets = {};
         state.datasets[slug] = {index: 0};
-        if (this.header)
+        if (this.header) {
           this.header.normalize();
+        }
       }
-      if (this.app.profile && this.app.profile.user)
+      if (this.app.profile && this.app.profile.user) {
         state.user_id = this.app.profile.user.id;
+      }
 
       // NOTE: this should be the only place where state is directly set.
       // Elsewhere it should be done through App.prototype.state.
@@ -356,10 +359,13 @@ define([
         if (err) return;
         this.pageType = 'chart';
         var chart = new Chart(this.app);
-        if (channelName)
+        if (channelName) {
           mps.publish('dataset/requestOpenChannel', [channelName]);
+        }
         this.page = chart.render();
-        if (this.header && !key) this.header.normalize();        
+        if (this.header && !key) {
+          this.header.normalize();
+        }
         this.stop();
       }, this));
     },
