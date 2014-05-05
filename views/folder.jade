@@ -1,0 +1,8 @@
+extends index
+
+block main
+  - var hc = typeof embed !== 'undefined' && embed ? 'main embed': 'main';
+    .folder
+      .tabs
+      .content
+        div(class=hc, role="main")

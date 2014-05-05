@@ -50,12 +50,7 @@ block content
               .search-display
                 .list-header
           .page-header
-    - var hc = typeof embed !== 'undefined' && embed ? 'main embed': 'main';
-    .folder
-      .page-spin
-      .tabs
-      .content
-        div(class=hc, role="main")
+    block main
     - if (typeof embed === 'undefined' || !embed)
       footer
         .footer

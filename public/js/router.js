@@ -49,7 +49,7 @@ define([
               + window.location.search);
         } catch (err) {}
 
-      // Determine if this is an embeded widget.
+      // Determine if this is an embedded widget.
       var rx = new RegExp([window.location.host, 'embed'].join('/'), 'i');
       this.app.embed = rx.test(window.location.href);
 
@@ -125,24 +125,32 @@ define([
 
         // Render page elements.
         if (!this.app.embed) {
-          if (!this.header)
+          if (!this.header) {
             this.header = new Header(this.app).render();
-          else if (login) this.header.render(true);
-          if (!this.footer)
+          } else if (login) {
+            this.header.render(true);
+          }
+          if (!this.footer) {
             this.footer = new Footer(this.app).render();
+          }
+          // if (!this.notifications && this.app.profile && this.app.profile.member) {
+          //   this.notifications = new Notifications(this.app, {reverse: true});
+          // }
         }
 
         // Start block messages.
-        if(!this.flashes)
+        if(!this.flashes) {
           this.flashes = new Flashes(this.app);
+        }
 
         // Callback to route.
         cb(err);
       }
 
       // Kill the page view if it exists.
-      if (this.page)
+      if (this.page) {
         this.page.destroy();
+      }
 
       if (typeof service === 'function') {
         cb = service;
@@ -208,11 +216,11 @@ define([
       this.render('/service/dashboard.profile', query, _.bind(function (err) {
         if (err) return;
         if (this.app.profile.user) {
+          this.page = new Dashboard(this.app).render();
           this.renderTabs({tabs: [
             {title: 'Activity', href: '/', active: true},
             {title: 'Notifications', href: '/notifications'}
           ]});
-          this.page = new Dashboard(this.app).render();
         } else {
           this.page = new Splash(this.app).render();
         }
@@ -220,10 +228,6 @@ define([
         if (this.header)
           this.header.normalize();
       }, this));
-
-      if (this.app.profile && this.app.profile.user) {
-        
-      }
     },
 
     reset: function () {
