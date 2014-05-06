@@ -40,7 +40,7 @@ define([
     events: {
       'click .navigate': 'navigate',
       'click .info-delete': 'delete',
-      'click .event-dataset-channel-delete': 'deleteChannel'
+      'click .event-channel-delete': 'deleteChannel'
     },
 
     render: function () {
@@ -87,7 +87,7 @@ define([
 
     navigate: function (e) {
       e.preventDefault();
-      if ($(e.target).hasClass('event-dataset-channel-delete')
+      if ($(e.target).hasClass('event-channel-delete')
           || $(e.target).hasClass('icon-cancel')) return;
 
       // Route to wherever.
@@ -164,7 +164,7 @@ define([
         }
 
         var li = this.$('#' + channel.channelName);
-        var selector = $('.event-dataset-channel-svg', li);
+        var selector = $('.event-channel-svg', li);
         var width = selector.width();
         var height = selector.height();
 

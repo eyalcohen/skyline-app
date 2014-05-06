@@ -3014,13 +3014,13 @@ textarea.event-comment-input {
   animation-fill-mode: both;
 }
 
-ul.event-dataset-channels {
+ul.event-channels {
   width: 600px;
   margin: 0 0 10px;
   list-style: none;
 }
 
-ul.event-dataset-channels li {
+ul.event-channels li {
   position: relative;
   padding: 5px 10px;
   font-size: 14px;
@@ -3038,51 +3038,48 @@ ul.event-dataset-channels li {
   transition: all 0.15s ease-in-out;
 }
 
-ul.event-dataset-channels li:hover,
-ul.event-dataset-channels li:hover .event-timeline-label {
+ul.event-channels li:hover,
+ul.event-channels li:hover .event-timeline-label {
   border-color: #e6e6e6;
 }
 
-ul.event-dataset-channels li:hover .event-timeline-label i {
+ul.event-channels li:hover .event-timeline-label i {
   color: #4d4d4d;
   border-color: #e6e6e6;
 }
 
-ul.event-dataset-channels li:hover .event-timeline-label-text {
+ul.event-channels li:hover .event-timeline-label-text {
   color: #4d4d4d;
 }
 
-ul.event-dataset-channels li .event-dataset-channel-name {
+ul.event-channels li .event-channel-name {
   display: block;
-}
-
-ul.event-dataset-channels li .event-dataset-channel-name {
   font-size: 12px;
   color: #AD8F3F;
 }
 
-ul.event-dataset-channels li .event-dataset-channel-svg {
+ul.event-channels li .event-channel-svg {
   width: 100%;
   height: 20px;
-  opacity: 0.2;
+  opacity: 0.6;
 
   -webkit-transition: all 0.15s ease-in-out;
   -moz-transition: all 0.15s ease-in-out;
   transition: all 0.15s ease-in-out;
 }
 
-ul.event-dataset-channels li:hover .event-dataset-channel-svg {
-  opacity: 0.5;
+ul.event-channels li:hover .event-channel-svg {
+  opacity: 0.8;
 }
 
-p.event-dataset-channel-note {
+p.event-channel-note {
   margin-top: 5px;
   font-size: 12px;
   line-height: 18px;
   color: #404040;
 }
 
-a.event-dataset-channel-delete {
+a.event-channel-delete {
   position: absolute;
   top: 1px;
   right: 5px;
@@ -3091,66 +3088,18 @@ a.event-dataset-channel-delete {
   background: none;
 }
 
-a.event-dataset-channel-delete:hover {
+a.event-channel-delete:hover {
   color: #404040;
 }
 
-a.event-dataset-channel-delete:active {
+a.event-channel-delete:active {
   top: 2px;
 }
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*.home .page,
-.static .page {
-  width: 980px;
-}
+/*
 
 .static .page-left ul,
 .static .page-left ol {
@@ -3228,7 +3177,9 @@ a.event-dataset-channel-delete:active {
 .home-views li .icon-lock:before {
   margin-right: .15em;
   margin-left: -.05em;
-}*/
+}
+
+*/
 
 /*.........................................................................*/
 

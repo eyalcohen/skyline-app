@@ -3,7 +3,7 @@
       + this.model.get('author').gravatar + '?s=26&d=mm';
 
   var num_channels = this.model.get('channels_cnt');
-  if (num_channels.length === 1) {
+  if (num_channels === 1) {
     num_channels += ' channel';
   } else {
     num_channels += ' channels';
@@ -43,7 +43,7 @@
   <i class="icon-database"></i>
 </span>
 <% if (this.model.get('channels').length !== 0) { %>
-  <ul class="event-dataset-channels">
+  <ul class="event-channels">
     <% _.each(this.model.get('channels'), _.bind(function (c) { %>
       <li id="<%= c.channelName %>" data-id="<%= c.id %>">
         <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/<%= c.channelName %>"
@@ -52,14 +52,14 @@
             <i class="icon-chart-line"></i>
           </span>
           <span class="event-timeline-label-text"></span>
-          <span class="event-dataset-channel-name">
+          <span class="event-channel-name">
             <%= c.humanName %>
           </span>
-          <div class="event-dataset-channel-svg"></div>
-          <p class="event-dataset-channel-note">
+          <div class="event-channel-svg"></div>
+          <p class="event-channel-note">
             
           </p>
-          <a href="javascript:;" class="event-dataset-channel-delete">
+          <a href="javascript:;" class="event-channel-delete">
             <i class="icon-cancel"></i>
           </a>
         </a>
@@ -70,7 +70,7 @@
 <% if (this.model.get('description') || tags.length > 0) { %>
   <p class="event-description">
     <% if (this.model.get('description')) { %>
-      <%= this.model.get('description') %>
+      <%= this.model.description() %>
     <% } %>
     <% if (tags.length > 0) { %>
       <span class="event-tags">

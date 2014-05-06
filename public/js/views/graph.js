@@ -43,7 +43,7 @@ define([
           this.draw();
         }, this)),
         mps.subscribe('channel/lineStyleUpdate',
-              _.bind(function (channel, opts, save) {
+            _.bind(function (channel, opts, save) {
           this.model.setUserLineStyle(channel, opts, save);
         }, this)),
       ];
@@ -227,6 +227,7 @@ define([
         var timeIdxLow = timeIdxHigh - 1;
 
         // coordinates of series values
+        if (!series.data[timeIdxLow]) return null;
         var cTimeLow = series.xaxis.p2c(series.data[timeIdxLow][0]);
         var cTimeHigh = series.xaxis.p2c(series.data[timeIdxHigh][0]);
         var cValueLow = series.yaxis.p2c(series.data[timeIdxLow][1]);

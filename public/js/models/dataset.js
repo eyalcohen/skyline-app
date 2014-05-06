@@ -10,16 +10,7 @@ define([
   return Backbone.Model.extend({
 
     initialize: function () {
-
-      // Make ID a number.
       this.set('id', Number(this.id), {silent: true});
-
-      // For forks (not currently used).
-      var parent = this.get('parent');
-      if (parent) {
-        parent.id = Number(parent.id);
-        this.set('parent', parent, {silent: true});
-      }
     },
 
     formatTitle: function () {
@@ -38,18 +29,14 @@ define([
       }
     },
 
-    explain: function () {
-      return ' added a <a href="/' + this.get('author').usename + '/'
-          + this.id + '" class="title navigate">dataset</a>.';
-    },
-
     date: function () {
       var date = new Date(this.get('created'));
       return date.format('mmm d, yyyy');
     },
 
-    body: function (full) {
-      var txt = util.formatText(this.get('body'));
+    description: function () {
+      var txt = this.get('description') ?
+          util.formatText(this.get('description')): '';
       return txt;
     },
 
