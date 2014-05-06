@@ -26,9 +26,17 @@ define([
       this.on('rendered', this.setup, this);
 
       // Client-wide subscriptions.
-      this.subscriptions = [
-        mps.subscribe('notification/change', _.bind(this.updateNotificationsCount, this))
-      ];
+      this.subscriptions = [];
+
+      // Socket Subscriptions
+      this.app.rpc.socket.on('notification.new', _.bind(function () {
+        ++this.app.profile.notifications;
+        this.updateNotificationsCount();
+      }, this));
+      this.app.rpc.socket.on('notification.read', _.bind(function () {
+        --this.app.profile.notifications;
+        this.updateNotificationsCount();
+      }, this));
     },
 
     render: function () {
@@ -68,6 +76,10 @@ define([
     },
 
     setup: function () {
+
+      // Update notifications count.
+      this.updateNotificationsCount();
+
       return this;
     },
 
@@ -167,9 +179,9 @@ define([
         }
 
         // Swap paths.
-        if (data.following === 'request')
+        if (data.following === 'request') {
           target.data('path', '').data('_path', '');
-        else {
+        } else {
           target.data('path', target.data('_path'));
           target.data('_path', path);
         }
@@ -181,11 +193,11 @@ define([
     },
 
     updateNotificationsCount: function () {
-      var unread = $('.notifications .unread');
-      if (unread.length > 0)
-        this.$('.tab-count').text(unread.length).show();
-      else
+      if (this.app.profile.notifications > 0) {
+        this.$('.tab-count').text(this.app.profile.notifications).show();
+      } else {
         this.$('.tab-count').text('').hide();
+      }
     },
 
   });

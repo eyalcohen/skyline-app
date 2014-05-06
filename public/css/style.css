@@ -3162,6 +3162,7 @@ a.event-channel-delete:active {
 }
 
 p.sidebar-tip {
+  display: none;
   padding: 10px;
   color: #404040;
   border-top: 1px solid #E6E6E6;

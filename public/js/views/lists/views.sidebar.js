@@ -80,10 +80,13 @@ define([
     },
 
     updateCount: function () {
-      if (this.collection.length === 0) {
-        this.tip.show();
-      } else {
-        this.tip.hide();
+      if (!this.parentView.model
+          || this.parentView.model.id === this.app.profile.user.id) {
+        if (this.collection.length === 0) {
+          this.tip.show();
+        } else {
+          this.tip.hide();
+        }
       }
       this.count.text('(' + this.collection.length + ')');
     },

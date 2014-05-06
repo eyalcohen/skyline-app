@@ -26,11 +26,11 @@ exports.get = function (env) {
           snapshots: 'https://d3jyblv3lavppq.cloudfront.net'
         },
         gmail: {
-          user: '...',
-          password: '...',
-          from: 'Skyline <>',
+          user: 'robot@grr.io',
+          password: 'w0lfpackm0d3',
           host: 'smtp.gmail.com',
-          ssl: true
+          ssl: true,
+          from: 'Skyline <robot@grr.io>',
         }
       }:
       {
@@ -54,11 +54,11 @@ exports.get = function (env) {
           snapshots: 'https://d3jyblv3lavppq.cloudfront.net'
         },
         gmail: {
-          user: '...',
-          password: '...',
-          from: 'Skyline <>',
+          user: 'robot@grr.io',
+          password: 'w0lfpackm0d3',
           host: 'smtp.gmail.com',
-          ssl: true
+          ssl: true,
+          from: 'Skyline <robot@grr.io>',
         }
       };
 }

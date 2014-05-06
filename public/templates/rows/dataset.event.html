@@ -59,9 +59,12 @@
           <p class="event-channel-note">
             
           </p>
-          <a href="javascript:;" class="event-channel-delete">
-            <i class="icon-cancel"></i>
-          </a>
+          <% if (this.app.profile.user &&
+              this.model.get('author').id === this.app.profile.user.id) { %>
+            <a href="javascript:;" class="event-channel-delete">
+              <i class="icon-cancel"></i>
+            </a>
+          <% } %>
         </a>
       </li>
     <% }, this)); %>

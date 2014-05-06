@@ -60,7 +60,7 @@ define([
 
       if (view) {
         view.update();
-        mps.publish('notification/change', []);
+        // mps.publish('notification/change', []);
       }
     },
 
@@ -84,7 +84,7 @@ define([
     // (could be newly arived or older ones from pagination)
     renderLast: function (pagination) {
       List.prototype.renderLast.call(this, pagination);
-      mps.publish('notification/change', []);
+      // mps.publish('notification/change', []);
       _.delay(_.bind(function () {
         if (pagination !== true)
           this.checkHeight();
@@ -95,16 +95,16 @@ define([
     // misc. setup
     setup: function () {
       this.spin.stop();
-      mps.publish('notification/change', []);
+      // mps.publish('notification/change', []);
       List.prototype.setup.call(this);
     },
 
     // Kill this view.
     destroy: function () {
       this.unpaginate();
-      this.app.rpc.socket.removeAllListeners('notification.new');
-      this.app.rpc.socket.removeAllListeners('notification.read');
-      this.app.rpc.socket.removeAllListeners('notification.removed');
+      // this.app.rpc.socket.removeAllListeners('notification.new');
+      // this.app.rpc.socket.removeAllListeners('notification.read');
+      // this.app.rpc.socket.removeAllListeners('notification.removed');
       return List.prototype.destroy.call(this);
     },
 
@@ -121,7 +121,7 @@ define([
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
           this.checkHeight();
-          mps.publish('notification/change', []);
+          // mps.publish('notification/change', []);
         }, this));
       }
     },
