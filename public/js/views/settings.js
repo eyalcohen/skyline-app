@@ -13,13 +13,10 @@ define([
   'models/user',
   'text!../../templates/settings.html',
   'text!../../templates/confirm.html'
-], function ($, _, Backbone, mps, rest, util, Spin, Profile,
-      template, confirm) {
-
+], function ($, _, Backbone, mps, rest, util, Spin, Profile, template, confirm) {
   return Backbone.View.extend({
-    
-    // The DOM target element for this page.
-    className: 'settings',
+
+    el: '.main',
 
     // Module entry point:
     initialize: function (app) {
@@ -42,7 +39,7 @@ define([
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('.main');
+      this.$el.html(this.template.call(this));
 
       // Done rendering ... trigger setup.
       this.trigger('rendered');

@@ -1,14 +1,7 @@
 <%
-
   var link = [this.model.get('author').username, this.model.id].join('/');
-
 %>
 
 <a href="/<%= link %>" class="navigate<%= this.model.get('public') === false ? ' locked': '' %>">
-  <% if (this.model.get('parent')) { %>
-      <i class="icon-database"><i class="icon-split"></i></i>
-  <% } else { %>
-    <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-database' %>"></i>
-  <% } %>
-  <%= this.model.get('title') %>
+  <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-database' %>"></i><%= this.model.get('title') %>
 </a>

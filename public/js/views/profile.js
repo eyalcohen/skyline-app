@@ -11,8 +11,10 @@ define([
   'models/user',
   'text!../../templates/profile.html',
   'text!../../templates/profile.header.html',
-  'views/lists/events'
-], function ($, _, Backbone, mps, util, User, template, header, Events) {
+  'views/lists/events',
+  'views/lists/datasets.sidebar',
+  'views/lists/views.sidebar'
+], function ($, _, Backbone, mps, util, User, template, header, Events, Datasets, Views) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -54,13 +56,15 @@ define([
 
     setup: function () {
 
-      // Render events.
+      // Render lists.
       this.events = new Events(this.app, {
         parentView: this,
         parentId: this.model.id,
         parentType: 'member',
         reverse: true
       });
+      this.datasets = new Datasets(this.app, {parentView: this});
+      this.views = new Views(this.app, {parentView: this});
 
       return this;
     },

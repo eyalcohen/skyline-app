@@ -1,5 +1,5 @@
 /*
- * Home View Row view
+ * Sidebar View Row view
  */
 
 define([
@@ -15,7 +15,7 @@ define([
     tagName: 'li',
 
     attributes: function () {
-      return _.defaults({class: 'home-view'},
+      return _.defaults({class: 'sidebar-view'},
           Row.prototype.attributes.call(this));
     },
 

@@ -1,5 +1,5 @@
 /*
- * Home Dataset Row view
+ * Sidebar Dataset Row view
  */
 
 define([
@@ -15,7 +15,7 @@ define([
     tagName: 'li',
 
     attributes: function () {
-      return _.defaults({class: 'home-dataset'},
+      return _.defaults({class: 'sidebar-dataset'},
           Row.prototype.attributes.call(this));
     },
 

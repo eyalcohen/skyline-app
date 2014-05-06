@@ -1,5 +1,5 @@
 /*
- * Home Views List view
+ * Sidebar Views List view
  */
 
 define([
@@ -15,7 +15,7 @@ define([
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.home-views',
+    el: '.sidebar-views',
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -36,19 +36,6 @@ define([
 
       // Reset the collection.
       this.collection.reset(this.app.profile.content.views.items);
-    },
-
-    // Initial bulk render of list.
-    render: function (options) {
-      List.prototype.render.call(this, options);
-      if (this.collection.length === 0)
-        $('<span class="empty-feed">Nothing to see here.</span>')
-            .appendTo(this.$el);
-      return this;
-    },
-
-    setup: function () {
-      return List.prototype.setup.call(this);
     },
 
     events: {},

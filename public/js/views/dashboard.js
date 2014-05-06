@@ -9,8 +9,10 @@ define([
   'mps',
   'util',
   'text!../../templates/dashboard.html',
-  'views/lists/events'
-], function ($, _, Backbone, mps, util, template, Events) {
+  'views/lists/events',
+  'views/lists/datasets.sidebar',
+  'views/lists/views.sidebar'
+], function ($, _, Backbone, mps, util, template, Events, Datasets, Views) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -21,7 +23,7 @@ define([
       // Shell events.
       this.on('rendered', this.setup, this);
 
-      // Client-wide subscriptions
+      // Client-wide subscriptions.
       this.subscriptions = [];
     },
 
@@ -47,6 +49,8 @@ define([
         parentView: this,
         reverse: true
       });
+      this.datasets = new Datasets(this.app, {parentView: this});
+      this.views = new Views(this.app, {parentView: this});
 
       return this;
     },
@@ -61,6 +65,8 @@ define([
         mps.unsubscribe(s);
       });
       this.events.destroy();
+      this.datasets.destroy();
+      this.views.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.empty();

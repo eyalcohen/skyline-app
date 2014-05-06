@@ -985,6 +985,12 @@ i i {
   position: absolute;
 }
 
+li.emphasis {
+  font-weight: bold;
+  font-size: 1.2em;
+  line-height: 1.4em;
+}
+
 /*.........................................................................*/
 
 .container {
@@ -1018,7 +1024,6 @@ i i {
   width: 100%;
   height: 100%;
   margin: 0;
-  /*margin-bottom: 23px;*/
 }
 
 .container.wide .main {
@@ -1053,6 +1058,43 @@ i i {
 .container.wide .folder {
   margin: 0;
   width: 100%;
+}
+
+.center {
+  min-height: 276px;
+  padding: 30px 40px;
+  color: #404040;
+  font-size: 14px;
+}
+
+.center ul,
+.center ol {
+  margin: -10px 0 20px 40px;
+}
+
+.center ol[type="i"],
+.center ol[type="a"] {
+  margin-top: 20px;
+}
+
+.center ol.ordered {
+  list-style-type: lower-roman;
+}
+
+.center p {
+  margin: 5px 0 30px;
+  font-size: 16px;
+  line-height: 28px;
+}
+
+.center h4 {
+  margin: 10px 0 0 0;
+  font-size: 16px;
+}
+
+.center ol + h4,
+.center ul + h4 {
+  margin-top: 30px;
 }
 
 .leftside {
@@ -1340,94 +1382,6 @@ img.page-title-avatar {
   color: #666;
 }
 
-/*.page-header-profile-title {
-  position: relative;
-  white-space: nowrap;
-  font-size: 20px;
-  line-height: normal;
-}
-
-.page-header-profile-title a.page-header-username {
-  margin-left: 55px;
-}
-
-.page-header-profile-title img {
-  position: absolute;
-  left: -13px;
-  width: 60px;
-  height: 60px;
-}
-
-.page-header-profile-info {
-  display: inline-block;
-  margin-left: 5px;
-  position: relative;
-  top: -2px;
-}*/
-
-
-
-
-
-
-/*.page {
-  margin: 20px auto 60px;
-}
-
-.page-left {
-  width: 800px;
-}
-
-.page-right {
-  float: right;
-  width: 330px;
-  margin-bottom: 100px;
-}
-
-.page .empty-feed {
-  margin-top: 15px;
-}
-
-.page td {
-  position: relative;
-}
-
-.page form {
-  margin-bottom: 20px;
-}
-
-.page td input[type="text"],
-.page td input[type="password"],
-.page td input[type="submit"],
-.page td a.button {
-  width: 100%;
-
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
-}
-  color: blue;
-
-.page a.connect-button {
-  margin-bottom: 5px;
-}
-
-.page p {
-  margin: 5px 0 30px;
-  font-size: 16px;
-  line-height: 28px;
-}
-
-.page h4 {
-  margin: 10px 0 0 0;
-  font-size: 16px;
-}
-
-.page ol + h4,
-.page ul + h4 {
-  margin-top: 30px;
-}*/
-
 .page-spin {
   position: absolute;
   top: 30px;
@@ -1635,7 +1589,7 @@ body.loading .header .header-logo a {
 ul.header-navigation {
   display: inline;
   position: relative;
-  left: 401px;
+  left: 406px;
   height: 60px;
   line-height: 60px;
   list-style: none;
@@ -1643,11 +1597,11 @@ ul.header-navigation {
 
 ul.header-navigation li {
   display: inline;
-  margin-left: 20px;
+  margin-left: 15px;
 }
 
 ul.header-navigation li a {
-
+  color: #3f3f3f;
 }
 
 .header .header-search {
@@ -1692,10 +1646,6 @@ ul.header-navigation li a {
   -moz-transition: all 0.1s ease-in-out;
   transition: all 0.1s ease-in-out;
 }
-
-/*.header.normal input.header-search-input {
-  width: 360px;
-}*/
 
 .search-spin {
   position: absolute;
@@ -3096,95 +3046,129 @@ a.event-channel-delete:active {
   top: 2px;
 }
 
-
-
-
-/*
-
-.static .page-left ul,
-.static .page-left ol {
-  margin: -10px 0 20px 40px;
+.sidebar-heading {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 5px 10px;
+  color: #404040;
 }
 
-.static .page-left ol[type="i"],
-.static .page-left ol[type="a"] {
-  margin-top: 20px;
+.sidebar-heading-cnt {
+  color: #808080;
+  font-weight: normal;
 }
 
-.static .page-left ol.ordered {
-  list-style-type: lower-roman;
+p.sidebar-tip {
+  padding: 10px;
+  color: #404040;
 }
 
-.home-datasets,
-.home-views {
-  margin: 5px 0 30px 0;
+p.sidebar-tip span {
+  font-style: italic;
+  font-weight: bold;
 }
 
-.home-datasets .empty-feed,
-.home-views .empty-feed {
-  text-align: left;
-  margin: 0;
+.sidebar-datasets,
+.sidebar-views {
+  margin: 0 0 30px 0;
+  background: #f9f9f9;
+  border: 1px solid #e6e6e6;
+
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 
-.home-datasets ul,
-.home-views ul {
+.sidebar-datasets ul,
+.sidebar-views ul {
   list-style: none;
 }
 
-.home-datasets li,
-.home-views li {
+.sidebar-datasets li,
+.sidebar-views li {
   list-style-type: none;
-  padding: 2px 0;
+  padding: 5px 10px;
+  border-top: 1px solid #e6e6e6;
 }
 
-.home-datasets i i,
-.home-views i i {
+.sidebar-datasets li:first-child,
+.sidebar-views li:first-child {
+  border: none;
+}
+
+.sidebar-datasets li:last-child,
+.sidebar-views li:last-child {
+  -webkit-border-radius: 0 0 2px 2px;
+  -moz-border-radius: 0 0 2px 2px;
+  border-radius: 0 0 2px 2px;
+}
+
+.sidebar-datasets i i,
+.sidebar-views i i {
   font-size: .5em;
   left: 12px;
   top: 5px;
 }
 
-.home-datasets li.list-header,
-.home-views li.list-header {
+.sidebar-datasets li.list-header,
+.sidebar-views li.list-header {
   padding: 0;
 }
 
-.home-datasets li a,
-.home-views li a {
-  font-size: 14px;
+.sidebar-datasets li a,
+.sidebar-views li a {
+  font-size: 13px;
 }
 
-.home-datasets li a i,
-.home-views li a i {
-  color: #2f2f2f;
+.sidebar-datasets li a i,
+.sidebar-views li a i {
+  color: #666;
 }
 
-.home-datasets li [class^="icon-"]:before,
-.home-datasets li [class*=" icon-"]:before,
-.home-views li [class^="icon-"]:before,
-.home-views li [class*=" icon-"]:before {
+.sidebar-datasets li [class^="icon-"]:before,
+.sidebar-datasets li [class*=" icon-"]:before,
+.sidebar-views li [class^="icon-"]:before,
+.sidebar-views li [class*=" icon-"]:before {
   margin-left: 0;
   margin-right: .3em;
 }
 
-.home-datasets li .icon-lock,
-.home-views li .icon-lock {
-  font-size: 16px;
+.sidebar-datasets li .icon-lock,
+.sidebar-views li .icon-lock {
+  font-size: 15px;
   vertical-align: -1px;
 }
 
-.home-datasets li .icon-lock:before,
-.home-views li .icon-lock:before {
+.sidebar-datasets li .icon-lock:before,
+.sidebar-views li .icon-lock:before {
   margin-right: .15em;
   margin-left: -.05em;
 }
 
-*/
-
 /*.........................................................................*/
 
-.settings .page {
-  width: 480px;
+.settings td {
+  position: relative;
+}
+
+.settings form {
+  margin-bottom: 20px;
+}
+
+.settings td input[type="text"],
+.settings td input[type="password"],
+.settings td input[type="submit"],
+.settings td a.button {
+  width: 100%;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+}
+
+.settings a.connect-button {
+  margin-bottom: 5px;
 }
 
 .settings-saved,

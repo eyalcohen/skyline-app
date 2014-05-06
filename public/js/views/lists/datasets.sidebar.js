@@ -1,5 +1,5 @@
 /*
- * Datasets List view for sidebar
+ * Sidebar Datasets List view
  */
 
 define([
@@ -15,7 +15,7 @@ define([
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.home-datasets',
+    el: '.sidebar-datasets',
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -38,20 +38,9 @@ define([
       this.collection.reset(this.app.profile.content.datasets.items);
     },
 
-    // Initial bulk render of list.
-    render: function (options) {
-      List.prototype.render.call(this, options);
-      if (this.collection.length === 0)
-        $('<span class="empty-feed">Nothing to see here.</span>')
-            .appendTo(this.$el);
-      return this;
+    events: {
+      'click .add-data': 'add',
     },
-
-    setup: function () {
-      return List.prototype.setup.call(this);
-    },
-
-    events: {},
 
     destroy: function () {
       if (this.modal) this.unpaginate();
@@ -78,6 +67,13 @@ define([
           this.collection.remove(view.model);
         }, this));
       }
+    },
+
+    add: function (e) {
+      e.preventDefault();
+
+      // Render the finder view.
+      mps.publish('modal/finder/open');
     },
 
   });
