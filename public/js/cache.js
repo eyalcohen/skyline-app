@@ -316,9 +316,12 @@ define([
     var options = {
       beginTime: buckBeg, endTime: buckEnd,
       minDuration: req.dur, getMinMax: true,
+      math: {
+        type: 'simpleMovingAverage'
+      }
     };
     self.app.rpc.do('fetchSamples', req.did, req.chan, options,
-        function (err, data) {
+        function (err, data, mathData) {
       if (err) {
         console.error(err);
         samples = null;
@@ -333,6 +336,7 @@ define([
       if (entry.samples)
         self.cacheSize -= entry.samples.length;
       entry.samples = data.samples;
+      console.log(entry.mathData);
       if (data.samples)
         self.cacheSize += data.samples.length;
       // Delete this entry from the pending request array.

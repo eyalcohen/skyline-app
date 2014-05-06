@@ -29,7 +29,8 @@ define([
         lineWidth: 2,
         pointRadius: 3,
         color: null,
-        yaxis: 1
+        yaxis: 1,
+        math: null,
       };
 
       // channelName -> showPoints:{true, false}
