@@ -37,7 +37,7 @@
 </span>
 <ul class="event-channels">
   <% _.each(this.model.get('channels'), _.bind(function (c) { %>
-    <li id="<%= c.channelName %>" data-id="<%= c.parent_id %>">
+    <li id="<%= c.channelName %>" data-id="<%= c.id %>">
       <a href="/<%= this.model.get('author').username %>/<%= c.parent_id %>/<%= c.channelName %>"
           class="navigate">
         <span class="event-timeline-label">

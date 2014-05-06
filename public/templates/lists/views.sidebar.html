@@ -3,18 +3,15 @@
   var owner = own ? 'Your': this.parentView.model.get('displayName') + '\'s';
 %>
 
-<% if (own && this.collection.models.length === 0) { %>
-  <p class="sidebar-tip">
-    A <span>view</span> is a snapshot in time of one or more <span>channels</span> from one or more <span>datasets</span>. Create a view to highlight something interesting or share an insight.
-  </p>
-<% } else { %>
-  <span class="sidebar-heading">
-    <%= owner %> views <span class="sidebar-heading-cnt">(<%= this.collection.length %>)</span>
-  </span>
-  <ul>
-    <li class="list-header"></li>
-    <% _.each(this.collection.models, _.bind(function (row) { %>
-      <%= this.row(row) %>
-    <% }, this)); %>
-  </ul>
-<% } %>
+<span class="sidebar-heading">
+  <%= owner %> views <span class="sidebar-heading-cnt">(<%= this.collection.length %>)</span>
+</span>
+<p class="sidebar-tip">
+  A <span>view</span> is a snapshot in time of one or more <span>channels</span> from one or more <span>datasets</span>. Create a view to highlight something interesting or share an insight.
+</p>
+<ul>
+  <li class="list-header"></li>
+  <% _.each(this.collection.models, _.bind(function (row) { %>
+    <%= this.row(row) %>
+  <% }, this)); %>
+</ul>

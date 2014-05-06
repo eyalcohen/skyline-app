@@ -906,6 +906,10 @@ span.empty-list {
   width: 100%;
 }
 
+.list-spin.block {
+  margin: 30px 0;
+}
+
 .list-spin .empty-feed,
 .list-spin .full-feed {
   display: none;
@@ -970,7 +974,8 @@ span.empty-list {
   color: #8f8f8f;
 }
 
-a.info-delete {
+.info-delete,
+.info-accept {
   color: #8f8f8f;
   cursor: pointer;
   font-size: 10px;
@@ -1101,7 +1106,7 @@ li.emphasis {
 .leftside {
   float: left;
   width: 719px;
-  min-height: 276px;
+  min-height: 340px;
   padding: 30px 40px 30px 0;
   border-right: 1px solid #f2f2f2;
 }
@@ -1197,6 +1202,45 @@ li.tab.active a {
   border-top: 2px solid #27CDD6;
   padding-top: 12px;
   top: 5px;
+}
+
+li.tab a .tab-count {
+  display: none;
+  position: absolute;
+  right: 7px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  text-align: center;
+  color: #fff;
+  background: rgba(208,76,56,0.8);
+  font-size: 9px;
+  line-height: 12px;
+
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+
+  box-shadow: 1px 1px rgba(0,0,0,0.2);
+  -webkit-box-shadow: 1px 1px rgba(0,0,0,0.2);
+  -moz-box-shadow: 1px 1px rgba(0,0,0,0.2);
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+li.tab.active a .tab-count {
+  top: 8px;
 }
 
 /*.........................................................................*/
@@ -2567,7 +2611,6 @@ a.comments-signin {
   font-size: 10px;
 }
 
-
 /*.........................................................................*/
 
 .events {
@@ -2648,18 +2691,6 @@ a.comments-signin {
 .event:last-child {
   margin-bottom: -30px;
 }
-
-/*.event .comment,
-.event .comments {
-  width: 404px;
-}
-
-.event textarea.comment-input {
-  width: 337px;
-  margin-left: 46px;
-  top: 6px;
-  position: relative;
-}*/
 
 .event-left {
   float: left;
@@ -3047,6 +3078,76 @@ a.event-channel-delete:active {
   top: 2px;
 }
 
+/*.........................................................................*/
+
+.notifications {
+  margin: 0 -40px 0 -30px;
+}
+
+.notification {
+  display: none;
+  background: #fff;
+  border-bottom: 1px solid #f2f2f2;
+  cursor: pointer;
+  
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.notification:hover {
+  background: #f2f2f2;
+}
+
+.notification.unread {
+  background: #f7fbeb;
+}
+
+.notification.request {
+  background: #edf8fb;
+}
+
+.notification a {
+  text-decoration: none;
+  color: #666;
+}
+
+.notification-inner {
+  position: relative;
+  min-height: 32px;
+  padding: 10px 40px 7px 30px;
+}
+
+.notification-inner img {
+  float: left;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+.notification-inner p {
+  margin: 0 0 0 40px;
+  font-size: 11px;
+  line-height: 14px;
+  color: #4d4d4d;
+}
+
+.notification-info {
+  display: block;
+  margin: 1px 0 0 40px;
+}
+
+/*.........................................................................*/
+
 .sidebar-heading {
   display: block;
   font-size: 13px;
@@ -3063,6 +3164,7 @@ a.event-channel-delete:active {
 p.sidebar-tip {
   padding: 10px;
   color: #404040;
+  border-top: 1px solid #E6E6E6;
 }
 
 p.sidebar-tip span {

@@ -26,15 +26,20 @@ define([
       this.on('rendered', this.setup, this);
 
       // Client-wide subscriptions.
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('notification/change', _.bind(this.updateNotificationsCount, this))
+      ];
     },
 
     render: function () {
-      if (!this.params.tabs) this.params.tabs = [];
+      if (!this.params.tabs) {
+        this.params.tabs = [];
+      }
 
       // Render or activate tabs.
-      if (!this.params.tabs || this.params.tabs.length === 0)
+      if (!this.params.tabs || this.params.tabs.length === 0) {
         this.empty();
+      }
       var tabs = this.$('.tab');
       if (tabs.length === 0) {
         this.template = _.template(template);
@@ -49,7 +54,6 @@ define([
         this.$('.tab:eq(' + i + ')').addClass('active');
       }
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
 
       return this;
@@ -63,7 +67,6 @@ define([
       'click .unwatch-button': 'unwatch'
     },
 
-    // Misc. setup.
     setup: function () {
       return this;
     },
@@ -175,6 +178,14 @@ define([
       }, this));
 
       return false;
+    },
+
+    updateNotificationsCount: function () {
+      var unread = $('.notifications .unread');
+      if (unread.length > 0)
+        this.$('.tab-count').text(unread.length).show();
+      else
+        this.$('.tab-count').text('').hide();
     },
 
   });

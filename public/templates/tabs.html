@@ -13,7 +13,12 @@
   <ul>
     <% _.each(this.params.tabs, function (tab) { 
       var klass = 'tab';
-      if (tab.active) klass += ' active';
+      if (tab.active) {
+        klass += ' active';
+      }
+      if (tab.title === 'Notifications') {
+        tab.title += '<div class="tab-count"></div>';
+      }
     %>
       <li class="<%= klass %>">
         <a href="<%= tab.href %>" class="navigate"><%= tab.title %></a>

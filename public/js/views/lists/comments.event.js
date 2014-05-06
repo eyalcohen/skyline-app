@@ -36,7 +36,7 @@ define([
       // Reset the collection.
       this.collection.older =
           this.parentView.model.get('comments_cnt')
-          - this.parentView.model.get('comments').length
+          - this.parentView.model.get('comments').length;
       this.collection.reset(this.parentView.model.get('comments'));
     },
 

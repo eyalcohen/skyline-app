@@ -3,18 +3,15 @@
   var owner = own ? 'Your': this.parentView.model.get('displayName') + '\'s';
 %>
 
-<% if (own && this.collection.models.length === 0) { %>
-  <p class="sidebar-tip">
-    A <span>dataset</span> is a collection of one or more <span>channels</span> of time-series data. <a href="javascript:;" class="add-data">Upload some data</a> to get started.
-  </p>
-<% } else { %>
-  <span class="sidebar-heading">
-    <%= owner %> datasets <span class="sidebar-heading-cnt">(<%= this.collection.length %>)</span>
-  </span>
-  <ul>
-    <li class="list-header"></li>
-    <% _.each(this.collection.models, _.bind(function (row) { %>
-      <%= this.row(row) %>
-    <% }, this)); %>
-  </ul>
-<% } %>
+<span class="sidebar-heading">
+  <%= owner %> datasets <span class="sidebar-heading-cnt">(<%= this.collection.length %>)</span>
+</span>
+<p class="sidebar-tip">
+  A <span>dataset</span> is a collection of one or more <span>channels</span> of time-series data. <a href="javascript:;" class="add-data">Upload some data</a> to get started.
+</p>
+<ul>
+  <li class="list-header"></li>
+  <% _.each(this.collection.models, _.bind(function (row) { %>
+    <%= this.row(row) %>
+  <% }, this)); %>
+</ul>

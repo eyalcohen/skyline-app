@@ -34,6 +34,9 @@ define([
       // Client-wide subscriptions.
       this.subscriptions = [];
 
+      // Socket subscriptions
+      this.app.rpc.socket.on('channel.removed', _.bind(this.removeChannel, this));
+
       return this;
     },
 
@@ -141,6 +144,10 @@ define([
       }, this));
 
       return false;
+    },
+
+    removeChannel: function (data) {
+      var li = $('li[data-id=' + data.id + ']').remove();
     },
 
     when: function () {

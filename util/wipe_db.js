@@ -29,7 +29,7 @@ boots.start(function (client) {
   Step(
     function () {
  
-      db.Users.remove({}, this.parallel());
+      // db.Users.remove({}, this.parallel());
       db.Streams.remove({}, this.parallel());
       db.Producers.remove({}, this.parallel());
       db.Datasets.remove({}, this.parallel());

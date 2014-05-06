@@ -19,6 +19,7 @@ define([
   'views/header',
   'views/tabs',
   'views/dashboard',
+  'views/notifications',
   'views/splash',
   'views/settings',
   'views/reset',
@@ -30,7 +31,7 @@ define([
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
-    Flashes, Save, Finder, Header, Tabs, Dashboard, Splash, Settings,
+    Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
     Reset, Profile, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -61,6 +62,7 @@ define([
       this.route(':username', 'profile', this.profile);
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
+      this.route('notifications', 'notifications', this.notifications);
       this.route('about', 'about', this.about);
       this.route('contact', 'contact', this.contact);
       this.route('privacy', 'privacy', this.privacy);
@@ -71,11 +73,6 @@ define([
       // Fullfill navigation request from mps.
       mps.subscribe('navigate', _.bind(function (path) {
         this.navigate(path, {trigger: true});
-      }, this));
-
-      // Kill user specific views.
-      mps.subscribe('user/delete', _.bind(function () {
-        // this.notifications.destroy();
       }, this));
 
       // Show the signin modal.
@@ -129,9 +126,6 @@ define([
           } else if (login) {
             this.header.render(true);
           }
-          // if (!this.notifications && this.app.profile && this.app.profile.member) {
-          //   this.notifications = new Notifications(this.app, {reverse: true});
-          // }
         }
 
         // Start block messages.
@@ -164,7 +158,6 @@ define([
       // Get a profile, if needed.
       rest.get(service, data, _.bind(function (err, pro) {
         if (err) {
-          // _render.call(this, err);
           this.page = new Error(this.app).render(err);
           this.stop();
         }
@@ -209,7 +202,6 @@ define([
 
     dashboard: function () {
       this.start();
-      this.renderTabs();
       $('.container').removeClass('wide');
       var query = {actions: this.getEventActions()};
       this.render('/service/dashboard.profile', query, _.bind(function (err) {
@@ -218,7 +210,7 @@ define([
           this.page = new Dashboard(this.app).render();
           this.renderTabs({tabs: [
             {title: 'Activity', href: '/', active: true},
-            // {title: 'Notifications', href: '/notifications'}
+            {title: 'Notifications', href: '/notifications'}
           ]});
         } else {
           this.page = new Splash(this.app).render();
@@ -248,6 +240,20 @@ define([
         if (err) return;
         this.page = new Profile(this.app).render();
         this.renderTabs({html: this.page.title});
+        this.stop();
+      }, this));
+    },
+
+    notifications: function () {
+      this.start();
+      $('.container').removeClass('wide');
+      this.render('/service/notifications.profile', {}, true, _.bind(function (err) {
+        if (err) return;
+        this.page = new Notifications(this.app).render();
+        this.renderTabs({tabs: [
+          {title: 'Activity', href: '/'},
+          {title: 'Notifications', href: '/notifications', active: true}
+        ]});
         this.stop();
       }, this));
     },

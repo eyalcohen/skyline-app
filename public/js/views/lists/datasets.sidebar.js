@@ -38,6 +38,16 @@ define([
       this.collection.reset(this.app.profile.content.datasets.items);
     },
 
+    setup: function () {
+
+      // Save refs.
+      this.count = this.$('.sidebar-heading-cnt');
+      this.tip = this.$('.sidebar-tip');
+
+      this.updateCount();
+      return List.prototype.setup.call(this);
+    },
+
     events: {
       'click .add-data': 'add',
     },
@@ -50,8 +60,10 @@ define([
     },
 
     collect: function (data) {
-      if (data.author.id === this.app.profile.user.id)
+      if (data.author.id === this.app.profile.user.id) {
         this.collection.unshift(data);
+        this.updateCount();
+      }
     },
 
     _remove: function (data) {
@@ -65,8 +77,18 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
+          this.updateCount();
         }, this));
       }
+    },
+
+    updateCount: function () {
+      if (this.collection.length === 0) {
+        this.tip.show();
+      } else {
+        this.tip.hide();
+      }
+      this.count.text('(' + this.collection.length + ')');
     },
 
     add: function (e) {

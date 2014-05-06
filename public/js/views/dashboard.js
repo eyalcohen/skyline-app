@@ -45,12 +45,9 @@ define([
     setup: function () {
 
       // Render lists.
-      this.events = new Events(this.app, {
-        parentView: this,
-        reverse: true
-      });
-      this.datasets = new Datasets(this.app, {parentView: this});
-      this.views = new Views(this.app, {parentView: this});
+      this.events = new Events(this.app, {parentView: this, reverse: true});
+      this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
+      this.views = new Views(this.app, {parentView: this, reverse: true});
 
       return this;
     },

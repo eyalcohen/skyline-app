@@ -1,5 +1,5 @@
 /*
- * Page view for profile.
+ * Page view for all notifications.
  */
 
 define([
@@ -8,61 +8,44 @@ define([
   'Backbone',
   'mps',
   'util',
-  'models/user',
-  'text!../../templates/profile.html',
-  'text!../../templates/profile.header.html',
-  'views/lists/events',
+  'text!../../templates/notifications.html',
+  'views/lists/notifications',
   'views/lists/datasets.sidebar',
   'views/lists/views.sidebar'
-], function ($, _, Backbone, mps, util, User, template, header, Events, Datasets, Views) {
+], function ($, _, Backbone, mps, util, template, Notifications, Datasets, Views) {
   return Backbone.View.extend({
 
     el: '.main',
 
     initialize: function (app) {
       this.app = app;
+
+      // Shell events.
       this.on('rendered', this.setup, this);
+
+      // Client-wide subscriptions.
       this.subscriptions = [];
     },
 
     render: function () {
 
-      // Use a model for the main content.
-      this.model = new User(this.app.profile.content.page);
+      // Set page title
+      this.title();
 
-      // Set page title.
-      this.app.title(this.model.get('displayName')
-          + ' (@' + this.model.get('username') + ')',
-          _.template(header).call(this), true);
-
-
+      // Content rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
-      // Set page title
-      var doctitle = 'Skyline | ' + this.model.get('displayName');
-      doctitle += ' (@' + this.model.get('username') + ')';
-      this.app.title(doctitle);
-
-      // Render title.
-      this.title = _.template(header).call(this);
-
+      // Trigger setup.
       this.trigger('rendered');
 
       return this;
     },
 
-    events: {},
-
     setup: function () {
 
       // Render lists.
-      this.events = new Events(this.app, {
-        parentView: this,
-        parentId: this.model.id,
-        parentType: 'member',
-        reverse: true
-      });
+      this.notifications = new Notifications(this.app, {parentView: this, reverse: true});
       this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
       this.views = new Views(this.app, {parentView: this, reverse: true});
 
@@ -78,10 +61,17 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
-      this.events.destroy();
+      this.notifications.destroy();
+      this.datasets.destroy();
+      this.views.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.empty();
     },
+
+    title: function () {
+      this.app.title(this.app.profile.user.displayName + ' - Notifications');
+    }
+
   });
 });
