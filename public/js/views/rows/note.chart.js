@@ -69,8 +69,8 @@ define([
       this.wrap = this.$('.note-wrap');
 
       // Determine if this note should be opended.
-      var requested_id = util.getParameterByName('n');
-      if (this.model.id === requested_id) {
+      if (this.model.id === this.app.requestedNoteId) {
+        delete this.app.requestedNoteId;
         this.open();
         var dur = this.model.get('end') - this.model.get('beg');
         var min = this.model.get('beg') - 2*dur;

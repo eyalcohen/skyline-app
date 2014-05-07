@@ -18,24 +18,19 @@ define([
 
     el: '.main',
 
-    // Module entry point:
     initialize: function (app) {
-      
-      // Save app reference.
       this.app = app;
       
-      // Shell events:
       this.on('rendered', this.setup, this);
     },
 
-    // Draw our template from the profile JSON.
     render: function () {
 
       // Use a model for the main content.
       this.model = new Profile(this.app.profile.content.page);
 
       // Set page title
-      this.app.title('Settings', '');
+      this.app.title('Skyline | ' + this.app.profile.user.displayName + ' - Settings');
 
       // UnderscoreJS rendering.
       this.template = _.template(template);
@@ -57,7 +52,7 @@ define([
     setup: function () {
 
       // Save field contents on blur.
-      this.$('textarea, input[type="text"], input[type="checkbox"]')
+      this.$('textarea, input[type="text"], input[type="checkbox"], input[type="radio"]')
           .change(_.bind(this.save, this))
           .keyup(function (e) {
         var field = $(e.target);
@@ -87,14 +82,11 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);

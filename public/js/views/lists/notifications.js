@@ -39,7 +39,8 @@ define([
       this.app.rpc.socket.on('notification.removed', _.bind(this._remove, this));
 
       // Init the load indicator.
-      this.spin = new Spin($('.notifications-spin', this.$el.parent()));
+      this.spin = new Spin($('.notifications-spin', this.$el.parent()),
+          {color: '#8f8f8f', lines: 13, length: 3, width: 2, radius: 6});
       this.spin.start();
   
       // Reset the collection.
@@ -129,7 +130,7 @@ define([
     // check the panel's empty space and get more
     // notes to fill it up.
     checkHeight: function () {
-      wh = this.$el.parent().height();
+      wh = $(window).height();
       so = this.spin.target.offset().top;
       if (wh - so > this.spin.target.height() / 2)
         this.more();
@@ -201,17 +202,18 @@ define([
     // init pagination
     paginate: function () {
       var wrap = $(window);
-      var paginate = _.debounce(_.bind(function (e) {
-        var pos = this.$el.height() - wrap.height() - wrap.scrollTop();
+      this._paginate = _.debounce(_.bind(function (e) {
+        var pos = this.$el.height() + this.$el.offset().top
+            - wrap.height() - wrap.scrollTop();
         if (!this.nomore && pos < -this.spin.target.height() / 2)
           this.more();
       }, this), 20);
-      wrap.scroll(paginate);
+      wrap.scroll(this._paginate).resize(this._paginate);
     },
 
     unpaginate: function () {
-      $(window).unbind('scroll', this._paginate);
-    }
+      $(window).unbind('scroll', this._paginate).unbind('resize', this._paginate);
+    } 
 
   });
 });

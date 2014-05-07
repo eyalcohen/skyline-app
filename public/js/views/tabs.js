@@ -29,13 +29,17 @@ define([
       this.subscriptions = [];
 
       // Socket Subscriptions
-      this.app.rpc.socket.on('notification.new', _.bind(function () {
-        ++this.app.profile.notifications;
-        this.updateNotificationsCount();
+      this.app.rpc.socket.on('notification.new', _.bind(function (data) {
+        if (this.app.profile.notifications !== undefined) {
+          ++this.app.profile.notifications;
+          this.updateNotificationsCount();
+        }
       }, this));
-      this.app.rpc.socket.on('notification.read', _.bind(function () {
-        --this.app.profile.notifications;
-        this.updateNotificationsCount();
+      this.app.rpc.socket.on('notification.read', _.bind(function (data) {
+        if (this.app.profile.notifications !== undefined) {
+          --this.app.profile.notifications;
+          this.updateNotificationsCount();
+        }
       }, this));
     },
 
@@ -193,6 +197,9 @@ define([
     },
 
     updateNotificationsCount: function () {
+      if (!this.app.profile || this.app.profile.notifications === undefined) {
+        return;
+      }
       if (this.app.profile.notifications > 0) {
         this.$('.tab-count').text(this.app.profile.notifications).show();
       } else {

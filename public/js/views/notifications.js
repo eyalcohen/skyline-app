@@ -70,7 +70,8 @@ define([
     },
 
     title: function () {
-      this.app.title(this.app.profile.user.displayName + ' - Notifications');
+      this.app.title('Skyline | ' + this.app.profile.user.displayName
+          + ' - Notifications');
     }
 
   });

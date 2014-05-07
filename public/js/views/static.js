@@ -29,7 +29,7 @@ define([
     render: function () {
 
       // Set page title.
-      this.app.title(this.options.title);
+      this.app.title('Skyline | ' + this.options.title);
 
       this.template = _.template(this.options.template);
       this.$el.html(this.template.call(this));

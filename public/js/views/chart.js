@@ -44,7 +44,8 @@ define([
       this.subscriptions = [
         mps.subscribe('channel/add', _.bind(function (did, channel, yaxis) {
           if (this.graph.model.getChannels().length === 0
-              && !this.app.profile.content.page) {
+              && !this.app.profile.content.page
+              && !this.app.requestedNoteId) {
             mps.publish('chart/zoom', [{min: channel.beg / 1000, max: channel.end / 1000}]);
           }
           this.graph.model.addChannel(this.datasets.collection.get(did),
@@ -88,11 +89,9 @@ define([
 
       // Set page title.
       if (!this.app.embed) {
-        var page = this.app.profile.content.page;
-        if (page && page.name) {
-          this.app.title(page.author.username + '/' + page.name,
-              _.template(header)({page: page}), true);
-        } else this.app.title('Chart', '');
+        var target = this.target();
+        this.app.title('Skyline | ' + target.doc.author.username + '/'
+            + (target.doc.name || target.doc.title));
       }
 
       // Render main template.

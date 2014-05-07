@@ -54,7 +54,7 @@ define([
 
     accept: function (e) {
       e.preventDefault();
-      rest.put('/api/members/' + this.model.get('subscription_id') + '/accept',
+      rest.put('/api/users/' + this.model.get('subscription_id') + '/accept',
           {}, _.bind(function (err, data) {
         if (err) return console.log(err);
         rest.delete('/api/notifications/' + this.model.id, {});
@@ -63,15 +63,14 @@ define([
     },
 
     navigate: function (e) {
+      e.stopPropagation();
       e.preventDefault();
       if ($(e.target).hasClass('info-delete')
           || $(e.target).hasClass('info-accept')) return;
-      var type = this.model.get('event').data.action.t;
-      var path = type === 'request' || type === 'accept' || type === 'follow' ?
-          this.model.get('event').data.action.s:
-          this.model.get('event').data.target.s;
-      if (path) mps.publish('navigate', [path]);
-      return false;
+      var path = $(e.target).closest('a').attr('href');
+      if (path) {
+        this.app.router.navigate(path, {trigger: true});
+      }
     },
 
     _remove: function (cb) {

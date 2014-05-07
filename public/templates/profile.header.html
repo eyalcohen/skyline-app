@@ -11,7 +11,7 @@
 <% if (this.app.profile.user) { %>
   <% if (this.app.profile.user.id === data.id) { %>
     <a href="/settings" class="button title-button navigate">
-      <i class="icon-params"></i> Settings</a>
+      <i class="icon-cog"></i> Settings</a>
   <% } else { %>
     <% if (sub && sub.subscribee_id === data.id) { %>
       <% if (sub.meta.style === 'request') { %>

@@ -139,12 +139,6 @@
       "src": "entypo"
     },
     {
-      "uid": "25fc99a30fecc4021fdcae5fff5ba9ac",
-      "css": "eye",
-      "code": 59401,
-      "src": "entypo"
-    },
-    {
       "uid": "bc64550dd022ce21604f97309b346cea",
       "css": "cog",
       "code": 59421,
@@ -227,6 +221,18 @@
       "css": "library",
       "code": 59426,
       "src": "maki"
+    },
+    {
+      "uid": "e45a3da2ebde8bc8e30a873f3bd51f30",
+      "css": "eye",
+      "code": 59401,
+      "src": "elusive"
+    },
+    {
+      "uid": "d218294e6f9f7191f6b0b3d1ff6239ff",
+      "css": "eye-off",
+      "code": 59433,
+      "src": "elusive"
     },
     {
       "uid": "711fdb6caa365d5b69d4a72da2009cf6",

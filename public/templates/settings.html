@@ -78,6 +78,59 @@
           </td>
         </tr>
         <tr><td colspan="2">&nbsp;</td></tr>
+
+        <tr>
+          <td colspan="2">
+            <span class="page-section">Privacy</span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <span class="settings-detail-txt">Enhanced Privacy Mode</span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding-top: 5px;">
+            <% if (privacy.mode === 0 || privacy.mode === '0') { %>
+              <input tabindex="9" type="radio" name="config.privacy.mode"
+                  value="0" checked="checked" id="config.privacy.mode.0" />
+            <% } else { %>
+              <input tabindex="9" type="radio" name="config.privacy.mode"
+                  value="0" id="config.privacy.mode.0" />
+            <% } %>
+            <label for="config.privacy.mode.0" style="vertical-align:-1px;">Off</label>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <ul class="settings-detail-txt settings-detail-list">
+              <li>Logged-in Skyline users can follow you.</li>
+              <li>Logged-in Skyline users can see your activities on your Skyline Profile.</li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding-top: 5px;">
+            <% if (privacy.mode === 1 || privacy.mode === '1') { %>
+              <input tabindex="10" type="radio" name="config.privacy.mode"
+                  value="1" checked="checked" id="config.privacy.mode.1" />
+            <% } else { %>
+              <input tabindex="10" type="radio" name="config.privacy.mode"
+                  value="1" id="config.privacy.mode.1" />
+            <% } %>
+            <label for="config.privacy.mode.1" style="vertical-align:-1px;">On</label>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <ul class="settings-detail-txt settings-detail-list">
+              <li>Only Skyline users that you approve can follow you.</li>
+              <li>Only approved followers can see your activities on your Skyline Profile.</li>
+            </ul>
+          </td>
+        </tr>
+
+        <tr><td colspan="2">&nbsp;</td></tr>
         <tr>
           <td colspan="2">
             <span class="page-section">Notification Settings</span>

@@ -43,17 +43,21 @@ define([
       this.app = app;
 
       // Clear stuff that comes back from facebook.
-      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1)
-        try {
-          window.history.replaceState('', '', window.location.pathname
-              + window.location.search);
-        } catch (err) {}
+      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
+        if (window.location.hash.length === 0) {
+          try {
+            window.history.replaceState('', '', window.location.pathname
+                + window.location.search);
+          } catch (err) {}
+        }
+      }
 
       // Determine if this is an embedded widget.
       var rx = new RegExp([window.location.host, 'embed'].join('/'), 'i');
       this.app.embed = rx.test(window.location.href);
 
       // Page routes
+      this.route('embed/:username', 'chart', this.chart);
       this.route('embed/:username/:channel', 'chart', this.chart);
       this.route(':username/:id', 'chart', this.chart);
       this.route(':username/:id/:channel', 'chart', this.chart);
@@ -137,6 +141,14 @@ define([
         cb(err);
       }
 
+      // Grab hash.
+      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
+        var tmp = window.location.hash.match(/#n=([a-z0-9]{24})/i);
+        if (tmp) {
+          this.app.requestedNoteId = tmp[1];
+        }
+      } 
+
       // Kill the page view if it exists.
       if (this.page) {
         this.page.destroy();
@@ -158,6 +170,7 @@ define([
       // Get a profile, if needed.
       rest.get(service, data, _.bind(function (err, pro) {
         if (err) {
+          $('.container').removeClass('wide');
           this.page = new Error(this.app).render(err);
           this.stop();
         }
@@ -318,6 +331,12 @@ define([
     },
 
     chart: function (un, slug, channelName) {
+      if (slug) {
+        slug = _.str.strLeft(slug, '#');
+      }
+      if (channelName) {
+        channelName = _.str.strLeft(channelName, '#');
+      }
       this.start();
       this.renderTabs();
       $('.container').addClass('wide');

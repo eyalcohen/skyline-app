@@ -47,6 +47,8 @@ define([
     // Set the app profile.
     if (this.profile) {
       this.profile.content = profile.content;
+      this.profile.notifications = profile.notifications;
+      this.profile.sub = profile.sub;
       this.profile.state = profile.state;
       if (profile.user && !this.profile.user) {
         this.profile.user = profile.user;

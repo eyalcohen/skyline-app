@@ -1,13 +1,22 @@
 <%
   var gravatar = 'https://www.gravatar.com/avatar/'
       + this.model.get('event').data.action.g + '?s=32&d=mm';
+
+  var event = this.model.get('event');
+  var type = event.data.action.t;
+  var href;
+  if (type === 'request' || type === 'accept' || type === 'follow') {
+    href = event.data.action.s;
+  } else {
+    href = event.data.target.p ? event.data.target.p.s: event.data.target.s;
+  }
 %>
 
-<a href="/<%= this.model.get('event').data.target.s %>">
+<a href="/<%= href %>">
   <div class="notification-inner">
     <img src=<%= gravatar %> width="32" height="32" />
     <p>
-      <%= 'dsfgbvsdfgbsdfgbsdfgbsdfgb sdf bsdfb dsfb m' %>
+      <%= this.model.body() %>
     </p>
     <div class="notification-info">
       <% if (this.model.get('event').data.action.t !== 'request') { %>
