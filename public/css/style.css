@@ -990,8 +990,6 @@ i i {
 
 li.emphasis {
   font-weight: bold;
-  font-size: 1.2em;
-  line-height: 1.4em;
 }
 
 /*.........................................................................*/
@@ -1066,7 +1064,7 @@ li.emphasis {
 
 .center {
   min-height: 276px;
-  padding: 30px 40px;
+  padding: 60px 80px 60px;
   color: #404040;
   font-size: 14px;
 }
@@ -1086,7 +1084,7 @@ li.emphasis {
 }
 
 .center p {
-  margin: 5px 0 30px;
+  margin: 5px 0 20px;
   font-size: 16px;
   line-height: 28px;
 }
