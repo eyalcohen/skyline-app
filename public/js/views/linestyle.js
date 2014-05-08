@@ -119,6 +119,7 @@ define([
       var updatePoints = false;
       var updateInterp = false;
       var updateWidth = false;
+      var updateMath = false;
 
       if (e.type === 'mouseenter' || e.type === 'click') {
         this.oldStyle = {};
@@ -134,13 +135,19 @@ define([
           _.extend(this.currentLineStyle, this.oldStyle);
           this.oldStyle = null;
           target = null; // we don't care which box we left
-          updatePoints = true; updateInterp = true;
+          updatePoints = true; updateInterp = true; updateMath = true;
         } else {
           return;
         }
       }
 
-      if (target === 'linestyle-scatter') {
+      if (target === 'linestyle-none') {
+        this.currentLineStyle.math = null
+        updateMath = true;
+      } else if (target === 'linestyle-avg') {
+        this.currentLineStyle.math = 'avg'
+        updateMath = true;
+      } else if (target === 'linestyle-scatter') {
         this.currentLineStyle.showPoints = true;
         this.currentLineStyle.showLines = false;
         this.currentLineStyle.showArea = false;
@@ -192,6 +199,11 @@ define([
             [this.channel.id, this.currentLineStyle, save]);
       }
 
+      if (updateMath && e.type === 'click') {
+        this.unselect($('.linestyle-math').children())
+        this.select('.' + target);
+        this.oldStyle = null;
+      }
       if (updatePoints && e.type === 'click') {
         this.unselect($('.linestyle-points').children())
         this.select('.' + target);
@@ -213,6 +225,16 @@ define([
     setViewLineStyle: function() {
       var style = this.currentLineStyle;
       var selector;
+
+      select = {};
+      if (style.math === null)
+        selector = $('.linestyle-none');
+      else if (style.math === 'avg')
+        selector = $('.linestyle-avg');
+      if (selector) this.select(selector);
+
+      // update 
+      select = {};
       if (style.showArea)
         selector = $('.linestyle-area');
       else if (style.showPoints && style.showLines)
