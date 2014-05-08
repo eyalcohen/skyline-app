@@ -199,6 +199,8 @@ if (cluster.isMaster) {
             // Attach a connection ref to app.
             app.set('connection', connection);
 
+            app.set('redisclient', rc);
+
             // Attach a reds ref to app.
             reds.client = rc;
             app.set('reds', reds);
@@ -288,7 +290,7 @@ if (cluster.isMaster) {
               // FIXME: Use a key map instead of
               // attaching this directly to the socket.
               socket.client = new Client(socket, app.get('pubsub'),
-                  app.get('samples'), app.get('reds'));
+                  app.get('samples'), app.get('reds'), app.get('redisclient'));
             });
 
             // Set pubsub sio

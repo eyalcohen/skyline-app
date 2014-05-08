@@ -5,12 +5,13 @@
 define([
   'jQuery',
   'Underscore',
+  'rpc',
   'Backbone',
   'mps',
   'rest',
   'views/lists/search.choices',
   'text!../../templates/box.html'
-], function ($, _, Backbone, mps, rest, Choices, box) {
+], function ($, _, rpc, Backbone, mps, rest, Choices, box) {
   return Backbone.View.extend({
 
     el: '.header',
@@ -92,9 +93,16 @@ define([
 
     add: function (e) {
       e.preventDefault();
+      console.log('click');
+      this.app.rpc.do('getMath', 1342174399, 'open__1342174399', {
+        duration: 1234,
+        operation: 'movingAverage'
+      }, function(err, data) {
+        console.log(err, data);
+      });
 
       // Render the finder view.
-      mps.publish('modal/finder/open');
+      //mps.publish('modal/finder/open');
     },
 
     navigate: function (e) {
