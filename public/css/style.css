@@ -10,7 +10,6 @@ red = #E31E1E
 
 */
 
-
 html, body, div, span, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
 abbr, address, cite, code, del, dfn, em, img, ins, kbd, q, samp,
@@ -234,9 +233,12 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; margin: 0; }
 
 /*.........................................................................*/
 
-html {}
+html {
+  height: 100%;
+}
 
 body {
+  height: 100%;
   background: #f2f2f2;
   font-family: 'Montserrat', sans-serif;
   font-size: 12px;
@@ -928,7 +930,7 @@ span.empty-list {
 
 .http-error {
   display: block;
-  margin-top: 70px;
+  margin-top: 15%;
   font-weight: bold;
   font-size: 20px;
   color: #4d4d4d;
@@ -1001,6 +1003,10 @@ li.emphasis {
   overflow: hidden;
 }
 
+body.embed .container {
+  height: 100%;
+}
+
 .content {
   position: relative;
   margin: 0 auto 63px;
@@ -1014,7 +1020,8 @@ li.emphasis {
   border: 1px solid #e6e6e6;
 }
 
-.container.wide .content {
+.container.wide .content,
+body.embed .container .content {
   width: 100%;
   min-height: 100%;
   padding: 0;
@@ -1030,7 +1037,8 @@ li.emphasis {
   margin: 0;
 }
 
-.container.wide .main {
+.container.wide .main,
+body.embed .main {
   margin-bottom: 0;
 }
 
@@ -1059,9 +1067,14 @@ li.emphasis {
   background: none;
 }
 
-.container.wide .folder {
+.container.wide .folder,
+body.embed .folder {
   margin: 0;
   width: 100%;
+}
+
+body.embed .folder {
+  height: 100%;
 }
 
 .center {
@@ -1136,6 +1149,10 @@ li.emphasis {
 
 .container.wide .tabs {
   border: none;
+}
+
+body.embed .tabs {
+  display: none;
 }
 
 .tabs ul,

@@ -171,11 +171,12 @@ define([
       rest.get(service, data, _.bind(function (err, pro) {
         if (err) {
           $('.container').removeClass('wide');
-          this.page = new Error(this.app).render(err);
           this.stop();
+          this.page = new Error(this.app).render(err);
         }
-        if (secure && !pro.user)
+        if (secure && !pro.user) {
           return this.navigate('/', true);
+        }
 
         // Set the profile.
         var login = this.app.update(pro || err);
@@ -199,11 +200,12 @@ define([
     },
 
     stop: function () {
+      var delay = this.app.embed ? 0: 500;
       _.delay(_.bind(function () {
         this.spin.stop();
         $(window).scrollTop(0);
         $('body').removeClass('loading');
-      }, this), 500);
+      }, this), delay);
     },
 
     getEventActions: function () {
@@ -375,6 +377,7 @@ define([
       $('.container').removeClass('wide');
       this.render(_.bind(function (err) {
         if (err) return;
+        this.stop();
         this.page = new Error(this.app).render({
           code: 404,
           message: 'Sorry, this page isn\'t available'
