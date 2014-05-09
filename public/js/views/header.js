@@ -95,8 +95,11 @@ define([
       e.preventDefault();
       console.log('click');
       this.app.rpc.do('getMath', 1342174399, 'open__1342174399', {
-        duration: 1234,
-        operation: 'movingAverage'
+        duration: 1000*1000*60*60*12,
+        operation: {
+          type: 'movingAverage',
+          metric: 10,
+        }
       }, function(err, data) {
         console.log(err, data);
       });
