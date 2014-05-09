@@ -2407,8 +2407,6 @@ a.button.splash-button {
 /*.........................................................................*/
 
 .comment-input-wrap {
-  /*display: none;*/
-
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
   -o-animation-name: fadeIn;
