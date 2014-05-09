@@ -10,46 +10,32 @@ define([
   'util',
   'text!../../templates/splash.html'
 ], function ($, _, Backbone, mps, util, template) {
-
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
-    el: '.splash',
+    el: '.main',
 
-    // Module entry point:
     initialize: function (app) {
-
-      // Save app ref.
       this.app = app;
-
-      // Shell events:
-      this.on('rendered', this.setup, this);
-
-      // Client-wide subscriptions
       this.subscriptions = [];
+      this.on('rendered', this.setup, this);
 
       // Attach a ref to 'update' to the window so it can be
       // reached by the iframe source.
       document.__update = _.bind(this.updateCodes, this);
     },
 
-    // Draw our template from the profile JSON.
     render: function () {
 
       // Set page title
-      this.app.title('');
+      this.app.title('Timeline');
 
-      // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Save refs.
@@ -62,32 +48,26 @@ define([
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .splash-button': 'signin',
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
       this.undelegateEvents();
       this.stopListening();
-      this.remove();
+      this.empty();
     },
 
     signin: function (e) {
       e.preventDefault();
-
-      // Render the signin view.
       mps.publish('modal/signin/open');
     },
 

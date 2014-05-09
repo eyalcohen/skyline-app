@@ -505,7 +505,7 @@ define([
 
   var minPendingRequests = 8, maxPendingRequests = 16;
 
-  // At cacheSize = 1000000, the Skyline tab in Chrome uses about 350MB.
+  // At cacheSize = 1000000, the app tab in Chrome uses about 350MB.
   var minCacheSize = 750000, maxCacheSize = 1000000;
   var entryCacheCost = 10;
 

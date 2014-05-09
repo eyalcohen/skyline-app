@@ -1,16 +1,16 @@
 doctype html
 html(lang="en")
   head
-    meta(property="og:site_name", content="Skyline")
+    meta(property="og:site_name", content="Timeline")
     meta(property="fb:app_id", content="")
     - if (typeof key !== 'undefined')
       meta(property="og:url", content="http://www.skyline.io/#{key}")
     - else
       meta(property="og:url", content="http://www.skyline.io")
     - if (typeof title !== 'undefined')
-      meta(property="og:title", content="Skyline | #{title}")
+      meta(property="og:title", content="Timeline | #{title}")
     - else
-      meta(property="og:title", content="Skyline | ")
+      meta(property="og:title", content="Timeline | ")
     - if (typeof body !== 'undefined')
       meta(property="og:description", content="#{body}")
     - else
@@ -18,7 +18,7 @@ html(lang="en")
     - if (typeof title !== 'undefined')
       title= title
     - else
-      title Skyline
+      title Timeline
     meta(name="description", content="")
     meta(name="keywords", content="")
     meta(name="author", content="")

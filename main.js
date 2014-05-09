@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * main.js: Entry point for the Skyline app.
+ * main.js: Entry point for the Timeline app.
  *
  */
 

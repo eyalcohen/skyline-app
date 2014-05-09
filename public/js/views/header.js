@@ -17,11 +17,7 @@ define([
     working: false,
 
     initialize: function (app) {
-
-      // Save app reference.
       this.app = app;
-
-      // Client-wide subscriptions
       this.subscriptions = [];
     },
 
@@ -37,21 +33,14 @@ define([
       // Check if user just logged in.
       if (login && this.app.profile.user) {
         this.$('.signin-button').remove();
-
-        // UnderscoreJS rendering.
         $(_.template(box).call(this)).prependTo(this.$el);
       }
 
-      // Done rendering ... trigger setup.
       this.setup();
-
       return this;
     },
 
-    // Misc. setup.    
     setup: function () {
-
-      // Shell event.
       this.delegateEvents();
 
       // Start search choices.
@@ -66,9 +55,7 @@ define([
         });
     },
 
-    // Bind mouse events.
     events: {
-      'click .header-logo': 'home',
       'click .follow-button': 'follow',
       'click .unfollow-button': 'unfollow',
       'click .signin-button': 'signin',
@@ -76,24 +63,13 @@ define([
       'click .navigate': 'navigate'
     },
 
-    home: function (e) {
-      e.preventDefault();
-
-      // Route to home.
-      this.app.router.navigate('/', {trigger: true});
-    },
-
     signin: function (e) {
       e.preventDefault();
-
-      // Render the signin view.
       mps.publish('modal/signin/open');
     },
 
     add: function (e) {
       e.preventDefault();
-
-      // Render the finder view.
       mps.publish('modal/finder/open');
     },
 

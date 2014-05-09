@@ -217,17 +217,18 @@ define([
 
     dashboard: function () {
       this.start();
-      $('.container').removeClass('wide');
       var query = {actions: this.getEventActions()};
       this.render('/service/dashboard.profile', query, _.bind(function (err) {
         if (err) return;
         if (this.app.profile.user) {
+          $('.container').removeClass('wide').removeClass('landing');
           this.page = new Dashboard(this.app).render();
           this.renderTabs({tabs: [
             {title: 'Activity', href: '/', active: true},
             {title: 'Notifications', href: '/notifications'}
           ]});
         } else {
+          $('.container').addClass('wide').addClass('landing');
           this.page = new Splash(this.app).render();
         }
         this.stop();
@@ -236,7 +237,7 @@ define([
 
     reset: function () {
       this.start();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Reset(this.app).render();
@@ -248,7 +249,7 @@ define([
     profile: function (username) {
       this.start();
       this.renderTabs();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       var query = {actions: this.getEventActions()};
       this.render('/service/user.profile/' + username, query,
           _.bind(function (err) {
@@ -261,7 +262,7 @@ define([
 
     notifications: function () {
       this.start();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/notifications.profile', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Notifications(this.app).render();
@@ -275,7 +276,7 @@ define([
 
     settings: function () {
       this.start();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/settings.profile', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
@@ -286,7 +287,7 @@ define([
 
     about: function () {
       this.start();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
@@ -298,7 +299,7 @@ define([
 
     contact: function () {
       this.start();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
@@ -310,7 +311,7 @@ define([
 
     privacy: function () {
       this.start();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
@@ -322,7 +323,7 @@ define([
 
     terms: function () {
       this.start();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/static.profile', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
@@ -341,7 +342,7 @@ define([
       }
       this.start();
       this.renderTabs();
-      $('.container').addClass('wide');
+      $('.container').addClass('wide').removeClass('landing');
       var state = {};
       var path = window.location.pathname.toLowerCase();
       if (!slug || path.indexOf('/views/') !== -1) {
@@ -374,7 +375,7 @@ define([
 
     default: function () {
       this.renderTabs();
-      $('.container').removeClass('wide');
+      $('.container').removeClass('wide').removeClass('landing');
       this.render(_.bind(function (err) {
         if (err) return;
         this.stop();

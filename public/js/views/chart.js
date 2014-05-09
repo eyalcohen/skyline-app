@@ -90,7 +90,7 @@ define([
       // Set page title.
       if (!this.app.embed) {
         var target = this.target();
-        this.app.title('Skyline | ' + target.doc.author.username + '/'
+        this.app.title('Timeline | ' + target.doc.author.username + '/'
             + (target.doc.name || target.doc.title));
       }
 

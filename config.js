@@ -14,7 +14,7 @@ exports.get = function (env) {
           realm: null
         },
         facebook: {
-          name: 'Skyline',
+          name: 'Timeline',
           clientID: 533526143400722,
           clientSecret: '9147a4bee3391b0307add85e1cb959e7'
         },
@@ -30,7 +30,7 @@ exports.get = function (env) {
           password: 'w0lfpackm0d3',
           host: 'smtp.gmail.com',
           ssl: true,
-          from: 'Skyline <robot@grr.io>',
+          from: 'Timeline <robot@grr.io>',
         }
       }:
       {
@@ -42,7 +42,7 @@ exports.get = function (env) {
           realm: null
         },
         facebook: {
-          name: 'Skyline (dev)',
+          name: 'Timeline (dev)',
           clientID: 248099122008971,
           clientSecret: '8f534bc1ec6504dd640fa7ac663a9529'
         },
@@ -58,7 +58,7 @@ exports.get = function (env) {
           password: 'w0lfpackm0d3',
           host: 'smtp.gmail.com',
           ssl: true,
-          from: 'Skyline <robot@grr.io>',
+          from: 'Timeline <robot@grr.io>',
         }
       };
 }

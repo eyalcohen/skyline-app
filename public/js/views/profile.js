@@ -40,7 +40,7 @@ define([
       this.$el.html(this.template.call(this));
 
       // Set page title
-      var doctitle = 'Skyline | ' + this.model.get('displayName');
+      var doctitle = 'Timeline | ' + this.model.get('displayName');
       doctitle += ' (@' + this.model.get('username') + ')';
       this.app.title(doctitle);
 

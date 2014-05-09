@@ -19,12 +19,9 @@ define([
 
     initialize: function (app) {
       this.app = app;
-
-      // Shell events.
-      this.on('rendered', this.setup, this);
-
-      // Client-wide subscriptions.
       this.subscriptions = [];
+
+      this.on('rendered', this.setup, this);      
     },
 
     render: function () {
@@ -36,7 +33,6 @@ define([
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
-      // Trigger setup.
       this.trigger('rendered');
 
       return this;
@@ -70,7 +66,7 @@ define([
     },
 
     title: function () {
-      this.app.title('Skyline | ' + this.app.profile.user.displayName
+      this.app.title('Timeline | ' + this.app.profile.user.displayName
           + ' - Notifications');
     }
 
