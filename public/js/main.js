@@ -12,7 +12,6 @@ require.config({
     Underscore: 'lib/underscore/underscore.src',
     UnderscoreString: 'lib/underscore/underscore.string.src',
     Backbone: 'lib/backbone/backbone',
-    Modernizr: 'lib/modernizr/modernizr.src',
     mps: 'lib/minpubsub/minpubsub',
     Spin: 'lib/spin/spin',
     excanvas: 'lib/excanvas/excanvas.src',
@@ -32,9 +31,6 @@ require.config({
     Backbone: {
       deps: ['jQuery', 'Underscore'],
       exports: 'Backbone'
-    },
-    Modernizr: {
-      exports: 'Modernizr'
     },
     mps: {
       deps: ['jQuery', 'Underscore'],

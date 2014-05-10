@@ -6,11 +6,10 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'Modernizr',
   'mps',
   'util',
   'text!../../templates/linestyle.html',
-], function ($, _, Backbone, Modernizr, mps, util, template) {
+], function ($, _, Backbone, mps, util, template) {
 
   return Backbone.View.extend({
 

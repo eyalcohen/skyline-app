@@ -11,45 +11,32 @@ define([
   'util',
   'text!../../templates/reset.html'
 ], function ($, _, Backbone, mps, rest, util, template) {
-
   return Backbone.View.extend({
-    
-    // The DOM target element for this page:
+
     el: '.main',
 
-    // Module entry point:
     initialize: function (app) {
-      
-      // Save app reference.
       this.app = app;
-      
-      // Shell events:
       this.on('rendered', this.setup, this);
     },
 
-    // Draw our template from the profile JSON.
     render: function () {
 
       // Set page title
       this.app.title('Password Reset');
 
-      // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .reset-button': 'reset',
       'click .forgot-password': 'forgot',
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Save refs.
@@ -79,14 +66,11 @@ define([
       });
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -164,8 +148,6 @@ define([
 
     forgot: function (e) {
       e.preventDefault();
-
-      // Render the modal view.
       mps.publish('modal/forgot/open');
     },
 

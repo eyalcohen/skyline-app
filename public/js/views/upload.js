@@ -7,23 +7,19 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'Modernizr',
   'mps',
   'rest',
   'util',
   'Spin',
   'text!../../templates/upload.html'
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template, upload_template) {
-
+], function ($, _, Backbone, mps, rest, util, Spin, template, upload_template) {
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
     className: 'upload',
     dragging: false,
     working: false,
     files: null,
 
-    // Module entry point.
     initialize: function (app, options) {
 
       // Save app reference.
@@ -37,17 +33,12 @@ define([
       this.timecolGuess = options.timecolGuess;
       this.cbUpload = options.cbUpload;
 
-      // Client-wide subscriptions
       this.subscriptions = [];
-
-      // Shell events.
       this.on('rendered', this.setup, this);
     },
 
-    // Draw the template
     render: function () {
 
-      // UnderscoreJS rendering.
       this.template = _.template(template, this.options);
       this.$el.html(this.template);
 
@@ -62,17 +53,10 @@ define([
         closeClick: true
       });
 
-      // Add placeholder shim if need to.
-      if (Modernizr.input.placeholder)
-        this.$('input').placeholder();
-
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .modal-close': 'close',
       'change input[name="data_file"]': 'update',
@@ -81,7 +65,6 @@ define([
       'change select[name="timecol"]': 'timeColChange'
     },
 
-    // Misc. setup.
     setup: function () {
 
       this.uploadForm = $('.upload form');
@@ -122,22 +105,17 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
       this.undelegateEvents();
       this.stopListening();
-      if (this.datasets)
-        this.datasets.destroy();
       this.empty();
     },
 

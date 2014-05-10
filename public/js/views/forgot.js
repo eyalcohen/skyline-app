@@ -6,37 +6,25 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
-  'Modernizr',
   'mps',
   'rest',
   'util',
   'Spin',
   'text!../../templates/forgot.html'
-], function ($, _, Backbone, Modernizr, mps, rest, util, Spin, template) {
-
+], function ($, _, Backbone, mps, rest, util, Spin, template) {
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
     className: 'forgot',
     working: false,
 
-    // Module entry point.
     initialize: function (app) {
-      
-      // Save app reference.
       this.app = app;
-
-      // Client-wide subscriptions
       this.subscriptions = [];
-
-      // Shell events.
       this.on('rendered', this.setup, this);
     },
 
-    // Draw the template
     render: function () {
 
-      // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
@@ -49,24 +37,16 @@ define([
         modal: true
       });
 
-      // Add placeholder shim if need to.
-      if (Modernizr.input.placeholder)
-        this.$('input').placeholder();
-
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .modal-close': 'close',
       'click .forgot-form input[type="submit"]': 'send',
       'keyup input[name="email"]': 'update',
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Save refs.
@@ -104,14 +84,11 @@ define([
       });
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -217,7 +194,6 @@ define([
 
         // Ready for more.
         this.working = false;
-
       }, this));
 
       return false;
