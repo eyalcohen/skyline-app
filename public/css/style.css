@@ -2844,6 +2844,7 @@ p.event-description {
 
 .event-comments span.empty-list {
   margin: 10px 0 0 0;
+  width: 409px;
 }
 
 .event-comment {

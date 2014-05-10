@@ -1,5 +1,5 @@
 <%
-  var own = !this.parentView.model || this.parentView.model.id === this.app.profile.user.id;
+  var own = !this.parentView.model || (this.app.profile.user && this.parentView.model.id === this.app.profile.user.id);
   var owner = own ? 'Your': this.parentView.model.get('displayName') + '\'s';
 %>
 

@@ -154,6 +154,7 @@ define([
       rest.post('/api/comments/list', {
         skip: this.collection.length,
         limit: limit,
+        type: this.type,
         parent_id: this.parentView.model.id,
       }, _.bind(function (err, data) {
         if (err) return console.log(err);
