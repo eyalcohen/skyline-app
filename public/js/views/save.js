@@ -251,10 +251,11 @@ define([
     checkPrivate: function (e) {
       if (this.privateButton.hasClass('disabled')) return;
       var span = $('span', this.privateButton.parent());
-      if (this.privateButton.is(':checked'))
+      if (this.privateButton.is(':checked')) {
         span.html('<i class="icon-lock"></i> Private');
-      else
+      } else {
         span.html('<i class="icon-lock-open"></i> Public');
+      }
     },
 
   });

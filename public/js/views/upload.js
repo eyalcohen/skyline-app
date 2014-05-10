@@ -124,6 +124,7 @@ define([
     },
 
     resize: function () {
+
     },
 
     // Update new file input value
@@ -185,8 +186,7 @@ define([
             .removeClass('loading')
             .prop('disabled', false);
           $('.modal-error').text(err);
-        }
-        else {
+        } else {
 
           // Show alert
           _.delay(function() {
@@ -209,10 +209,11 @@ define([
     checkPrivate: function (e) {
       var privacy = $('input[name="private"]', this.uploadForm);
       var span = $('span', privacy.parent());
-      if (privacy.is(':checked'))
+      if (privacy.is(':checked')) {
         span.html('<i class="icon-lock"></i> Private');
-      else
+      } else {
         span.html('<i class="icon-lock-open"></i> Public');
+      }
     },
 
     timeColChange: function(e) {
