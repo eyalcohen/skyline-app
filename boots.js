@@ -32,16 +32,7 @@ exports.start = function (opts, cb) {
   Step(
     function () {
       if (!opts.redis) return this();
-
-      // Redis connect
-      if (c.REDIS_PASS) {
-        var rc = redis.createClient(c.REDIS_PORT, c.REDIS_HOST);
-        rc.auth(c.REDIS_PASS, _.bind(function (err) {
-          this(err, rc);
-        }, this));
-      } else
-        this(null, redis.createClient(c.REDIS_PORT, c.REDIS_HOST));
-
+      this(null, redis.createClient(c.REDIS_PORT, c.REDIS_HOST));
     },
     function (err, rc) {
       error(err);
@@ -71,6 +62,5 @@ exports.start = function (opts, cb) {
         }
       );
     }
-
   );
 }

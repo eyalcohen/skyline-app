@@ -32,24 +32,24 @@ boots.start(function (client) {
       // db.Users.remove({}, this.parallel());
       db.Streams.remove({}, this.parallel());
       db.Producers.remove({}, this.parallel());
-      db.Datasets.remove({}, this.parallel());
-      db.Views.remove({}, this.parallel());
-      db.Comments.remove({}, this.parallel());
-      db.Keys.remove({}, this.parallel());
-      db.Events.remove({}, this.parallel());
-      db.Notifications.remove({}, this.parallel());
-      db.Subscriptions.remove({}, this.parallel());
-      db.Channels.remove({}, this.parallel());
+      // db.Datasets.remove({}, this.parallel());
+      // db.Views.remove({}, this.parallel());
+      // db.Comments.remove({}, this.parallel());
+      // db.Keys.remove({}, this.parallel());
+      // db.Events.remove({}, this.parallel());
+      // db.Notifications.remove({}, this.parallel());
+      // db.Subscriptions.remove({}, this.parallel());
+      // db.Channels.remove({}, this.parallel());
  
-      // Remove docs from real sample collections.
-      _.each(client.samples.realCollections, _.bind(function (col) {
-        col.remove({}, this.parallel());
-      }, this));
+      // // Remove docs from real sample collections.
+      // _.each(client.samples.realCollections, _.bind(function (col) {
+      //   col.remove({}, this.parallel());
+      // }, this));
  
-      // Remove docs from synthetic sample collections.
-      _.each(client.samples.syntheticCollections, _.bind(function (col) {
-        col.remove({}, this.parallel());
-      }, this));
+      // // Remove docs from synthetic sample collections.
+      // _.each(client.samples.syntheticCollections, _.bind(function (col) {
+      //   col.remove({}, this.parallel());
+      // }, this));
  
     },
     function (err) {
