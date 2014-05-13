@@ -74,11 +74,6 @@ define([
       this.route('', 'dashboard', this.dashboard);
       this.route('_blank', 'blank', function(){});
 
-      // Fullfill navigation request from mps.
-      mps.subscribe('navigate', _.bind(function (path) {
-        this.navigate(path, {trigger: true});
-      }, this));
-
       // Show the signin modal.
       mps.subscribe('modal/signin/open', _.bind(function () {
         this.signin = new Signin(this.app).render();

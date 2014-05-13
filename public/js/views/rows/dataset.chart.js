@@ -84,6 +84,7 @@ define([
       if (this.parentView.collection.indexOf(this.model) === 0) {
         this.model.set('leader', true);
         this.$el.addClass('leader');
+        this.$('.dataset-control-remove').remove();
       }
     },
 

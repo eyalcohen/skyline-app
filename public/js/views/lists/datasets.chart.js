@@ -37,9 +37,6 @@ define([
         mps.subscribe('channel/removed', _.bind(this.channelRemoved, this)),
       ];
 
-      // Socket subscriptions
-      //
-
       // Reset the collection.
       var items = this.app.profile.content.datasets ?
           this.app.profile.content.datasets.items: [];

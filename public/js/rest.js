@@ -15,7 +15,6 @@ define([
         data = null;
       }
       cb = cb || function(){};
-
       var params = {
         url: url,
         type: type,
@@ -32,24 +31,25 @@ define([
               content: err.content,
               explain: err.explain
             };
-            if (data) err.data = data;
           } catch (e) { err = res.status + ' - "' + res.statusText + '"'; }
           cb(err);
         },
         contentType: 'application/json', 
         dataType: 'json'
       };
-      if (data)
-        if (type === 'POST')
+      if (data) {
+        if (type === 'POST') {
           params.data = JSON.stringify(data);
-        else {
+        } else {
           params.url += '?';
           _.each(data, function (v, k) {
-            if (params.url[params.url.length - 1] !== '?')
+            if (params.url[params.url.length - 1] !== '?') {
               params.url += '&';
+            }
             params.url += k + '=' + encodeURIComponent(JSON.stringify(v));
           });
         }
+      }
       return $.ajax(params);
     },
 
