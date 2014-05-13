@@ -1,0 +1,149 @@
+package event;
+option java_package = "com.ridemission.events";
+option java_outer_classname = "ProtoBuf";
+
+
+// Describes the schema of a channel.
+message Schema {
+  enum Type {
+    FLOAT = 1;
+    INT = 2;
+    STRING = 3;  // UTF-8 string.
+    BYTES = 4;  // Binary blob.
+    BOOL = 5;
+    ENUM = 6;  // Provided as an integer.
+    BITFIELD = 7;  // Provided as an integer.
+    // OBJECT = 9;  // Not yet implemented.
+
+    // NOTE: VOID isn't valid at all given the current server data
+    // representation.  If there's really some reason for VOID samples, we
+    // should discuss it. <- kevinh, sent email with use case adding back for
+    // now (for now I'll change server to ignore if needed)
+    VOID = 8;   // No data included
+  }
+
+  required string channel_name = 1;  // e.g. 'bms/3/cellVoltage[3]'
+  optional int32 channel_number = 9;  // Sets sort order.
+  optional string human_name = 2;  // e.g. "BMS 3, Voltage of cell 3"
+  optional string description = 3;  // e.g. "This is the voltage of ..."
+  optional string units = 4;  // e.g. "V" or "m/s^2"
+  required Type type = 5;  // value type, as described above.
+  repeated EnumDescription enum_vals = 6;  // possible enum values.
+  repeated EnumDescription bitfield_bits = 8;  // bitfield bit meanings.
+  required bool merge = 7;
+}
+
+message EnumDescription {
+  required int64 value = 1;
+  required string name = 2;
+}
+
+
+// Describes a single sample.
+// Note that begin and duration are delta-encoded relative to the previous
+// sample.  For the first sample, they're delta-encoded relative to 0.
+message Sample {
+  // Index into schema array of the schema which describes this sample.
+  required uint32 schema_index = 1;
+  // Begin time of sample, encoded in us since the begin time of the previous
+  // sample.  For the first sample, it's us since the epoch.
+  required int64 begin_delta = 2;
+  // Duration of the sample, encoded in us relative to the duration of the
+  // previous sample.
+  required int64 duration_delta = 3;
+  optional float value_float = 4;  // Value, if type == FLOAT.
+  optional int64 value_int = 5;  // Value, if type == INT, ENUM, BITFIELD.
+  optional string value_string = 6;  // Value, if type == STRING.
+  optional bytes value_bytes = 7;  // Value, if type == BYTES.  Buffer in JS-land.
+  optional bool value_bool = 8;  // Not yet implemented on server
+  // TODO: OBJECTs?
+}
+
+/// Just a sequence of samples - the android client will keep numerous sets of
+/// these.
+message SampleStream {
+  repeated Sample sample = 2;
+}
+
+
+// Do a PUT of this to '/samples' URL to submit samples.
+message WebUploadSamples {
+  required int32 vehicle_id = 1;
+  required string user_id = 2;
+  required string password = 3;
+
+  optional int32 protocol_version = 4; // Current version is 1
+
+  repeated Schema schema = 14;
+  repeated SampleStream sampleStream = 15;
+}
+
+
+//// LEGACY UPLOAD API ////
+
+// The following types are for transition to new API above.  Once everything's
+// been transitioned, they can be deleted.
+
+
+message EventHeader {
+  enum EventType {
+    SENSOR_VALID = 0;   // Starts/stops when a sensor becomes available
+    DRIVE_SESSION = 1;  // Starts/stops when the user begins/stops driving
+    SENSOR_DATA = 2;    // Type sepcific data will be in Event.sensor
+    LOCATION = 3;       // Will include location data
+    ANNOTATION = 4;     // Will include annotation data
+    CAN_EVENT = 5;            // captured CAN data
+  }
+
+  enum SourceType {
+    SENSOR_ACCEL = 0;   // 3axis data will be in Event.sensor
+    SENSOR_GPS = 1;
+    SENSOR_CELLPOS = 2; // Cell tower based position info
+    UNKNOWN = 3;
+    SENSOR_COMPASS = 4;
+    CAN_SOURCE = 5;
+  }
+
+  required uint64 start_time = 1; // msecs since 1970
+  optional uint64 stop_time = 2;
+  required EventType type = 3;
+  optional SourceType source = 4;
+}
+
+message LocationData {
+  optional float speed = 1; // in meter/sec
+  optional double latitude = 2;
+  optional double longitude = 3;
+  optional double altitude = 4; // In meters
+  optional float accuracy = 5; // In meters
+  optional float bearing = 6; // degrees east of true north
+}
+
+message CANPacket {
+  required uint32 id = 1;
+  optional float payloadF = 2; // Payload if it was a float or fixed16
+  optional int32 payloadI = 3; // Payload if it was an int
+  optional bytes raw = 5;  // Unstructured byte data (only used for unknown can data types)
+}
+
+message Event {
+  required EventHeader header = 1;
+  optional LocationData location = 2;
+  repeated float sensor = 3; // variable length sensor data (accelerometer or compass)
+  optional string annotation = 4;
+  optional CANPacket can = 5;
+}
+
+/// Just a sequence of events - the android client will keep numerous sets of these
+message EventStream {
+  repeated Event events = 2;
+}
+
+/// We just do a PUT of this to the '/cycle' URL to submit a set of new data
+message EventWebUpload {
+  required int32 vehicle_id = 1;
+  required string user_id = 2;
+  required string password = 3;
+
+  repeated EventStream events = 16;
+}
