@@ -1,4 +1,4 @@
 #!/bin/zsh
 
-# mongodb://skyliner:time@candidate.12.mongolayer.com:10259/skyline
-mongo --port 10259 --host candidate.12.mongolayer.com --username skyliner --password time skyline
+# mongodb://skyliner:time@candidate.13.mongolayer.com:10265/skyline
+mongo --port 10265 --host candidate.13.mongolayer.com --username skyliner --password time skyline
