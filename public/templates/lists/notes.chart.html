@@ -5,15 +5,21 @@
 <div class="note-wrap note-wrap-new leftsided">
   <div class="comment-input-wrap">
     <% if (user) { %>
-      <div class="comment">
-        <div class="comment-body">
-          <form enctype="multipart/form-data" method="POST" class="comment-input-form">
-            <textarea name="body" class="comment-input" 
-                placeholder="Add a note..."></textarea>
-            <span>Press enter to submit or escape to cancel.</span>
-          </form>
+      <% if (user.role !== 2) { %>
+        <div class="comment">
+          <div class="comment-body">
+            <form enctype="multipart/form-data" method="POST" class="comment-input-form">
+              <textarea name="body" class="comment-input" 
+                  placeholder="Add a note..."></textarea>
+              <span>Press enter to submit or escape to cancel.</span>
+            </form>
+          </div>
         </div>
-      </div>
+      <% } else { %>
+        <div class="invalid-role">
+          Invalid user role.
+        </div>
+      <% } %>
     <% } else if (!this.app.embed) { %>
       <a href="javascript:;" class="comments-signin">
         Sign in to add a note.

@@ -366,15 +366,6 @@ header {
   border-bottom: 1px solid #d0d0d0;
 }
 
-footer {
-  position: fixed;
-  z-index: 7000;
-  background: #2f2f2f;
-  width: 100%;
-  height: 23px;
-  bottom: 0;
-}
-
 form {
   background: none;
 }
@@ -1024,7 +1015,7 @@ body.embed .container {
 
 .content {
   position: relative;
-  margin: 0 auto 63px;
+  margin: 0 auto 80px;
   width: 1088px;
   min-height: 400px;
   padding: 0 30px;
@@ -1099,7 +1090,7 @@ body.embed .folder {
 
 .center {
   min-height: 276px;
-  padding: 60px 80px 60px;
+  padding: 40px 80px 30px;
   color: #404040;
   font-size: 14px;
 }
@@ -1122,6 +1113,10 @@ body.embed .folder {
   margin: 5px 0 20px;
   font-size: 16px;
   line-height: 28px;
+}
+
+.center p:last-child {
+  margin-bottom: 0;
 }
 
 .center h4 {
@@ -1883,14 +1878,22 @@ ul.header-user-menu li a i {
 }
 
 .footer {
-  margin: 0 auto;
-  width: 980px;
+  position: absolute;
+  bottom: -30px;
+  right: 0;
+}
+
+.landing .footer {
+  position: static;
+  margin-bottom: 20px;
+  margin-right: 40px;
+  text-align: right;
 }
 
 .footer ul {
   font-size: 0;
   margin-left: -20px;
-  text-align: center;
+  
 }
 
 .footer ul li {
@@ -1901,13 +1904,7 @@ ul.header-user-menu li a i {
 
 .footer ul li a {
   font-size: 11px;
-  line-height: 24px;
-  color: #c2c2c2;
-  background: none;
-}
-
-.footer ul li a:hover {
-  color: #f2f2f2;
+  color: #808080;
 }
 
 /*.........................................................................*/
@@ -2575,7 +2572,8 @@ a.comment-author {
   text-shadow: 1px 1px 0 rgba(255,255,255,0.7);
 }
 
-a.comments-signin {
+a.comments-signin,
+.invalid-role {
   display: block;
   margin: 0;
   padding: 10px 0;
@@ -3093,6 +3091,69 @@ a.event-channel-delete:hover {
 
 a.event-channel-delete:active {
   top: 2px;
+}
+
+/*.........................................................................*/
+
+.library-dataset-header {
+  position: relative;
+  border-bottom: 1px solid #e6e6e6;
+  margin: 0 -110px 20px;
+  padding: 0 30px 10px;
+}
+
+.library-dataset-info {
+  position: absolute;
+  top: 0;
+  right: 110px;
+  font-size: 12px;
+  color: #666;
+}
+
+.library-dataset-title {
+  font-size: 18px;
+  display: block;
+  font-weight: bold;
+}
+
+.library-dataset-title i {
+  color: #808080;
+}
+
+.library-dataset-title i:before {
+  margin: 0 61px 0 0;
+}
+
+.library-dataset {
+  margin-bottom: 40px;
+}
+
+.library-dataset:last-child {
+  margin-bottom: 0;
+}
+
+.library-dataset p.event-description {
+  width: 928px;
+  margin-bottom: 0;
+  margin-left: 79px;
+  font-size: 16px;
+  line-height: 28px;
+}
+
+.library-dataset .event-tags {
+  display: block;
+}
+
+.library-dataset ul.event-channels {
+  width: 100%;
+}
+
+.library-dataset ul.event-channels li {
+  margin-bottom: 5px;
+}
+
+.library-dataset ul.event-channels li .event-channel-svg {
+  height: 30px;
 }
 
 /*.........................................................................*/

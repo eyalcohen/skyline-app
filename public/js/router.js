@@ -24,6 +24,7 @@ define([
   'views/settings',
   'views/reset',
   'views/profile',
+  'views/library',
   'views/chart',
   'views/static',
   'text!../templates/about.html',
@@ -32,7 +33,7 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    Reset, Profile, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
+    Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -71,6 +72,7 @@ define([
       this.route('contact', 'contact', this.contact);
       this.route('privacy', 'privacy', this.privacy);
       this.route('terms', 'terms', this.terms);
+      this.route('library', 'library', this.library);
       this.route('', 'dashboard', this.dashboard);
       this.route('_blank', 'blank', function(){});
 
@@ -267,6 +269,17 @@ define([
         ]});
         this.stop();
       }, this));
+    },
+
+    library: function () {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/library.profile', {}, _.bind(function (err) {
+        if (err) return;
+        this.page = new Library(this.app).render();
+        this.stop();
+      }, this));
+      this.renderTabs({title: 'Library', subtitle: 'Common datasets'});
     },
 
     settings: function () {

@@ -15,7 +15,7 @@
   <% }, this)); %>
 <% } %>
 <div id="comment_input" class="list-footer">
-  <% if (user) { %>
+  <% if (user && user.role !== 2) { %>
     <div class="event-comment">
       <span class="event-comment-avatar navigate">
         <img src=<%= gravatar %> width="34" height="34" />
