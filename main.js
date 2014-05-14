@@ -86,6 +86,27 @@ if (cluster.isMaster) {
     app.set(k, v);
   });
 
+  // Middle-ware that supplies the raw body for certain MIME types
+  function rawBody(rawMimeTypes) {
+    return function (req, res, next) {
+      if ('GET' == req.method || 'HEAD' == req.method) return next();
+      var mimeType = (req.headers['content-type'] || '').split(';')[0];
+      if (_.contains(rawMimeTypes, mimeType)
+          && (!req.body || _.isEmpty(req.body))) {
+        // req.setEncoding(null);
+        var buf = new Buffer('');
+        req.on('data', function (chunk) { 
+          buf = Buffer.concat([buf, chunk]); });
+        req.on('end', function () {
+          req.rawBody = buf;
+          next();
+        });
+      } else {
+        next();
+      }
+    }
+  }
+
   Step(
     function () {
 
@@ -142,6 +163,7 @@ if (cluster.isMaster) {
       app.set('cookieParser', express.cookieParser(app.get('sessionKey')));
       app.use(express.favicon(__dirname + '/public/img/favicon.ico'));
       app.use(express.logger('dev'));
+      app.use(rawBody(['application/octet-stream', 'application/x-gzip']));
       app.use(express.bodyParser());
       app.use(app.get('cookieParser'));
       app.use(express.session({
