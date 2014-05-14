@@ -42,7 +42,8 @@
     "aws-sdk": "^2.0.0-rc13",
     "xlsjs": "^0.6.17",
     "protobuf": "^0.8.8",
-    "bson": "^0.2.8"
+    "bson": "^0.2.8",
+    "traverse": "^0.6.6"
   },
   "devDependencies": {
     "grunt": "0.4.4",
