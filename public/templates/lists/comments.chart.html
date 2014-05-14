@@ -104,7 +104,7 @@
   <% }, this)); %>
 <% } %>
 <div class="comment-input-wrap list-footer">
-  <% if (this.app.profile.user) { %>
+  <% if (this.app.profile.user && this.app.profile.user.role !== 2) { %>
     <div class="comment">
       <div class="comment-body">
         <form enctype="multipart/form-data" method="POST" class="comment-input-form">

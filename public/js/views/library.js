@@ -1,5 +1,5 @@
 /*
- * Page view for all activity.
+ * Page view for all library datasets.
  */
 
 define([
@@ -8,11 +8,9 @@ define([
   'Backbone',
   'mps',
   'util',
-  'text!../../templates/dashboard.html',
-  'views/lists/events',
-  'views/lists/datasets.sidebar',
-  'views/lists/views.sidebar'
-], function ($, _, Backbone, mps, util, template, Events, Datasets, Views) {
+  'text!../../templates/library.html',
+  'views/lists/datasets.library'
+], function ($, _, Backbone, mps, util, template, Datasets) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -26,7 +24,7 @@ define([
     render: function () {
 
       // Set page title
-      this.title();
+      this.app.title('Timeline | Library');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
@@ -38,9 +36,7 @@ define([
     setup: function () {
 
       // Render lists.
-      this.events = new Events(this.app, {parentView: this, reverse: true});
       this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
-      this.views = new Views(this.app, {parentView: this, reverse: true});
 
       return this;
     },
@@ -54,18 +50,11 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
-      this.events.destroy();
       this.datasets.destroy();
-      this.views.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.empty();
     },
-
-    title: function () {
-      this.app.title('Timeline | ' + this.app.profile.user.displayName
-          + ' - Home');
-    }
 
   });
 });

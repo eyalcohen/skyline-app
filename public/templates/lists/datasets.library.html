@@ -1,0 +1,4 @@
+<div class="list-header"></div>
+<% _.each(this.collection.models, _.bind(function (row) { %>
+  <%= this.row(row) %>
+<% }, this)); %>

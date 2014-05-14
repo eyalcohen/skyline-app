@@ -14,15 +14,17 @@
 <% } %>
 <div class="comment-input-wrap list-footer">
   <% if (user) { %>
-    <div class="comment">
-      <div class="comment-body">
-        <form enctype="multipart/form-data" method="POST" class="comment-input-form">
-          <textarea name="body" class="comment-input" 
-              placeholder="Add a comment..."></textarea>
-          <span>Press enter to comment or escape to close.</span>
-        </form>
+    <% if (user.role !== 2) { %>
+      <div class="comment">
+        <div class="comment-body">
+          <form enctype="multipart/form-data" method="POST" class="comment-input-form">
+            <textarea name="body" class="comment-input" 
+                placeholder="Add a comment..."></textarea>
+            <span>Press enter to comment or escape to close.</span>
+          </form>
+        </div>
       </div>
-    </div>
+    <% } %>
   <% } else if (!this.app.embed) { %>
     <a href="javascript:;" class="comments-signin">
       Sign in to add a comment.
