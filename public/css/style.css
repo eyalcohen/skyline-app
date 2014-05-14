@@ -1090,7 +1090,7 @@ body.embed .folder {
 
 .center {
   min-height: 276px;
-  padding: 40px 80px 30px;
+  padding: 40px 80px 60px;
   color: #404040;
   font-size: 14px;
 }
@@ -3097,17 +3097,25 @@ a.event-channel-delete:active {
 
 .library-dataset-header {
   position: relative;
-  border-bottom: 1px solid #e6e6e6;
-  margin: 0 -110px 20px;
-  padding: 0 30px 10px;
+  margin: 0 -110px 10px;
+  padding: 0 30px;
+}
+
+.library-dataset + .library-dataset .library-dataset-header {
+  border-top: 1px solid #e6e6e6;
+  padding-top: 30px;
 }
 
 .library-dataset-info {
   position: absolute;
-  top: 0;
+  top: 2px;
   right: 110px;
   font-size: 12px;
   color: #666;
+}
+
+.library-dataset + .library-dataset .library-dataset-info {
+  top: 32px;
 }
 
 .library-dataset-title {
