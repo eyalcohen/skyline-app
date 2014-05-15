@@ -40,7 +40,7 @@ define([
       this.notesButton = this.$('.dataset-control-notes');
 
       // Expand / collapse.
-      this.$el.bind('mouseenter', _.bind(function (e) {
+      this.$el.bind('mouseover', _.bind(function (e) {
         if (this.channels)
           this.channels.expand(true);
       }, this));
