@@ -67,7 +67,8 @@ define([
           + this.options.dataset.id;
       var link = window.location.protocol + '//'
           + window.location.host + '/' + path;
-      var embed = '//' + window.location.host + '/embed/' + path;
+      var embed = window.location.protocol + '//' + window.location.host
+                  + '/embed/' + path;
       this.updateCodes({link: link.toLowerCase(), embed: embed.toLowerCase()});
 
       return this;
@@ -99,7 +100,7 @@ define([
       // Link
       this.linkCode.html(data.link);
       this.positionLabelForCode(this.linkCode);
-      
+
       // Embed
       if (this.iframe.length > 0) this.iframe.attr('src', data.embed);
       this.embedCode.html('<iframe width="100%" height="100%" '
