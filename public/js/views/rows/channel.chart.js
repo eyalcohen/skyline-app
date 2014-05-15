@@ -97,13 +97,15 @@ define([
     },
 
     mouseenter: function (e) {
-      if (!this.linestyle && this.$el.hasClass('active')) {
+      if (!this.lineStyleModal && this.$el.hasClass('active')) {
         this.cancelLineStyleTimer = false;
         this.lineStyleTimer = setTimeout(_.bind(function () {
           if (!this.cancelLineStyleTimer) {
             this.options.parentView.lineStyleOpen = true;
-            this.linestyle = new LineStyle(this.app,
-                {parentView: this, channel: this.model}).render();
+            if (!this.lineStyleModal) {
+              this.lineStyleModal = new LineStyle(this.app,
+                  {parentView: this, channel: this.model}).render();
+            }
           }
         }, this), 200);
       }
@@ -231,9 +233,9 @@ define([
       if (over && !$(over).hasClass('channel') && !$(over).hasClass('channel-button'))
         this.options.parentView.collapse();
       this.cancelLineStyleTimer = true;
-      if (this.linestyle)
-        this.linestyle.destroy(_.bind(function () {
-          delete this.linestyle;
+      if (this.lineStyleModal)
+        this.lineStyleModal.destroy(_.bind(function () {
+          delete this.lineStyleModal;
         }, this));
     },
 
