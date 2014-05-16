@@ -39,11 +39,12 @@ define([
       this.background = this.$('.dataset-button-bg', this.button);
       this.notesButton = this.$('.dataset-control-notes');
 
-      // Expand / collapse.
-      this.$el.bind('mouseover', _.bind(function (e) {
+      // Expand on entering the dataset button
+      this.button.bind('mouseenter', _.bind(function (e) {
         if (this.channels)
           this.channels.expand(true);
       }, this));
+      // Collapse only on leaving the whole dataset / channel legend
       this.$el.bind('mouseleave', _.bind(function (e) {
         if (this.channels) this.channels.collapse(e);
       }, this));

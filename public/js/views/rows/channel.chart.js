@@ -86,7 +86,7 @@ define([
     },
 
     events: {
-      'mouseover': 'mouseover',
+      'mouseenter': 'mouseenter',
       'mouseleave': function (e) {
         var over = document.elementFromPoint(e.clientX, e.clientY);
         if (!$(over).hasClass('linestyle-linetype')
@@ -96,8 +96,7 @@ define([
       },
     },
 
-    mouseover: function (e) {
-      if (e) e.stopPropagation();
+    mouseenter: function (e) {
       if (!this.lineStyleModal && this.$el.hasClass('active')) {
         this.cancelLineStyleTimer = false;
         this.lineStyleTimer = setTimeout(_.bind(function () {
@@ -145,7 +144,7 @@ define([
         mps.publish('channel/add', [this.model.get('did'),
             this.model.toJSON()]);
         this.active = true;
-        this.mouseover(e);
+        this.mouseenter(e);
         this.updateYAxisView();
       }
       return false;
