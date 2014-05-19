@@ -41,6 +41,7 @@ Skyline runs in production on [AWS Elastic Beanstalk](http://aws.amazon.com/elas
 ```
 AWSAccessKeyId=<YOUR_IAM_ACCESS_KEY_ID>
 AWSSecretKey=<YOUR_IAM_SECRET_KEY>
+AWSRegion=us-east-1
 ```
 
 ```.aws/skyline.pem``` : (_Used to ```tail``` logs... get this from Sander or Eyal_)
@@ -87,6 +88,9 @@ VPCId=
 Application Healthcheck URL=
 
 [aws:elasticbeanstalk:application:environment]
+AWS_ACCESS_KEY_ID=<YOUR_IAM_ACCESS_KEY_ID>
+AWS_SECRET_KEY=<YOUR_IAM_SECRET_KEY>
+AWS_REGION=us-east-1
 NODE_ENV=production
 
 [aws:elasticbeanstalk:container:nodejs]
