@@ -41,6 +41,7 @@ Skyline runs in production on [AWS Elastic Beanstalk](http://aws.amazon.com/elas
 ```
 AWSAccessKeyId=<YOUR_IAM_ACCESS_KEY_ID>
 AWSSecretKey=<YOUR_IAM_SECRET_KEY>
+AWSRegion=us-east-1
 ```
 
 ```.aws/skyline.pem``` : (_Used to ```tail``` logs... get this from Sander or Eyal_)
