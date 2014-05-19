@@ -87,6 +87,9 @@ VPCId=
 Application Healthcheck URL=
 
 [aws:elasticbeanstalk:application:environment]
+AWS_ACCESS_KEY_ID=<YOUR_IAM_ACCESS_KEY_ID>
+AWS_SECRET_KEY=<YOUR_IAM_SECRET_KEY>
+AWS_REGION=us-east-1
 NODE_ENV=production
 
 [aws:elasticbeanstalk:container:nodejs]

@@ -30,6 +30,7 @@
   <a href="/<%= this.model.get('author').username %>/views/<%= this.model.get('slug') %>"
       class="title-large navigate">
     <%= this.model.formatTitle() %>
+  <img class="event-view-image" src="/api/views/<%= this.model.get('slug') %>/img">
   </a>
 </span>
 <span class="event-timeline-label event-timeline-label-first">

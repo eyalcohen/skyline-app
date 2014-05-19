@@ -2833,6 +2833,10 @@ p.event-description {
   transition: all 0.15s ease-in-out;
 }
 
+.event-view-image {
+  max-width: 100%;
+}
+
 /*.........................................................................*/
 
 .event-comments {
