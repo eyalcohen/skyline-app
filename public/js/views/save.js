@@ -182,7 +182,8 @@ define([
         _.extend(payload, {
           datasets: state.datasets,
           time: state.time,
-          lineStyleOptions: state.lineStyleOptions
+          lineStyleOptions: state.lineStyleOptions,
+          staticImg: $('.flot-base').get(0).toDataURL('image/png')
         });
 
       // Otherwise, we are forking... add parent id.

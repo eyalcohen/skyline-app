@@ -66,7 +66,8 @@ if (cluster.isMaster) {
   _.mixin(require('underscore.string'));
   var Connection = require('./lib/db').Connection;
   var Client = require('./lib/client').Client;
-  var Samples = require('./lib/samples').Samples
+  var Samples = require('./lib/samples').Samples;
+  var Storage = require('./lib/storage');
   var resources = require('./lib/resources');
   var service = require('./lib/service');
   var Mailer = require('./lib/mailer');
@@ -235,6 +236,11 @@ if (cluster.isMaster) {
               // Init resources.
               resources.init(app, this);
             }, this));
+          },
+          function (err) {
+            // Set up the storage class for static content
+            app.set('storage', new Storage());
+            this(err);
           },
           function (err) {
             if (err) return console.error(err);
