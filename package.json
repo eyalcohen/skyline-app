@@ -3,7 +3,7 @@
   "name": "skyline",
   "version": "0.0.109",
   "protocol": "http",
-  "domain": "skyline.elasticbeanstalk.com",
+  "domain": "skyline-data.com",
   "builds": {
     "bucket": "builds-skyline",
     "cloudfront": "https://dq5scpwh6tc71.cloudfront.net"

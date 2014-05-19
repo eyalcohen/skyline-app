@@ -3142,6 +3142,7 @@ a.event-channel-delete:active {
 
 .library-dataset p.event-description {
   width: 928px;
+  margin-top: 10px;
   margin-bottom: 0;
   margin-left: 79px;
   font-size: 16px;
