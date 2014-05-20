@@ -231,6 +231,39 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; margin: 0; }
   }
 }
 
+@-webkit-keyframes MOVE-BG {
+  from {
+    -webkit-transform: translateX(0);
+  }
+  to { 
+    -webkit-transform: translateX(-2400px);
+  }
+}
+/*@-moz-keyframes MOVE-BG {
+  from {
+    -webkit-transform: translateX(0);
+  }
+  to { 
+    -webkit-transform: translateX(-2520px);
+  }
+}
+@-o-keyframes MOVE-BG {
+  from {
+    -webkit-transform: translateX(0);
+  }
+  to { 
+    -webkit-transform: translateX(-2520px);
+  }
+}
+@keyframes MOVE-BG {
+  from {
+    -webkit-transform: translateX(0);
+  }
+  to { 
+    -webkit-transform: translateX(-2520px);
+  }
+}*/
+
 /*.........................................................................*/
 
 html {
@@ -260,6 +293,7 @@ body.preload * {
 
 body.embed {
   overflow: hidden;
+  background: none;
 }
 
 a, a:visited {
@@ -359,11 +393,19 @@ canvas {
 }
 
 header {
+  position: relative;
   width: 100%;
   height: 60px;
   background: #f9f9f9;
   z-index: 2;
   border-bottom: 1px solid #d0d0d0;
+}
+
+.container.landing header {
+  width: 75%;
+  margin: 0 auto;
+  background: none;
+  border: none;
 }
 
 form {
@@ -1037,6 +1079,10 @@ body.embed .container .content {
   border-bottom: none;
 }
 
+body.embed .container .content {
+  border: none;
+}
+
 .container.landing .content {
   border: none;
   background: none;
@@ -1144,9 +1190,33 @@ body.embed .folder {
   border-left: 1px solid #f2f2f2;
 }
 
+.banner {
+  position: relative;
+  top: -61px;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+}
+
+.banner-bg {
+  position: absolute;
+  left: 0;
+  right: -4800px;
+  top: 0;
+  bottom: 0;
+  background: url(../img/ss/banner.png) 0% 0% repeat-x;
+  z-index: -1;
+  border-bottom: 1px solid #d0d0d0;
+    
+  -webkit-animation-name: MOVE-BG;
+  -webkit-animation-duration: 120s;
+  -webkit-animation-timing-function: linear;
+  -webkit-animation-iteration-count: infinite;
+}
+
 .splash {
   width: 1150px;
-  margin: 0 auto;
+  margin: -30px auto 0;
 }
 
 /*.........................................................................*/
@@ -1461,7 +1531,7 @@ img.page-title-avatar {
 .page-spin {
   position: absolute;
   top: 30px;
-  left: 59px;
+  left: 50px;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -1598,6 +1668,7 @@ body.embed .block-messages {
 /*.........................................................................*/
 
 .header {
+  position: relative;
   height: 60px;
   width: 100%;
   white-space: nowrap;
@@ -1607,7 +1678,7 @@ body.embed .block-messages {
   position: relative;
   display: inline-block;
   z-index: 1;
-  width: 68px;
+  width: 59px;
   height: 60px;
   line-height: 60px;
   padding: 0 30px 0 20px;
@@ -1617,6 +1688,11 @@ body.embed .block-messages {
   -moz-user-select: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+.container.landing .header .header-logo {
+  border: none;
+  background: none;
 }
 
 .header .header-logo:hover {
@@ -1656,7 +1732,7 @@ body.loading .header .header-logo a {
 .header .header-logo a span {
   position: absolute;
   top: -19px;
-  left: 65px;
+  left: 56px;
   font-size: 10px;
   color: #808080;
 }
@@ -1686,12 +1762,17 @@ ul.header-navigation li a {
 .header .header-search-inner {
   position: absolute;
   top: 0;
-  left: 118px;
+  left: 109px;
   min-height: 44px;
   padding: 16px 20px 0;
   border: 1px solid #d0d0d0;
   border-top: none;
   background: #f9f9f9;
+}
+
+.container.landing .header .header-search-inner {
+  background: none;
+  border: none;
 }
 
 .header .header-search-inner.active {
@@ -2253,25 +2334,21 @@ a.button.modal-button.full {
 
 /*.........................................................................*/
 
-.splash .page {
-  width: 980px;
-}
-
 .splash h1 {
-  margin-top: 30px;
   text-align: center;
-  font-size: 28px;
+  font-size: 42px;
   font-weight: 700;
-  line-height: 44px;
+  line-height: 72px;
+  font-family: 'Dosis', sans-serif;
   color: #404040;
 }
 
 .splash h2 {
   text-align: center;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 14px;
   font-weight: 400;
-  color: #666;
+  color: #404040;
 }
 
 .splash h3 {
@@ -2282,62 +2359,10 @@ a.button.modal-button.full {
   color: #404040;
 }
 
-.splash-buttons {
-  margin-top: 30px;
-  text-align: center;
-}
-
-a.button.splash-button {
-  font-size: 20px;
-  line-height: 36px;
-}
-
-.splash-buttons-or {
-  padding: 0 30px 0 25px;
-  vertical-align: 3px;
-  color: #8f8f8f;
-}
-
-.splash-try {
-  display: inline-block;
-  vertical-align: -66px;
-}
-
-.splash-try-top {
-  display: block;
-  font-weight: 700;
-  font-size: 20px;
-  color: #27CDD6;
-}
-
-.splash-try-bottom {
-  position: relative;
-  display: block;
-  margin-top: 6px;
-}
-
-.splash-try-bottom i {
-  font-size: 70px;
-  color: #27CDD6;
-}
-
-.splash-try-bottom i:before {
-  margin-bottom: -3px;
-}
-
-.splash-try-bottom span {
-  position: absolute;
-  bottom: 18px;
-  left: 90px;
-  font-size: 14px;
-  color: #8f8f8f;
-  text-align: left;
-  white-space: nowrap;
-}
-
 .splash-section {
-  margin-top: 50px;
-  margin-bottom: 70px;
+  border-top: 1px solid #e2e2e2;
+  margin: 60px 0;
+  padding-top: 50px;
 }
 
 .splash-section + .splash-section {
@@ -2347,52 +2372,49 @@ a.button.splash-button {
 .splash-section-left {
   float: left;
   width: 33%;
-  text-align: center;
+  text-align: left;
 }
 
 .splash-section-right {
   margin-left: 33%;
-  text-align: right;
+  padding-left: 0px;
 }
 
-.splash-section-left img {
-  margin-left: 100px;
+.splash-section h3,
+.splash-section p {
+  max-width: 100%;
+}
+
+.splash-section h3 {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 48px;
+  font-family: 'Dosis', sans-serif;
+  color: #404040;
 }
 
 .splash-section p {
-  font-size: 18px;
-  line-height: 30px;
-  text-align: left;
-  color: #666;
-}
-
-.splash-section-left p {
-  margin-right: 20px;
-}
-
-.splash-section-right p,
-.splash-section-right h3 {
-  margin-left: 20px;
-  max-width: 510px;
+  font-size: 16px;
+  line-height: 28px;
 }
 
 .splash .embed-chart-wrap {
   width: auto;
-  margin: 40px 0 0 0;
+  background: #fff;
 }
 
 .splash .embed-chart {
-  height: 420px;
-  border-style: solid;
-  border-width: 27px;
-  -moz-border-image: url(../img/splash_border.png) 27 repeat;
-  -webkit-border-image: url(../img/splash_border.png) 27 repeat;
-  -o-border-image: url(../img/splash_border.png) 27 repeat;
-  border-image: url(../img/splash_border.png) 27 fill repeat;
-  border-right-color: #f2f2f2;
+  height: 400px;
+  border: 1px solid #e2e2e2;
+  background: #fff;
+
+  -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  -mozbox-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 }
 
 .splash .share-code {
+  display: none;
   margin: 0;
 }
 
@@ -2834,7 +2856,9 @@ p.event-description {
 }
 
 .event-view-image {
+  display: block;
   max-width: 100%;
+  margin-top: 5px;
 }
 
 /*.........................................................................*/

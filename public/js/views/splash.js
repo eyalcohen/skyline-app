@@ -21,13 +21,13 @@ define([
 
       // Attach a ref to 'update' to the window so it can be
       // reached by the iframe source.
-      document.__update = _.bind(this.updateCodes, this);
+      // document.__update = _.bind(this.updateCodes, this);
     },
 
     render: function () {
 
       // Set page title
-      this.app.title('Timeline');
+      this.app.title('Skyline');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
@@ -43,7 +43,7 @@ define([
       this.iframe = this.$('iframe');
 
       // Fill in the codes.
-      this.updateCodes({embed: this.iframe.attr('src').toLowerCase()});
+      // this.updateCodes({embed: this.iframe.attr('src').toLowerCase()});
 
       return this;
     },
