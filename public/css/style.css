@@ -1824,6 +1824,11 @@ ul.header-navigation li a {
   user-select: none;
 }
 
+.container.landing .header-user-box {
+  border: none;
+  background: none;
+}
+
 .header-user {
   display: inline-block;
   position: relative;
@@ -1837,6 +1842,10 @@ ul.header-navigation li a {
   -webkit-transition: all 0.1s ease-in-out;
   -moz-transition: all 0.1s ease-in-out;
   transition: all 0.1s ease-in-out;
+}
+
+.container.landing .header-user {
+  border: none;
 }
 
 .header-user:hover {
