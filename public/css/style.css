@@ -239,12 +239,12 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; margin: 0; }
     -webkit-transform: translateX(-2400px);
   }
 }
-/*@-moz-keyframes MOVE-BG {
+@-moz-keyframes MOVE-BG {
   from {
     -webkit-transform: translateX(0);
   }
   to { 
-    -webkit-transform: translateX(-2520px);
+    -webkit-transform: translateX(-2400px);
   }
 }
 @-o-keyframes MOVE-BG {
@@ -252,7 +252,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; margin: 0; }
     -webkit-transform: translateX(0);
   }
   to { 
-    -webkit-transform: translateX(-2520px);
+    -webkit-transform: translateX(-2400px);
   }
 }
 @keyframes MOVE-BG {
@@ -260,9 +260,9 @@ h1, h2, h3, h4, h5, h6 { font-weight: bold; margin: 0; }
     -webkit-transform: translateX(0);
   }
   to { 
-    -webkit-transform: translateX(-2520px);
+    -webkit-transform: translateX(-2400px);
   }
-}*/
+}
 
 /*.........................................................................*/
 
