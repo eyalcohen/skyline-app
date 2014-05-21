@@ -174,7 +174,7 @@ define([
             this.forgotError.html('Oops, this account was created via ' + provider
                 + '. <a href="/auth/' + err.data.provider
                 + '">Reconnect with ' + provider + '</a>.');
-          } else this.forgotError.text(err.message);
+          } else this.forgotError.text(util.formatError(err));
 
           // Clear fields.
           this.forgotInput.addClass('input-error');

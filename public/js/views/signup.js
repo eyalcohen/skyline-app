@@ -190,7 +190,7 @@ define([
           this.signupButton.removeClass('loading');
 
           // Set the error display.
-          errorMsg.text(err.message);
+          errorMsg.text(err.message + '.');
 
           // Clear fields.
           if (err.message === 'Username exists') {

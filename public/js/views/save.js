@@ -217,7 +217,7 @@ define([
         this.saveDescription.val('');
 
         if (err) {
-          this.saveError.text(err);
+          this.saveError.text(util.formatError(err));
           this.working = false;
           this.saveInput.addClass('input-error');
           this.focus();

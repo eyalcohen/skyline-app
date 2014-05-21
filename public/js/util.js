@@ -490,6 +490,10 @@ define([
         }
       }
       return chunks;
+    },
+
+    formatError: function (err) {
+      return (err.message || 'Server Error') + ' (' + err.code + ')';
     }
 
   }

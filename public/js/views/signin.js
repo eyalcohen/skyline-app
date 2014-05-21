@@ -152,7 +152,7 @@ define([
           this.signinButton.removeClass('loading');
 
           // Set the error display.
-          errorMsg.text(err.message);
+          errorMsg.text(err.message + '.');
 
           // Clear fields.
           this.$('input[type="text"], input[type="password"]').val('')

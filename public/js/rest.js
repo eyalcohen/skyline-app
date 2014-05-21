@@ -25,13 +25,18 @@ define([
             err = JSON.parse(res.responseText);
             var data = err.data;
             err = {
-              message: err.error,
-              code: res.status,
               user: err.user,
               content: err.content,
-              explain: err.explain
+              message: err.error.message,
+              stack: err.error.stack,
+              code: res.status
             };
-          } catch (e) { err = res.status + ' - "' + res.statusText + '"'; }
+            if (data) {
+              err.data = data;
+            }
+          } catch (e) {
+            err = res.status + ' - "' + res.statusText + '"';
+          }
           cb(err);
         },
         contentType: 'application/json', 
