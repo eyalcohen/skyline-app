@@ -10,11 +10,11 @@ exports.get = function (env) {
         REDIS_HOST: 'skyline-cache.i7jw04.0001.use1.cache.amazonaws.com',
         REDIS_PORT: 6379,
         google: {
-          returnURL: '...',
-          realm: null
+          clientID: '920361952341-ac0kgdulmbgtjmg6s6kba9edifi7khkn.apps.googleusercontent.com',
+          clientSecret: 'SauGa6Lo_njd21rIfOvZvvgX'
         },
         facebook: {
-          name: 'Timeline',
+          name: 'Skyline',
           clientID: 533526143400722,
           clientSecret: '9147a4bee3391b0307add85e1cb959e7'
         },
@@ -26,11 +26,11 @@ exports.get = function (env) {
           snapshots: 'https://d3jyblv3lavppq.cloudfront.net'
         },
         gmail: {
-          user: 'robot@grr.io',
-          password: 'w0lfpackm0d3',
+          user: 'notifications@skyline-data.com',
+          password: 'Sk7L1n3ema1l',
           host: 'smtp.gmail.com',
           ssl: true,
-          from: 'Timeline <robot@grr.io>',
+          from: 'Skyline <notifications@skyline-data.com>'
         }
       }:
       {
@@ -38,11 +38,11 @@ exports.get = function (env) {
         REDIS_HOST: 'localhost',
         REDIS_PORT: 6379,
         google: {
-          returnURL: '...',
-          realm: null
+          clientID: '920361952341-iaoeoemjcub4ajsgf0aj2rk4jv48glp8.apps.googleusercontent.com',
+          clientSecret: 'dzOHPLstyzkDQqvQm89vluzU'
         },
         facebook: {
-          name: 'Timeline (dev)',
+          name: 'Skyline (dev)',
           clientID: 248099122008971,
           clientSecret: '8f534bc1ec6504dd640fa7ac663a9529'
         },
@@ -54,11 +54,11 @@ exports.get = function (env) {
           snapshots: 'https://d3jyblv3lavppq.cloudfront.net'
         },
         gmail: {
-          user: 'robot@grr.io',
-          password: 'w0lfpackm0d3',
+          user: 'notifications@skyline-data.com',
+          password: 'Sk7L1n3ema1l',
           host: 'smtp.gmail.com',
           ssl: true,
-          from: 'Timeline <robot@grr.io>',
+          from: 'Skyline <notifications@skyline-data.com>'
         }
       };
 }
