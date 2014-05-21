@@ -1,5 +1,5 @@
 /*
- * Timeline application.
+ * Skyline application.
  */
 
 define([

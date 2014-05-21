@@ -24,7 +24,7 @@ define([
     render: function () {
 
       // Set page title
-      this.app.title('Timeline | Library');
+      this.app.title('Skyline | Library');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this));

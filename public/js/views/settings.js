@@ -30,7 +30,7 @@ define([
       this.model = new Profile(this.app.profile.content.page);
 
       // Set page title
-      this.app.title('Timeline | ' + this.app.profile.user.displayName + ' - Settings');
+      this.app.title('Skyline | ' + this.app.profile.user.displayName + ' - Settings');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this));

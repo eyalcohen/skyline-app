@@ -66,7 +66,7 @@ define([
     },
 
     title: function () {
-      this.app.title('Timeline | ' + this.app.profile.user.displayName
+      this.app.title('Skyline | ' + this.app.profile.user.displayName
           + ' - Notifications');
     }
 
