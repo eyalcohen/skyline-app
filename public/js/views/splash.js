@@ -48,9 +48,7 @@ define([
       return this;
     },
 
-    events: {
-      'click .splash-button': 'signin',
-    },
+    events: {},
 
     empty: function () {
       this.$el.empty();
@@ -64,11 +62,6 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.empty();
-    },
-
-    signin: function (e) {
-      e.preventDefault();
-      mps.publish('modal/signin/open');
     },
 
     updateCodes: function (data) {

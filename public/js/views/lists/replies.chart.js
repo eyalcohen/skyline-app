@@ -63,7 +63,7 @@ define([
     },
 
     events: {
-      'click .comments-signin': 'signin',
+      'click .navigate': 'navigate',
       'click .comments-older': 'older',
     },
 
@@ -184,12 +184,15 @@ define([
 
     },
 
-    signin: function (e) {
+    navigate: function (e) {
       e.preventDefault();
 
-      // Render the signin view.
-      mps.publish('modal/signin/open');
-    }
+      // Route to wherever.
+      var path = $(e.target).closest('a').attr('href');
+      if (path) {
+        this.app.router.navigate(path, {trigger: true});
+      }
+    },
 
   });
 });

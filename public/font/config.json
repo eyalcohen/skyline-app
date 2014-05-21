@@ -139,6 +139,12 @@
       "src": "entypo"
     },
     {
+      "uid": "bcb868184ff9c35f8aef564f50c0d649",
+      "css": "feather",
+      "code": 59438,
+      "src": "entypo"
+    },
+    {
       "uid": "bc64550dd022ce21604f97309b346cea",
       "css": "cog",
       "code": 59421,
@@ -151,6 +157,12 @@
       "src": "entypo"
     },
     {
+      "uid": "a204f0fa972408eaae5a363c444991b2",
+      "css": "login",
+      "code": 59436,
+      "src": "entypo"
+    },
+    {
       "uid": "2d76f2c8d13be40694ecadfea7fb83c3",
       "css": "logout",
       "code": 59392,
@@ -160,6 +172,12 @@
       "uid": "8663320a860b00f26e94d3d15c9ba99a",
       "css": "clock",
       "code": 59430,
+      "src": "entypo"
+    },
+    {
+      "uid": "004882ab2d5c418c5b2060e80596279b",
+      "css": "right-open-big",
+      "code": 59437,
       "src": "entypo"
     },
     {

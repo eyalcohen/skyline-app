@@ -12,6 +12,7 @@ define([
   'Spin',
   'views/error',
   'views/signin',
+  'views/signup',
   'views/forgot',
   'views/lists/flashes',
   'views/save',
@@ -31,7 +32,7 @@ define([
   'text!../templates/contact.html',
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
-], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Forgot,
+], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
     Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
 
@@ -45,7 +46,7 @@ define([
 
       // Clear stuff that comes back from facebook.
       if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
-        if (window.location.hash.length === 0) {
+        if (window.location.hash.length === 0 || window.location.hash === '#_=_') {
           try {
             window.history.replaceState('', '', window.location.pathname
                 + window.location.search);
@@ -73,13 +74,9 @@ define([
       this.route('privacy', 'privacy', this.privacy);
       this.route('terms', 'terms', this.terms);
       this.route('library', 'library', this.library);
+      this.route('signin', 'signin', this.signin);
+      this.route('signup', 'signup', this.signup);
       this.route('', 'dashboard', this.dashboard);
-      this.route('_blank', 'blank', function(){});
-
-      // Show the signin modal.
-      mps.subscribe('modal/signin/open', _.bind(function () {
-        this.signin = new Signin(this.app).render();
-      }, this));
 
       // Show the browser modal.
       mps.subscribe('modal/finder/open', _.bind(function (lib) {
@@ -280,6 +277,28 @@ define([
         this.stop();
       }, this));
       this.renderTabs({title: 'Library', subtitle: 'Common datasets'});
+    },
+
+    signin: function () {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render(_.bind(function (err) {
+        if (err) return;
+        this.page = new Signin(this.app).render();
+        this.stop();
+      }, this));
+      this.renderTabs({title: 'Log In', subtitle: 'Welcome back'});
+    },
+
+    signup: function () {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render(_.bind(function (err) {
+        if (err) return;
+        this.page = new Signup(this.app).render();
+        this.stop();
+      }, this));
+      this.renderTabs({title: 'Sign Up', subtitle: 'It\'s free'});
     },
 
     settings: function () {

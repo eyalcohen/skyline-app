@@ -22,7 +22,6 @@ define([
 
     render: function () {
 
-      // Set page title
       this.app.title('Password Reset');
 
       this.template = _.template(template);

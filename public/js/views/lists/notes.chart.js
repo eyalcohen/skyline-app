@@ -153,9 +153,8 @@ define([
       return List.prototype.setup.call(this);
     },
 
-    // Bind mouse events.
     events: {
-      'click .comments-signin': 'signin',
+      'click .navigate': 'navigate',
     },
 
     // Collect new notes from socket events.
@@ -198,7 +197,6 @@ define([
       }
     },
 
-    // Empty this view.
     empty: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -362,12 +360,15 @@ define([
       }
     },
 
-    signin: function (e) {
+    navigate: function (e) {
       e.preventDefault();
 
-      // Render the signin view.
-      mps.publish('modal/signin/open');
-    }
+      // Route to wherever.
+      var path = $(e.target).closest('a').attr('href');
+      if (path) {
+        this.app.router.navigate(path, {trigger: true});
+      }
+    },
 
   });
 });

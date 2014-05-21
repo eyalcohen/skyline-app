@@ -73,7 +73,6 @@ define([
 
     // Bind mouse events.
     events: {
-      'click .event-comments-signin': 'signin',
       'click .event-comments-older': 'older',
     },
 
@@ -176,13 +175,6 @@ define([
       }, this));
 
     },
-
-    signin: function (e) {
-      e.preventDefault();
-
-      // Render the signin view.
-      mps.publish('modal/signin/open');
-    }
 
   });
 });

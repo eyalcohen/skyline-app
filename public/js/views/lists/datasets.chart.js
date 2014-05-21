@@ -157,8 +157,15 @@ define([
 
     channelAdded: function (did, channel) {
       var state = store.get('state');
-      if (!state.datasets[did].channels)
+      if (!state.datasets) {
+        state.datasets = {};
+      }
+      if (!state.datasets[did]) {
+        state.datasets[did] = {};
+      }
+      if (!state.datasets[did].channels) {
         state.datasets[did].channels = {};
+      }
       if (!state.datasets[did].channels[channel.channelName]) {
         state.datasets[did].channels[channel.channelName] = channel;
         this.app.state(state);

@@ -58,14 +58,8 @@ define([
     events: {
       'click .follow-button': 'follow',
       'click .unfollow-button': 'unfollow',
-      'click .signin-button': 'signin',
       'click .add-data-button': 'add',
       'click .navigate': 'navigate'
-    },
-
-    signin: function (e) {
-      e.preventDefault();
-      mps.publish('modal/signin/open');
     },
 
     add: function (e) {

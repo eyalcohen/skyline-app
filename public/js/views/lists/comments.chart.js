@@ -94,7 +94,6 @@ define([
     // Bind mouse events.
     events: {
       'click .navigate': 'navigate',
-      'click .comments-signin': 'signin',
       'click .comments-older': 'older',
     },
 
@@ -242,13 +241,6 @@ define([
       if (path)
         this.app.router.navigate(path, {trigger: true});
     },
-
-    signin: function (e) {
-      e.preventDefault();
-
-      // Render the signin view.
-      mps.publish('modal/signin/open');
-    }
 
   });
 });

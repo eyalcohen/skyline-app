@@ -7,12 +7,6 @@ block content
       ul
     - if (typeof embed === 'undefined' || !embed)
       header
-        .saved-ghost
-          form(enctype="multipart/form-data", method="POST")
-            input(name="username", type="text")
-            input(name="password", type="password")
-            input(value="_", type="submit")
-          ul
         .header
           - if (typeof user !== 'undefined')
             .header-user-box
@@ -37,7 +31,11 @@ block content
                 i.icon-upload
                 | Upload Data
           - else
-            a.button.signin-button(href="javascript:;") Sign in
+            a.button.blue-button.signup-button(href="/signup", class="navigate")
+              | Sign Up For Free
+              i.icon-right-open-big
+            a.button.signin-button(href="/signin", class="navigate")
+              | Log In
           .header-logo
             a.navigate(href="/")
               | Skyline
