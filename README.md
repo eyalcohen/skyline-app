@@ -132,4 +132,6 @@ $ ./ship.js --push .
 
 Check that your new version of Skyline is running at [```http://skyline.elasticbeanstalk.com```](http://skyline.elasticbeanstalk.com).
 
+Lastly, ```git push``` the version bump auto-commit to avoid conflicts in ```package.json``` and/or overwriting old frontend directory on Amazon S3.
+
 That's it!
