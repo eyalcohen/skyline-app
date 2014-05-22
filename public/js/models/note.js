@@ -13,5 +13,9 @@ define([
       return util.formatText(this.get('body'));
     },
 
+    formatChannelName: function (str) {
+      return _.str.prune(str, 30);
+    }
+
   });
 });
