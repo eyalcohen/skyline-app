@@ -71,7 +71,7 @@ define([
       e.preventDefault();
 
       // Render the finder view.
-      mps.publish('modal/finder/open', [false]);
+      mps.publish('modal/finder/open', [true]);
     },
 
     added: function (d) {

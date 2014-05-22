@@ -13,7 +13,7 @@ define([
 ], function ($, _, mps, rest, Row, template, confirm) {
   return Row.extend({
 
-    tagName: 'tr',
+    tagName: 'div',
 
     attributes: function () {
       var klass = 'profile-dataset';
@@ -38,22 +38,6 @@ define([
 
     events: {
       'click': 'navigate',
-      'click .profile-item-delete': 'delete',
-      'click .profile-channel-wrap': function(e) {
-        this.navigate(e, e.currentTarget.id.split('profile-')[1]);
-      },
-      'mouseenter .main-cell-vis': function(e) {
-        $(e.currentTarget).css('overflow-y', 'auto');
-      },
-      'mouseleave .main-cell-vis': function(e) {
-        $(e.currentTarget).css('overflow-y', 'hidden');
-      },
-      'mouseenter .profile-channel-wrap': function(e) {
-        this.$el.addClass('no-hover');
-      },
-      'mouseleave .profile-channel-wrap': function(e) {
-        this.$el.removeClass('no-hover');
-      }
     },
 
     navigate: function (e, channelName) {

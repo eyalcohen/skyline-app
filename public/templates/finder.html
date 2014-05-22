@@ -1,5 +1,5 @@
 <%
-  var lib = this.options.lib && this.app.profile && this.app.profile.user;
+  var search = this.options.search && this.app.profile && this.app.profile.user;
 %>
 
 <div class="dnd"><i class="icon-inbox-1"></i></div>
@@ -7,70 +7,41 @@
   <i class="icon-cancel"></i>
 </div>
 <span class="modal-title">
-  <% if (lib) { %>
-    Upload new or add existing data
+  <% if (search) { %>
+    Upload new or find existing data
   <% } else { %>
     Upload new data
   <% } %>
 </span>
-<div class="browser-inner modal-inner">
+<div class="modal-inner">
   <div>
     <span class="modal-heading">
-      <% if (lib) { %>
-        Create a new dataset from a file on your computer,
-      <% } else { %>
-        Add data from a file on your computer.
-      <% } %>
+      Add data from a file on your computer.
     </span>
-    <form class="browser-add-form" enctype="multipart/form-data" method="POST">
-      <table>
-        <tbody>
-          <tr>
-            <td colspan="2">
-              <input name="dummy_data_file" type="text" placeholder="Select file..." readonly />
-              <input name="data_file" type="file" class="file-input" />
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <div class="browser-progress-bar">
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <span class="modal-error"></span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </form>
-    <% if (lib) { %>
-      <span class="modal-heading">
-        or use an existing dataset.
-      </span>
-      <table>
-        <tbody>
-          <tr>
-            <td class="main-cell">
-              <input name="search" type="search" placeholder="Search..." style="text-indent:179px;" />
-              <label class="checkbox-styled input-checkbox input-checkbox-split-left">
-                <input class="browser-search-justme" type="checkbox" name="me" value="me" checked />
-                <span><i class="icon-user"></i> Just me</span>
-              </label>
-              <label class="checkbox-styled input-checkbox input-checkbox-split-right" style="left:89px;">
-                <input class="browser-search-allusers" type="checkbox" name="all" value="all" />
-                <span><i class="icon-users"></i> All users</span>
-              </label>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    <% } %>
+    <input name="dummy_data_file" type="text" class="dummy-file-input" placeholder="Select file..." readonly />
+    <input name="data_file" type="file" class="file-input" />
+    <div class="finder-progress-bar"></div>
+    <span class="modal-error"></span>
   </div>
-</div>
-<% if (lib) { %>
-  <div class="browser-datasets">
-    <div class="profile-datasets"></div>
-  </div>  
+</div>          
+<% if (search) { %>
+  <div class="finder-search">
+    <!-- <div class="search-filters">
+      <label class="checkbox-styled input-checkbox input-checkbox-split-left">
+        <input class="search-filter-justme" type="checkbox" name="me" value="me" checked />
+        <span><i class="icon-user"></i> Just me</span>
+      </label>
+      <label class="checkbox-styled input-checkbox input-checkbox-split-right" style="left:87px;">
+        <input class="search-filter-allusers" type="checkbox" name="all" value="all" />
+        <span><i class="icon-users"></i> All users</span>
+      </label>
+    </div> -->
+    <div class="finder-search-inner">
+      <input class="finder-search-input" type="search" placeholder="Search..." />
+      <div class="search-spin"></div>
+      <div class="search-display">
+        <div class="list-header"></div>
+      </div>
+    </div>
+  </div>
 <% } %>

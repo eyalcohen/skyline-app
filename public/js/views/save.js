@@ -67,6 +67,13 @@ define([
       });
       this.privateButton = this.$('.save-private');
 
+      // Close modal.
+      $(document).on('keyup', _.bind(function (e) {
+        if (e.keyCode === 27 || e.which === 27) {
+          this.close();
+        }
+      }, this));
+
       // Handle textarea.
       this.saveDescription.bind('keyup', $.fancybox.reposition).autogrow();
 

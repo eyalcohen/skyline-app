@@ -16,10 +16,7 @@ define([
 ], function ($, _, List, mps, rest, util, template, Collection, Row, Spin) {
   return List.extend({
     
-    el: '.profile-datasets',
-
-    fetching: false,
-    nomore: false,
+    el: '.finder-datasets',
 
     searching: false,
     str: null,
@@ -31,7 +28,9 @@ define([
       this.Row = Row;
       this.modal = options.modal;
       this.options = options;
-      if (!this.options.searchQuery) this.options.searchQuery = {};
+      if (!this.options.searchQuery) {
+        this.options.searchQuery = {};
+      }
 
       // Call super init.
       List.prototype.initialize.call(this, app, options);
@@ -45,15 +44,10 @@ define([
       this.app.rpc.socket.on('dataset.new', _.bind(this.collect, this));
       this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
-      // Misc.
-      this.emptyLabel = 'Nothing to see here.';
-
       // Reset the collection.
-      this.latestList = this.options.datasets;
-      this.collection.reset(this.latestList.items);
+      this.collection.reset(this.options.datasets.items);
     },
 
-    // Initial bulk render of list
     render: function (options) {
       List.prototype.render.call(this, options);
 
@@ -61,31 +55,31 @@ define([
       this.showingAll = this.$('.list-spin .full-feed');
 
       // Handle height.
-      if (this.modal) {
-        $(window).resize(_.bind(this.parentView.resize, this.parentView));
-        _.delay(_.bind(this.parentView.resize, this.parentView), 0);
+      // if (this.modal) {
+      //   $(window).resize(_.bind(this.parentView.resize, this.parentView));
+      //   _.delay(_.bind(this.parentView.resize, this.parentView), 0);
 
-        // Init the load indicator.
-        this.listSpin = this.$('.list-spin');
-        this.spin = new Spin(this.$('.profile-datasets-spin'), {
-          lines: 13,
-          length: 3,
-          width: 2,
-          radius: 6,
-        });
+      //   // Init the load indicator.
+      //   this.listSpin = this.$('.list-spin');
+      //   this.spin = new Spin(this.$('.finder-datasets-spin'), {
+      //     lines: 13,
+      //     length: 3,
+      //     width: 2,
+      //     radius: 6
+      //   });
 
-        this.wrap = this.$('.profile-items-wrap');
-        if (this.collection.length > 0 || this.latestList.more)
-          _.delay(_.bind(function () {
-            this.checkHeight();
-          }, this), (this.collection.length + 1) * 30);
-        else {
-          this.nomore = true;
-          this.listSpin.hide();
-          $('<span class="empty-feed">' + this.emptyLabel
-              + '</span>').appendTo(this.wrap);
-        }
-        this.paginate();
+      //   this.wrap = this.$('.library-items-wrap');
+      //   if (this.collection.length > 0 || this.latestList.more)
+      //     _.delay(_.bind(function () {
+      //       this.checkHeight();
+      //     }, this), (this.collection.length + 1) * 30);
+      //   else {
+      //     this.nomore = true;
+      //     this.listSpin.hide();
+      //     $('<span class="empty-feed">' + this.emptyLabel
+      //         + '</span>').appendTo(this.wrap);
+      //   }
+      //   this.paginate();
       } else if (this.collection.length === 0)
         $('<span class="empty-feed">' + this.emptyLabel + '</span>')
             .appendTo(this.$el);
@@ -112,18 +106,16 @@ define([
     events: {},
 
     destroy: function () {
-      if (this.modal) this.unpaginate();
-      this.app.rpc.socket.removeAllListeners('dataset.new');
-      this.app.rpc.socket.removeAllListeners('dataset.removed');
+      // this.app.rpc.socket.removeAllListeners('dataset.new');
+      // this.app.rpc.socket.removeAllListeners('dataset.removed');
       return List.prototype.destroy.call(this);
     },
 
     collect: function (data) {
       if (this.searching) return;
-      var user_id = this.parentView.model ?
-          this.parentView.model.id: this.app.profile.user.id;
-      if (data.author.id === user_id)
+      if (data.author.id === this.app.profile.user.id) {
         this.collection.unshift(data);
+      }
     },
 
     _remove: function (data) {
@@ -137,11 +129,11 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
-          if (this.modal) this.checkHeight();
-          else if (this.collection.length === 0
-              && this.$('.empty-feed').length === 0)
-            $('<span class="empty-feed">' + this.emptyLabel + '</span>')
-                .appendTo(this.wrap || this.$el);
+          if (this.collection.length === 0
+              && this.$('.empty-feed').length === 0) {
+            $('<span class="empty-feed">Nothing to see here!</span>')
+                .appendTo(this.$el);
+          }
         }, this));
       }
     },

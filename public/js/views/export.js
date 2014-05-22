@@ -15,28 +15,21 @@ define([
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
     className: 'export',
     maxSampleCount: 100000,
 
-    // Module entry point.
     initialize: function (app, options) {
-
-      // Save app reference.
       this.app = app;
       this.options = options;
       this.channels = [];
-
       this.expand = false;
 
       // Get some data from parent
       this.graph = this.options.parentView.graph;
 
-      // Shell events.
       this.on('rendered', this.setup, this);
     },
 
-    // Draw the template
     render: function () {
 
       // Gather channels.
@@ -52,7 +45,6 @@ define([
         } else d.count++;
       }, this));
 
-      // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
 
@@ -65,13 +57,12 @@ define([
         modal: true
       });
 
-      // Done rendering ... trigger setup.
+
       this.trigger('rendered');
 
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .modal-close': 'close',
       'click .table-checkbox input': 'onChannelClick',
@@ -80,7 +71,7 @@ define([
       'click .export-form input[type="submit"]': 'export'
     },
 
-    // Misc. setup.
+
     setup: function () {
 
       // Save refs.
@@ -95,6 +86,13 @@ define([
         radius: 6,
       });
       this.exportError = this.$('.modal-error');
+
+      // Close modal.
+      $(document).on('keyup', _.bind(function (e) {
+        if (e.keyCode === 27 || e.which === 27) {
+          this.close();
+        }
+      }, this));
 
       // Handle error highlight.
       this.resampleTo.bind('keyup', function (e) {
@@ -124,14 +122,11 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);

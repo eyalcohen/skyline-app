@@ -1,44 +1,4 @@
-
-<table>
-  <% if (!this.modal) { %>
-    <tr class="list-header table-header">
-  <% } else { %>
-    <tr class="table-header">
-  <% } %>
-    <% if (!this.modal) { %>
-      <td class="profile-item-delete-empty">&nbsp;</td>
-    <% } %>
-    <td class="main-cell">
-      Data sources
-    </td>
-    <td>
-      No. channels
-    </td>
-    <td>
-      Last updated
-    </td>
-    <td class ="table-header-channels">
-      Channels
-    </td>
-  </tr>
-  <% if (this.modal) { %>
-    </table>
-    <div class="profile-items-wrap">
-      <table>
-        <tr class="list-header"></tr>
-  <% } %>
-  <% if (this.collection.models.length > 0) { %>
-    <% _.each(this.collection.models, _.bind(function(row) { %>
-      <%= this.row(row) %>
-    <% }, this)); %>
-  <% } %>
-  <% if (this.modal) { %>
-      </table>
-      <div class="list-spin">
-        <div class="profile-datasets-spin"></div>
-        <span class="full-feed">Showing all.</span>
-      </div>
-    </div>
-  <% } else { %>
-    </table>
-  <% } %>
+<div class="list-header"></div>
+<% _.each(this.collection.models, _.bind(function (row) { %>
+  <%= this.row(row) %>
+<% }, this)); %>

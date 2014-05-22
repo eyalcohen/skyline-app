@@ -59,13 +59,13 @@ define([
       this.app.embed = rx.test(window.location.href);
 
       // Page routes
-      this.route('embed/:username', 'chart', this.chart);
-      this.route('embed/:username/:channel', 'chart', this.chart);
+      this.route(':username', 'profile', this.profile);
       this.route(':username/:id', 'chart', this.chart);
       this.route(':username/:id/:channel', 'chart', this.chart);
-      this.route('embed/:username/views/:slug', 'chart', this.chart);
       this.route(':username/views/:slug', 'chart', this.chart);
-      this.route(':username', 'profile', this.profile);
+      this.route('embed/:username/:id', 'chart', this.chart);
+      this.route('embed/:username/:id/:channel', 'chart', this.chart);
+      this.route('embed/:username/views/:slug', 'chart', this.chart);
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
       this.route('notifications', 'notifications', this.notifications);
@@ -78,9 +78,9 @@ define([
       this.route('signup', 'signup', this.signup);
       this.route('', 'dashboard', this.dashboard);
 
-      // Show the browser modal.
-      mps.subscribe('modal/finder/open', _.bind(function (lib) {
-        this.browser = new Finder(this.app, {lib: lib}).render();
+      // Show the finder.
+      mps.subscribe('modal/finder/open', _.bind(function (search) {
+        this.finder = new Finder(this.app, {search: search}).render();
       }, this));
 
       // Show the save modal.

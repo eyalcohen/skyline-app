@@ -44,7 +44,7 @@ define([
       this.delegateEvents();
 
       // Start search choices.
-      if(!this.choices)
+      if(!this.choices) {
         this.choices = new Choices(this.app, {
           reverse: true,
           el: '.header-search',
@@ -53,6 +53,7 @@ define([
           choose: true,
           types: ['users', 'views', 'datasets', 'channels']
         });
+      }
     },
 
     events: {

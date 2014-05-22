@@ -24,7 +24,6 @@ define([
       this.collection = new Collection;
       this.Row = Row;
       this.options = options;
-      if (!this.options.query) this.options.query = {};
       this.setElement(options.el);
 
       // Call super init.
@@ -40,17 +39,21 @@ define([
     // Mouse events.
     events: {
       'click .search-choice-clear': 'clearChoice',
+      'click .search-filter-justme': 'checkJustMe',
+      'click .search-filter-allusers': 'checkAllUsers'
     },
 
     // Misc. setup
     setup: function () {
 
       // Save refs.
-      this.input = this.$('input');
+      this.input = this.$('input[type="search"]');
       this.results = this.$('.search-display');
       this.choiceWrap = this.$('.search-choice');
       this.choiceContent = this.$('.search-choice-content');
-      this.spin = new Spin($('.search-spin', this.el), {
+      this.justme = this.$('.search-filter-justme');
+      this.allusers = this.$('.search-filter-allusers');
+      this.spin = new Spin(this.$('.search-spin'), {
         color: '#4d4d4d',
         lines: 11,
         length: 2,
@@ -64,6 +67,13 @@ define([
       this.input.bind('keydown', _.bind(this.searchBlur, this));
       $(document).on('mouseup', _.bind(this.searchBlur, this));
 
+      this.defaults();
+      if (this.options.default) {
+        _.delay(_.bind(function () {
+          this.input.focus();
+        }, this), 100);
+      }
+
       return List.prototype.setup.call(this);
     },
 
@@ -75,10 +85,11 @@ define([
       var be = h + this.selecting.el.offset().top - this.results.offset().top - 1;
       var H = this.results.height();
       var s = this.results.scrollTop();
-      if (be > H)
+      if (be > H) {
         this.results.scrollTop(this.results.scrollTop() + h);
-      else if (be < h)
+      } else if (be < h) {
         this.results.scrollTop(this.results.scrollTop() - h);
+      }
     },
 
     resetHighlight: function () {
@@ -91,8 +102,9 @@ define([
       this.input.parent().addClass('active');
       this.active = true;
       this.app.searchIsActive = true;
-      if (this.searchVal() && this.collection.length > 0)
+      if (this.searchVal() && this.collection.length > 0) {
         this.showResults();
+      }
     },
 
     searchBlur: function (e) {
@@ -137,8 +149,9 @@ define([
       }
 
       // Blur.
-      if (!this.searchVal())
+      if (!this.searchVal()) {
         this.input.attr({placeholder: 'Search...'});
+      }
       this.input.parent().removeClass('active');
       this.hideResults();
       this.resetHighlight();
@@ -148,7 +161,7 @@ define([
 
     searchVal: function () {
       var str = util.sanitize(this.input.val());
-      return str === '' || str.length < 2 ? null: str;
+      return str === '' ? null: str;
     },
 
     search: function (e) {
@@ -160,54 +173,64 @@ define([
       if (str && str === this.str) return;
       this.str = str;
       if (!str) {
-        this._clear();
-        this.resetHighlight();
-        return this.hideResults();
+        if (this.options.default) {
+          if (this.collection.length === 0) {
+            this.defaults();
+          }
+        } else {
+          this._clear();
+          this.resetHighlight();
+          this.hideResults();
+        }
+        return;
       }
 
       // Setup search types.
       var items = {};
-      var types = this.options.types;
-      var done = _.after(types.length, _.bind(function () {
-
-        // Render results.
-        this._clear();
-        this.resetHighlight();
-        if (_.isEmpty(items)) {
-          this.hideResults();
-          return;
-        } else if (!_.find(items, function (i) { return i.length !== 0; })) {
-          this.hideResults();
-          return;
-        }
-
-        // Add to collection.
-        _.each(types, _.bind(function (t) {
-          if (items[t])
-            _.each(items[t], _.bind(function (i) {
-              this.collection.unshift(i);
-            }, this));
-        }, this));
-
-        // Show results display.
-        this.showResults();
-      }, this));
+      var done = _.after(this.options.types.length, _.bind(this.done, this));
 
       // Perform searches.
       this.spin.start();
-      _.each(types, _.bind(function (t) {
-        rest.post('/api/' + t + '/search/' + str, this.options.query,
+      _.each(this.options.types, _.bind(function (t) {
+        rest.post('/api/' + t + '/search/' + str, {},
             _.bind(function (err, data) {
           this.spin.stop();
-          if (err) return console.log(err);
+          if (err) {
+            return console.log(err);
+          }
 
           if (data.items.length !== 0) {
             _.each(data.items, function (i) { i._type = t; });
             items[t] = data.items;
           }
-          done();
+          done(items);
         }, this));
       }, this));
+    },
+
+    done: function (items) {
+
+      // Render results.
+      this._clear();
+      this.resetHighlight();
+      if (_.isEmpty(items)) {
+        this.hideResults();
+        return;
+      } else if (!_.find(items, function (i) { return i.length !== 0; })) {
+        this.hideResults();
+        return;
+      }
+
+      // Add to collection.
+      _.each(this.options.types, _.bind(function (t) {
+        if (items[t])
+          _.each(items[t], _.bind(function (i) {
+            this.collection.unshift(i);
+          }, this));
+      }, this));
+
+      // Show results display.
+      this.showResults();
     },
 
     // Clear the collection w/out re-rendering.
@@ -218,6 +241,26 @@ define([
       }, this));
     },
 
+    defaults: function () {
+      if (this.options.default) {
+
+        var type = this.options.default.type;
+        var query = this.options.default.query;
+        rest.post('/api/' + type + '/list', {query: query},
+            _.bind(function (err, data) {
+          if (err) {
+            return console.log(err);
+          }
+          var items = {};
+          if (data[type].items.length !== 0) {
+            _.each(data[type].items, function (i) { i._type = type; });
+            items[type] = data[type].items;
+          }
+          this.done(items);
+        }, this));
+      }
+    },
+
     choose: function (choice) {
       if (!this.options.choose) return;
       this.choiceContent.html(choice.$el.html());
@@ -225,8 +268,9 @@ define([
       this.hideResults();
       this.choice = choice;
       this.input.val('');
-      if (this.options.onChoose)
+      if (this.options.onChoose) {
         this.options.onChoose();
+      }
     },
 
     clearChoice: function (e) {
@@ -244,8 +288,24 @@ define([
     },
 
     hideResults: function () {
-      this.results.hide();
-      this.input.parent().removeClass('results');
+      if (!this.options.default) {
+        this.results.hide();
+        this.input.parent().removeClass('results');
+      } else {
+        if (!this.str) {
+          
+        }
+      }
+    },
+
+    checkJustMe: function (e) {
+      this.justme.attr('checked', true);
+      this.allusers.attr('checked', false);
+    },
+
+    checkAllUsers: function (e) {
+      this.justme.attr('checked', false);
+      this.allusers.attr('checked', true);
     },
 
   });

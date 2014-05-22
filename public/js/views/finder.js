@@ -1,5 +1,5 @@
 /*
- * Data browser modal view
+ * Data finder modal view
  */
 
 define([
@@ -12,44 +12,30 @@ define([
   'Spin',
   'common', 
   'text!../../templates/finder.html',
-  'views/lists/datasets.finder',
+  'views/lists/search.choices',
   'views/upload'
 ], function ($, _, Backbone, mps, rest, util, Spin, common, template,
-      Datasets, Upload) {
-
+      Choices, Upload) {
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
-    className: 'browser',
+    className: 'finder',
     dragging: false,
     working: false,
     files: null,
 
-    // Module entry point.
     initialize: function (app, options) {
-
-      // Save app reference.
       this.app = app;
       this.options = options;
-
-      // Client-wide subscriptions
+      if (!this.options.searchQuery) {
+        this.options.searchQuery = {};
+      }
       this.subscriptions = [];
-
-      // Shell events.
       this.on('rendered', this.setup, this);
     },
 
-    // Draw the template
     render: function () {
-
-      // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
-
-      // Add library class
-      if (this.options.lib && this.app.profile && this.app.profile.user) {
-        this.$el.addClass('library');
-      }
 
       // Dump content into modal.
       $.fancybox(this.$el, {
@@ -71,92 +57,75 @@ define([
     // Bind mouse events.
     events: {
       'click .modal-close': 'close',
-      'change input[name="data_file"]': 'update',
-      'click .browser-search-justme': 'checkJustMe',
-      'click .browser-search-allusers': 'checkAllUsers'
+      'change input[name="data_file"]': 'update'
     },
 
     // Misc. setup.
     setup: function () {
 
       // Save refs.
-      this.justme = this.$('.browser-search-justme');
-      this.allusers = this.$('.browser-search-allusers');
-      this.addNewFileForm = $('.browser-add-form');
-      this.newFileInput = $('input[name="dummy_data_file"]', this.addNewFileForm);
-      this.newFile = $('input[name="data_file"]', this.addNewFileForm);
-      this.newFileError = $('.modal-error', this.addNewFileForm);
-      this.dropZone = $('.browser .dnd');
-      this.newFileButtonSpin = new Spin($('.button-spin', this.el), {
+      this.newFileInput = this.$('input[name="dummy_data_file"]');
+      this.newFile = this.$('input[name="data_file"]');
+      this.newFileError = this.$('.modal-error');
+      this.dropZone = this.$('.dnd');
+      this.newFileButtonSpin = new Spin(this.$('.button-spin'), {
         color: '#fff',
         lines: 13,
         length: 3,
         width: 2,
-        radius: 6,
+        radius: 6
       });
-      this.searchInput = this.$('input[name="search"]');
 
-      // Handle search input.
-      this.searchInput.bind('keyup', _.bind(this.search, this));
-      this.searchInput.bind('search', _.bind(this.search, this));
+      // Close modal.
+      $(document).on('keyup', _.bind(function (e) {
+        if (e.keyCode === 27 || e.which === 27) {
+          this.close();
+        }
+      }, this));
 
       // Drag & drop events.
       this.$el.bind('dragover', _.bind(this.dragover, this));
       this.dropZone.bind('dragleave', _.bind(this.dragout, this))
           .bind('drop', _.bind(this.drop, this));
 
-      // Handle error display.
-      this.$('input[type="text"]').blur(function (e) {
-        var el = $(e.target);
-        if (el.hasClass('input-error'))
-          el.removeClass('input-error');
-      });
-
-      // Render datasets.
-      if (this.options.lib && this.app.profile && this.app.profile.user)
-        this.datasets = new Datasets(this.app, {
-          datasets: {
-            more: true,
-            items: [],
+      if (this.options.search && this.app.profile && this.app.profile.user) {
+        this.choices = new Choices(this.app, {
+          reverse: true,
+          el: '.finder-search',
+          placeholder: 'Search for existing data...',
+          route: true,
+          choose: true,
+          types: ['datasets', 'channels'],
+          default: {
+            type: 'datasets',
             query: {author_id: this.app.profile.user.id}
-          },
-          searchQuery: {author_id: this.app.profile.user.id},
-          modal: true,
-          parentView: this,
-          reverse: true
+          }
         });
+      }
 
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
       this.undelegateEvents();
       this.stopListening();
-      if (this.datasets)
-        this.datasets.destroy();
+      if (this.choices) {
+        this.choices.destroy();
+      }
       this.empty();
     },
 
     close: function (e) {
       this.working = false;
       $.fancybox.close();
-    },
-
-    resize: function () {
-      if (!this.datasets) return;
-      var wrap = $('.profile-items-wrap', this.datasets.$el);
-      wrap.height(this.$el.height() - wrap.position().top);
     },
 
     dragover: function (e) {
@@ -226,12 +195,12 @@ define([
         this.newFileButtonSpin.stop();
         this.newFileError.text(err);
         this.working = false;
-        $('.browser-progress-bar').width('0%');
+        $('.finder-progress-bar').width('0%');
       }, this);
       var cbSuccess = _.bind(function() {
       }, this);
       var cbProgress = _.bind(function(perc) {
-        $('.browser-progress-bar').width(perc);
+        $('.finder-progress-bar').width(perc);
       }, this);
       var stopFcn = _.bind(function() {
         return !this.working;
@@ -246,26 +215,6 @@ define([
       reader.readAsDataURL(file);
 
       return false;
-    },
-
-    checkJustMe: function (e) {
-      this.justme.attr('checked', true);
-      this.allusers.attr('checked', false);
-      this.datasets.options.searchQuery.author_id = this.app.profile.user.id;
-      if (this.datasets.searching)
-        this.search();
-    },
-
-    checkAllUsers: function (e) {
-      this.justme.attr('checked', false);
-      this.allusers.attr('checked', true);
-      delete this.datasets.options.searchQuery.author_id;
-      if (this.datasets.searching)
-        this.search();
-    },
-
-    search: function (e) {
-      this.datasets.search(util.sanitize(this.searchInput.val()));
     },
 
   });

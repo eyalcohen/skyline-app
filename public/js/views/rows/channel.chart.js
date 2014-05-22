@@ -183,6 +183,10 @@ define([
       // handles the case where we add the channel from outside the toggle function
       if (!this.$el.hasClass('active')) {
         this.$el.addClass('active');
+        if (!this.parentView.active) {
+          this.parentView.$('.channel.active').removeClass('last-active');
+          this.parentView.$('.channel.active:last').addClass('last-active');
+        }
         this.active = true;
         this.expand();
         this.updateYAxisView();
