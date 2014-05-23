@@ -17,12 +17,6 @@
   }
 
   var tags = this.model.get('tags') || [];
-
-  // We use S3 to provide static images unless the view is marked private
-  // then we go through our API for user authentication
-  var imgurl = this.model.get('public')
-               ? 'http://s3.amazonaws.com/snapshots-skyline/views-' + this.model.get('slug')
-               : '/api/views/'+this.model.get('slug')+'/img';
 %>
 
 <div class="event-title">
@@ -39,7 +33,9 @@
   </a>
   <a href="/<%= this.model.get('author').username %>/views/<%= this.model.get('slug') %>"
       class="image-anchor navigate">
-    <img class="event-view-image" src="<%= imgurl %>">
+    <% if (this.model.get('staticImgUrl')) { %>
+      <img class="event-view-image" src="<%= this.model.get('staticImgUrl') %>">
+    <% } %>
   </a>
 </span>
 <span class="event-timeline-label event-timeline-label-first">
