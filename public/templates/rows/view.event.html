@@ -33,7 +33,9 @@
   </a>
   <a href="/<%= this.model.get('author').username %>/views/<%= this.model.get('slug') %>"
       class="image-anchor navigate">
-    <img class="event-view-image" src="/api/views/<%= this.model.get('slug') %>/img">
+    <% if (this.model.get('staticImgUrl')) { %>
+      <img class="event-view-image" src="<%= this.model.get('staticImgUrl') %>">
+    <% } %>
   </a>
 </span>
 <span class="event-timeline-label event-timeline-label-first">
