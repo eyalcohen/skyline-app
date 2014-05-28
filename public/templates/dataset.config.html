@@ -1,0 +1,164 @@
+<%
+
+  // Save model attributes
+  console.log(this.model)
+  var data = this.model.attributes;
+
+  var tabIdx = 0;
+
+
+%>
+
+<div class="leftside settings">
+  <span class="reset-error page-error"></span>
+  <form enctype="multipart/form-data" method="POST">
+    <table>
+      <tbody>
+
+        <tr>
+          <td>
+            <label for="datasetName">Dataset Name</label>
+          </td>
+          <td class="textright">
+            <div class="settings-saved">
+              <span class="icon-check"></span>
+              <span>Saved</span>
+            </div>
+            <span class="settings-error page-error"></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <input type="text" tabindex="1" id="datasetName" name="datasetName"
+                placeholder="Dataset Name..." value="<%= data.title %>" />
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for="datasetTags">Tags</label>
+          </td>
+          <td class="textright">
+            <div class="settings-saved">
+              <span class="icon-check"></span>
+              <span>Saved</span>
+            </div>
+            <span class="settings-error page-error"></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <input type="text" tabindex="1" id="datasetTags" name="datasetTags"
+                placeholder="tags" value="<%= data.tags %>" />
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for="datasetDescription">Description</label>
+          </td>
+          <td class="textright">
+            <div class="settings-saved">
+              <span class="icon-check"></span>
+              <span>Saved</span>
+            </div>
+            <span class="settings-error page-error"></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <textarea name="datasetDescription" class="" tabindex="3" 
+                  placeholder="Write something about your data..."
+                  value="<%= data.description %>">
+            </textarea>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for="datasetSource">Source</label>
+          </td>
+          <td class="textright">
+            <div class="settings-saved">
+              <span class="icon-check"></span>
+              <span>Saved</span>
+            </div>
+            <span class="settings-error page-error"></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <input type="text" tabindex="1" id="datasetSource" name="datasetSource"
+                placeholder="source" value="<%= data.source %>" />
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for="datasetLink">Source Link</label>
+          </td>
+          <td class="textright">
+            <div class="settings-saved">
+              <span class="icon-check"></span>
+              <span>Saved</span>
+            </div>
+            <span class="settings-error page-error"></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <input type="text" tabindex="1" id="datasetLink" name="datasetLink"
+                placeholder="link" value="<%= data.sourceLink %>" />
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <label for="channelList">Channel Names</label>
+          </td>
+          <td class="textright">
+            <div class="settings-saved">
+              <span class="icon-check"></span>
+              <span>Saved</span>
+            </div>
+            <span class="settings-error page-error"></span>
+          </td>
+        </tr>
+
+        <% _.each(data.channels, _.bind(function (c, idx) { %>
+        <tr>
+          <td>
+            <input name="channelRename" type="text" placeholder="<%= c.humanName.substring(0, 39) %>" maxlength="40" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
+          </td>
+          <td>
+            <i class="icon-trash"></i>
+          </td>
+        </tr>
+        <% }, this)); %>
+
+      </tbody>
+    </table>
+  </form>
+</div>
+<div class="rightside">
+  <p>
+    This dataset was created on
+     <b> <%= util.toLocaleString(new Date(data.created), 'mediumDate') %> </b>
+     and last updated on
+     <b> <%= util.toLocaleString(new Date(data.updated), 'mediumDate') %> </b>
+  </p>
+</div>
+<div class="clearfix"></div>
+<div class="footer">
+  <ul>
+    <li>
+      <a href="/contact" class="navigate">Contact</a>
+    </li>
+    <li>
+      <a href="/privacy" class="navigate">Privacy Policy</a>
+    </li>
+    <li>
+      <a href="/terms" class="navigate">Terms of Use</a>
+    </li>
+  </ul>
+</div>
