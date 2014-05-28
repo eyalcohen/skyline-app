@@ -178,6 +178,7 @@ define([
         var end = sampleObj.range.end || 0;
 
         if (!sampleObj.samples[0]) return;
+
         var t_0 = sampleObj.samples[0].beg;
         var t_max = sampleObj.samples[sampleObj.samples.length-1].beg;
         var t_diff = t_max - t_0;
@@ -185,6 +186,20 @@ define([
         var v_max = _.max(_.pluck(sampleObj.samples, 'val'));
         var v_min = _.min(_.pluck(sampleObj.samples, 'val'));
         var v_diff = v_max - v_min;
+
+        var prevEnd = null;
+        var data = [];
+
+        // Add points to deal with non-contiguous samples
+        _.each(sampleObj.samples, function (s) {
+          if (prevEnd != s.beg) {
+            data.push({beg: prevEnd, end: prevEnd, val:v_min});
+            data.push({beg: s.beg, end: s.beg, val:v_min});
+          }
+          data.push(s);
+          prevEnd = s.end;
+        });
+        sampleObj.samples = data;
 
         var path = d3.svg.area()
             .x(function (s, i) {
