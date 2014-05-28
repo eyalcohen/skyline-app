@@ -279,6 +279,10 @@ define([
         var val = s.val * conv.factor;
         if (val < min) min = val;
         if (val > max) max = val;
+        if (prevEnd != s.beg) {
+          data.push({t: prevEnd/1e3, v:null});
+          data.push({t: s.beg/1e3, v:null});
+        }
         data.push({t: s.beg / 1e3, v: val});
         //if (s.beg !== s.end)
         //  data.push({t: s.end / 1e3, v: val});
