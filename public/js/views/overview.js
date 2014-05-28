@@ -153,6 +153,11 @@ define([
           this.series.push(s);
         }, this));
 
+        $('.overview-date > span').text(
+          util.toLocaleString(new Date(time.beg / 1e3), 'mmm d yyyy'));
+        $('.overview-date-right > span').text(
+          util.toLocaleString(new Date(time.end / 1e3), 'mmm d yyyy'));
+
 
         // remove all plots where we don't have series data
         var allPlotIds = $('.overview-plot').map(function() { return this.id }).get()

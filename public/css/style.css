@@ -4140,6 +4140,23 @@ a.control-button-save.saving {
   height: 70px;
 }
 
+.lower-panel .overview .overview-date {
+  display:table;
+  height: 100%;
+  width:60px;
+  left:10px;
+}
+
+.lower-panel .overview .overview-date-right {
+  float:right;
+  position:relative;
+}
+
+.overview-date > span {
+  display:table-cell;
+  vertical-align: bottom;
+}
+
 /*.........................................................................*/
 
 .datasets {
