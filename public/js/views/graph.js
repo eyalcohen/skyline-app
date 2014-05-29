@@ -224,10 +224,16 @@ define([
         } else if (timeIdxHigh >= series.data.length) {
           timeIdxHigh = series.data.length - 1;
         }
+
         var timeIdxLow = timeIdxHigh - 1;
+        // Find the next valid time
+        while (!series.data[timeIdxLow] && timeIdxLow > 0)
+          timeIdxLow--;
+        while (!series.data[timeIdxHigh] && timeIdxHigh < series.data.length)
+          timeIdxHigh++;
 
         // coordinates of series values
-        if (!series.data[timeIdxLow]) return null;
+        if (!series.data[timeIdxLow] || !series.data[timeIdxHigh]) return null;
         var cTimeLow = series.xaxis.p2c(series.data[timeIdxLow][0]);
         var cTimeHigh = series.xaxis.p2c(series.data[timeIdxHigh][0]);
         var cValueLow = series.yaxis.p2c(series.data[timeIdxLow][1]);
