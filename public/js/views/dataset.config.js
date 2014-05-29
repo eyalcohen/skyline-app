@@ -201,7 +201,7 @@ define([
       var channelIter = 0;
 
       // Called after data collection
-      var finalizeSvg = _.after(channels.length, _.bind(function() {
+      var finalizeSvg = _.once(_.bind(function() {
 
         // Create initial SVG
         var svg = d3.select(selector.get(0))
@@ -209,24 +209,29 @@ define([
             .attr('width', width)
             .attr('height', height)
             .append('svg:g')
-            .append('svg:path')
+            .append('svg:path');
 
         d3.select(selector.get(0)).select('g')
             .append('svg:text')
             .attr('y', height-10)
             .attr('x', 10)
-            .attr('fill', '#666')
+            .attr('fill', '#666');
 
 
         setInterval(_.bind(function () {
           if (!this.animate) return;
-          var t_0 = _.min(_.pluck(channels, 'beg'));
-          var t_max = _.max(_.pluck(channels, 'end'));
+          var t_0 = _.min(_.compact(_.pluck(sampleSet[channelIter], 'beg')));
+          var t_max = _.max(_.pluck(sampleSet[channelIter], 'end'));
           var t_diff = t_max - t_0;
 
-          var v_min = _.max(_.pluck(sampleSet[channelIter], 'val'));
-          var v_max = _.min(_.pluck(sampleSet[channelIter], 'val'));
+          var v_min = _.min(_.compact(_.pluck(sampleSet[channelIter], 'val')));
+          var v_max = _.max(_.pluck(sampleSet[channelIter], 'val'));
           var v_diff = v_max - v_min;
+
+          if (v_min === Infinity) {
+            channelIter = (channelIter + 1) % sampleSet.length;
+            return;
+          }
 
           var path = d3.svg.area()
               .x(function (s, i) {
@@ -240,7 +245,7 @@ define([
                 return height;
               })
               .y1(function (s) {
-                return v_diff === 0 || s.val === null ? v_max: height - ((s.val - v_min) / v_diff * height);
+                return v_diff === 0 || s.val === null ? height : height - ((s.val - v_min) / v_diff * height);
               })
               .interpolate('linear');
 
@@ -249,13 +254,13 @@ define([
               .attr('d', path(sampleSet[channelIter]))
               .attr('class', 'area')
               .attr('fill', this.app.colors[channelIter % this.app.colors.length])
-              .attr('opacity', .6);
+              .attr('opacity', 0.6);
 
           d3.select(selector.get(0)).select('text')
             .transition()
             .text(channels[channelIter].humanName);
 
-          channelIter = (channelIter + 1) % channels.length;
+          channelIter = (channelIter + 1) % sampleSet.length;
         }, this), 3000);
       }, this));
 
