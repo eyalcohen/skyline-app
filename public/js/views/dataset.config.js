@@ -66,35 +66,31 @@ define([
           this.$el.html(this.template.call(this, {util: util}));
           this.drawSvg();
         }
+
+        $('.title-left').text(this.model.get('title'));
+
+        // Save field contents on blur.
+        this.$('textarea, input[type="text"], input[type="checkbox"], input[type="radio"]')
+            .change(_.bind(this.save, this))
+            .keyup(function (e) {
+          var field = $(e.target);
+          var label = $('label[for="' + field.attr('name') + '"]');
+          var saved = $('.settings-saved', label.parent().parent());
+
+          if (field.val().trim() !== field.data('saved'))
+            saved.hide();
+
+          return false;
+        });
+
+        // Handle error display.
+        this.$('input[type="text"]').blur(function (e) {
+          var el = $(e.target);
+          if (el.hasClass('input-error'))
+            el.removeClass('input-error');
+        });
+
       }, this));
-
-      // Save field contents on blur.
-      this.$('textarea, input[type="text"], input[type="checkbox"], input[type="radio"]')
-          .change(_.bind(this.save, this))
-          .keyup(function (e) {
-        var field = $(e.target);
-        var label = $('label[for="' + field.attr('name') + '"]');
-        var saved = $('.settings-saved', label.parent().parent());
-
-        if (field.val().trim() !== field.data('saved'))
-          saved.hide();
-
-        return false;
-      });
-
-      // Handle error display.
-      this.$('input[type="text"], input[type="password"]').blur(function (e) {
-        var el = $(e.target);
-        if (el.hasClass('input-error'))
-          el.removeClass('input-error');
-      });
-
-      // Handle username.
-      this.$('input[name="username"]').bind('keydown', function (e) {
-        if (e.which === 32) return false;
-      }).bind('keyup', function (e) {
-        $(this).val(_.str.slugify($(this).val()).substr(0, 30));
-      });
 
       return this;
     },
@@ -130,30 +126,18 @@ define([
       if (val === field.data('saved')) return false;
       var payload = {};
       payload[name] = val;
-
-      // Check for email.
-      if (payload.primaryEmail && !util.isEmail(payload.primaryEmail)) {
-        errorMsg.text('Please use a valid email address.').show();
-        return false;
-      }
+      console.log(payload);
 
       // Now do the save.
-      rest.put('/api/users/' + this.app.profile.user.username, payload,
+      rest.put('/api/datasets/' + this.id, payload,
           _.bind(function (err, data) {
         if (err) {
 
           // Set the error display.
           errorMsg.text(err.message).show();
 
-          // Clear fields.
-          if (err === 'Username exists')
-            field.addClass('input-error').focus();
-
           return false;
         }
-
-        // Update profile.
-        _.extend(this.app.profile.user, payload);
 
         // Save the saved state and show indicator.
         field.data('saved', val);
@@ -212,9 +196,10 @@ define([
         this.app.router.navigate(path, {trigger: true});
     },
 
+    // TODO: Make this a rotating animation of different channels
     drawSvg: function() {
       var channels = _.first(this.model.get('channels'), 5);
-      var selector = $('.dataset-config-svg');
+      var selector = $('.settings-svg');
       var width = selector.width();
       var height = selector.height();
 

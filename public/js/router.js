@@ -323,7 +323,7 @@ define([
         this.page = new DatasetConfig(this.app, {user: un, id: id}).render();
         this.stop();
       }, this));
-      this.renderTabs({title: 'Configuration'});
+      this.renderTabs();
     },
 
     about: function () {

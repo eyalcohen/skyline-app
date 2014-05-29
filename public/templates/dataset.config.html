@@ -1,11 +1,7 @@
 <%
 
   // Save model attributes
-  console.log(this.model)
   var data = this.model.attributes;
-
-  var tabIdx = 0;
-
 
 %>
 
@@ -17,14 +13,14 @@
 
         <tr>
           <td>
-            <div class="dataset-config-svg"></div>
+            <div class="settings-svg"></div>
           </td>
           <td class="textright"> </td>
         </tr>
 
         <tr>
           <td>
-            <label for="datasetName">Title</label>
+            <label for="datasetTitle">Title</label>
           </td>
           <td class="textright">
             <div class="settings-saved">
@@ -36,7 +32,7 @@
         </tr>
         <tr>
           <td>
-            <input type="text" tabindex="1" id="datasetName" name="datasetName"
+            <input type="text" tabindex="1" id="datasetTitle" name="title"
                 placeholder="title" value="<%= data.title %>" />
           </td>
         </tr>
@@ -55,7 +51,7 @@
         </tr>
         <tr>
           <td>
-            <input type="text" tabindex="1" id="datasetTags" name="datasetTags"
+            <input type="text" tabindex="2" id="datasetTags" name="tags"
                 placeholder="tags" value="<%= data.tags %>" />
           </td>
         </tr>
@@ -74,9 +70,9 @@
         </tr>
         <tr>
           <td>
-            <textarea name="datasetDescription" class="" tabindex="3" 
-                  placeholder="Write something about your data..."
-                  value="<%= data.description %>">
+            <textarea name="description" class="" tabindex="3" 
+                  placeholder="Write something about your data...">
+              <%= data.description %>
             </textarea>
           </td>
         </tr>
@@ -95,7 +91,7 @@
         </tr>
         <tr>
           <td>
-            <input type="text" tabindex="1" id="datasetSource" name="datasetSource"
+            <input type="text" tabindex="4" id="datasetSource" name="source"
                 placeholder="source" value="<%= data.source %>" />
           </td>
         </tr>
@@ -114,36 +110,10 @@
         </tr>
         <tr>
           <td>
-            <input type="text" tabindex="1" id="datasetLink" name="datasetLink"
+            <input type="text" tabindex="5" id="datasetLink" name="sourceLink"
                 placeholder="link" value="<%= data.sourceLink %>" />
           </td>
         </tr>
-
-        <tr>
-          <td>
-            <label for="channelList">Channel Names</label>
-          </td>
-          <td class="textright">
-            <div class="settings-saved">
-              <span class="icon-check"></span>
-              <span>Saved</span>
-            </div>
-            <span class="settings-error page-error"></span>
-          </td>
-        </tr>
-
-        <% _.each(data.channels, _.bind(function (c, idx) { %>
-        <tr>
-          <td>
-            <input name="channelRename" type="text" placeholder="<%= c.humanName.substring(0, 39) %>" maxlength="40" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
-          </td>
-          <td class="textright">
-            <div class="settings-delete">
-              <span class="icon-trash"></span>
-            </div>
-          </td>
-        </tr>
-        <% }, this)); %>
 
       </tbody>
     </table>

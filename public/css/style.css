@@ -3439,12 +3439,17 @@ p.sidebar-tip span {
 .settings td input[type="text"],
 .settings td input[type="password"],
 .settings td input[type="submit"],
+.settings td textarea,
 .settings td a.button {
   width: 100%;
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box
+}
+
+.settings td textarea {
+  height: 90px;
 }
 
 .settings-saved,
@@ -3500,12 +3505,11 @@ ul.settings-detail-list li {
   list-style-type: disc;
 }
 
-/*.........................................................................*/
-
-.dataset-config-svg {
-  height: 80px;
-  //width: 100%;
+.settings-svg {
+  height: 100px;
+  padding-bottom: 20px;
 }
+
 
 /*.........................................................................*/
 
