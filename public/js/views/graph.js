@@ -676,7 +676,7 @@ define([
         series.data.forEach(function (p) {
           if (p && prevTime && p[0] >= xmin && prevTime <= xmax) {
             max = Math.max(max, p[1]);
-            min = Math.min(min, p[2] === null ? p[1] : p[2]);
+            min = Math.min(min, p[2] == null ? p[1] : p[2]);
           }
           prevTime = p && p[0];
         });
@@ -763,11 +763,11 @@ define([
             data.push([(s.end) / 1000, val]);
         }
         prevEnd = s.end;
-        if (s.min !== null || s.max !== null) {
+        if (s.min != null || s.max != null) {
           if (prevMinMaxEnd != s.beg)
             minMax.push(null);
-          var max = s.max === null ? val : s.max * conv.factor;
-          var min = s.min === null ? val : s.min * conv.factor;
+          var max = s.max == null ? val : s.max * conv.factor;
+          var min = s.min == null ? val : s.min * conv.factor;
           minMax.push([s.beg / 1000, max, min]);
           if (lineStyleOpts.interpolation === 'none') {
             if (s.end !== s.beg)
