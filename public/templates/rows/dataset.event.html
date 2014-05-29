@@ -95,7 +95,9 @@
   <% if (this.app.profile.user &&
       this.model.get('author').id === this.app.profile.user.id) { %>
     <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-    <a href="javascript:;" class="info-delete">Delete</a>
+    <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/config"
+       class="info-settings icon-cog"> configure
+     </a>
   <% } %>
 </div>
 <div class="event-comments"></div>

@@ -23,6 +23,7 @@ define([
   'views/notifications',
   'views/splash',
   'views/settings',
+  'views/dataset.config',
   'views/reset',
   'views/profile',
   'views/library',
@@ -34,7 +35,8 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp, privacyTemp, termsTemp) {
+    DatasetConfig, Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp,
+    privacyTemp, termsTemp) {
 
   // Our application URL router.
   var Router = Backbone.Router.extend({
@@ -62,6 +64,7 @@ define([
       this.route(':username', 'profile', this.profile);
       this.route(':username/:id', 'chart', this.chart);
       this.route(':username/:id/:channel', 'chart', this.chart);
+      this.route(':username/:id/config', 'dataset.config', this.datasetConfig);
       this.route(':username/views/:slug', 'chart', this.chart);
       this.route('embed/:username/:id', 'chart', this.chart);
       this.route('embed/:username/:id/:channel', 'chart', this.chart);
@@ -310,6 +313,17 @@ define([
         this.stop();
       }, this));
       this.renderTabs({title: 'Account Settings'});
+    },
+
+    datasetConfig: function (un, id) {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/settings.profile', {}, true, _.bind(function (err) {
+        if (err) return;
+        this.page = new DatasetConfig(this.app, {user: un, id: id}).render();
+        this.stop();
+      }, this));
+      this.renderTabs();
     },
 
     about: function () {

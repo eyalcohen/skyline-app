@@ -42,7 +42,6 @@ define([
 
     events: {
       'click .navigate': 'navigate',
-      'click .info-delete': 'delete',
       'click .event-channel-delete': 'deleteChannel'
     },
 
@@ -96,38 +95,6 @@ define([
       var path = $(e.target).closest('a').attr('href');
       if (path)
         this.app.router.navigate(path, {trigger: true});
-    },
-
-    delete: function (e) {
-      e.preventDefault();
-
-      // Render the confirm modal.
-      $.fancybox(_.template(confirm)({
-        message: 'Delete this dataset forever?',
-      }), {
-        openEffect: 'fade',
-        closeEffect: 'fade',
-        closeBtn: false,
-        padding: 0
-      });
-
-      // Setup actions.
-      $('.modal-cancel').click(function (e) {
-        $.fancybox.close();
-      });
-      $('.modal-confirm').click(_.bind(function (e) {
-
-        // Delete the doc.
-        rest.delete('/api/datasets/' + this.model.id,
-            {}, _.bind(function (err, data) {
-          if (err) return console.log(err);
-
-          // close the modal.
-          $.fancybox.close();
-        }, this));
-      }, this));
-
-      return false;
     },
 
     deleteChannel: function (e) {
