@@ -1,5 +1,8 @@
 /*
  * Dataset configuration view
+ * TODO: Add spinner for long loading SVGs and REST interface
+ *       Add public/private button
+ *       Click the SVG to load the channel
  */
 
 define([
@@ -47,19 +50,7 @@ define([
 
     setup: function () {
 
-      // FIXME:
-      this.restSpin = new Spin($('.blah'), {
-        color: '#fff',
-        lines: 13,
-        length: 3,
-        width: 2,
-        radius: 6,
-      });
-
-      this.restSpin.start();
-
       rest.get('/api/datasets/' + this.options.id, _.bind(function (err, dataset) {
-        this.restSpin.stop();
 
         if (!err) {
           this.model = new Dataset(dataset);
@@ -206,27 +197,28 @@ define([
       var width = selector.width();
       var height = selector.height();
 
-      // Create initial SVG
-      var svg = d3.select(selector.get(0))
-          .append('svg:svg')
-          .attr('width', width)
-          .attr('height', height)
-          .append('svg:g')
-          .append('svg:path')
-
-      d3.select(selector.get(0)).select('g')
-          .append('svg:text')
-          .attr('y', height-10)
-          .attr('x', 10)
-          .attr('fill', '#666')
-
       var sampleSet = [];
       var channelIter = 0;
 
       // Called after data collection
       var finalizeSvg = _.after(channels.length, _.bind(function() {
+
+        // Create initial SVG
+        var svg = d3.select(selector.get(0))
+            .append('svg:svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('svg:g')
+            .append('svg:path')
+
+        d3.select(selector.get(0)).select('g')
+            .append('svg:text')
+            .attr('y', height-10)
+            .attr('x', 10)
+            .attr('fill', '#666')
+
+
         setInterval(_.bind(function () {
-          console.log(this.animate);
           if (!this.animate) return;
           var t_0 = _.min(_.pluck(channels, 'beg'));
           var t_max = _.max(_.pluck(channels, 'end'));
