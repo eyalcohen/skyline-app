@@ -1,5 +1,5 @@
 /*
- * Settings view.
+ * Dataset configuration view
  */
 
 define([
@@ -27,6 +27,8 @@ define([
       this.on('rendered', this.setup, this);
       this.channelNames = [];
 
+      this.animate = true;
+
     },
 
     render: function () {
@@ -40,7 +42,7 @@ define([
 
     events: {
       'click .navigate': 'navigate',
-      'click .demolish': 'demolish'
+      'click .demolish': 'demolish',
     },
 
     setup: function () {
@@ -91,6 +93,9 @@ define([
           if (el.hasClass('input-error'))
             el.removeClass('input-error');
         });
+
+        $('.settings-svg').mouseenter(_.bind(function() { this.animate = false; }, this ));
+        $('.settings-svg').mouseleave(_.bind(function() { this.animate = true; }, this ));
 
       }, this));
 
@@ -195,9 +200,8 @@ define([
         this.app.router.navigate(path, {trigger: true});
     },
 
-    // TODO: Make this a rotating animation of different channels
     drawSvg: function() {
-      var channels = _.first(this.model.get('channels'), 5);
+      var channels = this.model.get('channels');
       var selector = $('.settings-svg');
       var width = selector.width();
       var height = selector.height();
@@ -207,44 +211,60 @@ define([
           .append('svg:svg')
           .attr('width', width)
           .attr('height', height)
-          .append('svg:g');
+          .append('svg:g')
+          .append('svg:path')
+
+      d3.select(selector.get(0)).select('g')
+          .append('svg:text')
+          .attr('y', height-10)
+          .attr('x', 10)
+          .attr('fill', '#666')
 
       var sampleSet = [];
-      var v_max = Number.MIN_VALUE;
-      var v_min = Number.MAX_VALUE;
+      var channelIter = 0;
 
       // Called after data collection
       var finalizeSvg = _.after(channels.length, _.bind(function() {
-        var t_0 = _.min(_.pluck(channels, 'beg'));
-        var t_max = _.max(_.pluck(channels, 'end'));
-        var t_diff = t_max - t_0;
+        setInterval(_.bind(function () {
+          console.log(this.animate);
+          if (!this.animate) return;
+          var t_0 = _.min(_.pluck(channels, 'beg'));
+          var t_max = _.max(_.pluck(channels, 'end'));
+          var t_diff = t_max - t_0;
 
-        var v_diff = v_max - v_min;
+          var v_min = _.max(_.pluck(sampleSet[channelIter], 'val'));
+          var v_max = _.min(_.pluck(sampleSet[channelIter], 'val'));
+          var v_diff = v_max - v_min;
 
-        var path = d3.svg.area()
-            .x(function (s, i) {
-              if (t_diff === 0) {
-                return i === 0 ? 0: width;
-              } else {
-                return ((s.beg - t_0) / t_diff * width);
-              }
-            })
-            .y0(function () {
-              return height;
-            })
-            .y1(function (s) {
-              return v_diff === 0 || s.val === null ? v_max: height - ((s.val - v_min) / v_diff * height);
-            })
-            .interpolate('linear');
+          var path = d3.svg.area()
+              .x(function (s, i) {
+                if (t_diff === 0) {
+                  return i === 0 ? 0: width;
+                } else {
+                  return ((s.beg - t_0) / t_diff * width);
+                }
+              })
+              .y0(function () {
+                return height;
+              })
+              .y1(function (s) {
+                return v_diff === 0 || s.val === null ? v_max: height - ((s.val - v_min) / v_diff * height);
+              })
+              .interpolate('linear');
 
-        _.each(sampleSet, function (s, idx) {
-          d3.select(selector.get(0)).select('g')
-              .append('svg:path')
-              .attr('d', path(s))
+          d3.select(selector.get(0)).select('path')
+              .transition()
+              .attr('d', path(sampleSet[channelIter]))
               .attr('class', 'area')
-              .attr('fill', this.app.colors[idx % this.app.colors.length])
+              .attr('fill', this.app.colors[channelIter % this.app.colors.length])
               .attr('opacity', .6);
-        }, this);
+
+          d3.select(selector.get(0)).select('text')
+            .transition()
+            .text(channels[channelIter].humanName);
+
+          channelIter = (channelIter + 1) % channels.length;
+        }, this), 3000);
       }, this));
 
       // Collect sample data for each channel
@@ -269,8 +289,6 @@ define([
           var prevEnd = null;
           var data = [];
           _.each(sampleObj.samples, function (s) {
-            if (s.val > v_max) v_max = s.val;
-            if (s.val < v_min) v_min = s.val;
             // Add points to deal with non-contiguous samples
             if (prevEnd != s.beg) {
               data.push({beg: prevEnd, end: prevEnd, val:null});

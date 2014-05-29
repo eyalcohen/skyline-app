@@ -3508,9 +3508,26 @@ ul.settings-detail-list li {
 
 .settings-svg {
   height: 100px;
-  padding-bottom: 20px;
+  margin-bottom: 20px;
+
+  cursor: pointer;
+  border: 1px solid #f9f9f9;
+  font-size: 14px;
+  background: #fcfcfc;
+
+  -webkit-transition: all 0.15s ease-in-out;
+  -moz-transition: all 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
 }
 
+.settings-svg:hover {
+  opacity: .8;
+  border-color: #e6e6e6;
+}
 
 /*.........................................................................*/
 
