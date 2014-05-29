@@ -155,7 +155,7 @@ define([
 
       // Render the confirm modal.
       $.fancybox(_.template(confirm)({
-        message: 'I want to permanently delete my account.',
+        message: 'Delete this dataset?', 
       }), {
         openEffect: 'fade',
         closeEffect: 'fade',
@@ -170,12 +170,9 @@ define([
       $('#m_yes').click(_.bind(function (e) {
 
         // Delete the user.
-        rest.delete('/api/users/' + this.app.profile.user.username,
+        rest.delete('/api/datasets/' + this.id, 
             {}, _.bind(function (err, data) {
           if (err) return console.log(err);
-
-          // Logout client-side.
-          mps.publish('user/delete');
 
           // Close the modal.
           $.fancybox.close();

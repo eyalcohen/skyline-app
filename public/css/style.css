@@ -1057,7 +1057,8 @@ span.empty-list {
 }
 
 .info-delete,
-.info-accept {
+.info-accept,
+.info-settings a .icon-cog {
   color: #8f8f8f;
   cursor: pointer;
   font-size: 10px;

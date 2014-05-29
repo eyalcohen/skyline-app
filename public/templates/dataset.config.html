@@ -68,8 +68,7 @@
         <tr>
           <td colspan = "2">
             <textarea name="description" class="" tabindex="3" id="datasetDescription"
-                  placeholder="Write something about your data..." <%= disabled %>>
-              <%= data.description %>
+                  placeholder="Write something about your data..." <%= disabled %>><%= data.description %>
             </textarea>
           </td>
         </tr>
@@ -112,6 +111,15 @@
           </td>
         </tr>
 
+        <tr>
+          <td colspan="2">
+            <a tabindex="6" href="javascript:;" class="demolish button connect-button delete-button">
+              Delete Dataset
+              <i class="icon-right-open-big"></i>
+            </a>
+          </td>
+        </tr>
+
       </tbody>
     </table>
   </form>
@@ -119,20 +127,23 @@
 <div class="rightside">
   <p>
     This dataset was created on
-     <b> <%= util.toLocaleString(new Date(data.created), 'mediumDate') %> </b>
+     <strong> <%= util.toLocaleString(new Date(data.created), 'mediumDate') %> </strong>
      and was last updated on
-     <b> <%= util.toLocaleString(new Date(data.updated), 'mediumDate') %> </b>
+     <strong> <%= util.toLocaleString(new Date(data.updated), 'mediumDate') %> </strong>
      .
   </p>
   <br>
   <p>
-    This dataset contains <%= this.model.get('channels').length %> channels.
+    This dataset contains <strong> <%= this.model.get('channels').length %> </strong> channels.
   </p>
   <br>
-  <% _.each(this.model.get('channels'), function(c) { %>
+  <span> Channels: </span>
+  <% _.each(this.model.get('channels'), function(c, idx) { %>
     <a href="/<%= this.model.get('author').username %>/<%= this.model.get('id') %>/<%= c.channelName %>"> <%= c.humanName %>
     </a>
-    <span> , </span>
+    <% if (idx !== this.model.get('channels').length - 1) { %>
+    <span> - </span>
+    <% } %>
   <% }, this); %>
 
 </div>
