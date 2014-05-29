@@ -74,7 +74,9 @@ define([
             .change(_.bind(this.save, this))
             .keyup(function (e) {
           var field = $(e.target);
-          var label = $('label[for="' + field.attr('name') + '"]');
+          var name = field.attr('name');
+          var capName = name.charAt(0).toUpperCase() + name.slice(1);
+          var label = $('label[for="dataset' + capName + '"]');
           var saved = $('.settings-saved', label.parent().parent());
 
           if (field.val().trim() !== field.data('saved'))
@@ -113,7 +115,8 @@ define([
     save: function (e) {
       var field = $(e.target);
       var name = field.attr('name');
-      var label = $('label[for="' + name + '"]');
+      var capName = name.charAt(0).toUpperCase() + name.slice(1);
+      var label = $('label[for="dataset' + capName + '"]');
       var saved = $('.settings-saved', label.parent().parent());
       var errorMsg = $('.settings-error', label.parent().parent()).hide();
       var val = util.sanitize(field.val());
@@ -126,7 +129,6 @@ define([
       if (val === field.data('saved')) return false;
       var payload = {};
       payload[name] = val;
-      console.log(payload);
 
       // Now do the save.
       rest.put('/api/datasets/' + this.id, payload,

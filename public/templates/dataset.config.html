@@ -1,8 +1,6 @@
 <%
-
-  // Save model attributes
   var data = this.model.attributes;
-
+  var disabled = this.model.get('author').id !== this.app.profile.user.id ? 'disabled' : 'enabled';
 %>
 
 <div class="leftside settings">
@@ -12,10 +10,9 @@
       <tbody>
 
         <tr>
-          <td>
+          <td colspan = "2">
             <div class="settings-svg"></div>
           </td>
-          <td class="textright"> </td>
         </tr>
 
         <tr>
@@ -31,9 +28,9 @@
           </td>
         </tr>
         <tr>
-          <td>
+          <td colspan = "2">
             <input type="text" tabindex="1" id="datasetTitle" name="title"
-                placeholder="title" value="<%= data.title %>" />
+                placeholder="title" value="<%= data.title %>" <%= disabled %>/>
           </td>
         </tr>
 
@@ -50,9 +47,9 @@
           </td>
         </tr>
         <tr>
-          <td>
+          <td colspan = "2">
             <input type="text" tabindex="2" id="datasetTags" name="tags"
-                placeholder="tags" value="<%= data.tags %>" />
+                placeholder="tags" value="<%= data.tags %>" <%= disabled %>/>
           </td>
         </tr>
 
@@ -69,9 +66,9 @@
           </td>
         </tr>
         <tr>
-          <td>
-            <textarea name="description" class="" tabindex="3" 
-                  placeholder="Write something about your data...">
+          <td colspan = "2">
+            <textarea name="description" class="" tabindex="3" id="datasetDescription"
+                  placeholder="Write something about your data..." <%= disabled %>>
               <%= data.description %>
             </textarea>
           </td>
@@ -90,15 +87,15 @@
           </td>
         </tr>
         <tr>
-          <td>
+          <td colspan = "2">
             <input type="text" tabindex="4" id="datasetSource" name="source"
-                placeholder="source" value="<%= data.source %>" />
+                placeholder="source" value="<%= data.source %>" <%= disabled %> />
           </td>
         </tr>
 
         <tr>
           <td>
-            <label for="datasetLink">Source Link</label>
+            <label for="datasetSourceLink">Source Link</label>
           </td>
           <td class="textright">
             <div class="settings-saved">
@@ -109,9 +106,9 @@
           </td>
         </tr>
         <tr>
-          <td>
-            <input type="text" tabindex="5" id="datasetLink" name="sourceLink"
-                placeholder="link" value="<%= data.sourceLink %>" />
+          <td colspan = "2">
+            <input type="text" tabindex="5" id="datasetSourceLink" name="sourceLink"
+                placeholder="link" value="<%= data.sourceLink %>" <%= disabled %>/>
           </td>
         </tr>
 
@@ -125,7 +122,19 @@
      <b> <%= util.toLocaleString(new Date(data.created), 'mediumDate') %> </b>
      and was last updated on
      <b> <%= util.toLocaleString(new Date(data.updated), 'mediumDate') %> </b>
+     .
   </p>
+  <br>
+  <p>
+    This dataset contains <%= this.model.get('channels').length %> channels.
+  </p>
+  <br>
+  <% _.each(this.model.get('channels'), function(c) { %>
+    <a href="/<%= this.model.get('author').username %>/<%= this.model.get('id') %>/<%= c.channelName %>"> <%= c.humanName %>
+    </a>
+    <span> , </span>
+  <% }, this); %>
+
 </div>
 <div class="clearfix"></div>
 <div class="footer">
