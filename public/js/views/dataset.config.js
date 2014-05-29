@@ -27,9 +27,6 @@ define([
       this.on('rendered', this.setup, this);
       this.channelNames = [];
 
-      // FIXME:
-      this.options.channelNames = [];
-      this.options.timecolGuess = { parseHints:  [] };
     },
 
     render: function () {
@@ -67,6 +64,7 @@ define([
 
           this.template = _.template(template);
           this.$el.html(this.template.call(this, {util: util}));
+          this.drawSvg();
         }
       }, this));
 
@@ -213,6 +211,104 @@ define([
       if (path)
         this.app.router.navigate(path, {trigger: true});
     },
+
+    drawSvg: function() {
+      var channels = _.first(this.model.get('channels'), 5);
+      var selector = $('.dataset-config-svg');
+      var width = selector.width();
+      var height = selector.height();
+
+      // Create initial SVG
+      var svg = d3.select(selector.get(0))
+          .append('svg:svg')
+          .attr('width', width)
+          .attr('height', height)
+          .append('svg:g');
+
+      var sampleSet = [];
+      var v_max = Number.MIN_VALUE;
+      var v_min = Number.MAX_VALUE;
+
+      // Called after data collection
+      var finalizeSvg = _.after(channels.length, _.bind(function() {
+        var t_0 = _.min(_.pluck(channels, 'beg'));
+        var t_max = _.max(_.pluck(channels, 'end'));
+        var t_diff = t_max - t_0;
+
+        var v_diff = v_max - v_min;
+
+        var path = d3.svg.area()
+            .x(function (s, i) {
+              if (t_diff === 0) {
+                return i === 0 ? 0: width;
+              } else {
+                return ((s.beg - t_0) / t_diff * width);
+              }
+            })
+            .y0(function () {
+              return height;
+            })
+            .y1(function (s) {
+              return v_diff === 0 || s.val === null ? v_max: height - ((s.val - v_min) / v_diff * height);
+            })
+            .interpolate('linear');
+
+        _.each(sampleSet, function (s, idx) {
+          d3.select(selector.get(0)).select('g')
+              .append('svg:path')
+              .attr('d', path(s))
+              .attr('class', 'area')
+              .attr('fill', this.app.colors[idx % this.app.colors.length])
+              .attr('opacity', .6);
+        }, this);
+      }, this));
+
+      // Collect sample data for each channel
+      _.each(channels, function(c, idx) {
+
+        var opts = {
+          beginTime: c.beg,
+          endTime: c.end,
+          minDuration: (c.end - c.beg) / 100
+        };
+
+        this.app.rpc.do('fetchSamples', Number(this.id), c.channelName,
+            opts, _.bind(function (err, sampleObj) {
+
+          if (err) {
+            console.log(err);
+            return;
+          }
+
+          if (!sampleObj.samples[0]) return;
+
+          var prevEnd = null;
+          var data = [];
+          _.each(sampleObj.samples, function (s) {
+            if (s.val > v_max) v_max = s.val;
+            if (s.val < v_min) v_min = s.val;
+            // Add points to deal with non-contiguous samples
+            if (prevEnd != s.beg) {
+              data.push({beg: prevEnd, end: prevEnd, val:null});
+              data.push({beg: s.beg, end: s.beg, val:null});
+            }
+            data.push(s);
+            prevEnd = s.end;
+          });
+
+          if (data.length === 1) {
+            data.push(_.clone(data[0]));
+          }
+
+          sampleSet.push(data);
+
+          finalizeSvg();
+
+        }));
+      }, this);
+    },
+
+
 
   });
 });
