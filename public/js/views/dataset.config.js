@@ -253,7 +253,7 @@ define([
         d3.select(selector.get(0)).select('g');
 
 
-        setInterval(_.bind(function () {
+        var rotateSvg = function() { 
           if (!this.animate) return;
           var t_0 = _.min(_.compact(_.pluck(sampleSet[channelIter], 'beg')));
           var t_max = _.max(_.pluck(sampleSet[channelIter], 'end'));
@@ -299,7 +299,10 @@ define([
             .attr('xlink:href', channels[channelIter].channelName);
 
           channelIter = (channelIter + 1) % sampleSet.length;
-        }, this), 3000);
+        }
+
+        rotateSvg(); // execute immediately
+        setInterval(_.bind(rotateSvg, this), 3000);
       }, this));
 
       // Collect sample data for each channel

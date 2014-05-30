@@ -141,7 +141,7 @@ define([
       //   if (err) return console.error(err);
       //   var channels = data.channels;
       //   if (!channels) return console.error('No channels found');
-        var channels = this.model.get('channels');
+        var channels = _.sortBy(this.model.get('channels'), 'humanName')
 
         // Add dataset ID to channel models, and calculate dataset beg/end
         var prevBeg = Number.MAX_VALUE;
