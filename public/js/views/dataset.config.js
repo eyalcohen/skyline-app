@@ -46,6 +46,7 @@ define([
     events: {
       'click .navigate': 'navigate',
       'click .demolish': 'demolish',
+      'click .settings-public': 'checkPublic',
     },
 
     setup: function () {
@@ -61,6 +62,9 @@ define([
         }
 
         $('.title-left').text(this.model.get('title'));
+
+        $('input[name="public"]').prop('checked', !dataset.public);
+        this.checkPublic();
 
         // Save field contents on blur.
         this.$('textarea, input[type="text"], input[type="checkbox"], input[type="radio"]')
@@ -117,14 +121,16 @@ define([
       var errorMsg = $('.settings-error', label.parent().parent()).hide();
       var val = util.sanitize(field.val());
 
-      // Handle checkbox.
+      // Handle public checkbox.
       if (field.attr('type') === 'checkbox')
-        val = field.is(':checked');
+        val = !field.is(':checked');
 
       // Create the paylaod.
       if (val === field.data('saved')) return false;
       var payload = {};
       payload[name] = val;
+
+      console.log(payload);
 
       // Now do the save.
       rest.put('/api/datasets/' + this.id, payload,
@@ -189,6 +195,16 @@ define([
       var path = $(e.target).closest('a').attr('href');
       if (path)
         this.app.router.navigate(path, {trigger: true});
+    },
+
+    checkPublic: function (e) {
+      var privacy = $('input[name="public"]');
+      var span = $('span', privacy.parent());
+      if (privacy.is(':checked')) {
+        span.html('<i class="icon-lock"></i> Private');
+      } else {
+        span.html('<i class="icon-lock-open"></i> Public');
+      }
     },
 
     drawSvg: function() {

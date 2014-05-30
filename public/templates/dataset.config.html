@@ -28,10 +28,17 @@
           </td>
         </tr>
         <tr>
-          <td colspan = "2">
+          <td>
             <input type="text" tabindex="1" id="datasetTitle" name="title"
                 placeholder="title" value="<%= data.title %>" <%= disabled %>/>
           </td>
+          <td style="width:84px">
+            <label class="checkbox-styled input-checkbox">
+              <input class="settings-public" type="checkbox" name="public" value="public" <%= disabled %>/>
+              <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
+            </label>
+          </td>
+
         </tr>
 
         <tr>
