@@ -1,8 +1,6 @@
 /*
  * Dataset configuration view
  * TODO: Add spinner for long loading SVGs and REST interface
- *       Add public/private button
- *       Click the SVG to load the channel
  */
 
 define([
@@ -72,12 +70,20 @@ define([
             .keyup(function (e) {
           var field = $(e.target);
           var name = field.attr('name');
+
+          // Hack to handle public checkbox
+          if (capName === 'Public') capName = 'Title';
+
           var capName = name.charAt(0).toUpperCase() + name.slice(1);
           var label = $('label[for="dataset' + capName + '"]');
           var saved = $('.settings-saved', label.parent().parent());
 
           if (field.val().trim() !== field.data('saved'))
             saved.hide();
+
+          setTimeout(function() {
+            saved.hide();
+          }, 2000);
 
           return false;
         });
@@ -116,6 +122,10 @@ define([
       var field = $(e.target);
       var name = field.attr('name');
       var capName = name.charAt(0).toUpperCase() + name.slice(1);
+
+      // Hack to handle public checkbox
+      if (capName === 'Public') capName = 'Title';
+
       var label = $('label[for="dataset' + capName + '"]');
       var saved = $('.settings-saved', label.parent().parent());
       var errorMsg = $('.settings-error', label.parent().parent()).hide();
@@ -130,11 +140,9 @@ define([
       var payload = {};
       payload[name] = val;
 
-      console.log(payload);
-
       // Now do the save.
       rest.put('/api/datasets/' + this.id, payload,
-          _.bind(function (err, data) {
+          _.bind(function (err) {
         if (err) {
 
           // Set the error display.
@@ -147,6 +155,10 @@ define([
         field.data('saved', val);
         saved.show();
 
+        setTimeout(function() {
+          saved.parent().fadeOut('slow');
+        }, 2000);
+
       }, this));
 
       return false;
@@ -157,7 +169,7 @@ define([
 
       // Render the confirm modal.
       $.fancybox(_.template(confirm)({
-        message: 'Delete this dataset?', 
+        message: 'Delete this dataset?',
       }), {
         openEffect: 'fade',
         closeEffect: 'fade',
@@ -166,14 +178,14 @@ define([
       });
 
       // Setup actions.
-      $('#m_cancel').click(function (e) {
+      $('#m_cancel').click(function () {
         $.fancybox.close();
       });
-      $('#m_yes').click(_.bind(function (e) {
+      $('#m_yes').click(_.bind(function () {
 
         // Delete the user.
-        rest.delete('/api/datasets/' + this.id, 
-            {}, _.bind(function (err, data) {
+        rest.delete('/api/datasets/' + this.id,
+            {}, _.bind(function (err) {
           if (err) return console.log(err);
 
           // Close the modal.
@@ -197,7 +209,7 @@ define([
         this.app.router.navigate(path, {trigger: true});
     },
 
-    checkPublic: function (e) {
+    checkPublic: function () {
       var privacy = $('input[name="public"]');
       var span = $('span', privacy.parent());
       if (privacy.is(':checked')) {
@@ -220,18 +232,25 @@ define([
       var finalizeSvg = _.once(_.bind(function() {
 
         // Create initial SVG
-        var svg = d3.select(selector.get(0))
-            .append('svg:svg')
-            .attr('width', width)
-            .attr('height', height)
-            .append('svg:g')
-            .append('svg:path');
+        var svgGroup = d3.select(selector.get(0))
+          .append('svg:svg')
+          .attr('width', width)
+          .attr('height', height)
+          .append('svg:g')
+          .append('svg:a');
+        svgGroup.attr('xlink:href', 'javascript:;');
+        svgGroup.append('svg:rect')
+          .attr('width', width)
+          .attr('height', height)
+          .attr('fill', '#fcfcfc')
+          .attr('stroke-length', 0);
+        svgGroup.append('svg:path');
+        svgGroup.append('svg:text')
+          .attr('y', height-10)
+          .attr('x', 10)
+          .attr('fill', '#ad8f3f');
 
-        d3.select(selector.get(0)).select('g')
-            .append('svg:text')
-            .attr('y', height-10)
-            .attr('x', 10)
-            .attr('fill', '#666');
+        d3.select(selector.get(0)).select('g');
 
 
         setInterval(_.bind(function () {
@@ -266,22 +285,25 @@ define([
               .interpolate('linear');
 
           d3.select(selector.get(0)).select('path')
-              .transition()
-              .attr('d', path(sampleSet[channelIter]))
-              .attr('class', 'area')
-              .attr('fill', this.app.colors[channelIter % this.app.colors.length])
-              .attr('opacity', 0.6);
+            .transition()
+            .attr('d', path(sampleSet[channelIter]))
+            .attr('class', 'area')
+            .attr('fill', this.app.colors[channelIter % this.app.colors.length])
+            .attr('opacity', 0.6);
 
           d3.select(selector.get(0)).select('text')
             .transition()
             .text(channels[channelIter].humanName);
+
+          d3.select(selector.get(0)).select('a')
+            .attr('xlink:href', channels[channelIter].channelName);
 
           channelIter = (channelIter + 1) % sampleSet.length;
         }, this), 3000);
       }, this));
 
       // Collect sample data for each channel
-      _.each(channels, function(c, idx) {
+      _.each(channels, function(c) {
 
         var opts = {
           beginTime: c.beg,
@@ -303,7 +325,7 @@ define([
           var data = [];
           _.each(sampleObj.samples, function (s) {
             // Add points to deal with non-contiguous samples
-            if (prevEnd != s.beg) {
+            if (prevEnd !== s.beg) {
               data.push({beg: prevEnd, end: prevEnd, val:null});
               data.push({beg: s.beg, end: s.beg, val:null});
             }

@@ -135,8 +135,10 @@
   <p>
     This dataset was created on
      <strong> <%= util.toLocaleString(new Date(data.created), 'mediumDate') %> </strong>
+    <% if (data.created !== data.updated) { %>
      and was last updated on
      <strong> <%= util.toLocaleString(new Date(data.updated), 'mediumDate') %> </strong>
+    <% } %>
      .
   </p>
   <br>
