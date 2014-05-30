@@ -1057,7 +1057,8 @@ span.empty-list {
 }
 
 .info-delete,
-.info-accept {
+.info-accept,
+.info-settings a .icon-cog {
   color: #8f8f8f;
   cursor: pointer;
   font-size: 10px;
@@ -3439,12 +3440,17 @@ p.sidebar-tip span {
 .settings td input[type="text"],
 .settings td input[type="password"],
 .settings td input[type="submit"],
+.settings td textarea,
 .settings td a.button {
   width: 100%;
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box
+}
+
+.settings td textarea {
+  height: 90px;
 }
 
 .settings-saved,
@@ -3498,6 +3504,29 @@ ul.settings-detail-list {
 
 ul.settings-detail-list li {
   list-style-type: disc;
+}
+
+.settings-svg {
+  height: 100px;
+  margin-bottom: 20px;
+
+  cursor: pointer;
+  border: 1px solid #f9f9f9;
+  font-size: 14px;
+  background: #fcfcfc;
+
+  -webkit-transition: all 0.15s ease-in-out;
+  -moz-transition: all 0.15s ease-in-out;
+  transition: all 0.15s ease-in-out;
+
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+}
+
+.settings-svg:hover {
+  opacity: .8;
+  border-color: #e6e6e6;
 }
 
 /*.........................................................................*/
@@ -4138,6 +4167,23 @@ a.control-button-save.saving {
 
 .main.embed .overview .overview-selection {
   height: 70px;
+}
+
+.lower-panel .overview .overview-date {
+  display:table;
+  height: 100%;
+  width:50px;
+  left:10px;
+}
+
+.lower-panel .overview .overview-date-right {
+  float:right;
+  position:relative;
+}
+
+.overview-date > span {
+  display:table-cell;
+  vertical-align: bottom;
 }
 
 /*.........................................................................*/

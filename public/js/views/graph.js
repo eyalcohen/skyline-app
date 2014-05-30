@@ -58,7 +58,7 @@ define([
       if (page) {
         time = page.time;
       } else {
-        var time = {
+        time = {
           beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
           end: Date.now() * 1e3,
         };
@@ -214,7 +214,7 @@ define([
           series_x = (_.map(series.data, function (d) { return d ? d[0] : null; }));
 
           // use binary search to locate time in the array
-          timeIdxHigh = (_.sortedIndex(series_x, time, null, this))
+          timeIdxHigh = (_.sortedIndex(series_x, time, null, this));
         }
 
         // Bound edges.  This should just work, but will make invalid results
@@ -224,10 +224,16 @@ define([
         } else if (timeIdxHigh >= series.data.length) {
           timeIdxHigh = series.data.length - 1;
         }
+
         var timeIdxLow = timeIdxHigh - 1;
+        // Find the next valid time
+        while (!series.data[timeIdxLow] && timeIdxLow > 0)
+          timeIdxLow--;
+        while (!series.data[timeIdxHigh] && timeIdxHigh < series.data.length)
+          timeIdxHigh++;
 
         // coordinates of series values
-        if (!series.data[timeIdxLow]) return null;
+        if (!series.data[timeIdxLow] || !series.data[timeIdxHigh]) return null;
         var cTimeLow = series.xaxis.p2c(series.data[timeIdxLow][0]);
         var cTimeHigh = series.xaxis.p2c(series.data[timeIdxHigh][0]);
         var cValueLow = series.yaxis.p2c(series.data[timeIdxLow][1]);
@@ -248,7 +254,7 @@ define([
 
         // if the cursor is between two points, determine if its closer
         // to the right or left point
-        var cNearestPt = []
+        var cNearestPt = [];
         if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
           obj.nearestPointData = series.data[timeIdxLow];
           obj.nearestPointIndex = timeIdxLow;
@@ -357,7 +363,7 @@ define([
       // Use and empty channel if no channels.
       if (channels.length === 0) {
         channels.push({channelName: 'empty'});
-        this.model.lineStyleOptions['empty'] = this.model.DEFAULT_LINE_STYLE;
+        this.model.lineStyleOptions.empty = this.model.DEFAULT_LINE_STYLE;
         _.each(this.plot.getYAxes(),
             function (a) { a.options.show = false; });
       } else {
@@ -370,7 +376,7 @@ define([
       var yaxes = [{min: Infinity, max: -Infinity, cnt: 0},
           {min: Infinity, max: -Infinity, cnt: 0}];
       _.each(channels, _.bind(function (channel, i) {
-        var lineStyleOpts = this.model.lineStyleOptions[channel.channelName]
+        var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
         var highlighted = this.highlightedChannel === channel.channelName;
 
         // Setup series.
@@ -401,7 +407,7 @@ define([
           return memo + (it === null ? 1 : 0);
         }, 0);
 
-        var showMinMax = numNulls < data.minMax.length * .33;
+        var showMinMax = numNulls < data.minMax.length * 0.33;
 
         if (data.minMax.length > 0 && showMinMax) {
           series.push(_.extend({
@@ -809,9 +815,9 @@ define([
         var highlighted = this.highlightedChannel === channel.channelName;
         var color;
         if (this.model.lineStyleOptions[channel.channelName].color)
-          var color = this.model.lineStyleOptions[channel.channelName].color;
+          color = this.model.lineStyleOptions[channel.channelName].color;
         else {
-          var color = this.app.getColors(channel.colorNum);
+          color = this.app.getColors(channel.colorNum);
           this.model.lineStyleOptions[channel.channelName].color = this.color;
         }
 
@@ -819,7 +825,7 @@ define([
 
         var did = this.model.findDatasetFromChannel(channel.channelName).get('id');
         if (this.lightened[did] === true)
-          color = util.lightenColor(color, .3);
+          color = util.lightenColor(color, 0.3);
         if (this.highlightedChannel && !highlighted) {
 
           // Lighten color.
@@ -897,7 +903,7 @@ define([
         if (obj.channelName.indexOf('__minmax') != -1)
           return;
         var lso = this.model.lineStyleOptions[obj.channelName.split('__minmax')[0]];
-        needsUpdate = needsUpdate | (obj.lines.lineWidth !== lso.lineWidth)
+        needsUpdate = needsUpdate || (obj.lines.lineWidth !== lso.lineWidth);
         obj.lines.lineWidth = lso.lineWidth;
         obj.points.radius = lso.pointRadius;
       }, this);

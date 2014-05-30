@@ -1,5 +1,5 @@
 <%
-  var link = [this.model.get('author').username, this.model.id].join('/');
+  var link = [this.model.get('author').username, this.model.id, 'config'].join('/');
 %>
 
 <a href="/<%= link %>" class="navigate<%= this.model.get('public') === false ? ' locked': '' %>">
