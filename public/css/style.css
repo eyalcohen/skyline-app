@@ -4059,6 +4059,19 @@ a.control-button-save.saving {
   transition: left 0.1s;
 }
 
+.cursor-display {
+  background-color: gray;
+  opacity: .8;
+  position: relative;
+  display: none;
+  padding: 2px;
+}
+
+.cursor-display * {
+  color: white;
+  font-size: 10px;
+}
+
 .cursor.active {
   border-left-color: rgb(39, 205, 214);
 }

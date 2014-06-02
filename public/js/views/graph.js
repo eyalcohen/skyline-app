@@ -164,7 +164,8 @@ define([
     // returns an array of objects containing {
     //   channelName: name of series to cursor
     //   channelIndex:
-    //   nearestPointData: x,y of the nearest point
+    //   nearestPointData: data pair of the nearest point as array
+    //   nearestPointXY: cursor x, y of the nearest point
     //   nearestPointIndex: series index for nearest point
     //   pixelsFromNearestPt: distance of mouse from the nearest point
     //   pixelsFromInterpPt: distance of mouse from an interpolated line
@@ -191,6 +192,7 @@ define([
           channelIndex: idx,
           nearestPointData: null,
           nearestPointIndex: null,
+          nearestPointXY: null,
           pixelsFromNearestPt: null,
           pixelsFromInterpPt: null,
           //interpPt: null,
@@ -254,21 +256,21 @@ define([
 
         // if the cursor is between two points, determine if its closer
         // to the right or left point
-        var cNearestPt = [];
+        obj.nearestPointXY = [];
         if ((cTimeHigh - cTimeLow) > (mouse.x  - cTimeLow)*2) {
           obj.nearestPointData = series.data[timeIdxLow];
           obj.nearestPointIndex = timeIdxLow;
-          cNearestPt.push(cTimeLow);
-          cNearestPt.push(cValueLow);
+          obj.nearestPointXY.push(cTimeLow);
+          obj.nearestPointXY.push(cValueLow);
         }
         else {
           obj.nearestPointData = series.data[timeIdxHigh];
           obj.nearestPointIndex = timeIdxHigh;
-          cNearestPt.push(cTimeHigh);
-          cNearestPt.push(cValueHigh);
+          obj.nearestPointXY.push(cTimeHigh);
+          obj.nearestPointXY.push(cValueHigh);
         }
 
-        var x0 = mouse.x - cNearestPt[0];  var y0 = mouse.y - cNearestPt[1];
+        var x0 = mouse.x - obj.nearestPointXY[0];  var y0 = mouse.y - obj.nearestPointXY[1];
         // vector magnitude of distance to pixels
         obj.pixelsFromNearestPt = Math.sqrt(x0*x0+y0*y0);
 
@@ -528,9 +530,9 @@ define([
           // don't run this very frequently, perhaps once every 20ms
           if (Date.now() - this.lastMouseMove > 20) {
             this.lastMouseMove = Date.now();
-            var stats = this.getStatsNearMouse(e);
-            this.mouseLineStyle(e, stats);
-            mps.publish('channel/mousemove', [stats]);
+            this.mouseStats = this.getStatsNearMouse(e);
+            this.mouseLineStyle(e, this.mouseStats);
+            mps.publish('channel/mousemove', [this.mouseStats]);
           }
         }, this))
 
