@@ -114,7 +114,6 @@ define([
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
       'click .control-button-share': 'share',
-      'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'mousedown .note-button': 'note',
       'click .note-cancel-button': 'note'
@@ -166,6 +165,8 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
       $(window).resize(_.debounce(_.bind(this.resize, this), 500));
+
+      this.$el.mousemove(_.debounce(_.bind(this.updateCursor, this), 20));
 
       return this;
     },
