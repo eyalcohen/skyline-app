@@ -4061,7 +4061,7 @@ a.control-button-save.saving {
 
 .cursor-display {
   background-color: gray;
-  opacity: .8;
+  opacity: .75;
   position: relative;
   display: none;
   padding: 3px;
