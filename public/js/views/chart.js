@@ -155,6 +155,7 @@ define([
       this.overview = new Overview(this.app, {parentView: this}).render();
       this.map = new Map(this.app, {parentView: this}).render(this.graph.getVisibleTime());
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
+      this.addedCursors = {};
 
       if (state.time)
         mps.publish('chart/zoom', [{min: state.time.beg/1000, max: state.time.end/1000}]);
@@ -410,29 +411,66 @@ define([
       this.cursorData = this.graph.cursor(e, t);
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
-      this.cursor.css({left: Math.ceil(this.cursorData.x)});
+      var closest = _.sortBy(this.graph.mouseStats, 'pixelsFromInterpPt')[0];
+      if (!closest) return;
+      this.cursor.css({left: Math.ceil(closest.nearestPointXY[0])});
+      var cursorDisplayHtml = function(name) { return '<div class="cursor-display" id="cursor-'+ name + '"><label> Value: </label> <span class="cursor-val"></span></div>' };
 
       var graphData = _.sortBy(this.graph.mouseStats, 'pixelsFromInterpPt')[0];
       if (!graphData) {
         return;
+      var makeNiceValue =  function(v) {
+        if (Math.abs(Math.round(v)) >= 1e6)
+          v = v.toFixed(0);
+        else
+          v = v.toPrecision(6).
+              replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+              replace(/\.([Ee][0-9-]*)?$/, '$1');
+        return util.addCommas(v);
       }
 
       if (graphData.pixelsFromNearestPt >= this.graph.PIXELS_FROM_HIGHLIGHT) {
         this.cursorDisplay.hide();
+/*
+      var closest = _.sortBy(this.graph.mouseStats, 'pixelsFromInterpPt')[0];
+
+      if (closest && closeset.pixelsFromNearestPt >= this.graph.PIXELS_FROM_HIGHLIGHT) {
+        //this.cursorDisplay.hide();
+        $('.cursor-display').hide();
         this.showingCursor = false;
         this.graph.plot.unhighlight();
       } else {
         if (!this.showingCursor) {
           _.delay(_.bind(function() {
+            _.each(this.graph.mouseStats, function (m) {
             this.cursorDisplay.show('fast');
             this.showingCursor = true;
           }, this), 750);
         };
+*/
+        this.graph.plot.unhighlight();
+        _.each(this.graph.mouseStats, function (m, idx) {
+          if (m.pixelsFromNearestPt[0] < this.graph.PIXELS_FROM_HIGHLIGHT) {
+            if (!this.addedCursors[m.channelName]) {
+              this.cursor.append(cursorDisplayHtml(m.channelName));
+              // cache
+              this.addedCursors[m.channelName] = $('#cursor-'+m.channelName);
+            }
+            this.addedCursors[m.channelName].css({top: m.nearestPointXY[1]});
+            this.addedCursors[m.channelName].find('.cursor-val').text(makeNiceValue(m.nearestPointData[1]));
+            this.addedCursors[m.channelName].show();
+            this.graph.plot.highlight(m.channelIndex, m.nearestPointIndex);
+          } else {
+            if (this.addedCursors[m.channelName]) {
+              this.addedCursors[m.channelName].remove();
+              delete this.addedCursors[m.channelName];
+            }
+          }
+        }, this);
 
+/*
         this.graph.plot.unhighlight();
         this.graph.plot.highlight(graphData.channelIndex, graphData.nearestPointIndex);
-
-        this.cursorDisplay.css({top: graphData.nearestPointXY[1]});
 
         // Ugly
         var ds = this.graph.model.findDatasetFromChannel(graphData.channelName);
@@ -454,6 +492,7 @@ define([
         $('.cursor-val').text(util.addCommas(v));
 
       }
+        */
     },
 
     hideCursor: function (e) {

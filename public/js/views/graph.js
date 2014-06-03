@@ -150,7 +150,7 @@ define([
     //   nearestPointData: data pair of the nearest point as array
     //   nearestPointXY: cursor x, y of the nearest point
     //   nearestPointIndex: series index for nearest point
-    //   pixelsFromNearestPt: distance of mouse from the nearest point
+    //   pixelsFromNearestPt: array of distance of mouse from the nearest point.  [x, y, vector sum]
     //   pixelsFromInterpPt: distance of mouse from an interpolated line
     getStatsNearMouse: function (e) {
       var mouse = this.getMouse(e);
@@ -255,7 +255,7 @@ define([
 
         var x0 = mouse.x - obj.nearestPointXY[0];  var y0 = mouse.y - obj.nearestPointXY[1];
         // vector magnitude of distance to pixels
-        obj.pixelsFromNearestPt = Math.sqrt(x0*x0+y0*y0);
+        obj.pixelsFromNearestPt = [x0, y0, Math.sqrt(x0*x0+y0*y0)];
 
         var interpValue = interp(cTimeLow, cTimeHigh, cValueLow, cValueHigh, mouse.x);
         obj.pixelsFromInterpPt = Math.abs(mouse.y - interpValue);
