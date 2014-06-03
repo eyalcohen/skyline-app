@@ -29,7 +29,7 @@ define([
 
       // Some graph constants
       this.POINTS_TO_SHOW = 250; // maximum number of points to display
-      this.PIXELS_FROM_HIGHLIGHT = 40; // maximum number of pixels for line highlight
+      this.PIXELS_FROM_HIGHLIGHT = 60; // maximum number of pixels for line highlight
 
       // Shell events:
       this.on('rendered', this.setup, this);
@@ -897,7 +897,7 @@ define([
         return obj.channelName === closestChannel.channelName;
       });
 
-      this.plot.unhighlight();
+      //this.plot.unhighlight();
 
       var needsUpdate = false;
       _.each(plotData, function (obj) {
@@ -916,7 +916,7 @@ define([
       if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
         newWidth = newWidth + 2;
         newRadius = newRadius + 1;
-        this.plot.highlight(closestChannel.channelIndex, closestChannel.nearestPointIndex);
+        //this.plot.highlight(closestChannel.channelIndex, closestChannel.nearestPointIndex);
       }
 
       if (newWidth != curWidth) {
