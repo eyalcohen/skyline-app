@@ -398,7 +398,7 @@ define([
           _.delay(_.bind(function() {
             this.cursorDisplay.show('fast');
             this.showingCursor = true;
-          }, this), 500);
+          }, this), 750);
         };
 
         this.graph.plot.unhighlight();
@@ -411,10 +411,18 @@ define([
           return c.channelName === graphData.channelName;
         }).humanName
 
+        $('.cursor-dataset').text(ds.get('title'));
         $('.cursor-channel').text(humanName);
         var date = new Date(graphData.nearestPointData[0]);
         $('.cursor-date').text(util.toLocaleString(date, 'm/d/yyyy h:MM:ss TT'));
-        $('.cursor-val').text(graphData.nearestPointData[1]);
+        var v = graphData.nearestPointData[1];
+        if (Math.abs(Math.round(v)) >= 1e6)
+          v = v.toFixed(0);
+        else
+          v = v.toPrecision(6).
+              replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+              replace(/\.([Ee][0-9-]*)?$/, '$1');
+        $('.cursor-val').text(util.addCommas(v));
 
       }
     },
