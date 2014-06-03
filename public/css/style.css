@@ -4198,14 +4198,17 @@ a.control-button-save.saving {
   pointer-events: none;
 }
 
+.cursor-display-outter {
+  position: relative;
+}
+
 .cursor-display {
   background-color: gray;
   opacity: .75;
   position: absolute;
-  display: none;
-  padding: 3px;
+  display: inline;
+  padding: 5px;
   left: 0px;
-  width: 80px;
 
   -webkit-border-radius: 1px;
   -moz-border-radius: 1px;
@@ -4226,7 +4229,7 @@ a.control-button-save.saving {
 .cursor a.note-duration-button,
 .cursor a.note-cancel-button {
   position: absolute;
-  bottom: -20px;
+  bottom: 0px;
   background: #3f3f3f;
   color: #fff;
   font-size: 8px;

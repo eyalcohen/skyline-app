@@ -414,7 +414,7 @@ define([
       var closest = _.sortBy(this.graph.mouseStats, 'pixelsFromInterpPt')[0];
       if (!closest) return;
       this.cursor.css({left: Math.ceil(closest.nearestPointXY[0])});
-      var cursorDisplayHtml = function(name) { return '<div class="cursor-display" id="cursor-'+ name + '"><label> Value: </label> <span class="cursor-val"></span></div>' };
+      var cursorDisplayHtml = function(name) { return '<div class="cursor-display-outter" id="cursor-'+name+'"><div class="cursor-display"><span class="cursor-val"></span></div></div>' };
 
       var graphData = _.sortBy(this.graph.mouseStats, 'pixelsFromInterpPt')[0];
       if (!graphData) {
@@ -467,6 +467,22 @@ define([
             }
           }
         }, this);
+
+        var selector = $('#cursor-date');
+        if (_.keys(this.addedCursors).length > 0) {
+          if ($('#cursor-date').length === 0) {
+            this.cursor.append(cursorDisplayHtml('date'));
+            selector = $('#cursor-date');
+          }
+          selector.css({top: this.graph.$el.height()});
+          var date = new Date(closest.nearestPointData[0]);
+          selector.find('.cursor-val').text(util.toLocaleString(date, 'm/d/yyyy h:MM:ss TT'));
+          selector.show();
+          selector.width(300);
+        } else {
+          selector.remove();
+        }
+
 
 /*
         this.graph.plot.unhighlight();
