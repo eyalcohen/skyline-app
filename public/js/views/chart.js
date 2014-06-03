@@ -406,6 +406,7 @@ define([
         this.graph.plot.highlight(graphData.channelIndex, graphData.nearestPointIndex);
 
         this.cursorDisplay.css({top: graphData.nearestPointXY[1]});
+
         // Ugly
         var ds = this.graph.model.findDatasetFromChannel(graphData.channelName);
         var humanName = _.find(ds.get('channels'), function (c) {

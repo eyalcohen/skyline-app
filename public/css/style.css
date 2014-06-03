@@ -4065,6 +4065,7 @@ a.control-button-save.saving {
   position: relative;
   display: none;
   padding: 3px;
+  left: 10px;
 
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
