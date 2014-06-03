@@ -114,7 +114,6 @@ define([
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
       'click .control-button-share': 'share',
-      'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'mousedown .note-button': 'note',
       'click .note-cancel-button': 'note'
@@ -129,6 +128,7 @@ define([
       this.lowerPanel = this.$('.lower-panel');
       this.controls = this.$('.controls');
       this.cursor = this.$('.cursor');
+      this.cursorDisplay = this.$('.cursor-display');
       this.icons = this.$('.icons');
       this.saveButton = this.$('.control-button-save');
       this.saveButtonSpin = new Spin($('.save-button-spin', this.el), {
@@ -165,6 +165,8 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
       $(window).resize(_.debounce(_.bind(this.resize, this), 500));
+
+      this.$el.mousemove(_.debounce(_.bind(this.updateCursor, this), 20));
 
       return this;
     },
@@ -385,6 +387,45 @@ define([
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
       this.cursor.css({left: Math.ceil(this.cursorData.x)});
+
+      var graphData = _.sortBy(this.graph.mouseStats, 'pixelsFromInterpPt')[0];
+
+      if (graphData && graphData.pixelsFromNearestPt >= this.graph.PIXELS_FROM_HIGHLIGHT) {
+        this.cursorDisplay.hide();
+        this.showingCursor = false;
+        this.graph.plot.unhighlight();
+      } else {
+        if (!this.showingCursor) {
+          _.delay(_.bind(function() {
+            this.cursorDisplay.show('fast');
+            this.showingCursor = true;
+          }, this), 750);
+        };
+
+        this.graph.plot.unhighlight();
+        this.graph.plot.highlight(graphData.channelIndex, graphData.nearestPointIndex);
+
+        this.cursorDisplay.css({top: graphData.nearestPointXY[1]});
+        // Ugly
+        var ds = this.graph.model.findDatasetFromChannel(graphData.channelName);
+        var humanName = _.find(ds.get('channels'), function (c) {
+          return c.channelName === graphData.channelName;
+        }).humanName
+
+        $('.cursor-dataset').text(ds.get('title'));
+        $('.cursor-channel').text(humanName);
+        var date = new Date(graphData.nearestPointData[0]);
+        $('.cursor-date').text(util.toLocaleString(date, 'm/d/yyyy h:MM:ss TT'));
+        var v = graphData.nearestPointData[1];
+        if (Math.abs(Math.round(v)) >= 1e6)
+          v = v.toFixed(0);
+        else
+          v = v.toPrecision(6).
+              replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+              replace(/\.([Ee][0-9-]*)?$/, '$1');
+        $('.cursor-val').text(util.addCommas(v));
+
+      }
     },
 
     hideCursor: function (e) {
