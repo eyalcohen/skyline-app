@@ -40,6 +40,15 @@
 </div>
 <div class="graphs">
   <div class="cursor">
+    <div class="cursor-display">
+      <i class="icon-database"></i><span class="cursor-dataset"></span>
+      <br>
+      <i class="icon-chart-line"></i><span class="cursor-channel"></span>
+      <br>
+      <label> Date: </label> <span class="cursor-date"></span>
+      <br>
+      <label> Value: </label> <span class="cursor-val"></span>
+    </div>
     <% if (user && !this.app.embed) { %>
       <a href="javascript:;" class="note-button">
         <i class="icon-bookmark"></i>Note
@@ -55,6 +64,7 @@
   <div class="notes"></div>
 </div>
 <div class="lower-panel">
+  <div class="lower-panel-border"></div>
   <div class="overview">
     <div class="overview-date">
        <span></span>
