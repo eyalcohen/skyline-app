@@ -31,6 +31,10 @@ exports.get = function (env) {
           host: 'smtp.gmail.com',
           ssl: true,
           from: 'Skyline <notifications@skyline-data.com>'
+        },
+        cartodb: {
+          user: "skyline",
+          key: "e2c51af30080afb68c9c7702c2e20f7d5f2cd506"
         }
       }:
       {
@@ -59,6 +63,10 @@ exports.get = function (env) {
           host: 'smtp.gmail.com',
           ssl: true,
           from: 'Skyline <notifications@skyline-data.com>'
+        },
+        cartodb: {
+          user: "skyline",
+          key: "e2c51af30080afb68c9c7702c2e20f7d5f2cd506"
         }
       };
 }

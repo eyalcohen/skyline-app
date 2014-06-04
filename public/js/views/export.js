@@ -212,14 +212,14 @@ define([
           function (c) { return c.skip; }));
 
       // Start download.
-      window.location.href = '/api/datasets'
+      console.log('/api/datasets'
           + '?beg=' + Math.floor(viewRange.beg)
           + '&end=' + Math.ceil(viewRange.end)
           + (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '')
           + (resample && minmax ? '&minmax' : '')
           + channels.map(function (c) {
             return '&chan=' + c.channelName;
-          }).join('');
+          }).join(''));
     },
 
   });

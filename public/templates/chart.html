@@ -2,7 +2,6 @@
   var user = this.app.profile ? this.app.profile.user: null;
 %>
 
-<!-- <div class="dnd"></div> -->
 <div class="upper-panel">
   <div class="datasets"></div>
   <div class="controls">
@@ -18,11 +17,6 @@
       <a class="control-button control-button-download" href="javascript:;">
         <i class="icon-download"></i>
       </a>
-      <!-- < if (this.app.profile.content.page) { >
-        <a class="control-button control-button-fork" href="javascript:;">
-          <i class="icon-split"></i>
-        </a>
-      < } > -->
       <a class="control-button control-button-save" href="javascript:;">
         <div class="button-spin save-button-spin"></div>
         <i class="icon-floppy"></i>
@@ -34,6 +28,14 @@
   </div>
 </div>
 <div id="side_panel" class="side-panel">
+  <div class="map-panel open">
+    <a href="javascript:;" class="button map-button">
+      <i class="icon-map"><i class="icon-angle-right"></i>
+          <i class="icon-angle-right"></i></i>
+    </a>
+    <div class="map-spin"></div>
+    <div id="map_inner" class="map-inner"></div>
+  </div>
   <div class="comments"></div>
 </div>
 <div class="graphs">

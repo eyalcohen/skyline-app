@@ -11,6 +11,8 @@ html(lang="en")
     meta(charset="UTF-8")
     <!--[if lt IE 9]><script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
     link(rel="stylesheet", href="http://fonts.googleapis.com/css?family=Montserrat:400,700|Dosis:200,400,600")
+    link(rel="stylesheet", href="https://d3voyrscnb0slx.cloudfront.net/cartodb.js/v2/themes/css/cartodb.css")
+    link(rel="stylesheet", href="http://libs.cartocdn.com/cartodb.js/v3/themes/css/cartodb.css")
     link(rel="stylesheet", href="#{root}/css/fancybox.css")
     link(rel="stylesheet", href="#{root}/css/fontello.css")
     link(rel="stylesheet", href="#{root}/css/animation.css")
@@ -21,6 +23,8 @@ html(lang="en")
   - var bc = typeof embed !== 'undefined' && embed ? "embed preload": "preload";
   body(class=bc)
     block content
+    script(type="text/javascript", src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyD2I6J4FKqmc7Z1sGqw52r6syXQ8e3nTkY&sensor=false")
+    script(src="http://libs.cartocdn.com/cartodb.js/v3/cartodb.js")
     - if (process.env.NODE_ENV === 'production')
       script(type="text/javascript", src="#{root}/js/store.min.js")
     - else

@@ -777,6 +777,23 @@ a.button.title-button:focus:not(.disabled) {
   border-left: 1px solid #d0d0d0;
 }
 
+a.button.map-button {
+  position: absolute;
+  z-index: 1;
+  bottom: 30px;
+  left: -30px;
+  width: 10px;
+  padding: 10px 12px 10px 6px;
+  min-width: 0;
+  border-radius: 3px 0 0 3px;
+
+  -webkit-transition: all 0.1s;
+  -moz-transition: all 0.1s;
+  -ms-transition: all 0.1s;
+  -o-transition: all 0.1s;
+  transition: all 0.1s;
+}
+
 /*.........................................................................*/
 
 .checkbox-styled {
@@ -1058,7 +1075,7 @@ span.empty-list {
 
 .info-delete,
 .info-accept,
-.info-settings a .icon-cog {
+a.info-settings {
   color: #8f8f8f;
   cursor: pointer;
   font-size: 10px;
@@ -1071,6 +1088,12 @@ i {
 i i {
   font-size: .6em;
   position: absolute;
+  left: 0.4em;
+  top: 1.4em;
+}
+
+i i + i {
+  top: -2.2em;
 }
 
 li.emphasis {
@@ -3970,7 +3993,7 @@ a.control-button-save.saving {
   bottom: 141px;
   right: -301px;
   width: 300px;
-  overflow-y: auto;
+  overflow-x: visible;
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
   border-top: 1px solid #d0d0d0;
@@ -3988,6 +4011,69 @@ a.control-button-save.saving {
 
 .main.embed .side-panel {
   bottom: 71px;
+}
+
+.map-panel {
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  right: 300px;
+  width: 0;
+  background: rgba(249,249,249,0.8);
+  border-left: none;
+  border-top: 1px solid #d0d0d0;
+  border-radius: 3px 0 0 0;
+
+  -webkit-transition: all 0.15s;
+  -moz-transition: all 0.15s;
+  -ms-transition: all 0.15s;
+  -o-transition: all 0.15s;
+  transition: all 0.15s;
+}
+
+.map-panel.open {
+  right: 301px;
+  border-left: 1px solid #d0d0d0;
+}
+
+.map-panel .map-spin {
+  visibility: hidden;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+.map-panel.open .map-spin {
+  visibility: visible;
+}
+
+.map-panel .map-inner {
+  display: none;
+  width: 100%;
+  height: 100%;
+  padding: 1px 0 0 1px;
+  opacity: 0.8;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.3s;
+  -moz-animation-duration: 0.3s;
+  -o-animation-duration: 0.3s;
+  animation-duration: 0.3s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.map-panel.open .map-inner {
+  display: block;
 }
 
 .lower-panel {

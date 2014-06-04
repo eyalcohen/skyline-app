@@ -20,22 +20,18 @@ define([
   'views/graph',
   'views/export',
   'views/overview',
-  'views/share'
+  'views/share',
+  'views/map'
 ], function ($, _, Backbone, mps, rest, util, units, common, Spin, template,
-      header, Datasets, Notes, Comments, Graph, Export, Overview, Share) {
+      header, Datasets, Notes, Comments, Graph, Export, Overview, Share, Map) {
   return Backbone.View.extend({
 
     className: 'chart',
     working: false,
 
-    // Module entry point.
     initialize: function (app, options) {
-
-      // Save app ref.
       this.app = app;
       this.options = options;
-
-      // Shell events.
       this.on('rendered', this.setup, this);
 
       this.requestedChannels = [];
@@ -52,12 +48,14 @@ define([
               _.clone(channel));
           this.overview.model.addChannel(this.datasets.collection.get(did),
               _.clone(channel));
+          this.map.addChannel(channel);
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
           this.graph.model.removeChannel(this.datasets.collection.get(did),
               _.clone(channel));
           this.overview.model.removeChannel(this.datasets.collection.get(did),
               _.clone(channel));
+          this.map.removeChannel(channel);
         }, this)),
         mps.subscribe('dataset/added', _.bind(function () {
           this.refreshNotes();
@@ -81,10 +79,7 @@ define([
       ];
     },
 
-    // Draw our template from the profile.
     render: function () {
-
-      // Use model to store view data.
       this.model = new Backbone.Model;
 
       // Set page title.
@@ -94,17 +89,13 @@ define([
             + (target.doc.name || target.doc.title));
       }
 
-      // Render main template.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('.main');
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .control-button-daily': 'daily',
       'click .control-button-weekly': 'weekly',
@@ -114,24 +105,26 @@ define([
       'click .control-button-download': 'download',
       'click .control-button-comments': 'panel',
       'click .control-button-share': 'share',
+      'click .map-button': 'map',
       'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'mousedown .note-button': 'note',
       'click .note-cancel-button': 'note'
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Save refs.
       this.noteDuration = this.$('.note-duration-button');
       this.sidePanel = this.$('.side-panel');
+      this.mapPanel = this.$('.map-panel');
+      this.mapButton = this.$('.map-button');
       this.lowerPanel = this.$('.lower-panel');
       this.controls = this.$('.controls');
       this.cursor = this.$('.cursor');
       this.icons = this.$('.icons');
       this.saveButton = this.$('.control-button-save');
-      this.saveButtonSpin = new Spin($('.save-button-spin', this.el), {
+      this.saveButtonSpin = new Spin(this.$('.save-button-spin'), {
         color: '#3f3f3f',
         lines: 13,
         length: 3,
@@ -156,6 +149,7 @@ define([
       this.comments = new Comments(this.app, {parentView: this});
       this.notes = new Notes(this.app, {parentView: this});
       this.overview = new Overview(this.app, {parentView: this}).render();
+      this.map = new Map(this.app, {parentView: this}).render();
 
       // Do resize on window change.
       this.resize();
@@ -169,14 +163,11 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -196,6 +187,11 @@ define([
           - this.$el.offset().top;
       height = Math.max(height, this.app.embed ? 0: 605);
       this.$el.css({height: height});
+      if (this.mapPanel.hasClass('open')) {
+        var w = Math.floor(this.$el.width() / 2 - this.sidePanel.width());
+        this.mapPanel.width(w);
+        this.map.resize(w);
+      }
       this.fit();
     },
 
@@ -369,13 +365,32 @@ define([
     },
 
     panel: function (e) {
-      if (e) e.preventDefault();
+      if (e) {
+        e.preventDefault();
+      }
       if (this.sidePanel.hasClass('open')) {
         this.sidePanel.removeClass('open');
         store.set('comments', false);
       } else {
         this.sidePanel.addClass('open');
         store.set('comments', true);
+      }
+    },
+
+    map: function (e) {
+      if (e) {
+        e.preventDefault();
+      }
+      if (this.mapPanel.hasClass('open')) {
+        this.mapPanel.removeClass('open').width(0);
+        $('i i', this.mapButton).removeClass('icon-angle-right')
+            .addClass('icon-angle-left');
+      } else {
+        var w = Math.floor(this.$el.width() / 2 - this.sidePanel.width());
+        this.mapPanel.addClass('open').width(w);
+        $('i i', this.mapButton).removeClass('icon-angle-left')
+            .addClass('icon-angle-right');
+        this.map.resize(w);
       }
     },
 
