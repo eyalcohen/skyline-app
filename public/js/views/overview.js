@@ -315,8 +315,8 @@ define([
 
       var timeText = $('<div class="overview-time-diff" id="overview-text">')
                        .insertBefore(this.visTimePlot);
-      var textTop = this.visTimePlot.offset().top + this.visTimePlot.height()/2;
-      timeText.offset({ top: textTop, left: e.pageX+20 });
+      // var textTop = this.visTimePlot.offset().top + this.visTimePlot.height()/2;
+      timeText.offset({ left: e.pageX+20 });
 
       var x = e.pageX;
       var w = this.visTimePlot.width();

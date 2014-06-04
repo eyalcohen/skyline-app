@@ -4271,8 +4271,11 @@ a.control-button-save.saving {
 }
 
 #overview-text {
+  top: 42%;
   width: auto;
-  font-size: 18px;
+  height: auto;
+  font-size: 14px;
+  color: #3f3f3f;
 }
 
 .main.embed .overview .overview-selection {
@@ -4280,15 +4283,26 @@ a.control-button-save.saving {
 }
 
 .lower-panel .overview .overview-date {
-  display:table;
-  height: 100%;
-  width:50px;
-  left:10px;
+  position: absolute;
+  height: auto;
+  width: auto;
+  left: 15px;
+  top: 42%;
+  font-size: 12px;
+  color: #3f3f3f;
+  
+  -webkit-transform: rotate(-90deg); 
+  -moz-transform: rotate(-90deg);
+  transform: rotate(-90deg);
 }
 
 .lower-panel .overview .overview-date-right {
-  float:right;
-  position:relative;
+  right: 15px;
+  left: auto;
+
+  -webkit-transform: rotate(90deg); 
+  -moz-transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 .overview-date > span {
