@@ -13,28 +13,20 @@ define([
   'text!../../templates/graph.html',
   'flot_plugins'
 ], function ($, _, Backbone, mps, util, units, Graph, template) {
-
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
     className: 'graph',
 
-    // Module entry point:
     initialize: function (app, options) {
-
-      // Save app ref.
       this.app = app;
       this.options = options;
       this.parentView = options.parentView;
+      this.on('rendered', this.setup, this);
 
       // Some graph constants
       this.POINTS_TO_SHOW = 250; // maximum number of points to display
       this.PIXELS_FROM_HIGHLIGHT = 60; // maximum number of pixels for line highlight
 
-      // Shell events:
-      this.on('rendered', this.setup, this);
-
-      // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
         mps.subscribe('chart/pan', _.bind(this.pan, this)),
@@ -49,7 +41,6 @@ define([
       ];
     },
 
-    // Draw template.
     render: function () {
 
       // Init a model for this view.
@@ -65,20 +56,15 @@ define([
       }
       this.model = new Graph(this.app, {view: this, time: time});
 
-      // UnderscoreJS rendering.
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('.graphs');
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {},
 
-    // Misc. setup.
     setup: function () {
 
       // Save refs
@@ -103,14 +89,11 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -282,9 +265,9 @@ define([
     },
 
     // TODO: Change this function to use getStatsNearMouse and make the cursor display!
-    cursor: function (e) {
-      var mouse = this.getMouse(e);
+    cursor: function (e, t) {
       var xaxis = this.plot.getXAxes()[0];
+      var mouse = e ? this.getMouse(e): {x: xaxis.p2c(t)};
       var time = xaxis.c2p(mouse.x);
       var points = {};
       var x, t;

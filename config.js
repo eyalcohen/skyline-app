@@ -34,6 +34,7 @@ exports.get = function (env) {
         },
         cartodb: {
           user: "skyline",
+          table: "samples",
           key: "e2c51af30080afb68c9c7702c2e20f7d5f2cd506"
         }
       }:
@@ -66,6 +67,7 @@ exports.get = function (env) {
         },
         cartodb: {
           user: "skyline",
+          table: "samples_dev",
           key: "e2c51af30080afb68c9c7702c2e20f7d5f2cd506"
         }
       };

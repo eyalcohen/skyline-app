@@ -106,7 +106,7 @@ define([
       'click .control-button-comments': 'panel',
       'click .control-button-share': 'share',
       'click .map-button': 'map',
-      'mousemove .graphs': 'updateCursor',
+      // 'mousemove .graphs': 'updateCursor',
       'mouseleave .graphs': 'hideCursor',
       'mousedown .note-button': 'note',
       'click .note-cancel-button': 'note'
@@ -150,7 +150,8 @@ define([
       this.comments = new Comments(this.app, {parentView: this});
       this.notes = new Notes(this.app, {parentView: this});
       this.overview = new Overview(this.app, {parentView: this}).render();
-      this.map = new Map(this.app, {parentView: this}).render();
+      this.map = new Map(this.app, {parentView: this}).render(this.graph.getVisibleTime());
+      this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
 
       // Do resize on window change.
       this.resize();
@@ -160,8 +161,7 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
       $(window).resize(_.debounce(_.bind(this.resize, this), 500));
-
-      this.$el.mousemove(_.debounce(_.bind(this.updateCursor, this), 20));
+      this.graph.$el.mousemove(_.debounce(_.bind(this.updateCursor, this), 20));
 
       return this;
     },
@@ -397,9 +397,9 @@ define([
       }
     },
 
-    updateCursor: function (e) {
+    updateCursor: function (e, t) {
       if (!this.graph || this.cursor.hasClass('active')) return;
-      this.cursorData = this.graph.cursor(e);
+      this.cursorData = this.graph.cursor(e, t);
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
       this.cursor.css({left: Math.ceil(this.cursorData.x)});
