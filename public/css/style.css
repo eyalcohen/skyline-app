@@ -2465,18 +2465,19 @@ a.button.modal-button.full {
 
 .splash ul {
   text-align: justify;
+  margin-bottom: -40px;
+  margin-top: 40px;
 }
 
 .splash-select {
   list-style-type: none;
   display: inline-block;
   vertical-align: top;
-  margin-top: 40px;
 }
 
 .splash-select img {
-  width: 200px;
-  height: 100px;
+  width: 240px;
+  height: 140px;
   display:block;
   border-width: 1px;
   border-style: solid;
@@ -2493,7 +2494,7 @@ a.button.modal-button.full {
 }
 
 .splash-select div {
-  width: 200px;
+  width: 240px;
   text-align: center;
 }
 
