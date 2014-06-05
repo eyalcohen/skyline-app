@@ -185,7 +185,7 @@ define([
               .y1(function (s) {
                 var local_max = series.axis === 2 ? max[1] : max[0];
                 var _height = height * series.max / local_max;
-                return s.v === null ? height:
+                return (s.v === null) || (series.max - series.min === 0) ? height:
                     height - ((s.v - series.min) / (series.max - series.min) * _height);
               })
               .interpolate('linear');
