@@ -44,6 +44,34 @@ define([
 
       // Fill in the codes.
       // this.updateCodes({embed: this.iframe.attr('src').toLowerCase()});
+      graphs = [
+        { src: "//www.skyline-data.com/embed/jitterstein/views/interest-rates-vs-economic-market-growth",
+          img: "//s3.amazonaws.com/snapshots-skyline/views-196779199",
+          title: "Interest Rates vs. Economic & Market Growth"  },
+        { src: "//www.skyline-data.com/embed/jitterstein/views/the-rise-of-bitcoin",
+          img: "//s3.amazonaws.com/snapshots-skyline/views-411488850",
+          title: "The Rise of Bitcoin"  },
+        { src: "//www.skyline-data.com/embed/eyal-cohen/views/streaming-san-francisco-weather",
+          img: "//s3.amazonaws.com/snapshots-skyline/views-739824067",
+          title: "Streaming - San Francisco Weather"  },
+        { src: "//www.skyline-data.com/embed/jitterstein/views/polls-of-polls-congress-approval-ratings",
+          img: "//s3.amazonaws.com/snapshots-skyline/views-1888949900",
+          title: "Polls of polls - Congress approval ratings"  },
+      ];
+
+      var luckyWinner = Math.floor(Math.random()*4);
+      $('.splash-select').each(function(idx) {
+        $(this).find('img').attr('src', graphs[idx].img);
+        $(this).find('div').text(graphs[idx].title);
+        $(this).find('a').click(function(e) {
+          $('.embed-chart iframe').attr('src', graphs[idx].src);
+          $('.splash-select a').each(function(idx) { $(this).removeClass('splash-selected') });
+          $(this).addClass('splash-selected');
+        });
+        if (idx === luckyWinner)
+          $(this).find('a').click();
+
+      });
 
       return this;
     },
