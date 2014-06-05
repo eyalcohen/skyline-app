@@ -1,8 +1,8 @@
-#samples_dev{
+#<%= this.table %>{
   marker-width: 10;
   marker-fill-opacity: 0;
   marker-line-width: 1.5;
-  marker-line-opacity: 0.02;
+  marker-line-opacity: 0.04;
   marker-placement: point;
   marker-type: ellipse;
   marker-allow-overlap: true;
@@ -18,9 +18,5 @@
     marker-line-width: 1.5;
     marker-line-opacity: 1;
     marker-comp-op: multiply;
-  }
-  [tb=<%= this.cursorTime %>]{
-    marker-width: 15;
-    marker-fill-opacity: 1;
   }
 }

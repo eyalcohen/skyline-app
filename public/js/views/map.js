@@ -28,6 +28,7 @@ define([
       this.on('rendered', this.setup, this);
 
       this.table = window.__s ? 'samples': 'samples_dev';
+      this.pre = "select *, st_asgeojson(the_geom) as geometry from " + this.table;
     },
 
     render: function (time) {
@@ -39,7 +40,7 @@ define([
       // Init the load indicator.
       this.spin = new Spin(this.parentView.$('.map-spin'),
           {color: '#8f8f8f', lines: 13, length: 3, width: 2, radius: 6});
-      // this.spin.start();
+      this.spin.start();
 
       this.trigger('rendered');
       return this;
@@ -48,138 +49,90 @@ define([
     setup: function () {
 
       // Setup the base map.
-      // var sql = new cartodb.SQL({user: 'skyline', format: 'geojson'});
-
-      // var polygons = {};
-
-      var map = new L.Map('map_inner', {
+      this.sql = new cartodb.SQL({user: 'skyline'});
+      this.map = new L.Map('map_inner', {
         center: [0,0],
-        zoom: 2
+        zoom: 2,
+        minZoom: 2
       });
 
-      L.tileLayer('https://dnv9my2eseobd.cloudfront.net/v3/cartodb.map-4xtxp73f/{z}/{x}/{y}.png', {
-        attribution: 'Mapbox <a href="http://mapbox.com/about/maps" target="_blank">Terms & Feedback</a>'
-      }).addTo(map);
+      // Add a base tile layer.
+      L.tileLayer('http://{s}.{base}.maps.cit.api.here.com/maptile/2.1/' +
+          'maptile/{mapID}/{variant}/{z}/{x}/{y}/256/png8?' +
+          'app_id={app_id}&app_code={app_code}', {
+        attribution:
+            'Map &copy; 1987-2014 <a href="http://developer.here.com">HERE</a>',
+        subdomains: '1234',
+        mapID: 'newest',
+        'app_id': 'PvVIz1964Y3C1MabyVqB',
+        'app_code': 'yuYSbxg5Z5b2c594mYfLtA',
+        base: 'base',
+        variant: 'normal.day',
+        minZoom: 0,
+        maxZoom: 20
+      }).addTo(this.map);
 
-      cartodb.createLayer(map, {
+      // Create the data layer.
+      cartodb.createLayer(this.map, {
         user_name: 'skyline',
         type: 'cartodb',
+        https: true,
         sublayers: [{
-          sql: "SELECT * FROM samples_dev",
-          cartocss: '#crags {marker-fill: #F0F0F0;}'
+          sql: this.pre + " limit 0",
+          cartocss: this.cssTemplate.call(this),
+          interactivity: 'cartodb_id,geometry,id,tb,te'
         }]
       })
-      .addTo(map)
-      .done(function (layer) {
+      .addTo(this.map)
+      .done(_.bind(function (layer) {
+        this.dataLayer = layer.getSubLayer(0);
 
-      });
+        this.dataLayer.bind('featureOver', _.bind(this.featureOver, this));
+        this.dataLayer.bind('featureOut', _.bind(this.featureOut, this));
+        this.dataLayer.setInteraction(true);
 
-      // cartodb.createLayer(map, {
-      //   user_name: 'skyline',
-      //   type: 'cartodb',
-      //   sublayers: [{
-      //     sql: "select * from lower_48_zips",
-      //     cartocss: '#lower_48_zips{ polygon-fill: #CCCCCC; polygon-opacity: 0.7; line-width: 0.5; line-color: #333333; line-opacity: 0.3;}',
-      //     interactivity: 'cartodb_id'
-      //   }]
-      // }).done(function(layer) {
-      //   map.addLayer(layer);
-      //   layer.getSubLayer(0).setInteraction(true);
-      //   // geometryClick('andrew', map, layer.getSubLayer(0));
-      //   // addCursorInteraction(layer);
-      // });
-
-      // cartodb.createLayer(map, 'https://skyline.cartodb.com/api/v2/viz/' + this.table + '/viz.json')
-      //   .addTo(map)
-      //   .on('done', _.bind(function (layer) {
-      //     layer = layer.getSubLayer(0);
-
-      //     var HIGHLIGHT_STYLE = {
-      //       weight: 3,
-      //       color: '#FFFFFF',
-      //       opacity: 1,
-      //       fillColor: '#FFFFFF',
-      //       fillOpacity: 0.3
-      //     };
-      //     var style = HIGHLIGHT_STYLE;
-      //     var polygonsHighlighted = [];
-
-      //     sql.execute("select * from samples_dev").done(function (geojson) {
-      //       var features = geojson.features;
-      //       for (var i = 0; i < features.length; ++i) {
-      //         var f = geojson.features[i];
-      //         var key = f.properties.cartodb_id;
-
-      //         // Generate geometry.
-      //         var geo = L.GeoJSON.geometryToLayer(features[i].geometry);
-      //         console.log(geo);
-      //         geo.setStyle(style);
-
-      //         // Add to polygons.
-      //         polygons[key] = polygons[key] ||  [];
-      //         polygons[key].push(geo);
-      //       }
-      //     });
-
-      //     function featureOver(e, pos, latlng, data) {
-      //       featureOut();
-      //       var pol = polygons[data.cartodb_id] || [];
-      //       for(var i = 0; i < pol.length; ++i) {
-      //         map.addLayer(pol[i]);
-      //         polygonsHighlighted.push(pol[i]);
-      //       }
-      //     }
-
-      //     function featureOut() {
-      //       var pol = polygonsHighlighted;
-      //       for(var i = 0; i < pol.length; ++i) {
-      //         map.removeLayer(pol[i]);
-      //       }
-      //       polygonsHighlighted = [];
-      //     }
-
-      //     layer.on('featureOver', featureOver);
-      //     layer.on('featureOut', featureOut);
-      //     layer.setInteraction(true);
-
-      //     this.spin.stop();
-      //   }, this));
-
-
-
-      // cartodb.createVis('map_inner',
-      //     'https://skyline.cartodb.com/api/v2/viz/' + this.table + '/viz.json', {
-      //   tiles_loader: true,
-      //   scrollwheel: true,
-      //   https: true
-      // })
-      // .done(_.bind(function (vis, layers) {
-      //   this.vis = vis;
-      //   this.baseLayer = layers[0];
-      //   this.dataLayer = layers[1].getSubLayer(0);
-      //   this.dataLayer.setInteraction(true);
-
-      //   // Handle mouse interaction.
-      //   this.dataLayer.bind('featureOver',
-      //       _.bind(function (e, latlng, pos, data, subLayerIndex) {
-      //     this.vis.mapView.setCursor('pointer');
-      //     if (data.tb >= this.time.beg && data.te <= this.time.end) {
-      //       this.parentView.updateCursor(null, data.tb / 1e3);
-      //       // this.updateCursor(data.tb);
-      //     }
-      //   }, this));
-      //   this.dataLayer.bind('featureOut',
-      //       _.bind(function (e, latlng, pos, data, subLayerIndex) {
-      //     this.vis.mapView.setCursor('hand');
-      //   }, this));
-
-      //   this.refresh();
-      //   this.updateVisibleTime();
-      //   this.spin.stop();
-      // }, this));
+        this.refresh();
+        this.updateVisibleTime();
+        this.spin.stop();
+      }, this));
     },
 
     events: {},
+
+    featureOver: function (e, pos, latlng, data) {
+      if (this.point) {
+        if (data.cartodb_id === this.point.cartodb_id) {
+          return;
+        }
+        this.map.removeLayer(this.point);
+        this.point.cartodb_id = data.cartodb_id;
+      }
+      this.point = new L.GeoJSON(JSON.parse(data.geometry), {
+        pointToLayer: function (feature, latlng) {
+          return new L.CircleMarker(latlng, {
+            color: '#333',
+            weight: 1.5,
+            fillColor: '#27CDD6',
+            fillOpacity: 0.3,
+            clickable: false
+          }).setRadius(12);
+        }
+      }).addTo(this.map);
+
+      if (data.tb > this.time.beg && data.te < this.time.end) {
+        this.parentView.updateCursor(null, data.tb / 1e3);
+      } else {
+        this.parentView.hideCursor();
+      }
+    },
+
+    featureOut: function() {
+      $(this.map.getContainer()).css('cursor', 'auto');
+      if (this.point) {
+        this.map.removeLayer(this.point);
+        this.point.cartodb_id = null;
+      }
+    },
 
     addChannel: function (channel) {
       this.channels.push(channel);
@@ -194,7 +147,6 @@ define([
     },
 
     updateVisibleTime: function (time) {
-      if (!this.dataLayer) return;
       if (time) {
         if (time.beg === this.time.beg
             && time.end === this.time.end) {
@@ -202,24 +154,35 @@ define([
         }
         this.time = time;
       }
-
-      // this.dataLayer.setCartoCSS(this.cssTemplate.call(this));
+      if (this.dataLayer) {
+        this.dataLayer.setCartoCSS(this.cssTemplate.call(this));
+      }
     },
 
     updateCursor: function (cursor) {
-      return;
-      if (!this.dataLayer) return;
-
+      if (!this.dataLayer || !this.data) return;
       var t = _.isNumber(cursor) ? cursor: cursor[0].nearestPointData[0] * 1e3;
       if (t === this.cursorTime) {
         return;
       }
       this.cursorTime = t;
-      this.dataLayer.setCartoCSS(this.cssTemplate.call(this));
+      if (this.data.rows.length === 0) {
+        return;
+      }
+      var point;
+      var dt = Number.MAX_VALUE;
+      _.each(this.data.rows, function (p) {
+        var _dt = Math.abs(p.tb - t);// + Math.abs(p.te - t)) / 2;
+        if (_dt < dt) {
+          dt = _dt;
+          point = p;
+        }
+      });
+      
+      this.featureOver(null, null, null, point);
     },
 
     refresh: function () {
-      return;
       if (!this.dataLayer) return;
 
       // Get dataset ids from channels.
@@ -235,11 +198,12 @@ define([
       this.dids = dids;
 
       // Write the query.
-      var query = "select * from " + this.table + " where ";
+      var query = this.pre;
       if (this.dids.length === 0) {
-        query += "id = 0";
-        this.vis.mapView.map_leaflet.fitWorld({animate: true});
+        query += " limit 0";
+        this.map.fitWorld({animate: true});
       } else {
+        query += " where ";
         _.each(this.dids, _.bind(function (id, i) {
           query += "id = " + id;
           if (i !== this.dids.length - 1) {
@@ -247,46 +211,21 @@ define([
           }
         }, this));
         this.sql.getBounds(query).done(_.bind(function (bounds) {
-          this.vis.mapView.map_leaflet.fitBounds(bounds, {animate: true});
+          this.map.fitBounds(bounds, {animate: true});
         }, this));
       }
-
-      // var HIGHLIGHT_STYLE = {
-      //       weight: 3,
-      //       color: '#FFFFFF',
-      //       opacity: 1,
-      //       fillColor: '#FFFFFF',
-      //       fillOpacity: 0.3
-      //     };
-      //     style = options.style || HIGHLIGHT_STYLE;
-      //     var polygonsHighlighted = [];
-
-      sql.execute(query).done(function (geojson) {
-        var features = geojson.features;
-        for (var i = 0; i < features.length; ++i) {
-          var f = geojson.features[i];
-          var key = f.properties.cartodb_id;
-
-          // generate geometry
-          var geo = L.GeoJSON.geometryToLayer(features[i].geometry);
-          geo.setStyle(style);
-
-          // add to polygons
-          polygons[key] = polygons[key] ||  [];
-          polygons[key].push(geo);
-        }
-      });
-
-
-      // this.dataLayer.setSQL(query);
+      this.dataLayer.setSQL(query);
+      this.sql.execute(query).done(_.bind(function (data) {
+        this.data = data;
+      }, this))
     },
 
     resize: function (width) {
-      if (!this.vis) {
+      if (!this.map) {
         return;
       }
       var sizer = setInterval(_.bind(function () {
-        this.vis.mapView.map_leaflet.invalidateSize();
+        this.map.invalidateSize();
         if (this.$el.width() >= width) {
           clearInterval(sizer);
         }
