@@ -3508,6 +3508,11 @@ p.sidebar-tip span {
   margin-left: -.05em;
 }
 
+.sidebar-datasets p {
+  font-size: 10px;
+  line-height: 12px;
+}
+
 /*.........................................................................*/
 
 .settings td {

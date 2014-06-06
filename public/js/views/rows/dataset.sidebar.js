@@ -6,10 +6,11 @@ define([
   'jQuery',
   'Underscore',
   'mps',
+  'util',
   'rest',
   'views/boiler/row',
   'text!../../../templates/rows/dataset.sidebar.html'
-], function ($, _, mps, rest, Row, template) {
+], function ($, _, mps, util, rest, Row, template) {
   return Row.extend({
 
     tagName: 'li',
@@ -22,6 +23,7 @@ define([
     initialize: function (options, app) {
       this.app = app;
       this.template = _.template(template);
+      _.extend(options, {templateData: {util: util}});
       Row.prototype.initialize.call(this, options);
     },
 
