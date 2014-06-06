@@ -386,13 +386,19 @@ define([
       $('.container').addClass('wide').removeClass('landing');
       var state = {};
       var path = window.location.pathname.toLowerCase();
+      var hash = parent.location.hash;
+      var state = store.get('state');
       if (!slug || path.indexOf('/views/') !== -1) {
         var key = un && slug ? {un: un, slug: slug}: null;
-        state = key ? {key: key}: store.get('state');
-      } else {
+        if (key) {
+          state = {key: key}
+        }
+      } else if (!hash || !state.datasets) {
+        state = {};
         state.datasets = {};
         state.datasets[slug] = {index: 0};
       }
+
       if (this.app.profile && this.app.profile.user) {
         state.user_id = this.app.profile.user.id;
       }
@@ -406,7 +412,7 @@ define([
         if (err) return;
         this.pageType = 'chart';
         var chart = new Chart(this.app);
-        if (channelName) {
+        if (channelName && (!hash ||  !state.datasets)) {
           mps.publish('dataset/requestOpenChannel', [channelName]);
         }
         this.page = chart.render();

@@ -41,7 +41,8 @@ define([
         mps.subscribe('channel/add', _.bind(function (did, channel, yaxis) {
           if (this.graph.model.getChannels().length === 0
               && !this.app.profile.content.page
-              && !this.app.requestedNoteId) {
+              && !this.app.requestedNoteId
+              && !store.get('state').time) {
             mps.publish('chart/zoom', [{min: channel.beg / 1000, max: channel.end / 1000}]);
           }
           this.graph.model.addChannel(this.datasets.collection.get(did),
@@ -138,8 +139,10 @@ define([
         $('.side-panel').addClass('open');
       }
 
+      var state = store.get('state');
+
       // Handle save button.
-      if (store.get('state').author && store.get('state').author.id) {
+      if (state.author && state.author.id) {
         // This is a view, so intially it's already saved.
         this.saveButton.addClass('saved');
       }
@@ -152,6 +155,9 @@ define([
       this.overview = new Overview(this.app, {parentView: this}).render();
       this.map = new Map(this.app, {parentView: this}).render(this.graph.getVisibleTime());
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
+
+      if (state.time)
+        mps.publish('chart/zoom', [{min: state.time.beg/1000, max: state.time.end/1000}]);
 
       // Do resize on window change.
       this.resize();
@@ -542,6 +548,8 @@ define([
     onStateChange: function (state) {
       var user = this.app.profile.user;
 
+      parent.location.hash = 'chart';
+
       // If this is explore mode, i.e. (/chart), do nothing.
       if (!state.author || !state.author.id || !user) return;
 
@@ -565,7 +573,7 @@ define([
       // check if we have any channels open
       // we automatically open the first channel if none are open or requested
       var state = store.get('state');
-      if (!state.datasets[did].channels) {
+      if (!(_.compact(_.pluck(state.datasets, 'channels')).length)) {
         mps.publish('channel/add', [did, channels[0]]);
       }
     },
