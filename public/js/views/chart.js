@@ -548,7 +548,9 @@ define([
     onStateChange: function (state) {
       var user = this.app.profile.user;
 
-      parent.location.hash = 'chart';
+      // we add a hash for freeform mode, (not in a view)
+      if (!this.app.profile.content.page)
+        parent.location.hash = 'chart';
 
       // If this is explore mode, i.e. (/chart), do nothing.
       if (!state.author || !state.author.id || !user) return;
