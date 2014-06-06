@@ -68,7 +68,7 @@ SolutionStack=64bit Amazon Linux 2014.02 running Node.js
 ```
 [aws:autoscaling:asg]
 Custom Availability Zones=
-MaxSize=4
+MaxSize=20
 MinSize=1
 
 [aws:autoscaling:launchconfiguration]
@@ -78,14 +78,17 @@ EC2KeyName=skyline
 IamInstanceProfile=aws-elasticbeanstalk-ec2-role
 SecurityGroups=awseb-e-mtnpmftmsx-stack-AWSEBSecurityGroup-17RX6M656MZ0W
 
-[aws:ec2:vpc]
-ELBScheme=public
-ELBSubnets=
-Subnets=
-VPCId=
-
-[aws:elasticbeanstalk:application]
-Application Healthcheck URL=
+[aws:autoscaling:trigger]
+MeasureName=CPUUtilization
+Statistic=Average
+Unit=Percent
+MonitoringInterval=1 minute
+Period=1
+BreachDuration=1
+UpperThreshold=50
+LowerThreshold=10
+UpperBreachScaleIncrement=1
+LowerBreachScaleIncrement=-1
 
 [aws:elasticbeanstalk:application:environment]
 AWS_ACCESS_KEY_ID=<YOUR_IAM_ACCESS_KEY_ID>
@@ -107,7 +110,6 @@ Automatically Terminate Unhealthy Instances=true
 
 [aws:elb:loadbalancer]
 LoadBalancerPortProtocol=TCP
-
 ```
 
 Lastly, install the frontend builder globally.
