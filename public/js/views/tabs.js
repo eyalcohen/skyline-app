@@ -207,6 +207,16 @@ define([
       }
     },
 
+    setTitle: function(str, params) {
+      var sel = $('.title-left');
+      if (str) {
+        sel.text(str);
+        if (params && params.center) {
+          sel.css('margin-left', '50%');
+        }
+      }
+    }
+
   });
 });
   
