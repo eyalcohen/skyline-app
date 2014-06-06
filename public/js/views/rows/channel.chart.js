@@ -189,8 +189,9 @@ define([
         }
         this.active = true;
         this.expand();
-        this.updateYAxisView();
       }
+
+      this.updateYAxisView();
 
       this.$el.css({
         backgroundColor: color,
