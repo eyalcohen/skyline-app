@@ -9,10 +9,6 @@
   marker-comp-op: invert;
   marker-line-color: #27CDD6;
   marker-fill: #27CDD6;
-  [zoom<14]{
-    marker-fill-opacity: 0;
-    marker-line-opacity: 0;
-  }
   [tb><%= Math.floor(this.time.beg) %>][te<<%= Math.ceil(this.time.end) %>]{
     marker-fill-opacity: 0.8;
     marker-line-width: 1.5;
