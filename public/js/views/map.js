@@ -15,6 +15,7 @@ define([
   return Backbone.View.extend({
 
     el: '.map-inner',
+    api_key: 'e2c51af30080afb68c9c7702c2e20f7d5f2cd506',
     channels: [],
     dids: [],
     cursorTime: 0,
@@ -50,7 +51,7 @@ define([
     setup: function () {
 
       // Setup the base map.
-      this.sql = new cartodb.SQL({user: 'skyline'});
+      this.sql = new cartodb.SQL({user: 'skyline', api_key: this.api_key});
       this.map = new L.Map('map_inner', {
         center: [0,0],
         zoom: 2,
@@ -78,6 +79,9 @@ define([
         user_name: 'skyline',
         type: 'cartodb',
         https: true,
+        extra_params: {
+          map_key: this.api_key,
+        },
         sublayers: [{
           sql: this.pre + " limit 0",
           cartocss: this.cssTemplate.call(this),
