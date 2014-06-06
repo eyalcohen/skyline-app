@@ -794,6 +794,10 @@ a.button.map-button {
   transition: all 0.1s;
 }
 
+a.button.map-button.active {
+  background: rgba(39, 205, 214, 0.4);
+}
+
 /*.........................................................................*/
 
 .checkbox-styled {

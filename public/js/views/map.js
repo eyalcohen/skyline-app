@@ -42,6 +42,7 @@ define([
           {color: '#8f8f8f', lines: 13, length: 3, width: 2, radius: 6});
       this.spin.start();
 
+      this.channels = [];
       this.trigger('rendered');
       return this;
     },
@@ -99,7 +100,16 @@ define([
 
     events: {},
 
-    featureOver: function (e, pos, latlng, data) {
+    destroy: function () {
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
+      this.undelegateEvents();
+      this.stopListening();
+      this.remove();
+    },
+
+    featureOver: function (e, pos, latlng, data, fromMap) {
       if (this.point) {
         if (data.cartodb_id === this.point.cartodb_id) {
           return;
@@ -119,10 +129,12 @@ define([
         }
       }).addTo(this.map);
 
-      if (data.tb > this.time.beg && data.te < this.time.end) {
-        this.parentView.updateCursor(null, data.tb / 1e3);
-      } else {
-        this.parentView.hideCursor();
+      if (!fromMap) {
+        if (data.tb > this.time.beg && data.te < this.time.end) {
+          this.parentView.updateCursor(null, data.tb / 1e3);
+        } else {
+          this.parentView.hideCursor();
+        }
       }
     },
 
@@ -179,7 +191,7 @@ define([
         }
       });
       
-      this.featureOver(null, null, null, point);
+      this.featureOver(null, null, null, point, true);
     },
 
     refresh: function () {
@@ -190,7 +202,7 @@ define([
       _.each(this.channels, function (c) {
         if (!_.contains(dids, c.did)) {
           dids.push(c.did);  
-        } 
+        }
       });
       if (dids.length === this.dids.length) {
         return;
@@ -214,22 +226,35 @@ define([
           this.map.fitBounds(bounds, {animate: true});
         }, this));
       }
+
+      // Update.
       this.dataLayer.setSQL(query);
       this.sql.execute(query).done(_.bind(function (data) {
         this.data = data;
+        if (this.data.rows.length > 0) {
+          this.parentView.mapButton.addClass('active');
+        } else {
+          this.parentView.mapButton.removeClass('active');
+        }
       }, this))
+      this.query = query;
     },
 
-    resize: function (width) {
+    resize: function (width, fit) {
       if (!this.map) {
         return;
       }
       var sizer = setInterval(_.bind(function () {
         this.map.invalidateSize();
-        if (this.$el.width() >= width) {
+        if (this.$el.width() + 1 >= width) {
           clearInterval(sizer);
         }
       }, this), 20);
+      if (fit && this.query) {
+        this.sql.getBounds(this.query).done(_.bind(function (bounds) {
+          this.map.fitBounds(bounds, {animate: true});
+        }, this));
+      }
     }
 
   });

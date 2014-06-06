@@ -182,6 +182,8 @@ define([
       this.graph.destroy();
       this.notes.destroy();
       this.comments.destroy();
+      this.map.destroy();
+      delete this.map;
       this.remove();
     },
 
@@ -393,7 +395,7 @@ define([
         this.mapPanel.addClass('open').width(w);
         $('i i', this.mapButton).removeClass('icon-angle-left')
             .addClass('icon-angle-right');
-        this.map.resize(w);
+        this.map.resize(w, true);
       }
     },
 
@@ -449,8 +451,10 @@ define([
     },
 
     hideCursor: function (e) {
-      if (!this.cursor.hasClass('active'))
+      if (!this.cursor.hasClass('active')) {
         this.cursor.fadeOut('fast');
+      }
+      this.map.featureOut();
     },
 
     note: function (e) {
