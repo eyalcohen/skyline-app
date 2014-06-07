@@ -212,7 +212,7 @@ define([
       if (str) {
         sel.text(str);
         if (params && params.center) {
-          sel.css('margin-left', '50%');
+          sel.css({width: '100%', margin: 0, 'text-align': 'center'});
         }
       }
     }

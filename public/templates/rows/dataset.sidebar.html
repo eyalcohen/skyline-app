@@ -1,7 +1,17 @@
 <%
   var link = [this.model.get('author').username, this.model.id].join('/');
+  var icon;
+  if (!this.model.get('public'))
+    icon = 'icon-lock'
+  else if (this.model.get('file'))
+    icon = 'icon-database'
+  else
+    icon = 'icon-signal'
 %>
 
 <a href="/<%= link %>" class="navigate<%= this.model.get('public') === false ? ' locked': '' %>">
-  <i class="<%= this.model.get('public') === false ? 'icon-lock': 'icon-database' %>"></i><%= this.model.get('title') %>
+  <i class="<%= icon %>"></i><%= this.model.get('title') %>
 </a>
+<% if (this.model.get('lastSeen')) { %>
+  <p> Last seen: <%= util.getRelativeTime(this.model.get('lastSeen')/1000) %> </p>
+<% } %>

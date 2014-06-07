@@ -34,7 +34,7 @@ define([
 
       if (this.model)
         this.model.on('change:id', _.bind(function () {
-          this.render(true, true, true);
+          this.render(true, true, true, this.options.templateData);
           this.setup();
         }, this));
 
@@ -43,7 +43,7 @@ define([
 
     render: function (single, prepend, re) {
       this.parentView.off('rendered');
-      this.$el.html(this.template.call(this));
+      this.$el.html(this.template.call(this, this.options.templateData));
       if (this.model.collection) {
         if (!this.$el.hasClass('hide')) {
           var d = this.model.collection.indexOf(this.model) * 20;
