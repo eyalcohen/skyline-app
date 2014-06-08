@@ -24,6 +24,7 @@ define([
   'views/splash',
   'views/settings',
   'views/dataset.config',
+  'views/upload',
   'views/reset',
   'views/profile',
   'views/library',
@@ -35,7 +36,7 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    DatasetConfig, Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp,
+    DatasetConfig, Upload, Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -79,6 +80,7 @@ define([
       this.route('library', 'library', this.library);
       this.route('signin', 'signin', this.signin);
       this.route('signup', 'signup', this.signup);
+      this.route('upload', 'upload', this.upload);
       this.route('', 'dashboard', this.dashboard);
 
       // Show the finder.
@@ -315,6 +317,17 @@ define([
       this.renderTabs({title: 'Account Settings'});
     },
 
+    upload: function () {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render(_.bind(function (err) {
+        if (err) return;
+        this.page = new Upload(this.app).render();
+        this.stop();
+      }, this));
+      this.renderTabs();
+    },
+
     datasetConfig: function (un, id) {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
@@ -325,6 +338,7 @@ define([
       }, this));
       this.renderTabs();
     },
+
 
     about: function () {
       this.start();

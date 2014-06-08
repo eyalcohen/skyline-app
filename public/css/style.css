@@ -5289,7 +5289,7 @@ ul.note-channels-list li {
   resize: none;
 }
 
-.finder .finder-progress-bar {
+.finder-progress-bar {
   height: 32px;
   margin: 0;
   width: 0%;
@@ -5301,6 +5301,20 @@ ul.note-channels-list li {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box
+}
+
+/*.........................................................................*/
+
+.upload-preview-table {
+  height: 40px;
+}
+
+.upload-preview-table tr {
+  height: 40px;
+}
+
+.upload-seperator {
+  height: 40px;
 }
 
 /*.........................................................................*/

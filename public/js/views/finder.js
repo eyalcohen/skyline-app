@@ -197,8 +197,9 @@ define([
         this.working = false;
         $('.finder-progress-bar').width('0%');
       }, this);
-      var cbSuccess = _.bind(function() {
-      }, this);
+      //var cbSuccess = _.bind(function(res) {
+      //  console.log('success', res);
+      //}, this);
       var cbProgress = _.bind(function(perc) {
         $('.finder-progress-bar').width(perc);
       }, this);
@@ -208,8 +209,8 @@ define([
 
       var reader = new FileReader();
       reader.onload = _.bind(function () {
-        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress,
-                      null, stopFcn);
+        common.upload(file, reader, this.app, null, cbFail, cbProgress,
+                      stopFcn);
       }, this);
 
       reader.readAsDataURL(file);
