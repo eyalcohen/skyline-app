@@ -66,7 +66,6 @@ define([
             }
           }, this));
         } else {
-          console.log('finished', cbSuccess);
           cbSuccess(res);
           return true;
         }

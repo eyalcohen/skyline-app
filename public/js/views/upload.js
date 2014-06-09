@@ -79,13 +79,6 @@ define([
       this.empty();
     },
 
-    // get preview data from server
-    preview: function() {
-      var payload = {
-
-      }
-    },
-
     dragover: function (e) {
       if (this.dragging) return false;
       this.dragging = true;
@@ -156,7 +149,8 @@ define([
         $('.finder-progress-bar').width('0%');
       }, this);
       var cbSuccess = _.bind(function(res) {
-        console.log('success', res);
+        console.log(res);
+        this.preview(res);
       }, this);
       var cbProgress = _.bind(function(perc) {
         $('.finder-progress-bar').width(perc);
@@ -176,6 +170,44 @@ define([
       return false;
     },
 
+    preview: function(res) {
+      var table = $('.upload-preview-table tbody');
+
+      // take three keys to display in the table, but make sure date is one of them
+      delete res.header[res.dateColumn];
+      var keys = [res.dateColumn].concat(_.first(_.keys(res.header), 2));
+
+      // header row
+      table.append($('<tr>')
+        .append($('<td>').text(keys[0]).after('</td>')
+
+        .after($('<td>').text(keys[1]).after('</td>')
+        .after($('<td>').text(keys[2]).after('</td>')))));
+      table.find('tr').after('</tr>');
+
+      _.each(res.firstRows, function(r) {
+        table.append($('<tr>')
+          .append($('<td>').text(r[keys[0]]).after('</td>')
+
+          .after($('<td>').text(r[keys[1]]).after('</td>')
+          .after($('<td>').text(r[keys[2]]).after('</td>')))));
+        table.find('tr').after('</tr>');
+      });
+
+      // Add a seperator to table, so user knows there's a gap in time
+      table.append('<tr><td colspan="3"></td></tr>');
+
+      // Add resultant last rows to table
+      _.each(res.lastRows, function(r) {
+        table.append($('<tr>')
+          .append($('<td>').text(r[keys[0]]).after('</td>')
+
+          .after($('<td>').text(r[keys[1]]).after('</td>')
+          .after($('<td>').text(r[keys[2]]).after('</td>')))));
+        table.find('tr').after('</tr>');
+      });
+
+    },
 
   });
 });
