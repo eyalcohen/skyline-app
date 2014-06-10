@@ -5307,14 +5307,16 @@ ul.note-channels-list li {
 
 .upload-preview-table {
   height: 40px;
+  border: 1px solid gray;
 }
 
 .upload-preview-table tr {
   height: 40px;
+  border: 1px solid gray;
 }
 
-.upload-seperator {
-  height: 40px;
+.upload-form label {
+  display:block;
 }
 
 /*.........................................................................*/

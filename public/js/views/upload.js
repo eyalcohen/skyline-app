@@ -20,7 +20,6 @@ define([
     initialize: function (app, options) {
       this.app = app;
       this.options = options;
-      console.log('rendered', common);
 
       this.on('rendered', this.setup, this);
 
@@ -35,11 +34,12 @@ define([
     },
 
     events: {
-      'change input[name="data_file"]': 'update'
+      'change input[name="data_file"]': 'update',
+      'change .upload-form input': 'preview',
+      'change .upload-form select': 'preview'
     },
 
     setup: function () {
-      console.log('setup');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this, {util: util}));
@@ -56,6 +56,22 @@ define([
         width: 2,
         radius: 6
       });
+
+      this.uploadForm = $('.upload-form');
+
+      this.timeFormatSelect = this.uploadForm.find('select[name*="uploadTimeFormat"]');
+      this.dateFormatSelect = this.uploadForm.find('select[name*="uploadDateFormat"]');
+
+      this.app.rpc.do('getDateTimeFormats', _.bind(function (err, res) {
+        this.dateFormats = res.df;
+        this.timeFormats = res.tf;
+        _.each(this.dateFormats, _.bind(function(d) {
+          this.dateFormatSelect.append('<option>' + d.example + '</option>');
+        }, this));
+        _.each(this.timeFormats, _.bind(function(t) {
+          this.timeFormatSelect.append('<option>' + t.example + '</option>');
+        }, this));
+      }, this));
 
       // Drag & drop events.
       this.$el.bind('dragover', _.bind(this.dragover, this));
@@ -141,16 +157,26 @@ define([
       if (files.length === 0) return false;
       var file = files[0];
 
-      // Use a FileReader to read the file as a base64 string.
-      var cbFail = _.bind(function(err) {
-        this.newFileButtonSpin.stop();
-        this.newFileError.text(err);
-        this.working = false;
-        $('.finder-progress-bar').width('0%');
-      }, this);
-      var cbSuccess = _.bind(function(res) {
-        console.log(res);
-        this.preview(res);
+      var cb = _.bind(function(err, res) {
+        if (err) {
+          this.newFileButtonSpin.stop();
+          this.newFileError.text(err);
+          this.working = false;
+          $('.finder-progress-bar').width('0%');
+        } else {
+          this.fileId = res.fileId;
+          var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
+          var timeCol = this.uploadForm.find('select[name*=uploadTimeColumn]');
+          _.each(res.headers, function(h) {
+            timeCol.append('<option>' + h + '</option>');
+            dateCol.append('<option>' + h + '</option>');
+          });
+          dateCol.removeAttr('selected').find('option:first')
+            .attr('selected', res.headers.indexOf(res.dateColumn));
+          this.previewTable(null, res);
+        }
+
+        //this.previewTable(res);
       }, this);
       var cbProgress = _.bind(function(perc) {
         $('.finder-progress-bar').width(perc);
@@ -161,7 +187,7 @@ define([
 
       var reader = new FileReader();
       reader.onload = _.bind(function () {
-        common.upload(file, reader, this.app, cbSuccess, cbFail, cbProgress,
+        common.upload(file, reader, this.app, cb, cbProgress,
                       null, stopFcn);
       }, this);
 
@@ -170,12 +196,51 @@ define([
       return false;
     },
 
-    preview: function(res) {
+    preview: function(e) {
+      
+      var headers = this.uploadForm.find('input[name*="uploadHeaderRows"]').val();
+      var dateCol = this.uploadForm.find('select[name*="uploadDateColumn"]').val();
+      var dateFormatIdx = this.uploadForm.find('select[name*="uploadDateFormat"]')[0].selectedIndex;
+      var timeSel = this.uploadForm.find('input[name*="uploadTimeSelect"]:checked').val();
+      var timeCol, timeFormat;
+      var timeFormatIdx =  this.uploadForm.find('select[name*="uploadTimeFormat"]')[0].selectedIndex;
+
+      console.log(this.dateFormats, dateFormatIdx);
+      console.log(timeSel);
+      var dateFormat = this.dateFormats[dateFormatIdx].fmt;
+
+      if (timeSel === 'none') {
+        $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
+      }
+      else if (timeSel === 'both') {
+        $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
+        dateFormat += ' ' + this.timeFormats[timeFormatIdx].fmt;
+      }
+      else if (timeSel === 'sep') {
+        $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
+        timeColumn =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
+        timeFormat = this.timeFormats[timeFormatIdx].fmt;
+      }
+
+      var payload = {
+        fileId:  this.fileId,
+        skipHeaderRows: headers,
+        dateColumn: dateCol,
+        dateFormat: dateFormat,
+        timeCol: timeCol,
+        timeFormat: timeFormat
+      };
+
+      this.app.rpc.do('previewFileInsertion', payload, this.previewTable)
+    },
+
+    previewTable: function(err, res) {
+      console.log(res);
       var table = $('.upload-preview-table tbody');
+      table.empty();
 
       // take three keys to display in the table, but make sure date is one of them
-      delete res.header[res.dateColumn];
-      var keys = [res.dateColumn].concat(_.first(_.keys(res.header), 2));
+      var keys = _.first(res.headers, 3);
 
       // header row
       table.append($('<tr>')

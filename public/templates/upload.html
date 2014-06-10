@@ -2,6 +2,7 @@
 <div class="leftside settings">
 
   <div class="dnd"><i class="icon-inbox-1"></i></div>
+
   <div class="modal-inner">
     <div>
       <span class="modal-heading">
@@ -14,27 +15,53 @@
     </div>
   </div>
 
+  <div class="upload-instructions">
+    <p>
+    </p>
+  </div>
 
-  <form enctype="multipart/form-data" method="POST">
+  <p>  We need a little more information about your file. </p>
 
-    <label for="uploadHeaderRows">Number of header rows</label>
-    <input type="text" value="0"></input>
+  <form enctype="multipart/form-data" method="POST" class="upload-form">
 
-    <label for="uploadDateFormat">Date Time Format</label>
-    <select>
-    </select>
+    <label for="uploadHeaderRows">How many rows should we skip? </label>
+    <input type="text" name="uploadHeaderRows" value="0"></input>
 
-    <label for="uploadDateColumn">Date Time Column</label>
-    <select>
-    </select>
+    <div class="dateOptions">
+      <label for="uploadDateColumn">Select the column that contains the date</label>
+      <select name="uploadDateColumn">
+      </select>
+
+      <label for="uploadDateFormat">Select the format of the date</label>
+      <select name="uploadDateFormat">
+      </select>
+    </div>
+
+    <div class="upload-time-options">
+      <label for="uploadTimeSelect">Time</label>
+      <input checked type="radio" name="uploadTimeSelect" value="none"> No time data </input>
+      <input type="radio" name="uploadTimeSelect" value="both"> Date and time are in the same column</input>
+      <input type="radio" name="uploadTimeSelect" value="sep"> Date and time are in separate columns</input>
+
+      <label for="uploadTimeColumn">Select the column that contains the time</label>
+      <select name="uploadTimeColumn">
+      </select>
+
+      <label for="uploadTimeFormat">Date Time Format</label>
+      <select name="uploadTimeFormat">
+      </select>
+    </div>
+
   </form>
-  <input type="button"> Submit </input>
 
   <div> Preview </div>
+
   <table class="upload-preview-table">
     <tbody>
     </tbody>
   </table>
+
+  <input class="blue-button" type="submit"></input>
 
 </div>
 <div class="rightside">

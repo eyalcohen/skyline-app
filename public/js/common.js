@@ -15,8 +15,8 @@ define([
    */
   return { 
   
-    upload: function(file, reader, app, cbSuccess, 
-                     cbFail, cbProgress, stopFcn) {
+    upload: function(file, reader, app, cb, 
+                     cbProgress, stopFcn) {
 
       var ext = file.name.split('.').pop();
 
@@ -47,9 +47,8 @@ define([
 
       // this function sends individual pieces of files.  On completion
       var sendChunk = _.bind(function (err, res) {
-        console.log('sendingChunk');
         if (err) {
-          cbFail(err);
+          cb(err);
           return false;
         }
         else if (stopFcn && stopFcn()) {
@@ -66,7 +65,7 @@ define([
             }
           }, this));
         } else {
-          cbSuccess(res);
+          cb(null, res);
           return true;
         }
       }, this);
