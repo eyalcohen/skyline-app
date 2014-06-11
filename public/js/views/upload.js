@@ -1,5 +1,19 @@
 /*
  * Upload interface
+ *
+ * TODO:
+ * - Enable time column behavior
+ * - Tab ordering
+ * - Table style
+ * - Email on failure
+ * - Add transpose function
+ * - Seperate upload page
+ * - General styling
+ * - Title for page
+ * - Failure if page was loaded unexpectedly
+ * - Validate header rows is a number
+ * - File information in right side
+ * - Red font the error
  */
 
 define([
@@ -20,6 +34,8 @@ define([
     initialize: function (app, options) {
       this.app = app;
       this.options = options;
+      this.fileId = options.fileId;
+      console.log(this.options);
 
       this.on('rendered', this.setup, this);
 
@@ -36,55 +52,50 @@ define([
     events: {
       'change input[name="data_file"]': 'update',
       'change .upload-form input': 'preview',
-      'change .upload-form select': 'preview'
+      'change .upload-form select': 'preview',
+      'click .upload-form .button': 'submit'
     },
 
     setup: function () {
 
-      this.template = _.template(template);
-      this.$el.html(this.template.call(this, {util: util}));
+      if (!this.fileId) {
+        mps.publish('modal/finder/open');
+        return;
+      }
 
-      this.newFileInput = this.$('input[name="dummy_data_file"]');
-      this.newFile = this.$('input[name="data_file"]');
-      this.newFileError = this.$('.modal-error');
-      this.dropZone = this.$('.dnd');
+      var payload = {
+        fileId:  this.fileId,
+      };
 
-      this.newFileButtonSpin = new Spin(this.$('.button-spin'), {
-        color: '#fff',
-        lines: 13,
-        length: 3,
-        width: 2,
-        radius: 6
-      });
+      this.app.rpc.do('previewFileInsertion', payload, _.bind(function(err, res) {
+        console.log(err, res);
+        this.template = _.template(template);
+        this.$el.html(this.template.call(this, {util: util}));
 
-      this.uploadForm = $('.upload-form');
+        this.uploadForm = $('.upload-form');
 
-      this.timeFormatSelect = this.uploadForm.find('select[name*="uploadTimeFormat"]');
-      this.dateFormatSelect = this.uploadForm.find('select[name*="uploadDateFormat"]');
+        this.timeFormatSelect = this.uploadForm.find('select[name*="uploadTimeFormat"]');
+        this.dateFormatSelect = this.uploadForm.find('select[name*="uploadDateFormat"]');
 
-      this.app.rpc.do('getDateTimeFormats', _.bind(function (err, res) {
-        this.dateFormats = res.df;
-        this.timeFormats = res.tf;
-        _.each(this.dateFormats, _.bind(function(val, key) {
-          if (val.example) {
-            this.dateFormatSelect.append('<option value="' + key
+        this.app.rpc.do('getDateTimeFormats', _.bind(function (err, res) {
+          this.dateFormats = res.df;
+          this.timeFormats = res.tf;
+          _.each(this.dateFormats, _.bind(function(val, key) {
+            if (val.example) {
+              this.dateFormatSelect.append('<option value="' + key
+                + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
+            } else {
+              this.dateFormatSelect.append('<option value="' + key
+                + '">' + key + '</option>');
+            }
+          }, this));
+          _.each(this.timeFormats, _.bind(function(val, key) {
+            this.timeFormatSelect.append('<option value="' + key
               + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
-          } else {
-            this.dateFormatSelect.append('<option value="' + key
-              + '">' + key + '</option>');
-          }
+          }, this));
         }, this));
-        _.each(this.timeFormats, _.bind(function(val, key) {
-          this.timeFormatSelect.append('<option value="' + key 
-            + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
-        }, this));
+        this.updateView(err, res);
       }, this));
-
-      // Drag & drop events.
-      this.$el.bind('dragover', _.bind(this.dragover, this));
-      this.dropZone.bind('dragleave', _.bind(this.dragout, this))
-          .bind('drop', _.bind(this.drop, this));
-
       return this;
     },
 
@@ -100,99 +111,6 @@ define([
       this.undelegateEvents();
       this.stopListening();
       this.empty();
-    },
-
-    dragover: function (e) {
-      if (this.dragging) return false;
-      this.dragging = true;
-      e.stopPropagation();
-      e.preventDefault();
-      e.originalEvent.dataTransfer.dropEffect = 'copy';
-      this.$el.addClass('dragging');
-      return false;
-    },
-
-    dragout: function (e) {
-      if ($(e.target).prop('tagName') === 'I') return false;
-      this.dragging = false;
-      this.$el.removeClass('dragging');
-      return false;
-    },
-
-    drop: function (e) {
-      e.stopPropagation();
-      e.preventDefault();
-
-      // Stop drag styles.
-      this.$el.removeClass('dragging');
-
-      // Update the input field.
-      this.update(null, e.originalEvent.dataTransfer.files);
-
-      return false;
-    },
-
-    // Update new file input value
-    update: function (e, files) {
-      this.files = files || e.target.files;
-      var name;
-      this.newFileInput.val(name);
-      if (this.files.length === 0) {
-        name = '';
-        this.newFileInput.val(name);
-      } else {
-        name = this.files[0].name;
-        this.newFileInput.val(name);
-        this.add();
-      }
-    },
-
-    // Create new dataset from file.
-    add: function (e) {
-      if (e) e.preventDefault();
-
-      // Prevent multiple uploads at the same time.
-      if (this.working) return false;
-      this.working = true;
-
-      // Start load indicator.
-      this.newFileButtonSpin.start();
-
-      // Get the file.
-      var files = this.files || this.newFile.get(0).files;
-
-      if (files.length === 0) return false;
-      var file = files[0];
-
-      var cb = _.bind(function(err, res) {
-        if (err) {
-          this.newFileButtonSpin.stop();
-          this.newFileError.text(err);
-          this.working = false;
-          $('.finder-progress-bar').width('0%');
-        } else {
-          this.fileId = res.fileId;
-          this.updateView(null, res);
-        }
-
-        //this.updateView(res);
-      }, this);
-      var cbProgress = _.bind(function(perc) {
-        $('.finder-progress-bar').width(perc);
-      }, this);
-      var stopFcn = _.bind(function() {
-        return !this.working;
-      }, this);
-
-      var reader = new FileReader();
-      reader.onload = _.bind(function () {
-        common.upload(file, reader, this.app, cb, cbProgress,
-                      null, stopFcn);
-      }, this);
-
-      reader.readAsDataURL(file);
-
-      return false;
     },
 
     preview: function(e) {
@@ -297,6 +215,20 @@ define([
       });
 
     },
+
+    submit: function(e) {
+      console.log('submit');
+      this.app.rpc.do('insertSamples', { fileId: this.fileId }, _.bind(function (err, res) {
+        if (err) {
+          $('.upload-preview-error').text(err);
+          $('.upload-table-wrap').hide();
+        } else {
+          var path = [this.app.profile.user.username, res.id, 'config'].join('/');
+          this.app.router.navigate(path, {trigger: true});
+        }
+        console.log(err, res);
+      }, this));
+    }
 
   });
 });

@@ -1,35 +1,12 @@
 
 <div class="leftside settings">
 
-  <div class="dnd"><i class="icon-inbox-1"></i></div>
-
-  <div class="modal-inner">
-    <div>
-      <span class="modal-heading">
-        Add data from a file on your computer.
-      </span>
-      <input name="dummy_data_file" type="text" class="dummy-file-input" placeholder="Select file..." readonly />
-      <input name="data_file" type="file" class="file-input" />
-      <div class="finder-progress-bar"></div>
-      <span class="modal-error"></span>
-    </div>
-  </div>
-
-  <div class="upload-instructions">
-    <p>
-    </p>
-  </div>
-
+  <span class="upload-preview-error"></span>
 
   <form enctype="multipart/form-data" method="POST" class="upload-form">
 
     <table>
       <tbody>
-        <tr>
-          <td>
-            <h1>  We need a little more information about your file. </h1>
-          </td>
-        </tr>
         <tr>
           <td>
             <span class="page-section">Header</span>
@@ -42,7 +19,7 @@
         </tr>
         <tr>
           <td>
-            <input type="text" name="uploadHeaderRows" value="0"></input>
+            <input tabindex="0" type="text" name="uploadHeaderRows" value="0"></input>
           </td>
         </tr>
         <tr><td>&nbsp;</tr></td>
@@ -58,7 +35,7 @@
         </tr>
         <tr>
           <td>
-            <select name="uploadDateColumn"> </select>
+            <select tabindex="1" name="uploadDateColumn"> </select>
           </td>
         </tr>
         <tr>
@@ -68,7 +45,7 @@
         </tr>
         <tr>
           <td>
-            <select name="uploadDateFormat"> </select>
+            <select tabindex="2" name="uploadDateFormat"> </select>
           </td>
         </tr>
         <tr><td>&nbsp;</tr></td>
@@ -79,7 +56,7 @@
         </tr>
         <tr>
           <td>
-             <input checked type="radio" name="uploadTimeSelect" value="none"> None </input>
+             <input tabindex="3" checked type="radio" name="uploadTimeSelect" value="none"> None </input>
           </td>
         </tr>
         <tr>
@@ -92,7 +69,7 @@
         </tr>
         <tr>
           <td>
-            <input type="radio" name="uploadTimeSelect" value="both"> Same column </input>
+            <input tabindex="4" type="radio" name="uploadTimeSelect" value="both"> Same column </input>
           </td>
         </tr>
         <tr>
@@ -106,7 +83,7 @@
         </tr>
         <tr>
           <td>
-            <input type="radio" name="uploadTimeSelect" value="sep"> Seperate columns</input>
+            <input tabindex="5" type="radio" name="uploadTimeSelect" value="sep"> Separate columns</input>
           </td>
         </tr>
         <tr>
@@ -124,7 +101,7 @@
           </td>
         <tr>
           <td>
-            <select name="uploadTimeColumn"> </select>
+            <select tabindex="6" name="uploadTimeColumn"> </select>
           </td>
         </tr>
         <tr>
@@ -134,14 +111,24 @@
         </tr>
         <tr>
           <td>
-            <select name="uploadTimeFormat"> </select>
+            <select tabindex="7" name="uploadTimeFormat"> </select>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</tr></td>
+        <tr>
+          <td>
+            <a href="javascript:;" class="button blue-button">Submit </a>
           </td>
         </tr>
       </tbody>
     </table>
   </form>
 
-  <span class="upload-preview-error"></span>
+</div>
+<div class="rightside">
+  <span>File Name: </span>
+  <span>File Size: </span>
+
   <div class="upload-table-wrap">
     <div> Preview </div>
     <table class="upload-preview-table">
@@ -150,10 +137,8 @@
     </table>
   </div>
 
-  <input class="blue-button" type="submit"></input>
 
-</div>
-<div class="rightside">
+
 </div>
 <div class="clearfix"></div>
 <div class="footer">

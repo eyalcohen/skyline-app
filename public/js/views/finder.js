@@ -190,16 +190,19 @@ define([
       if (files.length === 0) return false;
       var file = files[0];
 
-      // Use a FileReader to read the file as a base64 string.
-      var cbFail = _.bind(function(err) {
-        this.newFileButtonSpin.stop();
-        this.newFileError.text(err);
-        this.working = false;
-        $('.finder-progress-bar').width('0%');
+      var cb = _.bind(function(err, res) {
+        if (err) {
+          this.newFileButtonSpin.stop();
+          this.newFileError.text(err);
+          this.working = false;
+          $('.finder-progress-bar').width('0%');
+        } else {
+          this.fileId = res.fileId;
+          this.app.router.navigate(['upload', this.fileId].join('/'), {trigger: true});
+          this.close();
+        }
       }, this);
-      //var cbSuccess = _.bind(function(res) {
-      //  console.log('success', res);
-      //}, this);
+
       var cbProgress = _.bind(function(perc) {
         $('.finder-progress-bar').width(perc);
       }, this);
@@ -209,8 +212,7 @@ define([
 
       var reader = new FileReader();
       reader.onload = _.bind(function () {
-        common.upload(file, reader, this.app, null, cbFail, cbProgress,
-                      stopFcn);
+        common.upload(file, reader, this.app, cb, cbProgress, stopFcn);
       }, this);
 
       reader.readAsDataURL(file);

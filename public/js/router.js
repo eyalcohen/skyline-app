@@ -80,7 +80,7 @@ define([
       this.route('library', 'library', this.library);
       this.route('signin', 'signin', this.signin);
       this.route('signup', 'signup', this.signup);
-      this.route('upload', 'upload', this.upload);
+      this.route('upload(/:fileId)', 'upload', this.upload);
       this.route('', 'dashboard', this.dashboard);
 
       // Show the finder.
@@ -317,15 +317,18 @@ define([
       this.renderTabs({title: 'Account Settings'});
     },
 
-    upload: function () {
+    upload: function (fileId) {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render(_.bind(function (err) {
+      this.render('/service/settings.profile', {}, true, _.bind(function (err) {
         if (err) return;
-        this.page = new Upload(this.app).render();
+        this.page = new Upload(this.app, {fileId: fileId}).render();
         this.stop();
       }, this));
-      this.renderTabs();
+      var title = fileId
+                  ? 'We need more information about your file.'
+                  : 'Upload your dataset'
+      this.renderTabs({title: title});
     },
 
     datasetConfig: function (un, id) {
