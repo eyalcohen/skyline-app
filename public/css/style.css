@@ -5305,6 +5305,10 @@ ul.note-channels-list li {
 
 /*.........................................................................*/
 
+.upload-preview-table th:first-child, .upload-preview-table td:first-child {
+  background-color: rgba(39, 205, 214, .1);
+}
+
 .upload-preview-table {
   height: 40px;
   border: 1px solid gray;

@@ -37,12 +37,12 @@
       </select>
     </div>
 
-    <div class="upload-time-options">
-      <label for="uploadTimeSelect">Time</label>
-      <input checked type="radio" name="uploadTimeSelect" value="none"> No time data </input>
-      <input type="radio" name="uploadTimeSelect" value="both"> Date and time are in the same column</input>
-      <input type="radio" name="uploadTimeSelect" value="sep"> Date and time are in separate columns</input>
+    <label for="uploadTimeSelect">Time</label>
+    <input checked type="radio" name="uploadTimeSelect" value="none"> No time data </input>
+    <input type="radio" name="uploadTimeSelect" value="both"> Date and time are in the same column</input>
+    <input type="radio" name="uploadTimeSelect" value="sep"> Date and time are in separate columns</input>
 
+    <div class="upload-time-options">
       <label for="uploadTimeColumn">Select the column that contains the time</label>
       <select name="uploadTimeColumn">
       </select>
@@ -54,6 +54,7 @@
 
   </form>
 
+  <span class="upload-preview-error"></span>
   <div> Preview </div>
 
   <table class="upload-preview-table">

@@ -73,6 +73,8 @@ if (cluster.isMaster) {
   var Mailer = require('./lib/mailer');
   var PubSub = require('./lib/pubsub').PubSub;
 
+  var Boiler = require('./lib/boiler');
+
   // Setup Environments
   var app = express();
 

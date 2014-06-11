@@ -65,11 +65,11 @@ define([
       this.app.rpc.do('getDateTimeFormats', _.bind(function (err, res) {
         this.dateFormats = res.df;
         this.timeFormats = res.tf;
-        _.each(this.dateFormats, _.bind(function(d) {
-          this.dateFormatSelect.append('<option>' + d.example + '</option>');
+        _.each(this.dateFormats, _.bind(function(val, key) {
+          this.dateFormatSelect.append('<option value="' + key + '">' + key + ' - ' + val.example + '</option>');
         }, this));
-        _.each(this.timeFormats, _.bind(function(t) {
-          this.timeFormatSelect.append('<option>' + t.example + '</option>');
+        _.each(this.timeFormats, _.bind(function(val, key) {
+          this.timeFormatSelect.append('<option value="' + key + '">' + key + ' - ' + val.example + '</option>');
         }, this));
       }, this));
 
@@ -165,18 +165,10 @@ define([
           $('.finder-progress-bar').width('0%');
         } else {
           this.fileId = res.fileId;
-          var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
-          var timeCol = this.uploadForm.find('select[name*=uploadTimeColumn]');
-          _.each(res.headers, function(h) {
-            timeCol.append('<option>' + h + '</option>');
-            dateCol.append('<option>' + h + '</option>');
-          });
-          dateCol.removeAttr('selected').find('option:first')
-            .attr('selected', res.headers.indexOf(res.dateColumn));
-          this.previewTable(null, res);
+          this.updateView(null, res);
         }
 
-        //this.previewTable(res);
+        //this.updateView(res);
       }, this);
       var cbProgress = _.bind(function(perc) {
         $('.finder-progress-bar').width(perc);
@@ -197,29 +189,24 @@ define([
     },
 
     preview: function(e) {
-      
+
       var headers = this.uploadForm.find('input[name*="uploadHeaderRows"]').val();
       var dateCol = this.uploadForm.find('select[name*="uploadDateColumn"]').val();
-      var dateFormatIdx = this.uploadForm.find('select[name*="uploadDateFormat"]')[0].selectedIndex;
+      var dateFormat = this.uploadForm.find('select[name*="uploadDateFormat"]').val();
       var timeSel = this.uploadForm.find('input[name*="uploadTimeSelect"]:checked').val();
       var timeCol, timeFormat;
-      var timeFormatIdx =  this.uploadForm.find('select[name*="uploadTimeFormat"]')[0].selectedIndex;
-
-      console.log(this.dateFormats, dateFormatIdx);
-      console.log(timeSel);
-      var dateFormat = this.dateFormats[dateFormatIdx].fmt;
 
       if (timeSel === 'none') {
         $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
       }
       else if (timeSel === 'both') {
         $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
-        dateFormat += ' ' + this.timeFormats[timeFormatIdx].fmt;
+        timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]').val();
       }
       else if (timeSel === 'sep') {
         $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
         timeColumn =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
-        timeFormat = this.timeFormats[timeFormatIdx].fmt;
+        timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]').val();
       }
 
       var payload = {
@@ -231,25 +218,51 @@ define([
         timeFormat: timeFormat
       };
 
-      this.app.rpc.do('previewFileInsertion', payload, this.previewTable)
+      this.app.rpc.do('previewFileInsertion', payload, _.bind(this.updateView, this));
     },
 
-    previewTable: function(err, res) {
-      console.log(res);
+    updateView: function(err, res) {
+      console.log('preview result', res);
+
       var table = $('.upload-preview-table tbody');
       table.empty();
 
-      // take three keys to display in the table, but make sure date is one of them
-      var keys = _.first(res.headers, 3);
+      if (err) {
+        $('.upload-preview-error').text(err);
+        return;
+      }
+
+      /* Add headers */
+      var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
+      var timeCol = this.uploadForm.find('select[name*=uploadTimeColumn]');
+      timeCol.empty();  dateCol.empty();
+      _.each(res.headers, function(h) {
+        timeCol.append('<option>' + h + '</option>');
+        dateCol.append('<option>' + h + '</option>');
+      });
+      dateCol.removeAttr('selected').find('option:first')
+        .attr('selected', res.headers.indexOf(res.dateColumn));
+
+      // Update date format if it was supplied
+      if (res.dateFormat) {
+        this.uploadForm.find('select[name*=uploadDateFormat]').val(res.dateFormat);
+      }
+
+      // Display data/time and 2 other columns
+      var _keys = _.reject(res.headers, function(f) {
+        return f === res.dateColumn;
+      });
+      var keys = [res.dateColumn].concat(_.first(_keys, 2));
 
       // header row
       table.append($('<tr>')
-        .append($('<td>').text(keys[0]).after('</td>')
+        .append($('<th>').text('Skyline date/time').after('</th>')
 
-        .after($('<td>').text(keys[1]).after('</td>')
-        .after($('<td>').text(keys[2]).after('</td>')))));
+        .after($('<th>').text(keys[1]).after('</th>')
+        .after($('<th>').text(keys[2]).after('</th>')))));
       table.find('tr').after('</tr>');
 
+      // first rows
       _.each(res.firstRows, function(r) {
         table.append($('<tr>')
           .append($('<td>').text(r[keys[0]]).after('</td>')
@@ -260,9 +273,9 @@ define([
       });
 
       // Add a seperator to table, so user knows there's a gap in time
-      table.append('<tr><td colspan="3"></td></tr>');
+      table.append('<tr><td></td><td></td><td></td></tr>');
 
-      // Add resultant last rows to table
+      // Add last rows to table
       _.each(res.lastRows, function(r) {
         table.append($('<tr>')
           .append($('<td>').text(r[keys[0]]).after('</td>')
