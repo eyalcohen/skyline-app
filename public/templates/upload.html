@@ -1,7 +1,4 @@
-
-<div class="leftside settings">
-
-  <span class="upload-preview-error"></span>
+<div class="upload settings">
 
   <form enctype="multipart/form-data" method="POST" class="upload-form">
 
@@ -9,7 +6,7 @@
       <tbody>
         <tr>
           <td>
-            <span class="page-section">Header</span>
+            <span class="page-section">File Information</span>
           </td>
         </tr>
         <tr>
@@ -22,6 +19,11 @@
             <input tabindex="0" type="text" name="uploadHeaderRows" value="0"></input>
           </td>
         </tr>
+        <tr>
+          <td>
+            <input tabindex="0" type="checkbox" name="uploadTranspose"><strong>Transpose File</strong> - Switch row and columns</input>
+          </td>
+        </tr>
         <tr><td>&nbsp;</tr></td>
         <tr>
           <td>
@@ -32,18 +34,14 @@
           <td>
             <label for="uploadDateColumn">Select the column that contains the date</label>
           </td>
-        </tr>
-        <tr>
-          <td>
-            <select tabindex="1" name="uploadDateColumn"> </select>
-          </td>
-        </tr>
-        <tr>
           <td>
             <label for="uploadDateFormat">Select the format of the date</label>
           </td>
         </tr>
         <tr>
+          <td>
+            <select tabindex="1" name="uploadDateColumn"> </select>
+          </td>
           <td>
             <select tabindex="2" name="uploadDateFormat"> </select>
           </td>
@@ -56,42 +54,37 @@
         </tr>
         <tr>
           <td>
-             <input tabindex="3" checked type="radio" name="uploadTimeSelect" value="none"> None </input>
+             <input tabindex="3" checked type="radio" name="uploadTimeSelect" value="none"> <strong>None</strong> - This file doesn't contain information about time of day</input>
           </td>
         </tr>
         <tr>
           <td>
             <ul class="settings-detail-txt settings-detail-list">
-              <li>This file doesn't contain information about time of day.</li>
               <li> eg, <strong>May 23 1984.</strong> </li>
             </ul>
           </td>
         </tr>
         <tr>
           <td>
-            <input tabindex="4" type="radio" name="uploadTimeSelect" value="both"> Same column </input>
+            <input tabindex="4" type="radio" name="uploadTimeSelect" value="both"><strong>Same Column</strong> - In this file, date and time information are in the same column </input>
           </td>
         </tr>
         <tr>
           <td>
             <ul class="settings-detail-txt settings-detail-list">
-              <li>In this file, date and time information are in the same column. </li>
               <li> eg, <strong>May 23 1984 12:30pm.</strong> </li>
-
             </ul>
           </td>
         </tr>
         <tr>
           <td>
-            <input tabindex="5" type="radio" name="uploadTimeSelect" value="sep"> Separate columns</input>
+            <input tabindex="5" type="radio" name="uploadTimeSelect" value="sep"><strong>Separate Columns</strong> - In this file, time is in a separate column</input>
           </td>
         </tr>
         <tr>
           <td>
             <ul class="settings-detail-txt settings-detail-list">
-              <li>In this file, date and time information are in seperate columns. </li>
               <li> eg, Column A: <strong>May 23 1984</strong>. Column B: <strong>12:30 PM.</strong> </li>
-
             </ul>
           </td>
         </tr>
@@ -99,23 +92,33 @@
           <td>
             <label for="uploadTimeColumn">Select the column that contains the time</label>
           </td>
+          <td>
+            <label for="uploadTimeFormat">Date Time Format</label>
+          </td>
         <tr>
           <td>
             <select tabindex="6" name="uploadTimeColumn"> </select>
           </td>
-        </tr>
-        <tr>
-          <td>
-            <label for="uploadTimeFormat">Date Time Format</label>
-          </td>
-        </tr>
-        <tr>
           <td>
             <select tabindex="7" name="uploadTimeFormat"> </select>
           </td>
         </tr>
+        <tr>
+          <td colspan="2">
+            <span class="page-section">Preview</span>
+            <div class="upload-table-wrap">
+              <table class="upload-preview-table">
+                <tbody>
+                </tbody>
+              </table>
+           </div>
+         </td>
+        </tr>
         <tr><td>&nbsp;</tr></td>
         <tr>
+          <td>
+            <span class="upload-preview-error"></span>
+          </td>
           <td>
             <a href="javascript:;" class="button blue-button">Submit </a>
           </td>
@@ -123,22 +126,7 @@
       </tbody>
     </table>
   </form>
-
-</div>
-<div class="rightside">
-  <span>File Name: </span>
-  <span>File Size: </span>
-
-  <div class="upload-table-wrap">
-    <div> Preview </div>
-    <table class="upload-preview-table">
-      <tbody>
-      </tbody>
-    </table>
-  </div>
-
-
-
+ 
 </div>
 <div class="clearfix"></div>
 <div class="footer">

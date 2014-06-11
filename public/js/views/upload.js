@@ -53,7 +53,7 @@ define([
       'change input[name="data_file"]': 'update',
       'change .upload-form input': 'preview',
       'change .upload-form select': 'preview',
-      'click .upload-form .button': 'submit'
+      'click .upload-form .button :not(disabled)': 'submit'
     },
 
     setup: function () {
@@ -119,6 +119,7 @@ define([
       var dateCol = this.uploadForm.find('select[name*="uploadDateColumn"]').val();
       var dateFormat = this.uploadForm.find('select[name*="uploadDateFormat"]').val();
       var timeSel = this.uploadForm.find('input[name*="uploadTimeSelect"]:checked').val();
+      var transpose = this.uploadForm.find('input[name*="uploadTranspose"]').checked();
       var timeCol, timeFormat;
 
       if (timeSel === 'none') {
@@ -130,12 +131,13 @@ define([
       }
       else if (timeSel === 'sep') {
         $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
-        timeColumn =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
+        timeCol =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
         timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]').val();
       }
 
       var payload = {
         fileId:  this.fileId,
+        transpose: transpose,
         skipHeaderRows: headers,
         dateColumn: dateCol,
         dateFormat: dateFormat,
@@ -155,10 +157,13 @@ define([
       if (err) {
         $('.upload-preview-error').text(err);
         $('.upload-table-wrap').hide();
+        $('.upload-form .button').addClass('disabled').prop('disabled', true);
         return;
       }
 
       $('.upload-table-wrap').show('fast');
+      $('.upload-form .button').removeClass('disabled').prop('disabled', false);
+      $('.upload-preview-error').hide();
 
       /* Add headers */
       var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
@@ -176,7 +181,7 @@ define([
         this.uploadForm.find('select[name*=uploadDateFormat]').val(res.dateFormat);
       }
 
-      // Display data/time and 2 other columns
+      // Display data/time first
       var _keys = _.reject(res.headers, function(f) {
         return f === res.dateColumn;
       });
@@ -185,7 +190,7 @@ define([
       // header row
       var str = ''
       _.each(_.drop(keys, 1), function (k) {
-        str += '<th>' + k + '</th>';
+        str += '<th>' + util.blurb(k, 24) + '</th>';
       });
       var sel = table.append($('<tr>')
         .append($('<th>').text('Skyline date/time').after('</th>' + str)));

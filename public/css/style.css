@@ -1248,7 +1248,6 @@ body.embed .folder {
 
 .leftside.equal {
   width: 259px;
-  padding-left: 250px;
 }
 
 .rightside {
@@ -1259,9 +1258,16 @@ body.embed .folder {
 }
 
 .rightside.equal {
-  margin: 0 0 0 549px;
   width: 259px;
   padding-top: 59px;
+}
+
+.split {
+  width: 50%;
+}
+
+.rightside.split {
+  margin: 0 0 0 584px;
 }
 
 .banner {
@@ -5319,57 +5325,70 @@ ul.note-channels-list li {
 
 /*.........................................................................*/
 
+.upload {
+  padding: 20px 0 20px 0;
+}
+
+.upload li {
+  margin-bottom: 10px;
+}
+
+.upload-form tr {
+  height: 25px;
+}
+
+.upload-form table {
+  table-layout: fixed;
+}
+
+.upload-form td {
+  width: 50%;
+  vertical-align: center;
+  padding: 0px 40px 0px 0px;
+}
+
+.upload-preview-error {
+  color: red;
+}
+
 .upload-table-wrap {
   overflow-x: scroll;
   display: none;
   padding-bottom: 5px;
 }
 
-.upload-preview-table th:first-child, .upload-preview-table td:first-child {
-  background-color: rgba(39, 205, 214, .1);
-  width: 240px;
-  text-align: center;
-}
-
 .upload-preview-table {
   height: 40px;
   overflow: auto;
   width: 100%;
-  border: 1px solid #f1f1f1;
   table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
 .upload-preview-table tr {
-  height: 30px;
-  border: 1px solid #f1f1f1;
+  height: 20px;
 }
 
 .upload-preview-table td, .upload-preview-table th {
   width: 180px;
-  border: 1px solid #f1f1f1;
   text-align: center;
   vertical-align: middle;
 }
 
-/*.........................................................................*/
-
-.upload .upload-channel-rename {
-  height: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin: 10px 0px 10px 0px;
-  padding: 10px;
-  border: 1px lightgray solid;
-  border-radius: 3px;
+.upload-preview-table th {
+  background: linear-gradient(#333 0%,#444 100%);
+  color: white;
 }
 
-.upload td {
+.upload-preview-table tr:nth-child(even) td { background: #eee; } 
+.upload-preview-table tr:nth-child(odd) td { background: #fdfdfd; }
+
+.upload-preview-table tr th:first-child,
+.upload-preview-table tr td:first-child {
+  background: white;
+  width: 240px;
   text-align: center;
-}
-
-.upload .align-left,
-.upload .align-left td{
-  text-align: left;
 }
 
 /*.........................................................................*/
