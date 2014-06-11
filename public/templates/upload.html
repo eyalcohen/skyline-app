@@ -20,47 +20,135 @@
     </p>
   </div>
 
-  <p>  We need a little more information about your file. </p>
 
   <form enctype="multipart/form-data" method="POST" class="upload-form">
 
-    <label for="uploadHeaderRows">How many rows should we skip? </label>
-    <input type="text" name="uploadHeaderRows" value="0"></input>
+    <table>
+      <tbody>
+        <tr>
+          <td>
+            <h1>  We need a little more information about your file. </h1>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="page-section">Header</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="uploadHeaderRows">How many rows should we skip for the header? </label>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="text" name="uploadHeaderRows" value="0"></input>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</tr></td>
+        <tr>
+          <td>
+            <span class="page-section">Date Information</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="uploadDateColumn">Select the column that contains the date</label>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <select name="uploadDateColumn"> </select>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="uploadDateFormat">Select the format of the date</label>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <select name="uploadDateFormat"> </select>
+          </td>
+        </tr>
+        <tr><td>&nbsp;</tr></td>
+        <tr>
+          <td>
+            <span class="page-section">Time Information</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+             <input checked type="radio" name="uploadTimeSelect" value="none"> None </input>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <ul class="settings-detail-txt settings-detail-list">
+              <li>This file doesn't contain information about time of day.</li>
+              <li> eg, <strong>May 23 1984.</strong> </li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="radio" name="uploadTimeSelect" value="both"> Same column </input>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <ul class="settings-detail-txt settings-detail-list">
+              <li>In this file, date and time information are in the same column. </li>
+              <li> eg, <strong>May 23 1984 12:30pm.</strong> </li>
 
-    <div class="dateOptions">
-      <label for="uploadDateColumn">Select the column that contains the date</label>
-      <select name="uploadDateColumn">
-      </select>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input type="radio" name="uploadTimeSelect" value="sep"> Seperate columns</input>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <ul class="settings-detail-txt settings-detail-list">
+              <li>In this file, date and time information are in seperate columns. </li>
+              <li> eg, Column A: <strong>May 23 1984</strong>. Column B: <strong>12:30 PM.</strong> </li>
 
-      <label for="uploadDateFormat">Select the format of the date</label>
-      <select name="uploadDateFormat">
-      </select>
-    </div>
-
-    <label for="uploadTimeSelect">Time</label>
-    <input checked type="radio" name="uploadTimeSelect" value="none"> No time data </input>
-    <input type="radio" name="uploadTimeSelect" value="both"> Date and time are in the same column</input>
-    <input type="radio" name="uploadTimeSelect" value="sep"> Date and time are in separate columns</input>
-
-    <div class="upload-time-options">
-      <label for="uploadTimeColumn">Select the column that contains the time</label>
-      <select name="uploadTimeColumn">
-      </select>
-
-      <label for="uploadTimeFormat">Date Time Format</label>
-      <select name="uploadTimeFormat">
-      </select>
-    </div>
-
+            </ul>
+          </td>
+        </tr>
+<tr>
+          <td>
+            <label for="uploadTimeColumn">Select the column that contains the time</label>
+          </td>
+        <tr>
+          <td>
+            <select name="uploadTimeColumn"> </select>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="uploadTimeFormat">Date Time Format</label>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <select name="uploadTimeFormat"> </select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </form>
 
   <span class="upload-preview-error"></span>
-  <div> Preview </div>
-
-  <table class="upload-preview-table">
-    <tbody>
-    </tbody>
-  </table>
+  <div class="upload-table-wrap">
+    <div> Preview </div>
+    <table class="upload-preview-table">
+      <tbody>
+      </tbody>
+    </table>
+  </div>
 
   <input class="blue-button" type="submit"></input>
 

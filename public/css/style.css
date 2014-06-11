@@ -3531,6 +3531,20 @@ p.sidebar-tip span {
   -webkit-box-sizing: border-box
 }
 
+.settings td select {
+  width: 100%;
+  padding: 5px;
+  background-color: white;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  font-size: 13px;
+
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+}
+
 .settings td textarea {
   height: 90px;
 }
@@ -3581,7 +3595,7 @@ p.sidebar-tip span {
 }
 
 ul.settings-detail-list {
-  margin: 0 0 0 30px;
+  margin: 0 0 5px 30px;
 }
 
 ul.settings-detail-list li {
@@ -5305,22 +5319,36 @@ ul.note-channels-list li {
 
 /*.........................................................................*/
 
+.upload-table-wrap {
+  overflow-x: scroll;
+  display: none;
+  padding-bottom: 5px;
+}
+
 .upload-preview-table th:first-child, .upload-preview-table td:first-child {
   background-color: rgba(39, 205, 214, .1);
+  width: 240px;
+  text-align: center;
 }
 
 .upload-preview-table {
   height: 40px;
-  border: 1px solid gray;
+  overflow: auto;
+  width: 100%;
+  border: 1px solid #f1f1f1;
+  table-layout: fixed;
 }
 
 .upload-preview-table tr {
-  height: 40px;
-  border: 1px solid gray;
+  height: 30px;
+  border: 1px solid #f1f1f1;
 }
 
-.upload-form label {
-  display:block;
+.upload-preview-table td, .upload-preview-table th {
+  width: 180px;
+  border: 1px solid #f1f1f1;
+  text-align: center;
+  vertical-align: middle;
 }
 
 /*.........................................................................*/

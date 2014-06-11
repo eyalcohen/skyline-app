@@ -66,10 +66,17 @@ define([
         this.dateFormats = res.df;
         this.timeFormats = res.tf;
         _.each(this.dateFormats, _.bind(function(val, key) {
-          this.dateFormatSelect.append('<option value="' + key + '">' + key + ' - ' + val.example + '</option>');
+          if (val.example) {
+            this.dateFormatSelect.append('<option value="' + key
+              + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
+          } else {
+            this.dateFormatSelect.append('<option value="' + key
+              + '">' + key + '</option>');
+          }
         }, this));
         _.each(this.timeFormats, _.bind(function(val, key) {
-          this.timeFormatSelect.append('<option value="' + key + '">' + key + ' - ' + val.example + '</option>');
+          this.timeFormatSelect.append('<option value="' + key 
+            + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
         }, this));
       }, this));
 
@@ -229,8 +236,11 @@ define([
 
       if (err) {
         $('.upload-preview-error').text(err);
+        $('.upload-table-wrap').hide();
         return;
       }
+
+      $('.upload-table-wrap').show('fast');
 
       /* Add headers */
       var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
@@ -252,37 +262,38 @@ define([
       var _keys = _.reject(res.headers, function(f) {
         return f === res.dateColumn;
       });
-      var keys = [res.dateColumn].concat(_.first(_keys, 2));
+      var keys = [res.dateColumn].concat(_keys);
 
       // header row
-      table.append($('<tr>')
-        .append($('<th>').text('Skyline date/time').after('</th>')
-
-        .after($('<th>').text(keys[1]).after('</th>')
-        .after($('<th>').text(keys[2]).after('</th>')))));
+      var str = ''
+      _.each(_.drop(keys, 1), function (k) {
+        str += '<th>' + k + '</th>';
+      });
+      var sel = table.append($('<tr>')
+        .append($('<th>').text('Skyline date/time').after('</th>' + str)));
       table.find('tr').after('</tr>');
 
       // first rows
       _.each(res.firstRows, function(r) {
-        table.append($('<tr>')
-          .append($('<td>').text(r[keys[0]]).after('</td>')
-
-          .after($('<td>').text(r[keys[1]]).after('</td>')
-          .after($('<td>').text(r[keys[2]]).after('</td>')))));
-        table.find('tr').after('</tr>');
+        str = '<tr>'
+        _.each(keys, function (k) {
+          str += '<td>' + r[k] + '</td>';
+        });
+        str += '</tr>'
+        table.append(str);
       });
 
       // Add a seperator to table, so user knows there's a gap in time
-      table.append('<tr><td></td><td></td><td></td></tr>');
+      table.append('<tr><td>...</td></tr>');
 
       // Add last rows to table
       _.each(res.lastRows, function(r) {
-        table.append($('<tr>')
-          .append($('<td>').text(r[keys[0]]).after('</td>')
-
-          .after($('<td>').text(r[keys[1]]).after('</td>')
-          .after($('<td>').text(r[keys[2]]).after('</td>')))));
-        table.find('tr').after('</tr>');
+        str = '<tr>'
+        _.each(keys, function (k) {
+          str += '<td>' + r[k] + '</td>';
+        });
+        str += '</tr>'
+        table.append(str);
       });
 
     },
