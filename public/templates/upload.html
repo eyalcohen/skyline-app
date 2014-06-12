@@ -11,12 +11,10 @@
         </tr>
         <tr>
           <td>
-            <label for="uploadHeaderRows">How many rows should we skip for the header? </label>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <input tabindex="0" type="text" name="uploadHeaderRows" value="0"></input>
+            <div>
+              <label for="uploadHeaderRows"><strong> Skip Rows </strong> - How many rows should we skip for the header </label>
+              <input tabindex="0" type="text" name="uploadHeaderRows" value="0"></input>
+            </div>
           </td>
         </tr>
         <tr>
@@ -24,7 +22,7 @@
             <input tabindex="0" type="checkbox" name="uploadTranspose"><strong>Transpose File</strong> - Switch row and columns</input>
           </td>
         </tr>
-        <tr><td>&nbsp;</tr></td>
+        <tr><td colspan = "2">&nbsp</td></tr>
         <tr>
           <td>
             <span class="page-section">Date Information</span>
@@ -46,7 +44,7 @@
             <select tabindex="2" name="uploadDateFormat"> </select>
           </td>
         </tr>
-        <tr><td>&nbsp;</tr></td>
+        <tr><td colspan = "2">&nbsp</td></tr>
         <tr>
           <td>
             <span class="page-section">Time Information</span>
@@ -103,6 +101,7 @@
             <select tabindex="7" name="uploadTimeFormat"> </select>
           </td>
         </tr>
+        <tr><td colspan = "2">&nbsp</td></tr>
         <tr>
           <td colspan="2">
             <span class="page-section">Preview</span>
@@ -114,7 +113,6 @@
            </div>
          </td>
         </tr>
-        <tr><td>&nbsp;</tr></td>
         <tr>
           <td>
             <span class="upload-preview-error"></span>

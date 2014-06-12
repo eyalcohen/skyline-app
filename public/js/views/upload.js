@@ -119,7 +119,7 @@ define([
       var dateCol = this.uploadForm.find('select[name*="uploadDateColumn"]').val();
       var dateFormat = this.uploadForm.find('select[name*="uploadDateFormat"]').val();
       var timeSel = this.uploadForm.find('input[name*="uploadTimeSelect"]:checked').val();
-      var transpose = this.uploadForm.find('input[name*="uploadTranspose"]').checked();
+      var transpose = this.uploadForm.find('input[name*="uploadTranspose"]').is(':checked');
       var timeCol, timeFormat;
 
       if (timeSel === 'none') {

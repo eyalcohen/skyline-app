@@ -5326,7 +5326,7 @@ ul.note-channels-list li {
 /*.........................................................................*/
 
 .upload {
-  padding: 20px 0 20px 0;
+  padding: 20px 0 20px 20px;
 }
 
 .upload li {
@@ -5341,10 +5341,32 @@ ul.note-channels-list li {
   table-layout: fixed;
 }
 
-.upload-form td {
+.upload-form td,
+.upload-form li {
   width: 50%;
   vertical-align: center;
   padding: 0px 40px 0px 0px;
+  font-size:11px;
+  color: #666;
+}
+
+.upload-form td strong {
+  font-size:12px;
+  color: #404040;
+}
+
+.upload-skip-headers {
+  display:inline-block;
+}
+
+.upload-form td input[name*="uploadHeaderRows"] {
+  width: 40px;
+  margin-left: 10px;
+  overflow: hidden;
+}
+
+.upload-form .page-section {
+  margin-left: -20px;
 }
 
 .upload-preview-error {
