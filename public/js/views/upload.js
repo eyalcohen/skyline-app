@@ -120,7 +120,7 @@ define([
       var dateFormat = this.uploadForm.find('select[name*="uploadDateFormat"]').val();
       var timeSel = this.uploadForm.find('input[name*="uploadTimeSelect"]:checked').val();
       var transpose = this.uploadForm.find('input[name*="uploadTranspose"]').is(':checked');
-      var timeCol, timeFormat;
+      var timeColumn, timeFormat;
 
       if (timeSel === 'none') {
         $('.upload-time-options').hide('fast');
@@ -141,7 +141,7 @@ define([
         $('.upload-time-options select')
           .prop('disabled', false)
           .removeClass('disabled')
-        timeCol =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
+        timeColumn =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
         timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]').val();
       }
 
@@ -151,7 +151,7 @@ define([
         skipHeaderRows: headers,
         dateColumn: dateCol,
         dateFormat: dateFormat,
-        timeCol: timeCol,
+        timeColumn: timeColumn,
         timeFormat: timeFormat
       };
 
@@ -164,6 +164,35 @@ define([
       var table = $('.upload-preview-table tbody');
       table.empty();
 
+      /* Add headers */
+      if (res && res.headers) {
+        var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
+        var timeCol = this.uploadForm.find('select[name*=uploadTimeColumn]');
+        timeCol.empty();  dateCol.empty();
+        _.each(res.headers, function(h) {
+          timeCol.append('<option>' + h + '</option>');
+          dateCol.append('<option>' + h + '</option>');
+        });
+        if (res.dateColumn && res.headers) {
+          dateCol.removeAttr('selected').find('option:first')
+            .attr('selected', res.headers.indexOf(res.dateColumn));
+        }
+        if (res.timeColumn && res.headers) {
+          console.log(timeCol, res.headers.indexOf(res.timeColumn));
+          timeCol.removeAttr('selected').find('option:first')
+            .attr('selected', res.headers.indexOf(res.timeColumn));
+        }
+      }
+
+      // Update date format if it was supplied
+      if (res && res.dateFormat) {
+        this.uploadForm.find('select[name*=uploadDateFormat]').val(res.dateFormat);
+      }
+      if (res && res.timeFormat) {
+        this.uploadForm.find('select[name*=uploadTimeFormat]').val(res.timeFormat);
+      }
+
+      // Otherwise display errors
       if (err) {
         $('.upload-preview-error').text(err);
         $('.upload-table-wrap').hide();
@@ -175,27 +204,13 @@ define([
       $('.upload-form .button').removeClass('disabled').prop('disabled', false);
       $('.upload-preview-error').hide();
 
-      /* Add headers */
-      var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
-      var timeCol = this.uploadForm.find('select[name*=uploadTimeColumn]');
-      timeCol.empty();  dateCol.empty();
-      _.each(res.headers, function(h) {
-        timeCol.append('<option>' + h + '</option>');
-        dateCol.append('<option>' + h + '</option>');
-      });
-      dateCol.removeAttr('selected').find('option:first')
-        .attr('selected', res.headers.indexOf(res.dateColumn));
-
-      // Update date format if it was supplied
-      if (res.dateFormat) {
-        this.uploadForm.find('select[name*=uploadDateFormat]').val(res.dateFormat);
-      }
 
       // Display data/time first
-      var _keys = _.reject(res.headers, function(f) {
+      var _keys = _.reject(_.keys(res.firstRows[0]), function(f) {
         return f === res.dateColumn;
       });
       var keys = [res.dateColumn].concat(_keys);
+      console.log(keys, _keys);
 
       // header row
       var str = ''
