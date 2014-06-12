@@ -123,14 +123,24 @@ define([
       var timeCol, timeFormat;
 
       if (timeSel === 'none') {
-        $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
+        $('.upload-time-options').hide('fast');
+        $('.upload-time-options select').prop('disabled', true).addClass('disabled');
       }
       else if (timeSel === 'both') {
-        $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
-        timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]').val();
+        $('.upload-time-options').show('fast');
+        this.uploadForm.find('select[name*="uploadTimeColumn"]')
+          .prop('disabled', true)
+          .addClass('disabled')
+        timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]')
+          .prop('disabled', false)
+          .removeClass('disabled')
+          .val();
       }
       else if (timeSel === 'sep') {
-        $('.upload-time-options input, .upload-time-options select').prop('disabled', true);
+        $('.upload-time-options').show('fast');
+        $('.upload-time-options select')
+          .prop('disabled', false)
+          .removeClass('disabled')
         timeCol =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
         timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]').val();
       }

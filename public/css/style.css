@@ -5369,6 +5369,10 @@ ul.note-channels-list li {
   margin-left: -20px;
 }
 
+.upload-form td select.disabled {
+  background-color: lightgray;
+}
+
 .upload-preview-error {
   color: red;
 }
@@ -5386,6 +5390,10 @@ ul.note-channels-list li {
   table-layout: fixed;
   border-collapse: collapse;
   border-spacing: 0;
+}
+
+.upload-time-options {
+  display: none;
 }
 
 .upload-preview-table tr {
