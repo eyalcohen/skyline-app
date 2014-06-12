@@ -6,14 +6,14 @@
  * - Tab ordering
  * - Table style
  * - Email on failure
- * - Add transpose function
- * - Seperate upload page
  * - General styling
  * - Title for page
- * - Failure if page was loaded unexpectedly
  * - Validate header rows is a number
  * - File information in right side
  * - Red font the error
+ * - Make sure error information appears
+ * - Row numbers on preview table
+ * - Show error in preview table
  */
 
 define([
@@ -35,8 +35,6 @@ define([
       this.app = app;
       this.options = options;
       this.fileId = options.fileId;
-      console.log(this.options);
-
       this.on('rendered', this.setup, this);
 
     },
@@ -53,7 +51,7 @@ define([
       'change input[name="data_file"]': 'update',
       'change .upload-form input': 'preview',
       'change .upload-form select': 'preview',
-      'click .upload-form .button :not(disabled)': 'submit'
+      'click .button:not(disabled)': 'submit',
     },
 
     setup: function () {
@@ -68,7 +66,6 @@ define([
       };
 
       this.app.rpc.do('previewFileInsertion', payload, _.bind(function(err, res) {
-        console.log(err, res);
         this.template = _.template(template);
         this.$el.html(this.template.call(this, {util: util}));
 
@@ -94,6 +91,15 @@ define([
               + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
           }, this));
         }, this));
+
+        this.newFileButtonSpin = new Spin(this.$('.button-spin'), {
+          color: '#fff',
+          lines: 13,
+          length: 3,
+          width: 2,
+          radius: 6
+        });
+
         this.updateView(err, res);
       }, this));
       return this;
@@ -159,12 +165,10 @@ define([
     },
 
     updateView: function(err, res) {
-      console.log('preview result', res);
-
       var table = $('.upload-preview-table tbody');
       table.empty();
 
-      /* Add headers */
+      // Update drop-downs information
       if (res && res.headers) {
         var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
         var timeCol = this.uploadForm.find('select[name*=uploadTimeColumn]');
@@ -173,44 +177,61 @@ define([
           timeCol.append('<option>' + h + '</option>');
           dateCol.append('<option>' + h + '</option>');
         });
-        if (res.dateColumn && res.headers) {
-          dateCol.removeAttr('selected').find('option:first')
-            .attr('selected', res.headers.indexOf(res.dateColumn));
+        if (res.dateColumn) {
+          dateCol.val(res.dateColumn);
         }
-        if (res.timeColumn && res.headers) {
-          console.log(timeCol, res.headers.indexOf(res.timeColumn));
-          timeCol.removeAttr('selected').find('option:first')
-            .attr('selected', res.headers.indexOf(res.timeColumn));
+        if (res.timeColumn) {
+          timeCol.val(res.timeColumn);
+        }
+        if (res.dateFormat) {
+          this.uploadForm.find('select[name*=uploadDateFormat]').val(res.dateFormat);
+        }
+        if (res.timeFormat) {
+          this.uploadForm.find('select[name*=uploadTimeFormat]').val(res.timeFormat);
         }
       }
 
-      // Update date format if it was supplied
-      if (res && res.dateFormat) {
-        this.uploadForm.find('select[name*=uploadDateFormat]').val(res.dateFormat);
-      }
-      if (res && res.timeFormat) {
-        this.uploadForm.find('select[name*=uploadTimeFormat]').val(res.timeFormat);
+      // Get headers, but reoder them so date/time is first
+      var keys = [];
+      if (res && res.firstRows && res.dateColumn) {
+        var _keys = _.reject(_.keys(res.firstRows[0]), function(f) {
+          return f === res.dateColumn;
+        });
+        keys = [res.dateColumn].concat(_keys);
       }
 
       // Otherwise display errors
       if (err) {
-        $('.upload-preview-error').text(err);
-        $('.upload-table-wrap').hide();
+        $('.upload-preview-error').text(err).fadeIn();
+        //$('.upload-table-wrap-outter').hide();
         $('.upload-form .button').addClass('disabled').prop('disabled', true);
+
+        if (res && res.problemRow) {
+
+          // header row
+          var str = ''
+          _.each(keys, function (k) {
+            str += '<th>' + util.blurb(k, 24) + '</th>';
+          });
+          var sel = table.append('<tr>' + str + '</tr>')
+
+          table.find('tr').after('</tr>');
+          str = '<tr>'
+          _.each(keys, function (k) {
+            str += '<td>' + res.problemRow[k] + '</td>';
+          });
+          str += '</tr>'
+          table.append(str);
+        }
+
         return;
       }
 
-      $('.upload-table-wrap').show('fast');
+      $('.upload-table-wrap-outter').show('fast');
       $('.upload-form .button').removeClass('disabled').prop('disabled', false);
       $('.upload-preview-error').hide();
 
-
-      // Display data/time first
-      var _keys = _.reject(_.keys(res.firstRows[0]), function(f) {
-        return f === res.dateColumn;
-      });
-      var keys = [res.dateColumn].concat(_keys);
-      console.log(keys, _keys);
+      /* Build preview table */
 
       // header row
       var str = ''
@@ -220,6 +241,7 @@ define([
       var sel = table.append($('<tr>')
         .append($('<th>').text('Skyline date/time').after('</th>' + str)));
       table.find('tr').after('</tr>');
+
 
       // first rows
       _.each(res.firstRows, function(r) {
@@ -247,16 +269,17 @@ define([
     },
 
     submit: function(e) {
-      console.log('submit');
+      // Start load indicator.
+      this.newFileButtonSpin.start();
+
       this.app.rpc.do('insertSamples', { fileId: this.fileId }, _.bind(function (err, res) {
+        this.newFileButtonSpin.stop();
         if (err) {
           $('.upload-preview-error').text(err);
-          $('.upload-table-wrap').hide();
         } else {
           var path = [this.app.profile.user.username, res.id, 'config'].join('/');
           this.app.router.navigate(path, {trigger: true});
         }
-        console.log(err, res);
       }, this));
     }
 

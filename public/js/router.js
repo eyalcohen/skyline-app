@@ -326,7 +326,7 @@ define([
         this.stop();
       }, this));
       var title = fileId
-                  ? 'We need more information about your file'
+                  ? 'We need more information about "' + fileId.split('_')[0] + '"'
                   : 'Upload your dataset'
       this.renderTabs({title: title});
     },
