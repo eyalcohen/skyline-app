@@ -5434,6 +5434,7 @@ ul.note-channels-list li {
 }
 
 .upload-form-submit {
+  position: relative;
   margin-top: 20px;
 }
 
