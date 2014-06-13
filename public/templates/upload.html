@@ -13,14 +13,14 @@
         <tr>
           <td>
             <div>
-              <input tabindex="1" type="number" min="0" name="uploadHeaderRows" value="0"></input>
-              <label for="uploadHeaderRows"><strong> Skip Rows </strong> - How many rows should we skip for the header </label>
+              <input tabindex="1" type="number" min="0" name="upload-header-rows" value="0"></input>
+              <label for="upload-header-rows"><strong> Skip Rows </strong> - How many rows should we skip for the header </label>
             </div>
           </td>
         </tr>
         <tr>
           <td>
-            <input tabindex="2" type="checkbox" name="uploadTranspose"><strong>Transpose File</strong> - Switch row and columns</input>
+            <input tabindex="2" type="checkbox" name="upload-transpose"><strong>Transpose File</strong> - Switch row and columns</input>
           </td>
         </tr>
         <tr><td colspan = "2">&nbsp</td></tr>
@@ -31,18 +31,18 @@
         </tr>
         <tr>
           <td>
-            <label for="uploadDateColumn">Select the column that contains the date</label>
+            <label for="upload-date-column">Select the column that contains the date</label>
           </td>
           <td>
-            <label for="uploadDateFormat">Select the format of the date</label>
+            <label for="upload-date-format">Select the format of the date</label>
           </td>
         </tr>
         <tr>
           <td>
-            <select tabindex="3" name="uploadDateColumn"> </select>
+            <select tabindex="3" name="upload-date-column"> </select>
           </td>
           <td>
-            <select tabindex="4" name="uploadDateFormat"> </select>
+            <select tabindex="4" name="upload-date-format"> </select>
           </td>
         </tr>
         <tr><td colspan = "2">&nbsp</td></tr>
@@ -53,7 +53,7 @@
         </tr>
         <tr>
           <td>
-             <input tabindex="5" checked type="radio" name="uploadTimeSelect" value="none"> <strong>None</strong> - This file doesn't contain information about time of day</input>
+             <input tabindex="5" checked type="radio" name="upload-time-select" value="none"> <strong>None</strong> - This file doesn't contain information about time of day</input>
           </td>
         </tr>
         <tr>
@@ -65,7 +65,7 @@
         </tr>
         <tr>
           <td>
-            <input tabindex="6" type="radio" name="uploadTimeSelect" value="both"><strong>Same Column</strong> - In this file, date and time information are in the same column </input>
+            <input tabindex="6" type="radio" name="upload-time-select" value="both"><strong>Same Column</strong> - In this file, date and time information are in the same column </input>
           </td>
         </tr>
         <tr>
@@ -77,7 +77,7 @@
         </tr>
         <tr>
           <td>
-            <input tabindex="7" type="radio" name="uploadTimeSelect" value="sep"><strong>Separate Columns</strong> - In this file, time is in a separate column</input>
+            <input tabindex="7" type="radio" name="upload-time-select" value="sep"><strong>Separate Columns</strong> - In this file, time is in a separate column</input>
           </td>
         </tr>
         <tr>
@@ -89,17 +89,17 @@
         </tr>
         <tr class="upload-time-options">
           <td>
-            <label for="uploadTimeColumn">Select the column that contains the time</label>
+            <label for="upload-time-column">Select the column that contains the time</label>
           </td>
           <td>
-            <label for="uploadTimeFormat">Select the format of the time</label>
+            <label for="upload-time-format">Select the format of the time</label>
           </td>
         <tr class="upload-time-options">
           <td>
-            <select class="disabled" tabindex="8" name="uploadTimeColumn" disabled> </select>
+            <select class="disabled" tabindex="8" name="upload-time-column" disabled> </select>
           </td>
           <td>
-            <select class="disabled" tabindex="9" name="uploadTimeFormat" disabled> </select>
+            <select class="disabled" tabindex="9" name="upload-time-format" disabled> </select>
           </td>
         </tr>
         <tr><td colspan = "2">&nbsp</td></tr>

@@ -3,8 +3,8 @@
  *
  * TODO:
  * - Row numbers on preview table
- * - add 'working' so can't submit while server is thinking
- * - cleanup and decent comments
+ * - add 'working' guard so can't submit while server is processing
+ * - Add spinner on first page load
  */
 
 define([
@@ -27,19 +27,17 @@ define([
       this.options = options;
       this.fileId = options.fileId;
       this.on('rendered', this.setup, this);
-
     },
 
     render: function () {
 
       // Set page title
-      this.app.title('Skyline');
+      this.app.title('Skyline - Upload file');
       this.trigger('rendered');
       return this;
     },
 
     events: {
-      'change input[name="data_file"]': 'update',
       'change .upload-form input': 'preview',
       'change .upload-form select': 'preview',
       'click .button:not(disabled)': 'submit',
@@ -63,12 +61,14 @@ define([
 
         this.uploadForm = $('.upload-form');
 
-        this.timeFormatSelect = this.uploadForm.find('select[name*="uploadTimeFormat"]');
-        this.dateFormatSelect = this.uploadForm.find('select[name*="uploadDateFormat"]');
+        this.timeFormatSelect = this.uploadForm.find('select[name*="upload-time-format"]');
+        this.dateFormatSelect = this.uploadForm.find('select[name*="upload-date-format"]');
 
         this.app.rpc.do('getDateTimeFormats', _.bind(function (err, res) {
           this.dateFormats = res.df;
           this.timeFormats = res.tf;
+
+          // Populate 'select' inputs with date and time formats
           _.each(this.dateFormats, _.bind(function(val, key) {
             if (val.example) {
               this.dateFormatSelect.append('<option value="' + key
@@ -93,6 +93,7 @@ define([
         });
 
         this.updateView(err, res);
+
       }, this));
       return this;
     },
@@ -111,6 +112,7 @@ define([
       this.empty();
     },
 
+    // Make a server request that lets us knmow if this dataset will work.
     preview: function(e) {
 
       this.spin = new Spin(this.$('.upload-preview-spin'), {
@@ -123,11 +125,11 @@ define([
 
       this.spin.start();
 
-      var headers = this.uploadForm.find('input[name*="uploadHeaderRows"]').val();
-      var dateCol = this.uploadForm.find('select[name*="uploadDateColumn"]').val();
-      var dateFormat = this.uploadForm.find('select[name*="uploadDateFormat"]').val();
-      var timeSel = this.uploadForm.find('input[name*="uploadTimeSelect"]:checked').val();
-      var transpose = this.uploadForm.find('input[name*="uploadTranspose"]').is(':checked');
+      var skipHeaders = this.uploadForm.find('input[name*="upload-header-rows"]').val();
+      var dateCol = this.uploadForm.find('select[name*="upload-date-column"]').val();
+      var dateFormat = this.uploadForm.find('select[name*="upload-date-format"]').val();
+      var timeSel = this.uploadForm.find('input[name*="upload-time-select"]:checked').val();
+      var transpose = this.uploadForm.find('input[name*="upload-transpose"]').is(':checked');
       var timeColumn, timeFormat;
 
       if (timeSel === 'none') {
@@ -136,10 +138,10 @@ define([
       }
       else if (timeSel === 'both') {
         $('.upload-time-options').show('fast');
-        this.uploadForm.find('select[name*="uploadTimeColumn"]')
+        this.uploadForm.find('select[name*="upload-time-column"]')
           .prop('disabled', true)
           .addClass('disabled')
-        timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]')
+        timeFormat =  this.uploadForm.find('select[name*="upload-time-format"]')
           .prop('disabled', false)
           .removeClass('disabled')
           .val();
@@ -149,14 +151,14 @@ define([
         $('.upload-time-options select')
           .prop('disabled', false)
           .removeClass('disabled')
-        timeColumn =  this.uploadForm.find('select[name*="uploadTimeColumn"]').val();
-        timeFormat =  this.uploadForm.find('select[name*="uploadTimeFormat"]').val();
+        timeColumn =  this.uploadForm.find('select[name*="upload-time-column"]').val();
+        timeFormat =  this.uploadForm.find('select[name*="upload-time-format"]').val();
       }
 
       var payload = {
         fileId:  this.fileId,
         transpose: transpose,
-        skipHeaderRows: headers,
+        skipHeaderRows: skipHeaders,
         dateColumn: dateCol,
         dateFormat: dateFormat,
         timeColumn: timeColumn,
@@ -173,10 +175,12 @@ define([
       var table = $('.upload-preview-table tbody');
       table.empty();
 
+      var rePreview = false;
+
       // Update drop-downs information
       if (res && res.headers) {
-        var dateCol = this.uploadForm.find('select[name*=uploadDateColumn]');
-        var timeCol = this.uploadForm.find('select[name*=uploadTimeColumn]');
+        var dateCol = this.uploadForm.find('select[name*=upload-date-column]');
+        var timeCol = this.uploadForm.find('select[name*=upload-time-column]');
         timeCol.empty();  dateCol.empty();
         _.each(res.headers, function(h) {
           timeCol.append('<option>' + h + '</option>');
@@ -189,14 +193,14 @@ define([
           timeCol.val(res.timeColumn);
         }
         if (res.dateFormat) {
-          this.uploadForm.find('select[name*=uploadDateFormat]').val(res.dateFormat);
+          this.uploadForm.find('select[name*=upload-date-format]').val(res.dateFormat);
         }
         if (res.timeFormat) {
-          this.uploadForm.find('select[name*=uploadTimeFormat]').val(res.timeFormat);
+          this.uploadForm.find('select[name*=upload-time-format]').val(res.timeFormat);
         }
       }
 
-      // Get headers, but reoder them so date/time is first
+      // Get headers, but re-order them so date/time is first
       var keys = [];
       if (res && res.firstRows && res.dateColumn) {
         var _keys = _.reject(_.keys(res.firstRows[0]), function(f) {
@@ -220,6 +224,7 @@ define([
           });
           var sel = table.append('<tr>' + str + '</tr>')
 
+          // Display the row that caused the error, and style it some.
           _.each(res.problemRow, function (pr, idx) {
             str = '<tr>'
             _.each(keys, function (k) {
@@ -237,20 +242,22 @@ define([
         return;
       }
 
+      // If we don't have errors, we show a preview table
+
       $('.upload-table-wrap-outter').show('fast');
       $('.upload-form .button').removeClass('disabled').prop('disabled', false);
       $('.upload-preview-error').hide();
 
-      /* Build preview table */
+      // Build preview table
 
-      // header row
+      // Header row
       var str = ''
       _.each(keys, function (k) {
         str += '<th>' + util.blurb(k, 24) + '</th>';
       });
       var sel = table.append('<tr>' + str + '</tr>')
 
-      // first rows
+      // First Rows
       _.each(res.firstRows, function(r) {
         str = '<tr>'
         _.each(keys, function (k) {
@@ -275,6 +282,7 @@ define([
 
     },
 
+    // If user is happy with the preview, insert samples into the database.
     submit: function(e) {
       // Start load indicator.
       this.newFileButtonSpin.start();
@@ -284,6 +292,7 @@ define([
         if (err) {
           $('.upload-preview-error').text(err);
         } else {
+          // On success, we navigatew to the dataset landing page
           var path = [this.app.profile.user.username, res.id, 'config'].join('/');
           this.app.router.navigate(path, {trigger: true});
         }

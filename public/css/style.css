@@ -5359,7 +5359,7 @@ ul.note-channels-list li {
   display:inline-block;
 }
 
-.upload-form td input[name*="uploadHeaderRows"] {
+.upload-form td input[name*="upload-header-rows"] {
   width: 40px;
 }
 
@@ -5429,7 +5429,7 @@ ul.note-channels-list li {
 }
 
 .upload-preview-table tbody .problem-row td {
-  background: rgba(255, 48, 48, 1);
+  background: rgba(255, 64, 64, .8);
   color: white;
 }
 
