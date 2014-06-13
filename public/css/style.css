@@ -5423,6 +5423,16 @@ ul.note-channels-list li {
   text-align: center;
 }
 
+.upload-preview-table tbody .problem-row {
+  background: red;
+  color: white;
+}
+
+.upload-preview-table tbody .problem-row td {
+  background: rgba(255, 48, 48, 1);
+  color: white;
+}
+
 .upload-form-submit {
   margin-top: 20px;
 }

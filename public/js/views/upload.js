@@ -3,6 +3,8 @@
  *
  * TODO:
  * - Row numbers on preview table
+ * - add 'working' so can't submit while server is thinking
+ * - cleanup and decent comments
  */
 
 define([
@@ -213,18 +215,22 @@ define([
 
           // header row
           var str = ''
-          _.each(keys, function (k) {
+          _.each(_.keys(res.problemRow[0]), function (k) {
             str += '<th>' + util.blurb(k, 24) + '</th>';
           });
           var sel = table.append('<tr>' + str + '</tr>')
 
-          _.each(res.problemRow, function (pr) {
+          _.each(res.problemRow, function (pr, idx) {
             str = '<tr>'
-              _.each(keys, function (k) {
-                str += '<td>' + pr[k] + '</td>';
-              });
+            _.each(keys, function (k) {
+              str += '<td>' + pr[k] + '</td>';
+            });
             str += '</tr>'
-            table.append(str);
+            var el = $(str);
+            table.append(el);
+            if (idx === res.problemRow.length-1) {
+              el.addClass('problem-row');
+            }
           });
           $('.upload-table-wrap-outter').show('fast');
         }
@@ -239,13 +245,10 @@ define([
 
       // header row
       var str = ''
-      _.each(_.drop(keys, 1), function (k) {
+      _.each(keys, function (k) {
         str += '<th>' + util.blurb(k, 24) + '</th>';
       });
-      var sel = table.append($('<tr>')
-        .append($('<th>').text('Skyline date/time').after('</th>' + str)));
-      table.find('tr').after('</tr>');
-
+      var sel = table.append('<tr>' + str + '</tr>')
 
       // first rows
       _.each(res.firstRows, function(r) {
