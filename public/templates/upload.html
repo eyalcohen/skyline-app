@@ -8,18 +8,19 @@
           <td>
             <span class="page-section">File Information</span>
           </td>
+          <td><div class='upload-preview-spin'</div></td>
         </tr>
         <tr>
           <td>
             <div>
+              <input tabindex="1" type="number" min="0" name="uploadHeaderRows" value="0"></input>
               <label for="uploadHeaderRows"><strong> Skip Rows </strong> - How many rows should we skip for the header </label>
-              <input tabindex="0" type="text" name="uploadHeaderRows" value="0"></input>
             </div>
           </td>
         </tr>
         <tr>
           <td>
-            <input tabindex="0" type="checkbox" name="uploadTranspose"><strong>Transpose File</strong> - Switch row and columns</input>
+            <input tabindex="2" type="checkbox" name="uploadTranspose"><strong>Transpose File</strong> - Switch row and columns</input>
           </td>
         </tr>
         <tr><td colspan = "2">&nbsp</td></tr>
@@ -38,10 +39,10 @@
         </tr>
         <tr>
           <td>
-            <select tabindex="1" name="uploadDateColumn"> </select>
+            <select tabindex="3" name="uploadDateColumn"> </select>
           </td>
           <td>
-            <select tabindex="2" name="uploadDateFormat"> </select>
+            <select tabindex="4" name="uploadDateFormat"> </select>
           </td>
         </tr>
         <tr><td colspan = "2">&nbsp</td></tr>
@@ -52,7 +53,7 @@
         </tr>
         <tr>
           <td>
-             <input tabindex="3" checked type="radio" name="uploadTimeSelect" value="none"> <strong>None</strong> - This file doesn't contain information about time of day</input>
+             <input tabindex="5" checked type="radio" name="uploadTimeSelect" value="none"> <strong>None</strong> - This file doesn't contain information about time of day</input>
           </td>
         </tr>
         <tr>
@@ -64,7 +65,7 @@
         </tr>
         <tr>
           <td>
-            <input tabindex="4" type="radio" name="uploadTimeSelect" value="both"><strong>Same Column</strong> - In this file, date and time information are in the same column </input>
+            <input tabindex="6" type="radio" name="uploadTimeSelect" value="both"><strong>Same Column</strong> - In this file, date and time information are in the same column </input>
           </td>
         </tr>
         <tr>
@@ -76,7 +77,7 @@
         </tr>
         <tr>
           <td>
-            <input tabindex="5" type="radio" name="uploadTimeSelect" value="sep"><strong>Separate Columns</strong> - In this file, time is in a separate column</input>
+            <input tabindex="7" type="radio" name="uploadTimeSelect" value="sep"><strong>Separate Columns</strong> - In this file, time is in a separate column</input>
           </td>
         </tr>
         <tr>
@@ -95,10 +96,10 @@
           </td>
         <tr class="upload-time-options">
           <td>
-            <select class="disabled" tabindex="6" name="uploadTimeColumn" disabled> </select>
+            <select class="disabled" tabindex="8" name="uploadTimeColumn" disabled> </select>
           </td>
           <td>
-            <select class="disabled" tabindex="7" name="uploadTimeFormat" disabled> </select>
+            <select class="disabled" tabindex="9" name="uploadTimeFormat" disabled> </select>
           </td>
         </tr>
         <tr><td colspan = "2">&nbsp</td></tr>
@@ -120,14 +121,16 @@
             <span class="upload-preview-error"></span>
           </td>
           <td>
-            <a href="javascript:;" class="button blue-button">Submit </a>
-            <div class="button-spin"></div>
+            <div class="upload-form-submit">
+              <a tabindex="10" href="javascript:;" class="button blue-button">Submit </a>
+              <div class="button-spin"></div>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
   </form>
- 
+
 </div>
 <div class="clearfix"></div>
 <div class="footer">

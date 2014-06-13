@@ -2,18 +2,7 @@
  * Upload interface
  *
  * TODO:
- * - Enable time column behavior
- * - Tab ordering
- * - Table style
- * - Email on failure
- * - General styling
- * - Title for page
- * - Validate header rows is a number
- * - File information in right side
- * - Red font the error
- * - Make sure error information appears
  * - Row numbers on preview table
- * - Show error in preview table
  */
 
 define([
@@ -67,7 +56,8 @@ define([
 
       this.app.rpc.do('previewFileInsertion', payload, _.bind(function(err, res) {
         this.template = _.template(template);
-        this.$el.html(this.template.call(this, {util: util}));
+        this.$el.empty();
+        this.$el.append(this.template.call(this, {util: util}));
 
         this.uploadForm = $('.upload-form');
 
@@ -121,6 +111,16 @@ define([
 
     preview: function(e) {
 
+      this.spin = new Spin(this.$('.upload-preview-spin'), {
+          color: '#3d3d3d',
+          lines: 13,
+          length: 3,
+          width: 2,
+          radius: 6
+      });
+
+      this.spin.start();
+
       var headers = this.uploadForm.find('input[name*="uploadHeaderRows"]').val();
       var dateCol = this.uploadForm.find('select[name*="uploadDateColumn"]').val();
       var dateFormat = this.uploadForm.find('select[name*="uploadDateFormat"]').val();
@@ -165,6 +165,9 @@ define([
     },
 
     updateView: function(err, res) {
+
+      if (this.spin) this.spin.stop();
+
       var table = $('.upload-preview-table tbody');
       table.empty();
 
@@ -215,15 +218,16 @@ define([
           });
           var sel = table.append('<tr>' + str + '</tr>')
 
-          table.find('tr').after('</tr>');
-          str = '<tr>'
-          _.each(keys, function (k) {
-            str += '<td>' + res.problemRow[k] + '</td>';
+          _.each(res.problemRow, function (pr) {
+            str = '<tr>'
+              _.each(keys, function (k) {
+                str += '<td>' + pr[k] + '</td>';
+              });
+            str += '</tr>'
+            table.append(str);
           });
-          str += '</tr>'
-          table.append(str);
+          $('.upload-table-wrap-outter').show('fast');
         }
-
         return;
       }
 
