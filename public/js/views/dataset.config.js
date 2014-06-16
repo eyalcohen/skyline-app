@@ -81,10 +81,6 @@ define([
           if (field.val().trim() !== field.data('saved'))
             saved.hide();
 
-          setTimeout(function() {
-            saved.hide();
-          }, 2000);
-
           return false;
         });
 
@@ -153,11 +149,11 @@ define([
 
         // Save the saved state and show indicator.
         field.data('saved', val);
-        saved.show();
+        saved.show().parent().show();
 
         setTimeout(function() {
           saved.parent().fadeOut('slow');
-        }, 2000);
+        }, 3000);
 
       }, this));
 
