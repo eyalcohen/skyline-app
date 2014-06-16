@@ -743,10 +743,13 @@ define([
         var val = s.val * conv.factor;
         data.push([(s.beg) / 1000, val]);
         var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
-        if (lineStyleOpts.interpolation === 'none') {
-          if (s.end !== s.beg)
-            data.push([(s.end) / 1000, val]);
+
+        if (s.end !== s.beg) {
+          if (lineStyleOpts.interpolation === 'none' || i === samples.length -1 ) {
+              data.push([(s.end) / 1000, val]);
+          }
         }
+
         prevEnd = s.end;
         if (s.min != null || s.max != null) {
           if (prevMinMaxEnd != s.beg)
@@ -754,10 +757,13 @@ define([
           var max = s.max == null ? val : s.max * conv.factor;
           var min = s.min == null ? val : s.min * conv.factor;
           minMax.push([s.beg / 1000, max, min]);
-          if (lineStyleOpts.interpolation === 'none') {
-            if (s.end !== s.beg)
-              minMax.push([s.end / 1000, max, min]);
+
+          if (s.end !== s.beg) {
+            if (lineStyleOpts.interpolation === 'none' || i === samples.length -1 ) {
+                data.push([(s.end) / 1000, val]);
+            }
           }
+
           prevMinMaxEnd = s.end;
         }
       }, this);

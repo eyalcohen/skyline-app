@@ -22,7 +22,7 @@ define([
 
       // The initial style.
       this.DEFAULT_LINE_STYLE = {
-        showPoints: false,
+        showPoints: true,
         showLines: true,
         showArea: false,
         interpolation: 'linear', // also 'none'

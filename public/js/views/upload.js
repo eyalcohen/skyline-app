@@ -130,6 +130,7 @@ define([
       var dateFormat = this.uploadForm.find('select[name*="upload-date-format"]').val();
       var timeSel = this.uploadForm.find('input[name*="upload-time-select"]:checked').val();
       var transpose = this.uploadForm.find('input[name*="upload-transpose"]').is(':checked');
+      var reverse = this.uploadForm.find('input[name*="upload-reverse"]').is(':checked');
       var timeColumn, timeFormat;
 
       if (timeSel === 'none') {
@@ -158,6 +159,7 @@ define([
       var payload = {
         fileId:  this.fileId,
         transpose: transpose,
+        reverse: reverse,
         skipHeaderRows: skipHeaders,
         dateColumn: dateCol,
         dateFormat: dateFormat,
@@ -228,7 +230,7 @@ define([
           _.each(res.problemRow, function (pr, idx) {
             str = '<tr>'
             _.each(keys, function (k) {
-              str += '<td>' + pr[k] + '</td>';
+              str += '<td>' + (pr[k] ? pr[k] : '') + '</td>';
             });
             str += '</tr>'
             var el = $(str);
@@ -261,7 +263,7 @@ define([
       _.each(res.firstRows, function(r) {
         str = '<tr>'
         _.each(keys, function (k) {
-          str += '<td>' + r[k] + '</td>';
+          str += '<td>' + (r[k] ? r[k] : '') + '</td>';
         });
         str += '</tr>'
         table.append(str);
@@ -274,7 +276,7 @@ define([
       _.each(res.lastRows, function(r) {
         str = '<tr>'
         _.each(keys, function (k) {
-          str += '<td>' + r[k] + '</td>';
+          str += '<td>' + (r[k] ? r[k] : '') + '</td>';
         });
         str += '</tr>'
         table.append(str);
