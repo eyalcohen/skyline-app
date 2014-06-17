@@ -203,14 +203,18 @@ if (cluster.isMaster) {
           app.all('*', function (req, res, next) {
             console.log(req.headers['x-forwarded-proto']);
             var https = req.headers['referer'] && req.headers['referer'].indexOf('https://') !== -1;
-            console.log(https, 'https://' + req.headers.host + req.url)
+            console.log('HTTPS:', https);
+            if (req.headers['referer']) {
+              console.log('REFERER', req.headers['referer'], req.headers['referer'].indexOf('https://'));
+            }
             
             if (https || _.find(app.get('package').protocol.allow, function (allow) {
               return req.url === allow.url && req.method === allow.method;
             })) {
               return next();
             }
-            res.redirect('https://' + req.headers.host + req.url);
+            next();
+            // res.redirect('https://' + req.headers.host + req.url);
           });
         }
       }
