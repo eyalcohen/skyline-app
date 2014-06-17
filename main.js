@@ -227,6 +227,7 @@ if (cluster.isMaster) {
             // Attach a reds ref to app.
             reds.client = rc;
             app.set('reds', reds);
+            app.set('redis', rc);
 
             // Init samples.
             new Samples(app, _.bind(function (err, samples) {
