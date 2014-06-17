@@ -201,16 +201,16 @@ if (cluster.isMaster) {
         // Force HTTPS
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            console.log(req.headers['x-forwarded-proto'], req.headers['referer'].indexOf('https://'));
+            console.log(req.headers['x-forwarded-proto']);
             var https = req.headers['referer'] && req.headers['referer'].indexOf('https://') !== -1;
             console.log(https, 'https://' + req.headers.host + req.url)
-            next();
-            // if (https || _.find(app.get('package').protocol.allow, function (allow) {
-            //   return req.url === allow.url && req.method.toUpperCase() === allow.method;
-            // })) {
-            //   return next();
-            // }
-            // res.redirect('https://' + req.headers.host + req.url);
+            
+            if (https || _.find(app.get('package').protocol.allow, function (allow) {
+              return req.url === allow.url && req.method === allow.method;
+            })) {
+              return next();
+            }
+            res.redirect('https://' + req.headers.host + req.url);
           });
         }
       }
