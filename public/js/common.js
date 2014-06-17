@@ -7,18 +7,16 @@ define([
   'Underscore',
   'rpc',
   'util',
-  'views/upload'
-], function ($, _, rpc, util, Upload) {
+], function ($, _, rpc, util) {
 
   /* upload - handles the first stage of uploading files to the server.
    * Takes a closure around 'file', 'this.app', and 'reader'
    * cbProgress is a function that takes a string percentage
-   * cbUpload is a callback for the second stage of upload completion
    */
   return { 
   
-    upload: function(file, reader, app, cbSuccess, 
-                     cbFail, cbProgress, cbUpload, stopFcn) {
+    upload: function(file, reader, app, cb, 
+                     cbProgress, stopFcn) {
 
       var ext = file.name.split('.').pop();
 
@@ -50,7 +48,7 @@ define([
       // this function sends individual pieces of files.  On completion
       var sendChunk = _.bind(function (err, res) {
         if (err) {
-          cbFail(err);
+          cb(err);
           return false;
         }
         else if (stopFcn && stopFcn()) {
@@ -67,19 +65,8 @@ define([
             }
           }, this));
         } else {
-          cbSuccess();
-          var args =  {
-            uid: uid,
-            channelNames: res.channelNames,
-            fileName: file.name,
-            timecolGuess: res.timecolGuess,
-            cbUpload: cbUpload
-          };
-          _.delay(_.bind(function() {
-            new Upload(app, args).render();
-          }, this), 500);
+          cb(null, res);
           return true;
-
         }
       }, this);
 

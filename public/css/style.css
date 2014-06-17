@@ -1248,7 +1248,6 @@ body.embed .folder {
 
 .leftside.equal {
   width: 259px;
-  padding-left: 250px;
 }
 
 .rightside {
@@ -1259,9 +1258,16 @@ body.embed .folder {
 }
 
 .rightside.equal {
-  margin: 0 0 0 549px;
   width: 259px;
   padding-top: 59px;
+}
+
+.split {
+  width: 50%;
+}
+
+.rightside.split {
+  margin: 0 0 0 584px;
 }
 
 .banner {
@@ -3531,6 +3537,20 @@ p.sidebar-tip span {
   -webkit-box-sizing: border-box
 }
 
+.settings td select {
+  width: 100%;
+  padding: 5px;
+  background-color: white;
+  border-radius: 2px;
+  margin-bottom: 10px;
+  font-size: 13px;
+
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box
+}
+
 .settings td textarea {
   height: 90px;
 }
@@ -3581,7 +3601,7 @@ p.sidebar-tip span {
 }
 
 ul.settings-detail-list {
-  margin: 0 0 0 30px;
+  margin: 0 0 5px 30px;
 }
 
 ul.settings-detail-list li {
@@ -5289,7 +5309,7 @@ ul.note-channels-list li {
   resize: none;
 }
 
-.finder .finder-progress-bar {
+.finder-progress-bar {
   height: 32px;
   margin: 0;
   width: 0%;
@@ -5305,23 +5325,117 @@ ul.note-channels-list li {
 
 /*.........................................................................*/
 
-.upload .upload-channel-rename {
-  height: 200px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin: 10px 0px 10px 0px;
-  padding: 10px;
-  border: 1px lightgray solid;
-  border-radius: 3px;
+.upload {
+  padding: 20px 0 20px 20px;
 }
 
-.upload td {
+.upload-form tr {
+  height: 25px;
+}
+
+.upload-form table {
+  table-layout: fixed;
+}
+
+.upload-form td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.upload-form td ,
+.upload-form li {
+  padding-right: 40px;
+  vertical-align: middle;
+  font-size:12px;
+  color: #666;
+}
+
+.upload-form td strong {
+  font-size:12px;
+  color: #404040;
+}
+
+.upload-skip-headers {
+  display:inline-block;
+}
+
+.upload-form td input[name*="upload-header-rows"] {
+  width: 40px;
+}
+
+.upload-form .page-section {
+  margin-left: -20px;
+}
+
+.upload-form td select.disabled {
+  background-color: lightgray;
+}
+
+.upload-preview-error {
+  color: red;
+}
+
+.upload-table-wrap-outter {
+  display: none;
+}
+
+.upload-table-wrap {
+  overflow-x: auto;
+  padding: 5px 0px 5px 0px;
+}
+
+.upload-preview-table {
+  height: 40px;
+  overflow: auto;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.upload-time-options {
+  display: none;
+}
+
+.upload-preview-table tr {
+  height: 20px;
+}
+
+.upload-preview-table td, .upload-preview-table th {
+  width: 180px;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0px;
+}
+
+.upload-preview-table th {
+  background: linear-gradient(#333 0%,#444 100%);
+  color: white;
+}
+
+.upload-preview-table tr:nth-child(even) td { background: #eee; } 
+.upload-preview-table tr:nth-child(odd) td { background: #fdfdfd; }
+
+/*.upload-preview-table tr th:first-child, */
+.upload-preview-table tr td:first-child {
+  background: rgba(39, 205, 214, .1);
+  width: 240px;
   text-align: center;
 }
 
-.upload .align-left,
-.upload .align-left td{
-  text-align: left;
+.upload-preview-table tbody .problem-row {
+  background: red;
+  color: white;
+}
+
+.upload-preview-table tbody .problem-row td {
+  background: rgba(255, 64, 64, .8);
+  color: white;
+}
+
+.upload-form-submit {
+  position: relative;
+  margin-top: 20px;
 }
 
 /*.........................................................................*/

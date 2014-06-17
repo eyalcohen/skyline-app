@@ -1,99 +1,153 @@
-<div class="modal-close">
-  <i class="icon-cancel"></i>
-</div>
-<span class="modal-title">
-    Upload
-</span>
-<div class="upload-inner modal-inner">
-  <div>
-    <span class="modal-heading">
-        Details for '<%= fileName %>'
-    </span>
-    <form enctype="multipart/form-data" method="POST">
-      <table>
-        <tbody>
-          <tr>
-            <td>
-              <input name="title" type="text" placeholder="title" tabindex="1" />
-            </td>
-            <td>
-              <input name="tags" type="text" placeholder="tags" tabindex="2" />
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <textarea name="description" class="" tabindex="3" 
-                  placeholder="Write something about your data..."></textarea>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input name="source" type="text" placeholder="source" tabindex="4" />
-            </td>
-            <td>
-              <input name="source_link" type="text" placeholder="source link" tabindex="5" />
-            </td>
-          </tr>
-          <tr class="align-left">
-            <td>
-              <span> Select time column:&nbsp </span>
-              <select name="timecol" tabindex="6">
-                <% _.each(channelNames, _.bind(function (c, idx) { %>
-                  <option> <%= c.substring(0,39) %> </option> 
-                <% }, this)); %>
-              </select>
-            </td>
-            <td>
-              <span> Time column format:&nbsp</span>
-              <select name="timecolformat" tabindex="7">
-                <% _.each(timecolGuess.parseHints, _.bind(function (c) { %>
-                  <option> <%= c %> </option> 
-                <% }, this)); %>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <div class ="upload-channel-rename">
-                <% var tabIdx = 7 %>
-                <table> 
+<div class="upload settings">
+
+  <form enctype="multipart/form-data" method="POST" class="upload-form">
+
+    <table>
+      <tbody>
+        <tr>
+          <td>
+            <span class="page-section">File Information</span>
+          </td>
+          <td><div class='upload-preview-spin'</div></td>
+        </tr>
+        <tr>
+          <td>
+            <div>
+              <input tabindex="1" type="number" min="0" name="upload-header-rows" value="0"></input>
+              <label for="upload-header-rows"><strong> Skip Rows </strong> - How many rows should we skip for the header </label>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input tabindex="2" type="checkbox" name="upload-transpose"><strong>Transpose File</strong> - Switch row and columns</input>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input tabindex="2" type="checkbox" name="upload-reverse"><strong>Reverse</strong> - Date is most recent first</input>
+          </td>
+        </tr>
+        <tr><td colspan = "2">&nbsp</td></tr>
+        <tr>
+          <td>
+            <span class="page-section">Date Information</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label for="upload-date-column">Select the column that contains the date</label>
+          </td>
+          <td>
+            <label for="upload-date-format">Select the format of the date</label>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <select tabindex="3" name="upload-date-column"> </select>
+          </td>
+          <td>
+            <select tabindex="4" name="upload-date-format"> </select>
+          </td>
+        </tr>
+        <tr><td colspan = "2">&nbsp</td></tr>
+        <tr>
+          <td>
+            <span class="page-section">Time Information</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+             <input tabindex="5" checked type="radio" name="upload-time-select" value="none"> <strong>None</strong> - This file doesn't contain information about time of day</input>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <ul class="settings-detail-txt settings-detail-list">
+              <li> eg, <strong>May 23 1984.</strong> </li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input tabindex="6" type="radio" name="upload-time-select" value="both"><strong>Same Column</strong> - In this file, date and time information are in the same column </input>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <ul class="settings-detail-txt settings-detail-list">
+              <li> eg, <strong>May 23 1984 12:30pm.</strong> </li>
+            </ul>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input tabindex="7" type="radio" name="upload-time-select" value="sep"><strong>Separate Columns</strong> - In this file, time is in a separate column</input>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <ul class="settings-detail-txt settings-detail-list">
+              <li> eg, Column A: <strong>May 23 1984</strong>. Column B: <strong>12:30 PM.</strong> </li>
+            </ul>
+          </td>
+        </tr>
+        <tr class="upload-time-options">
+          <td>
+            <label for="upload-time-column">Select the column that contains the time</label>
+          </td>
+          <td>
+            <label for="upload-time-format">Select the format of the time</label>
+          </td>
+        <tr class="upload-time-options">
+          <td>
+            <select class="disabled" tabindex="8" name="upload-time-column" disabled> </select>
+          </td>
+          <td>
+            <select class="disabled" tabindex="9" name="upload-time-format" disabled> </select>
+          </td>
+        </tr>
+        <tr><td colspan = "2">&nbsp</td></tr>
+        <tr>
+          <td colspan="2">
+            <div class = "upload-table-wrap-outter">
+              <span class="page-section">Preview</span>
+              <div class="upload-table-wrap">
+                <table class="upload-preview-table">
                   <tbody>
-                    <tr>
-                      <td class="align-left"> <span> Rename channel </span> </td>
-                      <td> <span> Include? </span> </td>
-                    </tr>
-                    <% _.each(channelNames, _.bind(function (c, idx) { %>
-                      <tr class="upload-channel-rows">
-                          <td>
-                            <input name="channelRename" type="text" placeholder="<%= c.substring(0, 39) %>" maxlength="40" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
-                          </td>
-                          <td>
-                            <input name="channelEnable" type="checkbox" checked="true" tabindex="<%= tabIdx = tabIdx + 1 %>"/>
-                          </td>
-                      </tr>
-                    <% }, this)); %>
                   </tbody>
                 </table>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <label class="checkbox-styled input-checkbox">
-                <input class="upload-private" type="checkbox" name="private" value="private" />
-                <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
-              </label>
-              <input class="blue-button" type="submit" value="Complete" tabindex="<%= tabIdx %>" />
+             </div>
+           </div>
+         </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="upload-preview-error"></span>
+          </td>
+          <td>
+            <div class="upload-form-submit">
+              <a tabindex="10" href="javascript:;" class="button blue-button">Submit </a>
               <div class="button-spin"></div>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2">
-              <span class="modal-error"></span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </form>
-  </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </form>
+
+</div>
+<div class="clearfix"></div>
+<div class="footer">
+  <ul>
+    <li>
+      <a href="/contact" class="navigate">Contact</a>
+    </li>
+    <li>
+      <a href="/privacy" class="navigate">Privacy Policy</a>
+    </li>
+    <li>
+      <a href="/terms" class="navigate">Terms of Use</a>
+    </li>
+  </ul>
 </div>
