@@ -201,8 +201,9 @@ if (cluster.isMaster) {
         // Force HTTPS
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            console.log(req.connection.encrypted, req.secure);
+            console.log(req);
             return next();
+
             // if (req.secure || _.find(app.get('package').protocol.allow, function (allow) {
             //   return req.url === allow.url && req.method.toUpperCase() === allow.method;
             // })) {
