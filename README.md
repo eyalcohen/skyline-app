@@ -67,7 +67,6 @@ SolutionStack=64bit Amazon Linux 2014.02 running Node.js
 
 ```
 [aws:autoscaling:asg]
-Custom Availability Zones=
 MaxSize=20
 MinSize=1
 

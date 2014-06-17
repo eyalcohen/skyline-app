@@ -51,7 +51,7 @@ define([
     setup: function () {
 
       // Setup the base map.
-      this.sql = new cartodb.SQL({user: 'skyline', api_key: this.api_key});
+      this.sql = new cartodb.SQL({user: 'skyline', api_key: this.api_key, protocol: 'https'});
       this.map = new L.Map('map_inner', {
         center: [0,0],
         zoom: 2,
@@ -59,7 +59,7 @@ define([
       });
 
       // Add a base tile layer.
-      L.tileLayer('http://{s}.{base}.maps.cit.api.here.com/maptile/2.1/' +
+      L.tileLayer('https://{s}.{base}.maps.cit.api.here.com/maptile/2.1/' +
           'maptile/{mapID}/{variant}/{z}/{x}/{y}/256/png8?' +
           'app_id={app_id}&app_code={app_code}', {
         attribution:
@@ -80,7 +80,7 @@ define([
         type: 'cartodb',
         https: true,
         extra_params: {
-          map_key: this.api_key,
+          map_key: this.api_key
         },
         sublayers: [{
           sql: this.pre + " limit 0",
