@@ -1,7 +1,7 @@
 {
   "author": "Skyline (git://github.com/Skyline-Data)",
   "name": "skyline",
-  "version": "0.0.151",
+  "version": "0.0.152",
   "protocol": {
     "name": "https",
     "allow": [
