@@ -201,9 +201,11 @@ if (cluster.isMaster) {
         // Force HTTPS
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https'
-                || _.find(app.get('package').protocol.allow, function (allow) {
-              return req.url === allow.url && req.method === allow.method;
+            console.log(req.headers['x-forwarded-proto'])
+            if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https') {
+              return next();
+            } else if (_.find(app.get('package').protocol.allow, function (allow) {
+              return req.url === allow.url && req.method.toUpperCase() === allow.method;
             })) {
               return next();
             }
