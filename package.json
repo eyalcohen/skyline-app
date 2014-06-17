@@ -2,7 +2,15 @@
   "author": "Skyline (git://github.com/Skyline-Data)",
   "name": "skyline",
   "version": "0.0.145",
-  "protocol": "http",
+  "protocol": {
+    "name": "https",
+    "allow": [
+      {
+        "url": "/api/datasets",
+        "method": "PUT"
+      }
+    ]
+  },
   "domain": "skyline-data.com",
   "builds": {
     "bucket": "builds-skyline",

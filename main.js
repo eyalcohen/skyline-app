@@ -130,7 +130,7 @@ if (cluster.isMaster) {
         // App params
         app.set('ROOT_URI', [app.get('package').builds.cloudfront,
             app.get('package').version].join('/'));
-        app.set('HOME_URI', [app.get('package').protocol,
+        app.set('HOME_URI', [app.get('package').protocol.name,
             app.get('package').domain].join('://'));
 
         // Job scheduling.
@@ -199,9 +199,12 @@ if (cluster.isMaster) {
         });
 
         // Force HTTPS
-        if (app.get('package').protocol === 'https') {
+        if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https') {
+            if ((req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https'
+                || _.find(app.get('package').protocol.allow, function (allow) {
+              return req.url === allow.url && req.method === allow.method;
+            })) {
               return next();
             }
             res.redirect('https://' + req.headers.host + req.url);
