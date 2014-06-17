@@ -201,9 +201,8 @@ if (cluster.isMaster) {
         // Force HTTPS
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            console.log(req);
-            return next();
-
+            console.log(req.headers['x-forwarded-proto'], req.headers['origin'], req.headers['referer']);
+            next();
             // if (req.secure || _.find(app.get('package').protocol.allow, function (allow) {
             //   return req.url === allow.url && req.method.toUpperCase() === allow.method;
             // })) {
@@ -215,6 +214,18 @@ if (cluster.isMaster) {
         }
       }
 
+      // app.all('*', function (req, res, next) {
+      //       // console.log(req.headers['x-forwarded-proto'])
+      //       console.log(req.headers)
+      //       next();
+      //       // if (req.secure || _.find(app.get('package').protocol.allow, function (allow) {
+      //       //   return req.url === allow.url && req.method.toUpperCase() === allow.method;
+      //       // })) {
+      //       //   console.log('..........SECURE..........');
+      //       //   return next();
+      //       // }
+      //       // res.redirect('https://' + req.headers.host + req.url);
+      //     });
       if (!module.parent) {
 
         Step(
