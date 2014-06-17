@@ -109,7 +109,11 @@ LogPublicationControl=true
 Automatically Terminate Unhealthy Instances=true
 
 [aws:elb:loadbalancer]
+LoadBalancerHTTPPort=80
 LoadBalancerPortProtocol=TCP
+LoadBalancerHTTPSPort=443
+LoadBalancerSSLPortProtocol=SSL
+SSLCertificateId=www_skyline-data_com
 ```
 
 Lastly, install the frontend builder globally.
