@@ -549,15 +549,21 @@ define([
       var user = this.app.profile.user;
 
       // we add a hash for freeform mode, (not in a view)
-      if (!this.app.profile.content.page)
-        parent.location.hash = 'chart';
+      if (!this.app.profile.content.page && window.location.hash === '') {
+
+        // ensure that url routing is not broken by adding the hash.
+        this.app.router.navigate(Backbone.history.fragment + '#chart', {trigger: false, replace: true});
+      }
 
       // If this is explore mode, i.e. (/chart), do nothing.
-      if (!state.author || !state.author.id || !user) return;
+      if (!state.author || !state.author.id || !user) {
+        return;
+      }
 
       // If this is a view and user is view owner, indicate state is not saved.
-      if (state.author.id === user.id)
+      if (state.author.id === user.id) {
         this.saveButton.removeClass('saved');
+      }
     },
 
     // adds any pending channel requests, or at least one if none are open
