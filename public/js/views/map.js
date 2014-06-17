@@ -78,7 +78,6 @@ define([
       cartodb.createLayer(this.map, {
         user_name: 'skyline',
         type: 'cartodb',
-        https: true,
         extra_params: {
           map_key: this.api_key
         },
@@ -87,7 +86,7 @@ define([
           cartocss: this.cssTemplate.call(this),
           interactivity: 'cartodb_id,geometry,id,tb,te'
         }]
-      })
+      }, {https: true})
       .addTo(this.map)
       .done(_.bind(function (layer) {
         this.dataLayer = layer.getSubLayer(0);
