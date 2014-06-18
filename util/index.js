@@ -40,10 +40,11 @@ boots.start({redis: true}, function (client) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      var _this = _.after(docs.length, this);
+      var _this = _.after(docs.length*2, this);
       _.each(docs, function (d, idx) {
         // Add new.
         com.index(client.redisClient, 'datasets', d, ['title', 'source', 'tags'], _this);
+        com.index(client.redisClient, 'datasets', d, ['title'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
