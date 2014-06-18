@@ -202,11 +202,13 @@ if (cluster.isMaster) {
         // Force HTTPS.
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            if (req.connection.destinationPort === 443) {
-              next();
-            } else {
-              res.redirect('https://' + req.headers.host + req.url);
+            if (req.connection.destinationPort === 443
+                || _.find(app.get('package').protocol.allow, function (allow) {
+              return req.url === allow.url && req.method === allow.method;
+            })) {
+              return next();
             }
+            res.redirect('https://' + req.headers.host + req.url);
           });
         }
       }
