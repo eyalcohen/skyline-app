@@ -202,8 +202,11 @@ if (cluster.isMaster) {
         // Force HTTPS.
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            console.log(req.connection.sourcePort, req.connection.destinationPort);
-            next();
+            if (req.connection.destinationPort === 443) {
+              next();
+            } else {
+              res.redirect('https://' + req.headers.host + req.url);
+            }
           });
         }
       }
