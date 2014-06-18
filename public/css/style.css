@@ -402,8 +402,8 @@ header {
 }
 
 .container.landing header {
-  width: 75%;
-  margin: 0 auto;
+  /*width: 75%;*/
+  /*margin: 0 auto;*/
   background: none;
   border: none;
 }
@@ -2107,7 +2107,7 @@ ul.header-user-menu li a i {
   margin-left: 10px;
 }
 
-.container:not(.landing) .header a.button.signup-button {
+.container .header a.button.signup-button {
   margin-right: 60px;
 }
 
