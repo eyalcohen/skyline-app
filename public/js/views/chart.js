@@ -156,8 +156,9 @@ define([
       this.map = new Map(this.app, {parentView: this}).render(this.graph.getVisibleTime());
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
 
-      if (state.time)
+      if (state.time) {
         mps.publish('chart/zoom', [{min: state.time.beg/1000, max: state.time.end/1000}]);
+      }
 
       // Do resize on window change.
       this.resize();
@@ -167,7 +168,6 @@ define([
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       $(window).resize(_.debounce(_.bind(this.resize, this), 100));
       $(window).resize(_.debounce(_.bind(this.resize, this), 500));
-      // this.graph.$el.mousemove(_.debounce(_.bind(this.updateCursor, this), 20));
 
       return this;
     },
@@ -194,8 +194,7 @@ define([
     },
 
     resize: function () {
-      var height = $(window).height() - $('footer').height()
-          - this.$el.offset().top;
+      var height = $(window).height() - this.$el.offset().top;
       height = Math.max(height, this.app.embed ? 0: 605);
       this.$el.css({height: height});
       if (this.mapPanel.hasClass('open')) {
@@ -204,6 +203,7 @@ define([
         this.map.resize(w);
       }
       this.fit();
+      this.graph.resize();
     },
 
     // Return the current view or index level zero dataset.
@@ -225,8 +225,9 @@ define([
     },
 
     fit: function () {
-      if (this.datasets)
+      if (this.datasets) {
         this.datasets.fit(this.$el.width() - this.controls.width());
+      }
     },
 
     daily: function (e) {

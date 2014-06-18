@@ -159,6 +159,7 @@ if (cluster.isMaster) {
       app.set('pubsub', new PubSub({mailer: app.get('mailer')}));
 
       // Express config.
+      app.disable('etag');
       app.set('views', __dirname + '/views');
       app.set('view engine', 'jade');
       app.set('sessionStore', new RedisStore({client: rc, maxAge: 2592000000}));
@@ -200,19 +201,32 @@ if (cluster.isMaster) {
         });
 
         // Force HTTPS.
-        if (app.get('package').protocol.name === 'https') {
-          app.all('*', function (req, res, next) {
-            if (req.connection.destinationPort === 443
-                || _.find(app.get('package').protocol.allow, function (allow) {
-              return req.url === allow.url && req.method === allow.method;
-            })) {
-              return next();
-            }
-            next();
-            // res.redirect('https://' + req.headers.host + req.url);
-          });
-        }
+        // if (app.get('package').protocol.name === 'https') {
+        //   app.all('*', function (req, res, next) {
+        //     if (req.connection.destinationPort === 443
+        //         || _.find(app.get('package').protocol.allow, function (allow) {
+        //       return req.url === allow.url && req.method === allow.method;
+        //     })) {
+        //       return next();
+        //     }
+        //     next();
+        //     // res.redirect('https://' + req.headers.host + req.url);
+        //   });
+        // }
       }
+
+      // Rot in hell, Safari.
+      app.all('*', function (req, res, next) {
+        var agent;
+        agent = req.headers['user-agent'];
+        if (agent.indexOf('Safari') > -1 && agent.indexOf('Chrome') === -1
+            && agent.indexOf('OPR') === -1) {
+          res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+          res.header('Pragma', 'no-cache');
+          res.header('Expires', 0);
+        }
+        return next();
+      });
 
       if (!module.parent) {
 
