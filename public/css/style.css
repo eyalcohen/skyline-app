@@ -639,7 +639,7 @@ a.button.connect-button {
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
+  -webkit-box-sizing: border-box;
 
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -970,7 +970,7 @@ input.dummy-file-input {
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
+  -webkit-box-sizing: border-box;
 }
 
 input.file-input {
@@ -1893,6 +1893,10 @@ ul.header-navigation li a {
   -webkit-transition: all 0.1s ease-in-out;
   -moz-transition: all 0.1s ease-in-out;
   transition: all 0.1s ease-in-out;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 
 .finder input.finder-search-input {
@@ -2268,7 +2272,7 @@ span.choice-name i i {
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
+  -webkit-box-sizing: border-box;
 }
 
 .modal-inner-narrow {
@@ -3534,7 +3538,7 @@ p.sidebar-tip span {
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
+  -webkit-box-sizing: border-box;
 }
 
 .settings td select {
@@ -3548,7 +3552,7 @@ p.sidebar-tip span {
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
+  -webkit-box-sizing: border-box;
 }
 
 .settings td textarea {
@@ -4135,7 +4139,7 @@ a.control-button-save.saving {
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
+  -webkit-box-sizing: border-box;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -5320,7 +5324,7 @@ ul.note-channels-list li {
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box
+  -webkit-box-sizing: border-box;
 }
 
 /*.........................................................................*/
