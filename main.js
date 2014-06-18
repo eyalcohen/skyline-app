@@ -46,6 +46,7 @@ if (cluster.isMaster) {
 
   // Module Dependencies
   var http = require('http');
+  var proxiedHttp = require('proxywrap').proxy(http);
   var connect = require('connect');
   var express = require('express');
   var slashes = require('connect-slashes');
@@ -81,7 +82,7 @@ if (cluster.isMaster) {
   // Package info.
   app.set('package', JSON.parse(fs.readFileSync('package.json', 'utf8')));
 
-  // App port is env var in production
+  // App port is env var in production.
   app.set('PORT', process.env.PORT || argv.port);
 
   // Add connection config to app.
@@ -89,7 +90,7 @@ if (cluster.isMaster) {
     app.set(k, v);
   });
 
-  // Middle-ware that supplies the raw body for certain MIME types
+  // Middle-ware that supplies the raw body for certain MIME types.
   function rawBody(rawMimeTypes) {
     return function (req, res, next) {
       if ('GET' == req.method || 'HEAD' == req.method) return next();
@@ -113,10 +114,10 @@ if (cluster.isMaster) {
   Step(
     function () {
 
-      // Development only
+      // Development only.
       if (process.env.NODE_ENV !== 'production') {
 
-        // App params
+        // App params.
         app.set('ROOT_URI', '');
         app.set('HOME_URI', 'http://localhost:' + app.get('PORT'));
 
@@ -124,7 +125,7 @@ if (cluster.isMaster) {
         app.set('SCHEDULE_JOBS', argv.jobs);
       }
 
-      // Production only
+      // Production only.
       else {
 
         // App params
@@ -137,7 +138,7 @@ if (cluster.isMaster) {
         app.set('SCHEDULE_JOBS', true);
       }
 
-      // Redis connect
+      // Redis connect.
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
           app.get('REDIS_HOST')));
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
@@ -151,10 +152,10 @@ if (cluster.isMaster) {
       // Common utils init.
       require('./lib/common').init(app.get('ROOT_URI'));
 
-      // Mailer init
+      // Mailer init.
       app.set('mailer', new Mailer(app.get('gmail'), app.get('HOME_URI')));
 
-      // PubSub init
+      // PubSub init.
       app.set('pubsub', new PubSub({mailer: app.get('mailer')}));
 
       // Express config.
@@ -178,7 +179,7 @@ if (cluster.isMaster) {
       app.use(passport.session());
       app.use(express.methodOverride());
 
-      // Development only
+      // Development only.
       if (process.env.NODE_ENV !== 'production') {
         app.use(express.favicon(__dirname + '/public/img/favicon.ico'));
         app.use(express.static(__dirname + '/public'));
@@ -187,7 +188,7 @@ if (cluster.isMaster) {
         app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
       }
 
-      // Production only
+      // Production only.
       else {
         app.use(express.favicon(app.get('ROOT_URI') + '/img/favicon.ico'));
         app.use(express.static(__dirname + '/public', {maxAge: 31557600000}));
@@ -198,23 +199,10 @@ if (cluster.isMaster) {
           res.render('500', {root: app.get('ROOT_URI')});
         });
 
-        // Force HTTPS
+        // Force HTTPS.
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
-            console.log(req.headers['x-forwarded-proto']);
-            var https = req.headers['referer'] && req.headers['referer'].indexOf('https://') !== -1;
-            console.log('HTTPS:', https);
-            if (req.headers['referer']) {
-              console.log('REFERER', req.headers['referer'], req.headers['referer'].indexOf('https://'));
-            }
-            
-            if (https || _.find(app.get('package').protocol.allow, function (allow) {
-              return req.url === allow.url && req.method === allow.method;
-            })) {
-              return next();
-            }
             next();
-            // res.redirect('https://' + req.headers.host + req.url);
           });
         }
       }
@@ -273,7 +261,8 @@ if (cluster.isMaster) {
             });
 
             // HTTP server.
-            var server = http.createServer(app);
+            var server = process.env.NODE_ENV !== 'production' ? http.createServer(app):
+                proxiedHttp.createServer(app);
 
             // Socket handling
             var sio = socketio.listen(server);

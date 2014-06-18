@@ -53,7 +53,8 @@
     "bson": "^0.2.8",
     "traverse": "^0.6.6",
     "passport-google-oauth": "^0.1.5",
-    "moment": "^2.6.0"
+    "moment": "^2.6.0",
+    "proxywrap": "^0.2.0"
   },
   "devDependencies": {
     "grunt": "0.4.4",
