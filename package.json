@@ -1,7 +1,7 @@
 {
   "author": "Skyline (git://github.com/Skyline-Data)",
   "name": "skyline",
-  "version": "0.0.159",
+  "version": "0.0.160",
   "protocol": {
     "name": "https",
     "allow": [
@@ -26,13 +26,12 @@
     "underscore": "~1.4.4",
     "underscore.string": "~2.3.1",
     "step": "0.0.5",
-    "reds": "~0.2.3",
     "optimist": "~0.5.0",
     "passport": "~0.1.17",
     "mongodb": "^1.4.4",
     "emailjs": "~0.3.4",
     "connect-redis": "~1.4.5",
-    "redis": "^0.8.6",
+    "redis": "^0.10.3",
     "socket.io": "~0.9.16",
     "connect": "~2.7.10",
     "cookie": "~0.1.0",
@@ -53,7 +52,8 @@
     "bson": "^0.2.8",
     "traverse": "^0.6.6",
     "passport-google-oauth": "^0.1.5",
-    "moment": "^2.6.0"
+    "moment": "^2.6.0",
+    "porter-stemmer": "^0.9.1"
   },
   "devDependencies": {
     "grunt": "0.4.4",

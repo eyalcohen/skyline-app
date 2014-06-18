@@ -53,7 +53,6 @@ if (cluster.isMaster) {
   var mongodb = require('mongodb');
   var socketio = require('socket.io');
   var redis = require('redis');
-  var reds = require('reds');
   var RedisStore = require('connect-redis')(express);
   var jade = require('jade');
   var passport = require('passport');
@@ -99,7 +98,7 @@ if (cluster.isMaster) {
           && (!req.body || _.isEmpty(req.body))) {
         // req.setEncoding(null);
         var buf = new Buffer('');
-        req.on('data', function (chunk) { 
+        req.on('data', function (chunk) {
           buf = Buffer.concat([buf, chunk]); });
         req.on('end', function () {
           req.rawBody = buf;
@@ -140,13 +139,15 @@ if (cluster.isMaster) {
 
       // Redis connect.
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-          app.get('REDIS_HOST')));
+          app.get('REDIS_HOST_CACHE')));
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-          app.get('REDIS_HOST')));
+          app.get('REDIS_HOST_SESSION')));
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-          app.get('REDIS_HOST')));
+          app.get('REDIS_HOST_SESSION')));
+      this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
+          app.get('REDIS_HOST_SESSION')));
     },
-    function (err, rc, rp, rs) {
+    function (err, rc_cache, rc, rp, rs) {
       if (err) return util.error(err);
 
       // Common utils init.
@@ -244,14 +245,13 @@ if (cluster.isMaster) {
             // Attach a connection ref to app.
             app.set('connection', connection);
 
-            // Attach a reds ref to app.
-            reds.client = rc;
-            app.set('reds', reds);
+            // Attach a redis ref to app.
+            app.set('redis', rc_cache);
 
             // Init samples.
             new Samples(app, _.bind(function (err, samples) {
               if (err) return this(err);
-              
+
               // Attach a samples ref to app.
               app.set('samples', samples);
 
@@ -341,7 +341,7 @@ if (cluster.isMaster) {
               // FIXME: Use a key map instead of
               // attaching this directly to the socket.
               socket.client = new Client(socket, app.get('pubsub'),
-                  app.get('samples'), app.get('reds'));
+                  app.get('samples'), rc);
             });
 
             // Set pubsub sio

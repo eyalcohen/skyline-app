@@ -32,7 +32,7 @@ exports.start = function (opts, cb) {
   Step(
     function () {
       if (!opts.redis) return this();
-      this(null, redis.createClient(c.REDIS_PORT, c.REDIS_HOST));
+      this(null, redis.createClient(c.REDIS_PORT, c.REDIS_HOST_CACHE));
     },
     function (err, rc) {
       error(err);

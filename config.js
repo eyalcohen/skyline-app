@@ -7,7 +7,8 @@ exports.get = function (env) {
   return env === 'production' ?
       {
         MONGO_URI: 'mongodb://skyliner:time@candidate.13.mongolayer.com:10265,candidate.12.mongolayer.com:10259/skyline',
-        REDIS_HOST: 'skyline-cache.i7jw04.0001.use1.cache.amazonaws.com',
+        REDIS_HOST_CACHE: 'ip-172-31-20-186.ec2.internal',
+        REDIS_HOST_SESSION: 'skyline-cache.i7jw04.0001.use1.cache.amazonaws.com',
         REDIS_PORT: 6379,
         google: {
           clientID: '920361952341-ac0kgdulmbgtjmg6s6kba9edifi7khkn.apps.googleusercontent.com',
@@ -40,7 +41,9 @@ exports.get = function (env) {
       }:
       {
         MONGO_URI: 'mongodb://localhost:27017/skyline',
-        REDIS_HOST: 'localhost',
+        //REDIS_HOST_CACHE: 'ec2-54-88-27-85.compute-1.amazonaws.com',
+        REDIS_HOST_CACHE: 'localhost',
+        REDIS_HOST_SESSION: 'localhost',
         REDIS_PORT: 6379,
         google: {
           clientID: '920361952341-iaoeoemjcub4ajsgf0aj2rk4jv48glp8.apps.googleusercontent.com',

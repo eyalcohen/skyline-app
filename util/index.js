@@ -16,9 +16,9 @@ if (argv._.length || argv.help) {
 }
 
 // Module Dependencies
-var reds = require('reds');
 var util = require('util');
 var Step = require('step');
+var redis = require('redis');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var boots = require('../boots');
@@ -28,101 +28,76 @@ var com = require('../lib/common');
 
 boots.start({redis: true}, function (client) {
 
-  // Create searches.
-  reds.client = client.redisClient;
-  var searches = {
-    users: reds.createSearch('users'),
-    datasets: reds.createSearch('datasets'),
-    views: reds.createSearch('views'),
-    channels: reds.createSearch('channels')
-  };
-
   Step(
     function () {
 
       // Get all datasets.
-      db.Datasets.list({}, this);
+
+      db.Datasets.list({}, this.parallel());
+      client.redisClient.del('datasets', this.parallel());
     },
-    function (err, docs) {
+    function (err, docs, res) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      var _this = _.after(docs.length, this);
-      _.each(docs, function (d) {
-
-        // Remove existing index.
-        searches.datasets.remove(d._id, function (err) {
-          boots.error(err);
-
-          // Add new.
-          com.index(searches.datasets, d, ['title', 'source', 'tags'], _this);
-        });
+      var _this = _.after(docs.length * 2, this);
+      _.each(docs, function (d, idx) {
+        // Add new.
+        com.index(client.redisClient, 'datasets', d, ['title', 'source', 'tags'], _this);
+        com.index(client.redisClient, 'datasets', d, ['title'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
       boots.error(err);
 
       // Get all views.
-      db.Views.list({}, this);
+      db.Views.list({}, this.parallel());
+      client.redisClient.del('views', this.parallel());
     },
-    function (err, docs) {
+    function (err, docs, res) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      var _this = _.after(docs.length, this);
-      _.each(docs, function (d) {
-
-        // Remove existing index.
-        searches.views.remove(d._id, function (err) {
-          boots.error(err);
-
-          // Add new.
-          com.index(searches.views, d, ['name', 'tags'], _this);
-        });
+      var _this = _.after(docs.length * 2, this);
+      _.each(docs, function (d, idx) {
+        // Add new.
+        com.index(client.redisClient, 'views', d, ['name', 'tags'], _this);
+        com.index(client.redisClient, 'views', d, ['name'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
       boots.error(err);
 
       // Get all users.
-      db.Users.list({}, this);
+      db.Users.list({}, this.parallel());
+      client.redisClient.del('users', this.parallel());
     },
     function (err, docs) {
       boots.error(err);
 
       if (docs.length === 0) return this();
       var _this = _.after(docs.length, this);
-      _.each(docs, function (d) {
-
-        // Remove existing index.
-        searches.users.remove(d._id, function (err) {
-          boots.error(err);
-
-          // Add new.
-          com.index(searches.users, d, ['displayName', 'username'], _this);
-        });
+      _.each(docs, function (d, idx) {
+        // Add new.
+        com.index(client.redisClient, 'users', d, ['displayName', 'username'], _this);
       });
     },
     function (err) {
       boots.error(err);
 
       // Get all channels.
-      db.Channels.list({}, this);
+      db.Channels.list({}, this.parallel());
+      //client.redisClient.del('channels', this.parallel());
     },
     function (err, docs) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      var _this = _.after(docs.length, this);
+      var _this = _.after(docs.length * 2, this);
       _.each(docs, function (d) {
-
-        // Remove existing index.
-        searches.channels.remove(d._id, function (err) {
-          boots.error(err);
-
-          // Add new.
-          com.index(searches.channels, d, ['humanName'], _this);
-        });
+        // Add new.
+        com.index(client.redisClient, 'channels', d, ['humanName'], _this);
+        com.index(client.redisClient, 'channels', d, ['humanName'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
