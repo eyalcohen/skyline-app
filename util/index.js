@@ -16,7 +16,6 @@ if (argv._.length || argv.help) {
 }
 
 // Module Dependencies
-var reds = require('reds');
 var util = require('util');
 var Step = require('step');
 var redis = require('redis');
@@ -29,15 +28,6 @@ var com = require('../lib/common');
 
 boots.start({redis: true}, function (client) {
 
-  // Create searches.
-  reds.client = client.redisClient;
-  var searches = {
-    users: reds.createSearch('users'),
-    datasets: reds.createSearch('datasets'),
-    views: reds.createSearch('views'),
-    channels: reds.createSearch('channels')
-  };
-
   Step(
     function () {
 
@@ -46,7 +36,7 @@ boots.start({redis: true}, function (client) {
       db.Datasets.list({}, this.parallel());
       client.redisClient.del('datasets', this.parallel());
     },
-    function (err, docs) {
+    function (err, docs, res) {
       boots.error(err);
 
       if (docs.length === 0) return this();
@@ -54,26 +44,23 @@ boots.start({redis: true}, function (client) {
       _.each(docs, function (d, idx) {
         // Add new.
         com.index(client.redisClient, 'datasets', d, ['title', 'source', 'tags'], _this);
-        console.log(docs.length, idx);
       });
     },
     function (err) {
-
-      console.log('here');
       boots.error(err);
 
       // Get all views.
       db.Views.list({}, this.parallel());
       client.redisClient.del('views', this.parallel());
     },
-    function (err, docs) {
+    function (err, docs, res) {
       boots.error(err);
 
       if (docs.length === 0) return this();
       var _this = _.after(docs.length, this);
       _.each(docs, function (d, idx) {
         // Add new.
-        com.index(client.redisClient, 'views', ['name', 'tags'], _this);
+        com.index(client.redisClient, 'views', d, ['name', 'tags'], _this);
       });
     },
     function (err) {
@@ -88,9 +75,9 @@ boots.start({redis: true}, function (client) {
 
       if (docs.length === 0) return this();
       var _this = _.after(docs.length, this);
-      _.each(docs, function (d) {
+      _.each(docs, function (d, idx) {
         // Add new.
-        com.index(client.redisclient, 'users', ['displayName', 'username'], _this);
+        com.index(client.redisClient, 'users', d, ['displayName', 'username'], _this);
       });
     },
     function (err) {
@@ -98,7 +85,7 @@ boots.start({redis: true}, function (client) {
 
       // Get all channels.
       db.Channels.list({}, this.parallel());
-      client.redisClient.del('channels', this.parallel());
+      //client.redisClient.del('channels', this.parallel());
     },
     function (err, docs) {
       boots.error(err);
@@ -107,7 +94,7 @@ boots.start({redis: true}, function (client) {
       var _this = _.after(docs.length, this);
       _.each(docs, function (d) {
         // Add new.
-        com.index(client.redisClient, 'channels', ['humanName'], _this);
+        com.index(client.redisClient, 'channels', d, ['humanName'], _this);
       });
     },
     function (err) {
