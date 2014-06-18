@@ -40,7 +40,7 @@ boots.start({redis: true}, function (client) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      var _this = _.after(docs.length*2, this);
+      var _this = _.after(docs.length * 2, this);
       _.each(docs, function (d, idx) {
         // Add new.
         com.index(client.redisClient, 'datasets', d, ['title', 'source', 'tags'], _this);
@@ -58,10 +58,11 @@ boots.start({redis: true}, function (client) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      var _this = _.after(docs.length, this);
+      var _this = _.after(docs.length * 2, this);
       _.each(docs, function (d, idx) {
         // Add new.
         com.index(client.redisClient, 'views', d, ['name', 'tags'], _this);
+        com.index(client.redisClient, 'views', d, ['name'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
@@ -92,10 +93,11 @@ boots.start({redis: true}, function (client) {
       boots.error(err);
 
       if (docs.length === 0) return this();
-      var _this = _.after(docs.length, this);
+      var _this = _.after(docs.length * 2, this);
       _.each(docs, function (d) {
         // Add new.
         com.index(client.redisClient, 'channels', d, ['humanName'], _this);
+        com.index(client.redisClient, 'channels', d, ['humanName'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
