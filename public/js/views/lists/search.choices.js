@@ -61,9 +61,11 @@ define([
         radius: 3,
       });
 
+      var _search = _.bind(this.search, this);
+
       // Handle searching.
       this.input.bind('focus', _.bind(this.searchFocus, this));
-      this.input.bind('keyup', _.bind(this.search, this));
+      this.input.bind('keyup', _.bind(_.debounce(_search, 250), this));
       this.input.bind('keydown', _.bind(this.searchBlur, this));
       $(document).on('mouseup', _.bind(this.searchBlur, this));
 
