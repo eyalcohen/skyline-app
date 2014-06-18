@@ -44,7 +44,8 @@
     "bson": "^0.2.8",
     "traverse": "^0.6.6",
     "passport-google-oauth": "^0.1.5",
-    "moment": "^2.6.0"
+    "moment": "^2.6.0",
+    "porter-stemmer": "^0.9.1"
   },
   "devDependencies": {
     "grunt": "0.4.4",
