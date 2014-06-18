@@ -138,13 +138,15 @@ if (cluster.isMaster) {
 
       // Redis connect
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-          app.get('REDIS_HOST')));
+          app.get('REDIS_HOST_CACHE')));
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-          app.get('REDIS_HOST')));
+          app.get('REDIS_HOST_SESSION')));
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
-          app.get('REDIS_HOST')));
+          app.get('REDIS_HOST_SESSION')));
+      this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
+          app.get('REDIS_HOST_SESSION')));
     },
-    function (err, rc, rp, rs) {
+    function (err, rc_cache, rc, rp, rs) {
       if (err) return util.error(err);
 
       // Common utils init.
@@ -224,7 +226,7 @@ if (cluster.isMaster) {
             app.set('connection', connection);
 
             // Attach a redis ref to app.
-            app.set('redis', rc);
+            app.set('redis', rc_cache);
 
             // Init samples.
             new Samples(app, _.bind(function (err, samples) {
