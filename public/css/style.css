@@ -1800,7 +1800,7 @@ body.embed .block-messages {
 }
 
 body.loading .header .header-logo a {
-  /*opacity: 0.1;*/
+  opacity: 0.1;
 }
 
 .header .header-logo img {

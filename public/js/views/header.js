@@ -57,6 +57,7 @@ define([
     },
 
     events: {
+      'click .header-logo': 'home',
       'click .follow-button': 'follow',
       'click .unfollow-button': 'unfollow',
       'click .add-data-button': 'add',
@@ -68,11 +69,16 @@ define([
       mps.publish('modal/finder/open');
     },
 
-    navigate: function (e) {
+    home: function (e) {
       e.preventDefault();
+      this.navigate(null, '/');
+    },
 
-      // Route to wherever.
-      var path = $(e.target).closest('a').attr('href');
+    navigate: function (e, path) {
+      if (e) {
+        e.preventDefault();
+      }
+      path = path || $(e.target).closest('a').attr('href');
       if (path) {
         this.app.router.navigate(path, {trigger: true});
         this.$('.header-user').addClass('blur');
