@@ -160,7 +160,6 @@ if (cluster.isMaster) {
       app.set('pubsub', new PubSub({mailer: app.get('mailer')}));
 
       // Express config.
-      app.disable('etag');
       app.set('views', __dirname + '/views');
       app.set('view engine', 'jade');
       app.set('sessionStore', new RedisStore({client: rc, maxAge: 2592000000}));
