@@ -46,7 +46,7 @@ if (cluster.isMaster) {
 
   // Module Dependencies
   var http = require('http');
-  var proxiedHttp = require('proxywrap').proxy(http);
+  var proxiedHttp = require('./lib/proxywrap').proxy(http);
   var connect = require('connect');
   var express = require('express');
   var slashes = require('connect-slashes');
@@ -202,6 +202,7 @@ if (cluster.isMaster) {
         // Force HTTPS.
         if (app.get('package').protocol.name === 'https') {
           app.all('*', function (req, res, next) {
+            console.log(req.connection.sourcePort, req.connection.destinationPort);
             next();
           });
         }
