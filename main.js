@@ -147,7 +147,7 @@ if (cluster.isMaster) {
       this.parallel()(null, redis.createClient(app.get('REDIS_PORT'),
           app.get('REDIS_HOST_SESSION')));
     },
-    function (err, rc_cache, rc, rp, rs) {
+    function (err, rcCache, rc, rp, rs) {
       if (err) return util.error(err);
 
       // Common utils init.
@@ -245,7 +245,7 @@ if (cluster.isMaster) {
             app.set('connection', connection);
 
             // Attach a redis ref to app.
-            app.set('redis', rc_cache);
+            app.set('redis', rcCache);
 
             // Init samples.
             new Samples(app, _.bind(function (err, samples) {
@@ -340,7 +340,7 @@ if (cluster.isMaster) {
               // FIXME: Use a key map instead of
               // attaching this directly to the socket.
               socket.client = new Client(socket, app.get('pubsub'),
-                  app.get('samples'), rc);
+                  app.get('samples'), rcCache, app.get('storage'));
             });
 
             // Set pubsub sio
