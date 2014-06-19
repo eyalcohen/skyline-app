@@ -211,7 +211,8 @@ if (cluster.isMaster) {
           })) {
             return _next();
           }
-          res.redirect('https://' + req.headers.host + req.url);
+          console.log('https://www.skyline-data.com:8443' + req.url);
+          res.redirect('https://www.skyline-data.com:8443' + req.url);
         } else {
           _next();
         }
