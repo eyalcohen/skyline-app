@@ -72,7 +72,7 @@ MinSize=1
 
 [aws:autoscaling:launchconfiguration]
 EC2KeyName=skyline
-InstanceType=m3.medium
+InstanceType=m1.small
 EC2KeyName=skyline
 IamInstanceProfile=aws-elasticbeanstalk-ec2-role
 
@@ -82,7 +82,7 @@ Statistic=Average
 Unit=Percent
 Period=1
 BreachDuration=1
-UpperThreshold=50
+UpperThreshold=65
 LowerThreshold=10
 UpperBreachScaleIncrement=1
 LowerBreachScaleIncrement=-1
