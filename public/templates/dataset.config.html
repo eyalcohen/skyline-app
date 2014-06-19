@@ -9,6 +9,19 @@
     <table>
       <tbody>
 
+        <% if ((Date.now() - new Date(this.model.get('created'))) < 1000*60*5) { %>
+        <tr>
+          <td colspan = "2">
+            <div class="dataset-config-greeting">
+              <h2> Great!  You've successfully added  a new dataset titled '<%= this.model.get('title') %>' to Skyline. </h2>
+              <br>
+              <p> Click <a href="/<%= this.model.get('author').username %>/<%= this.model.get('id')%>"> here </a> or on the graph below to immediately view your data.  You can also update some information about your dataset below the graph.
+              </p>
+            </div>
+          </td>
+        </tr>
+        <% } %>
+
         <tr>
           <td colspan = "2">
             <div class="settings-svg"></div>

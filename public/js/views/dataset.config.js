@@ -29,7 +29,6 @@ define([
       this.channelNames = [];
 
       this.animate = true;
-
     },
 
     render: function () {
@@ -60,6 +59,8 @@ define([
         }
 
         $('.title-left').text(this.model.get('title'));
+
+        $('.dataset-config-greeting').fadeIn('slow');
 
         $('input[name="public"]').prop('checked', !dataset.public);
         this.checkPublic();

@@ -3637,6 +3637,18 @@ ul.settings-detail-list li {
 }
 
 /*.........................................................................*/
+.dataset-config-greeting {
+  margin-bottom: 30px;
+  background-color: rgba(39, 205, 214, .1);
+  padding: 10px;
+  border-radius: 2px;
+  display: none;
+}
+
+.dataset-config-greeting h2 {
+  font-size: 14px;
+}
+/*.........................................................................*/
 
 /*.profile {
   width: 100%;
