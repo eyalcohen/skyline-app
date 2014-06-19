@@ -167,6 +167,7 @@ define([
       }
 
       // Get a profile, if needed.
+      console.log(service, data);
       rest.get(service, data, _.bind(function (err, pro) {
         if (err) {
           $('.container').removeClass('wide');
