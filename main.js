@@ -360,7 +360,7 @@ if (cluster.isMaster) {
             if (process.env.NODE_ENV !== 'production') {
               server.listen(app.get('PORT'));
             } else {
-              server.listen(443);
+              server.listen(8443);
               _server.listen(app.get('PORT'));
             }
 
