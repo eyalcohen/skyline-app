@@ -167,7 +167,6 @@ define([
       }
 
       // Get a profile, if needed.
-      console.log(service, data);
       rest.get(service, data, _.bind(function (err, pro) {
         if (err) {
           $('.container').removeClass('wide');
@@ -218,7 +217,7 @@ define([
     dashboard: function () {
       this.start();
       var query = {actions: this.getEventActions()};
-      this.render('/service/dashboard.profile', query, _.bind(function (err) {
+      this.render('/service/dashboard', query, _.bind(function (err) {
         if (err) return;
         if (this.app.profile.user) {
           $('.container').removeClass('wide').removeClass('landing');
@@ -238,7 +237,7 @@ define([
     reset: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/static.profile', _.bind(function (err) {
+      this.render('/service/static', _.bind(function (err) {
         if (err) return;
         this.page = new Reset(this.app).render();
         this.stop();
@@ -251,7 +250,7 @@ define([
       this.renderTabs();
       $('.container').removeClass('wide').removeClass('landing');
       var query = {actions: this.getEventActions()};
-      this.render('/service/user.profile/' + username, query,
+      this.render('/service/user/' + username, query,
           _.bind(function (err) {
         if (err) return;
         this.page = new Profile(this.app).render();
@@ -263,7 +262,7 @@ define([
     notifications: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/notifications.profile', {}, true, _.bind(function (err) {
+      this.render('/service/notifications', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Notifications(this.app).render();
         this.renderTabs({tabs: [
@@ -277,7 +276,7 @@ define([
     library: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/library.profile', {}, _.bind(function (err) {
+      this.render('/service/library', {}, _.bind(function (err) {
         if (err) return;
         this.page = new Library(this.app).render();
         this.stop();
@@ -310,7 +309,7 @@ define([
     settings: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/settings.profile', {}, true, _.bind(function (err) {
+      this.render('/service/settings', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
         this.stop();
@@ -321,7 +320,7 @@ define([
     upload: function (fileId) {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/settings.profile', {}, true, _.bind(function (err) {
+      this.render('/service/settings', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Upload(this.app, {fileId: fileId}).render();
         this.stop();
@@ -335,7 +334,7 @@ define([
     datasetConfig: function (un, id) {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/settings.profile', {}, true, _.bind(function (err) {
+      this.render('/service/settings', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new DatasetConfig(this.app, {user: un, id: id}).render();
         this.stop();
@@ -347,7 +346,7 @@ define([
     about: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/static.profile', _.bind(function (err) {
+      this.render('/service/static', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'About', template: aboutTemp}).render();
@@ -359,7 +358,7 @@ define([
     contact: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/static.profile', _.bind(function (err) {
+      this.render('/service/static', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Contact', template: contactTemp}).render();
@@ -371,7 +370,7 @@ define([
     privacy: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/static.profile', _.bind(function (err) {
+      this.render('/service/static', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Privacy', template: privacyTemp}).render();
@@ -383,7 +382,7 @@ define([
     terms: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/static.profile', _.bind(function (err) {
+      this.render('/service/static', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
             {title: 'Terms', template: termsTemp}).render();
@@ -428,7 +427,7 @@ define([
       store.set('state', state);
       var data = {state: state};
       if (this.app.embed) data.embed = true;
-      this.render('/service/chart.profile', data, _.bind(function (err) {
+      this.render('/service/chart', data, _.bind(function (err) {
         if (err) return;
         this.pageType = 'chart';
 
