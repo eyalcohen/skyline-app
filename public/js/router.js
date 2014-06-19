@@ -427,7 +427,7 @@ define([
       store.set('state', state);
       var data = {state: state};
       if (this.app.embed) data.embed = true;
-      this.render('/service/chart.profile/', data, _.bind(function (err) {
+      this.render('/service/chart.profile', data, _.bind(function (err) {
         if (err) return;
         this.pageType = 'chart';
 

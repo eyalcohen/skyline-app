@@ -234,6 +234,7 @@ define([
       this.dataLayer.setSQL(query);
       this.sql.execute(query).done(_.bind(function (data) {
         this.data = data;
+        this.parentView.mapButton.show();
         if (this.data.rows.length > 0) {
           this.parentView.mapButton.addClass('active');
         } else {

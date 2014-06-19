@@ -66,25 +66,11 @@ define([
     events: {},
 
     setup: function () {
-
-      // Save refs
       this.plot = null;
+      this.lightened = {};
 
       // Draw the canvas.
       this.draw();
-
-      // Do resize on window change.
-      this.$el.hide();
-      _.delay(_.bind(function () {
-        this.resize();
-        this.$el.show();
-      }, this), 250);
-      _.delay(_.bind(function () { this.resize(); }, this), 500);
-      $(window).resize(_.debounce(_.bind(this.resize, this), 20));
-      $(window).resize(_.debounce(_.bind(this.resize, this), 150));
-      $(window).resize(_.debounce(_.bind(this.resize, this), 300));
-
-      this.lightened = {};
 
       return this;
     },
@@ -109,6 +95,11 @@ define([
       if (this.plot) {
         var width = w || this.$el.parent().width();
         var height = h || this.$el.parent().height();
+        if (height === 0) {
+          _.delay(_.bind(function () {
+            this.resize();
+          }, this), 50);
+        }
         // height = Math.max(height, 300);
         this.plot.setCanvasDimensions(width, height);
         this.plot.setupGrid();
