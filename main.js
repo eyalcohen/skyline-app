@@ -357,10 +357,13 @@ if (cluster.isMaster) {
             app.get('pubsub').setSocketIO(sio);
 
             // Start server
-            server.listen(process.env.NODE_ENV === 'production' ? 8443: app.get('PORT'));
-            if (_server) {
+            if (process.env.NODE_ENV !== 'production') {
+              server.listen(app.get('PORT'));
+            } else {
+              server.listen(443);
               _server.listen(app.get('PORT'));
             }
+
             util.log('Worker ' + cluster.worker.id
                 + ': Web server listening on port ' + app.get('PORT'));
           }
