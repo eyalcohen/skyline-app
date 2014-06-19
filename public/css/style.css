@@ -1249,6 +1249,7 @@ body.embed .folder {
 
 .leftside.equal {
   width: 259px;
+  padding-left: 250px;
 }
 
 .rightside {
@@ -1259,8 +1260,10 @@ body.embed .folder {
 }
 
 .rightside.equal {
+  margin: 0 0 0 549px;
   width: 259px;
   padding-top: 59px;
+  padding-left: 40px;
 }
 
 .split {
@@ -3632,7 +3635,7 @@ ul.settings-detail-list li {
 }
 
 .settings-svg:hover {
-  opacity: .8;
+  opacity: 0.8;
   border-color: #e6e6e6;
 }
 
