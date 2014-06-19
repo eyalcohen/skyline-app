@@ -46,7 +46,7 @@ if (cluster.isMaster) {
 
   // Module Dependencies
   var http = require('http');
-  var proxiedHttp = require('./lib/proxywrap').proxy(http);
+  // var proxiedHttp = require('./lib/proxywrap').proxy(http);
   var connect = require('connect');
   var express = require('express');
   var slashes = require('connect-slashes');
@@ -281,9 +281,9 @@ if (cluster.isMaster) {
             });
 
             // HTTP server.
-            var server = process.env.NODE_ENV !== 'production' ? http.createServer(app):
-                proxiedHttp.createServer(app);
-            // var server = http.createServer(app);
+            // var server = process.env.NODE_ENV !== 'production' ? http.createServer(app):
+            //     proxiedHttp.createServer(app);
+            var server = http.createServer(app);
 
             // Socket handling
             var sio = socketio.listen(server);
