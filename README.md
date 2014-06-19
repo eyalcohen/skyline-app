@@ -53,7 +53,7 @@ AWSRegion=us-east-1
 ApplicationName=skyline
 AwsCredentialFile=<PATH_TO_SKYLINE>/.aws/aws_credential_file
 DevToolsEndpoint=git.elasticbeanstalk.us-east-1.amazonaws.com
-EnvironmentName=skyline
+EnvironmentName=skyline-env
 InstanceProfileName=aws-elasticbeanstalk-ec2-role
 OptionSettingFile=<PATH_TO_SKYLINE>/.elasticbeanstalk/optionsettings.skyline
 RdsEnabled=No
@@ -72,16 +72,14 @@ MinSize=1
 
 [aws:autoscaling:launchconfiguration]
 EC2KeyName=skyline
-InstanceType=m1.small
+InstanceType=m3.medium
 EC2KeyName=skyline
 IamInstanceProfile=aws-elasticbeanstalk-ec2-role
-SecurityGroups=awseb-e-mtnpmftmsx-stack-AWSEBSecurityGroup-17RX6M656MZ0W
 
 [aws:autoscaling:trigger]
 MeasureName=CPUUtilization
 Statistic=Average
 Unit=Percent
-MonitoringInterval=1 minute
 Period=1
 BreachDuration=1
 UpperThreshold=50
