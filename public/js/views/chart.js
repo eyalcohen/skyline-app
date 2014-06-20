@@ -483,7 +483,8 @@ define([
         mps.publish('note/start', [this.cursorData]);
 
         var doc = $(document);
-        var mousemove = _.bind(function (e) {
+        // debounce prevents firefox from overtriggering mousemove
+        var mousemove = _.debounce(_.bind(function (e) {
           e.preventDefault();
           var current = this.graph.cursor(e);
           var abs = Math.abs(this.cursorData.t - current.t);
@@ -494,7 +495,7 @@ define([
           } else this.noteDuration.hide();
           mps.publish('note/move', [this.cursorData, this.graph.cursor(e)]);
           return false;
-        }, this);
+        }, this), 1);
         var mouseup = _.bind(function (e) {
           e.preventDefault();
           doc.unbind('mouseup', mouseup).unbind('mousemove', mousemove);

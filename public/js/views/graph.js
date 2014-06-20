@@ -477,17 +477,19 @@ define([
       });
 
       function onBindEvents() {
-        this.$el.mousewheel(_.bind(function (e) {
+        this.$el.mousewheel(_.debounce(_.bind(function (e) {
           var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
           return false;
-        }, this))
+        }, this)), 1)
 
         .dblclick(_.bind(function (e) {
           graphZoomClick.call(this, e, e.shiftKey ? 8 : 2, e.altKey || e.metaKey);
         }, this))
 
-        .mousemove(_.bind(function (e) {
+        // the 1ms debounce is so firefox doesn't overwhelm the client with
+        // moue calls
+        .mousemove(_.debounce(_.bind(function (e) {
           // panning behavior, unless we're highlight on a line.
           if (this.mousedown) {
             // if (this.changingOffset) {
@@ -501,6 +503,7 @@ define([
             }
           }
           if (!this.lastMouseMove) this.lastMouseMove = 0;
+
           // don't run this very frequently, perhaps once every 20ms
           if (Date.now() - this.lastMouseMove > 20) {
             this.lastMouseMove = Date.now();
@@ -508,7 +511,7 @@ define([
             this.mouseLineStyle(e, this.mouseStats);
             mps.publish('channel/mousemove', [this.mouseStats]);
           }
-        }, this))
+        }, this), 1))
 
         .mousedown(_.bind(function (e) {
           if (e.which === 3) return false; // ignore right-click
@@ -523,7 +526,7 @@ define([
           var closestChannel =
             _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
           if (!closestChannel) return;
-          
+
           // FIXME: Allow dataset offsetting with some key combo
           // (harder to do accidentally)
           /*
