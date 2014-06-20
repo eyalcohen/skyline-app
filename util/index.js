@@ -32,7 +32,6 @@ boots.start({redis: true}, function (client) {
     function () {
 
       // Get all datasets.
-
       db.Datasets.list({}, this.parallel());
       client.redisClient.del('datasets', this.parallel());
     },
@@ -87,7 +86,7 @@ boots.start({redis: true}, function (client) {
 
       // Get all channels.
       db.Channels.list({}, this.parallel());
-      //client.redisClient.del('channels', this.parallel());
+      client.redisClient.del('channels', this.parallel());
     },
     function (err, docs) {
       boots.error(err);
