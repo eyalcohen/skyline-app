@@ -65,6 +65,9 @@ define([
               }
             }]);
             break;
+          default:
+            this.app.router.navigate(this.$el.attr('href'), {trigger: true});
+            break;
         }
       } else {
         this.app.router.navigate(this.$el.attr('href'), {trigger: true});
