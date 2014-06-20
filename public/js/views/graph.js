@@ -478,8 +478,7 @@ define([
 
       function onBindEvents() {
         this.$el.mousewheel(_.debounce(_.bind(function (e) {
-          var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
-          console.log(e, delta);
+          var delta = e.originalEvent.wheelDelta || -e.originalEvent.deltaY;
           graphZoomClick.call(this, e, e.shiftKey ? 1.5 : 1.1, delta < 0);
           return false;
         }, this)), 1)
