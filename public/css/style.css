@@ -3458,12 +3458,6 @@ p.sidebar-tip span {
   border-radius: 2px;
 }
 
-.sidebar-followers .sidebar-heading,
-.sidebar-followees .sidebar-heading {
-  margin-bottom: 10px;
-  border-bottom: 1px solid #E6E6E6;
-}
-
 .sidebar-followers .sidebar-tip,
 .sidebar-followees .sidebar-tip {
   padding-top: 0;
@@ -3473,6 +3467,18 @@ p.sidebar-tip span {
 .sidebar-follows {
   padding: 0 10px;
   margin-left: -2px;
+}
+
+.sidebar-follows .list-header {
+  padding-top: 10px;
+  border-top: 1px solid #E6E6E6;
+  margin: 0 -10px 0 -8px;
+}
+
+.sidebar-follows .list-header:last-child {
+  padding-top: 0;
+  border-top: none;
+  margin: 0;
 }
 
 .sidebar-follow {
