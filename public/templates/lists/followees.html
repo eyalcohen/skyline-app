@@ -1,0 +1,21 @@
+<%
+  var own = !this.parentView.model || (this.app.profile.user && this.parentView.model.id === this.app.profile.user.id);
+  var owner = own ? 'You\'re': this.parentView.model.get('displayName') + ' is ';
+%>
+
+<span class="sidebar-heading">
+  <%= owner %> following <span class="sidebar-heading-cnt">(<%= this.collection.length %>)</span>
+</span>
+<p class="sidebar-tip">
+  You're not following anyone yet.
+</p>
+
+<% if (!this.app.profile.content.private) { %>
+  <div class="sidebar-follows">
+    <div class="list-header"></div>
+    <% _.each(this.collection.models, _.bind(function (row) { %>
+      <%= this.row(row) %>
+    <% }, this)); %>
+  </div>
+<% } %>
+

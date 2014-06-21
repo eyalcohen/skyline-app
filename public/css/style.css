@@ -3446,11 +3446,38 @@ p.sidebar-tip span {
 }
 
 .sidebar-datasets,
-.sidebar-views {
+.sidebar-views,
+.sidebar-followers,
+.sidebar-followees {
   margin: 0 0 30px 0;
   background: #f9f9f9;
   border: 1px solid #e6e6e6;
 
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+.sidebar-followers .sidebar-heading,
+.sidebar-followees .sidebar-heading {
+  margin-bottom: 10px;
+  border-bottom: 1px solid #E6E6E6;
+}
+
+.sidebar-follows {
+  padding: 0 10px;
+  margin-left: -2px;
+}
+
+.sidebar-follow {
+  display: inline;
+  width: 32px;
+  height: 32px;
+  font-size: 0;
+  padding: 0 0 2px 2px;
+}
+
+.sidebar-follow img {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
@@ -3522,7 +3549,10 @@ p.sidebar-tip span {
   margin-left: -.05em;
 }
 
-.sidebar-datasets p {
+.sidebar-datasets p,
+.sidebar-views p,
+.sidebar-followers p,
+.sidebar-followees p {
   font-size: 10px;
   line-height: 12px;
 }

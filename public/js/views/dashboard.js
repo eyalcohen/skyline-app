@@ -11,8 +11,11 @@ define([
   'text!../../templates/dashboard.html',
   'views/lists/events',
   'views/lists/datasets.sidebar',
-  'views/lists/views.sidebar'
-], function ($, _, Backbone, mps, util, template, Events, Datasets, Views) {
+  'views/lists/views.sidebar',
+  'views/lists/followers',
+  'views/lists/followees'
+], function ($, _, Backbone, mps, util, template, Events, Datasets, Views,
+      Followers, Followees) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -41,6 +44,8 @@ define([
       this.events = new Events(this.app, {parentView: this, reverse: true});
       this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
       this.views = new Views(this.app, {parentView: this, reverse: true});
+      this.followers = new Followers(this.app, {parentView: this, reverse: true});
+      this.followees = new Followees(this.app, {parentView: this, reverse: true});
 
       return this;
     },
@@ -57,6 +62,8 @@ define([
       this.events.destroy();
       this.datasets.destroy();
       this.views.destroy();
+      this.followers.destroy();
+      this.followees.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.empty();
