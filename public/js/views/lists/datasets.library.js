@@ -35,7 +35,7 @@ define([
       this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Reset the collection.
-      this.collection.reset(this.app.profile.content.page.datasets);
+      this.collection.reset(this.app.profile.content.datasets);
     },
 
     setup: function () {

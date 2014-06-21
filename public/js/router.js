@@ -275,13 +275,14 @@ define([
 
     library: function () {
       this.start();
+      this.renderTabs();
       $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/library', {}, _.bind(function (err) {
         if (err) return;
         this.page = new Library(this.app).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
-      this.renderTabs({title: 'Library', subtitle: 'Common datasets'});
     },
 
     signin: function () {

@@ -29,23 +29,14 @@ define([
     },
 
     render: function () {
-
-      // Use a model for the main content.
       this.model = new User(this.app.profile.content.page);
 
       // Set page title.
-      this.app.title(this.model.get('displayName')
-          + ' (@' + this.model.get('username') + ')',
-          _.template(header).call(this), true);
-
+      this.app.title('Skyline | ' + this.model.get('displayName')
+          + ' (@' + this.model.get('username') + ')');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
-
-      // Set page title
-      var doctitle = 'Skyline | ' + this.model.get('displayName');
-      doctitle += ' (@' + this.model.get('username') + ')';
-      this.app.title(doctitle);
 
       // Render title.
       this.title = _.template(header).call(this);

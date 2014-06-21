@@ -8,9 +8,11 @@ define([
   'Backbone',
   'mps',
   'util',
+  'models/user',
   'text!../../templates/library.html',
+  'text!../../templates/profile.header.html',
   'views/lists/datasets.library'
-], function ($, _, Backbone, mps, util, template, Datasets) {
+], function ($, _, Backbone, mps, util, User, template, header, Datasets) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -22,12 +24,16 @@ define([
     },
 
     render: function () {
+      this.model = new User(this.app.profile.content.page);
 
       // Set page title
       this.app.title('Skyline | Library');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
+
+      // Render title.
+      this.title = _.template(header).call(this);
 
       this.trigger('rendered');
       return this;

@@ -8,11 +8,11 @@
       + data.gravatar + '?s=26&d=mm';
 %>
 
-<% if (this.app.profile.user && data.role !== 2 && this.app.profile.user.role !== 2) { %>
+<% if (this.app.profile.user) { %>
   <% if (this.app.profile.user.id === data.id) { %>
     <a href="/settings" class="button title-button navigate">
       <i class="icon-cog"></i> Settings</a>
-  <% } else { %>
+  <% } else if (this.app.profile.user.role !== 2) { %>
     <% if (sub && sub.subscribee_id === data.id) { %>
       <% if (sub.meta.style === 'request') { %>
         <a href="javascript:;" class="button title-button disabled">
