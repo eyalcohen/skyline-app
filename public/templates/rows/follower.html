@@ -2,8 +2,7 @@
   
   var subscriber = this.model.get('subscriber');
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + subscriber.gravatar + '?s=32&d='
-      + encodeURIComponent(this.app.cfuri + '/avatars/avatar_100.png');
+      + subscriber.gravatar + '?s=32&d=mm';
 %>
 
 <% if (!this.app.profile.content.private) { %>

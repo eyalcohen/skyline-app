@@ -3464,6 +3464,12 @@ p.sidebar-tip span {
   border-bottom: 1px solid #E6E6E6;
 }
 
+.sidebar-followers .sidebar-tip,
+.sidebar-followees .sidebar-tip {
+  padding-top: 0;
+  border-top: none;
+}
+
 .sidebar-follows {
   padding: 0 10px;
   margin-left: -2px;
