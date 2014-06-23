@@ -91,7 +91,7 @@ define([
         });
       }
       var dur = this.cache.getBestGraphDuration(
-          (viewRange.end - viewRange.beg) / viewRange.width);
+          (viewRange.end - viewRange.beg) / viewRange.width, viewRange.static);
       viewRange = expandRange(viewRange, 0.05);
       if (viewRange.static)
         this.set({visibleTime: {beg: viewRange.beg, end: viewRange.end}});

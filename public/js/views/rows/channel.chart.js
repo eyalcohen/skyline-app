@@ -113,22 +113,6 @@ define([
 
     fit: function (w) {
       this.$el.width(w);
-      this.fitName(w - 80);
-    },
-
-    fitName: function (w) {
-      var txt = this.model.name();
-      this.txt.text(txt);
-      var tw = this.name.outerWidth();
-      if (tw && tw >= w) {
-        var len = txt.length;
-        var i = 1;
-        while (tw >= w) {
-          this.txt.text(txt.substr(0, len - i) + '...');
-          tw = this.name.outerWidth();
-          ++i;
-        }
-      }
     },
 
     toggle: function (e) {
