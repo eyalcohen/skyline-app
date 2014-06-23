@@ -221,7 +221,8 @@ define([
 
           // header row
           var str = ''
-          _.each(_.keys(res.problemRow[0]), function (k) {
+          var keys = _.keys(res.problemRow[0]);
+          _.each(keys, function (k) {
             str += '<th>' + util.blurb(k, 24) + '</th>';
           });
           var sel = table.append('<tr>' + str + '</tr>')
