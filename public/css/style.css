@@ -3447,6 +3447,7 @@ p.sidebar-tip span {
 
 .sidebar-datasets,
 .sidebar-views,
+.sidebar-views2,
 .sidebar-followers,
 .sidebar-followees {
   margin: 0 0 30px 0;
@@ -3496,73 +3497,86 @@ p.sidebar-tip span {
 }
 
 .sidebar-datasets ul,
-.sidebar-views ul {
+.sidebar-views ul,
+.sidebar-views2 ul {
   list-style: none;
 }
 
 .sidebar-datasets li,
-.sidebar-views li {
+.sidebar-views li,
+.sidebar-views2 li {
   list-style-type: none;
   padding: 5px 10px;
   border-top: 1px solid #e6e6e6;
 }
 
 .sidebar-datasets li:first-child,
-.sidebar-views li:first-child {
+.sidebar-views li:first-child,
+.sidebar-views2 li:first-child {
   border: none;
 }
 
 .sidebar-datasets li:last-child,
-.sidebar-views li:last-child {
+.sidebar-views li:last-child,
+.sidebar-views2 li:last-child {
   -webkit-border-radius: 0 0 2px 2px;
   -moz-border-radius: 0 0 2px 2px;
   border-radius: 0 0 2px 2px;
 }
 
 .sidebar-datasets i i,
-.sidebar-views i i {
+.sidebar-views i i,
+.sidebar-views2 i i {
   font-size: .5em;
   left: 12px;
   top: 5px;
 }
 
 .sidebar-datasets li.list-header,
-.sidebar-views li.list-header {
+.sidebar-views li.list-header,
+.sidebar-views2 li.list-header {
   padding: 0;
 }
 
 .sidebar-datasets li a,
-.sidebar-views li a {
+.sidebar-views li a,
+.sidebar-views2 li a {
   font-size: 13px;
 }
 
 .sidebar-datasets li a i,
-.sidebar-views li a i {
+.sidebar-views li a i,
+.sidebar-views2 li a i {
   color: #666;
 }
 
 .sidebar-datasets li [class^="icon-"]:before,
 .sidebar-datasets li [class*=" icon-"]:before,
 .sidebar-views li [class^="icon-"]:before,
-.sidebar-views li [class*=" icon-"]:before {
+.sidebar-views li [class*=" icon-"]:before,
+.sidebar-views2 li [class^="icon-"]:before,
+.sidebar-views2 li [class*=" icon-"]:before {
   margin-left: 0;
   margin-right: .3em;
 }
 
 .sidebar-datasets li .icon-lock,
-.sidebar-views li .icon-lock {
+.sidebar-views li .icon-lock,
+.sidebar-views2 li .icon-lock {
   font-size: 15px;
   vertical-align: -1px;
 }
 
 .sidebar-datasets li .icon-lock:before,
-.sidebar-views li .icon-lock:before {
+.sidebar-views li .icon-lock:before,
+.sidebar-views2 li .icon-lock:before {
   margin-right: .15em;
   margin-left: -.05em;
 }
 
 .sidebar-datasets p,
 .sidebar-views p,
+.sidebar-views2 p,
 .sidebar-followers p,
 .sidebar-followees p {
   font-size: 10px;

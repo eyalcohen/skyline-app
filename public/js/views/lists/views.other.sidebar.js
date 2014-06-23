@@ -1,5 +1,5 @@
 /*
- * Sidebar Datasets List view
+ * Sidebar Views List view
  */
 
 define([
@@ -9,13 +9,13 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/datasets.sidebar.html',
-  'collections/datasets',
-  'views/rows/dataset.sidebar'
+  'text!../../../templates/lists/views.other.sidebar.html',
+  'collections/views',
+  'views/rows/view.sidebar'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.sidebar-datasets',
+    el: '.sidebar-views2',
 
     initialize: function (app, options) {
       this.template = _.template(template);
@@ -27,15 +27,15 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('dataset/new', _.bind(this.collect, this))
+        mps.subscribe('view/new', _.bind(this.collect, this))
       ];
 
       // Socket subscriptions
-      this.app.rpc.socket.on('dataset.new', _.bind(this.collect, this));
-      this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
+      this.app.rpc.socket.on('view.new', _.bind(this.collect, this));
+      this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
 
       // Reset the collection.
-      this.collection.reset(_.sortBy(this.app.profile.content.datasets.items, 'title'));
+      this.collection.reset(this.app.profile.content.views.other.items);
     },
 
     setup: function () {
@@ -48,20 +48,23 @@ define([
       return List.prototype.setup.call(this);
     },
 
-    events: {
-      'click .add-data': 'add',
-    },
+    events: {},
 
     destroy: function () {
-      this.app.rpc.socket.removeAllListeners('dataset.new');
-      this.app.rpc.socket.removeAllListeners('dataset.removed');
+      this.app.rpc.socket.removeAllListeners('view.new');
+      this.app.rpc.socket.removeAllListeners('view.removed');
       return List.prototype.destroy.call(this);
     },
 
     collect: function (data) {
       var id = this.parentView.model ? this.parentView.model.id:
           this.app.profile.user.id;
-      if (data.author.id === id) {
+      var hasOwn = _.find(data.datasets, function (d) {
+        return _.find(d.channels, function (c) {
+          return c.author_id === id;
+        });
+      });
+      if (data.author.id !== id && hasOwn) {
         this.collection.unshift(data);
         this.updateCount();
       }
@@ -94,13 +97,6 @@ define([
         }
       }
       this.count.text('(' + this.collection.length + ')');
-    },
-
-    add: function (e) {
-      e.preventDefault();
-
-      // Render the finder view.
-      mps.publish('modal/finder/open');
     },
 
   });

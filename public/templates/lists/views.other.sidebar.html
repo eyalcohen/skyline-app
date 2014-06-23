@@ -1,0 +1,17 @@
+<%
+  var own = !this.parentView.model || (this.app.profile.user && this.parentView.model.id === this.app.profile.user.id);
+  var owner = own ? 'your': this.parentView.model.get('displayName') + '\'s';
+%>
+
+<span class="sidebar-heading">
+  Other views with <%= owner %> datasets <span class="sidebar-heading-cnt">(<%= this.collection.length %>)</span>
+</span>
+<p class="sidebar-tip">
+  Nothing to see here yet.
+</p>
+<ul>
+  <li class="list-header"></li>
+  <% _.each(this.collection.models, _.bind(function (row) { %>
+    <%= this.row(row) %>
+  <% }, this)); %>
+</ul>
