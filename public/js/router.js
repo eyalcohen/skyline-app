@@ -29,6 +29,7 @@ define([
   'views/profile',
   'views/library',
   'views/chart',
+  'views/dataset',
   'views/static',
   'text!../templates/about.html',
   'text!../templates/contact.html',
@@ -36,7 +37,7 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    DatasetConfig, Upload, Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp,
+    DatasetConfig, Upload, Reset, Profile, Library, Chart, Dataset, Static, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -63,7 +64,7 @@ define([
 
       // Page routes
       this.route(':username', 'profile', this.profile);
-      this.route(':username/:id', 'chart', this.chart);
+      this.route(':username/:id', 'dataset', this.dataset);
       this.route(':username/:id/:channel', 'chart', this.chart);
       this.route(':username/:id/config', 'dataset.config', this.datasetConfig);
       this.route(':username/views/:slug', 'chart', this.chart);
@@ -332,6 +333,19 @@ define([
       this.renderTabs({title: title});
     },
 
+    dataset: function (un, id) {
+      this.start();
+      this.renderTabs();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/dataset/' + id, {},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new Dataset(this.app).render();
+        this.renderTabs({html: this.page.title});
+        this.stop();
+      }, this));
+    },
+
     datasetConfig: function (un, id) {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
@@ -342,7 +356,6 @@ define([
       }, this));
       this.renderTabs();
     },
-
 
     about: function () {
       this.start();

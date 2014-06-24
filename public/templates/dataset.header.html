@@ -1,0 +1,29 @@
+<%
+  // Save model attributes
+  var data = this.model.attributes;
+  var sub = this.app.profile.sub;
+%>
+
+<% if (this.app.profile.user) { %>
+  <% if (this.app.profile.user.id === data.author.id) { %>
+    <a href="/<%= data.author.username %>/<%= data.id %>/config" class="button title-button navigate">
+      <i class="icon-cog"></i> Configure</a>
+  <% } %>
+  <% if (this.app.profile.user.role !== 2) { %>
+    <% if (sub && sub.subscribee_id === data.id) { %>
+      <a href="javascript:;" class="button title-button unwatch-button"
+          data-path="/api/datasets/<%= this.model.id %>/unwatch"
+          data-_path="/api/datasets/<%= this.model.id %>/watch">
+        <i class="icon-eye-off"></i> Unwatch</a>
+    <% } else { %>
+      <a href="javascript:;" class="button title-button watch-button"
+          data-path="/api/datasets/<%= this.model.id %>/watch"
+          data-_path="/api/datasets/<%= this.model.id %>/unwatch">
+        <i class="icon-eye"></i> Watch</a>
+    <% } %>
+  <% } %>
+<% } %>
+<div class="page-title">
+  <a href="/<%= data.author.username %>/<%= data.id %>" class="navigate">
+    <i class="icon-database"></i><%= data.title %></a>
+</div>

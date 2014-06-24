@@ -1,0 +1,36 @@
+<%
+
+  // Save model attributes
+  var data = this.model.attributes;
+
+  // Misc
+  var created = new Date(data.created);
+  var since = [created.getMonth() + 1, created.getFullYear()].join('/');
+  var details = 'User since ' + since;
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + data.gravatar + '?s=24&d=mm';
+
+%>
+
+<div class="leftside">
+  
+</div>
+<div class="rightside">
+  
+</div>
+<div class="clearfix"></div>
+<div class="footer">
+  <ul>
+    <li>
+      <a href="/contact" class="navigate">Contact</a>
+    </li>
+    <li>
+      <a href="/privacy" class="navigate">Privacy Policy</a>
+    </li>
+    <li>
+      <a href="/terms" class="navigate">Terms of Use</a>
+    </li>
+  </ul>
+</div>
