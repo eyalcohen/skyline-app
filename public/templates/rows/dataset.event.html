@@ -92,6 +92,8 @@
         title="<%= this.model.get('created') %>">
     <%= this.model.get('created') %>
   </time></a>
+  <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+  <%= this.model.get('vcnt') %> view<%= this.model.get('vcnt') === 1 ? '': 's' %>
   <% if (this.app.profile.user &&
       this.model.get('author').id === this.app.profile.user.id) { %>
     <span class="info-divider">&nbsp;&middot;&nbsp;</span>

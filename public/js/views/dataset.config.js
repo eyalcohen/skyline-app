@@ -175,21 +175,21 @@ define([
       });
 
       // Setup actions.
-      $('#m_cancel').click(function () {
+      $('.modal-cancel').click(function (e) {
         $.fancybox.close();
       });
-      $('#m_yes').click(_.bind(function () {
+      $('.modal-confirm').click(_.bind(function (e) {
 
         // Delete the user.
         rest.delete('/api/datasets/' + this.id,
             {}, _.bind(function (err) {
           if (err) return console.log(err);
 
-          // Close the modal.
-          $.fancybox.close();
-
           // Route to home.
           this.app.router.navigate('/', {trigger: true});
+
+          // Close the modal.
+          $.fancybox.close();
 
         }, this));
       }, this));

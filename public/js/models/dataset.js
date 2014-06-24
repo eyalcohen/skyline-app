@@ -11,6 +11,7 @@ define([
 
     initialize: function () {
       this.set('id', Number(this.id), {silent: true});
+      this.set('vcnt', this.get('vcnt') === undefined ? 0: this.get('vcnt'));
     },
 
     formatTitle: function () {

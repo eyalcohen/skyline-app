@@ -20,6 +20,7 @@ define([
       });
       this.set('channels', channels, {silent: true});
       this.set('channels_cnt', channels.length, {silent: true});
+      this.set('vcnt', this.get('vcnt') === undefined ? 0: this.get('vcnt'));
 
       // For forks (not currently used).
       // var parent = this.get('parent');

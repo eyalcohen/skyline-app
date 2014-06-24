@@ -56,6 +56,7 @@
           <li>Begin time: <%= util.toLocaleString(new Date(target.doc.time.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
           <li>Duration: <%= util.getDuration(target.doc.time.end - target.doc.time.beg, false) %></li>
         <% } %>
+        <li>Views: <%= target.doc.vcnt === undefined ? 0: target.doc.vcnt %></li>
         <li>Last updated: <%= util.toLocaleString(new Date(target.doc.updated), 'mm/d/yy HH:MM:ss') %></li>
       </ul>
       <% if (source !== '') { %>
