@@ -12,6 +12,7 @@ define([
     initialize: function () {
 
       // Use name as id.
+      this.set('_id', this.get('id'), {silent: true});
       this.set('id', this.get('channelName'), {silent: true});
       this.set('lineStyleOptions', {});
     },

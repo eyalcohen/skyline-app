@@ -6,10 +6,11 @@ define([
   'jQuery',
   'Underscore',
   'mps',
+  'rest',
   'views/boiler/row',
   'text!../../../templates/rows/channel.chart.html',
   'views/linestyle'
-], function ($, _, mps, Row, template, LineStyle) {
+], function ($, _, mps, rest, Row, template, LineStyle) {
   return Row.extend({
 
     active: false,
@@ -130,6 +131,9 @@ define([
         this.active = true;
         this.mouseenter(e);
         this.updateYAxisView();
+
+        // Count as a "view".
+        rest.put('/api/channels/' + this.model.get('_id') + '/inc', {});
       }
       return false;
     },
