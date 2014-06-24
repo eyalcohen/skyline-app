@@ -21,7 +21,7 @@ define([
 
     initialize: function (app, options) {
       this.app = app;
-      this.collection = new Collection;
+      this.collection = new Collection();
       this.Row = Row;
       this.options = options;
       this.setElement(options.el);
@@ -29,8 +29,18 @@ define([
       // Call super init.
       List.prototype.initialize.call(this, app, options);
 
+      // usefulf or organizing search results
+      this.datasetList = [];
+
       // Client-wide subscriptions
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('channel/added', _.bind(function (ds, cn) {
+          this.datasetList.push(ds);
+        }, this)),
+        mps.subscribe('channel/removed', _.bind(function (ds, cn) {
+          this.datasetList.splice(this.datasetList.indexOf(ds), 1);
+        }, this))
+      ];
 
       // Reset the collection.
       this.collection.reset([]);
@@ -221,6 +231,31 @@ define([
       } else if (!_.find(items, function (i) { return i.length !== 0; })) {
         this.hideResults();
         return;
+      }
+
+      // for channels, sort on whether the channel is open, otherwise
+      // by dataset title.
+      // Note: We can move this to the server by adding open datasets to the query
+      // if it gets slow.
+      if (items.channels) {
+        items.channels.sort(_.bind(function(a, b) {
+          var _a = -1, _b = -1;
+          if (a.parent && a.parent.id)
+            _a = this.datasetList.indexOf(Number(a.parent.id));
+          if (b.parent && b.parent.id)
+            _b = this.datasetList.indexOf(Number(b.parent.id));
+          if (_a !== -1 && _b === -1)
+            return 1;
+          else if (_a === -1 && _b !== -1)
+            return -1;
+          else {
+            if (a.humanName === b.humanName && a.parent && a.parent.title
+                && b.parent && b.parent.title) {
+              return a.parent.title < b.parent.title ? 1 : -1;
+            } else
+              return a.humanName < b.humanName ? 1 : -1;
+            }
+        }, this));
       }
 
       // Add to collection.
