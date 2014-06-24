@@ -23,8 +23,9 @@ define([
       this.parentView = options.parentView;
 
       // Default collection
-      if (!this.collection)
+      if (!this.collection) {
         this.collection = new Backbone.Collection({model: Backbone.Model});
+      }
       this.collection.options = options;
 
       // List views
@@ -39,10 +40,12 @@ define([
     render: function (options) {
       this.collection.off('reset', this.reset, this);
       options = options || {};
-      if (this.parentView && this.$el.attr('class'))
+      if (this.parentView && this.$el.attr('class')) {
         this.setElement(this.parentView.$('.' + _.str.strLeft(this.$el.attr('class'), ' ')));
-      if (this.template)
+      }
+      if (this.template) {
         this.$el.html(this.template(_.extend(options, {util: util})));
+      }
       this.trigger('rendered');
       return this;
     },
@@ -87,10 +90,11 @@ define([
         model: model
       }, this.app);
       if (pagination !== true
-          && this.collection.options && this.collection.options.reverse)
+          && this.collection.options && this.collection.options.reverse) {
         this.views.unshift(view);
-      else
+      } else {
         this.views.push(view);
+      }
       return view.toHTML();
     },
 

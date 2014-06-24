@@ -35,7 +35,7 @@ define([
       this.app.rpc.socket.on('view.removed', _.bind(this._remove, this));
 
       // Reset the collection.
-      this.collection.reset(this.app.profile.content.views.items);
+      this.collection.reset(this.app.profile.content.views.own.items);
     },
 
     setup: function () {
@@ -57,7 +57,9 @@ define([
     },
 
     collect: function (data) {
-      if (data.author.id === this.app.profile.user.id) {
+      var id = this.parentView.model ? this.parentView.model.id:
+          this.app.profile.user.id;
+      if (data.author.id === id) {
         this.collection.unshift(data);
         this.updateCount();
       }
