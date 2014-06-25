@@ -67,8 +67,8 @@ SolutionStack=64bit Amazon Linux 2014.02 running Node.js
 
 ```
 [aws:autoscaling:asg]
-MaxSize=20
-MinSize=1
+MaxSize=3
+MinSize=3
 
 [aws:autoscaling:launchconfiguration]
 EC2KeyName=skyline
