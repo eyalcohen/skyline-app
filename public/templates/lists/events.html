@@ -2,7 +2,7 @@
 
   var user = this.app.profile.user;
   var gravatar = user ? 'https://www.gravatar.com/avatar/'
-      + user.gravatar + '?s=50&d=mm': null;
+      + user.gravatar + '?s=50&d=identicon': null;
   var feed = store.get('feed') || {};
   var private = this.app.profile.content.private;
 

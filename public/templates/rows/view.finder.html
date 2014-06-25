@@ -3,9 +3,9 @@
   // Gravatar
   var size = this.parentView.modal ? 15: 20;
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + this.model.get('author').gravatar + '?s=' + size + '&d=mm';
+      + this.model.get('author').gravatar + '?s=' + size + '&d=identicon';
   var parent_gravatar = this.model.get('parent') ? 'https://www.gravatar.com/avatar/'
-      + this.model.get('parent').author.gravatar + '?s=' + size + '&d=mm': null;
+      + this.model.get('parent').author.gravatar + '?s=' + size + '&d=identicon': null;
 
 %>
 
