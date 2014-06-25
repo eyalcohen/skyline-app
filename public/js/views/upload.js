@@ -293,7 +293,7 @@ define([
       this.app.rpc.do('insertSamples', { fileId: this.fileId }, _.bind(function (err, res) {
         this.newFileButtonSpin.stop();
         if (err) {
-          $('.upload-preview-error').text(err);
+          $('.upload-preview-error').text(err).fadeIn();
         } else {
           // On success, we navigatew to the dataset landing page
           var path = [this.app.profile.user.username, res.id, 'config'].join('/');
