@@ -162,7 +162,7 @@ define([
 
       // Blur.
       if (!this.searchVal()) {
-        this.input.attr({placeholder: 'Search...'});
+        this.input.attr({placeholder: 'Search for datasets, channels and more...'});
       }
       this.input.parent().removeClass('active');
       this.hideResults();

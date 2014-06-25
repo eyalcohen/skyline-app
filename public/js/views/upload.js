@@ -38,8 +38,6 @@ define([
     },
 
     events: {
-      'change .upload-form input': 'preview',
-      'change .upload-form select': 'preview',
       'click .button:not(disabled)': 'submit',
     },
 
@@ -91,6 +89,10 @@ define([
           width: 2,
           radius: 6
         });
+
+        // debounce change inputs
+        $('.upload-form input, .upload-form select')
+          .change(_.debounce(_.bind(this.preview, this), 200));
 
         this.updateView(err, res);
 

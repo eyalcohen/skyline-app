@@ -48,7 +48,7 @@ define([
         this.choices = new Choices(this.app, {
           reverse: true,
           el: '.header-search',
-          placeholder: 'Search for something...',
+          placeholder: 'Search for datasets, channels and more...',
           route: true,
           choose: true,
           types: ['users', 'views', 'datasets', 'channels']
