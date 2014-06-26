@@ -4067,7 +4067,7 @@ a.control-button-save.saving {
   transition: opacity 0.3s;
 }
 
-.overview div:not(.overview-selection) {
+.overview-vis, .overview-plot, .overview-time-diff {
   position: absolute;
   width: 100%;
   height: 107px;
@@ -4101,6 +4101,10 @@ a.control-button-save.saving {
   height: 37px;
 }
 
+.main.embed .overview-date {
+  display: none;
+}
+
 .lower-panel .overview .overview-date {
   position: absolute;
   height: auto;
@@ -4125,6 +4129,33 @@ a.control-button-save.saving {
 }
 
 .overview-date > span {
+  display:table-cell;
+  vertical-align: bottom;
+}
+
+.overview .overview-cursor {
+  width: 1px;
+  background-color: #3f3f3f;
+  display: none;
+  position: absolute;
+  left: 0px;
+  height: 100%;
+}
+
+.overview .overview-cursor-date {
+  position: relative;
+  bottom: 0px;
+  left: 0px;
+  height: 20px;
+  color: #3f3f3f;
+  margin-left: 5px;
+
+  -webkit-transform: rotate(-90deg); 
+  -moz-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+}
+
+.overview-cursor-date > span {
   display:table-cell;
   vertical-align: bottom;
 }

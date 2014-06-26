@@ -55,13 +55,16 @@ define([
     },
 
     // Bind mouse events.
-    events: {},
+    events: {
+    },
 
     // Misc. setup.
     setup: function () {
 
       // Safe refs.
       this.selection = this.$('.overview-selection');
+      this.cursor = this.$('.overview-cursor');
+      this.cursorDate = $('.overview-cursor-date');
 
       this.visTimePlot = $('<div class="overview-vis">').appendTo(this.$el);
       this.visTimePlot.bind('mousedown', _.bind(this.overviewZoom, this));
@@ -86,6 +89,27 @@ define([
       _.delay(_.bind(function () {
         this.$el.css({opacity: 1});
       }, this), 500);
+
+      this.$el.mouseenter(_.bind(function(e) {
+        console.log('here');
+        this.cursor.fadeIn();
+      }, this));
+      this.$el.mousemove(_.bind(function(e) {
+        this.cursor.css({left: e.pageX})
+        var time = this.getVisibleTime();
+        var pixLeft = e.pageX - this.$el.offset().left;
+        var width = this.$el.width();
+        var d = util.toLocaleString(
+          new Date(((time.end - time.beg) * pixLeft/width + time.beg) / 1e3), 'mmm d yyyy');
+        //var d = util.toLocaleString(
+        //  new Date((time.end - time.beg)/1e3), 'mmm d yyyy');
+        console.log(pixLeft, width, time, d, time.end - time.beg, (time.end - time.beg) * pixLeft/width);
+        //this.cursorDate.text(e.pageX + ' ' + this.$el.width() + ' ' + this.$el.offset());
+        this.cursorDate.text(d);
+      }, this));
+      this.$el.mouseleave(_.bind(function(e) {
+        this.cursor.fadeOut();
+      }, this));
 
       return this;
     },
