@@ -138,3 +138,15 @@ Check that your new version of Skyline is running at [```http://skyline.elasticb
 Lastly, ```git push``` the version bump auto-commit to avoid conflicts in ```package.json``` and/or overwriting old frontend directory on Amazon S3.
 
 That's it!
+
+### Archicture Notes
+
+##### Search
+
+Search is done on a redis instance.  Any search string is inserted into a Redis sorted set with the format ```string::id```.  Search is then accomplished by doing a lexicographical comparison on the query.  For example, searching for ```sp``` will return any search entry that begins with ```sp``` such as ```speed``` and ```spit```.  
+
+We index of datasets, channels, users and views across their names, tags and source information.  Entries into the redis cluster are automatically stemmed.
+
+The architecture for search doesn't allow for removal of entries very easily (would need to search the sorted set for an entry which is difficult to do in Redis).  Because removal is rare, a good solution is to just re-index nightly.  This can be accomplished by installing Node where the Redis instance is located and running a cron job like below.
+
+```0 3 * * * NODE_ENV=production bash -c '/home/ec2-user/skyline-app/util/index.js'```
