@@ -355,13 +355,14 @@ define([
 
     download: function (e) {
       e.preventDefault();
-      if (this.graph.model.getChannels().length > 0)
+      if (this.graph.model.getChannels().length > 0) {
         new Export(this.app, {parentView: this}).render();
-      else
+      } else {
         mps.publish('flash/new', [{
           message: 'No data to download.',
           level: 'alert'
         }]);
+      }
     },
 
     share: function (e) {

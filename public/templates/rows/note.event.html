@@ -6,6 +6,7 @@
   var channels = model.get('channels');
   var link = [this.parentView.parentView.model.get('author').username,
       this.parentView.parentView.model.id].join('/');
+  var rcnt = model.get('replies_cnt');
 %>
 
 <a href="/<%= model.get('author').username %>" class="comment-avatar navigate">
@@ -39,6 +40,8 @@
         <%= model.get('created') %>
       </time>
     </a>
+    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+    <%= rcnt %> repl<%= rcnt === 1 ? 'y': 'ies' %>
     <% if (this.app.profile.user &&
         model.get('author').id === this.app.profile.user.id) { %>
       <span class="info-divider">&nbsp;&middot;&nbsp;</span>

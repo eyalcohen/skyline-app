@@ -3074,11 +3074,11 @@ p.event-description {
 }
 
 .event-comment.highlight-dataset {
-  background-color: rgba(39, 205, 214, 0.5);
+  background-color: rgba(39, 205, 214, 0.2);
 }
 
 .event-comment.highlight-view {
-  background-color: rgba(96, 237, 31, 0.5);
+  background-color: rgba(96, 237, 31, 0.2);
 }
 
 .event-comment-body {
@@ -3244,6 +3244,8 @@ textarea.event-comment-input {
 
 .event-note .comment-info {
   margin-left: 40px;
+  color: #8f8f8f;
+  font-size: 10px;
 }
 
 .event-note-divider {
@@ -3292,12 +3294,21 @@ textarea.event-comment-input {
   animation-fill-mode: both;
 }
 
+.event-dataset.single,
+.event-view.single {
+  border-left: 1px solid #f2f2f2;
+  margin-left: 48px;
+}
+
 .event-dataset .leftside,
 .event-view .leftside {
   width: 630px;
-  margin-left: 48px;
   padding-left: 40px;
-  border-left: 1px solid #f2f2f2;
+}
+
+.event-dataset .rightside,
+.event-view .rightside {
+  margin: 0 0 0 710px;
 }
 
 ul.event-channels {
