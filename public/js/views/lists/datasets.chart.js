@@ -92,6 +92,9 @@ define([
 
       // Notify.
       mps.publish('dataset/added');
+
+      // For rendering new tooltips
+      $('.tooltip').tooltipster({delay: 600});
     },
 
     removed: function (d) {

@@ -4,11 +4,11 @@
 %>
 
 <% if (this.app.profile.user && !this.app.embed) { %>
-  <div class="dataset-control dataset-control-remove">
+  <div class="dataset-control dataset-control-remove tooltip" title="Remove dataset">
     <i class="icon-cancel"></i>
   </div>
 <% } %>
-<div class="dataset-control dataset-control-notes">
+<div class="dataset-control dataset-control-notes tooltip" title="Show/hide comments">
   <i class="icon-comment"></i>
 </div>
 <div class="dataset-avatar tooltip" title="<%= this.model.get('author').displayName %>">
