@@ -39,7 +39,7 @@ define([
 
       // Client-wide subscriptions
       this.subscriptions = [
-        mps.subscribe('channel/add', _.bind(function (did, channel, yaxis) {
+        mps.subscribe('channel/add', _.bind(function (did, channel, silent) {
           if (this.graph.model.getChannels().length === 0
               && !this.app.profile.content.page
               && !this.app.requestedNoteId
@@ -47,7 +47,7 @@ define([
             mps.publish('chart/zoom', [{min: channel.beg / 1000, max: channel.end / 1000}]);
           }
           this.graph.model.addChannel(this.datasets.collection.get(did),
-              _.clone(channel));
+              _.clone(channel), silent);
           this.overview.model.addChannel(this.datasets.collection.get(did),
               _.clone(channel));
           this.map.addChannel(channel);
@@ -554,11 +554,14 @@ define([
     onStateChange: function (state) {
       var user = this.app.profile.user;
 
-      // we add a hash for freeform mode, (not in a view)
-      if (!this.app.profile.content.page && window.location.hash === '') {
-
-        // ensure that url routing is not broken by adding the hash.
-        this.app.router.navigate(Backbone.history.fragment + '#chart', {trigger: false, replace: true});
+      // we add /chart for freeform mode, (not in a view)
+      if (!this.app.profile.content.page) {
+        var parts = Backbone.history.fragment.split('/');
+        if (_.last(parts) !== 'chart') {
+          // ensure that url routing is not broken by adding the extra param.
+          this.app.router.navigate(Backbone.history.fragment + '/chart',
+              {trigger: false, replace: true});
+        }
       }
 
       // If this is explore mode, i.e. (/chart), do nothing.
@@ -574,22 +577,25 @@ define([
 
     // adds any pending channel requests, or at least one if none are open
     openRequestedChannels: function(did, channels) {
-
       _.each(this.requestedChannels, function (requestedChannel) {
         var found = _.find(channels, function (chn) {
           return requestedChannel === chn.channelName;
         });
         if (found) {
-          mps.publish('channel/add', [did, found]);
+          mps.publish('channel/add', [did, found, true]);
         }
       });
 
+      // Commenting this out cause it _should_ never happen w/ the
+      // intermediate dataset pages.
+      /*
       // check if we have any channels open
       // we automatically open the first channel if none are open or requested
       var state = store.get('state');
       if (!(_.compact(_.pluck(state.datasets, 'channels')).length)) {
         mps.publish('channel/add', [did, channels[0]]);
       }
+      */
     },
 
   });

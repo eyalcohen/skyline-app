@@ -76,6 +76,9 @@ define([
         var min = this.model.get('beg') - 2*dur;
         var max = this.model.get('end') + 3*dur;
         mps.publish('chart/zoom', [{min: min, max: max}]);
+        _.each(this.model.get('channels'), function (c) {
+          mps.publish('dataset/requestOpenChannel', [c.channelName]);
+        });
       } else if (single) {
         this.open();
       }

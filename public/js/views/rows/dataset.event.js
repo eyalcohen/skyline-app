@@ -11,14 +11,18 @@ define([
   'util',
   'models/dataset',
   'text!../../../templates/rows/dataset.event.html',
+  'text!../../../templates/dataset.header.html',
   'views/lists/comments.event',
+  'views/lists/notes.event',
   'text!../../../templates/confirm.html'
-], function ($, _, Backbone, mps, rest, util, Model, template, Comments, confirm) {
+], function ($, _, Backbone, mps, rest, util, Model, template, header, Comments, Notes, confirm) {
   return Backbone.View.extend({
 
     attributes: function () {
       var attrs = {class: 'event-dataset'};
-      if (this.model) attrs.id = this.model.id;
+      if (this.model) {
+        attrs.id = this.model.id;
+      }
       return attrs;
     },
 
@@ -26,15 +30,12 @@ define([
       this.app = app;
       this.model = new Model(options.model || this.app.profile.content.page);
       this.parentView = options.parentView;
+      this.wrap = options.wrap;
       this.template = _.template(template);
-
-      // Shell events.
+      this.subscriptions = [];
       this.on('rendered', this.setup, this);
 
-      // Client-wide subscriptions.
-      this.subscriptions = [];
-
-      // Socket subscriptions
+      // Socket subscriptions.
       this.app.rpc.socket.on('channel.removed', _.bind(this.removeChannel, this));
 
       return this;
@@ -48,8 +49,21 @@ define([
     render: function () {
 
       // Render content
-      this.$el.html(this.template.call(this));
-      this.$el.prependTo(this.parentView.$('.event-right'));
+      this.$el.html(this.template.call(this, {util: util}));
+      if (this.parentView) {
+        this.$el.prependTo(this.parentView.$('.event-right'));
+      } else {
+        this.$el.appendTo(this.wrap);
+      }
+
+      // Render title if single
+      if (!this.parentView) {
+        this.$el.addClass('single')
+        this.app.title('Skyline | ' + this.model.get('title'));
+
+        // Render title.
+        this.title = _.template(header).call(this, {util: util});
+      }
 
       // Trigger setup.
       this.trigger('rendered');
@@ -59,11 +73,11 @@ define([
 
     setup: function () {
 
-      // Render comments.
-      this.comments = new Comments(this.app, {
-        parentView: this,
-        type: 'dataset'
-      });
+      // Render lists.
+      this.comments = new Comments(this.app, {parentView: this, type: 'dataset'});
+      if (!this.parentView) {
+        this.notes = new Notes(this.app, {parentView: this, sort: 'created', reverse: true});
+      }
 
       // Draw SVG for each channel.
       _.each(this.model.get('channels'), _.bind(function (c) {
@@ -80,21 +94,28 @@ define([
         mps.unsubscribe(s);
       });
       this.comments.destroy();
+      if (this.notes) {
+        this.notes.destroy();
+      }
       this.undelegateEvents();
       this.stopListening();
-      if (this.timer)
+      if (this.timer) {
         clearInterval(this.timer);
+      }
       this.remove();
     },
 
     navigate: function (e) {
       e.preventDefault();
       if ($(e.target).hasClass('event-channel-delete')
-          || $(e.target).hasClass('icon-cancel')) return;
+          || $(e.target).hasClass('icon-cancel')) {
+        return;
+      }
 
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
+      }
     },
 
     deleteChannel: function (e) {
@@ -105,7 +126,9 @@ define([
       var li = $(e.target).closest('li');
       rest.delete('/api/channels/' + li.data('id'),
           {}, _.bind(function (err, data) {
-        if (err) return console.log(err);
+        if (err) {
+          return console.log(err);
+        }
         li.remove();
       }, this));
 
@@ -117,9 +140,12 @@ define([
     },
 
     when: function () {
-      if (!this.model.get('created')) return;
-      if (!this.time)
+      if (!this.model.get('created')) {
+        return;
+      }
+      if (!this.time) {
         this.time = this.$('time.created:first');
+      }
       this.time.text(util.getRelativeTime(this.model.get('created')));
     },
 

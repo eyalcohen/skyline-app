@@ -52,6 +52,7 @@ define([
         time = {
           beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
           end: Date.now() * 1e3,
+          pending: true
         };
       }
       this.model = new Graph(this.app, {view: this, time: time});
@@ -623,6 +624,7 @@ define([
 
     onDraw: function () {
       var t = this.getVisibleTime();
+      // console.log(t, this.prevBeg, this.prevEnd)
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
         this.trigger('VisibleTimeChange', {beg: t.beg, end: t.end});

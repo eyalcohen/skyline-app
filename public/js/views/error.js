@@ -28,7 +28,12 @@ define([
       this.app.title('Oops');
 
       this.template = _.template(template);
-      this.$el.html(this.template.call(this)).appendTo('.main');
+
+      if ($('.main').length > 0) {
+        this.$el.html(this.template.call(this)).appendTo('.main');
+      } else {
+        this.$el.html(this.template.call(this)).appendTo('.container');
+      }
 
       this.trigger('rendered');
       return this;

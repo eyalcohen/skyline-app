@@ -29,7 +29,7 @@ define([
   'views/profile',
   'views/library',
   'views/chart',
-  'views/dataset',
+  'views/rows/dataset.event',
   'views/static',
   'text!../templates/about.html',
   'text!../templates/contact.html',
@@ -66,6 +66,9 @@ define([
       this.route(':username', 'profile', this.profile);
       this.route(':username/:id', 'dataset', this.dataset);
       this.route(':username/:id/:channel', 'chart', this.chart);
+      this.route(':username/:id/note/:nid', 'note', this.note);
+      this.route(':username/:id/:channel/chart', 'savedChart', this.savedChart);
+      this.route(':username/:id/note/:nid/chart', 'savedNote', this.savedNote);
       this.route(':username/:id/config', 'dataset.config', this.datasetConfig);
       this.route(':username/views/:slug', 'chart', this.chart);
       this.route('embed/:username/:id', 'chart', this.chart);
@@ -140,14 +143,6 @@ define([
         // Callback to route.
         cb(err);
       }
-
-      // Grab hash.
-      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
-        var tmp = window.location.hash.match(/#n=([a-z0-9]{24})/i);
-        if (tmp) {
-          this.app.requestedNoteId = tmp[1];
-        }
-      } 
 
       // Kill the page view if it exists.
       if (this.page) {
@@ -340,7 +335,7 @@ define([
       this.render('/service/dataset/' + id, {},
           _.bind(function (err) {
         if (err) return;
-        this.page = new Dataset(this.app).render();
+        this.page = new Dataset({wrap: '.main'}, this.app).render();
         this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
@@ -405,7 +400,20 @@ define([
       this.renderTabs({title: 'Terms and Conditions', subtitle: 'Last updated 7.27.2013'});
     },
 
-    chart: function (un, slug, channelName) {
+    savedNote: function (un, slug, noteId) {
+      this.note.call(this, un, slug, noteId, true);
+    },
+
+    note: function (un, slug, noteId, saved) {
+      this.app.requestedNoteId = noteId;
+      this.chart.call(this, un, slug, undefined, saved);
+    },
+
+    savedChart: function (un, slug, channelName) {
+      this.chart.call(this, un, slug, channelName, true);
+    },
+
+    chart: function (un, slug, channelName, saved) {
       if (slug) {
         slug = _.str.strLeft(slug, '#');
       }
@@ -419,14 +427,13 @@ define([
 
       var state = {};
       var path = window.location.pathname.toLowerCase();
-      var hash = parent.location.hash;
       var state = store.get('state');
       if (!slug || path.indexOf('/views/') !== -1) {
         var key = un && slug ? {un: un, slug: slug}: null;
         if (key) {
           state = {key: key}
         }
-      } else if (!hash || !state.datasets) {
+      } else if (!saved || !state.datasets) {
         state = {};
         state.datasets = {};
         state.datasets[slug] = {index: 0};
@@ -440,16 +447,19 @@ define([
       // Elsewhere it should be done through App.prototype.state.
       store.set('state', state);
       var data = {state: state};
-      if (this.app.embed) data.embed = true;
+      if (this.app.embed) {
+        data.embed = true;
+      }
       this.render('/service/chart', data, _.bind(function (err) {
         if (err) return;
         this.pageType = 'chart';
 
-        if (this.app.profile.content.page && this.app.profile.content.page.name)
+        if (this.app.profile.content.page && this.app.profile.content.page.name) {
           this.tabs.setTitle(this.app.profile.content.page.name, {center: true});
+        }
 
         var chart = new Chart(this.app);
-        if (channelName && (!hash ||  !state.datasets)) {
+        if (channelName && (!saved ||  !state.datasets)) {
           mps.publish('dataset/requestOpenChannel', [channelName]);
         }
         this.page = chart.render();

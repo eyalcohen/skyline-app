@@ -1534,6 +1534,10 @@ li.subtab.disabled a {
   color: #666;
 }
 
+.page-title-sub {
+  font-size: 11px;
+}
+
 .page-title a .page-title-sub {
   font-size: 14px;
 }
@@ -2931,6 +2935,13 @@ a.comments-signin,
   font-size: 11px;
 }
 
+.single .event-source {
+  float: none;
+  display: block;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
 p.event-description {
   width: 600px;
   font-size: 13px;
@@ -3043,6 +3054,7 @@ p.event-description {
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
+
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
   -o-animation-name: fadeIn;
@@ -3181,6 +3193,74 @@ textarea.event-comment-input {
 
 /*.........................................................................*/
 
+.event-note {
+  display: none;
+  position: relative;
+  padding: 10px 30px 0;
+  margin: 0 -30px;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.event-note .comment-body {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.event-note .comment-body p {
+  padding: 0 0 0 40px;
+}
+
+.event-note .note-channels {
+  padding: 0 0 0 40px;
+}
+
+.event-note .comment-info {
+  margin-left: 40px;
+}
+
+.event-note-divider {
+  border-top: 1px solid #f2f2f2;
+  margin: 0 -30px;
+}
+
+.event-note-nav {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: #e6e6e6;
+}
+
+.event-note-nav i {
+  position: absolute;
+  left: 2px;
+  color: #fff;
+}
+
+.event-note:hover .event-note-nav {
+  display: block;
+}
+
+/*.........................................................................*/
+
 .event-dataset,
 .event-view {
   position: relative;
@@ -3200,10 +3280,24 @@ textarea.event-comment-input {
   animation-fill-mode: both;
 }
 
+.event-dataset .leftside,
+.event-view .leftside {
+  width: 630px;
+  margin-left: 48px;
+  padding-left: 40px;
+  border-left: 1px solid #f2f2f2;
+}
+
 ul.event-channels {
   width: 600px;
   margin: 0 0 10px;
   list-style: none;
+}
+
+.single ul.event-channels,
+.single p.event-description,
+.single .event-info {
+  width: 630px;
 }
 
 ul.event-channels li {
@@ -4496,7 +4590,6 @@ a.channel-button {
   font-size: 21px;
 }
 
-
 /*.........................................................................*/
 
 .target {
@@ -4527,10 +4620,25 @@ a.channel-button {
   color: #666;
 }
 
+.single .target-info {
+  padding: 0;
+  font-size: 12px;
+  line-height: 18px;
+}
+
 .target-info-heading {
   display: block;
   font-weight: bold;
   margin-bottom: 2px;
+  color: #404040;
+}
+
+.single .target-info-heading {
+  margin: 0 -30px;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 0 30px 5px;
+  font-size: 14px;
+  font-weight: normal;
 }
 
 ul.target-info-list {
@@ -4539,12 +4647,18 @@ ul.target-info-list {
   list-style: none;
 }
 
-ul.target-info-list li {
-  
+.single ul.target-info-list {
+  margin-bottom: 30px;
+  margin-left: 0;
+  margin-top: 10px;
 }
 
-ul.target-info-list li:before {
-  /*content: "- ";*/
+.single ul.target-info-list li {
+  margin-bottom: 2px;
+}
+
+.single ul.target-info-list li:before {
+  content: "- ";
 }
 
 /*.........................................................................*/
@@ -4570,7 +4684,7 @@ ul.target-info-list li:before {
   position: absolute;
   width: 0;
   top: 0;
-  bottom: 0;
+  bottom: -1px;
   cursor: pointer;
 
   border-left: 1px dashed rgba(0,0,0,0.3);
