@@ -192,6 +192,7 @@ define([
         var save = e.type === 'click';
         mps.publish('channel/lineStyleUpdate',
             [this.channel.id, this.currentLineStyle, save]);
+        if (save) this.setViewLineStyle();
       }
 
       if (updatePoints && e.type === 'click') {
