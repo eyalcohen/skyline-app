@@ -23,7 +23,6 @@ define([
   'views/notifications',
   'views/splash',
   'views/settings',
-  'views/dataset.config',
   'views/upload',
   'views/reset',
   'views/profile',
@@ -37,7 +36,7 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    DatasetConfig, Upload, Reset, Profile, Library, Chart, Dataset, Static, aboutTemp, contactTemp,
+    Upload, Reset, Profile, Library, Chart, Dataset, Static, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -352,13 +351,15 @@ define([
 
     datasetConfig: function (un, id) {
       this.start();
+      this.renderTabs();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/settings', {}, true, _.bind(function (err) {
+      this.render('/service/dataset/' + id, {},
+          _.bind(function (err) {
         if (err) return;
-        this.page = new DatasetConfig(this.app, {user: un, id: id}).render();
+        this.page = new Dataset({wrap: '.main', config: true}, this.app).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
-      this.renderTabs();
     },
 
     about: function () {

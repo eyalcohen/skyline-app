@@ -31,6 +31,7 @@ define([
       this.model = new Model(options.model || this.app.profile.content.page);
       this.parentView = options.parentView;
       this.wrap = options.wrap;
+      this.config = options.config;
       this.template = _.template(template);
       this.subscriptions = [];
       this.on('rendered', this.setup, this);
@@ -74,9 +75,11 @@ define([
     setup: function () {
 
       // Render lists.
-      this.comments = new Comments(this.app, {parentView: this, type: 'dataset'});
-      if (!this.parentView) {
-        this.notes = new Notes(this.app, {parentView: this, sort: 'created', reverse: true});
+      if (!this.config) {
+        this.comments = new Comments(this.app, {parentView: this, type: 'dataset'});
+        if (!this.parentView) {
+          this.notes = new Notes(this.app, {parentView: this, sort: 'created', reverse: true});
+        }
       }
 
       // Draw SVG for each channel.
