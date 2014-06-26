@@ -144,6 +144,15 @@ define([
         cb(err);
       }
 
+      // Grab hash for comment.
+      this.app.requestedCommentId = null;
+      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
+        var tmp = window.location.hash.match(/#c=([a-z0-9]{24})/i);
+        if (tmp) {
+          this.app.requestedCommentId = tmp[1];
+        }
+      } 
+
       // Kill the page view if it exists.
       if (this.page) {
         this.page.destroy();

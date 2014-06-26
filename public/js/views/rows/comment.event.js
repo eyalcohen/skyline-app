@@ -28,6 +28,27 @@ define([
       'click .info-delete': 'delete',
     },
 
+    render: function (single, prepend, re) {
+      Row.prototype.render.apply(this, arguments);
+
+      // Highlight comment if indicated in URL
+      if (this.model.id === this.app.requestedCommentId) {
+        this.$el.addClass('highlight-' + this.model.get('parent_type'));
+        _.delay(_.bind(function () {
+          this.$el.removeClass('highlight-' + this.model.get('parent_type'));
+        }, this), 1000);
+        _.delay(_.bind(function () {
+          $.scrollTo(this.$el, 1000, {easing:'easeOutExpo'});
+        }, this), 100);
+      }
+
+      return this;
+    },
+
+    setup: function () {
+      return Row.prototype.setup.call(this);
+    },
+
     delete: function (e) {
       e.stopPropagation();
       e.preventDefault();
