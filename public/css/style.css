@@ -4511,6 +4511,9 @@ a.channel-button {
 .target-description {
   display: block;
   margin-bottom: 10px;
+  max-height:160px;
+  overflow: auto;
+  margin-left: 5px;
 }
 
 .target-info {
