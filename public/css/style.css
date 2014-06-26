@@ -2667,6 +2667,10 @@ textarea.comment-input:focus {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+
+  -webkit-transition: background-color 1s ease-in-out;
+  -moz-transition: background-color 1s ease-in-out;
+  transition: background-color 1s ease-in-out;
 }
 
 .comment + .comment {
@@ -3073,12 +3077,14 @@ p.event-description {
   transition: background-color 1s ease-in-out;
 }
 
+.comment.highlight-dataset,
 .event-comment.highlight-dataset {
-  background-color: rgba(39, 205, 214, 0.2);
+  background-color: #d3f5f7;
 }
 
+.comment.highlight-view,
 .event-comment.highlight-view {
-  background-color: rgba(96, 237, 31, 0.2);
+  background-color: #dffcd2;
 }
 
 .event-comment-body {
