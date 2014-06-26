@@ -10,5 +10,6 @@ define([
   'lib/jquery/jquery.mousewheel',
   'lib/jquery/jquery.easing.min',
   'lib/jquery/jquery.minicolors.min',
+  'lib/jquery/jquery.tooltipster.min',
   'lib/jquery/jquery.flot'
 ], function () { return true; });

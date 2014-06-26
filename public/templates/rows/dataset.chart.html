@@ -1,5 +1,6 @@
 <%
   var numChannels = this.model.get('channels_cnt');
+  console.log(this.model.get('author'));
 %>
 
 <% if (this.app.profile.user && !this.app.embed) { %>
@@ -10,11 +11,11 @@
 <div class="dataset-control dataset-control-notes">
   <i class="icon-comment"></i>
 </div>
-<div class="dataset-avatar">
+<div class="dataset-avatar tooltip" title="<%= this.model.get('author').displayName %>">
   <img src="https://www.gravatar.com/avatar/<%= this.model.get('author').gravatar %>?s=23&d=identicon"
       width="23" height="23" />
 </div>
-<a class="dataset-button" href="javascript:;">
+<a class="dataset-button tooltip" title="click to keep channel list open" href="javascript:;">
   <span class="dataset-title">
     <i class="icon-<%= this.model.get('public') === false ? 'lock': 'database' %>"></i><span><%= this.model.get('title') %></span>
   </span>

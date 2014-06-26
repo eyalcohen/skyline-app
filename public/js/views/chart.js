@@ -30,6 +30,7 @@ define([
     working: false,
 
     initialize: function (app, options) {
+
       this.app = app;
       this.options = options;
       this.on('rendered', this.setup, this);
@@ -155,6 +156,9 @@ define([
       this.overview = new Overview(this.app, {parentView: this}).render();
       this.map = new Map(this.app, {parentView: this}).render(this.graph.getVisibleTime());
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
+
+      // For rendering tooltips
+      $('.tooltip').tooltipster({delay: 600});
 
       if (state.time) {
         mps.publish('chart/zoom', [{min: state.time.beg/1000, max: state.time.end/1000}]);

@@ -1,35 +1,34 @@
 <%
   var user = this.app.profile ? this.app.profile.user: null;
 %>
-
 <div class="upper-panel">
   <div class="datasets"></div>
   <div class="controls">
     <% if (user && !this.app.embed) { %>
-      <a class="control-button control-button-share" href="javascript:;">
+      <a class="control-button control-button-share tooltip" title="Share" href="javascript:;">
         <i class="icon-share"></i>
       </a>
     <% } %>
-    <a class="control-button control-button-comments" href="javascript:;">
+    <a class="control-button control-button-comments tooltip" title="Information" href="javascript:;">
       <i class="icon-info-circled"></i>
     </a>
     <% if (user && !this.app.embed) { %>
-      <a class="control-button control-button-download" href="javascript:;">
+      <a class="control-button control-button-download tooltip" title="Export Chart" href="javascript:;">
         <i class="icon-download"></i>
       </a>
-      <a class="control-button control-button-save" href="javascript:;">
+      <a class="control-button control-button-save tooltip" title="Save View" href="javascript:;">
         <div class="button-spin save-button-spin"></div>
         <i class="icon-floppy"></i>
       </a>
     <% } %>
-    <a class="control-button control-button-monthly" href="javascript:;">Mo</a>
-    <a class="control-button control-button-weekly" href="javascript:;">Wk</a>
-    <a class="control-button control-button-daily" href="javascript:;">Dy</a>
+    <a class="control-button control-button-monthly tooltip" title="View Month" href="javascript:;">Mo</a>
+    <a class="control-button control-button-weekly tooltip" title="View Week" href="javascript:;">Wk</a>
+    <a class="control-button control-button-daily tooltip" title="View Day" href="javascript:;">Dy</a>
   </div>
 </div>
 <div id="side_panel" class="side-panel">
   <div class="map-panel">
-    <a href="javascript:;" class="button map-button">
+    <a href="javascript:;" class="button map-button tooltip" title="Map">
       <i class="icon-map"><i class="icon-angle-left"></i>
           <i class="icon-angle-left"></i></i>
     </a>
@@ -50,7 +49,7 @@
       <label> Value: </label> <span class="cursor-val"></span>
     </div>
     <% if (user && !this.app.embed) { %>
-      <a href="javascript:;" class="note-button">
+      <a href="javascript:;" class="note-button tooltip" title="Click and drag to create a new note">
         <i class="icon-bookmark"></i>Note
       </a>
       <a href="javascript:;" class="note-cancel-button">

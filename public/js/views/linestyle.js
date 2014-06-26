@@ -75,6 +75,9 @@ define([
 
       this.setViewLineStyle();
 
+      // For rendering tooltips
+      $('.tooltip').tooltipster({delay: 600});
+
       $('.linestyle-color').minicolors( {
         position: 'bottom left',
         change: _.bind(function(hex, opacity) { this.colorChange(hex); }, this),
