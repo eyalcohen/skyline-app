@@ -212,7 +212,6 @@ if (cluster.isMaster) {
           })) {
             return _next();
           }
-          console.log(req.headers.host + req.url)
           res.redirect('https://' + req.headers.host + req.url);
         } else {
           _next();
@@ -362,16 +361,14 @@ if (cluster.isMaster) {
             // Start server
             if (process.env.NODE_ENV !== 'production') {
               server.listen(app.get('PORT'));
-
-              util.log('Worker ' + cluster.worker.id
-                  + ': Web server listening on port ' + app.get('PORT'));
             } else {
               server.listen(app.get('SECURE_PORT'));
               _server.listen(app.get('PORT'));
-
-              util.log('Worker ' + cluster.worker.id
-                  + ': Web server listening on port ' + app.get('SECURE_PORT'));
             }
+            util.log('Worker ' + cluster.worker.id
+                + ': Web server listening on port '
+                + (process.env.NODE_ENV !== 'production' ?
+                app.get('PORT'): app.get('SECURE_PORT')));
           }
         );
       }
