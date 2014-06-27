@@ -44,7 +44,9 @@ define([
 
     events: {
       'click .navigate': 'navigate',
-      'click .event-channel-delete': 'deleteChannel'
+      'click .demolish': 'demolish',
+      'click .event-channel-delete': 'deleteChannel',
+      'click .save-private': 'checkPrivate'
     },
 
     render: function () {
@@ -74,11 +76,19 @@ define([
 
     setup: function () {
 
+      // Save field contents on blur.
+      if (this.config) {
+        this.privateButton = this.$('.save-private');
+        this.$('textarea, input[type="text"]').change(_.bind(this.save, this));
+      }
+
       // Render lists.
       if (!this.config) {
-        this.comments = new Comments(this.app, {parentView: this, type: 'dataset'});
+        this.comments = new Comments(this.app,
+            {parentView: this, type: 'dataset'});
         if (!this.parentView) {
-          this.notes = new Notes(this.app, {parentView: this, sort: 'created', reverse: true});
+          this.notes = new Notes(this.app,
+              {parentView: this, sort: 'created', reverse: true});
         }
       }
 
@@ -123,6 +133,78 @@ define([
       }
     },
 
+    // Save the field.
+    save: function (e) {
+      var field = $(e.target);
+      var name = field.attr('name');
+      var val = util.sanitize(field.val());
+
+      // Create the paylaod.
+      if (val === field.data('saved')) return false;
+      var payload = {};
+      payload[name] = val;
+
+      // Now do the save.
+      rest.put('/api/datasets/' + this.model.id, payload,
+          _.bind(function (err) {
+        if (err) {
+
+          // Show error.
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+
+          return false;
+        }
+
+        // Save the saved state and show indicator.
+        field.data('saved', val);
+        
+        // Show saved status.
+        mps.publish('flash/new', [{
+          message: 'Saved.',
+          level: 'alert'
+        }]);
+
+      }, this));
+
+      return false;
+    },
+
+    demolish: function (e) {
+      e.preventDefault();
+
+      // Render the confirm modal.
+      $.fancybox(_.template(confirm)({
+        message: 'Delete this dataset?',
+      }), {
+        openEffect: 'fade',
+        closeEffect: 'fade',
+        closeBtn: false,
+        padding: 0
+      });
+
+      // Setup actions.
+      $('.modal-cancel').click(function (e) {
+        $.fancybox.close();
+      });
+      $('.modal-confirm').click(_.bind(function (e) {
+
+        // Delete the user.
+        rest.delete('/api/datasets/' + this.id,
+            {}, _.bind(function (err) {
+          if (err) return console.log(err);
+
+          // Route to home.
+          this.app.router.navigate('/', {trigger: true});
+
+          // Close the modal.
+          $.fancybox.close();
+
+        }, this));
+      }, this));
+
+      return false;
+    },
+
     deleteChannel: function (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -142,16 +224,6 @@ define([
 
     removeChannel: function (data) {
       var li = $('li[data-id=' + data.id + ']').remove();
-    },
-
-    when: function () {
-      if (!this.model.get('created')) {
-        return;
-      }
-      if (!this.time) {
-        this.time = this.$('time.created:first');
-      }
-      this.time.text(util.getRelativeTime(this.model.get('created')));
     },
 
     drawChannel: function(channel) {
@@ -228,6 +300,41 @@ define([
             .attr('d', path(sampleObj.samples))
             .attr('class', 'area')
             .attr('fill', '#000000');
+      }, this));
+    },
+
+    when: function () {
+      if (!this.model.get('created')) {
+        return;
+      }
+      if (!this.time) {
+        this.time = this.$('time.created:first');
+      }
+      this.time.text(util.getRelativeTime(this.model.get('created')));
+    },
+
+    checkPrivate: function (e) {
+      if (this.privateButton.hasClass('disabled')) return;
+      var span = $('span', this.privateButton.parent());
+      var payload = {};
+      if (this.privateButton.is(':checked')) {
+        span.html('<i class="icon-lock"></i> Private');
+        payload.public = false;
+      } else {
+        span.html('<i class="icon-lock-open"></i> Public');
+        payload.public = true;
+      }
+
+      // Now do the save.
+      rest.put('/api/datasets/' + this.model.id, payload,
+          _.bind(function (err) {
+        if (err) {
+          return false;
+        }
+        mps.publish('flash/new', [{
+          message: 'Saved.',
+          level: 'alert'
+        }]);
       }, this));
     },
 

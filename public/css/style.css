@@ -631,9 +631,9 @@ input[type=submit].loading {
 a.button.connect-button {
   width: 100%;
   margin-bottom: 15px;
-  padding-left: 20%;
+  /*padding-left: 20%;*/
   color: #fff;
-  text-align: left;
+  text-align: center;
   line-height: 23px;
   border: none !important;
 
@@ -1690,8 +1690,8 @@ body.embed .block-messages {
 .block-remove {
   float: right;
   cursor: pointer;
-  padding: 0 10px;
-  line-height: 40px;
+  padding: 0 15px;
+  line-height: 60px;
   color: #6f6f6f;
   font-size: 14px;
 
@@ -1718,39 +1718,29 @@ body.embed .block-messages {
   -moz-border-radius: 3px;
   border-radius: 3px;
 
-  -webkit-animation-name: fadeIn;
-  -moz-animation-name: fadeIn;
-  -o-animation-name: fadeIn;
-  animation-name: fadeIn;
-  -webkit-animation-duration: .2s;
-  -moz-animation-duration: .2s;
-  -o-animation-duration: .2s;
-  animation-duration: .2s;
-  -webkit-animation-fill-mode: both;
-  -moz-animation-fill-mode: both;
-  -o-animation-fill-mode: both;
-  animation-fill-mode: both;
-
   -moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
   -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
 }
 
 .block-error {
-  background: #f0b7b7;
+  background: #fcfcfc;
 }
 
 .block-alert {
-  background: #bef0f3;
+  background: #fcfcfc;
 }
 
 .block-error-txt,
 .block-alert-txt {
   font-size: 11px;
-  padding: 0 10px;
+  padding: 0 15px;
   color: #2f2f2f;
-  font-weight: 700;
-  line-height: 40px;
+  line-height: 60px;
+}
+
+.block-error-txt {
+  color: #E31E1E;
 }
 
 .block-error-txt a {
@@ -3787,6 +3777,8 @@ p.sidebar-tip span {
 }
 
 .settings-error {
+  display: inline;
+  text-align: right;
   line-height: inherit;
 }
 

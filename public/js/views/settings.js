@@ -54,8 +54,9 @@ define([
         var label = $('label[for="' + field.attr('name') + '"]');
         var saved = $('.settings-saved', label.parent().parent());
 
-        if (field.val().trim() !== field.data('saved'))
+        if (field.val().trim() !== field.data('saved')) {
           saved.hide();
+        }
 
         return false;
       });
@@ -123,9 +124,10 @@ define([
           // Set the error display.
           errorMsg.text(err.message).show();
 
-          // Clear fields.
-          if (err === 'Username exists')
+          // Show error highlight.
+          if (err === 'Username exists') {
             field.addClass('input-error').focus();
+          }
 
           return false;
         }
