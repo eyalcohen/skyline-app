@@ -11,7 +11,7 @@
       }
     ]
   },
-  "domain": "skyline-data.com",
+  "domain": "www.skyline-data.com",
   "builds": {
     "bucket": "builds-skyline",
     "cloudfront": "https://dq5scpwh6tc71.cloudfront.net"
