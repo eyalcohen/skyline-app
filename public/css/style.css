@@ -4089,12 +4089,14 @@ a.control-button-save.saving {
   opacity: 0.1;
 }
 
-#overview-text {
-  top: 42%;
+.overview .overview-cursor-diff {
+  position: absolute;
+  bottom: 0;
   width: auto;
   height: auto;
-  font-size: 14px;
-  color: #3f3f3f;
+  font-size: 13px;
+  color: #4c4c4c;
+  z-index: 30000;
 }
 
 .main.embed .overview .overview-selection {
@@ -4136,10 +4138,14 @@ a.control-button-save.saving {
 .overview .overview-cursor {
   width: 1px;
   background-color: #3f3f3f;
+  height: 85%;
+}
+
+.overview .overview-cursor-wrap {
+  height:100%;
   display: none;
   position: absolute;
   left: 0px;
-  height: 100%;
   z-index: 40000;
 }
 
