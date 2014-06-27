@@ -82,6 +82,7 @@ if (cluster.isMaster) {
 
   // App port is env var in production.
   app.set('PORT', process.env.PORT || argv.port);
+  app.set('SECURE_PORT', 8443);
 
   // Add connection config to app.
   _.each(require('./config').get(process.env.NODE_ENV), function (v, k) {
@@ -202,20 +203,19 @@ if (cluster.isMaster) {
 
       app.all('*', function (req, res, next) {
 
-        // // Check protocol.
-        // if (process.env.NODE_ENV === 'production'
-        //     && app.get('package').protocol.name === 'https') {
-        //   if (req.secure || _.find(app.get('package').protocol.allow,
-        //       function (allow) {
-        //     return req.url === allow.url && req.method === allow.method;
-        //   })) {
-        //     return _next();
-        //   }
-        //   // res.redirect('https://' + req.headers.host + req.url);
-        // } else {
-        //   _next();
-        // }
-        _next();
+        // Check protocol.
+        if (process.env.NODE_ENV === 'production'
+            && app.get('package').protocol.name === 'https') {
+          if (req.secure || _.find(app.get('package').protocol.allow,
+              function (allow) {
+            return req.url === allow.url && req.method === allow.method;
+          })) {
+            return _next();
+          }
+          res.redirect('https://' + req.headers.host + req.url);
+        } else {
+          _next();
+        }
 
         // Ensure Safari does not cache the response.
         function _next() {
@@ -285,20 +285,20 @@ if (cluster.isMaster) {
 
             // HTTP(S) server.
             var server, _server;
-            // if (process.env.NODE_ENV !== 'production') {
+            if (process.env.NODE_ENV !== 'production') {
               server = http.createServer(app);
-            // } else {
-            //   server = https.createServer({
-            //     ca: fs.readFileSync('./ssl/ca-chain.crt'),
-            //     key: fs.readFileSync('./ssl/www_skyline-data_com.key'),
-            //     cert: fs.readFileSync('./ssl/www_skyline-data_com.crt')
-            //   }, app);
-            //   _server = http.createServer(app);
-            // }
+            } else {
+              server = https.createServer({
+                ca: fs.readFileSync('./ssl/ca-chain.crt'),
+                key: fs.readFileSync('./ssl/www_skyline-data_com.key'),
+                cert: fs.readFileSync('./ssl/www_skyline-data_com.crt')
+              }, app);
+              _server = http.createServer(app);
+            }
 
             // Socket handling
-            var sio = socketio.listen(server);
-            // var sio = socketio.listen(server, {secure: process.env.NODE_ENV === 'production'});
+            var sio = socketio.listen(server,
+                {secure: process.env.NODE_ENV === 'production'});
             sio.set('store', new socketio.RedisStore({
               redis: redis,
               redisPub: rp,
@@ -359,15 +359,16 @@ if (cluster.isMaster) {
             app.get('pubsub').setSocketIO(sio);
 
             // Start server
-            // if (process.env.NODE_ENV !== 'production') {
+            if (process.env.NODE_ENV !== 'production') {
               server.listen(app.get('PORT'));
-            // } else {
-            //   server.listen(8443);
-            //   _server.listen(app.get('PORT'));
-            // }
-
+            } else {
+              server.listen(app.get('SECURE_PORT'));
+              _server.listen(app.get('PORT'));
+            }
             util.log('Worker ' + cluster.worker.id
-                + ': Web server listening on port ' + app.get('PORT'));
+                + ': Web server listening on port '
+                + (process.env.NODE_ENV !== 'production' ?
+                app.get('PORT'): app.get('SECURE_PORT')));
           }
         );
       }
