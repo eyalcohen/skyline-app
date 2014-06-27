@@ -33,7 +33,7 @@
     </div>
   <% } %>
   <div class="comment-info">
-    <a href="/<%= link %>/note/<%= model.id %>" class="note-permalink navigate">
+    Added <a href="/<%= link %>/note/<%= model.id %>" class="navigate">
       <time class="created" 
           datetime="<%= model.get('created') %>" 
           title="<%= model.get('created') %>">
@@ -45,7 +45,7 @@
     <% if (this.app.profile.user &&
         model.get('author').id === this.app.profile.user.id) { %>
       <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-      <a class="info-delete">delete</a>
+      <a class="info-delete">Delete</a>
     <% } %>
   </div>
 </div>

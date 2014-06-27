@@ -36,6 +36,7 @@ define([
     },
 
     navigate: function (e) {
+      e.stopPropagation();
       e.preventDefault();
       var path = $(e.target).closest('a').attr('href');
       if (path) {

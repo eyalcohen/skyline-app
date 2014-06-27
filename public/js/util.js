@@ -170,18 +170,18 @@ define([
       else if (delta < 15) return 'just a moment ago';
       else if (delta < 30) return 'just a few moments ago';
       else if (delta < 60) return 'less than a minute ago';
-      else if (delta < 120) return 'about a minute ago';
+      else if (delta < 120) return 'a minute ago';
       else if (delta < (45 * 60))
         return (parseInt(delta / 60)).toString() + ' minutes ago';
       else if (delta < (90 * 60))
-        return 'about an hour ago';
+        return 'an hour ago';
       else if (delta < (24 * 60 * 60)) {
         var h = (parseInt(delta / 3600)).toString();
-        if (h != '1') return 'about ' + h + ' hours ago';
-        else return 'about an hour ago';
+        if (h != '1') return h + ' hours ago';
+        else return 'an hour ago';
       }
       else if (delta < (2 * 24 * 60 * 60))
-        return 'about a day ago';
+        return 'a day ago';
       else if (delta < (10 * 24 * 60 * 60))
         return (parseInt(delta / 86400)).toString() + ' days ago';
       else return this.toLocaleString(new Date(ts), 'm/d/yy');

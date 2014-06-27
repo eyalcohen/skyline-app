@@ -96,7 +96,9 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
-      this.comments.destroy();
+      if (this.comments) {
+        this.comments.destroy();
+      }
       if (this.notes) {
         this.notes.destroy();
       }

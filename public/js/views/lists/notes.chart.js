@@ -361,6 +361,7 @@ define([
     },
 
     navigate: function (e) {
+      e.stopPropagation();
       e.preventDefault();
 
       // Route to wherever.

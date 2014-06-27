@@ -35,7 +35,147 @@
 %>
 
 <% if (!this.parentView) { %>
-  <div class="leftside">
+  <% if (this.config) { %>
+    <div class="leftside settings">
+    <h2 class="settings-divider">Dataset Information</h2>
+    <form enctype="multipart/form-data" method="POST">
+      <table>
+        <tbody>
+
+          <% if ((Date.now() - new Date(this.model.get('created'))) < 1000*60*5) { %>
+            <tr>
+              <td colspan = "2">
+                <div class="dataset-config-greeting">
+                  <h2>
+                    Great! You've successfully added a new dataset titled &ldquo;<%= this.model.get('title') %>&rdquo; to Skyline.</h2>
+                  <br>
+                  <p>
+                    Add some information about your dataset or immediately interact with your data by clicking a channel below.
+                  </p>
+                </div>
+              </td>
+            </tr>
+          <% } %>
+
+          <tr>
+            <td>
+              <label for="datasetTitle">Title</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="text" tabindex="1" id="datasetTitle" name="title"
+                  placeholder="title" value="<%= this.model.get('title') %>" />
+            </td>
+            <td style="width:84px">
+              <label class="checkbox-styled input-checkbox">
+                <input class="settings-public" type="checkbox" name="public" value="public" />
+                <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
+              </label>
+            </td>
+
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetTags">Tags</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan = "2">
+              <input type="text" tabindex="2" id="datasetTags" name="tags"
+                  placeholder="tags" value="<%= this.model.get('tags') %>" />
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetDescription">Description</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan = "2">
+              <textarea name="description" class="" tabindex="3" id="datasetDescription"
+                    placeholder="Write something about your data..."><%= this.model.get('description') %>
+              </textarea>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetSource">Source</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan = "2">
+              <input type="text" tabindex="4" id="datasetSource" name="source"
+                  placeholder="source" value="<%= this.model.get('source') %>" />
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetSourceLink">Source Link</label>
+            </td>
+            <td class="textright">
+              <div class="settings-saved">
+                <span class="icon-check"></span>
+                <span>Saved</span>
+              </div>
+              <span class="settings-error page-error"></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan = "2">
+              <input type="text" tabindex="5" id="datasetSourceLink" name="sourceLink"
+                  placeholder="link" value="<%= this.model.get('sourceLink') %>" />
+            </td>
+          </tr>
+
+          <tr>
+            <td colspan="2">
+              <a tabindex="6" href="javascript:;" class="demolish button connect-button delete-button">
+                Delete Dataset
+                <i class="icon-right-open-big"></i>
+              </a>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </form>
+
+  <% } else { %>
+    <div class="leftside">
+  <% } %>
 <% } %>
 
 <% if (this.parentView) { %>
@@ -56,6 +196,25 @@
   <span class="event-timeline-label event-timeline-label-first">
     <i class="icon-database"></i>
   </span>
+  <% if (this.model.get('description')) { %>
+    <p class="event-description">
+      <% if (this.model.get('description')) { %>
+        <%= this.model.description() %>
+      <% } %>
+    </p>
+  <% } %>
+<% } %>
+
+<% if (this.config) { %>
+  <h2 class="settings-divider">Dataset Channels</h2>
+<% } else { %>
+  <% if (tags.length > 0) { %>
+    <span class="event-tags">
+      Tags: <% _.each(tags, function(t, i) { %>
+        #<%= t %><% if (i < tags.length - 1) { %>,<% } %>
+      <% }); %>
+    </span>
+  <% } %>
 <% } %>
 
 <% if (this.model.get('channels').length !== 0) { %>
@@ -87,24 +246,7 @@
   </ul>
 <% } %>
 <% if (!this.config) { %>
-  <% if (this.model.get('description')) { %>
-    <p class="event-description">
-      <% if (this.model.get('description')) { %>
-        <%= this.model.description() %>
-      <% } %>
-    </p>
-  <% } %>
   <div class="event-info">
-    <% if (this.parentView) { %>
-      <% if (tags.length > 0) { %>
-        <span class="event-tags">
-          <% _.each(tags, function(t, i) { %>
-            #<%= t %><% if (i < tags.length - 1) { %>,<% } %>
-          <% }); %>
-        </span>
-        <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-      <% } %>
-    <% } %>
     Added <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
           class="navigate"><time class="created" 
           datetime="<%= this.model.get('created') %>" 
@@ -131,17 +273,10 @@
       <div class="target-info">
         <span class="target-info-heading">Metadata</span>
         <ul class="target-info-list">
-          <li><%= this.model.get('channels_cnt') %> channel<%= this.model.get('channels_cnt') === 1 ? '': 's' %></li>
-          <li><%= vcnt %> view<%= this.model.get('channels_cnt') === 1 ? '': 's' %></li>
+          <li>This dataset has <%= this.model.get('channels_cnt') %> channel<%= this.model.get('channels_cnt') === 1 ? '': 's' %></li>
+          <li>Viewed <%= vcnt %> time<%= this.model.get('channels_cnt') === 1 ? '': 's' %></li>
           <% if (source !== '') { %>
             <li>Source: <%= source %></li>
-          <% } %>
-          <% if (tags && tags.length > 0) { %>
-            <li>Tags: 
-              <% _.each(tags, _.bind(function (t, i) { %>
-                <%= t %><% if (i < tags.length - 1) { %>,<% } %>
-              <% }, this)); %>
-            </li>
           <% } %>
         </ul>
       </div>

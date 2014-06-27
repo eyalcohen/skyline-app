@@ -415,7 +415,7 @@ define([
     },
 
     note: function (un, slug, noteId, saved) {
-      this.app.requestedNoteId = noteId;
+      this.app.requestedNoteId = _.str.strLeft(noteId, '#');
       this.chart.call(this, un, slug, undefined, saved);
     },
 

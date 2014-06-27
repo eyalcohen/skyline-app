@@ -2709,7 +2709,7 @@ textarea.comment-input:focus {
 }
 
 .comment-body p {
-  padding: 0 8px 0 34px;
+  padding: 0 8px 2px 34px;
   font-size: 11px;
   line-height: 14px;
   color: #2f2f2f;
@@ -2782,6 +2782,8 @@ a.comments-signin,
 
 .comment-info {
   margin-left: 34px;
+  color: #8f8f8f;
+  font-size: 10px;
 }
 
 .target .comment-info {
@@ -2873,6 +2875,11 @@ a.comments-signin,
   line-height: 30px;
 }
 
+.event-divider {
+  border-top: 1px dashed #ececec;
+  margin-right: -40px;
+}
+
 .event {
   position: relative;
   display: none;
@@ -2925,7 +2932,7 @@ a.comments-signin,
 }
 
 .event-title {
-  width: 600px;
+  width: 560px;
   color: #666;
 }
 
@@ -2947,20 +2954,26 @@ a.comments-signin,
 }
 
 p.event-description {
-  width: 600px;
+  width: 558px;
+  margin-left: 2px;
+  margin-bottom: 11px;
   font-size: 13px;
   line-height: 20px;
   color: #404040;
 }
 
 .event-tags {
+  display: block;
+  width: 590px;
+  margin-left: 2px;
+  margin-bottom: 11px;
   font-size: 11px;
   color: #666;
 }
 
 .event-info {
-  width: 600px;
-  margin: 10px 0 3px;
+  width: 558px;
+  margin: 10px 0 5px 2px;
   font-size: 10px;
   line-height: 13px;
   color: #8f8f8f;
@@ -3171,6 +3184,8 @@ a.event-comment-author:hover {
   bottom: 0;
   padding-left: 45px;
   padding-bottom: 3px;
+  color: #8f8f8f;
+  font-size: 10px;
 }
 
 textarea.event-comment-input {
@@ -3250,8 +3265,6 @@ textarea.event-comment-input {
 
 .event-note .comment-info {
   margin-left: 40px;
-  color: #8f8f8f;
-  font-size: 10px;
 }
 
 .event-note-divider {
@@ -3284,7 +3297,7 @@ textarea.event-comment-input {
 .event-dataset,
 .event-view {
   position: relative;
-  width: 600px;
+  width: 560px;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3318,15 +3331,15 @@ textarea.event-comment-input {
 }
 
 ul.event-channels {
-  width: 600px;
-  margin: 0 0 10px;
+  width: 560px;
+  margin: 0 0 15px;
   list-style: none;
 }
 
 .single ul.event-channels,
 .single p.event-description,
 .single .event-info {
-  width: 630px;
+  width: 590px;
 }
 
 ul.event-channels li {
@@ -3462,7 +3475,7 @@ a.event-channel-delete:active {
 }
 
 .library-dataset .event-tags {
-  display: block;
+  width: auto;
 }
 
 .library-dataset ul.event-channels {
@@ -3713,6 +3726,11 @@ p.sidebar-tip span {
 
 /*.........................................................................*/
 
+.settings form {
+  width: 590px;
+  margin-bottom: 30px;
+}
+
 .settings td {
   position: relative;
 }
@@ -3800,27 +3818,12 @@ ul.settings-detail-list li {
   list-style-type: disc;
 }
 
-.settings-svg {
-  height: 100px;
-  margin-bottom: 20px;
-
-  cursor: pointer;
-  border: 1px solid #f9f9f9;
+h2.settings-divider {
+  margin: 0 -40px 30px;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 0 80px 3px 40px;
   font-size: 14px;
-  background: #fcfcfc;
-
-  -webkit-transition: all 0.15s ease-in-out;
-  -moz-transition: all 0.15s ease-in-out;
-  transition: all 0.15s ease-in-out;
-
-  border-radius: 2px;
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
-}
-
-.settings-svg:hover {
-  opacity: 0.8;
-  border-color: #e6e6e6;
+  font-weight: normal;
 }
 
 /*.........................................................................*/
