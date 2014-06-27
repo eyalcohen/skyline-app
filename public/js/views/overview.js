@@ -326,7 +326,6 @@ define([
     },
 
     overviewZoom: function(e) {
-      console.log(e);
       var time = this.getVisibleTime();
 
       // Map x-coordinate to time.
