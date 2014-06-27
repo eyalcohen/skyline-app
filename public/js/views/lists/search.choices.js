@@ -249,12 +249,9 @@ define([
           else if (_a === -1 && _b !== -1)
             return -1;
           else {
-            if (a.humanName === b.humanName && a.parent && a.parent.title
-                && b.parent && b.parent.title) {
-              return a.parent.title < b.parent.title ? 1 : -1;
-            } else
-              return a.humanName < b.humanName ? 1 : -1;
-            }
+            // preserve order
+            return 0;
+          }
         }, this));
       }
 

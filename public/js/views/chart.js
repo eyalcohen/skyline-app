@@ -585,10 +585,10 @@ define([
       });
 
       // check if we have any channels open
-      // we automatically open the first channel if none are open or requested
+      // we automatically open the most searched / clicked for channel
       var state = store.get('state');
       if (!(_.compact(_.pluck(state.datasets, 'channels')).length)) {
-        mps.publish('channel/add', [did, channels[0]]);
+        mps.publish('channel/add', [did, _.last(_.sortBy(channels, 'vcnt'))]);
       }
     },
 
