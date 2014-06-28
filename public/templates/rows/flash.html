@@ -7,6 +7,7 @@
     <%= this.model.get('message') %>
   <% } else { %>
     <i class="icon-error-alt"></i>
-    Error<%= this.model.get('err').code ? ' ' + this.model.get('err').code: '' %>: <%= this.model.get('err').message.message %>
+    Error<%= this.model.get('err').code ? ' ' + this.model.get('err').code: '' %>:
+        <%= _.str.titleize(this.model.get('err').message) %>
   <% } %>
 </span>

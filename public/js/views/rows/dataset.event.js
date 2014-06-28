@@ -44,8 +44,10 @@ define([
 
     events: {
       'click .navigate': 'navigate',
+      'change .dataset-param': 'save',
       'click .demolish': 'demolish',
       'click .event-channel-delete': 'deleteChannel',
+      'change .event-channel-input': 'saveChannel',
       'click .save-private': 'checkPrivate'
     },
 
@@ -79,7 +81,9 @@ define([
       // Save field contents on blur.
       if (this.config) {
         this.privateButton = this.$('.save-private');
-        this.$('textarea, input[type="text"]').change(_.bind(this.save, this));
+
+        // Show greeting.
+        this.$('.dataset-config-greeting').show();
       }
 
       // Render lists.
@@ -209,14 +213,34 @@ define([
       e.preventDefault();
       e.stopPropagation();
 
-      // Delete the doc.
-      var li = $(e.target).closest('li');
-      rest.delete('/api/channels/' + li.data('id'),
-          {}, _.bind(function (err, data) {
-        if (err) {
-          return console.log(err);
-        }
-        li.remove();
+      // Render the confirm modal.
+      $.fancybox(_.template(confirm)({
+        message: 'Delete this channel?',
+      }), {
+        openEffect: 'fade',
+        closeEffect: 'fade',
+        closeBtn: false,
+        padding: 0
+      });
+
+      // Setup actions.
+      $('.modal-cancel').click(function (e) {
+        $.fancybox.close();
+      });
+      $('.modal-confirm').click(_.bind(function () {
+
+        // Delete the doc.
+        var li = $(e.target).closest('li');
+        rest.delete('/api/channels/' + li.data('id'),
+            {}, _.bind(function (err, data) {
+          if (err) {
+            return console.log(err);
+          }
+          li.remove();
+
+          // Close the modal.
+          $.fancybox.close();
+        }, this));
       }, this));
 
       return false;
@@ -303,14 +327,39 @@ define([
       }, this));
     },
 
-    when: function () {
-      if (!this.model.get('created')) {
-        return;
-      }
-      if (!this.time) {
-        this.time = this.$('time.created:first');
-      }
-      this.time.text(util.getRelativeTime(this.model.get('created')));
+    saveChannel: function (e) {
+      var field = $(e.target);
+      var name = field.data('param');
+      var val = util.sanitize(field.val());
+
+      // Create the paylaod.
+      if (val === field.data('saved')) return false;
+      var payload = {};
+      payload[name] = val;
+
+      // Now do the save.
+      rest.put('/api/channels/' + field.attr('id'), payload,
+          _.bind(function (err) {
+        if (err) {
+
+          // Show error.
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+
+          return false;
+        }
+
+        // Save the saved state and show indicator.
+        field.data('saved', val);
+        
+        // Show saved status.
+        mps.publish('flash/new', [{
+          message: 'Saved.',
+          level: 'alert'
+        }]);
+
+      }, this));
+
+      return false;
     },
 
     checkPrivate: function (e) {
@@ -336,6 +385,16 @@ define([
           level: 'alert'
         }]);
       }, this));
+    },
+
+    when: function () {
+      if (!this.model.get('created')) {
+        return;
+      }
+      if (!this.time) {
+        this.time = this.$('time.created:first');
+      }
+      this.time.text(util.getRelativeTime(this.model.get('created')));
     },
 
   });
