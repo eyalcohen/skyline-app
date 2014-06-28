@@ -126,7 +126,9 @@ define([
 
     navigate: function (e) {
       e.preventDefault();
+      e.stopPropagation();
       if ($(e.target).hasClass('event-channel-delete')
+          || $(e.target).hasClass('event-channel-input')
           || $(e.target).hasClass('icon-cancel')) {
         return;
       }
@@ -166,7 +168,7 @@ define([
         mps.publish('flash/new', [{
           message: 'Saved.',
           level: 'alert'
-        }]);
+        }, true]);
 
       }, this));
 
@@ -355,7 +357,7 @@ define([
         mps.publish('flash/new', [{
           message: 'Saved.',
           level: 'alert'
-        }]);
+        }, true]);
 
       }, this));
 
@@ -383,7 +385,7 @@ define([
         mps.publish('flash/new', [{
           message: 'Saved.',
           level: 'alert'
-        }]);
+        }, true]);
       }, this));
     },
 

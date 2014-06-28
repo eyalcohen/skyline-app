@@ -93,8 +93,8 @@
           </tr>
           <tr>
             <td>
-              <textarea name="description" class="" tabindex="3" id="datasetDescription"
-                  class="dataset-param"  placeholder="Write something about your data..."><%= this.model.get('description') %>
+              <textarea name="description" tabindex="3" id="datasetDescription"
+                  class="dataset-param" placeholder="Write something about your data..."><%= this.model.get('description') %>
               </textarea>
             </td>
           </tr>
@@ -195,20 +195,21 @@
               <%= c.humanName %>
             </span>
             <div class="event-channel-svg"></div>
-            <p class="event-channel-note">
-              
-            </p>
+            <p class="event-channel-note"></p>
           </a>
         <% } else { %>
-          <span class="event-timeline-label">
-            <i class="icon-chart-line"></i>
-          </span>
-          <span class="event-timeline-label-text"></span>
-          <input type="text" tabindex="<%= i+8 %>" id="<%= c.id %>"
-              class="event-channel-input" data-param="humanName" value="<%= c.humanName %>" />
-          <div class="event-channel-svg"></div>
-          <a href="javascript:;" class="event-channel-delete">
-            <i class="icon-cancel"></i>
+          <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/<%= c.channelName %>"
+              class="navigate image-anchor">
+            <span class="event-timeline-label">
+              <i class="icon-chart-line"></i>
+            </span>
+            <span class="event-timeline-label-text"></span>
+            <input type="text" tabindex="<%= i+8 %>" id="<%= c.id %>"
+                class="event-channel-input" data-param="humanName" value="<%= c.humanName %>" />
+            <div class="event-channel-svg"></div>
+            <a href="javascript:;" class="event-channel-delete">
+              <i class="icon-cancel"></i>
+            </a>
           </a>
         <% } %>
       </li>

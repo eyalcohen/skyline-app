@@ -28,16 +28,23 @@ define([
       }
 
       // Shell subscriptions:
-      mps.subscribe('flash/new', _.bind(this.collect, this));
+      mps.subscribe('flash/new', _.bind(function (data, clear) {
+        if (clear) {
+          this.collection.reset([]);
+          _.each(this.views, function (v) {
+            v.destroy();
+          });
+          this.views = [];
+        }
+        this.collection.push(data);
+      }, this));
 
       // Call super init.
       List.prototype.initialize.call(this, app, options);
     },
 
     // collect new flashes from socket events.
-    collect: function (data, clear) {
-      if (clear)
-        this.collection.reset([]);
+    collect: function (data) {
       this.collection.push(data);
     },
 

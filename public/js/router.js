@@ -313,13 +313,14 @@ define([
 
     settings: function () {
       this.start();
+      this.renderTabs();
       $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/settings', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
-      this.renderTabs({title: 'Account Settings'});
     },
 
     upload: function (fileId) {

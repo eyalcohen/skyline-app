@@ -3358,10 +3358,6 @@ ul.event-channels li {
   transition: all 0.15s ease-in-out;
 }
 
-.settings ul.event-channels li {
-  cursor: default;
-}
-
 ul.event-channels li:hover,
 ul.event-channels li:hover .event-timeline-label {
   border-color: #e6e6e6;
@@ -3737,6 +3733,18 @@ p.sidebar-tip span {
   margin-bottom: 30px;
 }
 
+.profile-settings {
+  width: 628px;
+  border-left: 1px solid #f2f2f2;
+  margin-left: 50px;
+  padding-left: 40px;
+  padding-bottom: 0;
+}
+
+.profile-settings table {
+  margin-bottom: 30px;
+}
+
 .settings td {
   position: relative;
 }
@@ -3768,7 +3776,9 @@ p.sidebar-tip span {
 }
 
 .settings td textarea {
-  height: 90px;
+  height: 120px;
+  line-height: 16px;
+  resize: vertical;
 }
 
 .settings-saved,
@@ -3832,6 +3842,15 @@ h2.settings-divider {
   padding: 0 80px 3px 40px;
   font-size: 14px;
   font-weight: normal;
+}
+
+.profile-settings h2.settings-divider {
+  margin: 0 -80px 30px -40px;
+}
+
+.settings-notification-item {
+  color: #666;
+  vertical-align: -1px;
 }
 
 /*.........................................................................*/
