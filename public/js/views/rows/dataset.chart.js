@@ -72,13 +72,14 @@ define([
     events: {
       'click .dataset-control-remove': 'delete',
       'click .dataset-control-notes': 'notes',
+      'click .navigate': 'navigate',
       // 'click .dataset-offset': function(e) {
       //   this.model.set('offset', 0);
       //   this.updateOffset();
       //   mps.publish('graph/draw', []);
       //   return false; // prevent propagation
       // },
-      'click a.dataset-button': 'toggle'
+      // 'click a.dataset-button': 'toggle'
     },
 
     leader: function () {
@@ -118,21 +119,21 @@ define([
       }
     },
 
-    toggle: function (e) {
-      if (e) e.preventDefault();
-      var state = store.get('state');
-      if (this.$el.hasClass('active')) {
-        if (this.channels) this.channels.active = false;
-        this.$el.removeClass('active');
-        state.datasets[this.model.id].open = false;
-      } else {
-        if (this.channels)
-          this.channels.active = true;
-        this.$el.addClass('active');
-        state.datasets[this.model.id].open = true;
-      }
-      this.app.state(state);
-    },
+    // toggle: function (e) {
+    //   if (e) e.preventDefault();
+    //   var state = store.get('state');
+    //   if (this.$el.hasClass('active')) {
+    //     if (this.channels) this.channels.active = false;
+    //     this.$el.removeClass('active');
+    //     state.datasets[this.model.id].open = false;
+    //   } else {
+    //     if (this.channels)
+    //       this.channels.active = true;
+    //     this.$el.addClass('active');
+    //     state.datasets[this.model.id].open = true;
+    //   }
+    //   this.app.state(state);
+    // },
 
     fetchChannels: function () {
 
@@ -193,6 +194,7 @@ define([
 
     notes: function (e) {
       e.preventDefault();
+      e.stopPropagation();
       var state = store.get('state');
       var did = this.model.id;
       if (state.datasets && state.datasets[did]) {
@@ -208,7 +210,10 @@ define([
     },
 
     delete: function (e) {
-      if (e) e.preventDefault();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       this.parentView._remove({id: this.model.id});
     },
 
@@ -225,6 +230,15 @@ define([
         this.destroy();
         if (cb) cb();
       }, this));
+    },
+
+    navigate: function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      var path = $(e.target).closest('a').attr('href');
+      if (path) {
+        this.app.router.navigate(path, {trigger: true});
+      }
     },
 
     // updateOffset: function() {
