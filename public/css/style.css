@@ -777,6 +777,12 @@ a.button.title-button:focus:not(.disabled) {
   border-left: 1px solid #d0d0d0;
 }
 
+a.button.title-button.explore-button {
+  background: #b0f68f;
+  padding-right: 15px;
+  border-left: 1px solid #60ED1F;
+}
+
 a.button.map-button {
   display: none;
   position: absolute;
@@ -1548,6 +1554,11 @@ li.subtab.disabled a {
   color: #666;
   line-height: 40px;
   height: auto;
+}
+
+.folder-title.folder-title-center .page-title {
+  margin: 0;
+  text-align: center;
 }
 
 img.page-title-avatar {
@@ -2953,11 +2964,6 @@ p.event-description {
 }
 
 .event-tags {
-  display: block;
-  width: 590px;
-  margin-left: 2px;
-  margin-bottom: 11px;
-  font-size: 11px;
   color: #666;
 }
 
@@ -3005,6 +3011,10 @@ p.event-description {
 .single .event-timeline-label-first {
   left: 0;
   top: 40px;
+}
+
+h2.settings-divider + .event-timeline-label-first {
+  top: 52px;
 }
 
 .event-timeline-label i {
@@ -3491,6 +3501,7 @@ a.event-channel-delete:active {
 
 .library-dataset .event-tags {
   width: auto;
+  display: block;
 }
 
 .library-dataset ul.event-channels {

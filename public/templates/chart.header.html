@@ -1,31 +1,23 @@
 <%
 
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + page.author.gravatar + '?s=24&d=identicon';
+      + target.doc.author.gravatar + '?s=24&d=identicon';
 
   var icon;
-  if (page.parent)
-    icon = '<i class="icon-folder-empty"><i class="icon-split"></i></i>';
-  else 
-    icon = page.public === false ?
-        '<i class="icon-lock"></i>': '<i class="icon-folder-empty"></i>';
-  var klass = 'page-header-title';
-  if (page.parent) klass += ' forked';
-  if (page.public === false) klass += ' locked';
-
+  if (target.doc.public === false) {
+    icon = 'icon-lock';
+  } else {
+    icon = 'icon-folder-empty';
+  }
 %>
 
-<span class="<%= klass %>">
-  <img src="<%= gravatar %>" width="24" height="24" /><%= icon %> 
-  <a href="/<%= page.author.username %>" class="navigate page-header-username">
-    <%= page.author.username %></a> / 
-  <a href="/<%= page.author.username %>/views/<%= page.slug %>"
-      class="navigate page-header-main"><%= page.name %></a>
-</span>
-<% if (page.parent) { %>
-  <span class="page-header-subtitle">(forked from 
-    <a href="/<%= page.parent.author.username %>/views/<%= page.parent.slug %>"
-      class="navigate<%= (page.parent.public === false ? ' locked': '') %>"><i
-      class="icon-folder-empty"></i> <%= page.parent.name %></a>)
+<div class="page-title">
+  <a href="/<%= target.doc.author.username %>" class="navigate">
+    <img src="<%= gravatar %>" class="page-title-avatar" width="26" height="26" /></a>
+  <a href="/<%= target.doc.author.username %>/views/<%= target.doc.slug %>"
+      class="navigate<%= target.doc.public === false ? ' locked': '' %>">
+    <i class="<%= icon %>"></i><%= target.doc.name || 'Untitled' %></a>
+  <span class="page-title-sub">
+    (Last updated <span class="updated"><%= util.getRelativeTime(new Date(target.doc.updated).valueOf()) %></span>)
   </span>
-<% } %>
+</div>

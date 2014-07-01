@@ -497,16 +497,14 @@ define([
       this.render('/service/chart', data, _.bind(function (err) {
         if (err) return;
         this.pageType = 'chart';
-
-        if (this.app.profile.content.page && this.app.profile.content.page.name) {
-          this.tabs.setTitle(this.app.profile.content.page.name, {center: true});
-        }
-
         var chart = new Chart(this.app);
         if (channelName && (!saved ||  !state.datasets)) {
           mps.publish('dataset/requestOpenChannel', [channelName]);
         }
         this.page = chart.render();
+        if (this.page.title) {
+          this.renderTabs({html: this.page.title, center: true});
+        }
         this.stop();
       }, this));
     },

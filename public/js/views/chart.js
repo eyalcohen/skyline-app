@@ -89,6 +89,11 @@ define([
         var target = this.target();
         this.app.title('Skyline | ' + target.doc.author.username + '/'
             + (target.doc.name || target.doc.title));
+
+        if (target.doc.name) {
+          this.title = _.template(header).call(this,
+              {util: util, target: target});
+        }
       }
 
       this.template = _.template(template);
@@ -144,6 +149,7 @@ define([
 
       // Handle save button.
       if (state.author && state.author.id) {
+
         // This is a view, so intially it's already saved.
         this.saveButton.addClass('saved');
       }
@@ -329,6 +335,9 @@ define([
               delay: 2000,
             }]);
           }, 500);
+
+          // Update chart header.
+          mps.publish('chart/updated', [Date.now()]);
 
           // Ready for more.
           this.working = false;

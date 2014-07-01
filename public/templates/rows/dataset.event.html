@@ -38,6 +38,9 @@
   <% if (this.config) { %>
     <div class="leftside settings">
     <h2 class="settings-divider">Dataset Information</h2>
+    <span class="event-timeline-label event-timeline-label-first">
+      <i class="icon-database"></i>
+    </span>
     <form enctype="multipart/form-data" method="POST">
       <table>
         <tbody>
@@ -165,17 +168,15 @@
   <span class="event-timeline-label event-timeline-label-first">
     <i class="icon-database"></i>
   </span>
-  <% if (this.model.get('description')) { %>
+  <% if (this.model.get('description') || tags.length > 0) { %>
     <p class="event-description">
       <%= this.model.description() %>
+      <span class="event-tags">
+        <% _.each(tags, function(t, i) { %>
+          #<%= t %><% if (i < tags.length - 1) { %>,<% } %>
+        <% }); %>
+      </span>
     </p>
-  <% } %>
-  <% if (tags.length > 0) { %>
-    <span class="event-tags">
-      <% _.each(tags, function(t, i) { %>
-        #<%= t %><% if (i < tags.length - 1) { %>,<% } %>
-      <% }); %>
-    </span>
   <% } %>
 <% } %>
 
