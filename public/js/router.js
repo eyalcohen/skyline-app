@@ -23,12 +23,13 @@ define([
   'views/notifications',
   'views/splash',
   'views/settings',
-  'views/dataset.config',
   'views/upload',
   'views/reset',
   'views/profile',
   'views/library',
   'views/chart',
+  'views/rows/dataset.event',
+  'views/rows/view.event',
   'views/static',
   'text!../templates/about.html',
   'text!../templates/contact.html',
@@ -36,7 +37,7 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    DatasetConfig, Upload, Reset, Profile, Library, Chart, Static, aboutTemp, contactTemp,
+    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -63,13 +64,22 @@ define([
 
       // Page routes
       this.route(':username', 'profile', this.profile);
-      this.route(':username/:id', 'chart', this.chart);
+      this.route(':username/:id', 'dataset', this.dataset);
       this.route(':username/:id/:channel', 'chart', this.chart);
+      this.route(':username/:id/note/:nid', 'note', this.note);
+      this.route(':username/:id/:channel/chart', 'savedChart', this.savedChart);
+      this.route(':username/:id/note/:nid/chart', 'savedNote', this.savedNote);
       this.route(':username/:id/config', 'dataset.config', this.datasetConfig);
-      this.route(':username/views/:slug', 'chart', this.chart);
+
+      this.route(':username/views/:slug', 'view', this.view);
+      this.route(':username/views/:slug/chart', 'chart', this.chart);
+      this.route(':username/views/:slug/config', 'viewConfig', this.viewConfig);
+      this.route(':username/views/:slug/note/:nid', 'note', this.note);
+
       this.route('embed/:username/:id', 'chart', this.chart);
       this.route('embed/:username/:id/:channel', 'chart', this.chart);
       this.route('embed/:username/views/:slug', 'chart', this.chart);
+
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
       this.route('notifications', 'notifications', this.notifications);
@@ -140,11 +150,12 @@ define([
         cb(err);
       }
 
-      // Grab hash.
+      // Grab hash for comment.
+      this.app.requestedCommentId = null;
       if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
-        var tmp = window.location.hash.match(/#n=([a-z0-9]{24})/i);
+        var tmp = window.location.hash.match(/#c=([a-z0-9]{24})/i);
         if (tmp) {
-          this.app.requestedNoteId = tmp[1];
+          this.app.requestedCommentId = tmp[1];
         }
       } 
 
@@ -309,13 +320,14 @@ define([
 
     settings: function () {
       this.start();
+      this.renderTabs();
       $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/settings', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Settings(this.app).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
-      this.renderTabs({title: 'Account Settings'});
     },
 
     upload: function (fileId) {
@@ -332,17 +344,57 @@ define([
       this.renderTabs({title: title});
     },
 
-    datasetConfig: function (un, id) {
+    dataset: function (un, id) {
       this.start();
+      this.renderTabs();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/settings', {}, true, _.bind(function (err) {
+      this.render('/service/dataset/' + id, {},
+          _.bind(function (err) {
         if (err) return;
-        this.page = new DatasetConfig(this.app, {user: un, id: id}).render();
+        this.page = new Dataset({wrap: '.main'}, this.app).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
-      this.renderTabs();
     },
 
+    datasetConfig: function (un, id) {
+      this.start();
+      this.renderTabs();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/dataset/' + id, {},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new Dataset({wrap: '.main', config: true}, this.app).render();
+        this.renderTabs({html: this.page.title});
+        this.stop();
+      }, this));
+    },
+
+    view: function (un, slug) {
+      this.start();
+      this.renderTabs();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/view/' + un + '/' + slug, {},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new View({wrap: '.main'}, this.app).render();
+        this.renderTabs({html: this.page.title});
+        this.stop();
+      }, this));
+    },
+
+    viewConfig: function (un, slug) {
+      this.start();
+      this.renderTabs();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/view/' + un + '/' + slug, {},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new View({wrap: '.main', config: true}, this.app).render();
+        this.renderTabs({html: this.page.title});
+        this.stop();
+      }, this));
+    },
 
     about: function () {
       this.start();
@@ -392,7 +444,20 @@ define([
       this.renderTabs({title: 'Terms and Conditions', subtitle: 'Last updated 7.27.2013'});
     },
 
-    chart: function (un, slug, channelName) {
+    savedNote: function (un, slug, noteId) {
+      this.note.call(this, un, slug, noteId, true);
+    },
+
+    note: function (un, slug, noteId, saved) {
+      this.app.requestedNoteId = _.str.strLeft(noteId, '#');
+      this.chart.call(this, un, slug, undefined, saved);
+    },
+
+    savedChart: function (un, slug, channelName) {
+      this.chart.call(this, un, slug, channelName, true);
+    },
+
+    chart: function (un, slug, channelName, saved) {
       if (slug) {
         slug = _.str.strLeft(slug, '#');
       }
@@ -406,14 +471,13 @@ define([
 
       var state = {};
       var path = window.location.pathname.toLowerCase();
-      var hash = parent.location.hash;
       var state = store.get('state');
       if (!slug || path.indexOf('/views/') !== -1) {
         var key = un && slug ? {un: un, slug: slug}: null;
         if (key) {
           state = {key: key}
         }
-      } else if (!hash || !state.datasets) {
+      } else if (!saved || !state.datasets) {
         state = {};
         state.datasets = {};
         state.datasets[slug] = {index: 0};
@@ -427,19 +491,20 @@ define([
       // Elsewhere it should be done through App.prototype.state.
       store.set('state', state);
       var data = {state: state};
-      if (this.app.embed) data.embed = true;
+      if (this.app.embed) {
+        data.embed = true;
+      }
       this.render('/service/chart', data, _.bind(function (err) {
         if (err) return;
         this.pageType = 'chart';
-
-        if (this.app.profile.content.page && this.app.profile.content.page.name)
-          this.tabs.setTitle(this.app.profile.content.page.name, {center: true});
-
         var chart = new Chart(this.app);
-        if (channelName && (!hash ||  !state.datasets)) {
+        if (channelName && (!saved ||  !state.datasets)) {
           mps.publish('dataset/requestOpenChannel', [channelName]);
         }
         this.page = chart.render();
+        if (this.page.title) {
+          this.renderTabs({html: this.page.title, center: true});
+        }
         this.stop();
       }, this));
     },

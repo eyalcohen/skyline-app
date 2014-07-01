@@ -15,7 +15,7 @@
   <img src="https://www.gravatar.com/avatar/<%= this.model.get('author').gravatar %>?s=23&d=identicon"
       width="23" height="23" />
 </div>
-<a class="dataset-button tooltip" title="Channel list remains open when clicked" href="javascript:;">
+<a class="dataset-button" href="/<%= this.model.get('author').username %>/<%= this.model.id %>">
   <span class="dataset-title">
     <i class="icon-<%= this.model.get('public') === false ? 'lock': 'database' %>"></i><span><%= this.model.get('title') %></span>
   </span>

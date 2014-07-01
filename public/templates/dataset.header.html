@@ -1,0 +1,46 @@
+<%
+  // Save model attributes
+  var data = this.model.attributes;
+  var sub = this.app.profile.sub;
+
+  var link = [data.author.username, data.id].join('/');
+
+  // Gravatar
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + data.author.gravatar + '?s=26&d=identicon';
+%>
+
+<% if (this.app.profile.user) { %>
+  <% if (this.app.profile.user.role !== 2) { %>
+    <% if (sub && sub.subscribee_id === data.id) { %>
+      <a href="javascript:;" class="button title-button unwatch-button"
+          data-path="/api/datasets/<%= this.model.id %>/unwatch"
+          data-_path="/api/datasets/<%= this.model.id %>/watch">
+        <i class="icon-eye-off"></i> Unwatch</a>
+    <% } else { %>
+      <a href="javascript:;" class="button title-button watch-button"
+          data-path="/api/datasets/<%= this.model.id %>/watch"
+          data-_path="/api/datasets/<%= this.model.id %>/unwatch">
+        <i class="icon-eye"></i> Watch</a>
+    <% } %>
+  <% } %>
+  <% if (this.app.profile.user.id === data.author.id) { %>
+    <% if (!this.config) { %>
+      <a href="/<%= data.author.username %>/<%= data.id %>/config" class="button title-button navigate">
+          <i class="icon-cog"></i> Configure</a>
+    <% } else { %>
+      <a href="/<%= data.author.username %>/<%= data.id %>" class="button title-button navigate">
+          <i class="icon-angle-left"></i> Done</a>
+    <% } %>
+  <% } %>
+<% } %>
+<div class="page-title">
+  <a href="/<%= data.author.username %>" class="navigate">
+    <img src="<%= gravatar %>" class="page-title-avatar" width="26" height="26" /></a>
+  <a href="/<%= link %>"
+      class="navigate<%= data.public === false ? ' locked': '' %>">
+    <%= data.title %></a>
+  <span class="page-title-sub">
+    (Last updated <%= util.getRelativeTime(new Date(this.model.get('updated')).valueOf()) %>)
+  </span>
+</div>

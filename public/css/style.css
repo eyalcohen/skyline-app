@@ -631,9 +631,9 @@ input[type=submit].loading {
 a.button.connect-button {
   width: 100%;
   margin-bottom: 15px;
-  padding-left: 20%;
+  /*padding-left: 20%;*/
   color: #fff;
-  text-align: left;
+  text-align: center;
   line-height: 23px;
   border: none !important;
 
@@ -775,6 +775,12 @@ a.button.title-button:focus:not(.disabled) {
   color: #2f2f2f;
   border: none;
   border-left: 1px solid #d0d0d0;
+}
+
+a.button.title-button.explore-button {
+  background: #b0f68f;
+  padding-right: 15px;
+  border-left: 1px solid #60ED1F;
 }
 
 a.button.map-button {
@@ -1034,7 +1040,7 @@ span.empty-list {
 
 .http-error {
   display: block;
-  margin-top: 15%;
+  margin-top: 40px;
   font-weight: bold;
   font-size: 20px;
   color: #4d4d4d;
@@ -1530,6 +1536,14 @@ li.subtab.disabled a {
   background: none;
 }
 
+.page-title a i {
+  color: #666;
+}
+
+.page-title-sub {
+  font-size: 11px;
+}
+
 .page-title a .page-title-sub {
   font-size: 14px;
 }
@@ -1540,6 +1554,11 @@ li.subtab.disabled a {
   color: #666;
   line-height: 40px;
   height: auto;
+}
+
+.folder-title.folder-title-center .page-title {
+  margin: 0;
+  text-align: center;
 }
 
 img.page-title-avatar {
@@ -1682,8 +1701,8 @@ body.embed .block-messages {
 .block-remove {
   float: right;
   cursor: pointer;
-  padding: 0 10px;
-  line-height: 40px;
+  padding: 0 15px;
+  line-height: 60px;
   color: #6f6f6f;
   font-size: 14px;
 
@@ -1710,39 +1729,29 @@ body.embed .block-messages {
   -moz-border-radius: 3px;
   border-radius: 3px;
 
-  -webkit-animation-name: fadeIn;
-  -moz-animation-name: fadeIn;
-  -o-animation-name: fadeIn;
-  animation-name: fadeIn;
-  -webkit-animation-duration: .2s;
-  -moz-animation-duration: .2s;
-  -o-animation-duration: .2s;
-  animation-duration: .2s;
-  -webkit-animation-fill-mode: both;
-  -moz-animation-fill-mode: both;
-  -o-animation-fill-mode: both;
-  animation-fill-mode: both;
-
   -moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
   -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
 }
 
 .block-error {
-  background: #f0b7b7;
+  background: #fcfcfc;
 }
 
 .block-alert {
-  background: #bef0f3;
+  background: #fcfcfc;
 }
 
 .block-error-txt,
 .block-alert-txt {
   font-size: 11px;
-  padding: 0 10px;
+  padding: 0 15px;
   color: #2f2f2f;
-  font-weight: 700;
-  line-height: 40px;
+  line-height: 60px;
+}
+
+.block-error-txt {
+  color: #E31E1E;
 }
 
 .block-error-txt a {
@@ -2659,6 +2668,10 @@ textarea.comment-input:focus {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+
+  -webkit-transition: background-color 1s ease-in-out;
+  -moz-transition: background-color 1s ease-in-out;
+  transition: background-color 1s ease-in-out;
 }
 
 .comment + .comment {
@@ -2697,7 +2710,7 @@ textarea.comment-input:focus {
 }
 
 .comment-body p {
-  padding: 0 8px 0 34px;
+  padding: 0 8px 2px 34px;
   font-size: 11px;
   line-height: 14px;
   color: #2f2f2f;
@@ -2770,6 +2783,8 @@ a.comments-signin,
 
 .comment-info {
   margin-left: 34px;
+  color: #8f8f8f;
+  font-size: 10px;
 }
 
 .target .comment-info {
@@ -2861,6 +2876,11 @@ a.comments-signin,
   line-height: 30px;
 }
 
+.event-divider {
+  border-top: 1px dashed #ececec;
+  margin-right: -40px;
+}
+
 .event {
   position: relative;
   display: none;
@@ -2913,7 +2933,7 @@ a.comments-signin,
 }
 
 .event-title {
-  width: 600px;
+  width: 560px;
   color: #666;
 }
 
@@ -2927,21 +2947,29 @@ a.comments-signin,
   font-size: 11px;
 }
 
+.single .event-source {
+  float: none;
+  display: block;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
 p.event-description {
-  width: 600px;
+  width: 558px;
+  margin-left: 2px;
+  margin-bottom: 11px;
   font-size: 13px;
   line-height: 20px;
   color: #404040;
 }
 
 .event-tags {
-  font-size: 11px;
   color: #666;
 }
 
 .event-info {
-  width: 600px;
-  margin: 10px 0 3px;
+  width: 558px;
+  margin: 10px 0 5px 2px;
   font-size: 10px;
   line-height: 13px;
   color: #8f8f8f;
@@ -2980,6 +3008,15 @@ p.event-description {
   border-bottom: none;
 }
 
+.single .event-timeline-label-first {
+  left: 0;
+  top: 40px;
+}
+
+h2.settings-divider + .event-timeline-label-first {
+  top: 52px;
+}
+
 .event-timeline-label i {
   position: absolute;
   left: -11px;
@@ -3015,7 +3052,11 @@ p.event-description {
 .event-view-image {
   display: block;
   max-width: 100%;
-  margin-top: 5px;
+  margin-bottom: 30px;
+}
+
+.single .event-view-image {
+  width: 590px;
 }
 
 /*.........................................................................*/
@@ -3034,11 +3075,12 @@ p.event-description {
   min-height: 42px;
   margin: 0 0 2px 0;
   position: relative;
-  background: #f9f9f9;
+  background-color: #f9f9f9;
   display: none;
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
+
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
   -o-animation-name: fadeIn;
@@ -3051,6 +3093,20 @@ p.event-description {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+
+  -webkit-transition: background-color 1s ease-in-out;
+  -moz-transition: background-color 1s ease-in-out;
+  transition: background-color 1s ease-in-out;
+}
+
+.comment.highlight-dataset,
+.event-comment.highlight-dataset {
+  background-color: #d3f5f7;
+}
+
+.comment.highlight-view,
+.event-comment.highlight-view {
+  background-color: #dffcd2;
 }
 
 .event-comment-body {
@@ -3059,7 +3115,7 @@ p.event-description {
 
 .event-comment-body p {
   padding: 0 40px;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 16px;
   font-weight: normal;
   color: #4d4d4d;
@@ -3137,6 +3193,8 @@ a.event-comment-author:hover {
   bottom: 0;
   padding-left: 45px;
   padding-bottom: 3px;
+  color: #8f8f8f;
+  font-size: 10px;
 }
 
 textarea.event-comment-input {
@@ -3177,10 +3235,23 @@ textarea.event-comment-input {
 
 /*.........................................................................*/
 
-.event-dataset,
-.event-view {
+.event-notes {
+  margin-bottom: 30px;
+}
+
+.event-notes span.empty-feed {
+  margin-top: 15px;
+}
+
+.event-note {
+  display: none;
   position: relative;
-  width: 600px;
+  padding: 10px 30px 0;
+  margin: 0 -30px;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -3196,10 +3267,100 @@ textarea.event-comment-input {
   animation-fill-mode: both;
 }
 
+.event-note .comment-body {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.event-note .comment-body p {
+  padding: 0 0 0 40px;
+}
+
+.event-note .note-channels {
+  padding: 0 0 0 40px;
+}
+
+.event-note .comment-info {
+  margin-left: 40px;
+}
+
+.event-note .event-note-divider {
+  border-top: 1px dashed #f2f2f2;
+  margin: 0 -30px;
+}
+
+.event-note:last-child .event-note-divider {
+  display: none;
+}
+
+.event-note-nav {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: #e6e6e6;
+}
+
+.event-note-nav i {
+  position: absolute;
+  left: 2px;
+  color: #fff;
+}
+
+.event-note:hover .event-note-nav {
+  display: block;
+}
+
+/*.........................................................................*/
+
+.event-dataset,
+.event-view {
+  position: relative;
+  width: 560px;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.2s;
+  -moz-animation-duration: 0.2s;
+  -o-animation-duration: 0.2s;
+  animation-duration: 0.2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.event-dataset.single,
+.event-view.single {
+  border-left: 1px solid #f2f2f2;
+  margin-left: 48px;
+}
+
+.event-dataset .leftside,
+.event-view .leftside {
+  width: 630px;
+  padding-left: 40px;
+}
+
+.event-dataset .rightside,
+.event-view .rightside {
+  margin: 0 0 0 710px;
+}
+
 ul.event-channels {
-  width: 600px;
-  margin: 0 0 10px;
+  width: 560px;
+  margin: 0 0 15px;
   list-style: none;
+}
+
+.single ul.event-channels,
+.single p.event-description,
+.single .event-info {
+  width: 590px;
 }
 
 ul.event-channels li {
@@ -3238,6 +3399,10 @@ ul.event-channels li .event-channel-name {
   display: block;
   font-size: 12px;
   color: #AD8F3F;
+}
+
+ul.event-channels li .event-channel-input {
+  width: 525px;
 }
 
 ul.event-channels li .event-channel-svg {
@@ -3335,6 +3500,7 @@ a.event-channel-delete:active {
 }
 
 .library-dataset .event-tags {
+  width: auto;
   display: block;
 }
 
@@ -3586,6 +3752,23 @@ p.sidebar-tip span {
 
 /*.........................................................................*/
 
+.settings:not(.equal) form {
+  width: 590px;
+  margin-bottom: 30px;
+}
+
+.profile-settings {
+  width: 628px;
+  border-left: 1px solid #f2f2f2;
+  margin-left: 50px;
+  padding-left: 40px;
+  padding-bottom: 0;
+}
+
+.profile-settings table {
+  margin-bottom: 30px;
+}
+
 .settings td {
   position: relative;
 }
@@ -3617,7 +3800,9 @@ p.sidebar-tip span {
 }
 
 .settings td textarea {
-  height: 90px;
+  height: 120px;
+  line-height: 16px;
+  resize: vertical;
 }
 
 .settings-saved,
@@ -3642,6 +3827,8 @@ p.sidebar-tip span {
 }
 
 .settings-error {
+  display: inline;
+  text-align: right;
   line-height: inherit;
 }
 
@@ -3673,40 +3860,50 @@ ul.settings-detail-list li {
   list-style-type: disc;
 }
 
-.settings-svg {
-  height: 100px;
-  margin-bottom: 20px;
-
-  cursor: pointer;
-  border: 1px solid #f9f9f9;
+h2.settings-divider {
+  margin: 0 -40px 30px;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 0 80px 3px 40px;
   font-size: 14px;
-  background: #fcfcfc;
-
-  -webkit-transition: all 0.15s ease-in-out;
-  -moz-transition: all 0.15s ease-in-out;
-  transition: all 0.15s ease-in-out;
-
-  border-radius: 2px;
-  -webkit-border-radius: 2px;
-  -moz-border-radius: 2px;
+  font-weight: normal;
 }
 
-.settings-svg:hover {
-  opacity: 0.8;
-  border-color: #e6e6e6;
+.profile-settings h2.settings-divider {
+  margin: 0 -80px 30px -40px;
+}
+
+.settings-notification-item {
+  color: #666;
+  vertical-align: -1px;
 }
 
 /*.........................................................................*/
 
-.dataset-config-greeting {
-  margin-bottom: 30px;
-  background-color: rgba(39, 205, 214, .1);
-  padding: 10px;
-  border-radius: 2px;
+.config-greeting {
   display: none;
+  margin-bottom: 30px;
+  background-color: rgba(39, 205, 214, 0.1);
+  padding: 15px;
+  border-radius: 2px;
+  font-size: 14px;
+  line-height: 20px;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.3s;
+  -moz-animation-duration: 0.3s;
+  -o-animation-duration: 0.3s;
+  animation-duration: 0.3s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
 }
 
-.dataset-config-greeting h2 {
+.config-greeting h2 {
+  display: inline;
   font-size: 14px;
 }
 
@@ -4533,7 +4730,6 @@ a.channel-button {
   font-size: 21px;
 }
 
-
 /*.........................................................................*/
 
 .target {
@@ -4564,10 +4760,25 @@ a.channel-button {
   color: #666;
 }
 
+.single .target-info {
+  padding: 0;
+  font-size: 12px;
+  line-height: 18px;
+}
+
 .target-info-heading {
   display: block;
   font-weight: bold;
   margin-bottom: 2px;
+  color: #404040;
+}
+
+.single .target-info-heading {
+  margin: 0 -30px;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 0 30px 5px;
+  font-size: 14px;
+  font-weight: normal;
 }
 
 ul.target-info-list {
@@ -4576,12 +4787,18 @@ ul.target-info-list {
   list-style: none;
 }
 
-ul.target-info-list li {
-  
+.single ul.target-info-list {
+  margin-bottom: 30px;
+  margin-left: 0;
+  margin-top: 10px;
 }
 
-ul.target-info-list li:before {
-  /*content: "- ";*/
+.single ul.target-info-list li {
+  margin-bottom: 2px;
+}
+
+.single ul.target-info-list li:before {
+  content: "- ";
 }
 
 /*.........................................................................*/
@@ -4607,7 +4824,7 @@ ul.target-info-list li:before {
   position: absolute;
   width: 0;
   top: 0;
-  bottom: 0;
+  bottom: -1px;
   cursor: pointer;
 
   border-left: 1px dashed rgba(0,0,0,0.3);

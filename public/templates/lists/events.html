@@ -38,6 +38,8 @@
         <div class="event-day-header" data-beg="<%= beg.valueOf() %>" data-end="<%= end.valueOf() %>">
           <span><%= (end.format('mmmm dd, yyyy')) %></span>
         </div>
+      <% } else { %>
+        <div class="event-divider"></div>
       <% } %>
       <%= this.row(m) %>
       <% day = _day %>

@@ -158,7 +158,7 @@ define([
       cb(channel);
     },
 
-    channelAdded: function (did, channel) {
+    channelAdded: function (did, channel, lineStyle, silent) {
       var state = store.get('state');
       if (!state.datasets) {
         state.datasets = {};
@@ -171,7 +171,7 @@ define([
       }
       if (!state.datasets[did].channels[channel.channelName]) {
         state.datasets[did].channels[channel.channelName] = channel;
-        this.app.state(state);
+        this.app.state(state, silent);
       }
     },
 

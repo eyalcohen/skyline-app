@@ -25,13 +25,15 @@ define([
       Row.prototype.initialize.call(this, options);
 
       // Type handling.
-      if (this.model.get('parent_type') === 'view')
+      if (this.model.get('parent_type') === 'view') {
         this.$el.addClass('note-view');
-      else if (this.model.get('parent_type') === 'dataset')
-        if (this.model.get('leader'))
+      } else if (this.model.get('parent_type') === 'dataset') {
+        if (this.model.get('leader')) {
           this.$el.addClass('note-dataset-leader');
-        else
+        } else {
           this.$el.addClass('note-dataset');
+        }
+      }
 
       // Set position.
       this.model.on('change:xpos', _.bind(function () {
@@ -75,7 +77,12 @@ define([
         var dur = this.model.get('end') - this.model.get('beg');
         var min = this.model.get('beg') - 2*dur;
         var max = this.model.get('end') + 3*dur;
-        mps.publish('chart/zoom', [{min: min, max: max}]);
+        _.delay(_.bind(function () {
+          mps.publish('chart/zoom', [{min: min, max: max}]);
+        }, this), 0);
+        _.each(this.model.get('channels'), function (c) {
+          mps.publish('dataset/requestOpenChannel', [c.channelName]);
+        });
       } else if (single) {
         this.open();
       }
@@ -88,8 +95,9 @@ define([
     },
 
     destroy: function () {
-      if (this.replies)
+      if (this.replies) {
         this.replies.destroy();
+      }
       return Row.prototype.destroy.call(this);
     },
 

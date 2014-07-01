@@ -11,7 +11,7 @@ define([
     model: Model,
 
     comparator: function (model) {
-      return -model.get('beg');
+      return -model.get(this.options.sort || 'beg');
     },
 
   });

@@ -26,7 +26,9 @@ define([
       this.on('rendered', this.setup, this);
 
       // Client-wide subscriptions.
-      this.subscriptions = [];
+      this.subscriptions = [
+        mps.subscribe('chart/updated', _.bind(this.updateUpdated, this))
+      ];
 
       // Socket Subscriptions
       this.app.rpc.socket.on('notification.new', _.bind(function (data) {
@@ -67,7 +69,6 @@ define([
       }
 
       this.trigger('rendered');
-
       return this;
     },
 
@@ -207,14 +208,8 @@ define([
       }
     },
 
-    setTitle: function(str, params) {
-      var sel = $('.title-left');
-      if (str) {
-        sel.text(str);
-        if (params && params.center) {
-          sel.css({width: '100%', margin: 0, 'text-align': 'center'});
-        }
-      }
+    updateUpdated: function (ts) {
+      this.$('.updated').text(util.getRelativeTime(ts));
     }
 
   });

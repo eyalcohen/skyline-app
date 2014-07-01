@@ -1,12 +1,13 @@
 <%
   var link = [this.model.get('author').username, this.model.id].join('/');
   var icon;
-  if (!this.model.get('public'))
-    icon = 'icon-lock'
-  else if (this.model.get('file'))
-    icon = 'icon-database'
-  else
-    icon = 'icon-signal'
+  if (!this.model.get('public')) {
+    icon = 'icon-lock';
+  } else if (this.model.get('file')) {
+    icon = 'icon-database';
+  } else {
+    icon = 'icon-signal';
+  }
 %>
 
 <a href="/<%= link %>" class="navigate<%= this.model.get('public') === false ? ' locked': '' %>">

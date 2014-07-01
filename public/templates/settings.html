@@ -12,21 +12,14 @@
 
 %>
 
-<div class="leftside settings">
-  <span class="reset-error page-error"></span>
-  <form class="reset-form" enctype="multipart/form-data" method="POST">
+<div class="leftside settings profile-settings">
+  <form enctype="multipart/form-data" method="POST">
+    <h2 class="settings-divider">Profile Information</h2>
     <table>
       <tbody>
         <tr>
-          <td>
+          <td colspan="2">
             <label for="displayName">Display Name</label>
-          </td>
-          <td class="textright">
-            <div class="settings-saved">
-              <span class="icon-check"></span>
-              <span>Saved</span>
-            </div>
-            <span class="settings-error page-error"></span>
           </td>
         </tr>
         <tr>
@@ -36,15 +29,8 @@
           </td>
         </tr>
         <tr>
-          <td>
+          <td colspan="2">
             <label for="username">Username</label>
-          </td>
-          <td class="textright">
-            <div class="settings-saved">
-              <span class="icon-check"></span>
-              <span>Saved</span>
-            </div>
-            <span class="settings-error page-error"></span>
           </td>
         </tr>
         <tr>
@@ -54,15 +40,8 @@
           </td>
         </tr>
         <tr>
-          <td>
+          <td colspan="2">
             <label for="primaryEmail">Email address (private)</label>
-          </td>
-          <td class="textright">
-            <div class="settings-saved">
-              <span class="icon-check"></span>
-              <span>Saved</span>
-            </div>
-            <span class="settings-error page-error"></span>
           </td>
         </tr>
         <tr>
@@ -77,13 +56,11 @@
             <a href="http://gravatar.com" class="important" target="_blank">Change your avatar at Gravatar.com</a>
           </td>
         </tr>
-        <tr><td colspan="2">&nbsp;</td></tr>
-
-        <tr>
-          <td colspan="2">
-            <span class="page-section">Privacy</span>
-          </td>
-        </tr>
+      </tbody>
+    </table>
+    <h2 class="settings-divider">Privacy</h2>
+    <table>
+      <tbody>
         <tr>
           <td colspan="2">
             <span class="settings-detail-txt">Enhanced Privacy Mode</span>
@@ -129,16 +106,14 @@
             </ul>
           </td>
         </tr>
-
-        <tr><td colspan="2">&nbsp;</td></tr>
-        <tr>
-          <td colspan="2">
-            <span class="page-section">Notification Settings</span>
-          </td>
-        </tr>
+      </tbody>
+    </table>
+    <h2 class="settings-divider">Notification Settings</h2>
+    <table>
+      <tbody>
         <tr>
           <td>
-            <span>Receive comment thread notifications?</span>
+            <span class="settings-notification-item">Receive comment thread notifications?</span>
           </td>
           <td class="textright">
             <% if (notes.comment.email === true || notes.comment.email === 'true') { %>
@@ -151,12 +126,44 @@
                 tabindex="5" style="vertical-align:-1px;">Email (requires address above)</label>
           </td>
         </tr>
-        <tr><td colspan="2">&nbsp;</td></tr>
+
         <tr>
-          <td colspan="2">
-            <span class="page-section">Services</span>
+          <td>
+            <span class="settings-notification-item">Receive note thread notifications?</span>
+          </td>
+          <td class="textright">
+            <% if (notes.note.email === true || notes.note.email === 'true') { %>
+              <input type="checkbox" name="config.notifications.note.email"
+                  tabindex="4" checked="checked" />
+            <% } else { %>
+              <input type="checkbox" name="config.notifications.note.email" />
+            <% } %>
+            <label for="config.notifications.note.email"
+                tabindex="5" style="vertical-align:-1px;">Email</label>
           </td>
         </tr>
+
+        <tr>
+          <td>
+            <span class="settings-notification-item">Receive new follower notifications?</span>
+          </td>
+          <td class="textright">
+            <% if (notes.follow.email === true || notes.follow.email === 'true') { %>
+              <input type="checkbox" name="config.notifications.follow.email"
+                  tabindex="4" checked="checked" />
+            <% } else { %>
+              <input type="checkbox" name="config.notifications.follow.email" />
+            <% } %>
+            <label for="config.notifications.follow.email"
+                tabindex="5" style="vertical-align:-1px;">Email</label>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+    <h2 class="settings-divider">Services</h2>
+    <table>
+      <tbody>
         <tr>
           <td colspan="2">
             <% if (!data.facebookId) { %>
@@ -181,13 +188,12 @@
             <% } %>
           </td>
         </tr>
-        <% if (data.provider === 'local') { %>
-          <tr><td colspan="2">&nbsp;</td></tr>
-          <tr>
-            <td colspan="2">
-              <span class="page-section">Security</span>
-            </td>
-          </tr>
+      </tbody>
+    </table>
+    <% if (data.provider === 'local') { %>
+      <h2 class="settings-divider">Security</h2>
+      <table>
+        <tbody>
           <tr>
             <td colspan="2">
               <a tabindex="9" href="/reset" class="button connect-button password-button navigate">
@@ -196,13 +202,12 @@
               </a>
             </td>
           </tr>
-        <% } %>
-        <tr><td colspan="2">&nbsp;</td></tr>
-        <tr>
-          <td colspan="2">
-            <span class="page-section">Danger Zone</span>
-          </td>
-        </tr>
+        </tbody>
+      </table>
+    <% } %>
+    <h2 class="settings-divider">Danger Zone</h2>
+    <table>
+      <tbody>
         <tr>
           <td colspan="2">
             <a tabindex="10" href="javascript:;" class="demolish button connect-button delete-button">

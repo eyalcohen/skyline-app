@@ -16,90 +16,250 @@
   var link = this.model.get('sourceLink');
   if (link) {
     if (source !== '') {
-      source = '<a class="event-source" href="' + link + '" target="_blank"><i class="icon-link"></i>' + source + '</a>';
+      if (this.parentView) {
+        source = '<a class="event-source" href="' + link + '" target="_blank"><i class="icon-link"></i>' + source + '</a>';
+      } else {
+        source = '<a href="' + link + '" target="_blank">' + source + '</a>';
+      }
     } else {
-      source = '<a class="event-source" href="' + link + '" target="_blank"><i class="icon-link"></i>' + link + '</a>';
+      if (this.parentView) {
+        source = '<a class="event-source" href="' + link + '" target="_blank"><i class="icon-link"></i>' + link + '</a>';
+      } else {
+        source = '<a href="' + link + '" target="_blank">' + link + '</a>';
+      }
     }
   }
 
   var tags = this.model.get('tags') || [];
+  var vcnt = this.model.get('vcnt') === undefined ? 0: this.model.get('vcnt');
 %>
 
-<div class="event-title">
-  <a href="/<%= this.model.get('author').username %>" class="title navigate">
-    <%= this.model.formatAuthorFor(this.app.profile.user) %></a> added a 
-    <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>" class="title navigate">dataset</a> 
-    with <%= num_channels %>.
-  <% if (source !== '') { %>
-    <%= source %>
+<% if (!this.parentView) { %>
+  <% if (this.config) { %>
+    <div class="leftside settings">
+    <h2 class="settings-divider">Dataset Information</h2>
+    <span class="event-timeline-label event-timeline-label-first">
+      <i class="icon-database"></i>
+    </span>
+    <form enctype="multipart/form-data" method="POST">
+      <table>
+        <tbody>
+
+          <% if ((Date.now() - new Date(this.model.get('created'))) < 1000*60*5) { %>
+            <tr>
+              <td>
+                <div class="config-greeting">                  
+                  <h2>Great! You've successfully added a new dataset titled &ldquo;<%= this.model.get('title') %>&rdquo; to Skyline.</h2> 
+                  Add some information about your dataset or immediately interact with your data by clicking a channel below.
+                </div>
+              </td>
+            </tr>
+          <% } %>
+
+          <tr>
+            <td>
+              <label for="datasetTitle">Title</label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="text" tabindex="1" id="datasetTitle" name="title" style="text-indent:85px;"
+                  class="dataset-param" placeholder="title" value="<%= this.model.get('title') %>" />
+              <label class="checkbox-styled input-checkbox">
+                <% if (this.model.get('public') === false) { %>
+                  <input class="save-private" type="checkbox" name="private" value="private" checked="checked" />
+                  <span style="padding:0; width:84px;"><i class="icon-lock"></i> Private</span>
+                <% } else { %>
+                  <input class="save-private" type="checkbox" name="private" value="private" />
+                  <span style="padding:0; width:84px;"><i class="icon-lock-open"></i> Public</span>
+                <% } %>
+              </label>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetTags">Tags</label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="text" tabindex="2" id="datasetTags" name="tags"
+                  class="dataset-param" placeholder="tags" value="<%= this.model.get('tags') %>" />
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetDescription">Description</label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <textarea name="description" tabindex="3" id="datasetDescription"
+                  class="dataset-param" placeholder="Write something about your data..."><%= this.model.get('description') %></textarea>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetSource">Source</label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="text" tabindex="4" id="datasetSource" name="source"
+                  class="dataset-param" placeholder="source" value="<%= this.model.get('source') %>" />
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <label for="datasetSourceLink">Source Link</label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <input type="text" tabindex="5" id="datasetSourceLink" name="sourceLink"
+                  class="dataset-param" placeholder="link" value="<%= this.model.get('sourceLink') %>" />
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding-top:15px;">
+              <a tabindex="6" href="javascript:;" class="demolish button connect-button delete-button">
+                Delete Dataset
+                <i class="icon-right-open-big"></i>
+              </a>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </form>
+
+  <% } else { %>
+    <div class="leftside">
   <% } %>
-</div>
-<span class="event-title-text">
-  <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>" class="title-large navigate">
-    <%= this.model.formatTitle() %>
-  </a>
-</span>
-<span class="event-timeline-label event-timeline-label-first">
-  <i class="icon-database"></i>
-</span>
+<% } %>
+
+<% if (this.parentView) { %>
+  <div class="event-title">
+    <a href="/<%= this.model.get('author').username %>" class="title navigate">
+      <%= this.model.formatAuthorFor(this.app.profile.user) %></a> added a 
+      <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
+          class="title navigate">dataset</a> 
+      with <%= num_channels %>.
+    <% if (source !== '') { %>
+      <%= source %>
+    <% } %>
+  </div>
+  <span class="event-title-text">
+    <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
+        class="title-large navigate">
+      <%= this.model.formatTitle() %>
+    </a>
+  </span>
+<% } %>
+
+<% if (this.config) { %>
+  <h2 class="settings-divider">Dataset Channels</h2>
+<% } else { %>
+  <span class="event-timeline-label event-timeline-label-first">
+    <i class="icon-database"></i>
+  </span>
+  <% if (this.model.get('description') || tags.length > 0) { %>
+    <p class="event-description">
+      <%= this.model.description() %>
+      <span class="event-tags">
+        <% _.each(tags, function(t, i) { %>
+          #<%= t %><% if (i < tags.length - 1) { %>,<% } %>
+        <% }); %>
+      </span>
+    </p>
+  <% } %>
+<% } %>
+
 <% if (this.model.get('channels').length !== 0) { %>
   <ul class="event-channels">
-    <% _.each(this.model.get('channels'), _.bind(function (c) { %>
+    <% _.each(this.model.get('channels'), _.bind(function (c, i) { %>
       <li id="<%= c.channelName %>" data-id="<%= c.id %>">
-        <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/<%= c.channelName %>"
-            class="navigate">
-          <span class="event-timeline-label">
-            <i class="icon-chart-line"></i>
-          </span>
-          <span class="event-timeline-label-text"></span>
-          <span class="event-channel-name">
-            <%= c.humanName %>
-          </span>
-          <div class="event-channel-svg"></div>
-          <p class="event-channel-note">
-            
-          </p>
-          <% if (this.app.profile.user &&
-              this.model.get('author').id === this.app.profile.user.id) { %>
-            <a href="javascript:;" class="event-channel-delete">
-              <i class="icon-cancel"></i>
-            </a>
-          <% } %>
-        </a>
+        <% if (!this.config) { %>
+          <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/<%= c.channelName %>"
+              class="navigate">
+            <span class="event-timeline-label">
+              <i class="icon-chart-line"></i>
+            </span>
+            <span class="event-timeline-label-text"></span>
+            <span class="event-channel-name">
+              <%= c.humanName %>
+            </span>
+            <div class="event-channel-svg"></div>
+            <p class="event-channel-note"></p>
+          </a>
+        <% } else { %>
+          <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/<%= c.channelName %>"
+              class="navigate image-anchor">
+            <span class="event-timeline-label">
+              <i class="icon-chart-line"></i>
+            </span>
+            <span class="event-timeline-label-text"></span>
+            <input type="text" tabindex="<%= i+8 %>" id="<%= c.id %>"
+                class="event-channel-input" data-param="humanName" value="<%= c.humanName %>" />
+            <div class="event-channel-svg"></div>
+          </a>
+          <a href="javascript:;" class="event-channel-delete">
+            <i class="icon-cancel"></i>
+          </a>
+        <% } %>
       </li>
     <% }, this)); %>
   </ul>
 <% } %>
-<% if (this.model.get('description') || tags.length > 0) { %>
-  <p class="event-description">
-    <% if (this.model.get('description')) { %>
-      <%= this.model.description() %>
-    <% } %>
-    <% if (tags.length > 0) { %>
-      <span class="event-tags">
-        Tags: 
-        <% _.each(tags, function(t, i) { %>
-          <%= t %><% if (i < tags.length - 1) { %>,<% } %>
-        <% }); %>
-      </span>
-    <% } %>
-  </p>
-<% } %>
-<div class="event-info">
-  Added <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
-        class="navigate"><time class="created" 
-        datetime="<%= this.model.get('created') %>" 
-        title="<%= this.model.get('created') %>">
-    <%= this.model.get('created') %>
-  </time></a>
-  <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-  <%= this.model.get('vcnt') %> view<%= this.model.get('vcnt') === 1 ? '': 's' %>
-  <% if (this.app.profile.user &&
-      this.model.get('author').id === this.app.profile.user.id) { %>
+<% if (!this.config) { %>
+  <div class="event-info">
+    Added <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
+          class="navigate"><time class="created" 
+          datetime="<%= this.model.get('created') %>" 
+          title="<%= this.model.get('created') %>">
+      <%= this.model.get('created') %>
+    </time></a>
     <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-    <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/config"
-       class="info-settings navigate"><i class="icon-cog"></i>Edit
-     </a>
-  <% } %>
-</div>
-<div class="event-comments"></div>
+    <%= vcnt %> view<%= vcnt === 1 ? '': 's' %>
+    <% if (this.app.profile.user &&
+        this.model.get('author').id === this.app.profile.user.id) { %>
+      <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+      <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>/config"
+         class="info-settings navigate"><i class="icon-cog"></i>Configure
+       </a>
+    <% } %>
+  </div>
+  <div class="event-comments"></div>
+<% } %>
+
+<% if (!this.parentView) { %>
+  </div>
+  <div class="rightside">
+    <% if (!this.config) { %>
+      <div class="target-info">
+        <span class="target-info-heading">Metadata</span>
+        <ul class="target-info-list">
+          <li>This dataset has <%= num_channels %></li>
+          <li>Viewed <%= vcnt %> time<%= vcnt === 1 ? '': 's' %></li>
+          <% if (source !== '') { %>
+            <li>Source: <%= source %></li>
+          <% } %>
+        </ul>
+      </div>
+      <div class="target-info">
+        <span class="target-info-heading">Notes</span>
+        <div class="event-notes"></div>
+      </div>
+    <% } %>
+    <!-- <div class="target-info">
+      <span class="target-info-heading">Change History</span>
+      <div class="event-history"></div>
+    </div> -->
+  </div>
+  <div class="clearfix"></div>
+<% } %>

@@ -83,9 +83,11 @@ define([
     delete this.profile.notes;
   }
 
-  App.prototype.state = function (state) {
+  App.prototype.state = function (state, silent) {
     store.set('state', state);
-    mps.publish('state/change', [state]);
+    if (!silent) {
+      mps.publish('state/change', [state]);
+    }
   }
 
   return {

@@ -32,7 +32,7 @@ define([
     render: function (single) {
       Row.prototype.render.call(this, single);
       if (!this.model.get('sticky'))
-        _.delay(_.bind(this.delete, this), this.model.get('delay') || 8000);
+        _.delay(_.bind(this.delete, this), this.model.get('delay') || 3000);
     },
 
     delete: function (e) {
@@ -41,7 +41,7 @@ define([
     },
 
     _remove: function (cb) {
-      this.$el.slideUp('fast', _.bind(function () {
+      this.$el.fadeOut('fast', _.bind(function () {
         this.destroy();
         cb();
       }, this));

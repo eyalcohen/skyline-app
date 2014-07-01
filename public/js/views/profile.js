@@ -40,7 +40,7 @@ define([
       this.$el.html(this.template.call(this));
 
       // Render title.
-      this.title = _.template(header).call(this);
+      this.title = _.template(header).call(this, {settings: false});
 
       this.trigger('rendered');
 

@@ -176,7 +176,16 @@ define([
 
     updateCursor: function (cursor) {
       if (!this.dataLayer || !this.data) return;
-      var t = _.isNumber(cursor) ? cursor: cursor[0].nearestPointData[0] * 1e3;
+      var t;
+      if (_.isNumber(cursor)) {
+        t = cursor;
+      } else {
+        if (!cursor[0]) {
+          t = this.cursorTime;
+        } else {
+          t = cursor[0].nearestPointData[0] * 1e3;
+        }
+      }
       if (t === this.cursorTime) {
         return;
       }

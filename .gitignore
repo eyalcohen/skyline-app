@@ -2,6 +2,7 @@
 node_modules/
 .aws/
 .elasticbeanstalk/
+.ebextensions/
 uploaded/
 samples/
 dump.rdb

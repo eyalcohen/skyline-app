@@ -45,13 +45,18 @@ define([
       this.view.bind('VisibleTimeChange', _.bind(function (visibleTime) {
         var vt = this.get('visibleTime');
         if (vt.beg === visibleTime.beg
-            && vt.end === visibleTime.end) return;
+            && vt.end === visibleTime.end) {
+          return;
+        }
         this.set({visibleTime: visibleTime});
         this.updateCacheSubscription();
         this.view.setVisibleTime(visibleTime.beg, visibleTime.end);
         var state = store.get('state');
         state.time = visibleTime;
-        this.app.state(state);
+        this.app.state(state, this.options.time.pending);
+        if (this.options.time.pending) {
+          this.options.time.pending = false;
+        }
       }, this));
       this.view.bind('VisibleWidthChange',
           _.bind(this.updateCacheSubscription, this));
@@ -171,7 +176,7 @@ define([
       client.offset = newOffset;
     },
 
-    addChannel: function (dataset, channels) {
+    addChannel: function (dataset, channels, silent) {
       if (!dataset) return;
       var datasetId = dataset.get('id');
       channels = _.isArray(channels) ? channels : [channels];
@@ -218,7 +223,7 @@ define([
         client.channels.push(channel);
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel,
-              this.lineStyleOptions[channel.channelName]]);
+              this.lineStyleOptions[channel.channelName], silent]);
           console.log('addChannel(', channel, ')...');
         }
       }, this));

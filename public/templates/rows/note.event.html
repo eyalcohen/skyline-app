@@ -1,0 +1,62 @@
+<%
+  var model = this.model;
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + model.get('author').gravatar + '?s=28&d=identicon';
+
+  var channels = model.get('channels');
+  var link;
+  if (model.get('parent_type') === 'view') {
+    link = [this.parentView.parentView.model.get('author').username,
+        'views', this.parentView.parentView.model.get('slug')].join('/');
+  } else {
+    link = [this.parentView.parentView.model.get('author').username,
+        this.parentView.parentView.model.id].join('/');
+  }
+  var rcnt = model.get('replies_cnt');
+%>
+
+<a href="/<%= model.get('author').username %>" class="comment-avatar navigate">
+  <img src="<%= gravatar %>" width="28" height="28" />
+</a>
+<div class="comment-body">
+  <p>
+    <a href="/<%= model.get('author').username %>" class="comment-author navigate">
+      <%= model.get('author').displayName %>
+    </a>
+    <%= model.body() %>
+  </p>
+  <% if (channels && channels.length > 0) { %>
+    <div class="note-channels">
+      <ul class="note-channels-list">
+        <% _.each(channels, function (c) { %>
+          <li>
+            <a href="/<%= link %>/<%= c.channelName %>" class="note-channel" data-channel="<%= c.channelName %>">
+              <i class="icon-chart-line"></i> <%= model.formatChannelName(c.humanName) %>
+            </a>
+          </li>
+        <% }); %>
+      </ul>
+    </div>
+  <% } %>
+  <div class="comment-info">
+    Added <a href="/<%= link %>/note/<%= model.id %>" class="navigate">
+      <time class="created" 
+          datetime="<%= model.get('created') %>" 
+          title="<%= model.get('created') %>">
+        <%= model.get('created') %>
+      </time>
+    </a>
+    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+    <%= rcnt %> repl<%= rcnt === 1 ? 'y': 'ies' %>
+    <% if (this.app.profile.user &&
+        model.get('author').id === this.app.profile.user.id) { %>
+      <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+      <a class="info-delete">Delete</a>
+    <% } %>
+  </div>
+</div>
+<div class="event-note-divider"></div>
+<a href="/<%= link %>/note/<%= model.id %>" class="event-note-nav navigate">
+  <i class="icon-angle-right" style="top:10px;"></i>
+  <i class="icon-angle-right" style="bottom:10px;"></i>
+</a>
