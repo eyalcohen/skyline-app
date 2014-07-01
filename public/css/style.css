@@ -1034,7 +1034,7 @@ span.empty-list {
 
 .http-error {
   display: block;
-  margin-top: 15%;
+  margin-top: 40px;
   font-weight: bold;
   font-size: 20px;
   color: #4d4d4d;
@@ -3002,6 +3002,11 @@ p.event-description {
   border-bottom: none;
 }
 
+.single .event-timeline-label-first {
+  left: 0;
+  top: 40px;
+}
+
 .event-timeline-label i {
   position: absolute;
   left: -11px;
@@ -3037,7 +3042,11 @@ p.event-description {
 .event-view-image {
   display: block;
   max-width: 100%;
-  margin-top: 5px;
+  margin-bottom: 30px;
+}
+
+.single .event-view-image {
+  width: 590px;
 }
 
 /*.........................................................................*/
@@ -3096,7 +3105,7 @@ p.event-description {
 
 .event-comment-body p {
   padding: 0 40px;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 16px;
   font-weight: normal;
   color: #4d4d4d;
@@ -3218,6 +3227,10 @@ textarea.event-comment-input {
 
 .event-notes {
   margin-bottom: 30px;
+}
+
+.event-notes span.empty-feed {
+  margin-top: 15px;
 }
 
 .event-note {
@@ -3728,7 +3741,7 @@ p.sidebar-tip span {
 
 /*.........................................................................*/
 
-.settings form {
+.settings:not(.equal) form {
   width: 590px;
   margin-bottom: 30px;
 }
@@ -3855,7 +3868,7 @@ h2.settings-divider {
 
 /*.........................................................................*/
 
-.dataset-config-greeting {
+.config-greeting {
   display: none;
   margin-bottom: 30px;
   background-color: rgba(39, 205, 214, 0.1);
@@ -3878,7 +3891,7 @@ h2.settings-divider {
   animation-fill-mode: both;
 }
 
-.dataset-config-greeting h2 {
+.config-greeting h2 {
   display: inline;
   font-size: 14px;
 }

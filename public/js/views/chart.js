@@ -302,7 +302,6 @@ define([
           this.saveButtonSpin.stop();
 
           if (err) {
-            // Show error.
             _.delay(function () {
               mps.publish('flash/new', [{err: err, level: 'error'}]);
             }, 500);
@@ -317,6 +316,7 @@ define([
           _.extend(state, {
             updated: now,
           });
+
           // Update state silently (not through App.prototype.state)
           // so as to not trigger a "not saved" status.
           store.set('state', state);

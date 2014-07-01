@@ -11,14 +11,18 @@ define([
   'util',
   'models/view',
   'text!../../../templates/rows/view.event.html',
+  'text!../../../templates/view.header.html',
   'views/lists/comments.event',
+  'views/lists/notes.event',
   'text!../../../templates/confirm.html'
-], function ($, _, Backbone, mps, rest, util, Model, template, Comments, confirm) {
+], function ($, _, Backbone, mps, rest, util, Model, template, header, Comments, Notes, confirm) {
   return Backbone.View.extend({
 
     attributes: function () {
       var attrs = {class: 'event-view'};
-      if (this.model) attrs.id = this.model.id;
+      if (this.model) {
+        attrs.id = this.model.id;
+      }
       return attrs;
     },
 
@@ -26,13 +30,11 @@ define([
       this.app = app;
       this.model = new Model(options.model || this.app.profile.content.page);
       this.parentView = options.parentView;
+      this.wrap = options.wrap;
+      this.config = options.config;
       this.template = _.template(template);
-
-      // Shell events.
-      this.on('rendered', this.setup, this);
-
-      // Client-wide subscriptions.
       this.subscriptions = [];
+      this.on('rendered', this.setup, this);
 
       // Socket subscriptions
       this.app.rpc.socket.on('channel.removed', _.bind(this.removeChannel, this));
@@ -42,14 +44,30 @@ define([
 
     events: {
       'click .navigate': 'navigate',
-      'click .info-delete': 'delete'
+      'change .view-param': 'save',
+      'click .demolish': 'demolish',
+      'click .event-channel-delete': 'deleteChannel',
+      'click .save-private': 'checkPrivate'
     },
 
     render: function () {
 
       // Render content
-      this.$el.html(this.template.call(this));
-      this.$el.prependTo(this.parentView.$('.event-right'));
+      this.$el.html(this.template.call(this, {util: util}));
+      if (this.parentView) {
+        this.$el.prependTo(this.parentView.$('.event-right'));
+      } else {
+        this.$el.appendTo(this.wrap);
+      }
+
+      // Render title if single
+      if (!this.parentView) {
+        this.$el.addClass('single')
+        this.app.title('Skyline | ' + this.model.get('name'));
+
+        // Render title.
+        this.title = _.template(header).call(this, {util: util});
+      }
 
       // Trigger setup.
       this.trigger('rendered');
@@ -59,11 +77,23 @@ define([
 
     setup: function () {
 
-      // Render comments.
-      this.comments = new Comments(this.app, {
-        parentView: this,
-        type: 'view'
-      });
+      // Save field contents on blur.
+      if (this.config) {
+        this.privateButton = this.$('.save-private');
+
+        // Show greeting.
+        this.$('.config-greeting').show();
+      }
+
+      // Render lists.
+      if (!this.config) {
+        this.comments = new Comments(this.app,
+            {parentView: this, type: 'view'});
+        if (!this.parentView) {
+          this.notes = new Notes(this.app,
+              {parentView: this, sort: 'created', reverse: true});
+        }
+      }
 
       // Draw SVG for each channel.
       _.each(this.model.get('channels'), _.bind(function (c) {
@@ -79,29 +109,73 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
-      this.comments.destroy();
+      if (this.comments) {
+        this.comments.destroy();
+      }
+      if (this.notes) {
+        this.notes.destroy();
+      }
       this.undelegateEvents();
       this.stopListening();
-      if (this.timer)
+      if (this.timer) {
         clearInterval(this.timer);
+      }
       this.remove();
     },
 
     navigate: function (e) {
       e.preventDefault();
+      e.stopPropagation();
+      if ($(e.target).hasClass('event-channel-delete')
+          || $(e.target).hasClass('icon-cancel')) {
+        return;
+      }
 
-      // Route to wherever.
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
+      }
     },
 
-    delete: function (e) {
+    // Save the field.
+    save: function (e) {
+      var field = $(e.target);
+      var name = field.attr('name');
+      var val = util.sanitize(field.val());
+
+      // Create the paylaod.
+      if (val === field.data('saved')) return false;
+      var payload = {};
+      payload[name] = val;
+
+      // Now do the save.
+      rest.put('/api/views/' + this.model.id, payload,
+          _.bind(function (err) {
+        if (err) {
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+          return false;
+        }
+
+        // Save the saved state and show indicator.
+        field.data('saved', val);
+        
+        // Show saved status.
+        mps.publish('flash/new', [{
+          message: 'Saved.',
+          level: 'alert'
+        }, true]);
+
+      }, this));
+
+      return false;
+    },
+
+    demolish: function (e) {
       e.preventDefault();
 
       // Render the confirm modal.
       $.fancybox(_.template(confirm)({
-        message: 'Delete this view forever?',
+        message: 'Delete this view?',
       }), {
         openEffect: 'fade',
         closeEffect: 'fade',
@@ -118,7 +192,15 @@ define([
         // Delete the doc.
         rest.delete('/api/views/' + this.model.id,
             {}, _.bind(function (err, data) {
-          if (err) return console.log(err);
+          if (err) {
+            mps.publish('flash/new', [{err: err, level: 'error'}]);
+            return false;
+          }
+
+          // Route to home.
+          if (!this.parentView) {
+            this.app.router.navigate('/', {trigger: true});
+          }
 
           // close the modal.
           $.fancybox.close();
@@ -128,15 +210,59 @@ define([
       return false;
     },
 
-    removeChannel: function (data) {
-      var li = $('li[data-id=' + data.id + ']').remove();
+    deleteChannel: function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Render the confirm modal.
+      $.fancybox(_.template(confirm)({
+        message: 'Remove this channel?',
+      }), {
+        openEffect: 'fade',
+        closeEffect: 'fade',
+        closeBtn: false,
+        padding: 0
+      });
+
+      // Setup actions.
+      $('.modal-cancel').click(function (e) {
+        $.fancybox.close();
+      });
+      $('.modal-confirm').click(_.bind(function () {
+
+        // Remove the channel.
+        var li = $(e.target).closest('li');
+        var payload = {datasets: this.model.get('datasets')};
+        _.each(payload.datasets, function (d) {
+          var channels = {};
+          _.each(d.channels, function (c, name) {
+            if (c.id !== li.data('id')) {
+              channels[name] = c;
+            }
+          });
+          d.channels = channels;
+        });
+
+        // TODO: How to update static image when flot is not present?
+        // Maybe we just don't allow channels to be removed from here.
+        rest.put('/api/views/' + this.model.id, payload,
+            _.bind(function (err) {
+          if (err) {
+            mps.publish('flash/new', [{err: err, level: 'error'}]);
+            return false;
+          }
+          li.remove();
+
+          // Close the modal.
+          $.fancybox.close();
+        }, this));
+      }, this));
+
+      return false;
     },
 
-    when: function () {
-      if (!this.model.get('created')) return;
-      if (!this.time)
-        this.time = this.$('time.created:first');
-      this.time.text(util.getRelativeTime(this.model.get('created')));
+    removeChannel: function (data) {
+      var li = $('li[data-id=' + data.id + ']').remove();
     },
 
     drawChannel: function(channel) {
@@ -209,6 +335,42 @@ define([
             .attr('class', 'area')
             .attr('fill', color);
       }, this));
+    },
+
+    checkPrivate: function (e) {
+      if (this.privateButton.hasClass('disabled')) return;
+      var span = $('span', this.privateButton.parent());
+      var payload = {};
+      if (this.privateButton.is(':checked')) {
+        span.html('<i class="icon-lock"></i> Private');
+        payload.public = false;
+      } else {
+        span.html('<i class="icon-lock-open"></i> Public');
+        payload.public = true;
+      }
+
+      // Now do the save.
+      rest.put('/api/views/' + this.model.id, payload,
+          _.bind(function (err) {
+        if (err) {
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
+          return false;
+        }
+        mps.publish('flash/new', [{
+          message: 'Saved.',
+          level: 'alert'
+        }, true]);
+      }, this));
+    },
+
+    when: function () {
+      if (!this.model.get('created')) {
+        return;
+      }
+      if (!this.time) {
+        this.time = this.$('time.created:first');
+      }
+      this.time.text(util.getRelativeTime(this.model.get('created')));
     },
 
   });

@@ -241,7 +241,7 @@ define([
 
         // Update URL.
         var route = resource === 'views' ?
-            [res.author.username, 'views', res.slug].join('/'):
+            [res.author.username, 'views', res.slug, 'chart'].join('/'):
             [res.author.username, res.id].join('/');
         this.app.router.navigate('/' + route, {trigger: true, replace: false});
 

@@ -29,6 +29,7 @@ define([
   'views/library',
   'views/chart',
   'views/rows/dataset.event',
+  'views/rows/view.event',
   'views/static',
   'text!../templates/about.html',
   'text!../templates/contact.html',
@@ -36,7 +37,7 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    Upload, Reset, Profile, Library, Chart, Dataset, Static, aboutTemp, contactTemp,
+    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -69,10 +70,16 @@ define([
       this.route(':username/:id/:channel/chart', 'savedChart', this.savedChart);
       this.route(':username/:id/note/:nid/chart', 'savedNote', this.savedNote);
       this.route(':username/:id/config', 'dataset.config', this.datasetConfig);
-      this.route(':username/views/:slug', 'chart', this.chart);
+
+      this.route(':username/views/:slug', 'view', this.view);
+      this.route(':username/views/:slug/chart', 'chart', this.chart);
+      this.route(':username/views/:slug/config', 'viewConfig', this.viewConfig);
+      this.route(':username/views/:slug/note/:nid', 'note', this.note);
+
       this.route('embed/:username/:id', 'chart', this.chart);
       this.route('embed/:username/:id/:channel', 'chart', this.chart);
       this.route('embed/:username/views/:slug', 'chart', this.chart);
+
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
       this.route('notifications', 'notifications', this.notifications);
@@ -358,6 +365,32 @@ define([
           _.bind(function (err) {
         if (err) return;
         this.page = new Dataset({wrap: '.main', config: true}, this.app).render();
+        this.renderTabs({html: this.page.title});
+        this.stop();
+      }, this));
+    },
+
+    view: function (un, slug) {
+      this.start();
+      this.renderTabs();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/view/' + un + '/' + slug, {},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new View({wrap: '.main'}, this.app).render();
+        this.renderTabs({html: this.page.title});
+        this.stop();
+      }, this));
+    },
+
+    viewConfig: function (un, slug) {
+      this.start();
+      this.renderTabs();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/view/' + un + '/' + slug, {},
+          _.bind(function (err) {
+        if (err) return;
+        this.page = new View({wrap: '.main', config: true}, this.app).render();
         this.renderTabs({html: this.page.title});
         this.stop();
       }, this));

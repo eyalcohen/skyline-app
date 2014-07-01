@@ -83,7 +83,7 @@ define([
         this.privateButton = this.$('.save-private');
 
         // Show greeting.
-        this.$('.dataset-config-greeting').show();
+        this.$('.config-greeting').show();
       }
 
       // Render lists.
@@ -154,10 +154,7 @@ define([
       rest.put('/api/datasets/' + this.model.id, payload,
           _.bind(function (err) {
         if (err) {
-
-          // Show error.
           mps.publish('flash/new', [{err: err, level: 'error'}]);
-
           return false;
         }
 
@@ -197,14 +194,16 @@ define([
         // Delete the user.
         rest.delete('/api/datasets/' + this.id,
             {}, _.bind(function (err) {
-          if (err) return console.log(err);
+          if (err) {
+            mps.publish('flash/new', [{err: err, level: 'error'}]);
+            return false;
+          }
 
           // Route to home.
           this.app.router.navigate('/', {trigger: true});
 
           // Close the modal.
           $.fancybox.close();
-
         }, this));
       }, this));
 
@@ -236,7 +235,8 @@ define([
         rest.delete('/api/channels/' + li.data('id'),
             {}, _.bind(function (err, data) {
           if (err) {
-            return console.log(err);
+            mps.publish('flash/new', [{err: err, level: 'error'}]);
+            return false;
           }
           li.remove();
 
@@ -343,10 +343,7 @@ define([
       rest.put('/api/channels/' + field.attr('id'), payload,
           _.bind(function (err) {
         if (err) {
-
-          // Show error.
           mps.publish('flash/new', [{err: err, level: 'error'}]);
-
           return false;
         }
 
@@ -380,6 +377,7 @@ define([
       rest.put('/api/datasets/' + this.model.id, payload,
           _.bind(function (err) {
         if (err) {
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
           return false;
         }
         mps.publish('flash/new', [{

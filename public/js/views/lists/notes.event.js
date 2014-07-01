@@ -43,6 +43,13 @@ define([
       return List.prototype.setup.call(this);
     },
 
+    // initial bulk render of list
+    render: function (options) {
+      List.prototype.render.call(this, options);
+      this.checkEmpty();
+      return this;
+    },
+
     destroy: function () {
       // this.app.rpc.socket.removeAllListeners('note.new');
       // this.app.rpc.socket.removeAllListeners('note.removed');
@@ -56,6 +63,7 @@ define([
     collect: function (data) {
       if (data.parent_id === this.parentView.model.id) {
         this.collection.unshift(data);
+        this.checkEmpty();
       }
     },
 
@@ -71,9 +79,18 @@ define([
         this.views.splice(index, 1);
         view._remove(_.bind(function () {
           this.collection.remove(view.model);
+          this.checkEmpty();
         }, this));
       }
     },
+
+    checkEmpty: function () {
+      if (this.collection.length === 0) {
+        $('<span class="empty-feed">No notes.</span>').appendTo(this.$el);
+      } else {
+        this.$('.empty-feed').remove();
+      }
+    }
 
   });
 });
