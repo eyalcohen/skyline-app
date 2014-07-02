@@ -191,7 +191,7 @@ define([
 
         // Delete the doc.
         rest.delete('/api/views/' + this.model.id,
-            {}, _.bind(function (err, data) {
+            {}, _.bind(function (err) {
           if (err) {
             mps.publish('flash/new', [{err: err, level: 'error'}]);
             return false;

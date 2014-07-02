@@ -192,7 +192,7 @@ define([
       $('.modal-confirm').click(_.bind(function (e) {
 
         // Delete the user.
-        rest.delete('/api/datasets/' + this.id,
+        rest.delete('/api/datasets/' + this.model.id,
             {}, _.bind(function (err) {
           if (err) {
             mps.publish('flash/new', [{err: err, level: 'error'}]);
@@ -200,7 +200,9 @@ define([
           }
 
           // Route to home.
-          this.app.router.navigate('/', {trigger: true});
+          if (!this.parentView) {
+            this.app.router.navigate('/', {trigger: true});
+          }
 
           // Close the modal.
           $.fancybox.close();
