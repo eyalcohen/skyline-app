@@ -148,7 +148,11 @@ if (cluster.isMaster) {
           app.get('REDIS_HOST_SESSION')));
     },
     function (err, rcCache, rc, rp, rs) {
-      if (err) return util.error(err);
+      if (err) {
+        console.error(err);
+        process.exit(1);
+        return;
+      }
 
       // Common utils init.
       require('./lib/common').init(app.get('ROOT_URI'));
@@ -239,9 +243,7 @@ if (cluster.isMaster) {
           },
           function (err, connection) {
             if (err) {
-              util.error(err);
-              process.exit(1);
-              return;
+              return this(err);
             }
 
             // Attach a connection ref to app.
@@ -262,13 +264,14 @@ if (cluster.isMaster) {
             }, this));
           },
           function (err) {
+            if (err) {
+              console.error(err);
+              process.exit(1);
+              return;
+            }
 
             // Set up the storage class for static content.
             app.set('storage', new Storage());
-            this(err);
-          },
-          function (err) {
-            if (err) return console.error(err);
 
             // Init service.
             service.routes(app);
