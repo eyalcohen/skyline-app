@@ -284,6 +284,8 @@ define([
         return {
           channelName: c.channelName, 
           humanName: c.humanName,
+          did: c.parent_id,
+          username: c.author.username
         };
       });
 

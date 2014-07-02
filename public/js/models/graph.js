@@ -220,6 +220,7 @@ define([
           this.lineStyleOptions[channel.channelName] = {};
           _.extend(this.lineStyleOptions[channel.channelName],this.DEFAULT_LINE_STYLE);
         }
+        channel.author = dataset.get('author');
         client.channels.push(channel);
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel,
