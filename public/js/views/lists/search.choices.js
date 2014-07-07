@@ -273,11 +273,13 @@ define([
         this.collection.unshift(i);
       }, this));
 
-      this.collection.unshift(this.createDivider());
+      if (myData.length > 0) {
+        this.collection.unshift(this.createDivider());
 
-      _.each(myData, _.bind(function(i) {
-        this.collection.unshift(i);
-      }, this));
+        _.each(myData, _.bind(function(i) {
+          this.collection.unshift(i);
+        }, this));
+      }
 
       // Show results display.
       this.showResults();
