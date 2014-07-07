@@ -256,11 +256,27 @@ define([
       }
 
       // Add to collection.
+      var myData = [], otherData = [];
       _.each(this.options.types, _.bind(function (t) {
         if (items[t])
           _.each(items[t], _.bind(function (i) {
-            this.collection.unshift(i);
+            if (i.author && this.app.profile && this.app.profile.user &&
+                i.author.id === this.app.profile.user.id) {
+              myData.push(i);
+            } else {
+              otherData.push(i);
+            }
           }, this));
+      }, this));
+
+      _.each(otherData, _.bind(function(i) {
+        this.collection.unshift(i);
+      }, this));
+
+      this.collection.unshift(this.createDivider());
+
+      _.each(myData, _.bind(function(i) {
+        this.collection.unshift(i);
       }, this));
 
       // Show results display.
@@ -273,6 +289,12 @@ define([
         v.destroy();
         this.collection.remove(v.model);
       }, this));
+    },
+
+    createDivider: function() {
+      return {
+        _type: 'divider'
+      }
     },
 
     defaults: function () {

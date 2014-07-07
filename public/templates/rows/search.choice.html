@@ -6,12 +6,17 @@
         + this.model.get('gravatar') + '?s=16&d=identicon';
 
 %>
+<% if (this.model.get('_type') === 'divider') { %>
+  <hr />
+<% } else { %>
 
-<% if (image) { %>
-  <span class="choice-prefix">
-    <img src=<%= image %> width="16" height="16" />
+  <% if (image) { %>
+    <span class="choice-prefix">
+      <img src=<%= image %> width="16" height="16" />
+    </span>
+  <% } %>
+  <span class="choice-name">
+    <%= this.model.title() %>
   </span>
+
 <% } %>
-<span class="choice-name">
-  <%= this.model.title() %>
-</span>

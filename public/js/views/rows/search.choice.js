@@ -15,6 +15,9 @@ define([
 
     attributes: function () {
       var klass = 'choice';
+      if (this.model.get('_type') === 'divider') {
+        klass += 'search-divider';
+      }
       if (this.model.get('public') === false)
         klass += ' locked';
       return _.defaults({class: klass},
@@ -42,6 +45,12 @@ define([
 
     choose: function (e) {
       if (e) e.preventDefault();
+
+      // nothing to be done for the divider
+      if (this.model.get('_type') === 'divider') {
+        return;
+      }
+
 
       // Show selection.
       this.parentView.choose(this);

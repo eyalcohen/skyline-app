@@ -25,6 +25,11 @@ define([
           href = [this.get('parent').author.username, this.get('parent').id, 
                  this.get('channelName')].join('/');
           break;
+
+        // special case
+        case 'divider':
+          href = '';
+          break;
       }
       return href;
     },
@@ -73,6 +78,11 @@ define([
           if (this.get('parent'))
             title += '<small> in ' + this.get('parent').title + '</small>';
           break;
+
+        // special case
+        case 'divider':
+          title = '';
+          break;
           
       }
       return title;
@@ -92,6 +102,11 @@ define([
           break;
         case 'channels':
           term += this.get('humanName');
+          break;
+
+        // special case
+        case 'divider':
+          term = '';
           break;
       }
       return term;
