@@ -48,11 +48,12 @@ block content
               .search-display
                 .list-header
           ul.header-navigation
+            - if (typeof user !== 'undefined')
+              li
+                a(href="/", class="navigate") My Feed
             li
-              a(href="/", class="navigate") Home
+              a(href="/library", class="navigate") Public Data
             li
               a(href="/about", class="navigate") About
-            li
-              a(href="/library", class="navigate") Library
     block main
           
