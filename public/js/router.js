@@ -31,13 +31,14 @@ define([
   'views/rows/dataset.event',
   'views/rows/view.event',
   'views/static',
+  'text!../templates/how.html',
   'text!../templates/about.html',
   'text!../templates/contact.html',
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, aboutTemp, contactTemp,
+    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, howTemp, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -83,6 +84,7 @@ define([
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
       this.route('notifications', 'notifications', this.notifications);
+      this.route('how', 'how', this.how);
       this.route('about', 'about', this.about);
       this.route('contact', 'contact', this.contact);
       this.route('privacy', 'privacy', this.privacy);
@@ -394,6 +396,18 @@ define([
         this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
+    },
+
+    how: function () {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/static', _.bind(function (err) {
+        if (err) return;
+        this.page = new Static(this.app,
+            {title: 'How It Works', template: howTemp}).render();
+        this.stop();
+      }, this));
+      this.renderTabs({title: 'Skyline 101'});
     },
 
     about: function () {

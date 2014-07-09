@@ -14,36 +14,43 @@ define([
     el: '.main',
 
     initialize: function (app, options) {
-
-      // Save app reference.
       this.app = app;
       this.options = options;
-
-      // Shell events:
-      this.on('rendered', this.setup, this);
-
-      // Client-wide subscriptions
       this.subscriptions = [];
+      this.on('rendered', this.setup, this);
     },
 
     render: function () {
-
-      // Set page title.
       this.app.title('Skyline | ' + this.options.title);
 
       this.template = _.template(this.options.template);
       this.$el.html(this.template.call(this));
 
       this.trigger('rendered');
-
       return this;
     },
 
     events: {
       'click .navigate': 'navigate',
+      'click .page-menu li a': 'subNavigate',
+      'window scroll': 'scroll'
     },
 
     setup: function () {
+
+      // Save refs.
+      this.menu = this.$('.page-menu');
+
+      // Handle menu scroll.
+      if (this.menu.length > 0) {
+        $(window).scroll(_.bind(this.scroll, this));
+      }
+
+      // Choose active item.
+      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
+        this.selectItemFromURL();
+      }
+
       return this;
     },
 
@@ -63,12 +70,59 @@ define([
 
     navigate: function (e) {
       e.preventDefault();
-
-      // Route to wherever.
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
+      }
     },
+
+    subNavigate: function (e) {
+      $('li a', this.menu).removeClass('active');
+      $(e.target).closest('a').addClass('active');
+    },
+
+    scroll: function (e) {
+
+      // Adjust menu position.
+      if ($(window).scrollTop() > this.menu.parent().offset().top) {
+        this.menu.addClass('fixed');
+      } else {
+        this.menu.removeClass('fixed');
+      }
+
+      // Select menu item.
+      var id;
+      var win = $(window).scrollTop();
+      var pos = -Number.MAX_VALUE;
+      this.$('.divider').each(function () {
+        var top = $(this).offset().top - win;
+        if (top <= 0 && top > pos) {
+          pos = top;
+          id = $(this).attr('id');
+        }
+      });
+      if (id) {
+        this.selectItemById(id);
+      }
+    },
+
+    selectItemById: function (id) {
+      $('li a', this.menu).removeClass('active');
+      $('a[href="#' + id + '"]').addClass('active');
+    },
+
+    selectItemFromURL: function () {
+      var a = _.find($('a', this.menu), function (_a) {
+        return window.location.hash === $(_a).attr('href');
+      });
+      if (a) {
+        $('li a', this.menu).removeClass('active');
+        $(a).addClass('active');
+        _.delay(function () {
+          $.scrollTo(window.location.hash, 0);
+        }, 1000);
+      }
+    } 
 
   });
 });

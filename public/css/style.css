@@ -360,6 +360,7 @@ h1.title-left {
   line-height: 40px;
   color: #404040;
 }
+
 h1.title-right {
   font-size: 14px;
   font-weight: normal;
@@ -367,12 +368,14 @@ h1.title-right {
   color: #404040;
   padding: 10px 0 0 0;
 }
+
 h1.title-static {
   font-size: 16px;
   font-weight: normal;
   line-height: normal;
   color: #404040;
 }
+
 h1.title-sub {
   display: inline-block;
   font-size: 11px;
@@ -380,6 +383,16 @@ h1.title-sub {
   line-height: 6px;
   color: #666;
   font-weight: bold;
+}
+
+h2.divider {
+  margin: 0 -40px 30px;
+  border-bottom: 1px solid #f2f2f2;
+  padding: 0 80px 3px 40px;
+  font-family: 'Dosis', sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 40px;
 }
 
 canvas {
@@ -1573,6 +1586,43 @@ img.page-title-avatar {
   border-radius: 2px;
 }
 
+ul.page-menu {
+  position: relative;
+  margin: -30px -30px 0;
+  list-style: none;
+  z-index: 100001;
+  top: 0;
+}
+
+ul.page-menu.fixed {
+  position: fixed;
+  top: 30px;
+}
+
+ul.page-menu li a {
+  display: block;
+  padding: 5px 30px;
+  color: #666;
+
+  -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  transition: all 0.1s ease-in-out;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+ul.page-menu li a:hover {
+  background: none;
+  color: #1c9da3;
+}
+
+ul.page-menu li a.active {
+  border-left: 5px solid #27CDD6;
+  margin-left: -1px;
+}
+
 /*.........................................................................*/
 
 .page-header a i {
@@ -1679,6 +1729,15 @@ body.embed .page-spin {
   font-size: 11px;
   text-align: left;
   margin-bottom: 10px;
+}
+
+/*.........................................................................*/
+
+p.text-section {
+  font-size: 14px;
+  line-height: 20px;
+  color: #666;
+  margin-bottom: 30px;
 }
 
 /*.........................................................................*/
@@ -3013,8 +3072,8 @@ p.event-description {
   top: 40px;
 }
 
-h2.settings-divider + .event-timeline-label-first {
-  top: 52px;
+h2.divider + .event-timeline-label-first {
+  top: 50px;
 }
 
 .event-timeline-label i {
@@ -3860,15 +3919,7 @@ ul.settings-detail-list li {
   list-style-type: disc;
 }
 
-h2.settings-divider {
-  margin: 0 -40px 30px;
-  border-bottom: 1px solid #f2f2f2;
-  padding: 0 80px 3px 40px;
-  font-size: 14px;
-  font-weight: normal;
-}
-
-.profile-settings h2.settings-divider {
+.profile-settings h2.divider {
   margin: 0 -80px 30px -40px;
 }
 
