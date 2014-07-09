@@ -1591,7 +1591,8 @@ ul.page-menu {
   margin: -30px -30px 0;
   list-style: none;
   z-index: 100001;
-  top: 0;
+  top: 15px;
+  width: 358px;
 }
 
 ul.page-menu.fixed {
@@ -1602,7 +1603,11 @@ ul.page-menu.fixed {
 ul.page-menu li a {
   display: block;
   padding: 5px 30px;
-  color: #666;
+  width: 100%;
+  font-size: 16px;
+  font-family: 'Dosis', sans-serif;
+  font-weight: 400;
+  color: #404040;
 
   -webkit-transition: all 0.1s ease-in-out;
   -moz-transition: all 0.1s ease-in-out;
@@ -1613,14 +1618,19 @@ ul.page-menu li a {
   -webkit-box-sizing: border-box;
 }
 
+ul.page-menu li a:before {
+  content: "- ";
+}
+
 ul.page-menu li a:hover {
   background: none;
   color: #1c9da3;
 }
 
 ul.page-menu li a.active {
-  border-left: 5px solid #27CDD6;
   margin-left: -1px;
+  border-left: 5px solid #27CDD6;
+  color: #1c9da3;
 }
 
 /*.........................................................................*/

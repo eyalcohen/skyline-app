@@ -77,8 +77,13 @@ define([
     },
 
     subNavigate: function (e) {
+      this.selecting = true;
       $('li a', this.menu).removeClass('active');
       $(e.target).closest('a').addClass('active');
+      _.defer(_.bind(function () {
+        this.selecting = false;
+      }, this));
+      
     },
 
     scroll: function (e) {
@@ -91,6 +96,9 @@ define([
       }
 
       // Select menu item.
+      if (this.selecting) {
+        return false;
+      }
       var id;
       var win = $(window).scrollTop();
       var pos = -Number.MAX_VALUE;
@@ -118,9 +126,6 @@ define([
       if (a) {
         $('li a', this.menu).removeClass('active');
         $(a).addClass('active');
-        _.delay(function () {
-          $.scrollTo(window.location.hash, 0);
-        }, 1000);
       }
     } 
 
