@@ -73,6 +73,7 @@ if (cluster.isMaster) {
   var Mailer = require('./lib/mailer');
   var PubSub = require('./lib/pubsub').PubSub;
   var Boiler = require('./lib/boiler');
+  var logger = require('./lib/logger');
 
   // Setup Environments
   var app = express();
@@ -173,6 +174,7 @@ if (cluster.isMaster) {
       app.use(express.favicon(__dirname + '/public/img/favicon.ico'));
       app.use(express.logger('dev'));
       app.use(rawBody(['application/octet-stream', 'application/x-gzip']));
+      app.use(logger.requests);
       app.use(express.bodyParser());
       app.use(app.get('cookieParser'));
       app.use(express.session({
