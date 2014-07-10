@@ -25,6 +25,10 @@ var boots = require('../boots');
 var db = require('../lib/db');
 var com = require('../lib/common');
 
+var datasetsIndexed = 0;
+var channelsIndexed = 0;
+var viewsIndexed = 0;
+var usersIndexed = 0;
 
 boots.start({redis: true}, function (client) {
 
@@ -33,7 +37,7 @@ boots.start({redis: true}, function (client) {
 
       // Get all datasets.
       db.Datasets.list({}, this.parallel());
-      client.redisClient.del('datasets', this.parallel());
+      client.redisClient.del('datasets-search', this.parallel());
     },
     function (err, docs, res) {
       boots.error(err);
@@ -42,8 +46,10 @@ boots.start({redis: true}, function (client) {
       var _this = _.after(docs.length * 2, this);
       _.each(docs, function (d, idx) {
         // Add new.
-        com.index(client.redisClient, 'datasets', d, ['title', 'source', 'tags'], _this);
-        com.index(client.redisClient, 'datasets', d, ['title'], {strategy: 'noTokens'}, _this);
+        datasetsIndexed += com.index(client.redisClient, 'datasets', d,
+                                    ['title', 'source', 'tags'], _this);
+        datasetsIndexed += com.index(client.redisClient, 'datasets', d,
+                                    ['title'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
@@ -51,7 +57,7 @@ boots.start({redis: true}, function (client) {
 
       // Get all views.
       db.Views.list({}, this.parallel());
-      client.redisClient.del('views', this.parallel());
+      client.redisClient.del('views-search', this.parallel());
     },
     function (err, docs, res) {
       boots.error(err);
@@ -60,8 +66,10 @@ boots.start({redis: true}, function (client) {
       var _this = _.after(docs.length * 2, this);
       _.each(docs, function (d, idx) {
         // Add new.
-        com.index(client.redisClient, 'views', d, ['name', 'tags'], _this);
-        com.index(client.redisClient, 'views', d, ['name'], {strategy: 'noTokens'}, _this);
+        viewsIndexed += com.index(client.redisClient, 'views', d,
+                                  ['name', 'tags'], _this);
+        viewsIndexed += com.index(client.redisClient, 'views', d,
+                                  ['name'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
@@ -69,7 +77,7 @@ boots.start({redis: true}, function (client) {
 
       // Get all users.
       db.Users.list({}, this.parallel());
-      client.redisClient.del('users', this.parallel());
+      client.redisClient.del('users-search', this.parallel());
     },
     function (err, docs) {
       boots.error(err);
@@ -78,7 +86,8 @@ boots.start({redis: true}, function (client) {
       var _this = _.after(docs.length, this);
       _.each(docs, function (d, idx) {
         // Add new.
-        com.index(client.redisClient, 'users', d, ['displayName', 'username'], _this);
+        usersIndexed += com.index(client.redisClient, 'users', d,
+                                  ['displayName', 'username'], _this);
       });
     },
     function (err) {
@@ -86,7 +95,7 @@ boots.start({redis: true}, function (client) {
 
       // Get all channels.
       db.Channels.list({}, this.parallel());
-      client.redisClient.del('channels', this.parallel());
+      client.redisClient.del('channels-search', this.parallel());
     },
     function (err, docs) {
       boots.error(err);
@@ -95,13 +104,19 @@ boots.start({redis: true}, function (client) {
       var _this = _.after(docs.length * 2, this);
       _.each(docs, function (d) {
         // Add new.
-        com.index(client.redisClient, 'channels', d, ['humanName'], _this);
-        com.index(client.redisClient, 'channels', d, ['humanName'], {strategy: 'noTokens'}, _this);
+        channelsIndexed += com.index(client.redisClient, 'channels', d,
+                                     ['humanName'], _this);
+        channelsIndexed += com.index(client.redisClient, 'channels', d,
+                                     ['humanName'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
       boots.error(err);
       util.log('Redis: Indexed users, datasets, views, and channels');
+      util.log('Dataset entries: ' + datasetsIndexed);
+      util.log('Channel entries: ' + channelsIndexed);
+      util.log('View entries: ' + viewsIndexed);
+      util.log('User entries: ' + usersIndexed);
       process.exit(0);
     }
   );
