@@ -4,67 +4,69 @@
     <strong>Zoom:</strong> Zoom into or out of the graph using the same gestures as an online map, or using the zoom wheel on your mouse.
   </p>
   <p class="text-section">
-    <strong>Pan:</strong> Click anywhere in the chart move it to the left to pan forward in time, or move the chart to the right to pan backward in time. You can also enter times and dates directly into the time entry box to quickly narrow down to the time segment you care about.
+    <strong>Pan:</strong> Click anywhere in the chart to move it to the left to pan forward in time, or move the chart to the right to pan backward in time. You can also enter times and dates directly into the time entry box to quickly narrow down to the time segment you care about.
   </p>
   <p class="text-section">
     <strong>Overview Plot:</strong> The graph running along the bottom of the page gives you an overview of the full span of the datasets you are looking for. Click and highlight a segment of that overview to go straight to that segment of time.
+    <img src="<%= __s %>/img/how/overview.png" height="101" />
   </p>
   <h2 id="adding-and-removing-data-to-charts" class="divider">Adding and Removing Data to Charts</h2>
-  <p class="text-section">
-    <strong>Search:</strong> The easiest way to find and add data to a chart is through the search bar.  Type keywords for the data you are looking for into the search bar and Skyline will list all related datasets and channels. Click on a result and Skyline takes you straight to a graph of what you picked.
+  <p class="text-section" data-section="search">
+    <strong>Search:</strong> The easiest way to find and add data to a chart is through the search bar. Type keywords for the data you are looking for into the search bar and Skyline will list all related datasets and channels. Click on a result and Skyline takes you straight to a graph of what you picked.
+  </p>
+  <p class="text-section" data-section="channels">
+    <strong>Viewing/Hiding Channel:</strong> Mouse over the name of the dataset and a list of all channels that are part of that dataset will be made visible. Click on any channel name to make it visible in the chart. Click on it again and the channel will be hidden.
   </p>
   <p class="text-section">
-    <strong>Viewing/Hiding Channel:</strong> Mouse over the name of the dataset and a list of all channels that are part of that dataset will be made visible.  Click on any channel name to make it visible in the chart.  Click on it again and the channel will be hidden.
-  </p>
-  <p class="text-section">
-    <strong>Adding Dataset:</strong> Skyline gives you the power to instantly layer channels from multiple datasets onto the same chart.  To add a dataset, use the Search bar and whatever dataset you select will appear next to the dataset you are already viewing.  You can also add a dataset using the “Add Dataset[c]” button which will allow you to search for data, upload new data, or browse through data you have previously uploaded.
+    <strong>Adding Dataset:</strong> Skyline gives you the power to instantly layer channels from multiple datasets onto the same chart. To add a dataset, use the Search bar and whatever dataset you select will appear next to the dataset you are already viewing. You can also add a dataset using the "Add Dataset[c]" button which will allow you to search for data, upload new data, or browse through data you have previously uploaded.
+    <img src="<%= __s %>/img/how/adding.png" height="368" />
   </p>
   <h2 id="chart-formatting" class="divider">Chart Formatting</h2>
   <p class="text-section">
     <strong>Axis Scaling:</strong> As you interact with your data, Skyline automatically scales your axis to ensure that all the data remains visible on the screen at the highest resolution possible for the channels being viewed.
   </p>
-  <p class="text-section">
-    <strong>Changing Axes:</strong> If you are ever looking at two data channels of vastly different scales, it is helpful to shift one of those channels to a new axis.  To toggle the axis for a specific channel, click on the arrow next to the channel name and Skyline will shift that channel to the other axis.
+  <p class="text-section" data-section="axes">
+    <strong>Changing Axes:</strong> If you are ever looking at two data channels of vastly different scales, it is helpful to shift one of those channels to a new axis. To toggle the axis for a specific channel, click on the arrow next to the channel name and Skyline will shift that channel to the other axis.
   </p>
   <p class="text-section">
-    <strong>Chart Resolution:</strong> As you zoom out of high-resolution data, Skyline will automatically show average data points in order to make the chart more readable.  Skyline will also show high-lighted bands around the averaged data in order to indicate max/min values in the raw data underlying the data being shown.
+    <strong>Chart Resolution:</strong> As you zoom out of high-resolution data, Skyline will automatically show average data points in order to make the chart more readable. Skyline will also show high-lighted bands around the averaged data in order to indicate max/min values in the raw data underlying the data being shown.
   </p>
   <p class="text-section">
-    <strong>Changing Line Formats:</strong> Hover your mouse over the channel name to make line formatting window appear.  In the formatting window, you can select a scatter plot, line graph, or area graph for that particular channel.  You can select linear interpolation or square wave interpolation for your data.  You can also change the thickness and color of the lines in the graph.
+    <strong>Changing Line Formats:</strong> Hover your mouse over the channel name to make line formatting window appear. In the formatting window, you can select a scatter plot, line graph, or area graph for that particular channel. You can select linear interpolation or square wave interpolation for your data. You can also change the thickness and color of the lines in the graph.
   </p>
   <h2 id="sharing-and-collaboration" class="divider">Sharing and Collaboration</h2>
   <p class="text-section">
     Skyline lets you save, share, and collaborate on data with the ease of a social network.
   </p>
-  <p class="text-section">  
-    <strong>Dataset Details:</strong> The details button displays a sidebar showing detailed information about what you are viewing.  This will include a description, source information, number of channels, and a list of tags associated with the dataset or view that you are viewing.
+  <p class="text-section">
+    <strong>Dataset Details:</strong> The details button displays a sidebar showing detailed information about what you are viewing. This will include a description, source information, number of channels, and a list of tags associated with the dataset or view that you are viewing.
   </p>
   <p class="text-section">
-    <strong>What is a View?:</strong>  A "View" in Skyline is a snapshot of your chart exactly as you are viewing it.  A saved View remembers the combination of datasets and channels that you are viewing along with the specific time segment visible on the screen and the formatting you used for each plot.  Clicking on a View will take you directly back to the chart that you were viewing without you having to hunt for data in any way.
+    <strong>What is a View?:</strong> A "View" in Skyline is a snapshot of your chart exactly as you are viewing it. A saved View remembers the combination of datasets and channels that you are viewing along with the specific time segment visible on the screen and the formatting you used for each plot. Clicking on a View will take you directly back to the chart that you were viewing without you having to hunt for data in any way.
   </p>
   <p class="text-section">
-    <strong>Saving a View:</strong>  While working with a chart, click the “Save” icon in the upper right corner to Save a “View”.  Skyline will ask for a title, description, and a privacy setting for the view.  Once your view is saved, it will appear in your news feed.  If you save the View as “Public”, it will also appear in the news feed of your followers and in Skyline search results.  (Note that Views can only be saved as “Public” if all datasets within the View are Public.
+    <strong>Saving a View:</strong> While working with a chart, click the "Save" icon in the upper right corner to Save a "View". Skyline will ask for a title, description, and a privacy setting for the view. Once your view is saved, it will appear in your news feed. If you save the View as "Public", it will also appear in the news feed of your followers and in Skyline search results. (Note that Views can only be saved as "Public" if all datasets within the View are Public.
   </p>
   <p class="text-section">
-    <strong>Commenting on Data:</strong>  Skyline makes it easy to comment and collaborate on data. You can comment on any dataset or view in your Feed or in Dataset Details sidebar.  Skyline also allows you to attach a note directly onto a chart.  Click and drag the Note button on the bottom of the graph to highlight a segment of data and create a comment straight onto the chart.
+    <strong>Commenting on Data:</strong> Skyline makes it easy to comment and collaborate on data. You can comment on any dataset or view in your Feed or in Dataset Details sidebar. Skyline also allows you to attach a note directly onto a chart. Click and drag the Note button on the bottom of the graph to highlight a segment of data and create a comment straight onto the chart.
   </p>
   <p class="text-section">
-    <strong>Follow Users:</strong>  Want to keep track of what your friends are doing on Skyline?  Search for their name in order to get to their Profile page.  Then click “Follow”.  Now, anytime they upload a dataset, create a view, or make comment, it will show up in your Feed.
+    <strong>Follow Users:</strong> Want to keep track of what your friends are doing on Skyline? Search for their name in order to get to their Profile page. Then click "Follow". Now, anytime they upload a dataset, create a view, or make comment, it will show up in your Feed.
   </p>
   <p class="text-section">
-    <strong>My Feed:</strong>  Your Feed is your homebase on Skyline.  In addition to showing you everything you have been doing, your feed also shows you datasets, views, and comments from other Skyline users that you follow.   that have been saved, and comments that have been made by yourself or by people you follow.  You can access your Feed by clicking “My Feed” or by clicking the SkylineBeta icon from any page.
+    <strong>My Feed:</strong> Your Feed is your homebase on Skyline. In addition to showing you everything you have been doing, your feed also shows you datasets, views, and comments from other Skyline users that you follow. You can access your Feed by clicking "My Feed" or by clicking the SkylineBeta icon from any page.
   </p>
   <p class="text-section">
-    <strong>Public Data:</strong>  Skyline’s library of public data is continuously growing.  Every day, our own data researchers along with our community of users are adding public data sets which you can visualize for free.
+    <strong>Public Data:</strong> Skyline's library of public data is continuously growing. Every day, our own data researchers along with our community of users are adding public data sets which you can visualize for free.
   </p>
   <h2 id="uploading-data" class="divider">Uploading Data</h2>
   <h2 id="exporting-data" class="divider">Exporting Data</h2>
   <p class="text-section">
-    Now that all the data you want is displayed in the graph, you can export the data used to create the graph as a(n) __(file formats) or a(n) __(file formats) file. When you export the data, only the data from the current view is included in the file. Once you’ve downloaded the data, you can use it to tell your story.
+    Now that all the data you want is displayed in the graph, you can export the data used to create the graph as a(n) __(file formats) or a(n) __(file formats) file. When you export the data, only the data from the current view is included in the file. Once you've downloaded the data, you can use it to tell your story.
   </p>
   <p class="text-section">
     With Skyline, you can visualize and select the data you want before you download a huge dataset. This helps eliminate the hassle of poring through a huge dataset trying to find the information you want.
-  </p>  
+  </p>
 </div>
 <div class="rightside">
   <ul class="page-menu">
@@ -75,6 +77,18 @@
     <li><a href="#uploading-data">Uploading Data</a></li>
     <li><a href="#exporting-data">Exporting Data</a></li>
   </ul>
+  <div class="text-section-detail" style="top:525px;">
+    <span>Find everything with Skyline's search bar.</span>
+    <img src="<%= __s %>/img/how/search.png" />
+  </div>
+  <div class="text-section-detail" style="top:685px;">
+    <span>Channel darta is toggled on/off with a click.</span>
+    <img src="<%= __s %>/img/how/channels.png" />
+  </div>
+  <div class="text-section-detail" style="top:1380px;">
+    <span>The arrows point to the axis in use.</span>
+    <img src="<%= __s %>/img/how/axes.png" />
+  </div>
 </div>
 <div class="clearfix"></div>
 <div class="footer">

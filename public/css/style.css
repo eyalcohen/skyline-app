@@ -1272,6 +1272,7 @@ body.embed .folder {
 }
 
 .rightside {
+  position: relative;
   margin: 0 0 0 759px;
   padding: 30px;
   width: 298px;
@@ -1593,6 +1594,7 @@ ul.page-menu {
   z-index: 100001;
   top: 15px;
   width: 358px;
+  background: #fff;
 }
 
 ul.page-menu.fixed {
@@ -1748,6 +1750,33 @@ p.text-section {
   line-height: 20px;
   color: #666;
   margin-bottom: 30px;
+}
+
+p.text-section img {
+  padding: 30px 0 0 0;
+}
+
+.text-section-detail {
+  position: absolute;
+  left: 0;
+  margin-top: 30px;
+  padding: 0 0 0 30px;
+}
+
+.text-section-detail img {
+  border: 1px solid #f2f2f2;
+  border-top: none;
+  display: block;
+}
+
+.text-section-detail span {
+  display: block;
+  font-size: 10px;
+  line-height: 14px;
+  color: #666;
+  border-bottom: 1px solid #f2f2f2;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 /*.........................................................................*/

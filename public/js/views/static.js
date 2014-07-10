@@ -32,25 +32,9 @@ define([
 
     events: {
       'click .navigate': 'navigate',
-      'click .page-menu li a': 'subNavigate',
-      'window scroll': 'scroll'
     },
 
     setup: function () {
-
-      // Save refs.
-      this.menu = this.$('.page-menu');
-
-      // Handle menu scroll.
-      if (this.menu.length > 0) {
-        $(window).scroll(_.bind(this.scroll, this));
-      }
-
-      // Choose active item.
-      if (window.location.hash !== '' || window.location.href.indexOf('#') !== -1) {
-        this.selectItemFromURL();
-      }
-
       return this;
     },
 
@@ -75,59 +59,6 @@ define([
         this.app.router.navigate(path, {trigger: true});
       }
     },
-
-    subNavigate: function (e) {
-      this.selecting = true;
-      $('li a', this.menu).removeClass('active');
-      $(e.target).closest('a').addClass('active');
-      _.defer(_.bind(function () {
-        this.selecting = false;
-      }, this));
-      
-    },
-
-    scroll: function (e) {
-
-      // Adjust menu position.
-      if ($(window).scrollTop() > this.menu.parent().offset().top) {
-        this.menu.addClass('fixed');
-      } else {
-        this.menu.removeClass('fixed');
-      }
-
-      // Select menu item.
-      if (this.selecting) {
-        return false;
-      }
-      var id;
-      var win = $(window).scrollTop();
-      var pos = -Number.MAX_VALUE;
-      this.$('.divider').each(function () {
-        var top = $(this).offset().top - win;
-        if (top <= 0 && top > pos) {
-          pos = top;
-          id = $(this).attr('id');
-        }
-      });
-      if (id) {
-        this.selectItemById(id);
-      }
-    },
-
-    selectItemById: function (id) {
-      $('li a', this.menu).removeClass('active');
-      $('a[href="#' + id + '"]').addClass('active');
-    },
-
-    selectItemFromURL: function () {
-      var a = _.find($('a', this.menu), function (_a) {
-        return window.location.hash === $(_a).attr('href');
-      });
-      if (a) {
-        $('li a', this.menu).removeClass('active');
-        $(a).addClass('active');
-      }
-    } 
 
   });
 });

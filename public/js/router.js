@@ -31,6 +31,7 @@ define([
   'views/rows/dataset.event',
   'views/rows/view.event',
   'views/static',
+  'views/how',
   'text!../templates/how.html',
   'text!../templates/about.html',
   'text!../templates/contact.html',
@@ -38,7 +39,7 @@ define([
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, howTemp, aboutTemp, contactTemp,
+    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, How, howTemp, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   // Our application URL router.
@@ -403,7 +404,7 @@ define([
       $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/static', _.bind(function (err) {
         if (err) return;
-        this.page = new Static(this.app,
+        this.page = new How(this.app,
             {title: 'How It Works', template: howTemp}).render();
         this.stop();
       }, this));
