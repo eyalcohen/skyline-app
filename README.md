@@ -149,4 +149,4 @@ We index of datasets, channels, users and views across their names, tags and sou
 
 The architecture for search doesn't allow for removal of entries very easily (would need to search the sorted set for an entry which is difficult to do in Redis).  Because removal is rare, a good solution is to just re-index nightly.  This can be accomplished by installing Node where the Redis instance is located and running a cron job like below.
 
-```0 3 * * * NODE_ENV=production bash -c '/home/ec2-user/skyline-app/util/index.js'```
+```0 3 * * * NODE_ENV=production bash -c 'time /home/ec2-user/skyline-app/util/index.js' >> /var/log/index.js 2>&1```
