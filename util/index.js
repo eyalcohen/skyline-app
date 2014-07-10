@@ -49,7 +49,7 @@ boots.start({redis: true}, function (client) {
         datasetsIndexed += com.index(client.redisClient, 'datasets', d,
                                     ['title', 'source', 'tags'], _this);
         datasetsIndexed += com.index(client.redisClient, 'datasets', d,
-                                    ['title'], {strategy: 'noTokens'}, _this);
+                                    ['title', 'source'], {strategy: 'noTokens'}, _this);
       });
     },
     function (err) {
