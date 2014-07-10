@@ -189,19 +189,24 @@ define([
         // Render.
         _.each(this.series, _.bind(function (series) {
 
-          // Map samples to x,y coordinates.
+          var local_max = series.axis === 2 ? max[1] : max[0];
+          var local_min = series.axis === 2 ? min[1] : min[0];
+
+          // Map samples to x,y coordinates.  Lots of mx+b equations here
           var path = d3.svg.area()
               .x(function (s) {
                 return (s.t - time.beg/1e3) / (time.end/1e3 - time.beg/1e3) * width;
               })
               .y0(function () {
-                return height;
+                var zero = local_max === local_min ? height :
+                  height - height * -local_min / (local_max - local_min);
+                return zero;
               })
               .y1(function (s) {
-                var local_max = series.axis === 2 ? max[1] : max[0];
-                var _height = height * series.max / local_max;
-                return (s.v === null) || (series.max - series.min === 0) ? height:
-                    height - ((s.v - series.min) / (series.max - series.min) * _height);
+                var zero = local_max === local_min ? height :
+                  height - height * -local_min / (local_max - local_min);
+                return  (s.v === null) || (local_max === local_min) ? zero:
+                    height - ((s.v - local_min) / (local_max - local_min) * height);
               })
               .interpolate('linear');
 
