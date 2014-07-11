@@ -1,5 +1,9 @@
 <%
   var numChannels = this.model.get('channels_cnt');
+  var datasetTooltip = this.model.get('title') + '\n'
+                      + (this.model.get('source') ? '\nSource: ' + this.model.get('source') : '')
+                      + '\nCreated: ' + util.toLocaleString(new Date(this.model.get('created')), 'm/d/yy')
+                      + '\nChannels: ' + this.model.get('channels_cnt');
 %>
 
 <% if (this.app.profile.user && !this.app.embed) { %>
@@ -10,11 +14,11 @@
 <div class="dataset-control dataset-control-notes tooltip" title="Show/hide comments">
   <i class="icon-comment"></i>
 </div>
-<div class="dataset-avatar tooltip" title="<%= this.model.get('author').displayName %>">
+<a class="dataset-avatar tooltip" href="/<%= this.model.get('author').username %>" title="<%= this.model.get('author').displayName %>">
   <img src="https://www.gravatar.com/avatar/<%= this.model.get('author').gravatar %>?s=23&d=identicon"
       width="23" height="23" />
-</div>
-<a class="dataset-button" href="/<%= this.model.get('author').username %>/<%= this.model.id %>">
+</a>
+<a class="dataset-button tooltip" href="/<%= this.model.get('author').username %>/<%= this.model.id %>" title="<%= datasetTooltip %>">
   <span class="dataset-title">
     <i class="icon-<%= this.model.get('public') === false ? 'lock': 'database' %>"></i><span><%= this.model.get('title') %></span>
   </span>
