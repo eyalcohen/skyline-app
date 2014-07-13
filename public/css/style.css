@@ -3909,7 +3909,7 @@ p.sidebar-tip span {
   font-size: 16px;
   width: 250px;
   float: right;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .settings td textarea {
@@ -5379,7 +5379,7 @@ ul.note-channels-list li {
   background-color: rgba(227, 30, 30, 0.5);
   line-height: 45px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   text-align: center;
   color: #fff;
 
@@ -5467,7 +5467,6 @@ table.upload-preview tr td:first-child {
 }
 
 table.upload-preview .problem-row td {
-  /*background: #E31E1E !important;*/
   color: #E31E1E;
 }
 
