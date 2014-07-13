@@ -8,10 +8,11 @@ define([
   'mps',
   'Spin',
   'rest', 
+  'util',
   'views/boiler/row',
   'text!../../../templates/rows/dataset.chart.html',
   'views/lists/channels.chart'
-], function ($, _, mps, Spin, rest, Row, template, Channels) {
+], function ($, _, mps, Spin, rest, util, Row, template, Channels) {
   return Row.extend({
 
     attributes: function () {
@@ -22,6 +23,7 @@ define([
     initialize: function (options, app) {
       this.app = app;
       this.template = _.template(template);
+      options.templateData = {util: util};
       Row.prototype.initialize.call(this, options);
 
       // Client-wide subscriptions

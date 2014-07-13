@@ -4297,7 +4297,7 @@ a.control-button-save.saving {
 .cursor a.note-cancel-button {
   position: absolute;
   bottom: -20px;
-  background: #3f3f3f;
+  background: #4c4c4c;
   color: #fff;
   font-size: 8px;
   text-transform: uppercase;

@@ -4,6 +4,7 @@
   border: 1px solid #000;
   background: #4c4c4c;
   color: #fff;
+  white-space: pre-line;
 }
 
 /* Use this next selector to style things like font-size and line-height: */

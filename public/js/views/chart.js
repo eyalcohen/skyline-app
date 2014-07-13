@@ -164,7 +164,7 @@ define([
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
 
       // For rendering tooltips
-      $('.tooltip').tooltipster({delay: 600});
+      $('.tooltip').tooltipster({delay: 600, multiple: true});
 
       if (state.time) {
         mps.publish('chart/zoom', [{min: state.time.beg/1000, max: state.time.end/1000}]);
