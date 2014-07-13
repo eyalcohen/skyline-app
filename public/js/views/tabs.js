@@ -93,6 +93,10 @@ define([
       'click .upload-cancel': function (e) {
         e.preventDefault();
         mps.publish('upload/cancel');
+      },
+      'click .upload-change': function (e) {
+        e.preventDefault();
+        mps.publish('modal/finder/open');
       }
     },
 

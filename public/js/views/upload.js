@@ -70,14 +70,10 @@ define([
 
     setup: function () {
 
-      // Do preview.
+      // Do initial preview.
       this.app.rpc.do('previewFileInsertion', {fileId: this.fileId},
           _.bind(function (err, res) {
-        if (err) {
-
-          // Show error.
-          this.error = new Error(this.app).render({message: 'Upload Error', stack: err});
-          this.spin.stop();
+        if (this.handleFileError(err)) {
           return;
         }
         this.$el.append(this.template.call(this));
@@ -176,6 +172,9 @@ define([
     },
 
     updateView: function(err, res) {
+      if (this.handleFileError(err)) {
+        return;
+      }
       this.table.empty();
 
       // Update drop-downs information
@@ -277,6 +276,16 @@ define([
       this.spin.stop();
     },
 
+    handleFileError: function (err) {
+      if (err && _.isObject(err) && err.code === 404) {
+        this.error = new Error(this.app).render(err);
+        this.spin.stop();
+        return true;
+      } else {
+        return false;
+      }
+    },
+
     setError: function (str) {
       var i = '<i class="icon-error-alt"></i>';
       this.errorDisplay.html([i, str, i].join(' ')).show();
@@ -297,11 +306,11 @@ define([
         if (err) {
 
           // Show error.
-          this.
+          mps.publish('flash/new', [{err: err, level: 'error'}]);
           return;
         }
 
-        // On success, we navigatew to the dataset landing page
+        // On success, we navigate to the dataset landing page.
         var path = [this.app.profile.user.username, res.id, 'config'].join('/');
         this.app.router.navigate(path, {trigger: true});
       }, this));

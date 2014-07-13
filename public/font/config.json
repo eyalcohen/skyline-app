@@ -133,6 +133,12 @@
       "src": "fontawesome"
     },
     {
+      "uid": "6020aff067fc3c119cdd75daa5249220",
+      "css": "exchange",
+      "code": 59445,
+      "src": "fontawesome"
+    },
+    {
       "uid": "f4445feb55521283572ee88bc304f928",
       "css": "floppy",
       "code": 59393,
@@ -208,6 +214,12 @@
       "uid": "004882ab2d5c418c5b2060e80596279b",
       "css": "right-open-big",
       "code": 59437,
+      "src": "entypo"
+    },
+    {
+      "uid": "f0eac0958921fe45b85d01b79d76e86b",
+      "css": "switch",
+      "code": 59443,
       "src": "entypo"
     },
     {

@@ -13,6 +13,7 @@ define([
       this.id = util.uid(5);
       this.set('message', _.str.titleize(this.get('message') || 'Server Error'));
       this.set('code', this.get('code') ? '(' + this.get('code') + ')': '');
+      this.set('notice', this.get('notice') ? this.get('notice'): 'The link you followed may be broken, or the page may have been removed. Feel free to <a href="mailto:support@skyline-data.com">contact us</a>.');
       this.set('stack', !window.__s && this.get('stack') ? this.get('stack'):
           ':( Looks like something went wrong. We track these errors automatically, but if the problem persists feel free to <a href="mailto:support@skyline-data.com">contact us</a>. In the meantime, try refreshing.');
     },
