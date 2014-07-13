@@ -8,8 +8,9 @@ define([
   'Backbone',
   'mps',
   'util',
+  'models/error',
   'text!../../templates/error.html',
-], function ($, _, Backbone, mps, util, template) {
+], function ($, _, Backbone, mps, util, Model, template) {
   return Backbone.View.extend({
 
     className: 'error',
@@ -18,15 +19,12 @@ define([
       this.app = app;
       this.subscriptions = [];
 
-      this.on('rendered', this.setup, this);      
+      this.on('rendered', this.setup, this);
     },
 
     render: function (error) {
-      this.error = error;
-      this.error.message = _.str.titleize(this.error.message);
-
+      this.model = new Model(error);
       this.app.title('Oops');
-
       this.template = _.template(template);
 
       if ($('.main').length > 0) {
@@ -40,11 +38,6 @@ define([
     },
 
     setup: function () {
-      return this;
-    },
-
-    empty: function () {
-      this.$el.empty();
       return this;
     },
 

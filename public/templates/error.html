@@ -1,7 +1,9 @@
-<% if (this.error.code === 404) { %>
-  <span class="http-error"><%= this.error.message %></span>
-  <p class="http-notice">The link you followed may be broken, or the page may have been removed. Feel free to <a href="mailto:support@skyline-data.com">contact us</a>.</p>
-<% } else { %>
-  <span class="http-error"><%= this.error.message || 'Server Error' %> <%= this.error.code ? '(' + this.error.code + ')': '' %></span>
-  <p class="http-notice"><%= !window.__s && this.error.stack ? this.error.stack: ':( Looks like something went wrong. We track these errors automatically, but if the problem persists feel free to <a href="mailto:support@skyline-data.com">contact us</a>. In the meantime, try refreshing.' %></p>
-<% } %>
+<div class="error-wrap">
+  <% if (this.model.get('code') === '(404)') { %>
+    <span class="http-error"><i class="icon-error-alt"></i> <%= this.model.get('message') %> <%= this.model.get('code') %></span>
+    <p class="http-notice">The link you followed may be broken, or the page may have been removed. Feel free to <a href="mailto:support@skyline-data.com">contact us</a>.</p>
+  <% } else { %>
+    <span class="http-error"><i class="icon-error-alt"></i> <%= this.model.get('message') %> <%= this.model.get('code') %></span>
+    <p class="http-notice"><%= this.model.get('stack') %></p>
+  <% } %>
+</div>

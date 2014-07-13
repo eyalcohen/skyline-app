@@ -82,6 +82,8 @@ define([
       this.route('embed/:username/:id/:channel', 'chart', this.chart);
       this.route('embed/:username/views/:slug', 'chart', this.chart);
 
+      this.route('upload/:fileId', 'upload', this.upload);
+
       this.route('reset', 'reset', this.reset);
       this.route('settings', 'settings', this.settings);
       this.route('notifications', 'notifications', this.notifications);
@@ -93,7 +95,6 @@ define([
       this.route('library', 'library', this.library);
       this.route('signin', 'signin', this.signin);
       this.route('signup', 'signup', this.signup);
-      this.route('upload(/:fileId)', 'upload', this.upload);
       this.route('', 'dashboard', this.dashboard);
 
       // Show the finder.
@@ -335,16 +336,14 @@ define([
 
     upload: function (fileId) {
       this.start();
+      this.renderTabs();
       $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/settings', {}, true, _.bind(function (err) {
+      this.render('/service/upload', {}, true, _.bind(function (err) {
         if (err) return;
         this.page = new Upload(this.app, {fileId: fileId}).render();
+        this.renderTabs({html: this.page.title});
         this.stop();
       }, this));
-      var title = fileId
-                  ? 'We need more information about "' + fileId.split('_')[0] + '"'
-                  : 'Upload your dataset'
-      this.renderTabs({title: title});
     },
 
     dataset: function (un, id) {

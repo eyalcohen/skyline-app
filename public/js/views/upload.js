@@ -3,8 +3,6 @@
  *
  * TODO:
  * - Row numbers on preview table
- * - add 'working' guard so can't submit while server is processing
- * - Add spinner on first page load
  */
 
 define([
@@ -16,8 +14,10 @@ define([
   'util',
   'Spin',
   'common',
+  'views/error',
   'text!../../templates/upload.html',
-], function ($, _, Backbone, mps, rest, util, Spin, common, template) {
+  'text!../../templates/upload.header.html'
+], function ($, _, Backbone, mps, rest, util, Spin, common, Error, template, header) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -26,13 +26,40 @@ define([
       this.app = app;
       this.options = options;
       this.fileId = options.fileId;
+      this.subscriptions = [
+        mps.subscribe('upload/finish', _.bind(this.submit, this)),
+        mps.subscribe('upload/cancel', _.bind(function () {
+          // Backbone.history.history.back();
+          this.app.router.navigate('/', {trigger: true});
+        }, this)),
+      ];
       this.on('rendered', this.setup, this);
+
+      // Add a big spinner to parent el.
+      var overlay = $('<div class="upload-spin">').appendTo(this.$el.parent());
+      var spin = new Spin($('<div>').appendTo(overlay), {color: '#8f8f8f',
+          lines: 17, length: 7, width: 2, radius: 12});
+      this.spin = {
+        start: _.bind(function () {
+          overlay.show();
+          this.clearError();
+          spin.start();
+        }, this),
+        stop: function () {
+          overlay.fadeOut('slow');
+          spin.stop();
+        }
+      };
+      this.spin.start();
     },
 
     render: function () {
+      this.template = _.template(template);
 
       // Set page title
       this.app.title('Skyline - Upload file');
+      this.title = _.template(header).call(this, {util: util});
+
       this.trigger('rendered');
       return this;
     },
@@ -43,59 +70,35 @@ define([
 
     setup: function () {
 
-      if (!this.fileId) {
-        mps.publish('modal/finder/open');
-        return;
-      }
+      // Do preview.
+      this.app.rpc.do('previewFileInsertion', {fileId: this.fileId},
+          _.bind(function (err, res) {
+        if (err) {
 
-      var payload = {
-        fileId:  this.fileId,
-      };
+          // Show error.
+          this.error = new Error(this.app).render({message: 'Upload Error', stack: err});
+          this.spin.stop();
+          return;
+        }
+        this.$el.append(this.template.call(this));
 
-      this.app.rpc.do('previewFileInsertion', payload, _.bind(function(err, res) {
-        this.template = _.template(template);
-        this.$el.empty();
-        this.$el.append(this.template.call(this, {util: util}));
-
-        this.uploadForm = $('.upload-form');
-
-        this.timeFormatSelect = this.uploadForm.find('select[name*="upload-time-format"]');
-        this.dateFormatSelect = this.uploadForm.find('select[name*="upload-date-format"]');
-
-        this.app.rpc.do('getDateTimeFormats', _.bind(function (err, res) {
-          this.dateFormats = res.df;
-          this.timeFormats = res.tf;
-
-          // Populate 'select' inputs with date and time formats
-          _.each(this.dateFormats, _.bind(function(val, key) {
-            if (val.example) {
-              this.dateFormatSelect.append('<option value="' + key
-                + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
-            } else {
-              this.dateFormatSelect.append('<option value="' + key
-                + '">' + key + '</option>');
-            }
-          }, this));
-          _.each(this.timeFormats, _.bind(function(val, key) {
-            this.timeFormatSelect.append('<option value="' + key
-              + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
-          }, this));
-        }, this));
-
-        this.newFileButtonSpin = new Spin(this.$('.button-spin'), {
-          color: '#fff',
-          lines: 13,
-          length: 3,
-          width: 2,
-          radius: 6
-        });
-
-        // debounce change inputs
-        $('.upload-form input, .upload-form select')
-          .change(_.debounce(_.bind(this.preview, this), 200));
+        // Save refs.
+        this.skipHeaderRows = this.$('input[name*="upload-header-rows"]');
+        this.transpose = this.$('input[name*="upload-transpose"]');
+        this.reverse = this.$('input[name*="upload-reverse"]');
+        this.timeFormatSelect = this.$('select[name*="upload-time-format"]');
+        this.dateFormatSelect = this.$('select[name*="upload-date-format"]');
+        this.dateColumnSelect = this.$('select[name*=upload-date-column]');
+        this.timeColumnSelect = this.$('select[name*=upload-time-column]');
+        this.timeOptions = this.$('.upload-time-options');
+        this.table = this.$('.upload-preview');
+        this.errorDisplay = this.$('.upload-error');
+        this.setDateTimeFormats();
+        
+        // Debounce change inputs.
+        this.$('input, select').change(_.debounce(_.bind(this.preview, this), 200));
 
         this.updateView(err, res);
-
       }, this));
       return this;
     },
@@ -111,114 +114,108 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      if (this.error) {
+        this.error.destroy();
+      }
       this.empty();
+    },
+
+    // Populate 'select' inputs with date and time formats.
+    setDateTimeFormats: function () {
+      _.each(this.app.profile.content.df, _.bind(function (val, key) {
+        if (val.example) {
+          this.dateFormatSelect.append('<option value="' + key
+            + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
+        } else {
+          this.dateFormatSelect.append('<option value="' + key
+            + '">' + key + '</option>');
+        }
+      }, this));
+      _.each(this.app.profile.content.tf, _.bind(function (val, key) {
+        this.timeFormatSelect.append('<option value="' + key
+          + '">' + key + '&nbsp&nbsp eg, ' + val.example + '</option>');
+      }, this));
     },
 
     // Make a server request that lets us knmow if this dataset will work.
     preview: function(e) {
-
-      this.spin = new Spin(this.$('.upload-preview-spin'), {
-          color: '#3d3d3d',
-          lines: 13,
-          length: 3,
-          width: 2,
-          radius: 6
-      });
-
+      mps.publish('upload/disable');
       this.spin.start();
 
-      var skipHeaders = this.uploadForm.find('input[name*="upload-header-rows"]').val();
-      var dateCol = this.uploadForm.find('select[name*="upload-date-column"]').val();
-      var dateFormat = this.uploadForm.find('select[name*="upload-date-format"]').val();
-      var timeSel = this.uploadForm.find('input[name*="upload-time-select"]:checked').val();
-      var transpose = this.uploadForm.find('input[name*="upload-transpose"]').is(':checked');
-      var reverse = this.uploadForm.find('input[name*="upload-reverse"]').is(':checked');
-      var timeColumn, timeFormat;
-
-      if (timeSel === 'none') {
-        $('.upload-time-options').hide('fast');
-        $('.upload-time-options select').prop('disabled', true).addClass('disabled');
-      }
-      else if (timeSel === 'both') {
-        $('.upload-time-options').show('fast');
-        this.uploadForm.find('select[name*="upload-time-column"]')
-          .prop('disabled', true)
-          .addClass('disabled')
-        timeFormat =  this.uploadForm.find('select[name*="upload-time-format"]')
-          .prop('disabled', false)
-          .removeClass('disabled')
-          .val();
-      }
-      else if (timeSel === 'sep') {
-        $('.upload-time-options').show('fast');
-        $('.upload-time-options select')
-          .prop('disabled', false)
-          .removeClass('disabled')
-        timeColumn =  this.uploadForm.find('select[name*="upload-time-column"]').val();
-        timeFormat =  this.uploadForm.find('select[name*="upload-time-format"]').val();
+      var tc, tf;
+      switch (this.$('input[name*="upload-time-select"]:checked').val()) {
+        case 'none':
+          this.timeOptions.hide();
+          this.timeColumnSelect.addClass('disabled').prop('disabled', true);
+          this.timeFormatSelect.addClass('disabled').prop('disabled', true);
+          break;
+        case 'both':
+          this.timeOptions.show();
+          this.timeColumnSelect.addClass('disabled').prop('disabled', true);
+          tf = this.timeFormatSelect.removeClass('disabled').prop('disabled', false).val();
+          break;
+        case 'sep':
+          this.timeOptions.show();
+          tc = this.timeColumnSelect.removeClass('disabled').prop('disabled', false).val();
+          tf = this.timeFormatSelect.removeClass('disabled').prop('disabled', false).val();
+          break;
       }
 
+      // Do preview.
       var payload = {
-        fileId:  this.fileId,
-        transpose: transpose,
-        reverse: reverse,
-        skipHeaderRows: skipHeaders,
-        dateColumn: dateCol,
-        dateFormat: dateFormat,
-        timeColumn: timeColumn,
-        timeFormat: timeFormat
+        fileId: this.fileId,
+        transpose: this.transpose.is(':checked'),
+        reverse: this.reverse.is(':checked'),
+        skipHeaderRows: this.skipHeaderRows.val(),
+        dateColumn: this.dateColumnSelect.val(),
+        dateFormat: this.dateFormatSelect.val(),
+        timeColumn: tc,
+        timeFormat: tf
       };
-
       this.app.rpc.do('previewFileInsertion', payload, _.bind(this.updateView, this));
     },
 
     updateView: function(err, res) {
-
-      if (this.spin) this.spin.stop();
-
-      var table = $('.upload-preview-table tbody');
-      table.empty();
-
-      var rePreview = false;
+      this.table.empty();
 
       // Update drop-downs information
       if (res && res.headers) {
-        var dateCol = this.uploadForm.find('select[name*=upload-date-column]');
-        var timeCol = this.uploadForm.find('select[name*=upload-time-column]');
-        timeCol.empty();  dateCol.empty();
-        _.each(res.headers, function(h) {
-          timeCol.append('<option>' + h + '</option>');
-          dateCol.append('<option>' + h + '</option>');
-        });
+        this.timeColumnSelect.empty();
+        this.dateColumnSelect.empty();
+        _.each(res.headers, _.bind(function (h) {
+          this.timeColumnSelect.append('<option>' + h + '</option>');
+          this.dateColumnSelect.append('<option>' + h + '</option>');
+        }, this));
         if (res.dateColumn) {
-          dateCol.val(res.dateColumn);
+          this.dateColumnSelect.val(res.dateColumn);
         }
         if (res.timeColumn) {
-          timeCol.val(res.timeColumn);
+          this.timeColumnSelect.val(res.timeColumn);
         }
         if (res.dateFormat) {
-          this.uploadForm.find('select[name*=upload-date-format]').val(res.dateFormat);
+          this.dateFormatSelect.val(res.dateFormat);
         }
         if (res.timeFormat) {
-          this.uploadForm.find('select[name*=upload-time-format]').val(res.timeFormat);
+          this.timeFormatSelect.val(res.timeFormat);
         }
       }
 
       // Get headers, but re-order them so date/time is first
       var keys = [];
       if (res && res.firstRows && res.dateColumn) {
-        var _keys = _.reject(_.keys(res.firstRows[0]), function(f) {
+        var _keys = _.reject(_.keys(res.firstRows[0]), function (f) {
           return f === res.dateColumn;
         });
         keys = [res.dateColumn].concat(_keys);
       }
 
-      // Otherwise display errors
       if (err) {
-        $('.upload-preview-error').text(err).fadeIn();
-        //$('.upload-table-wrap-outter').hide();
-        $('.upload-form .button').addClass('disabled').prop('disabled', true);
 
+        // Show error.
+        this.setError(err);
+        this.spin.stop();
+
+        // Show problem rows.
         if (res && res.problemRow) {
 
           // header row
@@ -227,80 +224,86 @@ define([
           _.each(keys, function (k) {
             str += '<th>' + util.blurb(k, 24) + '</th>';
           });
-          var sel = table.append('<tr>' + str + '</tr>')
+          var sel = this.table.append('<tr>' + str + '</tr>')
 
           // Display the row that caused the error, and style it some.
-          _.each(res.problemRow, function (pr, idx) {
+          _.each(res.problemRow, _.bind(function (pr, idx) {
             str = '<tr>'
             _.each(keys, function (k) {
               str += '<td>' + (pr[k] ? pr[k] : '') + '</td>';
             });
             str += '</tr>'
             var el = $(str);
-            table.append(el);
+            this.table.append(el);
             if (idx === res.problemRow.length-1) {
               el.addClass('problem-row');
             }
-          });
-          $('.upload-table-wrap-outter').show('fast');
+          }, this));
         }
         return;
       }
-
-      // If we don't have errors, we show a preview table
-
-      $('.upload-table-wrap-outter').show('fast');
-      $('.upload-form .button').removeClass('disabled').prop('disabled', false);
-      $('.upload-preview-error').hide();
-
-      // Build preview table
 
       // Header row
       var str = ''
       _.each(keys, function (k) {
         str += '<th>' + util.blurb(k, 24) + '</th>';
       });
-      var sel = table.append('<tr>' + str + '</tr>')
+      var sel = this.table.append('<tr>' + str + '</tr>')
 
       // First Rows
-      _.each(res.firstRows, function(r) {
+      _.each(res.firstRows, _.bind(function (r) {
         str = '<tr>'
         _.each(keys, function (k) {
           str += '<td>' + (r[k] ? r[k] : '') + '</td>';
         });
         str += '</tr>'
-        table.append(str);
-      });
+        this.table.append(str);
+      }, this));
 
       // Add a seperator to table, so user knows there's a gap in time
-      table.append('<tr><td>...</td></tr>');
+      this.table.append('<tr><td>...</td></tr>');
 
       // Add last rows to table
-      _.each(res.lastRows, function(r) {
+      _.each(res.lastRows, _.bind(function (r) {
         str = '<tr>'
         _.each(keys, function (k) {
           str += '<td>' + (r[k] ? r[k] : '') + '</td>';
         });
         str += '</tr>'
-        table.append(str);
-      });
+        this.table.append(str);
+      }, this));
 
+      mps.publish('upload/enable');
+      this.spin.stop();
+    },
+
+    setError: function (str) {
+      var i = '<i class="icon-error-alt"></i>';
+      this.errorDisplay.html([i, str, i].join(' ')).show();
+    },
+
+    clearError: function () {
+      if (this.errorDisplay) {
+        this.errorDisplay.hide();
+      }
     },
 
     // If user is happy with the preview, insert samples into the database.
-    submit: function(e) {
-      // Start load indicator.
-      this.newFileButtonSpin.start();
+    submit: function() {
+      this.spin.start();
 
-      this.app.rpc.do('insertSamples', { fileId: this.fileId }, _.bind(function (err, res) {
-        this.newFileButtonSpin.stop();
+      this.app.rpc.do('insertSamples', {fileId: this.fileId}, _.bind(function (err, res) {
+        this.spin.stop();
         if (err) {
-          $('.upload-preview-error').text(err).fadeIn();
-        } else {
-          // On success, we navigatew to the dataset landing page
-          var path = [this.app.profile.user.username, res.id, 'config'].join('/');
-          this.app.router.navigate(path, {trigger: true});
+
+          // Show error.
+          this.
+          return;
         }
+
+        // On success, we navigatew to the dataset landing page
+        var path = [this.app.profile.user.username, res.id, 'config'].join('/');
+        this.app.router.navigate(path, {trigger: true});
       }, this));
     }
 

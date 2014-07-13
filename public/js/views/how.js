@@ -41,13 +41,6 @@ define([
       // Save refs.
       this.menu = this.$('.page-menu');
 
-      // // Position the detail images.
-      // _.each($('.text-section-detail'), _.bind(function (i) {
-      //   i = $(i);
-      //   var p = this.$('.text-section[data-section="' + i.data('section') + '"]');
-      //   i.css('top', p.position().top);
-      // }, this));
-
       // Handle menu scroll.
       if (this.menu.length > 0) {
         $(window).scroll(_.bind(this.scroll, this));

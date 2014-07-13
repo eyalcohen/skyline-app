@@ -39,6 +39,14 @@ define([
         this.collection.push(data);
       }, this));
 
+      mps.subscribe('flash/clear', _.bind(function () {
+        this.collection.reset([]);
+        _.each(this.views, function (v) {
+          v.destroy();
+        });
+        this.views = [];
+      }, this));
+
       // Call super init.
       List.prototype.initialize.call(this, app, options);
     },

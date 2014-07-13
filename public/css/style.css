@@ -445,6 +445,7 @@ label.export-label {
 input[type=text],
 input[type=password],
 input[type=search],
+input[type=number],
 textarea:not(.code) {
   background: white;
   font-size: 12px;
@@ -478,6 +479,7 @@ input[type=search] {
 input[type=text]:focus,
 input[type=password]:focus,
 input[type=search]:focus,
+input[type=number]:focus,
 textarea:focus {
   background: #fff;
   border: 1px solid #1C9DA3;
@@ -779,10 +781,6 @@ a.button.title-button {
   border-radius: 0;
   padding: 0 20px;
 }
-a.button.title-button.disabled {
-  opacity: 0.8;
-  cursor: default;
-}
 a.button.title-button:hover:not(.disabled),
 a.button.title-button:focus:not(.disabled) {
   color: #2f2f2f;
@@ -790,7 +788,7 @@ a.button.title-button:focus:not(.disabled) {
   border-left: 1px solid #d0d0d0;
 }
 
-a.button.title-button.explore-button {
+a.button.title-button.emphasis-button {
   background: #b0f68f;
   padding-right: 15px;
   border-left: 1px solid #60ED1F;
@@ -1051,14 +1049,31 @@ span.empty-list {
   left: 50%;
 }
 
+.error {
+  display: table;
+  min-height: 400px;
+  width: 100%;
+}
+
+.error-wrap {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
 .http-error {
   display: block;
-  margin-top: 40px;
   font-weight: bold;
   font-size: 20px;
   color: #4d4d4d;
   line-height: 32px;
   text-align: center;
+}
+
+.http-error i {
+  font-size: 0.8em;
+  color: #666;
+  vertical-align: 1px;
 }
 
 .http-notice {
@@ -1277,6 +1292,11 @@ body.embed .folder {
   padding: 30px;
   width: 298px;
   border-left: 1px solid #f2f2f2;
+}
+
+.rightside.no-border {
+  border-left: 1px solid #fff;
+  height: 13px;
 }
 
 .rightside.equal {
@@ -1562,10 +1582,12 @@ li.subtab.disabled a {
   font-size: 14px;
 }
 
+.title-file {
+  font-weight: bold;
+}
+
 .folder-title .page-title {
   margin: 0 0 0 30px;
-  font-size: 18px;
-  color: #666;
   line-height: 40px;
   height: auto;
 }
@@ -1591,10 +1613,10 @@ ul.page-menu {
   position: relative;
   margin: -30px -30px 0;
   list-style: none;
-  z-index: 100001;
+  z-index: 101;
   top: 15px;
   width: 358px;
-  background: #fff;
+  background: rgba(255,255,255,0.9);
 }
 
 ul.page-menu.fixed {
@@ -1783,7 +1805,7 @@ p.text-section img {
 
 .block-messages {
   position: fixed;
-  z-index: 10001;
+  z-index: 1001;
   left: 30px;
   bottom: 50px;
   width: auto;
@@ -3855,7 +3877,7 @@ p.sidebar-tip span {
   margin-bottom: 30px;
 }
 
-.profile-settings {
+.form-settings {
   width: 628px;
   border-left: 1px solid #f2f2f2;
   margin-left: 50px;
@@ -3863,7 +3885,7 @@ p.sidebar-tip span {
   padding-bottom: 0;
 }
 
-.profile-settings table {
+.form-settings table {
   margin-bottom: 30px;
 }
 
@@ -3884,17 +3906,10 @@ p.sidebar-tip span {
 }
 
 .settings td select {
-  width: 100%;
-  padding: 5px;
-  background-color: white;
-  border-radius: 2px;
-  margin-bottom: 10px;
-  font-size: 13px;
-
-
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
+  font-size: 16px;
+  width: 250px;
+  float: right;
+  margin-top: 1px;
 }
 
 .settings td textarea {
@@ -3951,14 +3966,18 @@ p.sidebar-tip span {
 }
 
 ul.settings-detail-list {
-  margin: 0 0 5px 30px;
+  margin: 0 0 5px 15px;
 }
 
 ul.settings-detail-list li {
-  list-style-type: disc;
+  list-style-type: none;
 }
 
-.profile-settings h2.divider {
+ul.settings-detail-list li:before {
+  content: "- ";
+}
+
+.form-settings h2.divider {
   margin: 0 -80px 30px -40px;
 }
 
@@ -5334,117 +5353,122 @@ ul.note-channels-list li {
 
 /*.........................................................................*/
 
-.upload {
-  padding: 20px 0 20px 20px;
+.upload-spin {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: #fff;
 }
 
-.upload-form tr {
-  height: 25px;
+.upload-spin div {
+  position: absolute;
+  left: 50%;
+  top: 50%;
 }
 
-.upload-form table {
-  table-layout: fixed;
+.upload-error {
+  display: none;
+  width: 1148px;
+  height: 45px;
+  margin: -1px -30px 0;
+  border-bottom: 1px solid #E31E1E;
+  border-top: 1px solid #E31E1E;
+  background-color: rgba(227, 30, 30, 0.5);
+  line-height: 45px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  color: #fff;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: .2s;
+  -moz-animation-duration: .2s;
+  -o-animation-duration: .2s;
+  animation-duration: .2s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
 }
 
-.upload-form td {
-  padding-top: 5px;
-  padding-bottom: 5px;
+.upload-settings form {
+  margin-bottom: 0 !important;
 }
 
-.upload-form td ,
-.upload-form li {
-  padding-right: 40px;
-  vertical-align: middle;
-  font-size:12px;
-  color: #666;
-}
-
-.upload-form td strong {
-  font-size:12px;
-  color: #404040;
-}
-
-.upload-skip-headers {
-  display:inline-block;
-}
-
-.upload-form td input[name*="upload-header-rows"] {
+.upload-settings input[name="upload-header-rows"] {
   width: 40px;
+  margin-bottom: 0;
 }
 
-.upload-form .page-section {
-  margin-left: -20px;
-}
-
-.upload-form td select.disabled {
-  background-color: lightgray;
-}
-
-.upload-preview-error {
-  color: red;
-}
-
-.upload-table-wrap-outter {
-  display: none;
-}
-
-.upload-table-wrap {
-  overflow-x: auto;
-  padding: 5px 0px 5px 0px;
-}
-
-.upload-preview-table {
-  height: 40px;
-  overflow: auto;
+.upload-settings label {
+  color: #404040;
+  font-size: 14px;
+  line-height: 24px;
+  display: block;
   width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  border-spacing: 0;
 }
 
-.upload-time-options {
+.upload-settings input[type="checkbox"],
+.upload-settings input[type="radio"] {
+  vertical-align: 1px;
+}
+
+table.upload-time-options {
   display: none;
 }
 
-.upload-preview-table tr {
+.upload-preview-wrap {
+  overflow-x: auto;
+  position: relative;
+  margin: -31px -437px 30px -121px;
+  background: #fcfcfc;
+  font-size: 11px;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+table.upload-preview {
+  margin: 0;
+}
+
+table.upload-preview tr {
   height: 20px;
 }
 
-.upload-preview-table td, .upload-preview-table th {
-  width: 180px;
+table.upload-preview td,
+table.upload-preview th {
+  min-width: 180px;
+  padding: 0 10px;
   text-align: center;
   vertical-align: middle;
-  padding: 0px;
+  white-space: nowrap;
 }
 
-.upload-preview-table th {
-  background: linear-gradient(#333 0%,#444 100%);
-  color: white;
+table.upload-preview th {
+  background: #404040;
+  color: #fff;
 }
 
-.upload-preview-table tr:nth-child(even) td { background: #eee; } 
-.upload-preview-table tr:nth-child(odd) td { background: #fdfdfd; }
-
-/*.upload-preview-table tr th:first-child, */
-.upload-preview-table tr td:first-child {
-  background: rgba(39, 205, 214, .1);
-  width: 240px;
-  text-align: center;
+table.upload-preview tr:nth-child(even) td {
+  background: #e6e6e6;
 }
 
-.upload-preview-table tbody .problem-row {
-  background: red;
-  color: white;
+table.upload-preview tr:nth-child(odd) td {
+  background: #fcfcfc;
 }
 
-.upload-preview-table tbody .problem-row td {
-  background: rgba(255, 64, 64, .8);
-  color: white;
+table.upload-preview tr td:first-child {
+  background: rgba(39, 205, 214, 0.2);
 }
 
-.upload-form-submit {
-  position: relative;
-  margin-top: 20px;
+table.upload-preview .problem-row td {
+  /*background: #E31E1E !important;*/
+  color: #E31E1E;
 }
 
 /*.........................................................................*/

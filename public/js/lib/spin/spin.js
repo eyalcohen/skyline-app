@@ -14,7 +14,7 @@ define([
     rotate: 0, // The rotation offset
     direction: 1, // 1: clockwise, -1: counterclockwise
     color: '#808080', // #rgb or #rrggbb
-    speed: 1.5, // Rounds per second
+    speed: 2, // Rounds per second
     trail: 60, // Afterglow percentage
     shadow: false, // Whether to render a shadow
     hwaccel: false, // Whether to use hardware acceleration

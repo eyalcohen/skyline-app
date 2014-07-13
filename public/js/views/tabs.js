@@ -27,7 +27,13 @@ define([
 
       // Client-wide subscriptions.
       this.subscriptions = [
-        mps.subscribe('chart/updated', _.bind(this.updateUpdated, this))
+        mps.subscribe('chart/updated', _.bind(this.updateUpdated, this)),
+        mps.subscribe('upload/disable', _.bind(function () {
+          this.$('.upload-finish').addClass('disabled').attr('disabled', true);
+        }, this)),
+        mps.subscribe('upload/enable', _.bind(function () {
+          this.$('.upload-finish').removeClass('disabled').attr('disabled', false);
+        }, this)),
       ];
 
       // Socket Subscriptions
@@ -77,7 +83,17 @@ define([
       'click .follow-button': 'follow',
       'click .unfollow-button': 'unfollow',
       'click .watch-button': 'watch',
-      'click .unwatch-button': 'unwatch'
+      'click .unwatch-button': 'unwatch',
+      'click .upload-finish': function (e) {
+        e.preventDefault();
+        if (!$(e.target).hasClass('disabled')) {
+          mps.publish('upload/finish');
+        }
+      },
+      'click .upload-cancel': function (e) {
+        e.preventDefault();
+        mps.publish('upload/cancel');
+      }
     },
 
     setup: function () {
