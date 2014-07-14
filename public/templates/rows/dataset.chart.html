@@ -1,9 +1,9 @@
 <%
   var numChannels = this.model.get('channels_cnt');
   var datasetTooltip = this.model.get('title') + '\n'
-                      + (this.model.get('source') ? '\nSource: ' + this.model.get('source') : '')
-                      + '\nCreated: ' + util.toLocaleString(new Date(this.model.get('created')), 'm/d/yy')
-                      + '\nChannels: ' + this.model.get('channels_cnt');
+                      + (this.model.get('source') ? '\n' + this.model.get('source') : '')
+                      + '\nCreated on ' + util.toLocaleString(new Date(this.model.get('created')), 'm/d/yy')
+                      + ' with ' + this.model.get('channels_cnt') + ' channels';
 %>
 
 <% if (this.app.profile.user && !this.app.embed) { %>
