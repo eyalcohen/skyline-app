@@ -32,6 +32,17 @@
 
   var tags = this.model.get('tags') || [];
   var vcnt = this.model.get('vcnt') === undefined ? 0: this.model.get('vcnt');
+
+  var privacy;
+  if (this.model.get('author').id === this.app.profile.user.id) {
+    if (this.model.get('public') === false) {
+      privacy = 'visible to you only';
+    } else if (this.model.get('author').privacy === 0) {
+      privacy = 'public';
+    } else if (this.model.get('author').privacy === 1) {
+      privacy = 'visible to you and your followers';
+    }
+  }
 %>
 
 <% if (!this.parentView) { %>
@@ -147,7 +158,7 @@
   <div class="event-title">
     <a href="/<%= this.model.get('author').username %>" class="title navigate">
       <%= this.model.formatAuthorFor(this.app.profile.user) %></a> added a 
-      <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
+      <%= this.model.get('public') === false ? 'private ': '' %><a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
           class="title navigate">dataset</a> 
       with <%= num_channels %>.
     <% if (source !== '') { %>
@@ -166,7 +177,7 @@
   <h2 class="divider">Dataset Channels</h2>
 <% } else { %>
   <span class="event-timeline-label event-timeline-label-first">
-    <i class="icon-database"></i>
+    <i class="icon-<%= this.model.get('public') === false ? 'lock': 'database' %>"></i>
   </span>
   <% if (!this.parentView || this.model.get('description') || tags.length > 0) { %>
     <p class="event-description">
@@ -244,6 +255,9 @@
       <div class="target-info">
         <span class="target-info-heading">Metadata</span>
         <ul class="target-info-list">
+          <% if (privacy) { %>
+            <li>This dataset is <strong><%= privacy %></strong></li>
+          <% } %>
           <li>This dataset has <%= num_channels %></li>
           <li>Viewed <%= vcnt %> time<%= vcnt === 1 ? '': 's' %></li>
           <% if (source !== '') { %>

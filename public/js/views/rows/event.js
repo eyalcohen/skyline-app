@@ -15,7 +15,11 @@ define([
   return Row.extend({
 
     attributes: function () {
-      return _.defaults({class: 'event'},
+      var klass = 'event';
+      if (this.model.get('public') === false) {
+        klass += ' locked';
+      }
+      return _.defaults({class: klass},
           Row.prototype.attributes.call(this));
     },
 

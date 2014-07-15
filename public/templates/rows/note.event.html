@@ -28,7 +28,7 @@
   <% if (channels && channels.length > 0) { %>
     <div class="note-channels">
       <ul class="note-channels-list">
-        <% _.each(channels, function (c) { console.log(c) %>
+        <% _.each(channels, function (c) { %>
           <li>
             <a href="/<%= c.username %>/<%= c.did %>/<%= c.channelName %>" class="note-channel" data-channel="<%= c.channelName %>">
               <i class="icon-chart-line"></i> <%= model.formatChannelName(c.humanName) %>
