@@ -168,7 +168,7 @@
   <span class="event-timeline-label event-timeline-label-first">
     <i class="icon-database"></i>
   </span>
-  <% if (this.model.get('description') || tags.length > 0) { %>
+  <% if (!this.parentView || this.model.get('description') || tags.length > 0) { %>
     <p class="event-description">
       <%= this.model.description() %>
       <span class="event-tags">

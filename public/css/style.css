@@ -3477,6 +3477,10 @@ ul.event-channels {
   list-style: none;
 }
 
+.single p.event-description {
+  min-height: 20px;
+}
+
 .single ul.event-channels,
 .single p.event-description,
 .single .event-info {
