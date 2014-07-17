@@ -8,7 +8,8 @@
 var optimist = require('optimist');
 var argv = optimist
     .describe('help', 'Get help')
-    .describe('did', 'Dataset ID')
+    .describe('query', 'Dataset query')
+    .describe('param', 'Dataset query')
     .describe('date', 'Delete samples before this date')
     .argv;
 
@@ -34,7 +35,8 @@ if (!com.isValidDate(date)) {
   process.exit(1);
 }
 
-console.log(argv.did, date);
+console.log('Deleting samples on datasets');
+console.log({query: argv.query, param: argv.param, date: date});
 
 // For every real collection
 // Locate all samples that fit dataset id
@@ -44,20 +46,41 @@ boots.start(function (client) {
 
   Step(
     function () {
-      //console.log(client.samples);
-      _.each(client.samples.realCollections, _.bind(function (col) {
-        col.remove({did: did, end: {$lte: date.valueOf()*1000}}, this.parallel());
+      var query = {};
+      var match = argv.param.match(/ObjectId\("([A-Za-z0-9]*)/);
+      if (match) {
+        argv.param = db.oid(match[1]);
+      }
+      query[argv.query] = argv.param;
+      db.Datasets.list(query, this);
+    },
+    function (err, docs) {
+      if (err || !docs || docs.length === 0) return this(err);
+      _.each(_.pluck(docs, '_id'), _.bind(function(did) {
+
+        // Delete real collections before date
+        _.each(client.samples.realCollections, _.bind(function (col) {
+          col.remove({did: did, end: {$lte: date.valueOf()*1000}}, this.parallel());
+        }, this));
+
+        // Delete synthetic collections before date.  This work partially, since
+        // it doesn't delete dates between database 'buckets'
+        _.each(client.samples.syntheticCollections, _.bind(function (col) {
+          // 50 is syntheticSamplesPerRow, which isn't exported.  Note that
+          // these aren database buckets, which are actual buckets * 50
+          var buk = Math.floor(date.valueOf() * 1000 / col.collectionName.split('_')[1] / 50);
+          col.remove({did: did, buk: {$lte: Number(buk)-1}}, this.parallel());
+        }, this));
+
+        // Update channel start date
+        db.Channels.update({parent_id: did},
+            {$max: {beg: date.valueOf() * 1000}}, {multi: true}, this.parallel());
+
       }, this));
-      _.each(client.samples.syntheticCollections, _.bind(function (col) {
-        // 500 is syntheticSamplesPerRow * 10.
-        var buk = Math.floor(date.valueOf() * 1000 / col.collectionName.split('_')[1] / 50);
-        col.remove({did: did, buk: {$lte: Number(buk)-1}}, this.parallel());
-      }, this));
-      db.Channels.update({parent_id: did},
-          {$max: {beg: date.valueOf() * 1000}}, {multi: true}, this);
     },
     function (err, docs) {
       boots.error(err);
+      console.log('Done');
       process.exit(0);
     }
   );
