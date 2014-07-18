@@ -42,10 +42,27 @@ define([
     Upload, Reset, Profile, Library, Chart, Dataset, View, Static, How, howTemp, aboutTemp, contactTemp,
     privacyTemp, termsTemp) {
 
+  function inIframe () {
+    try {
+      return window.self !== window.top;
+    } catch (e) {
+      return true;
+    }
+  }
+
   // Our application URL router.
   var Router = Backbone.Router.extend({
 
-    initialize: function(app) {
+    initialize: function (app) {
+
+      // Handle iFrame event.
+      if (inIframe()) {
+        this._navigate = this.navigate;
+        this.navigate = function (path) {
+          console.log(path)
+          parent.window.location.pathname = path;
+        }
+      }
 
       // Save app reference.
       this.app = app;

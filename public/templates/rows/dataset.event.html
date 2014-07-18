@@ -34,7 +34,7 @@
   var vcnt = this.model.get('vcnt') === undefined ? 0: this.model.get('vcnt');
 
   var privacy;
-  if (this.model.get('author').id === this.app.profile.user.id) {
+  if (this.app.profile.user && this.model.get('author').id === this.app.profile.user.id) {
     if (this.model.get('public') === false) {
       privacy = 'visible to you only';
     } else if (this.model.get('author').privacy === 0) {

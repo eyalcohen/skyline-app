@@ -12,11 +12,10 @@
 %>
 
 <div class="page-title">
-  <a href="/<%= target.doc.author.username %>" class="navigate">
-    <img src="<%= gravatar %>" class="page-title-avatar" width="26" height="26" /></a>
   <a href="/<%= target.doc.author.username %>/views/<%= target.doc.slug %>"
       class="navigate<%= target.doc.public === false ? ' locked': '' %>">
-    <i class="<%= icon %>"></i><%= target.doc.name || 'Untitled' %></a>
+    <i class="<%= icon %>"></i> <%= target.doc.name || 'Untitled' %></a> from <a href="/<%= target.doc.author.username %>" class="navigate">
+    <%= target.doc.author.displayName %></a>
   <span class="page-title-sub">
     (Last updated <span class="updated"><%= util.getRelativeTime(new Date(target.doc.updated).valueOf()) %></span>)
   </span>
