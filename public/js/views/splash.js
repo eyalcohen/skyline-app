@@ -34,6 +34,7 @@ define([
       
       // Save refs.
       this.top = this.$('.splash-top');
+      this.topBottom = this.$('.splash-top-bottom');
       this.bottom = this.$('.splash-bottom');
 
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
@@ -95,8 +96,7 @@ define([
 
     resize: function (e) {
       var h = $(window).height();
-      this.top.height(h);
-      this.bottom.height(h);
+      this.topBottom.height(Math.max(150, h - this.topBottom.offset().top));
     },
 
     // updateCodes: function (data) {
