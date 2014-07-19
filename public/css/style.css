@@ -389,10 +389,18 @@ h2.divider {
   margin: 0 -40px 30px;
   border-bottom: 1px solid #f2f2f2;
   padding: 0 80px 3px 40px;
-  font-family: 'Dosis', sans-serif;
-  font-size: 24px;
-  font-weight: 400;
+  font-family: 'adelle-sans', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
   line-height: 40px;
+}
+
+span.brand-emphasis {
+  font-family: 'Dosis', sans-serif;
+  font-weight: 600;
+  font-size: 1.15em;
+  text-transform: lowercase;
+  color: #1c9da3;
 }
 
 canvas {
@@ -1637,8 +1645,8 @@ ul.page-menu li a {
   padding: 5px 30px;
   width: 100%;
   font-size: 16px;
-  font-family: 'Dosis', sans-serif;
-  font-weight: 400;
+  /*font-family: 'Dosis', sans-serif;*/
+  font-weight: 200;
   color: #404040;
 
   -webkit-transition: all 0.1s ease-in-out;
@@ -1966,8 +1974,7 @@ ul.header-navigation {
   height: 60px;
   line-height: 60px;
   list-style: none;
-  font-size: 11px;
-  text-transform: uppercase;
+  font-size: 0;
 }
 
 ul.header-navigation li {
@@ -1976,7 +1983,10 @@ ul.header-navigation li {
 }
 
 ul.header-navigation li a {
-  color: #3f3f3f;
+  color: #666;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 200;
 }
 
 .header .header-search,
@@ -2064,7 +2074,7 @@ ul.header-navigation li a {
 
 .header-user-box {
   position: relative;
-  z-index: 100;
+  z-index: 102;
   float: right;
   white-space: nowrap;
   margin-right: 30px;
@@ -2645,6 +2655,10 @@ a.button.modal-button.full {
   border-radius: 0 0 2px 2px;
 }
 
+.splash-bottom h2.divider {
+  margin-bottom: 0;
+}
+
 h1.splash-heading-one {
   text-align: center;
   color: #404040;
@@ -2668,13 +2682,6 @@ h3.splash-heading-three {
   font-size: 24px;
   line-height: 28px;
   font-weight: 200;
-}
-
-h3.splash-heading-three span {
-  font-family: 'Dosis';
-  font-weight: 600;
-  font-size: 28px;
-  color: #1c9da3;
 }
 
 ul.splash-heading-list {

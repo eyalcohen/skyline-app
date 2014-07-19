@@ -8,8 +8,9 @@ define([
   'Backbone',
   'mps',
   'util',
-  'text!../../templates/splash.html'
-], function ($, _, Backbone, mps, util, template) {
+  'text!../../templates/splash.html',
+  'views/lists/events',
+], function ($, _, Backbone, mps, util, template, Events) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -36,13 +37,19 @@ define([
       this.top = this.$('.splash-top');
       this.topBottom = this.$('.splash-top-bottom');
       this.bottom = this.$('.splash-bottom');
+      this.iframe = this.$('iframe');
 
+      // Handle resizing.
       $(window).resize(_.debounce(_.bind(this.resize, this), 20));
       this.resize();
 
-      // Save refs.
-      // this.embedCode = this.$('.embed-code .code');
-      // this.iframe = this.$('iframe');
+      // Render lists.
+      this.events = new Events(this.app, {
+        parentView: this,
+        reverse: true,
+        filters: false,
+        headers: false
+      });
 
       // Fill in the codes.
       // this.updateCodes({embed: this.iframe.attr('src').toLowerCase()});
@@ -98,23 +105,6 @@ define([
       var h = $(window).height();
       this.topBottom.height(Math.max(150, h - this.topBottom.offset().top));
     },
-
-    // updateCodes: function (data) {
-
-    //   // Embed
-    //   if (this.iframe.length > 0) this.iframe.attr('src', data.embed);
-    //   this.embedCode.text('<iframe width="100%" height="100%" '
-    //       + 'src="' + data.embed + '" frameborder="0"></iframe>');
-    //   this.positionLabelForCode(this.embedCode);
-    // },
-
-    // positionLabelForCode: function (code) {
-    //   var scrollHeight = code.get(0).scrollHeight;
-    //   var padding = parseInt(code.css('padding-top'))
-    //       + parseInt(code.css('padding-bottom'));
-    //   code.height(scrollHeight - padding).focus().blur();
-    //   $('.share-label', code.parent()).css('line-height', (scrollHeight + 1) + 'px');
-    // }
 
   });
 });
