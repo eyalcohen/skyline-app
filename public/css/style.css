@@ -2583,7 +2583,9 @@ a.button.modal-button.full {
 
 /*.........................................................................*/
 
-.splash-top {}
+.splash-top {
+  position: relative;
+}
 
 .splash-top-inner {
   height: 596px;
@@ -2657,7 +2659,7 @@ h2.splash-heading-two {
   margin-bottom: 30px;
   text-align: center;
   color: #404040;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 200;
 }
 
