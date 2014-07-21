@@ -2603,7 +2603,7 @@ a.button.modal-button.full {
 }
 
 .splash-top-inner {
-  height: 596px;
+  height: 536px;
   width: 80%;
   min-width: 1200px;
   margin: 0 auto;
@@ -2625,6 +2625,7 @@ a.button.modal-button.full {
 
 .splash-top-bottom {
   height: 200px;
+  margin-top: 30px;
   background: #404040;
 }
 
@@ -2648,7 +2649,7 @@ a.button.modal-button.full {
 .splash-bottom {
   position: relative;
   margin: 0 auto 15px;
-  width: 1088px;
+  width: 1148px;
   min-height: 400px;
   padding: 0 30px;
   background: #fff;
@@ -2658,6 +2659,10 @@ a.button.modal-button.full {
   -webkit-border-radius: 0 0 2px 2px;
   -moz-border-radius: 0 0 2px 2px;
   border-radius: 0 0 2px 2px;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 
 .splash-bottom .leftside h2.divider {
@@ -2671,7 +2676,6 @@ h1.splash-heading-one {
   line-height: 60px;
   font-family: "adelle-sans", sans-serif;
   font-weight: 900;
-  padding-top: 30px;
 }
 
 h2.splash-heading-two {
@@ -4948,17 +4952,23 @@ a.channel-button {
   display: block;
   margin-bottom: 10px;
   font-weight: bold;
-  font-size: 12px;
-  line-height: 13px;
-  font-style: italic;
+  font-size: 14px;
+  line-height: normal;
+}
+
+.target-name i {
+  color: #666;
+}
+
+.target-name i:before {
+  margin: 0;
 }
 
 .target-description {
   display: block;
   margin-bottom: 10px;
-  max-height:160px;
+  max-height: 160px;
   overflow: auto;
-  margin-left: 5px;
 }
 
 .target-info {
@@ -4976,7 +4986,8 @@ a.channel-button {
 
 .target-info-heading {
   display: block;
-  font-weight: bold;
+  font-family: 'adelle-sans', sans-serif;
+  font-weight: 900;
   margin-bottom: 2px;
   color: #404040;
 }

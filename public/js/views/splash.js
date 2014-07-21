@@ -109,6 +109,8 @@ define([
 
     resize: function (e) {
       var h = $(window).height();
+      var t = ((h - 660) / 2) - 120;
+      this.top.css('margin-top', Math.max(t, 30));
       this.topBottom.height(Math.max(150, h - this.topBottom.offset().top));
     },
 

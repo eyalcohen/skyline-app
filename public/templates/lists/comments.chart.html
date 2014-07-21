@@ -30,16 +30,20 @@
   <div class="comment-body">
     <p>
       <% if (target.doc.title && target.doc.title !== '') { %>
-        <span class="target-name">
-          <i class="icon-database"></i> <%= target.doc.title %>
-        </span>
+        <a href="/<%= target.doc.author.username %>/<%= target.doc.id %>" class="navigate">
+          <span class="target-name">
+            <i class="icon-database"></i> <%= target.doc.title %>
+          </span>
+        </a>
       <% } %>
       <% if (target.doc.name && target.doc.name !== '') { %>
-        <span class="target-name">
-          <i class="icon-folder-empty"></i> <%= target.doc.name %>
-        </span>
+        <a href="/<%= target.doc.author.username %>/views/<%= target.doc.slug %>" class="navigate">
+          <span class="target-name">
+            <i class="icon-folder-empty"></i> <%= target.doc.name %>
+          </span>
+        </a>
       <% } %>
-      <% if (target.doc.description !== '') { %>
+      <% if (target.doc.description && target.doc.description !== '') { %>
         <span class="target-description">
           <%= target.doc.description %>
         </span>

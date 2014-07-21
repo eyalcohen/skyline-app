@@ -68,7 +68,7 @@ define([
     resize: function (e, active) {
       if (this.active || active
           || this.getChildrenHeight() > $('.graphs').height()) {
-        this.$el.height($('.graphs').height() - 1);
+        this.$el.height($('.graphs').height());
       }
       else {
         this.$el.height('auto');
