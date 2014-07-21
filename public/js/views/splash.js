@@ -10,7 +10,8 @@ define([
   'util',
   'text!../../templates/splash.html',
   'views/lists/events',
-], function ($, _, Backbone, mps, util, template, Events) {
+  'views/lists/datasets.sidebar',
+], function ($, _, Backbone, mps, util, template, Events, Datasets) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -49,6 +50,11 @@ define([
         reverse: true,
         filters: false,
         headers: false
+      });
+      this.datasets = new Datasets(this.app, {
+        parentView: this,
+        reverse: true,
+        library: true
       });
 
       // Fill in the codes.

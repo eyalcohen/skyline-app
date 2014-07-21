@@ -35,7 +35,10 @@ define([
       this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Reset the collection.
-      this.collection.reset(_.sortBy(this.app.profile.content.datasets.items, 'title'));
+      var items = this.collection.options.library ?
+          this.app.profile.content.datasets.items:
+          _.sortBy(this.app.profile.content.datasets.items, 'title');
+      this.collection.reset(items);
     },
 
     setup: function () {
@@ -44,7 +47,7 @@ define([
       this.count = this.$('.sidebar-heading-cnt');
       this.tip = this.$('.sidebar-tip');
 
-      this.updateCount();
+      this.updateCount(this.app.profile.content.datasets.count);
       return List.prototype.setup.call(this);
     },
 
@@ -83,7 +86,7 @@ define([
       }
     },
 
-    updateCount: function () {
+    updateCount: function (count) {
       if (!this.parentView.model
           || (this.app.profile.user
           && this.parentView.model.id === this.app.profile.user.id)) {
@@ -93,7 +96,7 @@ define([
           this.tip.hide();
         }
       }
-      this.count.text('(' + this.collection.length + ')');
+      this.count.text('(' + (count || this.collection.length) + ')');
     },
 
     add: function (e) {

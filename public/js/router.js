@@ -59,8 +59,8 @@ define([
       if (inIframe()) {
         this._navigate = this.navigate;
         this.navigate = function (path) {
-          console.log(path)
-          parent.window.location.pathname = path;
+          // parent.window.location.pathname = path;
+          window.open(path, '_blank');
         }
       }
 
