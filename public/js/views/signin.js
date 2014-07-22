@@ -68,8 +68,9 @@ define([
       // Handle error display.
       this.$('input[type="text"], input[type="password"]').blur(function (e) {
         var el = $(e.target);
-        if (el.hasClass('input-error'))
+        if (el.hasClass('input-error')) {
           el.removeClass('input-error');
+        }
       });
 
       // Focus cursor initial.
@@ -124,9 +125,11 @@ define([
 
       // Add alerts.
       _.each(check.missing, _.bind(function (m, i) {
-        var field = this.$('input[name="' + m + '"]');
+        var field = this.$('.signin-' + m);
         field.val('').addClass('input-error');
-        if (i === 0) field.focus();
+        if (i === 0) {
+          field.focus();
+        }
       }, this));
 
       // Show messages.

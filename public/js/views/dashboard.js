@@ -28,8 +28,6 @@ define([
     },
 
     render: function () {
-
-      // Set page title
       this.title();
 
       this.template = _.template(template);

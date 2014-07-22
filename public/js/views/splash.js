@@ -8,8 +8,10 @@ define([
   'Backbone',
   'mps',
   'util',
-  'text!../../templates/splash.html'
-], function ($, _, Backbone, mps, util, template) {
+  'text!../../templates/splash.html',
+  'views/lists/events',
+  'views/lists/datasets.sidebar',
+], function ($, _, Backbone, mps, util, template, Events, Datasets) {
   return Backbone.View.extend({
 
     el: '.main',
@@ -18,15 +20,9 @@ define([
       this.app = app;
       this.subscriptions = [];
       this.on('rendered', this.setup, this);
-
-      // Attach a ref to 'update' to the window so it can be
-      // reached by the iframe source.
-      // document.__update = _.bind(this.updateCodes, this);
     },
 
     render: function () {
-
-      // Set page title
       this.app.title('Skyline');
 
       this.template = _.template(template);
@@ -37,46 +33,39 @@ define([
     },
 
     setup: function () {
-
+      
       // Save refs.
-      this.embedCode = this.$('.embed-code .code');
+      this.top = this.$('.splash-top');
+      this.topBottom = this.$('.splash-top-bottom');
+      this.bottom = this.$('.splash-bottom');
       this.iframe = this.$('iframe');
+      this.dots = this.$('.splash-embed-dots li');
 
-      // Fill in the codes.
-      // this.updateCodes({embed: this.iframe.attr('src').toLowerCase()});
-      graphs = [
-        { src: "//www.skyline-data.com/embed/home/views/interest-rates-vs-economic-market-growth",
-          img: "//s3.amazonaws.com/snapshots-skyline/views-196779199",
-          title: "Interest Rates vs. Economic & Market Growth" },
-        { src: "//www.skyline-data.com/embed/home/views/the-rise-of-bitcoin",
-          img: "//s3.amazonaws.com/snapshots-skyline/views-411488850",
-          title: "The Rise of Bitcoin" },
-        { src: "//www.skyline-data.com/embed/home/views/streaming-san-francisco-weather",
-          img: "//s3.amazonaws.com/snapshots-skyline/views-739824067",
-          title: "Streaming - San Francisco Weather" },
-        { src: "//www.skyline-data.com/embed/home/views/steroid-fueled-home-run-boom",
-          img: "//s3.amazonaws.com/snapshots-skyline/views-1047870229",
-          title: "Steroid Fueled Home Run Boom" },
-      ];
+      // Handle resizing.
+      $(window).resize(_.debounce(_.bind(this.resize, this), 20));
+      this.resize();
 
-      var luckyWinner = Math.floor(Math.random()*4);
-      $('.splash-select').each(function(idx) {
-        $(this).find('img').attr('src', graphs[idx].img);
-        $(this).find('div').text(graphs[idx].title);
-        $(this).find('a').click(function(e) {
-          $('.embed-chart iframe').attr('src', graphs[idx].src);
-          $('.splash-select a').each(function(idx) { $(this).removeClass('splash-selected') });
-          $(this).addClass('splash-selected');
-        });
-        if (idx === luckyWinner)
-          $(this).find('a').click();
-
+      // Render lists.
+      this.events = new Events(this.app, {
+        parentView: this,
+        reverse: true,
+        filters: false,
+        headers: false
       });
+      this.datasets = new Datasets(this.app, {
+        parentView: this,
+        reverse: true,
+        library: true
+      });
+
+      this.rotate();
 
       return this;
     },
 
-    events: {},
+    events: {
+      'click .splash-embed-dots': 'rotate'
+    },
 
     empty: function () {
       this.$el.empty();
@@ -92,21 +81,44 @@ define([
       this.empty();
     },
 
-    updateCodes: function (data) {
-
-      // Embed
-      if (this.iframe.length > 0) this.iframe.attr('src', data.embed);
-      this.embedCode.text('<iframe width="100%" height="100%" '
-          + 'src="' + data.embed + '" frameborder="0"></iframe>');
-      this.positionLabelForCode(this.embedCode);
+    resize: function (e) {
+      var h = $(window).height();
+      var t = ((h - 660) / 2) - 120;
+      this.top.css('margin-top', Math.max(t, 30));
+      this.topBottom.height(Math.max(150, h - this.topBottom.offset().top));
     },
 
-    positionLabelForCode: function (code) {
-      var scrollHeight = code.get(0).scrollHeight;
-      var padding = parseInt(code.css('padding-top'))
-          + parseInt(code.css('padding-bottom'));
-      code.height(scrollHeight - padding).focus().blur();
-      $('.share-label', code.parent()).css('line-height', (scrollHeight + 1) + 'px');
+    rotate: function (e) {
+      if (this.rotating) {
+        return;
+      }
+      // if (this.timeout) {
+      //   clearTimeout(this.timeout);
+      // }
+      this.rotating = true;
+      var active = $('.active', this.dots.parent());
+      var nextIndex;
+      if (!active.get(0)) {
+        active = this.dots.eq(Math.floor(Math.random()*this.dots.length))
+            .addClass('active');
+        nextIndex = active.index();
+      } else {
+        nextIndex = e ? $(e.target).index(): active.index() + 1;
+      }
+      if (nextIndex === this.dots.length) {
+        nextIndex = 0;
+      }
+      this.dots.removeClass('active');
+      var next = $(this.dots.get(nextIndex)).addClass('active');
+      this.iframe.css('opacity', 0);
+      _.delay(_.bind(function () {
+        this.iframe.attr('src', next.data('url'));
+        _.delay(_.bind(function () {
+          this.iframe.css('opacity', 1);
+          // this.timeout = setTimeout(_.bind(this.rotate, this), 10000);
+          this.rotating = false;
+        }, this), 1000);
+      }, this), 200);
     }
 
   });

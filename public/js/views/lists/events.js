@@ -109,29 +109,41 @@ define([
       List.prototype.renderLast.call(this, pagination);
 
       // Handle day headers.
-      var view = pagination !== true && this.collection.options
-          && this.collection.options.reverse ?
-          this.views[0]:
-          this.views[this.views.length - 1];  
-      var ms = new Date(view.model.get('date')).valueOf();
-      var header = this.$('.event-day-header').filter(function () {
-        return ms >= Number($(this).data('beg'))
-            && ms <= Number($(this).data('end'));
-      });
-      if (header.length > 0) {
-        if (pagination !== true) {
-          header.detach().insertBefore(view.$el);
+      if (!this.collection.options
+          || this.collection.options.headers !== false) {
+        var view = pagination !== true && this.collection.options
+            && this.collection.options.reverse ?
+            this.views[0]:
+            this.views[this.views.length - 1];  
+        var ms = new Date(view.model.get('date')).valueOf();
+        var header = this.$('.event-day-header').filter(function () {
+          return ms >= Number($(this).data('beg'))
+              && ms <= Number($(this).data('end'));
+        });
+        if (header.length > 0) {
+          if (pagination !== true) {
+            header.detach().insertBefore(view.$el);
+            $('<div class="event-divider">').insertAfter(view.$el);
+          } else {
+            $('<div class="event-divider">').insertBefore(view.$el);
+          }
+        } else {
+          var _date = new Date(view.model.get('date'));
+          var beg = new Date(_date.getFullYear(), _date.getMonth(),
+              _date.getDate());
+          var end = new Date(_date.getFullYear(), _date.getMonth(),
+              _date.getDate(), 23, 59, 59, 999);
+          header = $('<div class="event-day-header" data-beg="' + beg.valueOf()
+              + '" data-end="' + end.valueOf() + '">' + '<span>'
+              + end.format('mmmm dd, yyyy') + '</span></div>');
+          header.insertBefore(view.$el);
         }
       } else {
-        var _date = new Date(view.model.get('date'));
-        var beg = new Date(_date.getFullYear(), _date.getMonth(),
-            _date.getDate());
-        var end = new Date(_date.getFullYear(), _date.getMonth(),
-            _date.getDate(), 23, 59, 59, 999);
-        header = $('<div class="event-day-header" data-beg="' + beg.valueOf()
-            + '" data-end="' + end.valueOf() + '">' + '<span>'
-            + end.format('mmmm dd, yyyy') + '</span></div>');
-        header.insertBefore(view.$el);
+        var view = pagination !== true && this.collection.options
+            && this.collection.options.reverse ?
+            this.views[0]:
+            this.views[this.views.length - 1];
+        $('<div class="event-divider">').insertBefore(view.$el);
       }
 
       // Check for more.

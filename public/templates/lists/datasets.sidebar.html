@@ -1,6 +1,9 @@
 <%
   var own = !this.parentView.model || (this.app.profile.user && this.parentView.model.id === this.app.profile.user.id);
   var owner = own ? 'Your': this.parentView.model.get('displayName') + '\'s';
+  if (this.collection.options.library) {
+    owner = 'Public';
+  }
 %>
 
 <span class="sidebar-heading">
@@ -14,4 +17,9 @@
   <% _.each(this.collection.models, _.bind(function (row) { %>
     <%= this.row(row) %>
   <% }, this)); %>
+  <% if (this.app.profile.content.datasets.count) { %>
+    <li class="sidebar-more">
+      <a href="/library">see all <i class="icon-angle-right"></i></a>
+    </li>
+  <% } %>
 </ul>

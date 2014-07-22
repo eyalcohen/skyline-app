@@ -85,15 +85,14 @@ define([
       this.model = new Backbone.Model;
 
       // Set page title.
+      var target = this.target();
       if (!this.app.embed) {
-        var target = this.target();
         this.app.title('Skyline | ' + target.doc.author.username + '/'
             + (target.doc.name || target.doc.title));
-
-        if (target.doc.name) {
-          this.title = _.template(header).call(this,
-              {util: util, target: target});
-        }
+      }
+      if (target.doc.name) {
+        this.title = _.template(header).call(this,
+            {util: util, target: target});
       }
 
       this.template = _.template(template);
@@ -205,7 +204,7 @@ define([
 
     resize: function () {
       var height = $(window).height() - this.$el.offset().top;
-      height = Math.max(height, this.app.embed ? 0: 605);
+      // height = Math.max(height, this.app.embed ? 0: 605);
       this.$el.css({height: height});
       if (this.mapPanel.hasClass('open')) {
         var w = Math.floor(this.$el.width() / 2 - this.sidePanel.width());
