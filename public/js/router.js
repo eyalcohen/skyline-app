@@ -33,13 +33,13 @@ define([
   'views/static',
   'views/how',
   'text!../templates/how.html',
-  'text!../templates/about.html',
+  'text!../templates/mission.html',
   'text!../templates/contact.html',
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
     Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
-    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, How, howTemp, aboutTemp, contactTemp,
+    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, How, howTemp, missionTemp, contactTemp,
     privacyTemp, termsTemp) {
 
   function inIframe () {
@@ -105,7 +105,7 @@ define([
       this.route('settings', 'settings', this.settings);
       this.route('notifications', 'notifications', this.notifications);
       this.route('how', 'how', this.how);
-      this.route('about', 'about', this.about);
+      this.route('mission', 'mission', this.mission);
       this.route('contact', 'contact', this.contact);
       this.route('privacy', 'privacy', this.privacy);
       this.route('terms', 'terms', this.terms);
@@ -427,16 +427,16 @@ define([
       this.renderTabs({title: 'Skyline 101'});
     },
 
-    about: function () {
+    mission: function () {
       this.start();
       $('.container').removeClass('wide').removeClass('landing');
       this.render('/service/static', _.bind(function (err) {
         if (err) return;
         this.page = new Static(this.app,
-            {title: 'About', template: aboutTemp}).render();
+            {title: 'Our Mission', template: missionTemp}).render();
         this.stop();
       }, this));
-      this.renderTabs({title: 'About', subtitle: 'What\'s going on here?'});
+      this.renderTabs({title: 'Our Mission'});
     },
 
     contact: function () {

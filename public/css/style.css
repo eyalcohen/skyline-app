@@ -2731,6 +2731,7 @@ ul.splash-embed-dots li {
   width: 15px;
   height: 15px;
   border: 1px solid #808080;
+  cursor: pointer;
 
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
@@ -2742,15 +2743,10 @@ ul.splash-embed-dots li.active {
 }
 
 .splash-embed-chart {
+  position: relative;
   width: 100%;
-
-  box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-}
-
-.splash-embed-chart iframe {
-  background: #fff;
+  height: 521px;
+  background: #f2f2f2;
   border: 1px solid rgba(0,0,0,0.25);
 
   -moz-border-radius: 5px 5px 0 0;
@@ -2760,10 +2756,27 @@ ul.splash-embed-dots li.active {
   -webkit-box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
   -moz-box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
   box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
-  
+
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+}
+
+.splash-embed-chart iframe {
+  background: #fff;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+
+  -moz-border-radius: 5px 5px 0 0;
+  -webkit-border-radius: 5px 5px 0 0;
+  border-radius: 5px 5px 0 0;
+
+  opacity: 0;
+  -webkit-transition: opacity 0.2s linear;
+  -moz-transition: opacity 0.2s linear;
+  transition: opacity 0.2s linear;
 }
 
 .splash-scroll {
@@ -3945,8 +3958,8 @@ p.sidebar-tip span {
 .sidebar-views2 p,
 .sidebar-followers p,
 .sidebar-followees p {
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 11px;
+  line-height: 14px;
   color: #666;
 }
 

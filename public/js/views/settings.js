@@ -107,6 +107,7 @@ define([
           err: {message: 'Please use a valid email address.'},
           level: 'error'}
         ]);
+        field.addClass('input-error').val('').focus();
         return false;
       }
 
@@ -119,9 +120,7 @@ define([
           mps.publish('flash/new', [{err: err, level: 'error'}]);
 
           // Show error highlight.
-          if (err === 'Username exists') {
-            field.addClass('input-error').focus();
-          }
+          field.addClass('input-error').val('').focus();
 
           return false;
         }
