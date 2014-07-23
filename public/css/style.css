@@ -1994,6 +1994,10 @@ ul.header-navigation li a {
   font-weight: 200;
 }
 
+ul.header-navigation li a.active {
+  border-bottom: 2px solid #27CDD6;
+}
+
 .header .header-search,
 .finder .finder-search {
   display: inline;

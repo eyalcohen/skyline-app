@@ -164,6 +164,7 @@ define([
           } else if (login) {
             this.header.render(true);
           }
+          this.header.highlight(window.location.pathname);
         }
 
         // Start block messages.
@@ -252,6 +253,7 @@ define([
 
     dashboard: function () {
       this.start();
+      this.renderTabs();
       var query = {actions: this.getEventActions()};
       this.render('/service/dashboard', query, _.bind(function (err) {
         if (err) return;

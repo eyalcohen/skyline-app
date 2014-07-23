@@ -88,5 +88,10 @@ define([
       }
     },
 
+    highlight: function (href) {
+      this.$('.header-navigation a').removeClass('active');
+      this.$('.header-navigation a[href="' + href + '"]').addClass('active');
+    }
+
   });
 });
