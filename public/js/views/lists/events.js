@@ -337,6 +337,7 @@ define([
       });
       this.views = [];
       this.$('.event-day-header').remove();
+      this.$('.event-divider').remove();
       this.showingAll.hide();
       this.more();
 
