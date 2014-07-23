@@ -1528,7 +1528,7 @@ li.subtab a {
   background: none;
   color: #666;
   font-size: 11px;
-  line-height: 24px;
+  line-height: 25px;
   border-top: 2px solid transparent;
   font-weight: bold;
   -moz-user-select: none;
@@ -4613,6 +4613,8 @@ a.control-button-save.saving {
 }
 
 .dataset .dataset-avatar {
+  position: relative;
+  top: -1px;
   float: left;
   height: 23px;
   width: 23px;
@@ -4624,6 +4626,7 @@ a.control-button-save.saving {
 }
 
 .dataset.leader .dataset-avatar {
+  top: 0;
   border-color: rgba(39, 205, 214, 0.8);
   border-top: 1px solid rgba(39, 205, 214, 0.8);
   background: rgba(39, 205, 214, 0.4);
@@ -4680,6 +4683,7 @@ a.control-button-save.saving {
 a.dataset-button {
   display: block;
   position: relative;
+  top: -1px;
   height: 35px;
   width: 230px;
   margin-left: 33px;
@@ -4692,6 +4696,10 @@ a.dataset-button {
   -webkit-transition-duration: 100ms;
   transition-timing-function: ease-out;
   transition-duration: 100ms;
+}
+
+.leader a.dataset-button {
+  top: 0;
 }
 
 a.dataset-button .dataset-button-bg {
@@ -4818,10 +4826,15 @@ a.dataset-add-button:active {
   z-index: 12;
   left: 33px;
   right: 0;
+  top: -1px;
   width: 271px;
   overflow-y: auto;
   overflow-x: hidden;
   background: rgba(249,249,249,0.8);
+}
+
+.leader .channels-wrap {
+  top: 0;
 }
 
 .channels {
@@ -4876,7 +4889,7 @@ a.dataset-add-button:active {
 a.channel-button {
   display: block;
   position: relative;
-  padding: 7px 4px 2px;
+  padding: 7px 4px 5px;
   background: none;
   white-space: nowrap;
 }

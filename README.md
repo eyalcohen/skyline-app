@@ -60,7 +60,6 @@ RdsEnabled=No
 Region=us-east-1
 ServiceEndpoint=https://elasticbeanstalk.us-east-1.amazonaws.com
 SolutionStack=64bit Amazon Linux 2014.02 running Node.js
-
 ```
 
 ```.elasticbeanstalk/optionsettings.skyline``` :
