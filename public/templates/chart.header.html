@@ -18,9 +18,10 @@
     link = [target.doc.author.username, 'views', target.doc.slug].join('/');
   }
 %>
-
+<a href="/<%= link %>" class="button title-button title-button-left emphasis-button navigate">
+    <i class="icon-angle-left"></i> Go to <%= target.type %> summary</a>
 <div class="page-title">
-  <a href="/<%= link %>" class="navigate<%= target.doc.public === false ? ' locked': '' %>">
+  Viewing <a href="/<%= link %>" class="navigate<%= target.doc.public === false ? ' locked': '' %>">
     <i class="<%= icon %>"></i> <%= target.doc.title || target.doc.name || 'Untitled' %></a> from <a href="/<%= target.doc.author.username %>" class="navigate">
     <%= target.doc.author.displayName %></a>
   <span class="page-title-sub">

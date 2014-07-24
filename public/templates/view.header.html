@@ -11,7 +11,7 @@
 %>
 
 <a href="/<%= data.author.username %>/views/<%= data.slug %>/chart" class="button title-button emphasis-button navigate">
-    Explore <i class="icon-angle-right"></i></a>
+    Go to chart <i class="icon-angle-right"></i></a>
 <% if (this.app.profile.user) { %>
   <% if (this.app.profile.user.role !== 2) { %>
     <% if (sub && sub.subscribee_id === data.id) { %>

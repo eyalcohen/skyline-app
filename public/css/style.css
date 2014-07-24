@@ -802,6 +802,13 @@ a.button.title-button.emphasis-button {
   border-left: 1px solid #60ED1F;
 }
 
+a.button.title-button.title-button-left {
+  float: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 a.button.map-button {
   display: none;
   position: absolute;
@@ -4750,9 +4757,10 @@ a.dataset-button .dataset-button-bg {
 }
 
 .dataset.leader a.dataset-button .dataset-button-bg {
-  border-top: 3px dashed rgba(39, 205, 214, 0.8);
+  border-top: 1px solid rgba(39, 205, 214, 0.8);
+  /*border-top: 3px dashed rgba(39, 205, 214, 0.8);*/
   border-left: none;
-  margin-top: -3px;
+  /*margin-top: -3px;*/
   background: rgba(39, 205, 214, 0.4);
   border-radius: 3px 3px 0 0;
   height: 35px;
