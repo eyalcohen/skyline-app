@@ -90,10 +90,8 @@ define([
         this.app.title('Skyline | ' + target.doc.author.username + '/'
             + (target.doc.name || target.doc.title));
       }
-      if (target.doc.name) {
-        this.title = _.template(header).call(this,
-            {util: util, target: target});
-      }
+      this.title = _.template(header).call(this, {util: util, target: target});
+      
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('.main');
