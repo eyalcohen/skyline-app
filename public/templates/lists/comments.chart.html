@@ -10,6 +10,16 @@
       num_channels += _.size(d.channels);
     });
   }
+  if (num_channels === 1) {
+    num_channels += ' channel';
+  } else {
+    num_channels += ' channels';
+  }
+  if (num_datasets === 1) {
+    num_datasets += ' dataset';
+  } else {
+    num_datasets += ' datasets';
+  }
 
   var source = '';
   if (target.type === 'dataset') {
@@ -24,61 +34,72 @@
       }
     }
   }
+
+  var vcnt = target.doc.vcnt === undefined ? 0: target.doc.vcnt;
+
+  var privacy;
+  if (this.app.profile.user && target.doc.author.id === this.app.profile.user.id) {
+    if (target.doc.public === false) {
+      privacy = 'visible to you only';
+    } else if (target.doc.author.privacy === 0) {
+      privacy = 'public';
+    } else if (target.doc.author.privacy === 1) {
+      privacy = 'visible to you and your followers';
+    }
+  }
 %>
 
 <div class="comment target">
   <div class="comment-body">
     <p>
       <% if (target.doc.title && target.doc.title !== '') { %>
-        <a href="/<%= target.doc.author.username %>/<%= target.doc.id %>" class="navigate">
-          <span class="target-name">
-            <i class="icon-database"></i> <%= target.doc.title %>
-          </span>
-        </a>
+        <span class="target-name">
+          <a href="/<%= target.doc.author.username %>/<%= target.doc.id %>" class="navigate<%= target.doc.public === false ? ' locked': '' %>">
+            <i class="<%= target.doc.public === false ? 'icon-lock': 'icon-database' %>"></i> <%= target.doc.title %>
+          </a>
+        </span>
       <% } %>
       <% if (target.doc.name && target.doc.name !== '') { %>
-        <a href="/<%= target.doc.author.username %>/views/<%= target.doc.slug %>" class="navigate">
-          <span class="target-name">
-            <i class="icon-folder-empty"></i> <%= target.doc.name %>
-          </span>
-        </a>
+        <span class="target-name">
+          <a href="/<%= target.doc.author.username %>/views/<%= target.doc.slug %>" class="navigate<%= target.doc.public === false ? ' locked': '' %>">
+            <i class="<%= target.doc.public === false ? 'icon-lock': 'icon-folder-empty' %>"></i> <%= target.doc.name %>
+          </a>
+        </span>
       <% } %>
-      <% if (target.doc.description && target.doc.description !== '') { %>
+      <% if ((target.doc.description && target.doc.description !== '')
+            || (target.doc.tags && target.doc.tags.length > 0)) { %>
         <span class="target-description">
-          <%= target.doc.description %>
+          <%= target.doc.description %> 
+            <span class="target-tags">
+              <% _.each(target.doc.tags, function(t, i) { %>
+                #<%= t %><% if (i < target.doc.tags.length - 1) { %>,<% } %>
+              <% }); %>
+            </span>
         </span>
       <% } %>
     </p>
     <div class="target-info">
-      <span class="target-info-heading">Information</span>
       <ul class="target-info-list">
         <% if (target.type === 'dataset') { %>
-          <li>Channels: <%= num_channels %></li>
+          <% if (privacy) { %>
+            <li>This dataset is <strong><%= privacy %></strong></li>
+          <% } %>
+          <li><%= num_channels %></li>
+          <% if (source !== '') { %>
+            <li>Source: <%= source %></li>
+          <% } %>
         <% } else { %>
-          <li>Datasets: <%= num_datasets %></li>
-          <li>Channels: <%= num_channels %></li>
-          <li>Begin time: <%= util.toLocaleString(new Date(target.doc.time.beg/1000), 'mm/d/yy HH:MM:ss') %></li>
-          <li>Duration: <%= util.getDuration(target.doc.time.end - target.doc.time.beg, false) %></li>
+          <% if (privacy) { %>
+            <li>This view is <strong><%= privacy %></strong></li>
+          <% } %>
+          <li><%= num_datasets %> and <%= num_channels %></li>
+          <li>Begins on <%= util.getRelativeTime(new Date(target.doc.time.beg/1000).valueOf()) %></li>
+          <li>Spans <%= util.getDuration(target.doc.time.end - target.doc.time.beg, false) %></li>
         <% } %>
-        <li>Views: <%= target.doc.vcnt === undefined ? 0: target.doc.vcnt %></li>
-        <li>Last updated: <%= util.toLocaleString(new Date(target.doc.updated), 'mm/d/yy HH:MM:ss') %></li>
+        <li>Viewed <%= vcnt %> time<%= vcnt === 1 ? '': 's' %></li>
+        <li>Created <%= util.getRelativeTime(new Date(target.doc.created).valueOf()) %></li>
+        <li>Last updated <%= util.getRelativeTime(new Date(target.doc.updated).valueOf()) %></li>
       </ul>
-      <% if (source !== '') { %>
-        <span class="target-info-heading">Source</span>
-        <ul class="target-info-list">
-          <li><%= source %></li>
-        </ul>
-      <% } %>
-      <% if (target.doc.tags && target.doc.tags.length > 0) { %>
-        <span class="target-info-heading">Tags</span>
-        <ul class="target-info-list">
-          <li>
-            <% _.each(target.doc.tags, function(t, i) { %>
-              <%= t %><% if (i < target.doc.tags.length - 1) { %>,<% } %>
-            <% }); %>
-          </li>
-        </ul>
-      <% } %>
     </div>
     <div class="comment-info">
       <% if (target.type === 'view') { %>

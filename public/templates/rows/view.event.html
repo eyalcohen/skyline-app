@@ -204,8 +204,12 @@
           <% if (privacy) { %>
             <li>This view is <strong><%= privacy %></strong></li>
           <% } %>
-          <li>This view has <%= num_datasets %> and <%= num_channels %></li>
+          <li><%= num_datasets %> and <%= num_channels %></li>
+          <li>Begins on <%= util.getRelativeTime(new Date(this.model.get('time').beg/1000).valueOf()) %></li>
+          <li>Spans <%= util.getDuration(this.model.get('time').end - this.model.get('time').beg, false) %></li>
           <li>Viewed <%= vcnt %> time<%= vcnt === 1 ? '': 's' %></li>
+          <li>Created <%= util.getRelativeTime(new Date(this.model.get('created')).valueOf()) %></li>
+          <li>Last updated <%= util.getRelativeTime(new Date(this.model.get('updated')).valueOf()) %></li>
         </ul>
       </div>
       <div class="target-info">

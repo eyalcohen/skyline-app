@@ -1025,7 +1025,7 @@ span.full-feed {
   font-style: italic;
   color: #808080;
   text-align: center;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 span.empty-list {
@@ -1035,7 +1035,7 @@ span.empty-list {
   color: #808080;
   text-align: center;
   line-height: 18px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .list-spin {
@@ -1114,7 +1114,7 @@ span.empty-list {
 
 .created {
   color: #8f8f8f;
-  font-size: 10px;
+  font-size: 11px;
   display: inline-block;
 }
 
@@ -1132,7 +1132,7 @@ span.empty-list {
 a.info-settings {
   color: #8f8f8f;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 i {
@@ -1815,7 +1815,7 @@ p.text-section img {
 
 .text-section-detail span {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 14px;
   color: #666;
   border-bottom: 1px solid #f2f2f2;
@@ -1975,7 +1975,7 @@ body.loading .header .header-logo a {
 ul.header-navigation {
   display: inline;
   position: relative;
-  left: 415px;
+  left: 401px;
   height: 60px;
   line-height: 60px;
   list-style: none;
@@ -1984,7 +1984,7 @@ ul.header-navigation {
 
 ul.header-navigation li {
   display: inline;
-  margin-left: 15px;
+  margin-left: 20px;
 }
 
 ul.header-navigation li a {
@@ -2816,7 +2816,7 @@ ul.splash-embed-dots li.active {
 
 .comment-input-wrap span {
   font-weight: normal;
-  font-size: 10px;
+  font-size: 11px;
   padding: 0 10px;
   color: #666;
   text-align: right;
@@ -2982,7 +2982,7 @@ a.comments-signin,
   color: #808080;
   text-align: center;
   line-height: 18px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .comments a.comments-signin,
@@ -2993,7 +2993,7 @@ a.comments-signin,
 .comment-info {
   margin-left: 34px;
   color: #8f8f8f;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .target .comment-info {
@@ -3026,7 +3026,7 @@ a.comments-signin,
   text-align: center;
   color: #8f8f8f;
   font-style: italic;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /*.........................................................................*/
@@ -3183,7 +3183,7 @@ p.event-description {
 .event-info {
   width: 558px;
   margin: 10px 0 5px 2px;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 13px;
   color: #8f8f8f;
 }
@@ -3407,7 +3407,7 @@ a.event-comment-author:hover {
   padding-left: 45px;
   padding-bottom: 3px;
   color: #8f8f8f;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 textarea.event-comment-input {
@@ -4225,10 +4225,11 @@ a.control-button-save.saving {
   position: absolute;
   z-index: 11;
   top: 33px;
-  bottom: 141px;
+  bottom: 140px;
   right: -301px;
   width: 300px;
   overflow-x: visible;
+  overflow-y: auto;
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
   border-top: 1px solid #d0d0d0;
@@ -4371,7 +4372,7 @@ a.control-button-save.saving {
   position: absolute;
   z-index: 9;
   top: 0;
-  bottom: 0;
+  bottom: -1px;
   left: 0;
   border-left: 1px solid rgba(0,0,0,0.3);
   pointer-events: none;
@@ -4979,7 +4980,7 @@ a.channel-button {
 }
 
 .target-name {
-  display: block;
+  display: inline-block;
   margin-bottom: 10px;
   font-weight: bold;
   font-size: 14px;
@@ -4999,6 +5000,10 @@ a.channel-button {
   margin-bottom: 10px;
   max-height: 160px;
   overflow: auto;
+}
+
+.target-tags {
+  color: #666;
 }
 
 .target-info {
@@ -5046,7 +5051,7 @@ ul.target-info-list {
   margin-bottom: 2px;
 }
 
-.single ul.target-info-list li:before {
+ul.target-info-list li:before {
   content: "- ";
 }
 

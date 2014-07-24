@@ -258,11 +258,13 @@
           <% if (privacy) { %>
             <li>This dataset is <strong><%= privacy %></strong></li>
           <% } %>
-          <li>This dataset has <%= num_channels %></li>
-          <li>Viewed <%= vcnt %> time<%= vcnt === 1 ? '': 's' %></li>
+          <li><%= num_channels %></li>
           <% if (source !== '') { %>
             <li>Source: <%= source %></li>
           <% } %>
+          <li>Viewed <%= vcnt %> time<%= vcnt === 1 ? '': 's' %></li>
+          <li>Created <%= util.getRelativeTime(new Date(this.model.get('created')).valueOf()) %></li>
+          <li>Last updated <%= util.getRelativeTime(new Date(this.model.get('updated')).valueOf()) %></li>
         </ul>
       </div>
       <div class="target-info">
