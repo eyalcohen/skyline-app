@@ -138,7 +138,7 @@ define([
       });
 
       // Handle comments panel.
-      if (!this.app.embed && store.get('comments')) {
+      if (this.app.embed || store.get('comments')) {
         $('.side-panel').addClass('open');
       }
 

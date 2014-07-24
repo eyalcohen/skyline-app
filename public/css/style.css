@@ -1591,6 +1591,10 @@ body.embed .page-title {
   color: #666;
 }
 
+.page-title a i:before {
+  margin: 0;
+}
+
 .page-title-sub {
   font-size: 11px;
 }
@@ -1989,9 +1993,10 @@ ul.header-navigation li {
 
 ul.header-navigation li a {
   color: #666;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  font-weight: 200;
+  font-family: "adelle-sans", sans-serif;
+  font-weight: 600;
 }
 
 ul.header-navigation li a.active {
@@ -4228,8 +4233,6 @@ a.control-button-save.saving {
   bottom: 140px;
   right: -301px;
   width: 300px;
-  overflow-x: visible;
-  overflow-y: auto;
   background: rgba(249,249,249,0.8);
   border-left: 1px solid #d0d0d0;
   border-top: 1px solid #d0d0d0;
@@ -4239,6 +4242,12 @@ a.control-button-save.saving {
   -ms-transition: right 0.3s;
   -o-transition: right 0.3s;
   transition: right 0.3s;
+}
+
+.side-panel-inner {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .side-panel.open {
@@ -4905,6 +4914,7 @@ a.channel-button {
   white-space: normal;
   word-wrap: break-word;
   width: 80%;
+  line-height: 14px;
 }
 
 .channel-name {
