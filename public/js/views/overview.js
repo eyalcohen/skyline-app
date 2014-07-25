@@ -15,21 +15,14 @@ define([
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page.
     el: '.overview',
 
-    // Module entry point.
     initialize: function (app, options) {
-
-      // Save app ref.
       this.app = app;
       this.options = options;
       this.parentView = options.parentView;
-
-      // Shell events:
       this.on('rendered', this.setup, this);
 
-      // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('channel/lineStyleUpdate',
             _.bind(function (channel, opts) {
@@ -39,7 +32,6 @@ define([
           _.debounce(this.drawCurrentTimeOverlay(visTime), 250);
         }, this)),
       ];
-
     },
 
     // Draw template.
@@ -48,29 +40,25 @@ define([
       // Init a model for this view.
       this.model = new Graph(this.app, {view: this, silent: true});
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'mouseenter': function() {
-        this.cursor.fadeIn(800);
+        this.cursor.fadeIn('fast');
       },
       'mousemove': _.debounce(function(e) {
         this.cursor.css({left: e.pageX});
         var date = this.getTime(e.pageX, this.$el.width());
-        this.cursorDate.text(util.toLocaleString(new Date(date), 'mmm d yyyy'));
+        this.cursorDate.text(util.toLocaleString(new Date(date), 'mmm d, yyyy'));
       }, 5),
       'mouseleave': function() {
-        this.cursor.hide();
+        this.cursor.fadeOut('fast');
       },
       'mousedown': 'overviewZoom'
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Safe refs.
@@ -105,14 +93,11 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
@@ -169,9 +154,9 @@ define([
         }, this));
 
         $('.overview-date > span').text(
-          util.toLocaleString(new Date(time.beg / 1e3), 'mmm d yyyy'));
+          util.toLocaleString(new Date(time.beg / 1e3), 'm/d/yyyy'));
         $('.overview-date-right > span').text(
-          util.toLocaleString(new Date(time.end / 1e3), 'mmm d yyyy'));
+          util.toLocaleString(new Date(time.end / 1e3), 'm/d/yyyy'));
 
 
         // remove all plots where we don't have series data
@@ -333,7 +318,6 @@ define([
     },
 
     overviewZoom: function(e) {
-
       $('#cursor-wrap-beg').css({left: e.pageX}).show();
       var initialCursorDate = $('#cursor-wrap-beg .overview-cursor-date');
 
@@ -343,16 +327,17 @@ define([
 
       var x = e.pageX;
       var date = this.getTime(x, this.$el.width());
-      initialCursorDate.text(util.toLocaleString(new Date(date), 'mmm d yyyy'));
+      initialCursorDate.text(util.toLocaleString(new Date(date), 'mmm d, yyyy'));
 
       var select = [date];
       this.selection.css({left: x, width: 0}).show();
 
       var mousemove = _.debounce(_.bind(function (e) {
-        if (e.pageX > x)
+        if (e.pageX > x) {
           this.selection.css({left: x, width: e.pageX - x});
-        else
+        } else {
           this.selection.css({left: e.pageX, width: x - e.pageX});
+        }
         select[1] = this.getTime(e.pageX, this.$el.width());
         cursorDiff.text(
           '\u21A4     '
@@ -369,11 +354,13 @@ define([
         $('#cursor-wrap-beg').hide();
         this.selection.hide();
 
-        if (select.length === 2)
+        if (select.length === 2) {
+          mps.publish('note/cancel');
           mps.publish('chart/zoom', [{
             min: _.min(select),
             max: _.max(select)
           }]);
+        }
         select = [];
       }, this);
       $(document).bind('mouseup', mouseup);

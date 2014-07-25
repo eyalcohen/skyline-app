@@ -262,7 +262,7 @@ define([
       var mouse = e ? this.getMouse(e): {x: xaxis.p2c(t)};
       var time = xaxis.c2p(mouse.x);
       var points = {};
-      var x, t;
+      // var x, t;
 
       // Find the closest point for each series.
       _.each(this.plot.getData(), _.bind(function (series) {
@@ -277,32 +277,36 @@ define([
         var point;
         var first = series.data[1];
         var last = series.data[series.data.length - 1];
-        if (first && time < first[0]) point = first;
-        else if (last && time > last[0]) point = last;
-        else {
+        if (first && time < first[0]) {
+          point = first;
+        } else if (last && time > last[0]) {
+          point = last;
+        } else {
           var i; point = _.find(series.data, function (p, _i) {
             var prev = series.data[_i - 1]; i = _i;
             return prev && p && prev[0] <= time && time < p[0];
           });
           if (point) {
             var prev = series.data[i - 1];
-            if (time - prev[0] < point[0] - time)
+            if (time - prev[0] < point[0] - time) {
               point = prev;
+            }
           }
         }
         if (!point) return;
 
-        // Convert point time to x-coordinate.
-        var _x = series.xaxis.p2c(point[0]);
-        if (!x || Math.abs(mouse.x - _x) < Math.abs(mouse.x - x)) {
-          x = _x;
-          t = point[0];
-        }
+        // // Convert point time to x-coordinate.
+        // var _x = series.xaxis.p2c(point[0]);
+        // if (!x || Math.abs(mouse.x - _x) < Math.abs(mouse.x - x)) {
+        //   x = _x;
+        //   t = point[0];
+        // }
 
         // Format point value.
         var v = point[1];
-        if (Math.abs(Math.round(v)) >= 1e6) v = v.toFixed(0);
-        else {
+        if (Math.abs(Math.round(v)) >= 1e6) {
+          v = v.toFixed(0);
+        } else {
 
           // Limit to 6 digits of precision (converting very small numbers
           // to e.g. '1.23400e-8'), strip zeros trailing the decimal
@@ -316,7 +320,7 @@ define([
         points[series.channelName] = [point[0], util.addCommas(v)];
       }, this));
 
-      return {x: x, t: t, points: points};
+      return {x: mouse.x, t: time, points: points};
     },
 
     draw: function () {

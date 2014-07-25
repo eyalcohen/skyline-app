@@ -428,6 +428,7 @@ define([
       if (!graphData) {
         return;
       }
+      // console.log(this.cursorData, graphData)
 
       if (graphData.pixelsFromNearestPt >= this.graph.PIXELS_FROM_HIGHLIGHT) {
         this.cursorDisplay.hide();
@@ -521,7 +522,7 @@ define([
     unnote: function () {
       if (this.app.embed) return;
       this.noteDuration.hide();
-      this.cursor.removeClass('active');
+      this.cursor.removeClass('active').hide();
       this.graph.$el.css({'pointer-events': 'auto'});
     },
 
