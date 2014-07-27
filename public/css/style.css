@@ -4432,7 +4432,7 @@ a.control-button-save.saving {
   font-size: 9px;
   text-transform: uppercase;
   padding: 0 15px;
-  left: -34px;
+  left: -35px;
   white-space: nowrap;
   pointer-events: auto;
   line-height: 30px;
@@ -4471,7 +4471,7 @@ a.control-button-save.saving {
 .cursor a.note-cancel-button {
   z-index: 1;
   display: none;
-  left: -40px;
+  left: -42px;
 }
 
 .cursor a [class^="icon-"]:before,
