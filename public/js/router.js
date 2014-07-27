@@ -53,6 +53,9 @@ define([
   // Our application URL router.
   var Router = Backbone.Router.extend({
 
+    loading: false,
+    loadingQueue: [],
+
     initialize: function (app) {
 
       // Handle iFrame event.
@@ -113,6 +116,13 @@ define([
       this.route('signin', 'signin', this.signin);
       this.route('signup', 'signup', this.signup);
       this.route('', 'dashboard', this.dashboard);
+
+      mps.subscribe('channel/add', _.bind(function (did, channel, silent) {
+        this.start();
+      }, this));
+      mps.subscribe('channel/added', _.bind(function (ds, cn) {
+        this.stop();
+      }, this));
 
       // Show the finder.
       mps.subscribe('modal/finder/open', _.bind(function (search) {
@@ -230,12 +240,22 @@ define([
     },
 
     start: function () {
+      this.loadingQueue.push(1);
+      if (this.loading) {
+        return;
+      }
+      this.loading = true;
       $(window).scrollTop(0);
       $('body').addClass('loading');
       this.spin.start();
     },
 
     stop: function () {
+      this.loadingQueue.pop();
+      if (this.loadingQueue.length !== 0) {
+        return;
+      }
+      this.loading = false;
       var delay = this.app.embed ? 0: 500;
       _.delay(_.bind(function () {
         this.spin.stop();
