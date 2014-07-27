@@ -47,7 +47,7 @@ define([
       'mouseenter': function() {
         this.cursor.fadeIn('fast');
       },
-      'mousemove': _.debounce(function(e) {
+      'mousemove': _.debounce(function (e) {
         this.cursor.css({left: e.pageX});
         var date = this.getTime(e.pageX, this.$el.width());
         this.cursorDate.text(util.toLocaleString(new Date(date), 'mmm d, yyyy'));

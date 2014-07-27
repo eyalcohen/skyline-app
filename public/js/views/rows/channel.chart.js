@@ -255,11 +255,11 @@ define([
       var icon = this.$el.find('i')
       if (currentYAxis === 1) {
         this.$el.addClass('yaxis-left');
-        icon.removeClass().addClass('icon-left-dir');
+        icon.removeClass().addClass('icon-angle-left');
       }
       else if (currentYAxis === 2) {
         this.$el.addClass('yaxis-right');
-        icon.removeClass().addClass('icon-right-dir');
+        icon.removeClass().addClass('icon-angle-right');
       }
     },
 

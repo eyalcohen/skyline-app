@@ -304,20 +304,20 @@ define([
 
         // Format point value.
         var v = point[1];
-        if (Math.abs(Math.round(v)) >= 1e6) {
-          v = v.toFixed(0);
-        } else {
+        // if (Math.abs(Math.round(v)) >= 1e6) {
+        //   v = v.toFixed(0);
+        // } else {
 
           // Limit to 6 digits of precision (converting very small numbers
           // to e.g. '1.23400e-8'), strip zeros trailing the decimal
           // point, and strip the decimal point itself if necessary.
-          v = v.toPrecision(6).
-              replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
-              replace(/\.([Ee][0-9-]*)?$/, '$1');
-        }
+        //   v = v.toPrecision(6).
+        //       replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+        //       replace(/\.([Ee][0-9-]*)?$/, '$1');
+        // }
 
         // Add series to map.
-        points[series.channelName] = [point[0], util.addCommas(v)];
+        points[series.channelName] = point;//[point[0], util.addCommas(v)];
       }, this));
 
       return {x: mouse.x, t: time, points: points};
