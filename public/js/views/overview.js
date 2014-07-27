@@ -34,7 +34,6 @@ define([
       ];
     },
 
-    // Draw template.
     render: function () {
 
       // Init a model for this view.
@@ -354,12 +353,16 @@ define([
         $('#cursor-wrap-beg').hide();
         this.selection.hide();
 
+        var range = {min: _.min(select), max: _.max(select)};
         if (select.length === 2) {
-          mps.publish('note/cancel');
-          mps.publish('chart/zoom', [{
-            min: _.min(select),
-            max: _.max(select)
-          }]);
+          if (this.parentView.cursor.hasClass('active')) {
+            if (window.confirm('Your note will be discarded. Proceed?')) {
+              mps.publish('note/cancel');
+              mps.publish('chart/zoom', [range]);
+            }
+          } else {
+            mps.publish('chart/zoom', [range]);
+          }
         }
         select = [];
       }, this);
