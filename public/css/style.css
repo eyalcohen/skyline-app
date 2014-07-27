@@ -291,8 +291,8 @@ body.preload * {
   -o-transition: none !important;
 }
 
-body.loading {
-  cursor: wait;
+body.loading * {
+  cursor: wait !important;
 }
 
 body.embed {
@@ -428,8 +428,6 @@ header {
 }
 
 .container.landing header {
-  /*width: 75%;*/
-  /*margin: 0 auto;*/
   background: none;
   border: none;
 }
@@ -1763,6 +1761,7 @@ ul.page-menu li a.active {
 
 .page-spin {
   position: absolute;
+  z-index: 201;
   top: 30px;
   left: 50px;
 

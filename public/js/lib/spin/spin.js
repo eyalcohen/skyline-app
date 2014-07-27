@@ -31,17 +31,19 @@ define([
 
   Spin.prototype.start = function () {
     this.target.show();
-    if (!this.spinner)
+    if (!this.spinner) {
       this.spinner = new spin(this.options).spin(this.target.get(0));
-    else this.spinner.spin(this.target.get(0))
+    } else {
+      this.spinner.spin(this.target.get(0))
+    }
   }
 
   Spin.prototype.stop = function () {
     this.target.hide();
-    if (this.spinner)
+    if (this.spinner) {
       this.spinner.stop();
+    }
   }
 
   return Spin;
-  
 });

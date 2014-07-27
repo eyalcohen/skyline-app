@@ -161,9 +161,11 @@ define([
     render: function (service, data, secure, cb) {
 
       function _render(err, login) {
-        ga('send', 'pageview');
-        if (this.app.profile.user) {
-          ga('set', '&uid', this.app.profile.user.id);
+        if (window.__s !== '') {
+          ga('send', 'pageview');
+          if (this.app.profile.user) {
+            ga('set', '&uid', this.app.profile.user.id);
+          }
         }
         delete this.pageType;
 
