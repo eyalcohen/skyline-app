@@ -291,9 +291,10 @@ define([
 
     setUserLineStyle: function(channel, opts, save) {
       for (var attrname in opts) {
-        if (opts.hasOwnProperty(this.lineStyleOptions[channel])
-            && opts.hasOwnProperty(attrname)) {
-          this.lineStyleOptions[channel][attrname] = opts[attrname];
+        if (opts.hasOwnProperty(attrname)) {
+          try {
+            this.lineStyleOptions[channel][attrname] = opts[attrname];
+          } catch (e) {}
         }
       }
       var state = store.get('state');

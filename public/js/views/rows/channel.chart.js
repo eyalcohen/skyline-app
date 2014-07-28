@@ -143,13 +143,10 @@ define([
         this.$el.css({opacity: 0});
       } else if (this.lineStyleModal) {
         var active = this.parentView.$('.channel.active');
-        console.log(active.length)
         var i; _.find(active, _.bind(function (el, _i) {
           i = _i;
-          console.log(this.el===el)
           return this.el === el;
         }, this));
-        console.log(i)
         var h = this.$el.outerHeight();
         this.lineStyleModal.position(i*h, animate);
       }

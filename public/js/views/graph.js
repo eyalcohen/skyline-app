@@ -25,7 +25,7 @@ define([
 
       // Some graph constants
       this.POINTS_TO_SHOW = 250; // maximum number of points to display
-      this.PIXELS_FROM_HIGHLIGHT = 60; // maximum number of pixels for line highlight
+      this.PIXELS_FROM_HIGHLIGHT = 30; // maximum number of pixels for line highlight
 
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
@@ -507,12 +507,12 @@ define([
           if (!this.lastMouseMove) this.lastMouseMove = 0;
 
           // don't run this very frequently, perhaps once every 20ms
-          // if (Date.now() - this.lastMouseMove > 20) {
-          //   this.lastMouseMove = Date.now();
-          //   this.mouseStats = this.getStatsNearMouse(e);
-          //   this.mouseLineStyle(e, this.mouseStats);
-          //   mps.publish('channel/mousemove', [this.mouseStats]);
-          // }
+          if (Date.now() - this.lastMouseMove > 20) {
+            this.lastMouseMove = Date.now();
+            this.mouseStats = this.getStatsNearMouse(e);
+            this.mouseLineStyle(e, this.mouseStats);
+            // mps.publish('channel/mousemove', [this.mouseStats]);
+          }
         }, this), 1))
 
         .mousedown(_.bind(function (e) {
@@ -543,15 +543,16 @@ define([
         }, this))
 
         .mouseup(_.bind(function (e) {
-          if (this.channelForOffset) {
-            var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
-            this.lightened[did] = false;
-            delete this.channelForOffset;
-          }
-          if (this.changingOffset)
-            this.draw();
+          // if (this.channelForOffset) {
+          //   var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
+          //   this.lightened[did] = false;
+          //   delete this.channelForOffset;
+          // }
+          // if (this.changingOffset) {
+          //   this.draw();
+          // }
           this.mousedown = false;
-          this.changingOffset = false;
+          // this.changingOffset = false;
         }, this));
 
         function graphZoomClick(e, factor, out) {
@@ -625,7 +626,6 @@ define([
 
     onDraw: function () {
       var t = this.getVisibleTime();
-      // console.log(t, this.prevBeg, this.prevEnd)
       if (!t) return;
       if (t.beg != this.prevBeg || t.end != this.prevEnd) {
         this.trigger('VisibleTimeChange', {beg: t.beg, end: t.end});
@@ -867,66 +867,83 @@ define([
       }
     },
 
-    // if mouse is near cursor, bold it
+    // if mouse is near channel line, mark it as the highlighted channel
     mouseLineStyle: function(e, stats) {
-      var plotData = this.plot.getData();
-      var opts = this.plot.getOptions();
-      // lookup closest channel to mouse cursor
-      var closestChannel =
-        _.sortBy(stats, 'pixelsFromInterpPt')[0];
-      if (!closestChannel) return;
-      var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
 
-      var series =  _.find(plotData, function (obj) {
-        return obj.channelName === closestChannel.channelName;
-      });
+      // lookup closest channel to mouse cursor
+      var closestChannel = _.sortBy(stats, 'pixelsFromInterpPt')[0];
+      if (closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {
+        closestChannel = false;
+      }
+      if (!closestChannel && this.highlightedChannel) {
+        delete this.highlightedChannel;
+      } else if (closestChannel && this.highlightedChannel !== closestChannel.channelName) {
+        this.highlightedChannel = closestChannel.channelName;
+      } else {
+        return;
+      }
+      this.draw();
+
+      // var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
+
+      // var series =  _.find(plotData, function (obj) {
+      //   return obj.channelName === closestChannel.channelName;
+      // });
+      
 
       //this.plot.unhighlight();
 
-      var needsUpdate = false;
-      _.each(plotData, function (obj) {
-        // minmax plots have the same line-style
-        if (obj.channelName.indexOf('__minmax') != -1)
-          return;
-        var lso = this.model.lineStyleOptions[obj.channelName.split('__minmax')[0]];
-        needsUpdate = needsUpdate || (obj.lines.lineWidth !== lso.lineWidth);
-        obj.lines.lineWidth = lso.lineWidth;
-        obj.points.radius = lso.pointRadius;
-      }, this);
+      // var needsUpdate = false;
+      // _.each(plotData, function (obj) {
+      //   // minmax plots have the same line-style
+      //   if (obj.channelName.indexOf('__minmax') != -1) {
+      //     return;
+      //   }
+      //   var lso = this.model.lineStyleOptions[obj.channelName.split('__minmax')[0]];
+      //   needsUpdate = needsUpdate || (obj.lines.lineWidth !== lso.lineWidth);
+      //   obj.lines.lineWidth = lso.lineWidth;
+      //   obj.points.radius = lso.pointRadius;
+      // }, this);
 
-      var curWidth = series.lines.lineWidth;
-      var newWidth = lineStyleOpts.lineWidth;
-      var newRadius = lineStyleOpts.pointRadius;
-      if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
-        newWidth = newWidth + 2;
-        newRadius = newRadius + 1;
-        //this.plot.highlight(closestChannel.channelIndex, closestChannel.nearestPointIndex);
-      }
+      // var curWidth = series.lines.lineWidth;
+      // var newWidth = lineStyleOpts.lineWidth;
+      // var newRadius = lineStyleOpts.pointRadius;
+      // if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
+      //   newWidth = newWidth + 2;
+      //   newRadius = newRadius + 1;
+      //   //this.plot.highlight(closestChannel.channelIndex, closestChannel.nearestPointIndex);
+      // }
 
-      if (newWidth != curWidth) {
-        needsUpdate = true;
-        series.lines.lineWidth = newWidth;
-        series.points.radius = newRadius;
-      }
+      // if (newWidth != curWidth) {
+      //   needsUpdate = true;
+      //   series.lines.lineWidth = newWidth;
+      //   series.points.radius = newRadius;
+      // }
 
-      if (needsUpdate) {
-        this.plot.setData(plotData);
-        this.plot.draw();
-      }
+      // if (needsUpdate) {
+        // this.plot.setData(plotData);
+        // this.plot.draw();
+      // }
     },
 
     // returns an array of number of datapoints visible in displayed graph
     // per timeseries data
     getVisiblePoints: function() {
       var plotData = this.plot.getData();
-      var visTime = _.map(this.getVisibleTime(), function(a) { return a/1e3; });
-      return _.map(plotData, function(obj) {
+      var visTime = _.map(this.getVisibleTime(), function (a) { return a/1e3; });
+      return _.map(plotData, function (obj) {
         var i = 1;
-        for (;i < obj.data.length; i++)
-          if (obj.data[i] !== null && obj.data[i][0] >= visTime[0]) break;
+        for (;i < obj.data.length; i++) {
+          if (obj.data[i] !== null && obj.data[i][0] >= visTime[0]) {
+            break;
+          }
+        }
         var startIdx = i;
-        for (;i < obj.data.length; i++)
-          if (obj.data[i] !== null && obj.data[i][0] >= visTime[1]) break;
+        for (;i < obj.data.length; i++) {
+          if (obj.data[i] !== null && obj.data[i][0] >= visTime[1]) {
+            break;
+          }
+        }
         var endIdx = i;
         return (endIdx - startIdx);
       });

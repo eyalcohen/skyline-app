@@ -346,7 +346,6 @@ define([
 
           // Ready for more.
           this.working = false;
-
         }, this));
       } else {
         this.working = false;
