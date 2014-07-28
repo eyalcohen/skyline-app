@@ -75,7 +75,10 @@ define([
           this.openRequestedChannels(did, channels);
         }, this)),
         mps.subscribe('view/new', _.bind(this.saved, this)),
-        mps.subscribe('graph/drawComplete', _.bind(this.updateNotes, this)),
+        mps.subscribe('graph/drawComplete', _.bind(function () {
+          this.updateNotes();
+          this.removeCursorValues();
+        }, this)),
         mps.subscribe('note/cancel', _.bind(this.unnote, this)),
         mps.subscribe('state/change', _.bind(this.onStateChange, this)),
         mps.subscribe('dataset/requestOpenChannel', _.bind(function (channelName) {
@@ -552,6 +555,11 @@ define([
         v.model.set('width', width);
         v.model.set('xpos', xpos);
       }, this));
+    },
+
+    removeCursorValues: function () {
+      if (!this.graph || !this.graph.plot || !this.notes) return;
+      this.$('.cursor-value').remove();
     },
 
     onStateChange: function (state) {
