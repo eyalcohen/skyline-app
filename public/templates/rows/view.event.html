@@ -143,7 +143,7 @@
   <% if (this.model.get('staticImgUrl')) { %>
     <a href="/<%= this.model.get('author').username %>/views/<%= this.model.get('slug') %>/chart"
         class="image-anchor navigate">
-      <img class="event-view-image" src="<%= this.model.get('staticImgUrl') %>">
+      <img class="event-view-image" src="<%= this.model.get('staticImgUrl') %>" alt="<%= this.model.formatTitle() %>">
     </a>
   <% } %>
 <% } %>
