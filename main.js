@@ -228,7 +228,8 @@ if (cluster.isMaster) {
         function _next() {
           var agent;
           agent = req.headers['user-agent'];
-          if (agent.indexOf('Safari') > -1 && agent.indexOf('Chrome') === -1
+          if (agent && agent.indexOf('Safari') > -1
+              && agent.indexOf('Chrome') === -1
               && agent.indexOf('OPR') === -1) {
             res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
             res.header('Pragma', 'no-cache');
