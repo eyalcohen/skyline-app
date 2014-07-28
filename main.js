@@ -218,7 +218,7 @@ if (cluster.isMaster) {
           })) {
             return _next();
           }
-          res.redirect('https://' + req.headers.host + req.url);
+          res.redirect(301, 'https://' + req.headers.host + req.url);
         } else {
           _next();
         }
