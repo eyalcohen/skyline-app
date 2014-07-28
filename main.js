@@ -203,6 +203,7 @@ if (cluster.isMaster) {
         app.use(app.router);
         app.use(function (err, req, res, next) {
           if (!err) return next();
+          console.log(err, req);
           res.render('500', {root: app.get('ROOT_URI')});
         });
       }
@@ -218,7 +219,7 @@ if (cluster.isMaster) {
           })) {
             return _next();
           }
-          res.redirect('https://' + req.headers.host + req.url);
+          res.redirect(301, 'https://' + req.headers.host + req.url);
         } else {
           _next();
         }
@@ -227,7 +228,8 @@ if (cluster.isMaster) {
         function _next() {
           var agent;
           agent = req.headers['user-agent'];
-          if (agent.indexOf('Safari') > -1 && agent.indexOf('Chrome') === -1
+          if (agent && agent.indexOf('Safari') > -1
+              && agent.indexOf('Chrome') === -1
               && agent.indexOf('OPR') === -1) {
             res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
             res.header('Pragma', 'no-cache');

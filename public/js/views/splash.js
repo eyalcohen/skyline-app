@@ -23,7 +23,6 @@ define([
     },
 
     render: function () {
-      this.app.title('Skyline');
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this));
