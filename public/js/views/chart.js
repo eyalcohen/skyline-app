@@ -97,7 +97,6 @@ define([
             + (target.doc.name || target.doc.title));
       }
       this.title = _.template(header).call(this, {util: util, target: target});
-      
 
       this.template = _.template(template);
       this.$el.html(this.template.call(this)).appendTo('.main');
@@ -169,7 +168,7 @@ define([
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
 
       // For rendering tooltips
-      $('.tooltip').tooltipster({delay: 600, multiple: true});
+      this.$('.tooltip').tooltipster({delay: 600, multiple: true});
       this.noteButton.tooltipster({delay: 600, position: 'bottom'});
 
       if (state.time) {
@@ -212,7 +211,6 @@ define([
 
     resize: function () {
       var height = $(window).height() - this.$el.offset().top;
-      // height = Math.max(height, this.app.embed ? 0: 605);
       this.$el.css({height: height});
       if (this.mapPanel.hasClass('open')) {
         var w = Math.floor(this.$el.width() / 2 - this.sidePanel.width());

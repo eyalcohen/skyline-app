@@ -13,56 +13,47 @@ define([
 
   return Backbone.View.extend({
 
-    // The DOM target element for this page:
     className: 'linestyle-modal',
 
-    // Module entry point.
     initialize: function (app, options) {
-
-      // Save app reference.
       this.app = app;
       this.options = options;
+      this.parentView = options.parentView;
       this.channel = this.options.channel;
       this.currentLineStyle = this.channel.get('lineStyleOptions');
-
-      // Shell events.
       this.on('rendered', this.setup, this);
-
       this.subscriptions = [];
     },
 
-    // Draw the template
     render: function () {
       this.template = _.template(template, {channels: this.channels});
       this.$el.html(this.template).appendTo('body');
-      var offset = this.options.parentView.$el.offset();
+      var offset = this.parentView.$el.offset();
       this.$el.css('top', offset.top);
-      this.$el.css('left', offset.left + this.options.parentView.$el.outerWidth());
+      this.$el.css('left', offset.left + this.parentView.$el.outerWidth());
       this.$el.show();
       this.trigger('rendered');
       return this;
     },
 
-    // Bind events.
     events: {
-      'mouseleave': 'mouseleave',
+      'click .linestyle-close': 'close',
       'click .linestyle-box' : 'linetypeUpdate',
       'mouseenter .linestyle-box' : 'linetypeUpdate',
       'mouseleave .linestyle-box' : 'linetypeUpdate',
     },
 
-    // Misc. setup.
     setup: function () {
 
       // messing around, make the hover color a light version of the parent
-      // var parentBg = this.options.parentView.$el.css('background-color');
-      var parentSel = this.options.parentView.$el;
+      // var parentBg = this.parentView.$el.css('background-color');
+      var parentSel = this.parentView.$el;
       var modalBg = this.$el.css('background-color');
       $('.linestyle-box').hover(
         function() {
           if ($(this).css('background-color') === modalBg) {
             var parentBg = parentSel.css('background-color');
-            $(this).css('background-color', util.lightenColor(parentBg, .5));
+            $(this).css('background-color', util.lightenColor(parentBg, 0.5));
           }
         },
         function() {
@@ -76,7 +67,7 @@ define([
       this.setViewLineStyle();
 
       // For rendering tooltips
-      $('.tooltip').tooltipster({delay: 600, multiple: true});
+      this.$('.tooltip').tooltipster({delay: 600, multiple: true});
 
       // Handle color choosing.
       $('.linestyle-color').minicolors( {
@@ -89,14 +80,11 @@ define([
       return this;
     },
 
-    // Similar to Backbone's remove method, but empties
-    // instead of removes the view's DOM element.
     empty: function () {
       this.$el.empty();
       return this;
     },
 
-    // Kill this view.
     destroy: function (cb) {
       this.undelegateEvents();
       _.each(this.subscriptions, function (s) {
@@ -107,12 +95,14 @@ define([
       cb();
     },
 
-    mouseleave: function (e) {
-      var over = document.elementFromPoint(e.clientX, e.clientY);
-      if ($(over).attr('id') !== this.options.parentView.model.id
-          && $(over).parent().attr('id') !== this.options.parentView.model.id) {
-        this.options.parentView.removeLineStyle(over);
-      }
+    close: function (e) {
+      e.preventDefault();
+      this.parentView.removeLineStyle();
+    },
+
+    position: function (y, animate) {
+      var offset = this.parentView.parentView.$el.parent().offset();
+      this.$el.animate({top: y + offset.top - 1}, animate ? 200: 0);
     },
 
     linetypeUpdate: function(e) {
@@ -253,7 +243,7 @@ define([
     },
 
     select: function (selector) {
-      var parentBg = this.options.parentView.$el.css('background-color');
+      var parentBg = this.parentView.$el.css('background-color');
       $(selector).css('background-color', parentBg);
     },
 
@@ -264,7 +254,7 @@ define([
 
     colorChange: function(hex) {
       this.currentLineStyle.color = hex;
-      this.options.parentView.$el.css({
+      this.parentView.$el.css({
         backgroundColor: hex,
         borderColor: hex
       });

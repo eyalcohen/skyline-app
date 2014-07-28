@@ -29,7 +29,6 @@ define([
       this.subscriptions = [
         mps.subscribe('channel/added', _.bind(this.added, this)),
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
-        // mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
       ];
 
       Row.prototype.initialize.call(this, options);
@@ -87,29 +86,7 @@ define([
     },
 
     events: {
-      'mouseenter': 'mouseenter',
-      'mouseleave': function (e) {
-        var over = document.elementFromPoint(e.clientX, e.clientY);
-        if (!$(over).hasClass('linestyle-linetype')
-            && !$(over).hasClass('linestyle-modal')) {
-          this.removeLineStyle();
-        }
-      },
-    },
-
-    mouseenter: function (e) {
-      if (!this.lineStyleModal && this.$el.hasClass('active')) {
-        this.cancelLineStyleTimer = false;
-        this.lineStyleTimer = setTimeout(_.bind(function () {
-          if (!this.cancelLineStyleTimer) {
-            this.options.parentView.lineStyleOpen = true;
-            if (!this.lineStyleModal) {
-              this.lineStyleModal = new LineStyle(this.app,
-                  {parentView: this, channel: this.model}).render();
-            }
-          }
-        }, this), 200);
-      }
+      'click .channel-settings': 'showLineStyle'
     },
 
     fit: function (w) {
@@ -129,7 +106,6 @@ define([
         mps.publish('channel/add', [this.model.get('did'),
             this.model.toJSON()]);
         this.active = true;
-        this.mouseenter(e);
         this.updateYAxisView();
 
         // Count as a "view".
@@ -139,26 +115,43 @@ define([
     },
 
     expand: function (cb) {
-      // if (!this.$el.hasClass('active')) {
-        if (this.parentView.collection.length < 20)
-          this.$el.slideDown('fast', cb);
-        else {
-          this.$el.show();
-          if (cb) cb();
-        }
-        this.$el.css({opacity: 1});
-      // }
+      var animate = this.parentView.collection.length < 20;
+      if (animate) {
+        this.$el.slideDown('fast', cb);
+      } else {
+        this.$el.show();
+        if (cb) cb();
+      }
+      this.$el.css({opacity: 1});
+
+      var i = this.$el.index() - 1;
+      var h = this.$el.outerHeight();
+      if (this.lineStyleModal) {
+        this.lineStyleModal.position(i*h, animate);
+      }
     },
 
     collapse: function (cb) {
+      var animate = this.parentView.collection.length < 20;
       if (!this.$el.hasClass('active')) {
-        if (this.parentView.collection.length < 20)
+        if (animate) {
           this.$el.slideUp('fast', cb);
-        else {
+        } else {
           this.$el.hide();
           if (cb) cb();
         }
         this.$el.css({opacity: 0});
+      } else if (this.lineStyleModal) {
+        var active = this.parentView.$('.channel.active');
+        console.log(active.length)
+        var i; _.find(active, _.bind(function (el, _i) {
+          i = _i;
+          console.log(this.el===el)
+          return this.el === el;
+        }, this));
+        console.log(i)
+        var h = this.$el.outerHeight();
+        this.lineStyleModal.position(i*h, animate);
       }
     },
 
@@ -190,7 +183,6 @@ define([
     removed: function (did, channel) {
       if (this.model.get('did') !== did
           || this.model.id !== channel.channelName) return;
-
       if (this.$el.hasClass('active')) {
         this.$el.removeClass('active');
         this.active = false;
@@ -221,30 +213,26 @@ define([
       }, this));
     },
 
-    removeLineStyle: function (over) {
-      this.options.parentView.lineStyleOpen = false;
-      if (over && !$(over).hasClass('channel') && !$(over).hasClass('channel-button'))
-        this.options.parentView.collapse();
-      this.cancelLineStyleTimer = true;
+    showLineStyle: function (e) {
+      if (!this.$el.hasClass('active')) {
+        return;
+      }
+      if (!this.lineStyleModal) {
+        mps.publish('channel/requestLineStyle');
+        this.lineStyleModal = new LineStyle(this.app,
+            {parentView: this, channel: this.model}).render();
+      } else {
+        this.removeLineStyle();
+      }
+    },
+
+    removeLineStyle: function () {
       if (this.lineStyleModal) {
         this.lineStyleModal.destroy(_.bind(function () {
           delete this.lineStyleModal;
         }, this));
       }
     },
-
-    // updateLegend: function (stats) {
-    //   if (!this.active) return;
-    //   var item = _.find(stats, function (e) {
-    //     return e.channelName === this.model.id;
-    //   }, this);
-    //   if (item) {
-    //     var val = item.nearestPointData[1];
-    //     // make scientific notation if necessary
-    //     val = val > 10000 ? val.toExponential(2): val.toFixed(2);
-    //     this.value.text(val).show();
-    //   }
-    // },
 
     updateYAxisView: function () {
       if (!this.active) {
@@ -254,7 +242,7 @@ define([
       var currentYAxis = lso.yaxis;
       if (!currentYAxis) return;
       this.$el.removeClass('yaxis-left').removeClass('yaxis-right');
-      var icon = this.$el.find('i')
+      var icon = this.$('.channel-yaxis-code i');
       if (currentYAxis === 1) {
         this.$el.addClass('yaxis-left');
         icon.removeClass().addClass('icon-angle-left');

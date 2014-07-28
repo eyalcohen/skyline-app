@@ -4915,9 +4915,29 @@ a.dataset-add-button:active {
 a.channel-button {
   display: block;
   position: relative;
-  padding: 7px 4px 5px;
+  padding: 7px 35px 5px 4px;
   background: none;
   white-space: nowrap;
+}
+
+.channel a.channel-settings {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: -1px;
+  padding: 7px 9px 5px;
+  background: none;
+  color: #fff;
+  font-size: 12px;
+}
+
+.channel a.channel-settings:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.channel.active a.channel-settings {
+  display: block;
 }
 
 .channel-name-text {
@@ -5371,18 +5391,19 @@ ul.note-channels-list li {
 }
 
 .linestyle-modal {
-  position: fixed;
+  position: absolute;
   background: #f9f9f9;
   padding: 0;
   padding-bottom: 15px;
   border: solid #d0d0d0;
-  z-index: 10000;
+  z-index: 1000;
   display: none;
-  border-width: 1px 1px 1px 0;
+  margin-left: 15px;
+  border-width: 1px;
 
-  -webkit-border-radius: 0 2px 2px 0;
-  -moz-border-radius: 0 2px 2px 0;
-  border-radius: 0 2px 2px 0;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
 
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
@@ -5396,6 +5417,13 @@ ul.note-channels-list li {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+}
+
+a.linestyle-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: #4c4c4c;
 }
 
 .linestyle-wrap {

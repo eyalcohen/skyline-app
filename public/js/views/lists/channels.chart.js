@@ -16,23 +16,16 @@ define([
 
     el: '.channels',
     active: false,
-    lineStyleOpen: false,
 
     initialize: function (app, options) {
       this.template = _.template(template);
       this.collection = new Collection;
       this.Row = Row;
-
-      // Call super init.
       List.prototype.initialize.call(this, app, options);
-
-      // Client-wide subscriptions
-      this.subscriptions = [];
-
-      // Socket subscriptions
-      //
-
-      // Reset the collection.
+      this.subscriptions = [
+        mps.subscribe('channel/requestLineStyle',
+            _.bind(this.removeLineStyleModals, this))
+      ];
       this.collection.reset(options.items);
     },
 
@@ -113,7 +106,7 @@ define([
     },
 
     collapse: function (e) {
-      if (!this.active && !this.lineStyleOpen) {
+      if (!this.active) {
         var len = this.views.length;
         var el = this.$el;
         _.each(this.views, function (v) { v.collapse(); });
@@ -126,6 +119,12 @@ define([
           }
         }, this), 20);
       }
+    },
+
+    removeLineStyleModals: function () {
+      _.each(this.views, function (v) {
+        v.removeLineStyle();
+      });
     },
 
     _remove: function (data) {
