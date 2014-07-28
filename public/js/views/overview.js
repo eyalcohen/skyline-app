@@ -237,8 +237,7 @@ define([
       this.model.fetchGraphedChannels(_.bind(function (channels) {
         if (channels.length === 0) {
           return;
-        }
-        else {
+        } else {
           if (!time.beg) return;
           var vs = this.getVisibleTime();
           if (!vs.beg) return;

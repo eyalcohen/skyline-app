@@ -18,9 +18,9 @@
 /* Use this next selector to style things like font-size and line-height: */
 .tooltipster-default .tooltipster-content {
   font-weight: 600;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 30px;
-  text-transform: uppercase;
+  /*text-transform: uppercase;*/
   padding: 0 10px;
   overflow: hidden;
 }

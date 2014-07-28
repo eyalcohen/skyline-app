@@ -226,10 +226,11 @@ define([
       if (over && !$(over).hasClass('channel') && !$(over).hasClass('channel-button'))
         this.options.parentView.collapse();
       this.cancelLineStyleTimer = true;
-      if (this.lineStyleModal)
+      if (this.lineStyleModal) {
         this.lineStyleModal.destroy(_.bind(function () {
           delete this.lineStyleModal;
         }, this));
+      }
     },
 
     // updateLegend: function (stats) {
@@ -246,8 +247,9 @@ define([
     // },
 
     updateYAxisView: function () {
-      if (!this.active)
+      if (!this.active) {
         return;
+      }
       var lso = this.model.get('lineStyleOptions');
       var currentYAxis = lso.yaxis;
       if (!currentYAxis) return;
@@ -256,8 +258,7 @@ define([
       if (currentYAxis === 1) {
         this.$el.addClass('yaxis-left');
         icon.removeClass().addClass('icon-angle-left');
-      }
-      else if (currentYAxis === 2) {
+      } else if (currentYAxis === 2) {
         this.$el.addClass('yaxis-right');
         icon.removeClass().addClass('icon-angle-right');
       }

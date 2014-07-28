@@ -485,12 +485,21 @@ define([
         var mousemove = _.debounce(_.bind(function (e) {
           e.preventDefault();
           var current = this.graph.cursor(e);
-          var abs = Math.abs(this.cursorData.t - current.t);
+          var dt = this.cursorData.t - current.t;
+          var abs = Math.abs(dt);
           if (abs > 0) {
-            $('span', this.noteDuration).text(util.getDuration(abs*1000, false));
-            this.noteDuration.css({left: current.x - this.cursorData.x
-                - this.noteDuration.outerWidth()/2}).show();
-          } else this.noteDuration.hide();
+            var ds = util.getDuration(abs*1000, false);
+            var dx = current.x - this.cursorData.x - 1;
+            if (dt >= 0) {
+              this.noteDuration.html('\u21A4 &nbsp;' + ds);
+            } else {
+              this.noteDuration.html(ds + '&nbsp; \u21A6');
+              dx -= this.noteDuration.outerWidth();
+            }
+            this.noteDuration.css({left: dx}).show();
+          } else {
+            this.noteDuration.hide();
+          }
           mps.publish('note/move', [this.cursorData, this.graph.cursor(e)]);
           return false;
         }, this), 1);
