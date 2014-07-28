@@ -4393,13 +4393,13 @@ a.control-button-save.saving {
   position: absolute;
   z-index: 9;
   top: 0;
-  bottom: 29px;
+  bottom: -1px;
   left: 0;
   border-left: 1px solid rgba(0,0,0,0.3);
   pointer-events: none;
 }
 
-.cursor-time {
+/*.cursor-time {
   position: absolute;
   bottom: -30px;
   left: -90px;
@@ -4418,7 +4418,7 @@ a.control-button-save.saving {
   -webkit-border-radius: 2px 2px 0 0;
   -moz-border-radius: 2px 2px 0 0;
   border-radius: 2px 2px 0 0;
-}
+}*/
 
 .cursor-value {
   position: absolute;
@@ -4460,14 +4460,12 @@ a.control-button-save.saving {
 }
 
 .cursor a.note-button,
-.cursor a.note-duration-button,
-.cursor a.note-cancel-button {
+.cursor a.note-duration-button {
   position: absolute;
-  bottom: -60px;
+  bottom: -30px;
   font-size: 9px;
   text-transform: uppercase;
   padding: 0 15px;
-  left: -35px;
   white-space: nowrap;
   pointer-events: auto;
   line-height: 30px;
@@ -4485,14 +4483,12 @@ a.control-button-save.saving {
   transition: none;
 }
 
-.cursor a.note-button:hover,
-.cursor a.note-cancel-button:hover {
+.cursor a.note-button:hover {
   background: rgba(39, 205, 214, 1);
 }
 
 .main.embed .cursor a.note-button,
-.main.embed .cursor a.note-duration-button,
-.main.embed .cursor a.note-cancel-button {
+.main.embed .cursor a.note-duration-button {
   display: none;
 }
 
@@ -4503,33 +4499,15 @@ a.control-button-save.saving {
   border: none;
 }
 
-.cursor a.note-cancel-button {
-  z-index: 1;
-  display: none;
-  left: -42px;
-}
-
 .cursor a [class^="icon-"]:before,
 .cursor a [class*=" icon-"]:before {
   margin: 0 2px 0 0;
   width: 8px;
 }
 
-.cursor a.note-cancel-button i {
+.cursor a.note-button i.icon-cancel {
   font-size: 11px;
   vertical-align: -1px;
-}
-
-.cursor.active a.note-button {
-  display: none;
-}
-
-.cursor.active a.note-cancel-button {
-  display: block;
-}
-
-.cursor a.note-duration-button i {
-  margin: 0 2px;
 }
 
 /*.........................................................................*/

@@ -19,7 +19,7 @@
   }
 %>
 <a href="/<%= link %>" class="button title-button title-button-chart navigate">
-    <i class="icon-angle-left"></i> Go to <%= target.type %> profile</a>
+    <i class="icon-angle-left"></i> <%= _.str.capitalize(target.type) %> profile</a>
 <div class="page-title">
   Viewing <a href="/<%= link %>" class="navigate<%= target.doc.public === false ? ' locked': '' %>">
     <i class="<%= icon %>"></i> <%= target.doc.title || target.doc.name || 'Untitled' %></a> from <a href="/<%= target.doc.author.username %>" class="navigate">

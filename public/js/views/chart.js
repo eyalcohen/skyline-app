@@ -129,8 +129,9 @@ define([
       this.lowerPanel = this.$('.lower-panel');
       this.controls = this.$('.controls');
       this.cursor = this.$('.cursor');
-      this.cursorTime = this.$('.cursor-time');
-      // this.cursorDisplay = this.$('.cursor-display');
+      this.noteButton = this.$('.note-button');
+      this.cursorTime = $('span', this.noteButton);
+      this.cursorIcon = $('i', this.noteButton);
       this.icons = this.$('.icons');
       this.saveButton = this.$('.control-button-save');
       this.saveButtonSpin = new Spin(this.$('.save-button-spin'), {
@@ -166,10 +167,11 @@ define([
 
       // For rendering tooltips
       $('.tooltip').tooltipster({delay: 600, multiple: true});
-      $('.tooltip-bottom').tooltipster({delay: 600, position: 'bottom', multiple: true});
+      this.noteButton.tooltipster({delay: 600, position: 'bottom'});
 
       if (state.time) {
-        mps.publish('chart/zoom', [{min: state.time.beg/1000, max: state.time.end/1000}]);
+        mps.publish('chart/zoom', [{min: state.time.beg/1000,
+            max: state.time.end/1000}]);
       }
 
       // Do resize on window change.
@@ -428,8 +430,10 @@ define([
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
       this.cursor.css({left: Math.ceil(this.cursorData.x)});
-      this.cursorTime.text(util.toLocaleString(new Date(this.cursorData.t),
-          'mmm d, yyyy h:MM:ss TT Z'))
+      var time = util.toLocaleString(new Date(this.cursorData.t),
+          'mmm d, yyyy h:MM:ss TT Z');
+      this.cursorTime.text(time);
+      this.noteButton.css({left: -this.noteButton.outerWidth()/2});
 
       // Draw series values.
       _.each(this.cursorData.points, _.bind(function (p, c) {
@@ -456,16 +460,22 @@ define([
       if (!this.app.profile.user) return;
       if (!this.target().id) return;
       if (!this.cursorData) return;
+      var tip = this.noteButton.data('tooltipsterNs')[0];
 
-      // Designating cancel...
+      // Designating cancel.
       if (this.cursor.hasClass('active')) {
         this.cursor.removeClass('active');
+        this.cursorIcon.removeClass('icon-cancel').addClass('icon-pencil');
+        this.noteButton.data(tip).Content = 'Click and drag to create a new note';
         mps.publish('note/cancel');
       
-      // Start the note...
+      // Start the note.
       } else {
         this.graph.$el.css({'pointer-events': 'none'});
         this.cursor.addClass('active').addClass('selecting');
+        this.cursorIcon.removeClass('icon-pencil').addClass('icon-cancel');
+        this.noteButton.data(tip).Content = 'Click to cancel note';
+        
         mps.publish('note/start', [this.cursorData]);
 
         var doc = $(document);
@@ -567,17 +577,6 @@ define([
           mps.publish('channel/add', [did, found, true]);
         }
       });
-
-      // Commenting this out cause it _should_ never happen w/ the
-      // intermediate dataset pages.
-      /*
-      // check if we have any channels open
-      // we automatically open the most searched / clicked for channel
-      var state = store.get('state');
-      if (!(_.compact(_.pluck(state.datasets, 'channels')).length)) {
-        mps.publish('channel/add', [did, _.last(_.sortBy(channels, 'vcnt'))]);
-      }
-      */
     },
 
   });
