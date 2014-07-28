@@ -76,15 +76,15 @@ define([
       this.setViewLineStyle();
 
       // For rendering tooltips
-      $('.tooltip').tooltipster({delay: 600});
+      $('.tooltip').tooltipster({delay: 600, multiple: true});
 
+      // Handle color choosing.
       $('.linestyle-color').minicolors( {
         position: 'bottom left',
         change: _.bind(function(hex, opacity) { this.colorChange(hex); }, this),
         changeDelay: 10,
         defaultValue: util.rgbToHex(parentSel.css('background-color')),
       });
-
 
       return this;
     },

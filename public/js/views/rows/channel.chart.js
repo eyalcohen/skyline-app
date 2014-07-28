@@ -29,7 +29,7 @@ define([
       this.subscriptions = [
         mps.subscribe('channel/added', _.bind(this.added, this)),
         mps.subscribe('channel/removed', _.bind(this.removed, this)),
-        mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
+        // mps.subscribe('channel/mousemove', _.bind(this.updateLegend, this)),
       ];
 
       Row.prototype.initialize.call(this, options);
@@ -232,18 +232,18 @@ define([
         }, this));
     },
 
-    updateLegend: function (stats) {
-      if (!this.active) return;
-      var item = _.find(stats, function (e) {
-        return e.channelName === this.model.id;
-      }, this);
-      if (item) {
-        var val = item.nearestPointData[1];
-        // make scientific notation if necessary
-        val = val > 10000 ? val.toExponential(2) : val.toFixed(2);
-        this.value.text(val).show();
-      }
-    },
+    // updateLegend: function (stats) {
+    //   if (!this.active) return;
+    //   var item = _.find(stats, function (e) {
+    //     return e.channelName === this.model.id;
+    //   }, this);
+    //   if (item) {
+    //     var val = item.nearestPointData[1];
+    //     // make scientific notation if necessary
+    //     val = val > 10000 ? val.toExponential(2): val.toFixed(2);
+    //     this.value.text(val).show();
+    //   }
+    // },
 
     updateYAxisView: function () {
       if (!this.active)

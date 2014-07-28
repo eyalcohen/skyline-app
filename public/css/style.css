@@ -4393,7 +4393,7 @@ a.control-button-save.saving {
   position: absolute;
   z-index: 9;
   top: 0;
-  bottom: -1px;
+  bottom: 29px;
   left: 0;
   border-left: 1px solid rgba(0,0,0,0.3);
   pointer-events: none;
@@ -4401,11 +4401,11 @@ a.control-button-save.saving {
 
 .cursor-time {
   position: absolute;
-  bottom: 0;
+  bottom: -30px;
   left: -90px;
   width: 180px;
   height: 30px;
-  background: #4c4c4c;
+  background: rgba(76,76,76,0.8);
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
@@ -4420,6 +4420,41 @@ a.control-button-save.saving {
   border-radius: 2px 2px 0 0;
 }
 
+.cursor-value {
+  position: absolute;
+  z-index: 2;
+  height: 30px;
+  background: rgba(76,76,76,0.8);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0 10px;
+  line-height: 30px;
+  white-space: nowrap;
+  text-align: center;
+  color: #fff;
+  pointer-events: none;
+
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+}
+
+.cursor-value:after {
+  right: 100%;
+  top: 50%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-color: transparent;
+  border-right-color: rgba(76,76,76,0.8);
+  border-width: 5px;
+  margin-top: -5px;
+}
+
 .cursor.active {
   border-left-color: rgb(39, 205, 214);
 }
@@ -4428,7 +4463,7 @@ a.control-button-save.saving {
 .cursor a.note-duration-button,
 .cursor a.note-cancel-button {
   position: absolute;
-  bottom: -30px;
+  bottom: -60px;
   font-size: 9px;
   text-transform: uppercase;
   padding: 0 15px;
@@ -4464,7 +4499,7 @@ a.control-button-save.saving {
 .cursor a.note-duration-button {
   display: none;
   cursor: default;
-  background: #4c4c4c;
+  background: rgba(76,76,76,0.8);
   border: none;
 }
 
@@ -4588,7 +4623,7 @@ a.control-button-save.saving {
 .overview .overview-cursor {
   width: 1px;
   border-left: 1px solid rgba(0,0,0,0.3);
-  height: 100%;
+  height: 77px;
 }
 
 .overview .overview-cursor-wrap {
@@ -4605,7 +4640,7 @@ a.control-button-save.saving {
   width: 100px;
   height: 30px;
   padding: 0 2px;
-  background-color: #4c4c4c;
+  background-color: rgba(76,76,76,0.8);
   color: white;
   font-size: 9px;
   font-weight: 600;
@@ -4929,7 +4964,7 @@ a.channel-button {
   padding-left: 4px;
   white-space: normal;
   word-wrap: break-word;
-  width: 80%;
+  width: 90%;
   line-height: 14px;
 }
 
@@ -4985,14 +5020,6 @@ a.channel-button {
 
 .channel.yaxis-right .channel-yaxis-code:hover {
   color: #404040;
-}
-
-.channel-value {
-  display: none;
-  position: absolute;
-  right: 5px;
-  color: white;
-  font-size: 11px;
 }
 
 .channel .icon-left-dir,

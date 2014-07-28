@@ -262,7 +262,6 @@ define([
       var mouse = e ? this.getMouse(e): {x: xaxis.p2c(t)};
       var time = xaxis.c2p(mouse.x);
       var points = {};
-      // var x, t;
 
       // Find the closest point for each series.
       _.each(this.plot.getData(), _.bind(function (series) {
@@ -295,29 +294,27 @@ define([
         }
         if (!point) return;
 
-        // // Convert point time to x-coordinate.
-        // var _x = series.xaxis.p2c(point[0]);
-        // if (!x || Math.abs(mouse.x - _x) < Math.abs(mouse.x - x)) {
-        //   x = _x;
-        //   t = point[0];
-        // }
-
         // Format point value.
         var v = point[1];
-        // if (Math.abs(Math.round(v)) >= 1e6) {
-        //   v = v.toFixed(0);
-        // } else {
+        if (Math.abs(Math.round(v)) >= 1e6) {
+          v = v.toFixed(0);
+        } else {
 
           // Limit to 6 digits of precision (converting very small numbers
           // to e.g. '1.23400e-8'), strip zeros trailing the decimal
           // point, and strip the decimal point itself if necessary.
-        //   v = v.toPrecision(6).
-        //       replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
-        //       replace(/\.([Ee][0-9-]*)?$/, '$1');
-        // }
+          v = v.toPrecision(6).
+              replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
+              replace(/\.([Ee][0-9-]*)?$/, '$1');
+        }
 
         // Add series to map.
-        points[series.channelName] = point;//[point[0], util.addCommas(v)];
+        points[series.channelName] = {
+          t: point[0],
+          x: xaxis.p2c(point[0]),
+          y: series.yaxis.p2c(point[1]),
+          v: v
+        };
       }, this));
 
       return {x: mouse.x, t: time, points: points};
@@ -510,12 +507,12 @@ define([
           if (!this.lastMouseMove) this.lastMouseMove = 0;
 
           // don't run this very frequently, perhaps once every 20ms
-          if (Date.now() - this.lastMouseMove > 20) {
-            this.lastMouseMove = Date.now();
-            this.mouseStats = this.getStatsNearMouse(e);
-            this.mouseLineStyle(e, this.mouseStats);
-            mps.publish('channel/mousemove', [this.mouseStats]);
-          }
+          // if (Date.now() - this.lastMouseMove > 20) {
+          //   this.lastMouseMove = Date.now();
+          //   this.mouseStats = this.getStatsNearMouse(e);
+          //   this.mouseLineStyle(e, this.mouseStats);
+          //   mps.publish('channel/mousemove', [this.mouseStats]);
+          // }
         }, this), 1))
 
         .mousedown(_.bind(function (e) {
@@ -799,9 +796,9 @@ define([
         var channel = channels[s.channelIndex];
         var highlighted = this.highlightedChannel === channel.channelName;
         var color;
-        if (this.model.lineStyleOptions[channel.channelName].color)
+        if (this.model.lineStyleOptions[channel.channelName].color) {
           color = this.model.lineStyleOptions[channel.channelName].color;
-        else {
+        } else {
           color = this.app.getColors(channel.colorNum);
           this.model.lineStyleOptions[channel.channelName].color = this.color;
         }
@@ -809,8 +806,9 @@ define([
         s.originalColor = color;
 
         var did = this.model.findDatasetFromChannel(channel.channelName).get('id');
-        if (this.lightened[did] === true)
+        if (this.lightened[did] === true) {
           color = util.lightenColor(color, 0.3);
+        }
         if (this.highlightedChannel && !highlighted) {
 
           // Lighten color.
@@ -821,10 +819,11 @@ define([
           color = color.toString();
         }
         s.color = color;
-        if (s.lines.fill)
+        if (s.lines.fill) {
           s.zorder = highlighted ? 50000 : s.channelIndex;
-        else
+        } else {
           s.zorder = 10000 + (highlighted ? 50000 : s.channelIndex);
+        }
       }, this));
     },
 
@@ -836,8 +835,9 @@ define([
 
       _.each(plotData, function(series, idx) {
 
-        if (series.channelName.indexOf('__minmax') != -1)
+        if (series.channelName.indexOf('__minmax') != -1) {
           return;
+        }
         var lineStyleOpts = this.model.lineStyleOptions[series.channelName];
 
         // copy over some series data
@@ -857,8 +857,9 @@ define([
 
         // compare seriesect properties and decide whether we ned to redraw
         if (JSON.stringify(series.lines) !== JSON.stringify(oldLines)
-            || JSON.stringify(series.points) !== JSON.stringify(oldPoints))
+            || JSON.stringify(series.points) !== JSON.stringify(oldPoints)) {
             needsUpdate = true;
+        }
       }, this);
 
       if (needsUpdate) {

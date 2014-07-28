@@ -59,6 +59,9 @@ define([
               _.clone(channel));
           this.map.removeChannel(channel);
         }, this)),
+        mps.subscribe('channel/removed', _.bind(function (did, channel) {
+          this.$('#' + channel.channelName + '_value').remove();
+        }, this)),
         mps.subscribe('dataset/added', _.bind(function () {
           this.refreshNotes();
         }, this)),
@@ -162,8 +165,8 @@ define([
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
 
       // For rendering tooltips
-      $('.tooltip').tooltipster({delay: 600});
-      $('.tooltip-bottom').tooltipster({delay: 600, position: 'bottom'});
+      $('.tooltip').tooltipster({delay: 600, multiple: true});
+      $('.tooltip-bottom').tooltipster({delay: 600, position: 'bottom', multiple: true});
 
       if (state.time) {
         mps.publish('chart/zoom', [{min: state.time.beg/1000, max: state.time.end/1000}]);
@@ -425,55 +428,19 @@ define([
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
       this.cursor.css({left: Math.ceil(this.cursorData.x)});
-      this.cursorTime.text(util.toLocaleString(new Date(this.cursorData.t), 'mmm d, yyyy h:MM:ss TT Z'))
+      this.cursorTime.text(util.toLocaleString(new Date(this.cursorData.t),
+          'mmm d, yyyy h:MM:ss TT Z'))
 
-
-      _.each(this.cursorData.points, _.bind(function (p) {
-        // console.log(p)
+      // Draw series values.
+      _.each(this.cursorData.points, _.bind(function (p, c) {
+        var id = c + '_value';
+        var el = this.$('#' + id);
+        if (el.length === 0) {
+          el = $('<div id="' + id + '" class="cursor-value">')
+              .prependTo('.graphs');
+        }
+        el.css({top: p.y - el.height() / 2, left: p.x + 5}).text(p.v);
       }, this));
-
-      // var graphData = _.sortBy(this.graph.mouseStats, 'pixelsFromInterpPt')[0];
-      // if (!graphData) {
-      //   return;
-      // }
-      // console.log(this.cursorData)
-
-      // if (graphData.pixelsFromNearestPt >= this.graph.PIXELS_FROM_HIGHLIGHT) {
-      //   // this.cursorDisplay.hide();
-      //   this.showingCursor = false;
-      //   this.graph.plot.unhighlight();
-      // } else {
-      //   if (!this.showingCursor) {
-      //     _.delay(_.bind(function() {
-      //       // this.cursorDisplay.show('fast');
-      //       this.showingCursor = true;
-      //     }, this), 750);
-      //   };
-
-      //   this.graph.plot.unhighlight();
-      //   this.graph.plot.highlight(graphData.channelIndex, graphData.nearestPointIndex);
-
-      //   // this.cursorDisplay.css({top: graphData.nearestPointXY[1]});
-
-      //   // Ugly
-      //   var ds = this.graph.model.findDatasetFromChannel(graphData.channelName);
-      //   var humanName = _.find(ds.get('channels'), function (c) {
-      //     return c.channelName === graphData.channelName;
-      //   }).humanName
-
-      //   $('.cursor-dataset').text(ds.get('title'));
-      //   $('.cursor-channel').text(humanName);
-      //   var date = new Date(graphData.nearestPointData[0]);
-      //   $('.cursor-date').text(util.toLocaleString(date, 'm/d/yyyy h:MM:ss TT'));
-      //   var v = graphData.nearestPointData[1];
-      //   if (Math.abs(Math.round(v)) >= 1e6)
-      //     v = v.toFixed(0);
-      //   else
-      //     v = v.toPrecision(6).
-      //         replace(/(\.[0-9]*?)0*([Ee][0-9-]*)?$/, '$1$2').
-      //         replace(/\.([Ee][0-9-]*)?$/, '$1');
-      //   $('.cursor-val').text(util.addCommas(v));
-      // }
     },
 
     hideCursor: function (e) {
