@@ -429,6 +429,7 @@ define([
       this.cursorData = this.graph.cursor(e, t);
       if (this.cursorData.x === undefined) return;
       this.cursor.fadeIn('fast');
+      this.$('.cursor-value').fadeIn('fast');
       this.cursor.css({left: Math.ceil(this.cursorData.x)});
       var time = util.toLocaleString(new Date(this.cursorData.t),
           'mmm d, yyyy h:MM:ss TT Z');
@@ -450,6 +451,7 @@ define([
     hideCursor: function (e) {
       if (!this.cursor.hasClass('active')) {
         this.cursor.fadeOut('fast');
+        this.$('.cursor-value').fadeOut('fast');
       }
       this.map.featureOut();
     },
