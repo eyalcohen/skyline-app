@@ -27,9 +27,9 @@
     </div>
     <div class="splash-top-right">
       <ul class="splash-embed-dots">
-        <% _.each(this.app.profile.content.views.items, function (v, i) { %>
+        <% if (!this.static) { _.each(this.app.profile.content.views.items, function (v, i) { %>
           <li data-url="//<%= window.location.host %>/embed/<%= v.author.username %>/views/<%= v.slug %>"></li>
-        <% }) %>
+        <% })} %>
       </ul>
       <div class="splash-embed-chart">
         <iframe width="100%" height="520px" src="" frameborder="0"></iframe>
