@@ -4886,12 +4886,6 @@ a.dataset-add-button:active {
   border-right-width: 1px;
   border-bottom-width: 1px;
   opacity: 1;
-
-  /*-webkit-transition: opacity 0.2s;
-  -moz-transition: opacity 0.2s;
-  -ms-transition: opacity 0.2s;
-  -o-transition: opacity 0.2s;
-  transition: opacity 0.2s;*/
 }
 
 .channel:hover {
@@ -5417,6 +5411,32 @@ ul.note-channels-list li {
   -moz-animation-fill-mode: both;
   -o-animation-fill-mode: both;
   animation-fill-mode: both;
+}
+
+.linestyle-modal:after,
+.linestyle-modal:before {
+  right: 100%;
+  top: 16px;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.linestyle-modal:after {
+  border-color: rgba(249, 249, 249, 0);
+  border-right-color: #f9f9f9;
+  border-width: 10px;
+  margin-top: -10px;
+}
+
+.linestyle-modal:before {
+  border-color: rgba(208, 208, 208, 0);
+  border-right-color: #d0d0d0;
+  border-width: 11px;
+  margin-top: -11px;
 }
 
 a.linestyle-close {
