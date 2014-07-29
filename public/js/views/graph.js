@@ -256,21 +256,28 @@ define([
       }, this)));
     },
 
-    // TODO: Change this function to use getStatsNearMouse and make the cursor display!
+    // Get info near the cursor.
+    // Note: The cursor is only concerned with the x-axis.
     cursor: function (e, t) {
       var xaxis = this.plot.getXAxes()[0];
       var mouse = e ? this.getMouse(e): {x: xaxis.p2c(t)};
       var time = xaxis.c2p(mouse.x);
       var points = {};
 
+      this.plot.unhighlight();
+
       // Find the closest point for each series.
-      _.each(this.plot.getData(), _.bind(function (series) {
+      _.each(this.plot.getData(), _.bind(function (series, j) {
 
         // Excluse empty and min-max series.
-        if (!series.channelName || series.lines.fill) return;
+        if (!series.channelName || series.channelName.indexOf('__minmax') !== -1) {
+          return;
+        }
 
         // Ensure series is valid for the time.
-        if (time === null) return;
+        if (time === null) {
+          return;
+        }
 
         // Find the point.
         var point;
@@ -289,6 +296,7 @@ define([
             var prev = series.data[i - 1];
             if (time - prev[0] < point[0] - time) {
               point = prev;
+              --i;
             }
           }
         }
@@ -309,12 +317,21 @@ define([
         }
 
         // Add series to map.
-        points[series.channelName] = {
-          t: point[0],
-          x: xaxis.p2c(point[0]),
-          y: series.yaxis.p2c(point[1]),
-          v: v
-        };
+        if (i !== undefined) {
+          points[series.channelName] = {
+            t: point[0],
+            x: xaxis.p2c(point[0]),
+            y: series.yaxis.p2c(point[1]),
+            v: v,
+            s: j,
+            i: i
+          };
+        }
+      }, this));
+
+      // Highlight points.
+      _.each(points, _.bind(function (p) {
+        this.plot.highlight(p.s, p.i);
       }, this));
 
       return {x: mouse.x, t: time, points: points};
@@ -323,17 +340,23 @@ define([
     draw: function () {
 
       function rangeFitsAxis(range, axis) {
-        if (range.min === Infinity || range.max === -Infinity)
+        if (range.min === Infinity || range.max === -Infinity) {
           return false;
-        if (axis.min === Infinity || axis.max === -Infinity)
+        }
+        if (axis.min === Infinity || axis.max === -Infinity) {
           return false;
-        if (range.min / 10 > axis.max || range.max * 10 < axis.min)
+        }
+        if (range.min / 10 > axis.max || range.max * 10 < axis.min) {
           return false;
-        else return true;
+        } else {
+          return true;
+        }
       }
 
       // Create the graph if first run.
-      if (!this.plot) this.create();
+      if (!this.plot) {
+        this.create();
+      }
 
       // Save ref to channels.
       var channels = this.model.getChannels();
@@ -560,10 +583,11 @@ define([
           var c = this.plot.offset();
           c.left = e.originalEvent.pageX - c.left;
           c.top = e.originalEvent.pageY - c.top;
-          if (out)
+          if (out) {
             this.plot.zoomOut({center: c, amount: factor});
-          else
+          } else {
             this.plot.zoom({center: c, amount: factor});
+          }
           this.draw();
         }
       }
@@ -571,8 +595,9 @@ define([
       function weekendAreas(axes) {
         var markings = [];
         // don't try to paint more than (experimentally) 70 markings
-        if (axes.xaxis.max - axes.xaxis.min > 7*24*60*60*1000*70)
+        if (axes.xaxis.max - axes.xaxis.min > 7*24*60*60*1000*70) {
           return markings;
+        }
         var d = new Date(axes.xaxis.min);
         d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7));
         d.setUTCSeconds(0);
@@ -869,7 +894,6 @@ define([
 
     // if mouse is near channel line, mark it as the highlighted channel
     mouseLineStyle: function(e, stats) {
-
       // lookup closest channel to mouse cursor
       var closestChannel = _.sortBy(stats, 'pixelsFromInterpPt')[0];
       if (closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {
@@ -883,47 +907,6 @@ define([
         return;
       }
       this.draw();
-
-      // var lineStyleOpts = this.model.lineStyleOptions[closestChannel.channelName];
-
-      // var series =  _.find(plotData, function (obj) {
-      //   return obj.channelName === closestChannel.channelName;
-      // });
-      
-
-      //this.plot.unhighlight();
-
-      // var needsUpdate = false;
-      // _.each(plotData, function (obj) {
-      //   // minmax plots have the same line-style
-      //   if (obj.channelName.indexOf('__minmax') != -1) {
-      //     return;
-      //   }
-      //   var lso = this.model.lineStyleOptions[obj.channelName.split('__minmax')[0]];
-      //   needsUpdate = needsUpdate || (obj.lines.lineWidth !== lso.lineWidth);
-      //   obj.lines.lineWidth = lso.lineWidth;
-      //   obj.points.radius = lso.pointRadius;
-      // }, this);
-
-      // var curWidth = series.lines.lineWidth;
-      // var newWidth = lineStyleOpts.lineWidth;
-      // var newRadius = lineStyleOpts.pointRadius;
-      // if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
-      //   newWidth = newWidth + 2;
-      //   newRadius = newRadius + 1;
-      //   //this.plot.highlight(closestChannel.channelIndex, closestChannel.nearestPointIndex);
-      // }
-
-      // if (newWidth != curWidth) {
-      //   needsUpdate = true;
-      //   series.lines.lineWidth = newWidth;
-      //   series.points.radius = newRadius;
-      // }
-
-      // if (needsUpdate) {
-        // this.plot.setData(plotData);
-        // this.plot.draw();
-      // }
     },
 
     // returns an array of number of datapoints visible in displayed graph

@@ -4915,7 +4915,7 @@ a.dataset-add-button:active {
 a.channel-button {
   display: block;
   position: relative;
-  padding: 7px 35px 5px 4px;
+  padding: 7px 40px 5px 4px;
   background: none;
   white-space: nowrap;
 }

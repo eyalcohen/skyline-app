@@ -20,7 +20,7 @@
   font-weight: 600;
   font-size: 10px;
   line-height: 30px;
-  /*text-transform: uppercase;*/
+  text-transform: lowercase;
   padding: 0 10px;
   overflow: hidden;
 }

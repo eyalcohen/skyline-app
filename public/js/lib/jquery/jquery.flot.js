@@ -2642,8 +2642,8 @@
             
             var pointRadius = series.points.radius + series.points.lineWidth / 2;
             octx.lineWidth = pointRadius;
-            octx.strokeStyle = $.color.parse(series.color).scale('a', 0.5).toString();
-            var radius = 1.5 * pointRadius,
+            octx.strokeStyle = $.color.parse(series.color).scale('a', 0.8).toString();
+            var radius = 1.1 * pointRadius,
                 x = axisx.p2c(x),
                 y = axisy.p2c(y);
             

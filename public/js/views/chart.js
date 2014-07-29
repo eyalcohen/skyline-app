@@ -437,6 +437,10 @@ define([
       this.noteButton.css({left: -this.noteButton.outerWidth()/2});
 
       // Draw series values.
+      if (_.size(this.cursorData.points) === 0) {
+        this.removeCursorValues();
+        return;
+      }
       _.each(this.cursorData.points, _.bind(function (p, c) {
         var id = c + '_value';
         var el = this.$('#' + id);
@@ -444,7 +448,7 @@ define([
           el = $('<div id="' + id + '" class="cursor-value">')
               .prependTo('.graphs');
         }
-        el.css({top: p.y - el.height() / 2, left: p.x + 5}).text(p.v);
+        el.css({top: p.y - el.height() / 2, left: p.x + 10}).text(p.v);
       }, this));
     },
 
