@@ -1,11 +1,23 @@
 doctype html
 html(lang="en")
   head
+    - if (typeof title !== 'undefined')
+      title= 'Skyline | ' + title
+    - else
+      title Skyline - Visualize, Stream and Collaborate on Time-series Data
     meta(property="og:site_name", content="Skyline")
     meta(property="fb:app_id", content="")
-    meta(name="description", content="")
-    meta(name="keywords", content="")
+    meta(name="description", content="Skyline is a tool used to collaborate on time-series data.  Stream real-time data or upload .csv  and Excel files.  Perform analytics, annotate insights and engage a community of professionals.")
     meta(name="author", content="")
     meta(charset="UTF-8")
     link(rel="shortcut icon", href="#{root}/img/favicon.ico", type="image/x-icon")
   body
+    ul.header-navigation
+      li
+        a(href="/how", class="navigate") How Skyline Works
+      li
+        a(href="/library", class="navigate") Public Data
+      li
+        a(href="/mission", class="navigate") Our Mission
+    - if (typeof body !== 'undefined')
+      !{body}

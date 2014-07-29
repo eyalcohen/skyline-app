@@ -203,7 +203,8 @@ if (cluster.isMaster) {
         app.use(app.router);
         app.use(function (err, req, res, next) {
           if (!err) return next();
-          console.log(err, req);
+          console.log('Returning code 500', err);
+          console.log(err.stack);
           res.render('500', {root: app.get('ROOT_URI')});
         });
       }
