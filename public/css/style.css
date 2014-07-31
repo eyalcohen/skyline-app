@@ -2072,8 +2072,8 @@ ul.header-navigation li a.active {
 .finder input.finder-search-input {
   width: 360px;
   height: 32px;
-  margin: 0;
   margin: -2px 0 0 0;
+  padding: 0 5px;
   font-size: 12px;
 
   -webkit-transition: all 0.1s ease-in-out;
@@ -2085,9 +2085,13 @@ ul.header-navigation li a.active {
   -webkit-box-sizing: border-box;
 }
 
+input.header-search-input::-webkit-search-cancel-button,
+input.finder-search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
 .finder input.finder-search-input {
   width: 100%;
-  /*text-indent: 177px;*/
 }
 
 .search-filters {
@@ -2101,7 +2105,7 @@ ul.header-navigation li a.active {
 .search-spin {
   position: absolute;
   top: 30px;
-  right: 51px;
+  right: 36px;
 }
 
 .header-user-box {
@@ -2334,9 +2338,15 @@ ul.header-user-menu li a i {
   margin: 14px -20px 0 -20px;
   max-height: 310px;
   overflow-y: auto;
+  background: #fff;
+
+  -webkit-border-radius: 0 0 3px 3px;
+  -moz-border-radius: 0 0 3px 3px;
+  border-radius: 0 0 3px 3px;
 }
 
-a.choice, .search-choice {
+a.choice,
+.search-choice {
   position: relative;
   padding: 8px 20px;
   overflow: hidden;
@@ -2423,6 +2433,18 @@ span.choice-name i i {
   font-size: .5em;
   left: 12px;
   top: 3px;
+}
+
+.choicesearch-divider {
+  pointer-events: none;
+}
+
+.choicesearch-divider:last-child {
+  display: none !important;
+}
+
+.choicesearch-divider hr {
+  border-top: 1px solid #d0d0d0;
 }
 
 /*.........................................................................*/
