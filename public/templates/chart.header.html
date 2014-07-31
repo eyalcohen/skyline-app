@@ -23,7 +23,7 @@
       <i class="icon-angle-left"></i> <%= _.str.capitalize(target.type) %> profile</a>
 <% } %>
 <div class="page-title">
-  Viewing <a href="/<%= link %>" class="navigate<%= target.doc.public === false ? ' locked': '' %>">
+  <a href="/<%= link %>" class="navigate<%= target.doc.public === false ? ' locked': '' %>">
     <i class="<%= icon %>"></i> <%= target.doc.title || target.doc.name || 'Untitled' %></a> from <a href="/<%= target.doc.author.username %>" class="navigate">
     <%= target.doc.author.displayName %></a>
   <span class="page-title-sub">
