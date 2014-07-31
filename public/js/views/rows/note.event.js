@@ -28,6 +28,14 @@ define([
       'click .info-delete': 'delete',
     },
 
+    setup: function () {
+
+      // For rendering tooltips
+      this.$('.tooltip').tooltipster({delay: 600, multiple: true});
+
+      return Row.prototype.setup.call(this);
+    },
+
     delete: function (e) {
       e.stopPropagation();
       e.preventDefault();

@@ -14,7 +14,8 @@
 %>
 
 <a href="/<%= this.model.get('author').username %>" class="event-comment-avatar navigate">
-  <img src="<%= gravatar %>" width="34" height="34" />
+  <img src="<%= gravatar %>" width="34" height="34" class="tooltip"
+      title="<%= this.model.get('author').displayName %>" />
 </a>
 <div class="event-comment-body"><p><%= this.model.body(true) %></p></div>
 <div class="event-comment-info">

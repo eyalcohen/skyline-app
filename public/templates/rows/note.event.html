@@ -16,7 +16,8 @@
 %>
 
 <a href="/<%= model.get('author').username %>" class="comment-avatar navigate">
-  <img src="<%= gravatar %>" width="28" height="28" />
+  <img src="<%= gravatar %>" width="28" height="28" class="tooltip"
+      title="<%= model.get('author').displayName %>" />
 </a>
 <div class="comment-body">
   <p>

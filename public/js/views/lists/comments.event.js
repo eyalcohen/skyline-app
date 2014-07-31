@@ -62,6 +62,9 @@ define([
       this.$('.event-comments-older.event-comment').show();
       this.$('#comment_input .event-comment').show();
 
+      // For rendering tooltips
+      this.$('.tooltip').tooltipster({delay: 600, multiple: true});
+
       return List.prototype.setup.call(this);
     },
 

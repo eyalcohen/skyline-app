@@ -104,6 +104,11 @@ define([
       // Handle time.
       this.timer = setInterval(_.bind(this.when, this), 5000);
       this.when();
+
+      // For rendering tooltips
+      if (this.parentView) {
+        this.parentView.$('.tooltip').tooltipster({delay: 600, multiple: true});
+      }
     },
 
     destroy: function () {
