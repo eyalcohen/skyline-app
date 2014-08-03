@@ -1,3 +1,7 @@
+<% var name = this.model.name();
+   name += this.model.get('units') ? ' (' + this.model.get('units') + ')' : '';
+%>
+
 <a href="javascript:;" class="channel-button tooltip" title="Toggle channel">
   <div class="channel-name">
     <span class="channel-yaxis-code-wrap">
@@ -6,7 +10,7 @@
       </span>
     </span>
     <div class="channel-name-text">
-      <%= this.model.name() %>
+      <%= name %>
     </div>
   </div>
 </a>
