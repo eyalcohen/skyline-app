@@ -281,7 +281,7 @@ define([
       var query = {actions: this.getEventActions()};
       this.render('/service/dashboard', query, _.bind(function (err) {
         if (err) return;
-        if (this.app.profile.user) {
+        if (this.app.profile.user && isSplash) {
           $('.container').removeClass('wide').removeClass('landing');
           this.page = new Dashboard(this.app).render();
           this.renderTabs({tabs: [
