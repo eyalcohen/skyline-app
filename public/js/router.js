@@ -115,7 +115,9 @@ define([
       this.route('library', 'library', this.library);
       this.route('signin', 'signin', this.signin);
       this.route('signup', 'signup', this.signup);
-      this.route('', 'dashboard', this.dashboard);
+      // trending is the same as the splash page but just below the fold
+      this.route('trending', 'dashboard', _.bind(this.dashboard, this, false));
+      this.route('', 'dashboard', _.bind(this.dashboard, this, true));
 
       mps.subscribe('channel/add', _.bind(function (did, channel, silent) {
         this.start();
@@ -273,7 +275,7 @@ define([
 
     // Routes //
 
-    dashboard: function () {
+    dashboard: function (isSplash) {
       this.start();
       this.renderTabs();
       var query = {actions: this.getEventActions()};
@@ -288,7 +290,7 @@ define([
           ]});
         } else {
           $('.container').addClass('wide').addClass('landing');
-          this.page = new Splash(this.app).render();
+          this.page = new Splash(this.app, {splash: isSplash}).render();
         }
         this.stop();
       }, this));
