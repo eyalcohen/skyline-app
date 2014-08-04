@@ -53,11 +53,17 @@
     <div class="list-spin">
       <div class="events-spin"></div>
       <span class="empty-feed">Showing all.</span>
+      <% if (this.staticContentFeed) { %>
+        <%= this.staticContentFeed %>
+      <% } %>
     </div>
   </div>
   <div class="rightside">
     <h2 class="divider">Recently added public datasets:</h2>
     <div class="sidebar-datasets"></div>
+      <% if (this.staticContentLists) { %>
+        <%= this.staticContentLists %>
+      <% } %>
   </div>
   <div class="clearfix"></div>
 </div>
