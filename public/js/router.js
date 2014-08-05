@@ -116,8 +116,8 @@ define([
       this.route('signin', 'signin', this.signin);
       this.route('signup', 'signup', this.signup);
       // trending is the same as the splash page but just below the fold
-      this.route('trending', 'dashboard', _.bind(this.dashboard, this, false));
-      this.route('', 'dashboard', _.bind(this.dashboard, this, true));
+      this.route('trending', 'trending', this.trending);
+      this.route('', 'dashboard', this.dashboard);
 
       mps.subscribe('channel/add', _.bind(function (did, channel, silent) {
         this.start();
@@ -275,13 +275,25 @@ define([
 
     // Routes //
 
-    dashboard: function (isSplash) {
+    trending: function () {
+      this.start();
+      this.renderTabs();
+      var query = {actions: this.getEventActions()};
+      this.render('/service/trending', query, _.bind(function (err) {
+        if (err) return;
+        $('.container').addClass('wide').addClass('landing');
+        this.page = new Splash(this.app, {splash: false}).render();
+        this.stop();
+      }, this));
+    },
+
+    dashboard: function () {
       this.start();
       this.renderTabs();
       var query = {actions: this.getEventActions()};
       this.render('/service/dashboard', query, _.bind(function (err) {
         if (err) return;
-        if (this.app.profile.user && isSplash) {
+        if (this.app.profile.user) {
           $('.container').removeClass('wide').removeClass('landing');
           this.page = new Dashboard(this.app).render();
           this.renderTabs({tabs: [
@@ -290,7 +302,7 @@ define([
           ]});
         } else {
           $('.container').addClass('wide').addClass('landing');
-          this.page = new Splash(this.app, {splash: isSplash}).render();
+          this.page = new Splash(this.app, {splash: true}).render();
         }
         this.stop();
       }, this));
