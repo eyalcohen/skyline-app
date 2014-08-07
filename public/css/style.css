@@ -3746,7 +3746,13 @@ ul.event-channels li .event-channel-name {
 }
 
 ul.event-channels li .event-channel-input {
-  width: 525px;
+  width: 75%;
+}
+
+ul.event-channels li .event-unit-input {
+  width: 7.5%;
+  margin-right: 20px;
+  float: right;
 }
 
 ul.event-channels li .event-channel-svg {

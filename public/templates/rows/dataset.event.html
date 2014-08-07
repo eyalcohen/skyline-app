@@ -200,7 +200,7 @@
             </span>
             <span class="event-timeline-label-text"></span>
             <span class="event-channel-name">
-              <%= c.humanName %>
+              <%= c.humanName + (c.units ? ' (' + c.units + ')' : '') %>
             </span>
             <div class="event-channel-svg"></div>
             <p class="event-channel-note"></p>
@@ -214,6 +214,9 @@
             <span class="event-timeline-label-text"></span>
             <input type="text" tabindex="<%= i+8 %>" id="<%= c.id %>"
                 class="event-channel-input" data-param="humanName" value="<%= c.humanName %>" />
+            <input type="text" tabindex="<%= i+8 %>" id="<%= c.id %>"
+                class="event-unit-input" data-param="units" value="<%= c.units %>"
+                placeholder="unit"/>
             <div class="event-channel-svg"></div>
           </a>
           <a href="javascript:;" class="event-channel-delete">

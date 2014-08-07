@@ -1,3 +1,4 @@
+<% if (splash) { %>
 <div class="splash-top">
   <div class="splash-top-inner">
     <h1 class="splash-heading-one">
@@ -44,6 +45,7 @@
     <div class="splash-scroll"><i class="icon-angle-down"></i></div>
   </div>
 </div>
+<% } %>
 <div class="splash-bottom">
   <div class="leftside">
     <h2 class="divider">Public content now trending on <span class="brand-emphasis">skyline</span>:</h2>
@@ -51,11 +53,17 @@
     <div class="list-spin">
       <div class="events-spin"></div>
       <span class="empty-feed">Showing all.</span>
+      <% if (this.staticContentFeed) { %>
+        <%= this.staticContentFeed %>
+      <% } %>
     </div>
   </div>
   <div class="rightside">
     <h2 class="divider">Recently added public datasets:</h2>
     <div class="sidebar-datasets"></div>
+      <% if (this.staticContentLists) { %>
+        <%= this.staticContentLists %>
+      <% } %>
   </div>
   <div class="clearfix"></div>
 </div>

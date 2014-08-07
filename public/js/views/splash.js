@@ -16,16 +16,17 @@ define([
 
     el: '.main',
 
-    initialize: function (app) {
+    initialize: function (app, options) {
       this.app = app;
       this.subscriptions = [];
       this.on('rendered', this.setup, this);
+      this.options = options;
     },
 
     render: function () {
 
       this.template = _.template(template);
-      this.$el.html(this.template.call(this));
+      this.$el.html(this.template.call(this, {splash: this.options.splash}));
 
       this.trigger('rendered');
       return this;
@@ -81,10 +82,12 @@ define([
     },
 
     resize: function (e) {
-      var h = $(window).height();
-      var t = ((h - 660) / 2) - 120;
-      this.top.css('margin-top', Math.max(t, 30));
-      this.topBottom.height(Math.max(150, h - this.topBottom.offset().top));
+      if (this.top.length) {
+        var h = $(window).height();
+        var t = ((h - 660) / 2) - 120;
+        this.top.css('margin-top', Math.max(t, 30));
+        this.topBottom.height(Math.max(150, h - this.topBottom.offset().top));
+      }
     },
 
     rotate: function (e) {

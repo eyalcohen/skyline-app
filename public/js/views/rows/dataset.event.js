@@ -48,6 +48,7 @@ define([
       'click .demolish': 'demolish',
       'click .event-channel-delete': 'deleteChannel',
       'change .event-channel-input': 'saveChannel',
+      'change .event-unit-input': 'saveChannel',
       'click .save-private': 'checkPrivate'
     },
 
@@ -134,6 +135,7 @@ define([
       e.stopPropagation();
       if ($(e.target).hasClass('event-channel-delete')
           || $(e.target).hasClass('event-channel-input')
+          || $(e.target).hasClass('event-unit-input')
           || $(e.target).hasClass('icon-cancel')) {
         return;
       }

@@ -219,7 +219,7 @@ define([
           d3.select(plot.get(0)).select('path')
               .transition()
               .ease('cubic-out')
-              .duration(750)
+              .duration(0)
               .attr('fill', series.color)
               .attr('d', path(series.data));
         }, this));
