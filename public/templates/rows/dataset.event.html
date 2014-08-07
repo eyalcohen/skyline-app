@@ -17,13 +17,13 @@
   if (link) {
     if (source !== '') {
       if (this.parentView) {
-        source = '<a class="event-source" href="' + link + '" target="_blank"><i class="icon-link"></i>' + source + '</a>';
+        source = '<a class="title" href="' + link + '" target="_blank"><i class="icon-link"></i>' + source + '</a>';
       } else {
         source = '<a href="' + link + '" target="_blank">' + source + '</a>';
       }
     } else {
       if (this.parentView) {
-        source = '<a class="event-source" href="' + link + '" target="_blank"><i class="icon-link"></i>' + link + '</a>';
+        source = '<a class="title" href="' + link + '" target="_blank"><i class="icon-link"></i>' + link + '</a>';
       } else {
         source = '<a href="' + link + '" target="_blank">' + link + '</a>';
       }
@@ -160,10 +160,7 @@
       <%= this.model.formatAuthorFor(this.app.profile.user) %></a> added a 
       <%= this.model.get('public') === false ? 'private ': '' %><a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
           class="title navigate">dataset</a> 
-      with <%= num_channels %>.
-    <% if (source !== '') { %>
-      <%= source %>
-    <% } %>
+      with <%= num_channels %><% if (source !== '') { %>  from <%= source %>. <% } else { %>.<% } %>
   </div>
   <span class="event-title-text">
     <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
@@ -227,6 +224,7 @@
     <% }, this)); %>
   </ul>
 <% } %>
+
 <% if (!this.config) { %>
   <div class="event-info">
     Added <a href="/<%= this.model.get('author').username %>/<%= this.model.id %>"
@@ -269,7 +267,7 @@
       </div>
       <div class="target-info">
         <span class="target-info-heading">Notes</span>
-        <div class="event-notes"></div>
+        <div class="notes"></div>
       </div>
     <% } %>
     <!-- <div class="target-info">

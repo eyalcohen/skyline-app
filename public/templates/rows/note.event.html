@@ -1,63 +1,50 @@
 <%
   var model = this.model;
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + model.get('author').gravatar + '?s=28&d=identicon';
-
-  var channels = model.get('channels');
-  var link;
-  if (model.get('parent_type') === 'view') {
-    link = [this.parentView.parentView.model.get('author').username,
-        'views', this.parentView.parentView.model.get('slug')].join('/');
-  } else {
-    link = [this.parentView.parentView.model.get('author').username,
-        this.parentView.parentView.model.id].join('/');
-  }
-  var rcnt = model.get('replies_cnt');
+      + model.get('author').gravatar + '?s=26&d=identicon';
+  var parent = model.get('parent') || model.get('target');
+  var link = model.get('parent_type') === 'dataset' ?
+      [parent.author.username, parent.id].join('/'):
+      [parent.author.username, 'views', parent.slug].join('/');
 %>
 
-<a href="/<%= model.get('author').username %>" class="comment-avatar navigate">
-  <img src="<%= gravatar %>" width="28" height="28" class="tooltip"
-      title="<%= model.get('author').displayName %>" />
-</a>
-<div class="comment-body">
-  <p>
-    <a href="/<%= model.get('author').username %>" class="comment-author navigate">
-      <%= model.get('author').displayName %>
-    </a>
-    <%= model.body() %>
-  </p>
-  <% if (channels && channels.length > 0) { %>
-    <div class="note-channels">
-      <ul class="note-channels-list">
-        <% _.each(channels, function (c) { %>
-          <li>
-            <a href="/<%= c.username %>/<%= c.did %>/<%= c.channelName %>" class="note-channel" data-channel="<%= c.channelName %>">
-              <i class="icon-chart-line"></i> <%= model.formatChannelName(c.humanName) %>
-            </a>
-          </li>
-        <% }); %>
-      </ul>
-    </div>
-  <% } %>
-  <div class="comment-info">
-    Added <a href="/<%= link %>/note/<%= model.id %>" class="navigate">
-      <time class="created" 
-          datetime="<%= model.get('created') %>" 
-          title="<%= model.get('created') %>">
-        <%= model.get('created') %>
-      </time>
-    </a>
-    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-    <%= rcnt %> repl<%= rcnt === 1 ? 'y': 'ies' %>
-    <% if (this.app.profile.user &&
-        model.get('author').id === this.app.profile.user.id) { %>
-      <span class="info-divider">&nbsp;&middot;&nbsp;</span>
-      <a class="info-delete">Delete</a>
-    <% } %>
-  </div>
+<div class="event-title">
+  <a href="/<%= model.get('author').username %>" class="title navigate">
+    <%= model.formatAuthorFor(this.app.profile.user) %></a> wrote a <a href="<%= link %>/note/<%= model.id %>" class="title navigate">note</a> on  
+    <a href="/<%= link %>" class="title navigate"><%= parent.title || parent.name %></a>.
 </div>
-<div class="event-note-divider"></div>
-<a href="/<%= link %>/note/<%= model.id %>" class="event-note-nav navigate">
-  <i class="icon-angle-right" style="top:10px;"></i>
-  <i class="icon-angle-right" style="bottom:10px;"></i>
-</a>
+<span class="event-title-text">
+  <%= model.body() %>
+</span>
+<span class="event-timeline-label event-timeline-label-first">
+  <i class="icon-<%= this.model.get('public') === false ? 'lock': 'bookmark' %>"></i>
+</span>
+<% if (this.model.get('channels').length !== 0) { %>
+  <ul class="event-channels">
+    <% _.each(this.model.get('channels'), _.bind(function (c) { %>
+      <li id="<%= c.channelName %>" data-id="<%= c.id %>">
+        <a href="/<%= this.model.get('author').username %>/<%= c.did %>/<%= c.channelName %>"
+            class="navigate">
+          <span class="event-timeline-label">
+            <i class="icon-chart-line"></i>
+          </span>
+          <span class="event-timeline-label-text"></span>
+          <span class="event-channel-name">
+            <%= c.humanName %>
+          </span>
+          <div class="event-channel-svg"></div>
+          <p class="event-channel-note"></p>
+        </a>
+      </li>
+    <% }, this)); %>
+  </ul>
+<% } %>
+<div class="event-info">
+  Added <a href="/<%= link %>/note/<%= model.id %>"
+        class="navigate"><time class="created" 
+        datetime="<%= model.get('created') %>" 
+        title="<%= model.get('created') %>">
+    <%= model.get('created') %>
+  </time></a>
+</div>
+<div class="event-comments"></div>

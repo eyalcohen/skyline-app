@@ -15,7 +15,7 @@ define([
   return Row.extend({
 
     attributes: function () {
-      return _.defaults({class: 'note'},
+      return _.defaults({class: 'chart-note'},
           Row.prototype.attributes.call(this));
     },
 

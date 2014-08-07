@@ -1,78 +1,90 @@
 /*
- * Comment Row view
+ * Comment event view
  */
 
 define([
   'jQuery',
   'Underscore',
+  'Backbone',
   'mps',
-  'rest',
-  'views/boiler/row',
-  'text!../../../templates/rows/comment.event.html'
-], function ($, _, mps, rest, Row, template) {
-  return Row.extend({
+  'util',
+  'models/comment',
+  'text!../../../templates/rows/comment.event.html',
+  'views/rows/dataset.event',
+  'views/rows/view.event',
+  'views/rows/note.event'
+], function ($, _, Backbone, mps, util, Model, template, Dataset, View, Note) {
+  return Backbone.View.extend({
 
     attributes: function () {
-      return _.defaults({class: 'event-comment'},
-          Row.prototype.attributes.call(this));
+      var attrs = {class: 'event-wrap'};
+      if (this.model) {
+        attrs.id = this.model.id;
+      }
+      return attrs;
     },
 
     initialize: function (options, app) {
       this.app = app;
+      this.model = new Model(options.model);
+      this.parentView = options.parentView;
       this.template = _.template(template);
-      Row.prototype.initialize.call(this, options);
+      this.subscriptions = [];
+      this.on('rendered', this.setup, this);
+
+      return this;
     },
 
     events: {
-      'click .navigate': 'navigate',
-      'click .info-delete': 'delete',
+      'click .navigate': 'navigate'
     },
 
-    render: function (single, prepend, re) {
-      Row.prototype.render.apply(this, arguments);
+    render: function () {
+      this.$el.html(this.template.call(this, {util: util}));
+      this.parentView.$el.addClass('indent');
+      this.$el.prependTo($('<div class="event-header">')
+          .prependTo(this.parentView.$el));
 
-      // Highlight comment if indicated in URL
-      if (this.model.id === this.app.requestedCommentId) {
-        this.$el.addClass('highlight-' + this.model.get('parent_type'));
-        _.delay(_.bind(function () {
-          this.$el.removeClass('highlight-' + this.model.get('parent_type'));
-        }, this), 1000);
-        _.delay(_.bind(function () {
-          $.scrollTo(this.$el, 1000, {easing:'easeOutExpo'});
-        }, this), 100);
+      // Determine sub view type.
+      var Target;
+      var model = this.model.get('target');
+      switch (this.model.get('parent_type')) {
+        case 'dataset': Target = Dataset; break;
+        case 'view': Target = View; break;
+        case undefined: Target = Note; break;
       }
 
+      // Render target as sub-view.  
+      this.target = new Target({
+        parentView: this.parentView,
+        model: model
+      }, this.app).render(true);
+
+      this.trigger('rendered');
       return this;
     },
 
     setup: function () {
 
-      // For rendering tooltips
-      this.$('.tooltip').tooltipster({delay: 600, multiple: true});
-
-      return Row.prototype.setup.call(this);
     },
 
-    delete: function (e) {
-      e.stopPropagation();
-      e.preventDefault();
-      rest.delete('/api/comments/' + this.model.id, {});
-      this.parentView._remove({id: this.model.id});
+    destroy: function () {
+      _.each(this.subscriptions, function (s) {
+        mps.unsubscribe(s);
+      });
+      this.undelegateEvents();
+      this.stopListening();
+      this.target.destroy();
+      this.remove();
     },
 
     navigate: function (e) {
-      e.stopPropagation();
       e.preventDefault();
+      e.stopPropagation();
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
-    },
-
-    _remove: function (cb) {
-      this.$el.slideUp('fast', _.bind(function () {
-        this.destroy();
-        cb();
-      }, this));
+      }
     },
 
   });

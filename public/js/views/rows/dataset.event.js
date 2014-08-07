@@ -12,8 +12,8 @@ define([
   'models/dataset',
   'text!../../../templates/rows/dataset.event.html',
   'text!../../../templates/dataset.header.html',
-  'views/lists/comments.event',
-  'views/lists/notes.event',
+  'views/lists/comments',
+  'views/lists/notes',
   'text!../../../templates/confirm.html'
 ], function ($, _, Backbone, mps, rest, util, Model, template, header, Comments, Notes, confirm) {
   return Backbone.View.extend({
@@ -137,7 +137,6 @@ define([
           || $(e.target).hasClass('icon-cancel')) {
         return;
       }
-
       var path = $(e.target).closest('a').attr('href');
       if (path) {
         this.app.router.navigate(path, {trigger: true});

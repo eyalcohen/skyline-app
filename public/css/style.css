@@ -3123,6 +3123,7 @@ a.comments-signin,
 
 .event-day-header span {
   display: inline-block;
+  min-width: 124px;
   padding: 0 20px;
   color: #999;
   background: #f9f9f9;
@@ -3142,6 +3143,10 @@ a.comments-signin,
   padding: 0 40px 0 0;
   margin-right: -40px;
 
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+
   -webkit-animation-name: fadeIn;
   -moz-animation-name: fadeIn;
   -o-animation-name: fadeIn;
@@ -3157,11 +3162,41 @@ a.comments-signin,
 }
 
 .event.locked {
-  background: rgba(255, 255, 0, 0.05);
+  border-left: 3px solid rgba(255, 255, 0, 0.5);
 }
 
 .event:last-child {
   margin-bottom: -30px;
+}
+
+.event-header {
+  width: 749px;
+  background: #fff;
+  padding: 0 20px;
+  height: 45px;
+  line-height: 46px;
+  color: #666;
+  border-bottom: 1px dotted #f2f2f2;
+}
+
+.locked .event-header {
+  width: 746px;
+}
+
+.event-wrap {
+  position: relative;
+  margin-left: 88px;
+  border-left: 1px solid #f2f2f2;
+  padding: 0 60px 0 40px;
+}
+
+.locked .event-wrap {
+  margin-left: 85px;
+}
+
+.event-wrap .event-timeline-label {
+  left: 0;
+  top: 50%;
 }
 
 .event-left {
@@ -3175,6 +3210,30 @@ a.comments-signin,
   margin: 0 0 0 108px;
   padding: 20px 0 20px 40px;
   border-left: 1px solid #f2f2f2;
+}
+
+.locked .event-left {
+  margin-left: -3px;
+}
+
+.locked .event-right {
+  margin-left: 105px;
+}
+
+.indent .event-left {
+  margin-left: 55px;
+}
+
+.indent .event-right {
+  margin-left: 163px;
+}
+
+.indent.locked .event-left {
+  margin-left: 52px;
+}
+
+.indent.locked .event-right {
+  margin-left: 160px;
 }
 
 .event-avatar {
@@ -3195,21 +3254,13 @@ a.comments-signin,
   color: #666;
 }
 
+.indent .event-title {
+  width: 505px;
+}
+
 .event-title-text {
   display: block;
   margin: 5px 0 11px;
-}
-
-.event-source {
-  float: right;
-  font-size: 11px;
-}
-
-.single .event-source {
-  float: none;
-  display: block;
-  font-size: 12px;
-  margin-bottom: 10px;
 }
 
 p.event-description {
@@ -3219,6 +3270,10 @@ p.event-description {
   font-size: 13px;
   line-height: 20px;
   color: #404040;
+}
+
+.indent p.event-description {
+  width: 503px;
 }
 
 .event-tags {
@@ -3231,6 +3286,10 @@ p.event-description {
   font-size: 11px;
   line-height: 13px;
   color: #8f8f8f;
+}
+
+.indent .event-info {
+  width: 503px;
 }
 
 .event-timeline-dot {
@@ -3279,7 +3338,7 @@ h2.divider + .event-timeline-label-first {
   position: absolute;
   left: -11px;
   top: -10px;
-  padding: 0 3px;
+  padding: 0 3px 0 4px;
   border: 1px solid #f2f2f2;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
@@ -3308,9 +3367,18 @@ h2.divider + .event-timeline-label-first {
 }
 
 .event-view-image {
-  display: block;
+  display: inline-block;
   max-width: 100%;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
+  border: 1px solid #f2f2f2;
+
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
 
 .single .event-view-image {
@@ -3493,15 +3561,15 @@ textarea.event-comment-input {
 
 /*.........................................................................*/
 
-.event-notes {
+.notes {
   margin-bottom: 30px;
 }
 
-.event-notes span.empty-feed {
+.notes span.empty-feed {
   margin-top: 15px;
 }
 
-.event-note {
+.note {
   display: none;
   position: relative;
   padding: 10px 30px 0;
@@ -3525,33 +3593,33 @@ textarea.event-comment-input {
   animation-fill-mode: both;
 }
 
-.event-note .comment-body {
+.note .comment-body {
   padding-left: 0;
   padding-right: 0;
 }
 
-.event-note .comment-body p {
+.note .comment-body p {
   padding: 0 0 0 40px;
 }
 
-.event-note .note-channels {
+.note .note-channels {
   padding: 0 0 0 40px;
 }
 
-.event-note .comment-info {
+.note .comment-info {
   margin-left: 40px;
 }
 
-.event-note .event-note-divider {
+.note .note-divider {
   border-top: 1px dashed #f2f2f2;
   margin: 0 -30px;
 }
 
-.event-note:last-child .event-note-divider {
+.note:last-child .note-divider {
   display: none;
 }
 
-.event-note-nav {
+.note-nav {
   display: none;
   position: absolute;
   top: 0;
@@ -3561,20 +3629,21 @@ textarea.event-comment-input {
   background: #e6e6e6;
 }
 
-.event-note-nav i {
+.note-nav i {
   position: absolute;
   left: 2px;
   color: #fff;
 }
 
-.event-note:hover .event-note-nav {
+.note:hover .note-nav {
   display: block;
 }
 
 /*.........................................................................*/
 
 .event-dataset,
-.event-view {
+.event-view,
+.event-note {
   position: relative;
   width: 560px;
 
@@ -3592,20 +3661,29 @@ textarea.event-comment-input {
   animation-fill-mode: both;
 }
 
+.indent .event-dataset,
+.indent .event-view,
+.indent .event-note {
+  width: 505px;
+}
+
 .event-dataset.single,
-.event-view.single {
+.event-view.single,
+.event-note.single {
   border-left: 1px solid #f2f2f2;
   margin-left: 48px;
 }
 
 .event-dataset .leftside,
-.event-view .leftside {
+.event-view .leftside,
+.event-note .leftside {
   width: 630px;
   padding-left: 40px;
 }
 
 .event-dataset .rightside,
-.event-view .rightside {
+.event-view .rightside,
+.event-note .rightside {
   margin: 0 0 0 710px;
 }
 
@@ -3613,6 +3691,10 @@ ul.event-channels {
   width: 560px;
   margin: 0 0 15px;
   list-style: none;
+}
+
+.indent ul.event-channels {
+  width: 505px;
 }
 
 .single p.event-description {
@@ -5108,7 +5190,7 @@ ul.target-info-list li:before {
 
 /*.........................................................................*/
 
-.notes {
+.chart-notes {
   position: absolute;
   z-index: 9;
   width: 100%;
@@ -5117,7 +5199,7 @@ ul.target-info-list li:before {
   bottom: -2px;
 }
 
-.note {
+.chart-note {
   position: absolute;
   top: 0;
   left: -1000px;
@@ -5126,7 +5208,7 @@ ul.target-info-list li:before {
   pointer-events: auto;
 }
 
-.note .note-bar {
+.chart-note .note-bar {
   position: absolute;
   width: 0;
   top: 0;
@@ -5141,15 +5223,15 @@ ul.target-info-list li:before {
   user-select: none;
 }
 
-.note.note-view .note-bar {
+.chart-note.note-view .note-bar {
   background: #60ED1F;
 }
 
-.note.note-dataset .note-bar {
+.chart-note.note-dataset .note-bar {
   background: #666;
 }
 
-.note.note-dataset-leader .note-bar {
+.chart-note.note-dataset-leader .note-bar {
   background: #27CDD6;
 }
 
@@ -5215,7 +5297,7 @@ ul.target-info-list li:before {
   bottom: 1px;
 }
 
-.note .note-cancel {
+.chart-note .note-cancel {
   position: absolute;
   right: 0;
   top: 0;
@@ -5227,7 +5309,7 @@ ul.target-info-list li:before {
   color: #666;
 }
 
-.note .note-cancel:hover {
+.chart-note .note-cancel:hover {
   color: #2f2f2f;
 }
 
@@ -5237,6 +5319,12 @@ ul.target-info-list li:before {
   font-size: 11px;
   line-height: 16px;
   color: #666;
+}
+
+.event-note .note-channels {
+  margin-top: 0;
+  padding: 0;
+  line-height: normal;
 }
 
 .note-channels-heading {

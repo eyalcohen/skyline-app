@@ -12,8 +12,8 @@ define([
   'models/view',
   'text!../../../templates/rows/view.event.html',
   'text!../../../templates/view.header.html',
-  'views/lists/comments.event',
-  'views/lists/notes.event',
+  'views/lists/comments',
+  'views/lists/notes',
   'text!../../../templates/confirm.html'
 ], function ($, _, Backbone, mps, rest, util, Model, template, header, Comments, Notes, confirm) {
   return Backbone.View.extend({
@@ -301,6 +301,20 @@ define([
         var v_min = _.min(_.pluck(sampleObj.samples, 'val'));
         var v_diff = v_max - v_min;
 
+        var prevEnd = null;
+        var data = [];
+
+        // Add points to deal with non-contiguous samples
+        _.each(sampleObj.samples, function (s) {
+          if (prevEnd != s.beg) {
+            data.push({beg: prevEnd, end: prevEnd, val:v_min});
+            data.push({beg: s.beg, end: s.beg, val:v_min});
+          }
+          data.push(s);
+          prevEnd = s.end;
+        });
+        sampleObj.samples = data;
+
         var path = d3.svg.area()
             .x(function (s, i) {
               if (t_diff === 0) {
@@ -327,7 +341,7 @@ define([
           if (channel.colorNum !== undefined) {
             color = this.app.colors[channel.colorNum];
           } else {
-            color = '#3f3f3f';
+            color = '#000000';
           }
         }
         var svg = d3.select(selector.get(0))

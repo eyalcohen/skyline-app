@@ -10,8 +10,10 @@ define([
   'rest',
   'text!../../../templates/rows/event.html',
   'views/rows/dataset.event',
-  'views/rows/view.event'
-], function ($, _, Row, mps, rest, template, Dataset, View) {
+  'views/rows/view.event',
+  'views/rows/comment.event',
+  'views/rows/note.event'
+], function ($, _, Row, mps, rest, template, Dataset, View, Comment, Note) {
   return Row.extend({
 
     attributes: function () {
@@ -37,11 +39,14 @@ define([
       switch (this.model.get('action_type')) {
         case 'dataset': Action = Dataset; break;
         case 'view': Action = View; break;
+        case 'comment': Action = Comment; break;
+        case 'note': Action = Note; break;
       }
 
       // Render action as sub-view.
       if (Action) {
         var model = this.model.get('action');
+        model.target = this.model.get('target');
         model.event = this.model.get('data');
         this.action = new Action({
           parentView: this,

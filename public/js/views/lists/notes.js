@@ -9,13 +9,13 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/notes.event.html',
+  'text!../../../templates/lists/notes.html',
   'collections/notes',
-  'views/rows/note.event',
+  'views/rows/note'
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.event-notes',
+    el: '.notes',
 
     initialize: function (app, options) {
       this.template = _.template(template);

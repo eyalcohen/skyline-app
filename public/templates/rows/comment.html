@@ -1,0 +1,42 @@
+<%
+  var gravatar = 'https://www.gravatar.com/avatar/'
+      + this.model.get('author').gravatar + '?s=34&d=identicon';
+
+  var link;
+  if (this.model.id !== -1) {
+    var parent = this.parentView.parentView.model.attributes;
+    if (this.model.get('parent_type') === 'view') {
+      link = [parent.author.username, 'views', parent.slug].join('/');
+    } else if (this.model.get('parent_type') === 'dataset') {
+      link = [parent.author.username, parent.id].join('/');
+    } else {
+      var target = parent.parent || parent.target;
+      link = parent.parent_type === 'dataset' ?
+          [target.author.username, target.id].join('/'):
+          [target.author.username, 'views', target.slug].join('/');
+      link += '/note/' + parent.id
+    }
+  } else {
+    link = '#';
+  }
+%>
+
+<a href="/<%= this.model.get('author').username %>" class="event-comment-avatar navigate">
+  <img src="<%= gravatar %>" width="34" height="34" class="tooltip"
+      title="<%= this.model.get('author').displayName %>" />
+</a>
+<div class="event-comment-body"><p><%= this.model.body(true) %></p></div>
+<div class="event-comment-info">
+  Added <a href="/<%= link %>#c=<%= this.model.id %>" class="navigate">
+    <time class="created static" 
+        datetime="<%= this.model.get('created') %>" 
+        title="<%= this.model.get('created') %>">
+      <%= this.model.get('created') %>
+    </time>
+  </a>
+  <% if (this.app.profile.user &&
+        this.model.get('author').id === this.app.profile.user.id) { %>
+    <span class="info-divider">&nbsp;&middot;&nbsp;</span>
+    <a href="javascript:;" class="info-delete">Delete</a>
+  <% } %>
+</div>

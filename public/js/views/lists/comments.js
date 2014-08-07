@@ -9,9 +9,9 @@ define([
   'mps',
   'rest',
   'util',
-  'text!../../../templates/lists/comments.event.html',
+  'text!../../../templates/lists/comments.html',
   'collections/comments',
-  'views/rows/comment.event',
+  'views/rows/comment',
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     

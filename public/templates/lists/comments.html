@@ -2,6 +2,7 @@
   var user = this.app.profile.user;
   var gravatar = user ? 'https://www.gravatar.com/avatar/'
       + user.gravatar + '?s=34&d=identicon': null;
+  var placeholder = this.type === 'note' ? 'reply': 'comment';
 %>
 
 <% if (this.collection.older > 0) { %>
@@ -24,7 +25,7 @@
       <div class="event-comment-body-input">
         <form enctype="multipart/form-data" method="POST" class="event-comment-input-form">
           <textarea name="body" class="event-comment-input" 
-              placeholder="Leave a comment ..."></textarea>
+              placeholder="Leave a <%= placeholder %> ..."></textarea>
         </form>
       </div>
     </div>

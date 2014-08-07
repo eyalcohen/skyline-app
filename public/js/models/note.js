@@ -20,6 +20,14 @@ define([
       }
     },
 
+    formatAuthorFor: function (user) {
+      if (user && user.id === this.get('author').id) {
+        return 'You';
+      } else {
+        return this.get('author').displayName;
+      }
+    },
+
     formatChannelName: function (str) {
       return _.str.prune(str, 30);
     }

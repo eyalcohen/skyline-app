@@ -15,7 +15,7 @@ define([
 ], function ($, _, List, mps, rest, util, template, Collection, Row) {
   return List.extend({
     
-    el: '.notes',
+    el: '.chart-notes',
     selection: {beg: null, end: null},
     latestNoteZ: 0,
     requestedNotes: [],
