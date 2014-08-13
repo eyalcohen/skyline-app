@@ -247,7 +247,7 @@ define([
         var beg = this.selection.beg;
         this.selection.beg = this.selection.end;
         this.selection.end = beg;
-        p = left - sw - ww;
+        p = left - sw - ww + 1;
 
         // Ensure wrap will be entirely on screen.
         if (p < 0) pan = p - 20;

@@ -24,9 +24,8 @@ define([
     },
 
     render: function () {
-
       this.template = _.template(template);
-      this.$el.html(this.template.call(this, {splash: this.options.splash}));
+      this.$el.html(this.template.call(this));
 
       this.trigger('rendered');
       return this;
@@ -52,7 +51,7 @@ define([
         filters: false,
         headers: false
       });
-      this.datasets = new Datasets(this.app, {
+      this.library = new Datasets(this.app, {
         parentView: this,
         reverse: true,
         library: true
@@ -76,6 +75,8 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
+      this.events.destroy();
+      this.library.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.empty();

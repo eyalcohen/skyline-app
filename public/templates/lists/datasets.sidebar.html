@@ -17,7 +17,7 @@
   <% _.each(this.collection.models, _.bind(function (row) { %>
     <%= this.row(row) %>
   <% }, this)); %>
-  <% if (this.app.profile.content.datasets.count) { %>
+  <% if (this.source.count) { %>
     <li class="sidebar-more">
       <a href="/library">see all <i class="icon-angle-right"></i></a>
     </li>

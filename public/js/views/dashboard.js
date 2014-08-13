@@ -1,5 +1,5 @@
 /*
- * Page view for all activity.
+ * Page view for follow and watch activity.
  */
 
 define([
@@ -44,6 +44,7 @@ define([
       this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
       this.views = new Views(this.app, {parentView: this, reverse: true});
       this.others = new Others(this.app, {parentView: this, reverse: true});
+      this.library = new Datasets(this.app, {parentView: this, reverse: true, library: true});
       this.followers = new Followers(this.app, {parentView: this, reverse: true});
       this.followees = new Followees(this.app, {parentView: this, reverse: true});
 
@@ -63,6 +64,7 @@ define([
       this.datasets.destroy();
       this.views.destroy();
       this.others.destroy();
+      this.library.destroy();
       this.followers.destroy();
       this.followees.destroy();
       this.undelegateEvents();

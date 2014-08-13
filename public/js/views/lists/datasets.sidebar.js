@@ -21,6 +21,9 @@ define([
       this.template = _.template(template);
       this.collection = new Collection;
       this.Row = Row;
+      if (options.library) {
+        this.setElement('.sidebar-datasets2');
+      }
 
       // Call super init.
       List.prototype.initialize.call(this, app, options);
@@ -35,9 +38,11 @@ define([
       this.app.rpc.socket.on('dataset.removed', _.bind(this._remove, this));
 
       // Reset the collection.
+      this.source = this.collection.options.library ?
+          this.app.profile.content.library:
+          this.app.profile.content.datasets;
       var items = this.collection.options.library ?
-          this.app.profile.content.datasets.items:
-          _.sortBy(this.app.profile.content.datasets.items, 'title');
+          this.source.items: _.sortBy(this.source.items, 'title');
       this.collection.reset(items);
     },
 
@@ -47,7 +52,7 @@ define([
       this.count = this.$('.sidebar-heading-cnt');
       this.tip = this.$('.sidebar-tip');
 
-      this.updateCount(this.app.profile.content.datasets.count);
+      this.updateCount(this.source.count);
       return List.prototype.setup.call(this);
     },
 

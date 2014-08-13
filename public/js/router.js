@@ -20,6 +20,7 @@ define([
   'views/header',
   'views/tabs',
   'views/dashboard',
+  'views/trending',
   'views/notifications',
   'views/splash',
   'views/settings',
@@ -38,7 +39,7 @@ define([
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
 ], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
-    Flashes, Save, Finder, Header, Tabs, Dashboard, Notifications, Splash, Settings,
+    Flashes, Save, Finder, Header, Tabs, Dashboard, Trending, Notifications, Splash, Settings,
     Upload, Reset, Profile, Library, Chart, Dataset, View, Static, How, howTemp, missionTemp, contactTemp,
     privacyTemp, termsTemp) {
 
@@ -115,7 +116,6 @@ define([
       this.route('library', 'library', this.library);
       this.route('signin', 'signin', this.signin);
       this.route('signup', 'signup', this.signup);
-      // trending is the same as the splash page but just below the fold
       this.route('trending', 'trending', this.trending);
       this.route('', 'dashboard', this.dashboard);
 
@@ -275,22 +275,11 @@ define([
 
     // Routes //
 
-    trending: function () {
-      this.start();
-      this.renderTabs();
-      var query = {actions: this.getEventActions()};
-      this.render('/service/trending', query, _.bind(function (err) {
-        if (err) return;
-        $('.container').addClass('wide').addClass('landing');
-        this.page = new Splash(this.app, {splash: false}).render();
-        this.stop();
-      }, this));
-    },
-
     dashboard: function () {
       this.start();
       if (!this.tabs || !this.tabs.params.tabs || !this.tabs.params.tabs[1]
-          || this.tabs.params.tabs[1].href !== '/notifications') {
+          || (this.tabs.params.tabs[1].href !== '/trending'
+          && this.tabs.params.tabs[1].href !== '/notifications')) {
         this.renderTabs();
       }
       var query = {actions: this.getEventActions()};
@@ -300,13 +289,51 @@ define([
           $('.container').removeClass('wide').removeClass('landing');
           this.page = new Dashboard(this.app).render();
           this.renderTabs({tabs: [
-            {title: 'Activity', href: '/', active: true},
+            {title: 'Following', href: '/', active: true},
+            {title: 'Trending', href: '/trending'},
             {title: 'Notifications', href: '/notifications'}
           ]});
         } else {
           $('.container').addClass('wide').addClass('landing');
           this.page = new Splash(this.app, {splash: true}).render();
         }
+        this.stop();
+      }, this));
+    },
+
+    trending: function () {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/trending', {}, _.bind(function (err) {
+        if (err) return;
+        this.header.highlight('/');
+        if (this.app.profile.user) {
+          this.renderTabs({tabs: [
+            {title: 'Following', href: '/'},
+            {title: 'Trending', href: '/trending', active: true},
+            {title: 'Notifications', href: '/notifications'}
+          ]});
+        } else {
+          this.renderTabs({title:
+              'Public content now trending on <span class="brand-emphasis">skyline</span>:'});
+        }
+        this.page = new Trending(this.app).render();
+        this.stop();
+      }, this));
+    },
+
+    notifications: function () {
+      this.start();
+      $('.container').removeClass('wide').removeClass('landing');
+      this.render('/service/notifications', {}, true, _.bind(function (err) {
+        if (err) return;
+        this.header.highlight('/');
+        this.page = new Notifications(this.app).render();
+        this.renderTabs({tabs: [
+          {title: 'Following', href: '/'},
+          {title: 'Trending', href: '/trending'},
+          {title: 'Notifications', href: '/notifications', active: true}
+        ]});
         this.stop();
       }, this));
     },
@@ -332,20 +359,6 @@ define([
         if (err) return;
         this.page = new Profile(this.app).render();
         this.renderTabs({html: this.page.title});
-        this.stop();
-      }, this));
-    },
-
-    notifications: function () {
-      this.start();
-      $('.container').removeClass('wide').removeClass('landing');
-      this.render('/service/notifications', {}, true, _.bind(function (err) {
-        if (err) return;
-        this.page = new Notifications(this.app).render();
-        this.renderTabs({tabs: [
-          {title: 'Activity', href: '/'},
-          {title: 'Notifications', href: '/notifications', active: true}
-        ]});
         this.stop();
       }, this));
     },
