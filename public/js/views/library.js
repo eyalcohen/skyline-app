@@ -20,9 +20,6 @@ define([
       this.app = app;
       this.subscriptions = [];
       this.on('rendered', this.setup, this);
-
-      // Set datasets.
-      this.datasets = this.app.profile.content.datasets;
     },
 
     render: function () {
@@ -32,7 +29,7 @@ define([
       this.app.title('Skyline | Library');
 
       this.template = _.template(template);
-      this.$el.html(this.template.call(this));
+      this.$el.html(this.template.call(this, {datasets: this.app.profile.content.datasets}));
 
       // Render title.
       this.title = _.template(header).call(this);
