@@ -10,8 +10,7 @@ define([
   'util',
   'models/user',
   'text!../../templates/library.html',
-  'text!../../templates/profile.header.html',
-  'views/lists/datasets.library'
+  'text!../../templates/profile.header.html'
 ], function ($, _, Backbone, mps, util, User, template, header, Datasets) {
   return Backbone.View.extend({
 
@@ -21,6 +20,12 @@ define([
       this.app = app;
       this.subscriptions = [];
       this.on('rendered', this.setup, this);
+
+      // Set datasets.
+      this.datasets = this.app.profile.content.datasets;
+      // for (var i=0; i<100; ++i) {
+      //   this.datasets.push(this.datasets[0])
+      // }
     },
 
     render: function () {
@@ -39,11 +44,11 @@ define([
       return this;
     },
 
+    events: {
+      'click .navigate': 'navigate'
+    },
+
     setup: function () {
-
-      // Render lists.
-      this.datasets = new Datasets(this.app, {parentView: this, reverse: true});
-
       return this;
     },
 
@@ -56,10 +61,17 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
-      this.datasets.destroy();
       this.undelegateEvents();
       this.stopListening();
       this.empty();
+    },
+
+    navigate: function (e) {
+      e.preventDefault();
+      var path = $(e.target).closest('a').attr('href');
+      if (path) {
+        this.app.router.navigate(path, {trigger: true});
+      }
     },
 
   });

@@ -1,5 +1,37 @@
-<div class="center">
-  <div class="library-datasets"></div>
+<div class="columned">
+  <%
+  var n = Math.ceil(this.datasets.length / 2);
+  var j = 0;
+  _.each(this.datasets, _.bind(function (d, i) {
+    var num_channels = d.channels_cnt;
+    if (num_channels === 1) {
+      num_channels += ' channel';
+    } else {
+      num_channels += ' channels';
+    }
+
+    var source = '';
+    if (d.source) {
+      source += d.source;
+    }
+    var link = d.sourceLink;
+    if (link) {
+      if (source !== '') {
+        source = '<a href="' + link + '" target="_blank"><i class="icon-link"></i>' + source + '</a>';
+      } else {
+        source = '<a href="' + link + '" target="_blank"><i class="icon-link"></i>' + link + '</a>';
+      }
+    }
+  %>
+    <% if (j === 0) { %><ul class="library-datasets"><% } %>
+      <li>
+        <a href="/<%= d.author.username %>/<%= d.id %>" class="navigate">
+            <i class="<%= d.producer_id ? 'icon-signal': 'icon-globe' %>"></i><%= d.title %></a><span>
+            <%= num_channels %><%= source !== '' ? ' from ' + source: '' %></span>
+      </li>
+    <% ++j; if (j > n - 1 || i === this.datasets.length - 1) { j = 0; %></ul><%} %>
+  <% }, this)); %>
+  <div class="clearfix"></div>
 </div>
 <div class="footer">
   <ul>

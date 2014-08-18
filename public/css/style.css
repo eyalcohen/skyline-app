@@ -1265,6 +1265,12 @@ body.embed .folder {
   height: 100%;
 }
 
+.columned {
+  min-height: 276px;
+  padding: 40px 0 60px;
+  color: #404040;
+}
+
 .center {
   min-height: 276px;
   padding: 40px 80px 60px;
@@ -3800,79 +3806,6 @@ a.event-channel-delete:active {
 
 /*.........................................................................*/
 
-.library-dataset-header {
-  position: relative;
-  margin: 0 -110px 10px;
-  padding: 0 30px;
-}
-
-.library-dataset + .library-dataset .library-dataset-header {
-  border-top: 1px solid #e6e6e6;
-  padding-top: 30px;
-}
-
-.library-dataset-info {
-  position: absolute;
-  top: 2px;
-  right: 110px;
-  font-size: 12px;
-  color: #666;
-}
-
-.library-dataset + .library-dataset .library-dataset-info {
-  top: 32px;
-}
-
-.library-dataset-title {
-  font-size: 18px;
-  display: block;
-  font-weight: bold;
-}
-
-.library-dataset-title i {
-  color: #808080;
-}
-
-.library-dataset-title i:before {
-  margin: 0 61px 0 0;
-}
-
-.library-dataset {
-  margin-bottom: 40px;
-}
-
-.library-dataset:last-child {
-  margin-bottom: 0;
-}
-
-.library-dataset p.event-description {
-  width: 928px;
-  margin-top: 10px;
-  margin-bottom: 0;
-  margin-left: 79px;
-  font-size: 16px;
-  line-height: 28px;
-}
-
-.library-dataset .event-tags {
-  width: auto;
-  display: block;
-}
-
-.library-dataset ul.event-channels {
-  width: 100%;
-}
-
-.library-dataset ul.event-channels li {
-  margin-bottom: 5px;
-}
-
-.library-dataset ul.event-channels li .event-channel-svg {
-  height: 30px;
-}
-
-/*.........................................................................*/
-
 .notifications {
   margin: 0 -40px 0 -30px;
 }
@@ -4237,6 +4170,32 @@ ul.settings-detail-list li:before {
 .settings-notification-item {
   color: #666;
   vertical-align: -1px;
+}
+
+/*.........................................................................*/
+
+ul.library-datasets {
+  float: left;
+  width: 544px;
+  list-style: none;
+}
+
+ul.library-datasets a {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+ul.library-datasets a i {
+  color: #666;
+}
+
+ul.library-datasets span {
+  color: #666;
+  font-size: 11px;
+}
+
+ul.library-datasets span a {
+  font-size: 11px;
 }
 
 /*.........................................................................*/
