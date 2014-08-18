@@ -4175,14 +4175,13 @@ ul.settings-detail-list li:before {
 /*.........................................................................*/
 
 ul.library-datasets {
-  float: left;
-  width: 544px;
+  margin-left: 30px;
   list-style: none;
 }
 
 ul.library-datasets a {
   font-size: 16px;
-  line-height: 24px;
+  line-height: 30px;
 }
 
 ul.library-datasets a i {

@@ -23,9 +23,6 @@ define([
 
       // Set datasets.
       this.datasets = this.app.profile.content.datasets;
-      // for (var i=0; i<100; ++i) {
-      //   this.datasets.push(this.datasets[0])
-      // }
     },
 
     render: function () {
