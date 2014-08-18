@@ -40,8 +40,7 @@ exports.get = function (env) {
         }
       }:
       {
-        // MONGO_URI: 'mongodb://localhost:27017/skyline',
-        MONGO_URI: 'mongodb://skyliner:time@candidate.13.mongolayer.com:10265,candidate.12.mongolayer.com:10259/skyline',
+        MONGO_URI: 'mongodb://localhost:27017/skyline',
         //REDIS_HOST_CACHE: 'ec2-54-88-27-85.compute-1.amazonaws.com',
         REDIS_HOST_CACHE: 'localhost',
         REDIS_HOST_SESSION: 'localhost',
