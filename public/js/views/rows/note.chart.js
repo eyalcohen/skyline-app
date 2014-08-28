@@ -83,7 +83,7 @@ define([
         _.each(this.model.get('channels'), function (c) {
           mps.publish('dataset/requestOpenChannel', [c.channelName]);
         });
-      } else if (single) {
+      } else if (single && !this.model.get('_close')) {
         this.open();
       }
 
@@ -116,8 +116,9 @@ define([
       e.preventDefault();
       if ($(e.target).hasClass('info-delete')) return;
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
+      }
     },
 
     requestChannel: function (e) {

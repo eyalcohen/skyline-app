@@ -58,8 +58,9 @@ define([
         }
         _.each(this.app.profile.content.datasets.items, function (d, i) {
           if (!state.datasets[d.id] ||
-              (state.datasets[d.id] && state.datasets[d.id].notes === false))
+              (state.datasets[d.id] && state.datasets[d.id].notes === false)) {
             return;
+          }
           _.each(d.notes, function (n) {
             n.parent = d;
             if (i === 0) n.leader = true;
@@ -75,9 +76,10 @@ define([
 
         // Validate old views.
         var reject = [];
-        var dids = _.map(_.keys(state.datasets),function (k) {
-          return Number(k);
+        var dids = _.map(_.keys(state.datasets), function (k) {
+          return state.datasets[k].notes ? Number(k): false;
         });
+        dids = _.compact(dids);
         var vid = state.id ? Number(state.id): null;
         _.each(this.views, function (v) {
           var pid = v.model.get('parent_id');
@@ -97,10 +99,10 @@ define([
           });
           if (!exists) {
             n._new = true;
+            n._close = true;
             this.collection.push(n);
           }
         }, this));
-
       }
     },
 
@@ -124,7 +126,6 @@ define([
       this.views.sort(function (a, b) {
         return b.model.get('time') - a.model.get('time');
       });
-
       return view.toHTML();
     },
 

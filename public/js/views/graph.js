@@ -896,7 +896,7 @@ define([
     mouseLineStyle: function(e, stats) {
       // lookup closest channel to mouse cursor
       var closestChannel = _.sortBy(stats, 'pixelsFromInterpPt')[0];
-      if (closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {
+      if (closestChannel && closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {
         closestChannel = false;
       }
       if (!closestChannel && this.highlightedChannel) {
