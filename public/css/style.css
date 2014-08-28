@@ -5195,7 +5195,7 @@ ul.target-info-list li:before {
   position: absolute;
   width: 0;
   top: 0;
-  bottom: -1px;
+  bottom: 0;
   cursor: pointer;
 
   border-left: 1px dashed rgba(0,0,0,0.3);
