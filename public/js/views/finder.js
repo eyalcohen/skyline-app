@@ -48,19 +48,16 @@ define([
         closeClick: true
       });
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .modal-close': 'close',
+      'click .stream-button': 'createStream',
       'change input[name="data_file"]': 'update'
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Save refs.
@@ -219,6 +216,29 @@ define([
 
       return false;
     },
+
+    createStream: function (e) {
+      if (e) e.preventDefault();
+      var payload = {
+        uri: this.$('input[name="uri"]').val(),
+        schedule: Number(this.$('input[name="schedule"]').val()),
+        transform: this.$('textarea[name="transform"]').val()
+      };
+      payload.author_id = this.app.profile.user.id;
+      rest.post('http://localhost:8081/create', payload,
+          _.bind(function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
+        // Go to dataset page.
+        this.app.router.navigate(data.path, {trigger: true});
+        this.close();
+      }, this));
+
+      return false;
+    }
 
   });
 });

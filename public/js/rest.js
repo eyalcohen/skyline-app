@@ -24,7 +24,7 @@ define([
           try {
             err = JSON.parse(res.responseText);
             var data = err.data;
-            err = {
+            err = err.code ? err: {
               user: err.user,
               content: err.content,
               message: err.error.message,

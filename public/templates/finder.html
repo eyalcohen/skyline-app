@@ -16,6 +16,17 @@
 <div class="modal-inner">
   <div>
     <span class="modal-heading">
+      Create a stream from a URL.
+    </span>
+    <input name="uri" type="text" placeholder="URL (must return JSON)" />
+    <input name="schedule" type="text" placeholder="How often to poll for data (milliseconds)" />
+    <textarea name="transform" placeholder="Function to transform data into samples" />
+    <a tabindex="9" href="javascript:;" class="button connect-button stream-button navigate">
+      Create streaming dataset
+      <i class="icon-right-open-big"></i>
+    </a>
+
+    <span class="modal-heading">
       Add data from a file on your computer.
     </span>
     <input name="dummy_data_file" type="text" class="dummy-file-input" placeholder="Select file..." readonly />
@@ -26,12 +37,12 @@
       File Requirements:
     </span>
     <ul class="settings-detail-txt settings-detail-list">
-      <li> Data must be tabular in nature: seperated by commas or tabs. </li>
-      <li> Data must have a header row to identify channel names. </li>
-      <li> There must be at least one column that references the date.  A time column may optionally be added. </li>
-      <li> We support Microsoft's Excel (.xls and .xlsx) formats.  Data must be on the first sheet. </li>
+      <li>Data must be tabular in nature: seperated by commas or tabs.</li>
+      <li>Data must have a header row to identify channel names.</li>
+      <li>There must be at least one column that references the date. A time column may optionally be added.</li>
+      <li>We support Microsoft's Excel (.xls and .xlsx) formats. Data must be on the first sheet.</li>
     </ul>
-    <span> &nbsp; </span>
+    <span>&nbsp;</span>
   </div>
 </div>          
 <% if (search) { %>

@@ -17,17 +17,19 @@
   if (link) {
     if (source !== '') {
       if (this.parentView) {
-        source = '<a class="title" href="' + link + '" target="_blank"><i class="icon-link"></i>' + source + '</a>';
+        source = '<a class="title" href="' + link + '" target="_blank"><i class="icon-link"></i>' + _.str.prune(source, 36) + '</a>';
       } else {
-        source = '<a href="' + link + '" target="_blank">' + source + '</a>';
+        source = '<a href="' + link + '" target="_blank">' + _.str.prune(source, 36) + '</a>';
       }
     } else {
       if (this.parentView) {
-        source = '<a class="title" href="' + link + '" target="_blank"><i class="icon-link"></i>' + link + '</a>';
+        source = '<a class="title" href="' + link + '" target="_blank"><i class="icon-link"></i>' + _.str.prune(link, 36) + '</a>';
       } else {
-        source = '<a href="' + link + '" target="_blank">' + link + '</a>';
+        source = '<a href="' + link + '" target="_blank">' + _.str.prune(link, 36) + '</a>';
       }
     }
+  } else {
+    source = _.str.prune(source, 36)
   }
 
   var tags = this.model.get('tags') || [];
@@ -136,9 +138,51 @@
             </td>
           </tr>
 
+          <% if (this.model.get('uri')) { %>
+            <tr>
+              <td>
+                <label for="datasetUri">Source URI for streaming (must return JSON)</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="text" tabindex="6" id="datasetUri" name="uri"
+                    class="dataset-param" placeholder="link" value="<%= this.model.get('uri') %>" />
+              </td>
+            </tr>
+          <% } %>
+
+          <% if (this.model.get('schedule')) { %>
+            <tr>
+              <td>
+                <label for="datasetSchedule">Polling interval for streaming (milliseconds)</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="text" tabindex="7" id="datasetSchedule" name="schedule"
+                    class="dataset-param" placeholder="link" value="<%= this.model.get('schedule') %>" />
+              </td>
+            </tr>
+          <% } %>
+
+          <% if (this.model.get('transform')) { %>
+            <tr>
+              <td>
+                <label for="datasetTransform">Transform function for streaming</label>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input type="text" tabindex="8" id="datasetTransform" name="transform"
+                    class="dataset-param" placeholder="link" value="<%= this.model.get('transform') %>" />
+              </td>
+            </tr>
+          <% } %>
+
           <tr>
             <td style="padding-top:15px;">
-              <a tabindex="6" href="javascript:;" class="demolish button connect-button delete-button">
+              <a tabindex="9" href="javascript:;" class="demolish button connect-button delete-button">
                 Delete Dataset
                 <i class="icon-right-open-big"></i>
               </a>
@@ -212,9 +256,9 @@
               <i class="icon-chart-line"></i>
             </span>
             <span class="event-timeline-label-text"></span>
-            <input type="text" tabindex="<%= i+8 %>" id="<%= c.id %>"
+            <input type="text" tabindex="<%= i+10 %>" id="<%= c.id %>"
                 class="event-channel-input" data-param="humanName" value="<%= c.humanName %>" />
-            <input type="text" tabindex="<%= i+8 %>" id="<%= c.id %>"
+            <input type="text" tabindex="<%= i+10 %>" id="<%= c.id %>"
                 class="event-unit-input" data-param="units" value="<%= c.units %>"
                 placeholder="unit"/>
             <div class="event-channel-svg"></div>
