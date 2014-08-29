@@ -55,7 +55,8 @@
     "passport-google-oauth": "^0.1.5",
     "moment": "^2.6.0",
     "porter-stemmer": "^0.9.1",
-    "underscore.deep": "^0.3.0"
+    "underscore.deep": "^0.3.0",
+    "request": "~2.40.0"
   },
   "devDependencies": {
     "grunt": "0.4.4",

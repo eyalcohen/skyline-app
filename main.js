@@ -359,8 +359,14 @@ if (cluster.isMaster) {
 
               // FIXME: Use a key map instead of
               // attaching this directly to the socket.
-              socket.client = new Client(socket, app.get('pubsub'),
-                  app.get('samples'), rcCache, app.get('storage'));
+              var clientOpts = {
+                pubsub: app.get('pubsub'),
+                samples: app.get('samples'),
+                redis: rcCache,
+                storage: app.get('storage'),
+                app: app
+              }
+              socket.client = new Client(socket, clientOpts);
             });
 
             // Set pubsub sio
