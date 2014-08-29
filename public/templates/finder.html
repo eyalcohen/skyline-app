@@ -15,24 +15,31 @@
 </span>
 <div class="modal-inner">
   <div>
-    <span class="modal-heading">
-      Configure a new streaming dataset from a URL.
-    </span>
-    <input name="uri" type="text" placeholder="Data URL (must return JSON)" />
-    <input name="schedule" type="text" placeholder="Polling interval (milliseconds)" />
-    <textarea name="transform" placeholder="Steps to transform data into Skyline samples (Javascript)" />
-    <a tabindex="9" href="javascript:;" class="button connect-button stream-button navigate">
-      Create streaming dataset
-      <i class="icon-right-open-big"></i>
-    </a>
-
+    <% if (this.app.profile.user.admin) { %>
+      <span class="modal-heading">
+        Configure a new streaming dataset from a URL.
+      </span>
+      <input name="uri" type="text" placeholder="Data URL (must return JSON)" />
+      <input name="schedule" type="text" placeholder="Polling interval (milliseconds)" />
+      <textarea name="transform" placeholder="Steps to transform data into Skyline samples (Javascript)" />
+      <div class="button-wrap">
+        <a tabindex="9" href="javascript:;" class="button connect-button stream-button navigate">
+          Create streaming dataset
+          <i class="icon-right-open-big"></i>
+        </a>
+        <div class="button-spin"></div>
+      </div>
+      <span class="modal-error stream-error"></span>
+    <% } %>
     <span class="modal-heading">
       Add data from a file on your computer.
     </span>
-    <input name="dummy_data_file" type="text" class="dummy-file-input" placeholder="Select file..." readonly />
-    <input name="data_file" type="file" class="file-input" />
-    <div class="finder-progress-bar"></div>
-    <span class="modal-error"></span>
+    <div class="file-input-wrap">
+      <input name="dummy_data_file" type="text" class="dummy-file-input" placeholder="Select file..." readonly />
+      <input name="data_file" type="file" class="file-input" />
+      <div class="finder-progress-bar"></div>
+    </div>
+    <span class="modal-error file-error"></span>
     <span class="modal-heading">
       File Requirements:
     </span>
