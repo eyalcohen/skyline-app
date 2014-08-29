@@ -141,7 +141,7 @@
           <% if (this.model.get('uri')) { %>
             <tr>
               <td>
-                <label for="datasetUri">Source URI for streaming (must return JSON)</label>
+                <label for="datasetUri">Data URL (must return JSON)</label>
               </td>
             </tr>
             <tr>
@@ -155,7 +155,7 @@
           <% if (this.model.get('schedule')) { %>
             <tr>
               <td>
-                <label for="datasetSchedule">Polling interval for streaming (milliseconds)</label>
+                <label for="datasetSchedule">Polling interval (milliseconds)</label>
               </td>
             </tr>
             <tr>
@@ -169,7 +169,7 @@
           <% if (this.model.get('transform')) { %>
             <tr>
               <td>
-                <label for="datasetTransform">Transform function for streaming</label>
+                <label for="datasetTransform">Steps to transform data into Skyline samples (Javascript)</label>
               </td>
             </tr>
             <tr>

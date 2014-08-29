@@ -16,11 +16,11 @@
 <div class="modal-inner">
   <div>
     <span class="modal-heading">
-      Create a stream from a URL.
+      Configure a new streaming dataset from a URL.
     </span>
-    <input name="uri" type="text" placeholder="URL (must return JSON)" />
-    <input name="schedule" type="text" placeholder="How often to poll for data (milliseconds)" />
-    <textarea name="transform" placeholder="Function to transform data into samples" />
+    <input name="uri" type="text" placeholder="Data URL (must return JSON)" />
+    <input name="schedule" type="text" placeholder="Polling interval (milliseconds)" />
+    <textarea name="transform" placeholder="Steps to transform data into Skyline samples (Javascript)" />
     <a tabindex="9" href="javascript:;" class="button connect-button stream-button navigate">
       Create streaming dataset
       <i class="icon-right-open-big"></i>
