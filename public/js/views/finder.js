@@ -266,7 +266,7 @@ define([
       this.newStreamSpin.start();
       this.newStreamButton.addClass('loading');
 
-      rest.post('http://localhost:8081/create', payload,
+      rest.post(this.app.apis.streams + '/create', payload,
           _.bind(function (err, data) {
         if (err) {
           this.newStreamSpin.stop();
