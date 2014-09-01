@@ -33,8 +33,15 @@ define([
     if (window.__s === '') {
       window._rpc = rpc;
       window._rest = rest;
-      window._mps = mps;
+      window._mps = mps; 
     }
+
+    // Remote API config.
+    this.apis = window.__s === '' ? {
+      streams: 'http://localhost:8081'
+    }: {
+      streams: 'http://streams.skyline-data.com'
+    };
   }
 
   App.prototype.getColors = function(colornum) {

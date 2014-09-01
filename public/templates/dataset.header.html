@@ -32,11 +32,24 @@
       <a href="/<%= data.author.username %>/<%= data.id %>" class="button title-button navigate">
           <i class="icon-angle-left"></i> Done</a>
     <% } %>
+    <% if (data.streaming) { %>
+      <a href="javascript:;" class="button title-button pause-button"
+          data-path="<%= this.app.apis.streams %>/stop/<%= this.model.id %>"
+          data-_path="<%= this.app.apis.streams %>/start/<%= this.model.id %>">
+        <i class="icon-pause"></i> Pause</a>
+    <% } else { %>
+      <a href="javascript:;" class="button title-button start-button"
+          data-path="<%= this.app.apis.streams %>/start/<%= this.model.id %>"
+          data-_path="<%= this.app.apis.streams %>/stop/<%= this.model.id %>">
+        <i class="icon-play"></i> Start</a>
+    <% } %>
   <% } %>
 <% } %>
 <div class="page-title">
   <a href="/<%= data.author.username %>" class="navigate">
     <img src="<%= gravatar %>" class="page-title-avatar" width="26" height="26" /></a>
+  <a href="/<%= data.author.username %>" class="navigate">
+    <%= data.author.displayName %></a> / 
   <a href="/<%= link %>"
       class="navigate<%= data.public === false ? ' locked': '' %>">
     <%= data.title %></a>

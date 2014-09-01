@@ -84,6 +84,8 @@ define([
       'click .unfollow-button': 'unfollow',
       'click .watch-button': 'watch',
       'click .unwatch-button': 'unwatch',
+      'click .start-button': 'start',
+      'click .pause-button': 'pause',
       'click .upload-finish': function (e) {
         e.preventDefault();
         if (!$(e.target).hasClass('disabled')) {
@@ -136,12 +138,13 @@ define([
       this.request.call(this, btn, function (data) {
 
         // Update button content.
-        if (data.following === 'request')
+        if (data.following === 'request') {
           btn.removeClass('follow-button').addClass('disabled')
               .html('<i class="icon-user"></i> Requested');
-        else
+        } else {
           btn.removeClass('follow-button').addClass('unfollow-button')
               .html('<i class="icon-user-delete"></i> Unfollow');
+        }
       });
 
       return false;
@@ -183,6 +186,32 @@ define([
       return false;
     },
 
+    start: function (e) {
+      var btn = $(e.target).closest('a');
+      this.request.call(this, btn, function (data) {
+        console.log(data)
+
+        // Update button content.
+        btn.removeClass('start-button').addClass('pause-button')
+            .html('<i class="icon-pause"></i> Pause');
+      });
+
+      return false;
+    },
+
+    pause: function (e) {
+      var btn = $(e.target).closest('a');
+      this.request.call(this, btn, function (data) {
+        console.log(data)
+
+        // Update button content.
+        btn.removeClass('pause-button').addClass('start-button')
+            .html('<i class="icon-play"></i> Start');
+      });
+
+      return false;
+    },
+
     request: function (target, cb) {
 
       // Prevent multiple requests.
@@ -199,7 +228,7 @@ define([
         if (err) {
 
           // Show error.
-          mps.publish('flash/new', [{err: err, level: 'error', sticky: true}]);
+          mps.publish('flash/new', [{err: err.toString(), level: 'error', sticky: true}]);
           return false;
         }
 
