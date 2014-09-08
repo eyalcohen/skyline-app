@@ -188,7 +188,6 @@ define([
       */
 
       // Update client.
-      var client = this.getOrCreateClient(dataset);
       _.each(channels, _.bind(function (channel) {
         if (_.pluck(client.channels, 'channelName')
             .indexOf(channel.channelName) !== -1)
