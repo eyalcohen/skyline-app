@@ -16,7 +16,7 @@ define([
 
     // At cacheSize = 1000000, the app tab in Chrome uses about 350MB.
     this.maxCacheSize = 1000000;
-    this.samplesPerBucket = 50;
+    this.samplesPerBucket = 500;
 
     // Fetch requests by priority
     this.priorityQueue = {
@@ -45,13 +45,15 @@ define([
       10,   //ms   10
       100,  //ms   10
       1000, //1s   10
-      60*1000, // 1 minute  60
-      60*60*1000, // 1 hour
-      24*60*60*1000, // 1 day
-      30*24*60*60*1000, // 1 month
-      12*30*24*60*60*1000, // 1 year
-      10*12*30*24*60*60*1000, // 1 decade
-      10*10*12*30*24*60*60*1000 // 1 century
+      10*1000, //10s   10
+      60*1000, // 1 minute 6
+      10*60*1000, // 10 minutes 10
+      60*60*1000, // 1 hour 6
+      24*60*60*1000, // 1 day 24
+      30*24*60*60*1000, // 1 month 30
+      12*30*24*60*60*1000, // 1 year 12
+      10*12*30*24*60*60*1000, // 1 decade 10
+      10*10*12*30*24*60*60*1000 // 1 century 10
     ];
   }
 
@@ -63,16 +65,38 @@ define([
     this.socket = io.connect(url);
   };
 
-  Cache.prototype.updateOrCreateClient =
-      function(clientId, channels, dur, beg, end) {
+  // opts: {
+  //  immedateUpdate: If the client should check the cache immediately
+  //  getHigherDuration: If the client should prioritize zoomed out data
+  // }
+  Cache.prototype.connectClient(clientId, opts) {
+    if (!this.clients[clientId]) this.clients[clientId] = {};
+    this.client[clientId].channels = [];
+
+    if (!opts) opts = {};
+    _.defaults(opts, {
+      immediateUpdate: true,
+      getHigherDuration: true
+    });
+
+    this.client[clientId].opts = opts;
+
+    return this.client[clientId];
+  };
+
+  Cache.prototype.getChannels(clientId) {
+    return this.client[clientId].channels;
+  };
+
+
+  Cache.prototype.updateClient =
+      function(clientId, channels, dur, beg, end, opts) {
 
     var self = this;
 
-    if (!clientId)
+    if(!clientId || !this.clients[clientId]
+        || this.clients[clientId].channels.length === 0)
       return;
-
-    if (!this.clients[clientId]) this.clients[clientId] = {};
-    var client = this.clients[clientId];
 
     if (client.dur === dur && client.beg === beg
         && client.end === end && _.isEqual(client.channels, channels)) {
@@ -88,7 +112,10 @@ define([
       self.createNewRequest(c, client.dur, client.beg, client.end);
     });
     // Update now, in case there's something useful in the cache.
-    this.updateClient(clientId, client, 50);
+    if (client.opts.updateImmediate)
+      this.updateClient(clientId, client, 50);
+
+    return;
   };
 
 
@@ -112,7 +139,7 @@ define([
           //&&
           //(end > client.beg || beg < client.end)) {
         // FIXME:
-        this.updateClient(clientId, client, 0);
+        this.updateClient(clientId, client, jobsPending ? 200 : 0);
       }
     }
   }
@@ -149,19 +176,6 @@ define([
     }, timeout);
   };
 
-
-  // Get the list of durations in the database from the server across the socket
-  Cache.prototype.getDurations = function() {
-
-    if (this.socket) {
-      this.socket.emit('durations', {}, function(err, durations) {
-        if (!err) this.durations = durations;
-      });
-    }
-
-    return this.durations;
-  };
-
   // usage: forEachDuration(function(dur) { ... })
   var forEachDuration = function(fcn) {
     _.each(this.durations, function(f) {
@@ -180,7 +194,7 @@ define([
    * Get the best duration to use for a given number of us/pixel.
    */
   Cache.prototype.getBestGraphDuration = function(usPerPixel, highres) {
-    var maxPixelsPerSample = highres ? 1 : 40;
+    var maxPixelsPerSample = highres ? 5 : 40;
     if (usPerPixel < 0) usPerPixel = 0;
     return _.last(_.filter(this.durations, function(v) {
       return v <= usPerPixel * maxPixelsPerSample;
@@ -249,7 +263,6 @@ define([
 
   // Make a request over socket.io
   Cache.prototype.serverRequest = function(channel, duration, bucket, cb) {
-    var now = Date.now();
     if (this.socket) {
       var beg = bucket * this.samplesPerBucket * duration;
       var end = (bucket + 1) * this.samplesPerBucket * duration - 1;
@@ -264,7 +277,6 @@ define([
         else if (!data) cb(null, null);
         else if (data.channelName === channel && data.samples
                  && !_.isEmpty(data.samples)) {
-          console.log(Date.now() - now);
           cb(null, data.samples);
         } else {
           cb(null, null);
@@ -395,10 +407,9 @@ define([
       var entry = self.getCacheEntry(channel, duration, bucket, false);
       if (entry && entry.samples) {
         var samples = [];
-        _.each(entry.samples, function(val, time) {
-          if (time >= dateBeg && time <= dateEnd) {
-            // FIXME: Move this to server
-            samples.push({time: time, avg: val.avg, min: val.min, max: val.max});
+        _.each(entry.samples, function(sample) {
+          if (sample.time >= dateBeg && sample.time <= dateEnd) {
+            samples.push(sample);
           }
         });
         return samples;
@@ -416,17 +427,13 @@ define([
 
     var durationIndex = this.durations.indexOf(duration);
     for (var bucketIt = firstBucket; bucketIt <= lastBucket; bucketIt++) {
-      if (bucketIt === firstBucket) {
-        dateBeg = beg;
-        dateEnd = bucketIt * duration * samplesPerBucket;
-      } else if (bucketIt === lastBucket) {
-        dateBeg = bucketIt * duration * samplesPerBucket;
-        dateEnd = end;
-      } else {
-        var durationIndex = this.durations.indexOf(duration);
-        dateBeg = bucketIt * duration * samplesPerBucket;
-        dateEnd = dateBeg + (duration * samplesPerBucket) - 1;
-      }
+      var durationIndex = this.durations.indexOf(duration);
+      dateBeg = bucketIt === firstBucket
+          ? beg
+          : bucketIt * duration * samplesPerBucket;
+      dateEnd = bucketIt === lastBucket
+          ? end
+          : duration * samplesPerBucket * (bucketIt + 1) - 1;
 
       sampleSet.push(getNextHigherDurationData(duration));
     }
@@ -434,12 +441,15 @@ define([
     return _.flatten(sampleSet);
   };
 
+  /* Completely empties the cache */
   Cache.prototype.emptyCache = function() {
     this.cache = {};
     this.cacheSize = 0;
   };
 
 
+  /* Tries to get cache below the maxCacheSize by removing the oldest
+   * cache entries */
   Cache.prototype.cleanCache = function() {
     var self = this;
 
@@ -485,8 +495,21 @@ define([
     });
   };
 
-  return Cache;
+  // Helper function to get samples from the cache
+  Cache.prototype.fetchSamples = function(channelName, beg, end, width, cb) {
+    var uniqueName = channelName + '-' + Math.floor(Math.random*100000);
+    var bestDuration = this.getBestGraphDuration((end-beg)/width, true);
+    this.updateOrCreateClient(uniqueName, [channelName], bestDuration,
+        beg, end, {updateImmediate: false});
+    this.bind('update-'+uniqueName, _.bind(function(samples) {
+      cb(samples[channelName]);
+    }, this));
+    setTimeout(_.bind(function() {
+      this.endClient(uniqueName);
+    }, this), 2500);
+  }
 
+  return Cache;
 
 });
 

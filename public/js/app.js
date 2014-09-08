@@ -9,13 +9,18 @@ define([
   'router',
   'mps',
   'rpc',
+  'cache',
   'rest'
-], function ($, _, Backbone, Router, mps, rpc, rest) {
+], function ($, _, Backbone, Router, mps, rpc, Cache, rest) {
 
   var App = function () {
 
     // Save connection to server.
     this.rpc = rpc.init();
+
+    // Create a new cache
+    this.cache = new Cache();
+    this.cache.connectSocket('http://localhost:8083');
 
     // App model subscriptions.
     mps.subscribe('user/delete', _.bind(this.logout, this));

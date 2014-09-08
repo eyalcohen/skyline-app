@@ -48,8 +48,8 @@ define([
           }
           this.graph.model.addChannel(this.datasets.collection.get(did),
               _.clone(channel), silent);
-          //this.overview.model.addChannel(this.datasets.collection.get(did),
-          //    _.clone(channel));
+          this.overview.model.addChannel(this.datasets.collection.get(did),
+              _.clone(channel));
           this.map.addChannel(channel);
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
@@ -163,7 +163,7 @@ define([
       this.datasets = new Datasets(this.app, {parentView: this});
       this.comments = new Comments(this.app, {parentView: this});
       this.notes = new Notes(this.app, {parentView: this});
-      //this.overview = new Overview(this.app, {parentView: this}).render();
+      this.overview = new Overview(this.app, {parentView: this}).render();
       this.map = new Map(this.app, {parentView: this}).render(this.graph.getVisibleTime());
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
 
@@ -550,7 +550,7 @@ define([
         var xpos = xaxis.p2c(v.model.get('beg'));
         var width = xaxis.p2c(v.model.get('end')) - xpos;
         width = width < 2 ? 2: width;
-        var width_per = 1e3 * (end - beg) / (vs.end - vs.beg);
+        var width_per = (end - beg) / (vs.end - vs.beg);
         v.model.set('opacity', (1-width_per)*0.25);
         v.model.set('width', width);
         v.model.set('xpos', xpos);

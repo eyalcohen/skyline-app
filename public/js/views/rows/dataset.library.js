@@ -115,33 +115,22 @@ define([
     },
 
     drawChannel: function(channel) {
-      var opts = {
-        beginTime: channel.beg,
-        endTime: channel.end,
-        minDuration: (channel.end - channel.beg) / 100
-      };
-      this.app.rpc.do('fetchSamples', this.model.id, channel.channelName,
-          opts, _.bind(function (err, sampleObj) {
-        if (err) {
-          console.log(err);
-          return;
-        }
+      var li = this.$('#' + channel.channelName);
+      var selector = $('.event-channel-svg', li);
+      var width = selector.width();
+      var height = selector.height();
 
-        var li = this.$('#' + channel.channelName);
-        var selector = $('.event-channel-svg', li);
-        var width = selector.width();
-        var height = selector.height();
+      this.app.cache.fetchSamples(channel.channelName, channel.beg, channel.end,
+          width, _.bind(function(samples) {
 
-        var beg = sampleObj.range.beg || 0;
-        var end = sampleObj.range.end || 0;
+        selector.empty();
 
-        if (!sampleObj.samples[0]) return;
-        var t_0 = sampleObj.samples[0].beg;
-        var t_max = sampleObj.samples[sampleObj.samples.length-1].beg;
+        var t_0 = samples[0].time;
+        var t_max = _.last(samples).time;
         var t_diff = t_max - t_0;
 
-        var v_max = _.max(_.pluck(sampleObj.samples, 'val'));
-        var v_min = _.min(_.pluck(sampleObj.samples, 'val'));
+        var v_max = _.max(_.pluck(samples, 'avg'));
+        var v_min = _.min(_.pluck(samples, 'avg'));
         var v_diff = v_max - v_min;
 
         var path = d3.svg.area()
@@ -149,32 +138,29 @@ define([
               if (t_diff === 0) {
                 return i === 0 ? 0: width;
               } else {
-                return ((s.beg - t_0) / t_diff * width);
+                return ((s.time - t_0) / t_diff * width);
               }
             })
             .y0(function () {
               return height;
             })
             .y1(function (s) {
-              return v_diff === 0 ? v_max: height - ((s.val - v_min) / v_diff * height);
+              return v_diff === 0 ? v_max: height - ((s.avg - v_min) / v_diff * height);
             })
             .interpolate('linear');
 
-        if (sampleObj.samples.length === 1) {
-          sampleObj.samples.push(_.clone(sampleObj.samples[0]));
-        }
-
-        var svg = d3.select(selector.get(0))
+        svg = d3.select(selector.get(0))
             .append('svg:svg')
             .attr('width', width)
             .attr('height', height)
             .append('svg:g')
             .append('svg:path')
-            .attr('d', path(sampleObj.samples))
+            .attr('d', path(samples))
             .attr('class', 'area')
             .attr('fill', '#000000');
       }, this));
     },
+
 
   });
 });

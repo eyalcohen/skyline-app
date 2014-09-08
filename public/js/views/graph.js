@@ -758,27 +758,37 @@ define([
         samples = this.model.sampleCollection[channel.channelName].sampleSet;
         // offset = this.model.sampleCollection[channel.channelName].offset;
       }
-      var prevEnd = null, prevMinMaxEnd = null;
-      _.each(samples, function (s, i) {
-        if (prevEnd != s.beg)
-          data.push(null);
-        var val = s.avg * conv.factor;
-        data.push([s.time, s.avg]);
-        var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
-        if (lineStyleOpts.interpolation === 'none') {
-          if (i + 1 < samples.length)
-            data.push([samples[i+1].time, s.avg]);
+      // make a 3 pixel wide marker showing that data exists in this region
+      if (samples.length === 1) {
+        if (samples[0].max && samples[0].min) {
+          var visTime = this.getVisibleTime();
+          var adder = ((visTime.end - visTime.beg) / visTime.width) * 3;
+          minMax.push([samples[0].time, samples[0].max, samples[0].min]);
+          minMax.push([samples[0].time + adder, samples[0].max, samples[0].min]);
         }
-        if (s.min || s.max) {
-          var max = s.max == null ? s.avg : s.max * conv.factor;
-          var min = s.min == null ? s.avg : s.min * conv.factor;
-          minMax.push([s.time, max, min]);
+      } else {
+        _.each(samples, function (s, i) {
+          var val = s.avg * conv.factor;
+          data.push([s.time, s.avg]);
+
+          // Add an extra datapoint for step-wise style
+          var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
           if (lineStyleOpts.interpolation === 'none') {
             if (i + 1 < samples.length)
-              minMax.push([samples[i+1].time, max, min]);
+              data.push([samples[i+1].time, s.avg]);
           }
-        }
-      }, this);
+
+          if (s.min || s.max) {
+            var max = s.max == null ? s.avg : s.max * conv.factor;
+            var min = s.min == null ? s.avg : s.min * conv.factor;
+            minMax.push([s.time, max, min]);
+            if (lineStyleOpts.interpolation === 'none') {
+              if (i + 1 < samples.length)
+                minMax.push([samples[i+1].time, max, min]);
+            }
+          }
+        }, this);
+      }
       return { data: data, minMax: minMax };
     },
 

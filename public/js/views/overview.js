@@ -139,13 +139,13 @@ define([
           }
 
           // Ensure each series spans the visible time.
-          if (time.beg < _.first(s.data).t * 1e3) {
+          if (time.beg < _.first(s.data).t) {
             s.data.unshift({t: _.first(s.data).t, v: null});
-            s.data.unshift({t: time.beg / 1e3, v: null});
+            s.data.unshift({t: time.beg, v: null});
           }
-          if (time.end > _.last(s.data).t * 1e3) {
+          if (time.end > _.last(s.data).t) {
             s.data.push({t: _.last(s.data).t, v: null});
-            s.data.push({t: time.end / 1e3, v: null});
+            s.data.push({t: time.end, v: null});
           }
           s.name = channel.channelName;
           s.axis = axis;
@@ -153,9 +153,9 @@ define([
         }, this));
 
         $('.overview-date > span').text(
-          util.toLocaleString(new Date(time.beg / 1e3), 'm/d/yyyy'));
+          util.toLocaleString(new Date(time.beg), 'm/d/yyyy'));
         $('.overview-date-right > span').text(
-          util.toLocaleString(new Date(time.end / 1e3), 'm/d/yyyy'));
+          util.toLocaleString(new Date(time.end), 'm/d/yyyy'));
 
 
         // remove all plots where we don't have series data
@@ -179,7 +179,7 @@ define([
           // Map samples to x,y coordinates.  Lots of mx+b equations here
           var path = d3.svg.area()
               .x(function (s) {
-                return (s.t - time.beg/1e3) / (time.end/1e3 - time.beg/1e3) * width;
+                return (s.t - time.beg) / (time.end - time.beg) * width;
               })
               .y0(function () {
                 var zero = local_max === local_min ? height :
@@ -285,16 +285,16 @@ define([
         samples = this.model.sampleCollection[channel.channelName].sampleSet;
       var prevEnd = null;
       _.each(samples, function (s) {
-        var val = s.val * conv.factor;
+        var val = s.avg * conv.factor;
         if (val < min) min = val;
         if (val > max) max = val;
+        /*
         if (prevEnd != s.beg) {
-          data.push({t: prevEnd/1e3, v:null});
-          data.push({t: s.beg/1e3, v:null});
+          data.push({t: prevEnd, v:null});
+          data.push({t: s.beg, v:null});
         }
-        data.push({t: s.beg / 1e3, v: val});
-        //if (s.beg !== s.end)
-        //  data.push({t: s.end / 1e3, v: val});
+        */
+        data.push({t: s.time, v: val});
         prevEnd = s.end;
       });
       return {data: data, min: min, max: max};
@@ -312,7 +312,7 @@ define([
     // Map x-coordinate to time width width w
     getTime: function(x, w) {
       var time = this.getVisibleTime();
-      return x / w * (time.end/1e3 - time.beg/1e3) + time.beg/1e3;
+      return x / w * (time.end - time.beg) + time.beg;
     },
 
     overviewZoom: function(e) {

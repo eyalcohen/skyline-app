@@ -8,16 +8,15 @@ define([
   'Backbone',
   'mps',
   'util',
-  'cache',
   'shared'
-], function ($, _, Backbone, mps, util, Cache, shared) {
+], function ($, _, Backbone, mps, util, shared) {
 
   return Backbone.Model.extend({
 
     initialize: function (app, options) {
       this.app = app;
+      this.cache = app.cache;
       this.view = options.view;
-      this.clients = [];
       this.options = options;
 
       // The initial style.
@@ -37,8 +36,6 @@ define([
       this.lineStyleOptions = s ? s : {}
 
       this.set('visibleTime', options.time || {});
-      this.cache = new Cache(this.app);
-      this.cache.connectSocket('http://localhost:8083');
       this.set({channels: []});
       this.sampleCollection = [];
 
@@ -62,22 +59,19 @@ define([
       this.view.bind('VisibleWidthChange',
           _.bind(this.updateCacheSubscription, this));
 
+      this.clientId = util.rid32();
+      this.cache.connectClient(clientId);
+
+      this.cache.bind('update-' + this.clientId,
+          _.bind(this.updateSampleSet, this));
+
       return this;
     },
 
-    getOrCreateClient: function (dataset) {
-      var client = _.find(this.clients, function (c) {
-        return c.dataset === dataset;
-      });
-      if (client) return client;
-      client = {id: util.rid32(), dataset: dataset, channels: []};
-      this.clients.push(client);
-      this.cache.bind('update-' + client.id,
-          _.bind(this.updateSampleSet, this, dataset));
-      return client;
-    },
+    updateCacheSubscription: function () {
+      var channels = this.cache.getChannels(this.clientId);
+      if (channels.length === 0) return;
 
-    updateCacheSubscription: function (client) {
       var viewRange = this.view.getVisibleTime();
       if (!viewRange) return;
       // When the tab holding the graph is hidden, the graph width becomes
@@ -88,13 +82,12 @@ define([
       if (viewRange.static) {
         viewRange.beg = Number.MAX_VALUE;
         viewRange.end = -Number.MAX_VALUE;
-        _.each(this.clients, function (client) {
-          if (client.channels.length === 0) return;
-          if (viewRange.beg > client.dataset.get('beg'))
-            viewRange.beg = client.dataset.get('beg');
-          if (viewRange.end < client.dataset.get('end'))
-            viewRange.end = client.dataset.get('end'); 
-        });
+        /*
+        if (viewRange.beg > this.client.dataset.get('beg'))
+          viewRange.beg = this.client.dataset.get('beg');
+        if (viewRange.end < this.client.dataset.get('end'))
+          viewRange.end = this.client.dataset.get('end'); 
+        */
       }
       var dur = this.cache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width, viewRange.static);
@@ -112,12 +105,6 @@ define([
         this.prevRange = !viewRange.static ?
             expandRange(viewRange, 0.25): viewRange;
       }
-      if (!_.isObject(client))
-        _.each(this.clients, _.bind(function (c) {
-          set.call(this, c);
-        }, this));
-      else
-        set.call(this, client);
 
       // Expand effective view range slightly, so that when scrolling we fetch
       // more data before it's needed.
@@ -126,19 +113,16 @@ define([
         return _.defaults({beg: range.beg - extend, end: range.end + extend}, range);
       }
 
-      function set(c) {
-        // var offset = c.dataset.get('offset');
-        var beg, end;
-        if (viewRange.static) {
-          beg = this.prevRange.beg;
-          end = this.prevRange.end;
-        } else {
-          beg = this.prevRange.beg;
-          end = this.prevRange.end;
-        }
-        this.cache.updateOrCreateClient(
-            c.id, _.pluck(c.channels, 'channelName'), dur, beg, end);
+      var beg, end;
+      if (viewRange.static) {
+        beg = this.prevRange.beg;
+        end = this.prevRange.end;
+      } else {
+        beg = this.prevRange.beg;
+        end = this.prevRange.end;
       }
+
+      this.cache.updateClient(this.clientId, channels, dur, beg, end);
     },
 
     findDatasetFromChannel: function(channelName) {
@@ -235,9 +219,7 @@ define([
       return this;
     },
 
-    removeChannel: function (dataset, channel) {
-      if (!dataset) return;
-      var datasetId = dataset.get('id');
+    removeChannel: function (channel) {
       var client = this.getOrCreateClient(dataset);
       var index = _.pluck(client.channels, 'channelName')
                           .indexOf(channel.channelName);
