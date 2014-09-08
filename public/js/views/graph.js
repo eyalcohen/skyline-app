@@ -50,8 +50,8 @@ define([
         time = page.time;
       } else {
         time = {
-          beg: (Date.now() - 7*24*60*60*1e3) * 1e3,
-          end: Date.now() * 1e3,
+          beg: (Date.now() - 7*24*60*60*1e3),
+          end: Date.now(),
           pending: true
         };
       }
@@ -112,7 +112,7 @@ define([
       if (!range) return;
       var xaxis = this.plot.getXAxes()[0];
       if (_.isNumber(range)) {
-        range *= 1e3;
+        range;
         var avg = (xaxis.options.max + xaxis.options.min) / 2;
         xaxis.options.min = avg - range / 2;
         xaxis.options.max = avg + range / 2;
@@ -439,12 +439,12 @@ define([
           utc: true,
           twelveHourClock: true,
           position: 'bottom',
-          min: this.model.get('visibleTime').beg / 1e3,
-          max: this.model.get('visibleTime').end / 1e3,
+          min: this.model.get('visibleTime').beg,
+          max: this.model.get('visibleTime').end,
           tickColor: 'rgba(0,0,0,0.1)',
           tickFormatter: _.bind(function (val, axis) {
             var visible = this.getVisibleTime();
-            var span = (visible.end - visible.beg) / 1e3;
+            var span = (visible.end - visible.beg);
             var date = new Date(val);
             return span < 10000 ?
               util.toLocaleString(date, 'h:MM:ss.L TT') :
@@ -548,9 +548,11 @@ define([
             return;
           }
 
+/*
           var closestChannel =
             _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
           if (!closestChannel) return;
+          */
 
           // FIXME: Allow dataset offsetting with some key combo
           // (harder to do accidentally)
@@ -724,8 +726,6 @@ define([
     },
 
     getChannelsInBounds: function (t1, t2) {
-      t1 *= 1e3;
-      t2 *= 1e3;
       var channels = [];
       _.each(this.model.getChannels(), _.bind(function (channel) {
         var samples = this.model.sampleCollection[channel.channelName];
@@ -762,25 +762,21 @@ define([
       _.each(samples, function (s, i) {
         if (prevEnd != s.beg)
           data.push(null);
-        var val = s.val * conv.factor;
-        data.push([(s.beg) / 1000, val]);
+        var val = s.avg * conv.factor;
+        data.push([s.time, s.avg]);
         var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
         if (lineStyleOpts.interpolation === 'none') {
-          if (s.end !== s.beg)
-            data.push([(s.end) / 1000, val]);
+          if (i + 1 < samples.length)
+            data.push([samples[i+1].time, s.avg]);
         }
-        prevEnd = s.end;
-        if (s.min != null || s.max != null) {
-          if (prevMinMaxEnd != s.beg)
-            minMax.push(null);
-          var max = s.max == null ? val : s.max * conv.factor;
-          var min = s.min == null ? val : s.min * conv.factor;
-          minMax.push([s.beg / 1000, max, min]);
+        if (s.min || s.max) {
+          var max = s.max == null ? s.avg : s.max * conv.factor;
+          var min = s.min == null ? s.avg : s.min * conv.factor;
+          minMax.push([s.time, max, min]);
           if (lineStyleOpts.interpolation === 'none') {
-            if (s.end !== s.beg)
-              minMax.push([s.end / 1000, max, min]);
+            if (i + 1 < samples.length)
+              minMax.push([samples[i+1].time, max, min]);
           }
-          prevMinMaxEnd = s.end;
         }
       }, this);
       return { data: data, minMax: minMax };
@@ -796,13 +792,12 @@ define([
     getVisibleTime: function () {
       if (!this.plot) return null;
       var xopts = this.plot.getAxes().xaxis.options;
-      return { beg: xopts.min * 1000, end: xopts.max * 1000,
+      return { beg: xopts.min, end: xopts.max,
                width: this.plot.width() };
     },
 
     setVisibleTime: function (beg, end) {
       var xopts = this.plot.getAxes().xaxis.options;
-      beg /= 1000; end /= 1000;
       if (beg != xopts.min || end != xopts.max) {
         xopts.min = beg;
         xopts.max = end;
@@ -895,6 +890,8 @@ define([
     // if mouse is near channel line, mark it as the highlighted channel
     mouseLineStyle: function(e, stats) {
       // lookup closest channel to mouse cursor
+      if (stats)
+        return;
       var closestChannel = _.sortBy(stats, 'pixelsFromInterpPt')[0];
       if (closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {
         closestChannel = false;
@@ -913,7 +910,7 @@ define([
     // per timeseries data
     getVisiblePoints: function() {
       var plotData = this.plot.getData();
-      var visTime = _.map(this.getVisibleTime(), function (a) { return a/1e3; });
+      var visTime = _.map(this.getVisibleTime(), function (a) { return a; });
       return _.map(plotData, function (obj) {
         var i = 1;
         for (;i < obj.data.length; i++) {

@@ -44,12 +44,12 @@ define([
               && !this.app.profile.content.page
               && !this.app.requestedNoteId
               && !store.get('state').time) {
-            mps.publish('chart/zoom', [{min: channel.beg / 1000, max: channel.end / 1000}]);
+            mps.publish('chart/zoom', [{min: channel.beg, max: channel.end}]);
           }
           this.graph.model.addChannel(this.datasets.collection.get(did),
               _.clone(channel), silent);
-          this.overview.model.addChannel(this.datasets.collection.get(did),
-              _.clone(channel));
+          //this.overview.model.addChannel(this.datasets.collection.get(did),
+          //    _.clone(channel));
           this.map.addChannel(channel);
         }, this)),
         mps.subscribe('channel/remove', _.bind(function (did, channel) {
@@ -163,7 +163,7 @@ define([
       this.datasets = new Datasets(this.app, {parentView: this});
       this.comments = new Comments(this.app, {parentView: this});
       this.notes = new Notes(this.app, {parentView: this});
-      this.overview = new Overview(this.app, {parentView: this}).render();
+      //this.overview = new Overview(this.app, {parentView: this}).render();
       this.map = new Map(this.app, {parentView: this}).render(this.graph.getVisibleTime());
       this.graph.bind('VisibleTimeChange', _.bind(this.map.updateVisibleTime, this.map));
 
@@ -172,8 +172,7 @@ define([
       this.noteButton.tooltipster({delay: 600, position: 'bottom'});
 
       if (state.time) {
-        mps.publish('chart/zoom', [{min: state.time.beg/1000,
-            max: state.time.end/1000}]);
+        mps.publish('chart/zoom', [{min: state.time.beg, max: state.time.end}]);
       }
 
       // Do resize on window change.
@@ -492,7 +491,7 @@ define([
           var dt = this.cursorData.t - current.t;
           var abs = Math.abs(dt);
           if (abs > 0) {
-            var ds = util.getDuration(abs*1000, false);
+            var ds = util.getDuration(abs, false);
             var dx = current.x - this.cursorData.x - 1;
             if (dt >= 0) {
               this.noteDuration.html('\u21A4 &nbsp;' + ds);

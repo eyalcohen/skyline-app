@@ -38,6 +38,7 @@ define([
 
       this.set('visibleTime', options.time || {});
       this.cache = new Cache(this.app);
+      this.cache.connectSocket('http://localhost:8083');
       this.set({channels: []});
       this.sampleCollection = [];
 
@@ -135,8 +136,8 @@ define([
           beg = this.prevRange.beg;
           end = this.prevRange.end;
         }
-        this.cache.setClientView(c.id, c.dataset.get('id'),
-            _.pluck(c.channels, 'channelName'), dur, beg, end);
+        this.cache.updateOrCreateClient(
+            c.id, _.pluck(c.channels, 'channelName'), dur, beg, end);
       }
     },
 

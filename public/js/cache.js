@@ -1,65 +1,34 @@
-/*!
- * Copyright 2011 Mission Motors
- *
- * Samples interface and results cache.
- *
- * Usage:
- *
- * A client (say, a graph), should keep its viewed region up to date with:
- *   setClientView(clientId, datasetId, channels, dur, beg, end);
- * clientId is a string unique to this client.  Whenever the viewed region,
- * channels, or duration (zoom) change, call setClientView to update them.
- *
- * When the data relevant to a client's view has changed, the cache will emit
- * an event ('update-' + clientId), with an argument which is a sampleSet with
- * the data the client has subscribed to.
- *
- * When a client goes away, it should call endClient(clientId).
- */
-
-/*
-  Graph zoom data is: beg, end, width
-  Fetched data is: channel, dur, bucket
-  Bucketing: same as synthetic buckets.
- */
 
 define([
   'Underscore',
   'Backbone',
-  'shared'
-], function (_, Backbone, shared) {
+], function (_, Backbone) {
 
-  function SampleCache(app) {
-    this.app = app;
+  var entryCacheCost = 10;
+  var jobsPending = false;
+  var maxJobsPending = 100;
 
-    /* Cache structure:
-        cache = {
-          <datasetId> + '-' + <channelName>: {
-            <dur>: {
-              <bucket>: {
-                  last: 123,  // Date.now() of last access.
-                  pending: true,  // If a fetch is pending.
-                  samples: [ <samples...> ],  // If data has been fetched.
-                  syn: <bool>,  // Does samples contain synthetic data?
-                  refetch: <bool>,  // If true, we should refetch this bucket.
-              }, ...
-            }, ...
-            // syntheticDurations[1], ...:
-          }
-        }
-    */
+  /* Constructor */
+  function Cache() {
     this.cache = {};
-
-    // A measure of the size of the cache.
-    //   Each cache bucket counts for entryCacheCost.
-    //   Each cached sample counts for 1.
-    // We try to keep cacheSize < maxCacheSize.
     this.cacheSize = 0;
+    this.minCacheSize = 750000;
+
+    // At cacheSize = 1000000, the app tab in Chrome uses about 350MB.
+    this.maxCacheSize = 1000000;
+    this.samplesPerBucket = 50;
+
+    // Fetch requests by priority
+    this.priorityQueue = {
+      1: [],
+      2: [],
+      3: []
+    };
+    this.socket = null;
 
     /* Client registry:
       clients = {
         <clientId>: {
-          datasetId: <datasetId>,
           channels: [ <channelNames...> ],
           dur: <duration_us>,
           beg: <beginTime_us>,
@@ -70,295 +39,80 @@ define([
     */
     this.clients = {};
 
-    // Cache entries of pending server requests.  We'll try to keep between
-    // minPendingRequests and maxPendingRequests pending.
-    this.pendingCacheEntries = [];
+    // This is nominally gotten from the server, but we provide a default
+    this.durations = [
+      1,    //ms
+      10,   //ms   10
+      100,  //ms   10
+      1000, //1s   10
+      60*1000, // 1 minute  60
+      60*60*1000, // 1 hour
+      24*60*60*1000, // 1 day
+      30*24*60*60*1000, // 1 month
+      12*30*24*60*60*1000, // 1 year
+      10*12*30*24*60*60*1000, // 1 decade
+      10*10*12*30*24*60*60*1000 // 1 century
+    ];
   }
-  _.extend(SampleCache.prototype, Backbone.Events);
 
-  /**
-   * Update a client's view (creating the client as necessary).
-   * Fetches will be triggered as necessary, and an update event triggered.
-   */
-  SampleCache.prototype.setClientView =
-      function(clientId, datasetId, channels, dur, beg, end, force) {
-    var client = defObj(this.clients, clientId);
-    if (client.datasetId === datasetId && client.dur === dur &&
-        client.beg === beg && client.end === end &&
-        _.isEqual(client.channels, channels))
+  // More 
+  _.extend(Cache.prototype, Backbone.Events);
+
+  // Connect the socket
+  Cache.prototype.connectSocket = function(url) {
+    this.socket = io.connect(url);
+  };
+
+  Cache.prototype.updateOrCreateClient =
+      function(clientId, channels, dur, beg, end) {
+
+    var self = this;
+
+    if (!clientId)
+      return;
+
+    if (!this.clients[clientId]) this.clients[clientId] = {};
+    var client = this.clients[clientId];
+
+    if (client.dur === dur && client.beg === beg
+        && client.end === end && _.isEqual(client.channels, channels)) {
       return;  // Nothing to do!
-    client.datasetId = datasetId;
+    }
+
     client.channels = channels;
     client.dur = dur;
     client.beg = beg;
     client.end = end;
-    this.fillPendingRequests();
+
+    _.each(client.channels, function (c) {
+      self.createNewRequest(c, client.dur, client.beg, client.end);
+    });
     // Update now, in case there's something useful in the cache.
     this.updateClient(clientId, client, 50);
-  }
+  };
+
 
   /**
    * Close a client.
    */
-  SampleCache.prototype.endClient = function(clientId) {
+  Cache.prototype.endClient = function(clientId) {
     var client = this.clients[clientId];
     if (client && client.updateId) {
       clearTimeout(client.updateId);
       client.updateId = null;
     }
     delete this.clients[clientId];
-  }
+  };
 
-  /**
-   * Get the best duration to use for an approximate max number of samples to
-   * fetch.
-   */
-  SampleCache.prototype.getBestDuration = function(visibleUs, maxSamples) {
-    var minDuration = Math.min(visibleUs / maxSamples, _.last(durations));
-    return _.first(_.filter(durations, function(v) {
-      return v >= minDuration;
-    }));
-  }
-
-  /**
-   * Get the best duration to use for a given number of us/pixel.
-   */
-  SampleCache.prototype.getBestGraphDuration = function(usPerPixel, highres) {
-    var maxPixelsPerSample = highres ? 1 : 20;
-    if (usPerPixel < 0) usPerPixel = 0;
-    return _.last(_.filter(durations, function(v) {
-      return v <= usPerPixel * maxPixelsPerSample;
-    }));
-  }
-
-  /**
-   * Invalidate the latest samples for a dataset and refetch them.
-   * This is a total hack to do real-time updates!
-   */
-  // SampleCache.prototype.refetchLatest = function(treeModel, datasetId,
-  //                                                callback) {
-  //   var self = this;
-
-  //   // Find end time of last schema entry for all channels.
-  //   var channelRanges = {};
-  //   function findChannelRanges(beforeAfter) {
-  //     (treeModel.data || []).forEach(function process(treeEntry) {
-  //       (treeEntry.sub || []).forEach(process);
-  //       if (treeEntry.channelName) {
-  //         defObj(channelRanges, treeEntry.channelName)[beforeAfter] =
-  //             { beg: _.first(treeEntry.valid).beg,
-  //               end: _.last(treeEntry.valid).end };
-  //       }
-  //     });
-  //   }
-  //   findChannelRanges('before');
-
-  //   // Refetch the channel tree.
-  //   treeModel.fetch(false, function() {
-  //     // Now invalidate everything that might have changed.
-  //     findChannelRanges('after');
-  //     var changeBeg = Infinity, changeEnd = -Infinity;
-  //     _.forEach(channelRanges, function(ranges, channelName) {
-  //       var before = ranges['before'].end || -Infinity;
-  //       var after = ranges['after'].end || Infinity;
-  //       if (before == after) {
-  //         // Nothing changed!
-  //         return;
-  //       }
-  //       self.refetchOverlapping(datasetId, channelName, before, after);
-  //       if (ranges['before'].end)
-  //         changeBeg = Math.min(changeBeg, ranges['before'].end);
-  //       else if (ranges['after'].beg)
-  //         changeBeg = Math.min(changeBeg, ranges['after'].beg);
-  //       if (ranges['after'].end)
-  //         changeEnd = Math.max(changeEnd, ranges['after'].end);
-  //     });
-
-  //     // Refetch from the server and update graphs and such.
-  //     self.fillPendingRequests();
-
-  //     if (callback)
-  //       if (isFinite(changeBeg) && isFinite(changeEnd))
-  //         callback({ beg: changeBeg, end: changeEnd });
-  //       else
-  //         callback(null);
-  //   });
-  // }
-
-  //// Private: ////
-
-  /**
-   * Get a cache entry.  If it doesn't exist, create it.
-   */
-  SampleCache.prototype.getCacheEntry =
-      function(datasetId, channelName, dur, buck, create) {
-    var cacheKey = datasetId + '-' + channelName;
-    var d = create ? defObj : ifDef;
-    var durEntry = d(d(this.cache, cacheKey), dur);
-    var entry = durEntry && durEntry[buck];
-    if (entry) {
-      entry.last = Date.now();
-    } else if (create) {
-      entry = durEntry[buck] = { last: Date.now() };
-      this.cacheSize += entryCacheCost;
-    }
-    return entry;
-  }
-
-  function forValidBucketsInRange(validRanges, begin, end, buckDur, f) {
-    var buck, buckBeg, buckEnd;
-    function setBuck(newBuck) {
-      buck = newBuck;
-      buckEnd = buckDur + (buckBeg = buck * buckDur);
-    }
-    setBuck(begin);
-    if (!validRanges) {
-      for (; buck < end; setBuck(buck + 1))
-        f(buck, buckBeg, buckEnd);
-    } else {
-      for (var rangeI in validRanges) {
-        var range = validRanges[rangeI];
-        if (range.beg >= buckEnd)
-          setBuck(Math.floor(range.beg / buckDur));
-        for (; buckBeg < range.end; setBuck(buck + 1)) {
-          if (buck >= end)
-            return;
-          f(buck, buckBeg, buckEnd);
-        }
-      }
-    }
-  }
-
-  /**
-   * If we can add any requests to the request queue, do so.
-   */
-  SampleCache.prototype.fillPendingRequests = function() {
-    var self = this;
-    if (self.pendingCacheEntries.length >= minPendingRequests)
-      return;
-
-    // Generate a prioritized list of requests to make.
-    var requestsByPriority = {}; // Map from priority to array of requests.
-    // A request is an object with: did, chan, dur, buck, entry.
-    _.forEach(self.clients, function(client, clientId) {
-      // Pre-fetch samples at next zoom level up.
-      var nextDur = getNextDur(client.dur);
-      if (nextDur)
-        addRequests(nextDur, 0);
-      // Fetch samples at this zoom level.
-      addRequests(client.dur, 6);
-
-      function addRequests(dur, basePriority) {
-        var buckDur = bucketSize(dur);
-        var begBuck = Math.floor(client.beg / buckDur);
-        var endBuck = Math.ceil(client.end / buckDur);
-        client.channels.forEach(function(channelName) {
-          var validRanges = [{beg:-1e50, end: 1e50}];
-
-          forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
-              function (buck, buckBeg, buckEnd) {
-            var entry = self.getCacheEntry(client.datasetId, channelName,
-                                           dur, buck, false);
-            if (entry && !entry.refetch && (entry.samples || entry.pending))
-              return;
-            var priority = basePriority +
-                Math.abs(2 * buck - (begBuck + endBuck));
-            defArray(requestsByPriority, priority).push({
-                did: client.datasetId, chan: channelName, dur: dur,
-                buck: buck});
-          });
-        });
-      }
-    });
-
-    // Fill the request queue with the highest-priority requests which aren't
-    // already pending.
-    var priorities = _.keys(requestsByPriority).sort(function(a,b){return a-b});
-    for (var prioI in priorities) {
-
-      var requests = requestsByPriority[priorities[prioI]];
-      for (var reqI in requests) {
-        var req = requests[reqI];
-        // Test to see is a larger cache bucket already covers this data.
-        // Possible future optimization: we could have each cache bucket
-        // track time ranges which have non-synthetic data, and look for
-        // coverage at a sub-bucket level.
-        var covered = false;
-        var buckBeg = req.buck * bucketSize(req.dur);
-        for (var durI = durations.indexOf(req.dur) + 1;
-             durI < durations.length; ++durI) {
-          var biggerDur = durations[durI];
-          var biggerBuck = Math.floor(buckBeg / bucketSize(biggerDur));
-          var biggerEntry = self.getCacheEntry(req.did, req.chan, biggerDur,
-              biggerBuck, false);
-          if (biggerEntry && biggerEntry.syn === false) {
-            covered = true;
-            break;
-          }
-        }
-        if (!req.refetch && covered) continue;
-        self.issueRequest(req);
-        if (self.pendingCacheEntries.length >= maxPendingRequests)
-          return;
-      }
-    }
-  }
-
-  SampleCache.prototype.issueRequest = function(req) {
-    var self = this;
-    var entry = self.getCacheEntry(req.did, req.chan, req.dur, req.buck, true);
-    entry.pending = true;
-    delete entry.refetch;
-    self.pendingCacheEntries.push(entry);
-    var buckDur = bucketSize(req.dur);
-    var buckBeg = req.buck * buckDur;
-    var buckEnd = buckBeg + buckDur;
-    var options = {
-      beginTime: buckBeg, endTime: buckEnd,
-      minDuration: req.dur, getMinMax: true,
-    };
-    self.app.rpc.do('fetchSamples', req.did, req.chan, options,
-        function (err, data) {
-      if (err) {
-        console.error(err);
-        samples = null;
-        self.pendingCacheEntries.splice(
-            self.pendingCacheEntries.indexOf(entry), 1);
-        delete entry.pending;
-        self.triggerClientUpdates(req.did, req.chan, req.dur, buckBeg, buckEnd);
-        self.cleanCache();
-        return;
-      }
-      entry.syn = data.samples.some(function(s){return 'min' in s});
-      if (entry.samples)
-        self.cacheSize -= entry.samples.length;
-      entry.samples = data.samples;
-      if (data.samples)
-        self.cacheSize += data.samples.length;
-      // Delete this entry from the pending request array.
-      self.pendingCacheEntries.splice(
-          self.pendingCacheEntries.indexOf(entry), 1);
-      delete entry.pending;
-      self.fillPendingRequests();
-      self.triggerClientUpdates(req.did, req.chan, req.dur, buckBeg, buckEnd);
-      self.cleanCache();
-    });
-  }
-
-  /**
-   * When a given time range has been updated, trigger updates for any clients
-   * which could be viewing this data.
-   */
-  SampleCache.prototype.triggerClientUpdates =
-      function(datasetId, channelName, dur, beg, end) {
+  Cache.prototype.triggerClientUpdates =
+      function(channelName, dur) {
     for (var clientId in this.clients) {
       var client = this.clients[clientId];
-      if (client.datasetId === datasetId &&
-          -1 !== client.channels.indexOf(channelName) &&
-          client.dur <= dur &&
-          (end > client.beg || beg < client.end)) {
-        this.updateClient(clientId, client,
-                          this.pendingCacheEntries.length ? 250 : 0);
+      if (-1 !== client.channels.indexOf(channelName) && client.dur <= dur) {
+          //&&
+          //(end > client.beg || beg < client.end)) {
+        // FIXME:
+        this.updateClient(clientId, client, 0);
       }
     }
   }
@@ -368,8 +122,9 @@ define([
    * of chunks of data arrive in quick succession, we delay before issuing the
    * update event, so we can trigger fewer update events.
    */
-  SampleCache.prototype.updateClient = function(clientId, client, timeout) {
+  Cache.prototype.updateClient = function(clientId, client, timeout) {
     var self = this;
+
     var newTimeout = Date.now() + timeout;
     if (client.updateId) {
       if (newTimeout > client.updateTimeout) {
@@ -387,145 +142,351 @@ define([
       client.updateId = null;
       delete client.updateTimeout;
       var sampleSet = {};
-      client.channels.forEach(function(channelName) {
-        var validRanges = [{beg:-1e50, end: 1e50}];
-        sampleSet[channelName] = self.getBestCachedData(
-            client.datasetId, channelName,
-            client.dur, client.beg, client.end, validRanges);
+      _.each(client.channels, function (c) {
+        sampleSet[c] = self.getBestData(c, client.dur, client.beg, client.end);
       });
       self.trigger('update-' + clientId, sampleSet);
     }, timeout);
-  }
+  };
+
+
+  // Get the list of durations in the database from the server across the socket
+  Cache.prototype.getDurations = function() {
+
+    if (this.socket) {
+      this.socket.emit('durations', {}, function(err, durations) {
+        if (!err) this.durations = durations;
+      });
+    }
+
+    return this.durations;
+  };
+
+  // usage: forEachDuration(function(dur) { ... })
+  var forEachDuration = function(fcn) {
+    _.each(this.durations, function(f) {
+      fcn(f);
+    });
+  };
+
+  Cache.prototype.getBestDuration = function(visibleUs, maxSamples) {
+    var minDuration = Math.min(visibleUs / maxSamples, _.last(durations));
+    return _.first(_.filter(this.durations, function(v) {
+      return v >= minDuration;
+    }));
+  };
 
   /**
-   * Get whatever's present in the cache right now for a client view.
-   * If data at the requested resolution is not available, will use
-   * higher-resolution or lower-resolution data.
+   * Get the best duration to use for a given number of us/pixel.
    */
-  SampleCache.prototype.getBestCachedData =
-      function(datasetId, channelName, dur, beg, end, validRanges) {
+  Cache.prototype.getBestGraphDuration = function(usPerPixel, highres) {
+    var maxPixelsPerSample = highres ? 1 : 40;
+    if (usPerPixel < 0) usPerPixel = 0;
+    return _.last(_.filter(this.durations, function(v) {
+      return v <= usPerPixel * maxPixelsPerSample;
+    }));
+  };
+
+  // Add any requests
+  Cache.prototype.createNewRequest = function(channel, duration, beg, end) {
+    // for a given duration, we try to fill and buckets above it with data
+    // prioritizing buckets above
+
     var self = this;
-    var buckDur = bucketSize(dur);
-    var prevDur = getPrevDur(dur), nextDur = getNextDur(dur);
-    var begBuck = Math.floor(beg / buckDur), endBuck = Math.ceil(end / buckDur);
-    var buckets = [];
-    forValidBucketsInRange(validRanges, begBuck, endBuck, buckDur,
-        function(buck, buckBeg, buckEnd) {
-      var entry = self.getCacheEntry(datasetId, channelName, dur, buck, false);
-      if (entry && entry.samples) {
-        buckets.push(entry.samples);
-      } else if (nextDur != null) {
-        // TODO: this would be more efficient and correct if we tried to fill
-        // entire gaps, rather than a single bucket at a time.
-        buckets.push(
-            self.getBestCachedData(datasetId, channelName, nextDur,
-                                   buckBeg, buckEnd, validRanges));
+    var entry = null;
+
+    var firstBucket = Math.floor(beg / duration / self.samplesPerBucket);
+    var lastBucket = Math.floor(end / duration / self.samplesPerBucket);
+    var bucketIt = firstBucket;
+    for (; bucketIt <= lastBucket; bucketIt++) {
+      entry = self.getCacheEntry(channel, duration, bucketIt);
+      if (!entry || !entry.samples) {
+        this.priorityQueue['1'].push({channel: channel, dur: duration, bucket: bucketIt});
+      }
+    }
+
+    // Get the next highest duration and prioritize that request
+    var durationIndex = this.durations.indexOf(duration);
+    if (durationIndex + 1 < this.durations.length) {
+      duration = this.durations[durationIndex + 1];
+      firstBucket = Math.floor(beg / duration / self.samplesPerBucket);
+      lastBucket = Math.floor(end / duration / self.samplesPerBucket);
+
+      for (bucketIt = firstBucket; bucketIt <= lastBucket; bucketIt++) {
+        entry = self.getCacheEntry(channel, duration, bucketIt);
+        if (!entry || !entry.samples) {
+          this.priorityQueue['2'].push({channel: channel, dur: duration, bucket: bucketIt});
+        }
+      }
+    }
+
+    var priorities = _.keys(self.priorityQueue).sort( function(a, b) {
+      return Number(a) < Number(b);
+    });
+
+    // callback that gets the next dataset from the server by priority
+    var getNext = function() {
+
+      // find the next priorirty that
+      _.find(priorities, function (pr) {
+        jobsPending = false;
+        if (self.priorityQueue[pr].length === 0)
+          return false;
+        else {
+          jobsPending = true;
+          var req = self.priorityQueue[pr].shift();
+          self.issueRequest.call(self, req.channel, req.dur, req.bucket, getNext);
+          return true;
+        }
+      });
+    };
+
+    if (!jobsPending) {
+      getNext();
+    }
+
+  };
+
+  // Make a request over socket.io
+  Cache.prototype.serverRequest = function(channel, duration, bucket, cb) {
+    var now = Date.now();
+    if (this.socket) {
+      var beg = bucket * this.samplesPerBucket * duration;
+      var end = (bucket + 1) * this.samplesPerBucket * duration - 1;
+      var request = {
+        channel: channel,
+        beg: beg,
+        end: end,
+        downsample: duration
+      };
+      this.socket.emit('get', request, function(err, data) {
+        if (err) cb(err);
+        else if (!data) cb(null, null);
+        else if (data.channelName === channel && data.samples
+                 && !_.isEmpty(data.samples)) {
+          console.log(Date.now() - now);
+          cb(null, data.samples);
+        } else {
+          cb(null, null);
+        }
+      });
+    }
+  };
+
+  Cache.prototype.issueRequest = function(channel, duration, bucket, cb) {
+    var self = this;
+
+    // should always return an object
+    var entry = this.getCacheEntry(channel, duration, bucket, true);
+    entry.pending = true;
+
+    this.serverRequest(channel, duration, bucket, function (err, samples) {
+      delete entry.pending;
+
+      if (err) {
+        delete entry.samples;
+        delete self.cache[channel][duration][bucket];
+        self.cleanCache();
+        cb(err);
+      } else {
+        if (samples) {
+          entry.samples = samples;
+          self.cacheSize += _.keys(entry.samples).length;
+          self.triggerClientUpdates(channel, duration);
+        } else {
+          delete self.cache[channel][duration][bucket];
+        }
+        self.cleanCache();
+        cb(null);
       }
     });
-    var samples = [].concat.apply([], buckets);
-    // Samples which overlap from one bucket into another will end up
-    // duplicated.  Remove duplicates.
-    // TODO: make a mergeDuplicateSamples for speed?
-    shared.mergeOverlappingSamples(samples, channelName);
-    return shared.trimSamples(samples, beg, end);
-  }
+  };
 
-  // SampleCache.prototype.socketReconnected = function() {
-  //   // Any pending transactions are never going to complete.
-  //   this.pendingCacheEntries.forEach(function(e) {
-  //     delete e.pending;
-  //   });
-  //   this.pendingCacheEntries = [];
-
-  //   // Re-issue fetches for client-visible regions.
-  //   this.fillPendingRequests();
-  // }
-
-  SampleCache.prototype.cleanCache = function() {
+  // Invalidates all buckets that cover the range of time
+  Cache.prototype.invalidateCache = function(channel, time) {
     var self = this;
-    if (self.cacheSize <= maxCacheSize)
+    forEachDuration(function(dur) {
+      var bucket = Math.floor(time / dur / self.samplesPerBucket);
+      var entry = self.getCacheEntry(channel, dur, bucket);
+      if (entry) {
+        delete entry.samples;
+        delete self.cache[channel][dur][bucket];
+      }
+    });
+  };
+
+  // Get or create a cache entry if 'create' is true
+  Cache.prototype.getCacheEntry = function(channel, duration, bucket, create) {
+    var entry = null;
+    var cache = this.cache;
+    if (cache && cache[channel]
+        && cache[channel][duration] && cache[channel][duration][bucket]) {
+      entry = cache[channel][duration][bucket];
+    }
+    if (entry) {
+      entry.last = Date.now();
+    } else if (create) {
+      if (!cache[channel]) cache[channel] = {};
+      if (!cache[channel][duration]) cache[channel][duration] = {};
+      entry = cache[channel][duration][bucket] = { last: Date.now() };
+      this.cacheSize += entryCacheCost;
+    }
+    return entry;
+  };
+
+  // Returns the cache as a copied array
+  Cache.prototype.getAsArray = function() {
+    // Create one large array from the object hash table
+    var allEntries = [];
+    _.each(this.cache, function(channel) {
+      _.each(channel, function(duration) {
+        _.each(duration, function(entry) {
+          allEntries.push(entry);
+        });
+      });
+    });
+    return allEntries;
+  };
+
+  Cache.prototype.getOrIssueData = function() {
+    // Create new request for the data range in question
+    // Update the client view if there is something useful
+  };
+
+  /*
+   Cache organization example:
+   smallDuration:   [bucket0][bucket1][bucket2][bucket3][bucket4][bucket5]...
+   largerDuration:  [bucket0                  ][bucket1                  ]...
+   largestDuration: [bucket0                                             ]...
+
+   If searching for the existence of data in smallDuration, we check
+   smallDuration:bucket0.
+   If data isn't there, we check largerDuration:bucket0.
+   If data isn't there, we check largestDuration:bucket0.  If data IS there,
+   we apply the right percentage of largestDuration:bucket0 to cover
+   smallDuration:bucket0;  If not, we don't return the time/val pairs
+   associted with this data.  In tihs case, we would take 16.6% of
+   largestDuration:bucket0
+
+   Worst-case is O(durations * buckets)
+   Best-case is O(buckets)
+
+   The worst-case will have some significant performance penalties from
+   math operations, but will be fast enough on most browsers.
+
+   Samples are returning as objects with keys {time, val}, which is different than
+   how they are stored in the cache.
+  */
+  Cache.prototype.getBestData = function(channel, duration, beg, end) {
+
+    var self = this;
+    // We hunt for data in the cache, starting for data at the duration
+    // of interest.
+    var sampleSet = [];
+    var dateBeg, dateEnd;
+    var samplesPerBucket = this.samplesPerBucket;
+
+    // get data from the next highest bucket
+    var getNextHigherDurationData = function(duration) {
+      var bucket = Math.floor(dateBeg / duration / samplesPerBucket);
+      var bucketDateBeg = bucket * duration * samplesPerBucket;
+      var bucketDateEnd = bucketDateBeg + (duration * samplesPerBucket) - 1;
+
+      var entry = self.getCacheEntry(channel, duration, bucket, false);
+      if (entry && entry.samples) {
+        var samples = [];
+        _.each(entry.samples, function(val, time) {
+          if (time >= dateBeg && time <= dateEnd) {
+            // FIXME: Move this to server
+            samples.push({time: time, avg: val.avg, min: val.min, max: val.max});
+          }
+        });
+        return samples;
+      } else if (durationIndex + 1 < self.durations.length) {
+        durationIndex = durationIndex + 1;
+        return getNextHigherDurationData(self.durations[durationIndex]);
+      } else {
+        return [];
+      }
+    };
+
+    // translate beg and end to buckets for this duration
+    var firstBucket = Math.floor(beg / duration / samplesPerBucket);
+    var lastBucket = Math.floor(end / duration / samplesPerBucket);
+
+    var durationIndex = this.durations.indexOf(duration);
+    for (var bucketIt = firstBucket; bucketIt <= lastBucket; bucketIt++) {
+      if (bucketIt === firstBucket) {
+        dateBeg = beg;
+        dateEnd = bucketIt * duration * samplesPerBucket;
+      } else if (bucketIt === lastBucket) {
+        dateBeg = bucketIt * duration * samplesPerBucket;
+        dateEnd = end;
+      } else {
+        var durationIndex = this.durations.indexOf(duration);
+        dateBeg = bucketIt * duration * samplesPerBucket;
+        dateEnd = dateBeg + (duration * samplesPerBucket) - 1;
+      }
+
+      sampleSet.push(getNextHigherDurationData(duration));
+    }
+
+    return _.flatten(sampleSet);
+  };
+
+  Cache.prototype.emptyCache = function() {
+    this.cache = {};
+    this.cacheSize = 0;
+  };
+
+
+  Cache.prototype.cleanCache = function() {
+    var self = this;
+
+    // Only clean the cache when it has grown too large
+    if (this.cacheSize <= this.maxCacheSize)
       return;
 
-    // Create an array of all entries reverse sorted by age.
-    var allEntryBuckets = [];
-    _.each(self.cache, function(dsChanEntry) {
-      _.each(dsChanEntry, function(durEntry) {
-        allEntryBuckets.push(_.values(durEntry));
-      });
+    var allEntries = this.getAsArray();
+    // Sort the entries by their first access date
+    allEntries.sort(function(a,b) { return a.last - b.last; } );
+
+    // 'find' exits when returned true, so we use that to test for
+    // when the cache has grown small again.  Mark them for deletion
+    _.find(allEntries, function(item) {
+      if (item.pending)
+        return false;
+      // mark for deletion
+      item.delete = true;
+      self.cacheSize -= entryCacheCost;
+      if (item.samples) {
+        self.cacheSize -= _.keys(entry.samples).length;
+      }
+      if (self.cacheSize < self.minCacheSize)
+        return true;
     });
-    var allEntries = Array.prototype.concat.apply([], allEntryBuckets);
-    allEntryBuckets = null;
-    allEntries.sort(function(a,b) {return b.last - a.last});
 
-    // Cull entries.
-    var cacheSize = self.cacheSize;
-    for (var i = allEntries.length - 1;
-         cacheSize > minCacheSize && i >= 1; --i) {
-      var entry = allEntries[i];
-      if (entry.pending) continue;
-      cacheSize -= entryCacheCost;
-      if (entry.samples) cacheSize -= entry.samples.length;
-      delete entry.samples;
-      entry.last = -1;  // Flag for deletion.
-    }
-    self.cacheSize = cacheSize;
-
-    // Delete now-empty entries.
-    _.each(self.cache, function(dsChanEntry, dsChan) {
-      _.each(dsChanEntry, function(durEntry, dur) {
-        _.each(durEntry, function(entry, bucket) {
-          if (entry.last === -1)
-            delete durEntry[bucket];
+    // Now walk the hashtable deleting cache objects where necessary
+    _.each(this.cache, function(channelObj, channelKey) {
+      _.each(channelObj, function(durationObj, durationKey) {
+        _.each(durationObj, function(bucketObj, bucketKey) {
+          if (bucketObj.delete) {
+            delete bucketObj.samples;
+            delete durationObj[bucketKey];
+          }
         });
-        if (Object.keys(durEntry).length == 0)
-          delete dsChanEntry[dur];
+        if (_.keys(durationObj).length === 0) {
+          delete channelObj[durationKey];
+        }
       });
-      if (Object.keys(dsChanEntry).length == 0)
-        delete self.cache[dsChan];
+      if (_.keys(channelObj).length === 0) {
+        delete self.cache[channelKey];
+      }
     });
-  }
+  };
 
-  /**
-   * Invalidate all buckets which overlap a time range.
-   */
-  SampleCache.prototype.refetchOverlapping =
-      function(datasetId, channelName, beg, end) {
-    var cacheKey = datasetId + '-' + channelName;
-    var cacheLine = ifDef(this.cache, cacheKey);
-    if (cacheLine) durations.forEach(function(dur) {
-      var buckDur = bucketSize(dur);
-      var begBuck = Math.floor(beg / buckDur);
-      var endBuck = Math.ceil(end / buckDur);
-      _.forEach(ifDef(cacheLine, dur) || {}, function(entry, buck) {
-        if (begBuck <= buck && buck < endBuck)
-          entry.refetch = true;
-      });
-    });
-  }
+  return Cache;
 
-  var minPendingRequests = 8, maxPendingRequests = 16;
 
-  // At cacheSize = 1000000, the app tab in Chrome uses about 350MB.
-  var minCacheSize = 750000, maxCacheSize = 1000000;
-  var entryCacheCost = 10;
-
-  var durations = [0].concat(shared.syntheticDurations),
-      durationsRev = _.clone(durations).reverse();
-  function bucketSize(dur)
-    { return dur === 0 ? 500 : dur * shared.syntheticSamplesPerRow * 10; }
-
-  function defObj(obj, key)
-    { return (key in obj) ? obj[key] : (obj[key] = {}); }
-  function defArray(obj, key, d)
-    { return (key in obj) ? obj[key] : (obj[key] = []); }
-  function ifDef(obj, key)
-    { return obj && (key in obj) ? obj[key] : null; }
-
-  function getNextDur(dur)
-    { return _.detect(durations, function(v) { return v > dur }); }
-
-  function getPrevDur(dur)
-    { return _.detect(durationsRev, function(v) { return v < dur }); }
-
-  return SampleCache;
 });
+
