@@ -189,7 +189,6 @@ define([
     start: function (e) {
       var btn = $(e.target).closest('a');
       this.request.call(this, btn, function (data) {
-        console.log(data)
 
         // Update button content.
         btn.removeClass('start-button').addClass('pause-button')
@@ -202,7 +201,6 @@ define([
     pause: function (e) {
       var btn = $(e.target).closest('a');
       this.request.call(this, btn, function (data) {
-        console.log(data)
 
         // Update button content.
         btn.removeClass('pause-button').addClass('start-button')
