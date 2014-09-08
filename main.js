@@ -86,8 +86,8 @@ if (cluster.isMaster) {
   app.set('SECURE_PORT', 8443);
 
   // Add connection config to app.
-  _.each(require('./config').get(process.env.NODE_ENV), function (v, k) {
-    app.set(k, v);
+  _.each(require('./config.json'), function (v, k) {
+    app.set(k, process.env[k] || v);
   });
 
   // Middle-ware that supplies the raw body for certain MIME types.
@@ -159,7 +159,20 @@ if (cluster.isMaster) {
       require('./lib/common').init(app.get('ROOT_URI'));
 
       // Mailer init.
-      app.set('mailer', new Mailer(app.get('gmail'), app.get('HOME_URI')));
+      app.set('mailer', new Mailer({
+        user: app.get('GMAIL_USER'),
+        password: app.get('GMAIL_PASSWORD'),
+        from: app.get('GMAIL_FROM'),
+        host: app.get('GMAIL_HOST'),
+        ssl: app.get('GMAIL_SSL'),
+      }, app.get('HOME_URI')));
+
+      // Set CartoDB
+      app.set('cartodb', {
+        user: app.get('CARTODB_USER'),
+        table: app.get('CARTODB_TABLE'),
+        key: app.get('CARTODB_KEY')
+      });
 
       // PubSub init.
       app.set('pubsub', new PubSub({mailer: app.get('mailer')}));

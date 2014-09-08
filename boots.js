@@ -14,7 +14,10 @@ _.mixin(require('underscore.string'));
 var Connection = require('./lib/db').Connection;
 var resources = require('./lib/resources');
 var Samples = require('./lib/samples').Samples
-var c = require('./config').get(process.env.NODE_ENV);
+var config = require('./config.json');
+_.each(config, function (v, k) {
+  config[k] = process.env[k] || v;
+});
 
 var error = exports.error = function(err) {
   if (!err) return;
@@ -32,7 +35,7 @@ exports.start = function (opts, cb) {
   Step(
     function () {
       if (!opts.redis) return this();
-      this(null, redis.createClient(c.REDIS_PORT, c.REDIS_HOST_CACHE));
+      this(null, redis.createClient(config.REDIS_PORT, config.REDIS_HOST_CACHE));
     },
     function (err, rc) {
       error(err);
@@ -42,7 +45,7 @@ exports.start = function (opts, cb) {
 
       Step(
         function () {
-          new Connection(c.MONGO_URI, {ensureIndexes: opts.index}, this);
+          new Connection(config.MONGO_URI, {ensureIndexes: opts.index}, this);
         },
         function (err, connection) {
           error(err);

@@ -173,7 +173,7 @@ define([
           $.fancybox.close();
 
           // Route to home.
-          this.app.router.navigate('/', {trigger: true});
+          window.location = '/';
 
         }, this));
       }, this));
