@@ -84,7 +84,7 @@ define([
     this.clients[clientId].channels = [];
   };
 
-  Cache.prototype.getChannels = function(clientId, channel) {
+  Cache.prototype.getChannels = function(clientId) {
     if(!clientId || !this.clients[clientId]) {
       return null;
     }

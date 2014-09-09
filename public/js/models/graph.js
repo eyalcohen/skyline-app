@@ -70,7 +70,7 @@ define([
     },
 
     updateCacheSubscription: function () {
-      var channels = this.cache.getChannels(this.clientId);
+      var channels = this.getChannels();
       if (channels.length === 0) return;
 
       var viewRange = this.view.getVisibleTime();
@@ -121,7 +121,7 @@ define([
     },
 
     findDatasetFromChannel: function(channelName) {
-      var channels = this.cache.getChannels(this.clientId);
+      var channels = this.getChannels();
       return _.find(channels, function (channel) {
         return channel.channelName === channelName;
       });
@@ -166,11 +166,11 @@ define([
 
       // Update client.
       _.each(channels, _.bind(function (channel) {
-        if (_.pluck(this.cache.getChannels(this.clientId), 'channelName')
+        if (_.pluck(this.getChannels(), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
         if (channel.colorNum === undefined) {
-          var usedColors = _.pluck(this.cache.getChannels(this.clientId), 'colorNum');
+          var usedColors = _.pluck(this.getChannels(), 'colorNum');
           for (var c = 0; _.include(usedColors, c); ++c) {}
           channel.colorNum = c;
         }
@@ -212,15 +212,19 @@ define([
     },
 
     getChannels: function() {
-      return this.cache.getChannels(this.clientId);
+      var channels = [];
+      _.each(this.cache.getChannels(this.clientId), function (c) {
+        channels.push(c);
+      });
+      return channels;
     },
 
     fetchGraphedChannels: function(cb) {
-      cb(this.cache.getChannels(this.clientId));
+      cb(this.getChannels());
     },
 
     updateSampleSet: function (sampleSet) {
-      var channels = this.cache.getChannels(this.clientId);
+      var channels = this.getChannels();
       // var offset = dataset.get('offset')
       _.each(sampleSet, _.bind(function (ss, cn) {
         this.sampleCollection[cn] = {sampleSet: ss, offset: 0};
