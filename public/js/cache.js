@@ -8,14 +8,23 @@ define([
   var jobsPending = false;
   var maxJobsPending = 100;
 
-  /* Constructor */
+  /**
+   * Constructor
+   */
   function Cache() {
+
+    // Stores the actual samples
     this.cache = {};
     this.cacheSize = 0;
-    this.minCacheSize = 750000;
+
+    // When cleaning the cache, try to get it to abou this size
+    this.minCacheSize = 500000;
 
     // At cacheSize = 1000000, the app tab in Chrome uses about 350MB.
-    this.maxCacheSize = 1000000;
+    this.maxCacheSize = 750000;
+
+    // The cache is organized as buckets of samples, with each bucket covering
+    // a specific duration
     this.samplesPerBucket = 500;
 
     // Fetch requests by priority
@@ -39,36 +48,40 @@ define([
     */
     this.clients = {};
 
-    // This is nominally gotten from the server, but we provide a default
+    // Durations that we store in the cache
     this.durations = [
       1,    //ms
-      10,   //ms   10
-      100,  //ms   10
-      1000, //1s   10
-      10*1000, //10s   10
-      60*1000, // 1 minute 6
-      10*60*1000, // 10 minutes 10
-      60*60*1000, // 1 hour 6
-      24*60*60*1000, // 1 day 24
-      30*24*60*60*1000, // 1 month 30
-      12*30*24*60*60*1000, // 1 year 12
-      10*12*30*24*60*60*1000, // 1 decade 10
-      10*10*12*30*24*60*60*1000 // 1 century 10
+      10,   //ms
+      100,  //ms
+      1000, //1s
+      10*1000, //10s
+      60*1000, // 1 minute
+      10*60*1000, // 10 minutes
+      60*60*1000, // 1 hour
+      24*60*60*1000, // 1 day
+      30*24*60*60*1000, // 1 month
+      12*30*24*60*60*1000, // 1 year
+      10*12*30*24*60*60*1000, // 1 decade
+      10*10*12*30*24*60*60*1000 // 1 century
     ];
   }
 
-  // More 
   _.extend(Cache.prototype, Backbone.Events);
 
-  // Connect the socket
+  /*
+   * Connect a websocket to the target URL
+   */
   Cache.prototype.connectSocket = function(url) {
     this.socket = io.connect(url);
   };
 
-  // opts: {
-  //  immedateUpdate: If the client should check the cache immediately
-  //  getHigherDuration: If the client should get a higher duration when fetching
-  // };
+  /* Connect a new client.  A client is something that will be notified
+   * of updates on a channel when they come in
+   * opts: {
+   *  immediateUpdate: Tells the client to update if there is data
+   *  getHigherDuration: Tells the cache to fetch samples at longer durations
+   * }
+   */
   Cache.prototype.connectClient = function(clientId, opts) {
     if (!this.clients[clientId]) this.clients[clientId] = {};
 
@@ -84,6 +97,9 @@ define([
     this.clients[clientId].channels = [];
   };
 
+  /*
+   * Return all registered channels in the client
+   */
   Cache.prototype.getChannels = function(clientId) {
     if(!clientId || !this.clients[clientId]) {
       return null;
@@ -91,6 +107,9 @@ define([
     return this.clients[clientId].channels;
   };
 
+  /*
+   * Adds a new channel to the client
+   */
   Cache.prototype.addChannel = function(clientId, channel) {
     if(!clientId || !this.clients[clientId]) {
       return;
@@ -100,6 +119,10 @@ define([
     client.channels.push(channel);
   };
 
+  /*
+   * Removes a channel from the client.  Triggers an immediate update since
+   * we don't need to talk to the server to remove data from the client's view.
+   */
   Cache.prototype.removeChannel = function(clientId, channel) {
     if(!clientId || !this.clients[clientId]) {
       return;
@@ -113,6 +136,9 @@ define([
     this.updateClient(clientId, client, 0);
   };
 
+  /*
+   * Lets the cache know that the client's view has changed
+   */
   Cache.prototype.updateSubscription = function(clientId, dur, beg, end) {
 
     var self = this;
@@ -149,7 +175,9 @@ define([
   }
 
 
-   /* Close a client. */
+   /*
+    * End the client
+    */
   Cache.prototype.endClient = function(clientId) {
     var client = this.clients[clientId];
     if (client && client.updateId) {
@@ -159,15 +187,17 @@ define([
     delete this.clients[clientId];
   };
 
+  /*
+   * Determines which clients need updates and calls the update function
+   * Future optimization: Make sure the client's view is within beg/end
+   * before updating
+   */
   Cache.prototype.triggerClientUpdates = function(channelName, dur) {
     for (var clientId in this.clients) {
       var client = this.clients[clientId];
       var channels = _.isObject(client.channels[0])
           ? _.pluck(client.channels, 'channelName') : client.channels;
       if (-1 !== channels.indexOf(channelName) && client.dur <= dur) {
-          //&&
-          //(end > client.beg || beg < client.end)) {
-        // FIXME:
         this.updateClient(clientId, client, jobsPending ? 200 : 0);
       }
     }
@@ -200,24 +230,20 @@ define([
       var sampleSet = {};
       _.each(client.channels, function (c) {
         var cn = c.channelName || c;
+        // Grab data from the cache here
         sampleSet[cn] = self.getBestData(cn, client.dur, client.beg, client.end);
       });
       self.trigger('update-' + clientId, sampleSet);
     }, timeout);
   };
 
-  // usage: forEachDuration(function(dur) { ... })
+  /*
+   * Helper function.  usage: forEachDuration(function(dur) { ... })
+   */
   var forEachDuration = function(fcn) {
     _.each(this.durations, function(f) {
       fcn(f);
     });
-  };
-
-  Cache.prototype.getBestDuration = function(visibleUs, maxSamples) {
-    var minDuration = Math.min(visibleUs / maxSamples, _.last(durations));
-    return _.first(_.filter(this.durations, function(v) {
-      return v >= minDuration;
-    }));
   };
 
   /**
@@ -289,20 +315,23 @@ define([
         else {
           jobsPending = true;
           var req = self.priorityQueue[pr].shift();
-          self.issueRequest.call(self, req.channel, req.dur, req.bucket, getNext);
+          self.setupRequest.call(self, req.channel, req.dur, req.bucket, getNext);
           return true;
         }
       });
     };
 
+    // Start the callback chain
     if (!jobsPending) {
       getNext();
     }
 
   };
 
-  // Make a request over socket.io
-  Cache.prototype.serverRequest = function(channel, duration, bucket, cb) {
+  /*
+   * Make a request for data over socket.io
+   */
+  Cache.prototype.issueRequest = function(channel, duration, bucket, cb) {
     if (this.socket) {
       var beg = bucket * this.samplesPerBucket * duration;
       var end = (bucket + 1) * this.samplesPerBucket * duration - 1;
@@ -325,14 +354,17 @@ define([
     }
   };
 
-  Cache.prototype.issueRequest = function(channel, duration, bucket, cb) {
+  /*
+   * Handle setup of the server request and handling of the callback
+   */
+  Cache.prototype.setupRequest = function(channel, duration, bucket, cb) {
     var self = this;
 
     // should always return an object
     var entry = this.getCacheEntry(channel, duration, bucket, true);
     entry.pending = true;
 
-    this.serverRequest(channel, duration, bucket, function (err, samples) {
+    this.issueRequest(channel, duration, bucket, function (err, samples) {
       delete entry.pending;
 
       if (err) {
@@ -354,7 +386,9 @@ define([
     });
   };
 
-  // Invalidates all buckets that cover the range of time
+  /*
+   * Invalidates all buckets that include this time
+   */
   Cache.prototype.invalidateCache = function(channel, time) {
     var self = this;
     forEachDuration(function(dur) {
@@ -367,7 +401,9 @@ define([
     });
   };
 
-  // Get or create a cache entry if 'create' is true
+  /*
+   * Get or create a cache entry if 'create' is true
+   */
   Cache.prototype.getCacheEntry = function(channel, duration, bucket, create) {
     var entry = null;
     var cache = this.cache;
@@ -386,7 +422,9 @@ define([
     return entry;
   };
 
-  // Returns the cache as a copied array
+  /*
+   * Returns the cache as a copied array
+   */
   Cache.prototype.getAsArray = function() {
     // Create one large array from the object hash table
     var allEntries = [];
@@ -400,12 +438,7 @@ define([
     return allEntries;
   };
 
-  Cache.prototype.getOrIssueData = function() {
-    // Create new request for the data range in question
-    // Update the client view if there is something useful
-  };
-
-  /*
+  /**
    Cache organization example:
    smallDuration:   [bucket0][bucket1][bucket2][bucket3][bucket4][bucket5]...
    largerDuration:  [bucket0                  ][bucket1                  ]...
@@ -481,7 +514,9 @@ define([
     return _.flatten(sampleSet);
   };
 
-  /* Completely empties the cache */
+  /*
+   * Completely empties the cache
+   */
   Cache.prototype.emptyCache = function() {
     this.cache = {};
     this.cacheSize = 0;
@@ -489,7 +524,8 @@ define([
 
 
   /* Tries to get cache below the maxCacheSize by removing the oldest
-   * cache entries */
+   * cache entries
+   */
   Cache.prototype.cleanCache = function() {
     var self = this;
 
@@ -535,7 +571,9 @@ define([
     });
   };
 
-  // Helper function to get samples from the cache
+  /*
+   * Helper function to get samples from the cache
+   */
   Cache.prototype.fetchSamples = function(channelName, beg, end, width, cb) {
     var uniqueName = channelName + '-' + Math.floor(Math.random()*100000);
     var bestDuration = this.getBestGraphDuration((end-beg)/width, true);
