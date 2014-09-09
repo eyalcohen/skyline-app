@@ -150,8 +150,6 @@ define([
       var time = xaxis.c2p(mouse.x);
       var points = {};
 
-      var lastDataSet = null;
-
       // stored remapping of series (x,y) points as array of x points
       var series_x = [];
 
@@ -183,16 +181,11 @@ define([
         // Ensure series is valid for the time.
         if (time === null) return null;
 
-        // If this is the same dataset as the last series, we don't
-        // need to run the below search again
-        var dataset = this.model.findDatasetFromChannel(series.channelName);
-        if (dataset !== lastDataSet) {
-          // get the x coordinates of the series as an array
-          series_x = (_.map(series.data, function (d) { return d ? d[0] : null; }));
+        // get the x coordinates of the series as an array
+        series_x = (_.map(series.data, function (d) { return d ? d[0] : null; }));
 
-          // use binary search to locate time in the array
-          timeIdxHigh = (_.sortedIndex(series_x, time, null, this));
-        }
+        // use binary search to locate time in the array
+        timeIdxHigh = (_.sortedIndex(series_x, time, null, this));
 
         // Bound edges.  This should just work, but will make invalid results
         // for pixelsFromInterpPt and interpPt

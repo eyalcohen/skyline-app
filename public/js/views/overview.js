@@ -111,167 +111,165 @@ define([
       var width = this.$el.width();
 
       // Make a plot for each channel.
-      this.model.fetchGraphedChannels(_.bind(function (channels) {
-        var min = [Number.MAX_VALUE, Number.MAX_VALUE];
-        var max = [-Number.MAX_VALUE, -Number.MAX_VALUE];
+      var channels = this.model.getChannels();
+      var min = [Number.MAX_VALUE, Number.MAX_VALUE];
+      var max = [-Number.MAX_VALUE, -Number.MAX_VALUE];
 
-        // Get channel samples.
-        this.series = [];
-        _.each(channels, _.bind(function (channel) {
-          var s = this.getSeriesData(channel);
-          var axis = this.model.lineStyleOptions[channel.channelName].yaxis;
-          if (axis === 2) {
-            min[1] = Math.min(min[1], s.min);
-            max[1] = Math.max(max[1], s.max);
-          } else {
-            min[0] = Math.min(min[0], s.min);
-            max[0] = Math.max(max[0], s.max);
-          }
-
-          if (s.data.length === 0) return;
-          s.color = this.app.getColors(channel.colorNum);
-
-          if (this.model.lineStyleOptions[channel.channelName].color)
-            s.color = this.model.lineStyleOptions[channel.channelName].color;
-          else {
-            s.color = this.app.getColors(channel.colorNum);
-            this.model.lineStyleOptions[channel.channelName].color = this.color;
-          }
-
-          // Ensure each series spans the visible time.
-          if (time.beg < _.first(s.data).t) {
-            s.data.unshift({t: _.first(s.data).t, v: null});
-            s.data.unshift({t: time.beg, v: null});
-          }
-          if (time.end > _.last(s.data).t) {
-            s.data.push({t: _.last(s.data).t, v: null});
-            s.data.push({t: time.end, v: null});
-          }
-          s.name = channel.channelName;
-          s.axis = axis;
-          this.series.push(s);
-        }, this));
-
-        $('.overview-date > span').text(
-          util.toLocaleString(new Date(time.beg), 'm/d/yyyy'));
-        $('.overview-date-right > span').text(
-          util.toLocaleString(new Date(time.end), 'm/d/yyyy'));
-
-
-        // remove all plots where we don't have series data
-        var allPlotIds = $('.overview-plot').map(function() { return this.id; }).get();
-        var toRemove = _.reject(allPlotIds, function(s) {
-          return _.contains(_.pluck(this.series, 'name'), s.split('-')[1]);
-        }, this);
-        _.each(toRemove, function (s) { $('#' + s).remove(); });
-
-        // Series with less samples should appear on top.
-        this.series.sort(function (a, b) {
-          return b.data.length - a.data.length;
-        });
-
-        // Render.
-        _.each(this.series, _.bind(function (series) {
-
-          var local_max = series.axis === 2 ? max[1] : max[0];
-          var local_min = series.axis === 2 ? min[1] : min[0];
-
-          // Map samples to x,y coordinates.  Lots of mx+b equations here
-          var path = d3.svg.area()
-              .x(function (s) {
-                return (s.t - time.beg) / (time.end - time.beg) * width;
-              })
-              .y0(function () {
-                var zero = local_max === local_min ? height :
-                  height - height * -local_min / (local_max - local_min);
-                return zero;
-              })
-              .y1(function (s) {
-                var zero = local_max === local_min ? height :
-                  height - height * -local_min / (local_max - local_min);
-                return  (s.v === null) || (local_max === local_min) ? zero:
-                    height - ((s.v - local_min) / (local_max - local_min) * height);
-              })
-              .interpolate('linear');
-
-          var plot = $('#overview-'+series.name);
-          var height;
-          if (plot.length !== 0)
-            height = plot.height();
-          else {
-            plot = $('<div class="overview-plot">').insertBefore(this.visTimePlot);
-            plot.attr('id', 'overview-' + series.name);
-            height = plot.height();
-            d3.select(plot.get(0))
-                .append('svg:svg')
-                .attr('width', width)
-                .attr('height', height)
-                .append('svg:g')
-                .append('svg:path')
-                .attr('d', path(_.map(series.data, function (x) {
-                  return {t: x.t, v: 0};
-                })))
-                .attr('class', 'area')
-                .attr('fill', series.color);
-          }
-
-          // Create SVG elements.
-          d3.select(plot.get(0)).select('path')
-              .transition()
-              .ease('cubic-out')
-              .duration(0)
-              .attr('fill', series.color)
-              .attr('d', path(series.data));
-        }, this));
-
-        // Check width change for resize.
-        if (time.width !== this.prevWidth) {
-          this.trigger('VisibleWidthChange');
-          this.prevWidth = time.width;
+      // Get channel samples.
+      this.series = [];
+      _.each(channels, _.bind(function (channel) {
+        var s = this.getSeriesData(channel);
+        var axis = this.model.lineStyleOptions[channel.channelName].yaxis;
+        if (axis === 2) {
+          min[1] = Math.min(min[1], s.min);
+          max[1] = Math.max(max[1], s.max);
+        } else {
+          min[0] = Math.min(min[0], s.min);
+          max[0] = Math.max(max[0], s.max);
         }
+
+        if (s.data.length === 0) return;
+        s.color = this.app.getColors(channel.colorNum);
+
+        if (this.model.lineStyleOptions[channel.channelName].color)
+          s.color = this.model.lineStyleOptions[channel.channelName].color;
+        else {
+          s.color = this.app.getColors(channel.colorNum);
+          this.model.lineStyleOptions[channel.channelName].color = this.color;
+        }
+
+        // Ensure each series spans the visible time.
+        if (time.beg < _.first(s.data).t) {
+          s.data.unshift({t: _.first(s.data).t, v: null});
+          s.data.unshift({t: time.beg, v: null});
+        }
+        if (time.end > _.last(s.data).t) {
+          s.data.push({t: _.last(s.data).t, v: null});
+          s.data.push({t: time.end, v: null});
+        }
+        s.name = channel.channelName;
+        s.axis = axis;
+        this.series.push(s);
       }, this));
+
+      $('.overview-date > span').text(
+        util.toLocaleString(new Date(time.beg), 'm/d/yyyy'));
+      $('.overview-date-right > span').text(
+        util.toLocaleString(new Date(time.end), 'm/d/yyyy'));
+
+
+      // remove all plots where we don't have series data
+      var allPlotIds = $('.overview-plot').map(function() { return this.id; }).get();
+      var toRemove = _.reject(allPlotIds, function(s) {
+        return _.contains(_.pluck(this.series, 'name'), s.split('-')[1]);
+      }, this);
+      _.each(toRemove, function (s) { $('#' + s).remove(); });
+
+      // Series with less samples should appear on top.
+      this.series.sort(function (a, b) {
+        return b.data.length - a.data.length;
+      });
+
+      // Render.
+      _.each(this.series, _.bind(function (series) {
+
+        var local_max = series.axis === 2 ? max[1] : max[0];
+        var local_min = series.axis === 2 ? min[1] : min[0];
+
+        // Map samples to x,y coordinates.  Lots of mx+b equations here
+        var path = d3.svg.area()
+            .x(function (s) {
+              return (s.t - time.beg) / (time.end - time.beg) * width;
+            })
+            .y0(function () {
+              var zero = local_max === local_min ? height :
+                height - height * -local_min / (local_max - local_min);
+              return zero;
+            })
+            .y1(function (s) {
+              var zero = local_max === local_min ? height :
+                height - height * -local_min / (local_max - local_min);
+              return  (s.v === null) || (local_max === local_min) ? zero:
+                  height - ((s.v - local_min) / (local_max - local_min) * height);
+            })
+            .interpolate('linear');
+
+        var plot = $('#overview-'+series.name);
+        var height;
+        if (plot.length !== 0)
+          height = plot.height();
+        else {
+          plot = $('<div class="overview-plot">').insertBefore(this.visTimePlot);
+          plot.attr('id', 'overview-' + series.name);
+          height = plot.height();
+          d3.select(plot.get(0))
+              .append('svg:svg')
+              .attr('width', width)
+              .attr('height', height)
+              .append('svg:g')
+              .append('svg:path')
+              .attr('d', path(_.map(series.data, function (x) {
+                return {t: x.t, v: 0};
+              })))
+              .attr('class', 'area')
+              .attr('fill', series.color);
+        }
+
+        // Create SVG elements.
+        d3.select(plot.get(0)).select('path')
+            .transition()
+            .ease('cubic-out')
+            .duration(0)
+            .attr('fill', series.color)
+            .attr('d', path(series.data));
+      }, this));
+
+      // Check width change for resize.
+      if (time.width !== this.prevWidth) {
+        this.trigger('VisibleWidthChange');
+        this.prevWidth = time.width;
+      }
 
     },
 
     drawCurrentTimeOverlay: function(time) {
-      this.model.fetchGraphedChannels(_.bind(function (channels) {
-        if (channels.length === 0) {
-          return;
-        } else {
-          if (!time.beg) return;
-          var vs = this.getVisibleTime();
-          if (!vs.beg) return;
-          var height = this.visTimePlot.height();
-          var width = this.$el.width();
+      var channels = this.model.getChannels();
+      if (channels.length === 0) {
+        return;
+      } else {
+        if (!time.beg) return;
+        var vs = this.getVisibleTime();
+        if (!vs.beg) return;
+        var height = this.visTimePlot.height();
+        var width = this.$el.width();
 
-          var width_per = (time.end-time.beg) / (vs.end - vs.beg);
-          var begin = (time.beg - vs.beg) / (vs.end - vs.beg);
+        var width_per = (time.end-time.beg) / (vs.end - vs.beg);
+        var begin = (time.beg - vs.beg) / (vs.end - vs.beg);
 
-          var path = d3.svg.area()
-              .x(function (t) { return t.x; })
-              .y0(function () { return 0; })
-              .y1(function (t) { return t.y; })
-              .interpolate('linear');
+        var path = d3.svg.area()
+            .x(function (t) { return t.x; })
+            .y0(function () { return 0; })
+            .y1(function (t) { return t.y; })
+            .interpolate('linear');
 
-          var factor = 0; // for scaling the trapzeoid
+        var factor = 0; // for scaling the trapzeoid
 
-          // create a trapezoid
-          var trap = [
-            {x:Math.max((begin-factor)*width,0), y:0},
-            {x:begin*width, y:height},
-            {x:(begin+width_per)*width, y:height},
-            {x:Math.min((begin+width_per+factor)*width, width), y:0},
-          ];
+        // create a trapezoid
+        var trap = [
+          {x:Math.max((begin-factor)*width,0), y:0},
+          {x:begin*width, y:height},
+          {x:(begin+width_per)*width, y:height},
+          {x:Math.min((begin+width_per+factor)*width, width), y:0},
+        ];
 
-          d3.select(this.visTimePlot.get(0)).select('path')
-            // .transition()
-            .attr('d', path(trap))
-            .attr('fill', '#27CDD6')
-            .attr('opacity', (1-width_per)*0.5);
-            // .attr('stroke-width', 1)
-            // .attr('stroke', '#b2b2b2');
-        }
-      }, this));
+        d3.select(this.visTimePlot.get(0)).select('path')
+          // .transition()
+          .attr('d', path(trap))
+          .attr('fill', '#27CDD6')
+          .attr('opacity', (1-width_per)*0.5);
+          // .attr('stroke-width', 1)
+          // .attr('stroke', '#b2b2b2');
+      }
     },
 
     getSeriesData: function (channel) {
