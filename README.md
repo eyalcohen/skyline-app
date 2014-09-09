@@ -33,7 +33,7 @@ Skyline runs in production on [AWS Elastic Beanstalk](http://aws.amazon.com/elas
 	skyline.pem
 .elasticbeanstalk
 	config
-	optionsettings.skyline
+	optionsettings.app
 ```
 
 ```.aws/aws_credential_file``` : (_Get these values from Sander or Eyal_)
@@ -62,7 +62,7 @@ ServiceEndpoint=https://elasticbeanstalk.us-east-1.amazonaws.com
 SolutionStack=64bit Amazon Linux 2014.03 v1.0.4 running Node.js
 ```
 
-```.elasticbeanstalk/optionsettings.skyline``` :
+```.elasticbeanstalk/optionsettings.app``` :
 
 ```
 [aws:autoscaling:asg]
