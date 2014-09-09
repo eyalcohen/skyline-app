@@ -68,10 +68,11 @@ define([
   // opts: {
   //  immedateUpdate: If the client should check the cache immediately
   //  getHigherDuration: If the client should prioritize zoomed out data
-  // }
-  Cache.prototype.connectClient(clientId, opts) {
+  // };
+  Cache.prototype.connectClient = function(clientId, opts) {
     if (!this.clients[clientId]) this.clients[clientId] = {};
-    this.client[clientId].channels = [];
+
+    this.clients[clientId].channels = [];
 
     if (!opts) opts = {};
     _.defaults(opts, {
@@ -79,18 +80,38 @@ define([
       getHigherDuration: true
     });
 
-    this.client[clientId].opts = opts;
-
-    return this.client[clientId];
+    this.clients[clientId].opts = opts;
+    this.clients[clientId].channels = [];
   };
 
-  Cache.prototype.getChannels(clientId) {
-    return this.client[clientId].channels;
+  Cache.prototype.getChannels = function(clientId, channel) {
+    if(!clientId || !this.clients[clientId]) {
+      return null;
+    }
+    return this.clients[clientId].channels;
   };
 
+  Cache.prototype.addChannel = function(clientId, channel) {
+    if(!clientId || !this.clients[clientId]) {
+      return;
+    }
+    this.clients[clientId].needsUpdate = true;
+    this.clients[clientId].channels.push(channel);
 
-  Cache.prototype.updateClient =
-      function(clientId, channels, dur, beg, end, opts) {
+  };
+
+  Cache.prototype.removeChannel = function(clientId, channel) {
+    if(!clientId || !this.clients[clientId]) {
+      return;
+    }
+    var index = _.pluck(this.clients[clientId].channels, 'channelName')
+                        .indexOf(channel.channelName);
+    if (index === -1) return;
+    this.clients[clientId].needsUpdate = true;
+    this.clients[clientId].channels.splice(index, 1);
+  };
+
+  Cache.prototype.updateSubscription = function(clientId, dur, beg, end) {
 
     var self = this;
 
@@ -98,30 +119,34 @@ define([
         || this.clients[clientId].channels.length === 0)
       return;
 
-    if (client.dur === dur && client.beg === beg
-        && client.end === end && _.isEqual(client.channels, channels)) {
+    var client = this.clients[clientId];
+
+    if (client.needsUpdate) {
+      delete client.needsUpdate;
+    } else if (client.dur === dur && client.beg === beg && client.end === end) {
       return;  // Nothing to do!
     }
 
-    client.channels = channels;
-    client.dur = dur;
-    client.beg = beg;
-    client.end = end;
+    if (dur) client.dur = dur;
+    if (beg) client.beg = beg;
+    if (end) client.end = end;
+
+    if (!client.dur || !client.beg || !client.end)
+      return;
 
     _.each(client.channels, function (c) {
-      self.createNewRequest(c, client.dur, client.beg, client.end);
+      self.createNewRequest(c.channelName || c, client.dur, client.beg, client.end);
     });
+
     // Update now, in case there's something useful in the cache.
-    if (client.opts.updateImmediate)
+    if (client.opts.immediateUpdate)
       this.updateClient(clientId, client, 50);
 
     return;
-  };
+  }
 
 
-  /**
-   * Close a client.
-   */
+   /* Close a client. */
   Cache.prototype.endClient = function(clientId) {
     var client = this.clients[clientId];
     if (client && client.updateId) {
@@ -131,18 +156,19 @@ define([
     delete this.clients[clientId];
   };
 
-  Cache.prototype.triggerClientUpdates =
-      function(channelName, dur) {
+  Cache.prototype.triggerClientUpdates = function(channelName, dur) {
     for (var clientId in this.clients) {
       var client = this.clients[clientId];
-      if (-1 !== client.channels.indexOf(channelName) && client.dur <= dur) {
+      var channels = _.isObject(client.channels[0])
+          ? _.pluck(client.channels, 'channelName') : client.channels;
+      if (-1 !== channels.indexOf(channelName) && client.dur <= dur) {
           //&&
           //(end > client.beg || beg < client.end)) {
         // FIXME:
         this.updateClient(clientId, client, jobsPending ? 200 : 0);
       }
     }
-  }
+  };
 
   /**
    * Trigger a client update.  To avoid a lot of redundant work when a number
@@ -170,7 +196,8 @@ define([
       delete client.updateTimeout;
       var sampleSet = {};
       _.each(client.channels, function (c) {
-        sampleSet[c] = self.getBestData(c, client.dur, client.beg, client.end);
+        var cn = c.channelName || c;
+        sampleSet[cn] = self.getBestData(cn, client.dur, client.beg, client.end);
       });
       self.trigger('update-' + clientId, sampleSet);
     }, timeout);
@@ -427,7 +454,7 @@ define([
 
     var durationIndex = this.durations.indexOf(duration);
     for (var bucketIt = firstBucket; bucketIt <= lastBucket; bucketIt++) {
-      var durationIndex = this.durations.indexOf(duration);
+      durationIndex = this.durations.indexOf(duration);
       dateBeg = bucketIt === firstBucket
           ? beg
           : bucketIt * duration * samplesPerBucket;
@@ -497,17 +524,19 @@ define([
 
   // Helper function to get samples from the cache
   Cache.prototype.fetchSamples = function(channelName, beg, end, width, cb) {
-    var uniqueName = channelName + '-' + Math.floor(Math.random*100000);
+    var uniqueName = channelName + '-' + Math.floor(Math.random()*100000);
     var bestDuration = this.getBestGraphDuration((end-beg)/width, true);
-    this.updateOrCreateClient(uniqueName, [channelName], bestDuration,
-        beg, end, {updateImmediate: false});
+
+    this.connectClient(uniqueName, { immediateUpdate: false });
+    this.addChannel(uniqueName, channelName);
+    this.updateSubscription(uniqueName, bestDuration, beg, end);
     this.bind('update-'+uniqueName, _.bind(function(samples) {
       cb(samples[channelName]);
     }, this));
     setTimeout(_.bind(function() {
       this.endClient(uniqueName);
     }, this), 2500);
-  }
+  };
 
   return Cache;
 

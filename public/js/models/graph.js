@@ -56,11 +56,12 @@ define([
           this.options.time.pending = false;
         }
       }, this));
+
       this.view.bind('VisibleWidthChange',
           _.bind(this.updateCacheSubscription, this));
 
       this.clientId = util.rid32();
-      this.cache.connectClient(clientId);
+      this.cache.connectClient(this.clientId);
 
       this.cache.bind('update-' + this.clientId,
           _.bind(this.updateSampleSet, this));
@@ -80,14 +81,8 @@ define([
       if (viewRange.width <= 0) return;
       viewRange.width = Math.max(viewRange.width, 2000);
       if (viewRange.static) {
-        viewRange.beg = Number.MAX_VALUE;
-        viewRange.end = -Number.MAX_VALUE;
-        /*
-        if (viewRange.beg > this.client.dataset.get('beg'))
-          viewRange.beg = this.client.dataset.get('beg');
-        if (viewRange.end < this.client.dataset.get('end'))
-          viewRange.end = this.client.dataset.get('end'); 
-        */
+        viewRange.beg = _.min(_.pluck(channels, 'beg'));
+        viewRange.end = _.max(_.pluck(channels, 'end'));
       }
       var dur = this.cache.getBestGraphDuration(
           (viewRange.end - viewRange.beg) / viewRange.width, viewRange.static);
@@ -122,37 +117,18 @@ define([
         end = this.prevRange.end;
       }
 
-      this.cache.updateClient(this.clientId, channels, dur, beg, end);
+      this.cache.updateSubscription(this.clientId, dur, beg, end);
     },
 
     findDatasetFromChannel: function(channelName) {
-      var client =  _.find(this.clients, function (client) {
-        return _.find(client.channels, function (channels) {
-          return channels.channelName === channelName;
-        });
+      var channels = this.cache.getChannels(this.clientId);
+      return _.find(channels, function (channel) {
+        return channel.channelName === channelName;
       });
       return client ? client.dataset : undefined;
     },
 
-    getChannels: function () {
-      var channels = [];
-      _.each(this.clients, function (client) {
-        _.each(client.channels, function (c) {
-          channels.push(c);
-        });
-      });
-      return channels;
-    },
-
-    getChannelsByDataset: function () {
-      var datasets = [];
-      _.each(this.clients, function (client) {
-        if (client.channels.length === 0) return;
-        datasets.push(client.dataset)
-      });
-      return datasets;
-    },
-
+/*
     changeDatasetOffset: function (datasetId, newOfset) {
       var client = _.find(this.clients, function (cl) {
         cl.id == datasetId;
@@ -160,6 +136,7 @@ define([
       if (!client) return;
       client.offset = newOffset;
     },
+*/
 
     addChannel: function (dataset, channels, silent) {
       if (!dataset) return;
@@ -189,11 +166,11 @@ define([
 
       // Update client.
       _.each(channels, _.bind(function (channel) {
-        if (_.pluck(client.channels, 'channelName')
+        if (_.pluck(this.cache.getChannels(this.clientId), 'channelName')
             .indexOf(channel.channelName) !== -1)
           return;
         if (channel.colorNum === undefined) {
-          var usedColors = _.pluck(this.getChannels(), 'colorNum');
+          var usedColors = _.pluck(this.cache.getChannels(this.clientId), 'colorNum');
           for (var c = 0; _.include(usedColors, c); ++c) {}
           channel.colorNum = c;
         }
@@ -205,40 +182,45 @@ define([
           _.extend(this.lineStyleOptions[channel.channelName],this.DEFAULT_LINE_STYLE);
         }
         channel.author = dataset.get('author');
-        client.channels.push(channel);
+
+        this.cache.addChannel(this.clientId, channel);
+        this.updateCacheSubscription();
+
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel,
               this.lineStyleOptions[channel.channelName], silent]);
           console.log('addChannel(', channel, ')...');
         }
       }, this));
-      this.updateCacheSubscription(client);
       // if (offsetChanged)
       //   mps.publish('graph/offsetChanged', []);
       return this;
     },
 
-    removeChannel: function (channel) {
-      var client = this.getOrCreateClient(dataset);
-      var index = _.pluck(client.channels, 'channelName')
-                          .indexOf(channel.channelName);
-      if (index === -1) return;
-      client.channels.splice(index, 1);
+    removeChannel: function (dataset, channel) {
+      this.cache.removeChannel(this.clientId, channel);
+      this.updateCacheSubscription();
+
+      var datasetId = dataset.get('id');
       channel.did = datasetId;
+
       if (!this.options.silent) {
         mps.publish('channel/removed', [datasetId, channel]);
         console.log('removeChannel(', channel, ')...');
       }
-      this.updateCacheSubscription(client);
       return this;
     },
 
-    fetchGraphedChannels: function(cb) {
-      cb(this.getChannels());
+    getChannels: function() {
+      return this.cache.getChannels(this.clientId);
     },
 
-    updateSampleSet: function (dataset, sampleSet) {
-      var channels = this.getChannels();
+    fetchGraphedChannels: function(cb) {
+      cb(this.cache.getChannels(this.clientId));
+    },
+
+    updateSampleSet: function (sampleSet) {
+      var channels = this.cache.getChannels(this.clientId);
       // var offset = dataset.get('offset')
       _.each(sampleSet, _.bind(function (ss, cn) {
         this.sampleCollection[cn] = {sampleSet: ss, offset: 0};

@@ -835,10 +835,12 @@ define([
 
         s.originalColor = color;
 
+/*
         var did = this.model.findDatasetFromChannel(channel.channelName).get('id');
         if (this.lightened[did] === true) {
           color = util.lightenColor(color, 0.3);
         }
+*/
         if (this.highlightedChannel && !highlighted) {
 
           // Lighten color.
