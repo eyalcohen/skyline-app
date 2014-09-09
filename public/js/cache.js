@@ -95,20 +95,22 @@ define([
     if(!clientId || !this.clients[clientId]) {
       return;
     }
-    this.clients[clientId].needsUpdate = true;
-    this.clients[clientId].channels.push(channel);
-
+    var client = this.clients[clientId];
+    client.needsUpdate = true;
+    client.channels.push(channel);
   };
 
   Cache.prototype.removeChannel = function(clientId, channel) {
     if(!clientId || !this.clients[clientId]) {
       return;
     }
-    var index = _.pluck(this.clients[clientId].channels, 'channelName')
+    var client = this.clients[clientId];
+    var index = _.pluck(client.channels, 'channelName')
                         .indexOf(channel.channelName);
     if (index === -1) return;
-    this.clients[clientId].needsUpdate = true;
-    this.clients[clientId].channels.splice(index, 1);
+    client.needsUpdate = true;
+    client.channels.splice(index, 1);
+    this.updateClient(clientId, client, 0);
   };
 
   Cache.prototype.updateSubscription = function(clientId, dur, beg, end) {

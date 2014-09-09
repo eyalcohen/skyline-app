@@ -199,7 +199,7 @@ define([
 
     removeChannel: function (dataset, channel) {
       this.cache.removeChannel(this.clientId, channel);
-      this.updateCacheSubscription();
+      //this.updateCacheSubscription();
 
       var datasetId = dataset.get('id');
       channel.did = datasetId;
