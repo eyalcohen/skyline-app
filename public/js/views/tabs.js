@@ -9,8 +9,9 @@ define([
   'util',
   'mps',
   'rest',
+  'Spin',
   'text!../../templates/tabs.html'
-], function ($, _, Backbone, util, mps, rest, template) {
+], function ($, _, Backbone, util, mps, rest, Spin, template) {
 
   return Backbone.View.extend({
 
@@ -73,6 +74,21 @@ define([
         tabs.removeClass('active');
         this.$('.tab:eq(' + i + ')').addClass('active');
       }
+
+      // Init the load indicators.
+      this.$('.button-spin').each(function (el) {
+        var opts = {
+          color: '#3f3f3f',
+          lines: 13,
+          length: 3,
+          width: 2,
+          radius: 6,
+        };
+        if ($(this).hasClass('button-spin-white')) {
+          opts.color = '#fff';
+        }
+        $(this).data('spin', new Spin($(this), opts));
+      });
 
       this.trigger('rendered');
       return this;
@@ -188,11 +204,17 @@ define([
 
     start: function (e) {
       var btn = $(e.target).closest('a');
+      $('.button-spin', btn).data().spin.start();
+      btn.addClass('loading');
       this.request.call(this, btn, function (data) {
 
         // Update button content.
-        btn.removeClass('start-button').addClass('pause-button')
-            .html('<i class="icon-pause"></i> Pause');
+        btn.removeClass('start-button').addClass('pause-button');
+        $('span', btn).html('<i class="icon-pause"></i> Pause');
+
+        // Stop spinner.
+        $('.button-spin', btn).data().spin.stop();
+        btn.removeClass('loading');
       });
 
       return false;
@@ -200,11 +222,17 @@ define([
 
     pause: function (e) {
       var btn = $(e.target).closest('a');
+      $('.button-spin', btn).data().spin.start();
+      btn.addClass('loading');
       this.request.call(this, btn, function (data) {
 
         // Update button content.
-        btn.removeClass('pause-button').addClass('start-button')
-            .html('<i class="icon-play"></i> Start');
+        btn.removeClass('pause-button').addClass('start-button');
+        $('span', btn).html('<i class="icon-play"></i> Start');
+
+        // Stop spinner.
+        $('.button-spin', btn).data().spin.stop();
+        btn.removeClass('loading');
       });
 
       return false;

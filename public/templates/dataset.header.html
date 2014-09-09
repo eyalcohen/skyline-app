@@ -36,12 +36,12 @@
       <a href="javascript:;" class="button title-button pause-button"
           data-path="<%= this.app.apis.streams %>/stop/<%= this.model.id %>"
           data-_path="<%= this.app.apis.streams %>/start/<%= this.model.id %>">
-        <i class="icon-pause"></i> Pause</a>
+        <span><i class="icon-pause"></i> Pause</span><div class="button-spin"></div></a>
     <% } else { %>
       <a href="javascript:;" class="button title-button start-button"
           data-path="<%= this.app.apis.streams %>/start/<%= this.model.id %>"
           data-_path="<%= this.app.apis.streams %>/stop/<%= this.model.id %>">
-        <i class="icon-play"></i> Start</a>
+        <span><i class="icon-play"></i> Start</span><div class="button-spin"></div></a>
     <% } %>
   <% } %>
 <% } %>

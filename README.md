@@ -50,16 +50,16 @@ AWSRegion=us-east-1
 
 ```
 [global]
-ApplicationName=skyline
+ApplicationName=skyline-app
 AwsCredentialFile=<PATH_TO_SKYLINE>/.aws/aws_credential_file
 DevToolsEndpoint=git.elasticbeanstalk.us-east-1.amazonaws.com
-EnvironmentName=skyline-env
+EnvironmentName=skyline-app-env
 InstanceProfileName=aws-elasticbeanstalk-ec2-role
-OptionSettingFile=<PATH_TO_SKYLINE>/.elasticbeanstalk/optionsettings.skyline
+OptionSettingFile=<PATH_TO_SKYLINE>/.elasticbeanstalk/optionsettings.app
 RdsEnabled=No
 Region=us-east-1
 ServiceEndpoint=https://elasticbeanstalk.us-east-1.amazonaws.com
-SolutionStack=64bit Amazon Linux 2014.02 running Node.js
+SolutionStack=64bit Amazon Linux 2014.03 v1.0.4 running Node.js
 ```
 
 ```.elasticbeanstalk/optionsettings.skyline``` :
@@ -70,27 +70,34 @@ MaxSize=3
 MinSize=3
 
 [aws:autoscaling:launchconfiguration]
-EC2KeyName=skyline
-InstanceType=m1.small
+InstanceType=t2.medium
 EC2KeyName=skyline
 IamInstanceProfile=aws-elasticbeanstalk-ec2-role
-
-[aws:autoscaling:trigger]
-MeasureName=CPUUtilization
-Statistic=Average
-Unit=Percent
-Period=1
-BreachDuration=1
-UpperThreshold=65
-LowerThreshold=10
-UpperBreachScaleIncrement=1
-LowerBreachScaleIncrement=-1
 
 [aws:elasticbeanstalk:application:environment]
 AWS_ACCESS_KEY_ID=<YOUR_IAM_ACCESS_KEY_ID>
 AWS_SECRET_KEY=<YOUR_IAM_SECRET_KEY>
 AWS_REGION=us-east-1
 NODE_ENV=production
+MONGO_URI=<MONGO_URI>
+REDIS_HOST_CACHE=<REDIS_HOST_CACHE>
+REDIS_HOST_SESSION=<REDIS_HOST_SESSION>
+REDIS_PORT=6379
+GMAIL_USER=<GMAIL_USER>
+GMAIL_PASSWORD=<GMAIL_PASSWORD>
+GMAIL_FROM=<GMAIL_FROM>
+GMAIL_HOST=smtp.gmail.com
+GMAIL_SSL=true
+GOOGLE_CLIENT_ID=<GOOGLE_CLIENT_ID>
+GOOGLE_CLIENT_SECRET=<GOOGLE_CLIENT_SECRET>
+FACEBOOK_NAME=Skyline
+FACEBOOK_CLIENT_ID=<FACEBOOK_CLIENT_ID>
+FACEBOOK_CLIENT_SECRET=<FACEBOOK_CLIENT_SECRET>
+TWITTER_CONSUMER_KEY=<TWITTER_CONSUMER_KEY>
+TWITTER_CONSUMER_SECRET=<TWITTER_CONSUMER_SECRET>
+CARTODB_USER=skyline
+CARTODB_TABLE=samples
+CARTODB_KEY=<CARTODB_KEY>
 
 [aws:elasticbeanstalk:container:nodejs]
 GzipCompression=false

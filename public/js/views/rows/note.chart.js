@@ -75,6 +75,9 @@ define([
         delete this.app.requestedNoteId;
         this.open();
         var dur = this.model.get('end') - this.model.get('beg');
+        if (dur == 0) {
+          dur = 1e6;
+        }
         var min = this.model.get('beg') - 2*dur;
         var max = this.model.get('end') + 3*dur;
         _.delay(_.bind(function () {
@@ -182,8 +185,9 @@ define([
     },
 
     pass: function (e) {
-      if (this.parentView.parentView.graph.$el.css('pointer-events') === 'none')
+      if (this.parentView.parentView.graph.$el.css('pointer-events') === 'none') {
         return;
+      }
       this.parentView.parentView.graph.$el.trigger(e);
     },
 

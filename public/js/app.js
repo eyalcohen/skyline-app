@@ -78,6 +78,9 @@ define([
   }
 
   App.prototype.title = function (str) {
+    if (!str) {
+      return;
+    }
 
     // Set the document title.
     document.title = str;

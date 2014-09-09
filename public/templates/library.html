@@ -26,7 +26,7 @@
     <% if (j === 0) { %><ul class="library-datasets"><% } %>
       <li>
         <a href="/<%= d.author.username %>/<%= d.id || d._id %>" class="navigate">
-            <i class="<%= d.producer_id ? 'icon-signal': 'icon-globe' %>"></i><%= d.title %></a><span>
+            <i class="<%= d.streaming ? 'icon-signal': 'icon-globe' %>"></i><%= d.title %></a><span>
             <%= num_channels %><%= source !== '' ? ' from ' + source: '' %></span>
       </li>
     <% ++j; if (j > n - 1 || i === datasets.length - 1) { j = 0; %></ul><%} %>
