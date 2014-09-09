@@ -6,6 +6,7 @@ define([
   'jQuery',
   'Underscore',
   'Backbone',
+  'common',
   'mps',
   'rest',
   'util',
@@ -15,7 +16,8 @@ define([
   'views/lists/comments',
   'views/lists/notes',
   'text!../../../templates/confirm.html'
-], function ($, _, Backbone, mps, rest, util, Model, template, header, Comments, Notes, confirm) {
+], function ($, _, Backbone, common, mps, rest, util, Model, template,
+             header, Comments, Notes, confirm) {
   return Backbone.View.extend({
 
     attributes: function () {
@@ -100,7 +102,7 @@ define([
       // Draw SVG for each channel.
       _.each(this.model.get('channels'), _.bind(function (c) {
         // This is a hack to allow parent pages to render before drawing SVGs
-        _.delay(_.bind(this.drawChannel, this, c), 50);
+        _.delay(_.bind(common.drawChannel, this, c), 50);
       }, this));
 
       // Handle time.
@@ -259,53 +261,6 @@ define([
 
     removeChannel: function (data) {
       var li = $('li[data-id=' + data.id + ']').remove();
-    },
-
-    drawChannel: function(channel) {
-      var li = this.$('#' + channel.channelName);
-      var selector = $('.event-channel-svg', li);
-      var width = selector.width();
-      var height = selector.height();
-
-      this.app.cache.fetchSamples(channel.channelName, channel.beg, channel.end,
-          width, _.bind(function(samples) {
-
-        selector.empty();
-
-        var t_0 = samples[0].time;
-        var t_max = _.last(samples).time;
-        var t_diff = t_max - t_0;
-
-        var v_max = _.max(_.pluck(samples, 'avg'));
-        var v_min = _.min(_.pluck(samples, 'avg'));
-        var v_diff = v_max - v_min;
-
-        var path = d3.svg.area()
-            .x(function (s, i) {
-              if (t_diff === 0) {
-                return i === 0 ? 0: width;
-              } else {
-                return ((s.time - t_0) / t_diff * width);
-              }
-            })
-            .y0(function () {
-              return height;
-            })
-            .y1(function (s) {
-              return v_diff === 0 ? v_max: height - ((s.avg - v_min) / v_diff * height);
-            })
-            .interpolate('linear');
-
-        d3.select(selector.get(0))
-            .append('svg:svg')
-            .attr('width', width)
-            .attr('height', height)
-            .append('svg:g')
-            .append('svg:path')
-            .attr('d', path(samples))
-            .attr('class', 'area')
-            .attr('fill', '#000000');
-      }, this));
     },
 
     saveChannel: function (e) {

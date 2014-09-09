@@ -7,9 +7,8 @@ define([
   'Underscore',
   'Backbone',
   'mps',
-  'util',
-  'shared'
-], function ($, _, Backbone, mps, util, shared) {
+  'util'
+], function ($, _, Backbone, mps, util) {
 
   return Backbone.Model.extend({
 
