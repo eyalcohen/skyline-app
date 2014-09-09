@@ -67,7 +67,7 @@ define([
 
   // opts: {
   //  immedateUpdate: If the client should check the cache immediately
-  //  getHigherDuration: If the client should prioritize zoomed out data
+  //  getHigherDuration: If the client should get a higher duration when fetching
   // };
   Cache.prototype.connectClient = function(clientId, opts) {
     if (!this.clients[clientId]) this.clients[clientId] = {};
@@ -77,7 +77,7 @@ define([
     if (!opts) opts = {};
     _.defaults(opts, {
       immediateUpdate: true,
-      getHigherDuration: true
+      getHigherDuration: false
     });
 
     this.clients[clientId].opts = opts;
@@ -137,7 +137,8 @@ define([
       return;
 
     _.each(client.channels, function (c) {
-      self.createNewRequest(c.channelName || c, client.dur, client.beg, client.end);
+      self.createNewRequest(c.channelName || c, client.dur,
+                            client.beg, client.end, client.opts.getHigherDuration);
     });
 
     // Update now, in case there's something useful in the cache.
@@ -230,8 +231,16 @@ define([
     }));
   };
 
-  // Add any requests
-  Cache.prototype.createNewRequest = function(channel, duration, beg, end) {
+  /**
+   * Create a request for new data.  beg and end are unix times, and duration
+   * is one of the standard durations that we will cache.
+   * If getHigher is set to true, we will also
+   * try to get 'zoomed' out data, or data of a higher duration.  This is done
+   * if the client wants to prioritize showing low-resolution data over 
+   * waiting for high-resolution data 
+   */
+  Cache.prototype.createNewRequest =
+      function(channel, duration, beg, end, getHigher) {
     // for a given duration, we try to fill and buckets above it with data
     // prioritizing buckets above
 
@@ -248,17 +257,19 @@ define([
       }
     }
 
-    // Get the next highest duration and prioritize that request
-    var durationIndex = this.durations.indexOf(duration);
-    if (durationIndex + 1 < this.durations.length) {
-      duration = this.durations[durationIndex + 1];
-      firstBucket = Math.floor(beg / duration / self.samplesPerBucket);
-      lastBucket = Math.floor(end / duration / self.samplesPerBucket);
+    if (getHigher) {
+      // Get the next highest duration and prioritize that request
+      var durationIndex = this.durations.indexOf(duration);
+      if (durationIndex + 1 < this.durations.length) {
+        duration = this.durations[durationIndex + 1];
+        firstBucket = Math.floor(beg / duration / self.samplesPerBucket);
+        lastBucket = Math.floor(end / duration / self.samplesPerBucket);
 
-      for (bucketIt = firstBucket; bucketIt <= lastBucket; bucketIt++) {
-        entry = self.getCacheEntry(channel, duration, bucketIt);
-        if (!entry || !entry.samples) {
-          this.priorityQueue['2'].push({channel: channel, dur: duration, bucket: bucketIt});
+        for (bucketIt = firstBucket; bucketIt <= lastBucket; bucketIt++) {
+          entry = self.getCacheEntry(channel, duration, bucketIt);
+          if (!entry || !entry.samples) {
+            this.priorityQueue['2'].push({channel: channel, dur: duration, bucket: bucketIt});
+          }
         }
       }
     }
@@ -529,7 +540,7 @@ define([
     var uniqueName = channelName + '-' + Math.floor(Math.random()*100000);
     var bestDuration = this.getBestGraphDuration((end-beg)/width, true);
 
-    this.connectClient(uniqueName, { immediateUpdate: false });
+    this.connectClient(uniqueName);
     this.addChannel(uniqueName, channelName);
     this.updateSubscription(uniqueName, bestDuration, beg, end);
     this.bind('update-'+uniqueName, _.bind(function(samples) {

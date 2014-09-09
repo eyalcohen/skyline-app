@@ -37,7 +37,7 @@ define([
     render: function () {
 
       // Init a model for this view.
-      this.model = new Graph(this.app, {view: this, silent: true});
+      this.model = new Graph(this.app, {view: this, silent: true, static: true});
 
       this.trigger('rendered');
       return this;

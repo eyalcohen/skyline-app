@@ -34,7 +34,8 @@ define([
 
       // Draw SVG for each channel.
       _.each(this.model.get('channels'), _.bind(function (c) {
-        this.drawChannel(c);
+        // This is a hack to allow parent pages to render before drawing SVGs
+        _.delay(_.bind(this.drawChannel, this, c), 50);
       }, this));
 
       return this;

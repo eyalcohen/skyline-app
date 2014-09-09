@@ -61,7 +61,7 @@ define([
           _.bind(this.updateCacheSubscription, this));
 
       this.clientId = util.rid32();
-      this.cache.connectClient(this.clientId);
+      this.cache.connectClient(this.clientId, {getHigherDuration: !options.static});
 
       this.cache.bind('update-' + this.clientId,
           _.bind(this.updateSampleSet, this));
@@ -109,13 +109,8 @@ define([
       }
 
       var beg, end;
-      if (viewRange.static) {
-        beg = this.prevRange.beg;
-        end = this.prevRange.end;
-      } else {
-        beg = this.prevRange.beg;
-        end = this.prevRange.end;
-      }
+      beg = this.prevRange.beg;
+      end = this.prevRange.end;
 
       this.cache.updateSubscription(this.clientId, dur, beg, end);
     },
