@@ -171,9 +171,9 @@ define([
           //interpPt: null,
         };
 
-        // the first data point of a series is null.  This function
-        // only works on series data that has at least two valid points
-        if (series.data.length < 3) return null;
+        // This function only works on series data that has at least two
+        // valid points
+        if (series.data.length < 2) return null;
 
         // Excluse empty and min-max series.
         if (!series.channelName || series.channelName.indexOf('minmax') != -1) return null;
@@ -189,8 +189,8 @@ define([
 
         // Bound edges.  This should just work, but will make invalid results
         // for pixelsFromInterpPt and interpPt
-        if (timeIdxHigh < 2) {
-          timeIdxHigh = 2;
+        if (timeIdxHigh < 1) {
+          timeIdxHigh = 1;
         } else if (timeIdxHigh >= series.data.length) {
           timeIdxHigh = series.data.length - 1;
         }
@@ -510,9 +510,6 @@ define([
         .mousemove(_.debounce(_.bind(function (e) {
           // panning behavior, unless we're highlight on a line.
           if (this.mousedown) {
-            // if (this.changingOffset) {
-            //   this.endOffset(e);
-            //   return;
             if (e.shiftKey) {
               return;
             } else {
@@ -527,7 +524,6 @@ define([
             this.lastMouseMove = Date.now();
             this.mouseStats = this.getStatsNearMouse(e);
             this.mouseLineStyle(e, this.mouseStats);
-            // mps.publish('channel/mousemove', [this.mouseStats]);
           }
         }, this), 1))
 
@@ -541,36 +537,12 @@ define([
             return;
           }
 
-/*
-          var closestChannel =
-            _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0];
-          if (!closestChannel) return;
-          */
-
-          // FIXME: Allow dataset offsetting with some key combo
-          // (harder to do accidentally)
-          /*
-          if (closestChannel.pixelsFromInterpPt < this.PIXELS_FROM_HIGHLIGHT) {
-            this.beginOffset(e);
-            this.changingOffset = true;
-          }
-          */
-
           this.mousedown = true;
           this.prevPageX = e.pageX;
         }, this))
 
         .mouseup(_.bind(function (e) {
-          // if (this.channelForOffset) {
-          //   var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
-          //   this.lightened[did] = false;
-          //   delete this.channelForOffset;
-          // }
-          // if (this.changingOffset) {
-          //   this.draw();
-          // }
           this.mousedown = false;
-          // this.changingOffset = false;
         }, this));
 
         function graphZoomClick(e, factor, out) {
@@ -609,40 +581,6 @@ define([
         return markings;
       }
     },
-
-    // beginOffset: function(e) {
-    //   var mouse = this.getMouse(e);
-    //   var xaxis = this.plot.getXAxes()[0];
-
-    //   this.channelForOffset =
-    //     _.sortBy(this.getStatsNearMouse(e), 'pixelsFromInterpPt')[0].channelName
-
-    //   var plotData = this.plot.getData();
-    //   var c = _.find(plotData, function(f) {
-    //     return plotData.channelName === this.channelForOffset;
-    //   });
-    //   var did = this.model.findDatasetFromChannel(this.channelForOffset).get('id');
-    //   this.lightened[did] = true;
-    //   this.plot.setData(plotData);
-
-    //   this.offsetTimeBegin = xaxis.c2p(mouse.x) * 1000;
-    // },
-
-    // endOffset: function(e) {
-    //   // get the desired time offset
-    //   var mouse = this.getMouse(e);
-    //   var xaxis = this.plot.getXAxes()[0];
-
-    //   var offsetTimeEnd = xaxis.c2p(mouse.x) * 1000;
-    //   var offset = (xaxis.c2p(mouse.x) * 1000 - this.offsetTimeBegin);
-    //   this.offsetTimeBegin = offsetTimeEnd;
-
-    //   var newOffset = this.model.getDatasetOffset(this.channelForOffset) + offset;
-
-    //   // update the dataset model
-    //   this.model.setDatasetOffset(this.channelForOffset, newOffset);
-    //   mps.publish('graph/offsetChanged', []);
-    // },
 
     onDraw: function () {
       var t = this.getVisibleTime();

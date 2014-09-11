@@ -115,7 +115,6 @@ define([
       return;
     }
     var client = this.clients[clientId];
-    client.needsUpdate = true;
     client.channels.push(channel);
   };
 
@@ -131,7 +130,6 @@ define([
     var index = _.pluck(client.channels, 'channelName')
                         .indexOf(channel.channelName);
     if (index === -1) return;
-    client.needsUpdate = true;
     client.channels.splice(index, 1);
     this.updateClient(clientId, client, 0);
   };
@@ -139,7 +137,7 @@ define([
   /*
    * Lets the cache know that the client's view has changed
    */
-  Cache.prototype.updateSubscription = function(clientId, dur, beg, end) {
+  Cache.prototype.updateSubscription = function(clientId, dur, beg, end, force) {
 
     var self = this;
 
@@ -149,9 +147,8 @@ define([
 
     var client = this.clients[clientId];
 
-    if (client.needsUpdate) {
-      delete client.needsUpdate;
-    } else if (client.dur === dur && client.beg === beg && client.end === end) {
+    if (!force && client.dur === dur
+        && client.beg === beg && client.end === end) {
       return;  // Nothing to do!
     }
 

@@ -13,8 +13,8 @@ define([
    * Takes a closure around 'file', 'this.app', and 'reader'
    * cbProgress is a function that takes a string percentage
    */
-  return { 
-  
+  return {
+
     // call with 'this' pointing to element
     drawChannel: function(channel) {
       var li = this.$('#' + channel.channelName);
@@ -65,7 +65,7 @@ define([
       }, this));
     },
 
-    upload: function(file, reader, app, cb, 
+    upload: function(file, reader, app, cb,
                      cbProgress, stopFcn) {
 
       var ext = file.name.split('.').pop();

@@ -59,7 +59,7 @@ define([
       this.view.bind('VisibleWidthChange',
           _.bind(this.updateCacheSubscription, this));
 
-      this.clientId = util.rid32();
+      this.clientId = options.static ? 'overview' : 'graph';
       this.cache.connectClient(this.clientId, {getHigherDuration: !options.static});
 
       this.cache.bind('update-' + this.clientId,
@@ -68,7 +68,7 @@ define([
       return this;
     },
 
-    updateCacheSubscription: function () {
+    updateCacheSubscription: function (force) {
       var channels = this.getChannels();
       if (channels.length === 0) return;
 
@@ -111,7 +111,7 @@ define([
       beg = this.prevRange.beg;
       end = this.prevRange.end;
 
-      this.cache.updateSubscription(this.clientId, dur, beg, end);
+      this.cache.updateSubscription(this.clientId, dur, beg, end, force);
     },
 
     addChannel: function (dataset, channels, silent) {
@@ -143,7 +143,7 @@ define([
         channel.author = dataset.get('author');
 
         this.cache.addChannel(this.clientId, channel);
-        this.updateCacheSubscription();
+        this.updateCacheSubscription(true);
 
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel,
@@ -151,14 +151,11 @@ define([
           console.log('addChannel(', channel, ')...');
         }
       }, this));
-      // if (offsetChanged)
-      //   mps.publish('graph/offsetChanged', []);
       return this;
     },
 
     removeChannel: function (dataset, channel) {
       this.cache.removeChannel(this.clientId, channel);
-      //this.updateCacheSubscription();
 
       var datasetId = dataset.get('id');
       channel.did = datasetId;
@@ -189,10 +186,10 @@ define([
         if (channel) {
           channel.range = {min: Infinity, max: -Infinity};
           _.each(ss, function (s) {
-            if (s.val < channel.range.min)
-              channel.range.min = s.val;
-            if (s.val > channel.range.max)
-              channel.range.max = s.val;
+            if (s.avg < channel.range.min)
+              channel.range.min = s.avg;
+            if (s.avg > channel.range.max)
+              channel.range.max = s.avg;
           });
         }
       }, this));
