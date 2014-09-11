@@ -41,13 +41,10 @@ var wrench = require('wrench');
 var request = require('request');
 var Step = require('step');
 var boots = require(rel + 'boots');
-var db = require(rel + 'lib/db');
-var com = require(rel + 'lib/common');
-var config = require('./config');
 
 // Build vars.
 var dir = 'build';
-var pack = JSON.parse(fs.readFileSync(rel + 'package.json', 'utf8'));
+var pack = require('./package.json');
 var bv = _.strLeftBack(pack.version, '.');
 var lv = parseInt(_.strRightBack(pack.version, '.')) + 1;
 var nv = bv + '.' + String(lv);

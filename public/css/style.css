@@ -3173,6 +3173,10 @@ a.comments-signin,
   margin-right: -40px;
 }
 
+.event-divider + .event-divider {
+  display: none;
+}
+
 .event {
   position: relative;
   display: none;
@@ -3637,6 +3641,7 @@ textarea.event-comment-input {
 
 .note .comment-body p {
   padding: 0 0 0 40px;
+  margin-bottom: 0;
 }
 
 .note .note-channels {
@@ -3709,6 +3714,7 @@ textarea.event-comment-input {
 .event-note.single {
   border-left: 1px solid #f2f2f2;
   margin-left: 48px;
+  position: static;
 }
 
 .event-dataset .leftside,
@@ -3716,6 +3722,7 @@ textarea.event-comment-input {
 .event-note .leftside {
   width: 630px;
   padding-left: 40px;
+  position: relative;
 }
 
 .event-dataset .rightside,

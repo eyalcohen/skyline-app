@@ -1,6 +1,4 @@
 <%
-  var gravatar = 'https://www.gravatar.com/avatar/'
-      + this.model.get('author').gravatar + '?s=26&d=identicon';
 
   var num_channels = this.model.get('channels_cnt');
   if (num_channels === 1) {
@@ -323,4 +321,17 @@
     </div> -->
   </div>
   <div class="clearfix"></div>
+  <div class="footer">
+    <ul>
+      <li>
+        <a href="/contact" class="navigate">Contact</a>
+      </li>
+      <li>
+        <a href="/privacy" class="navigate">Privacy Policy</a>
+      </li>
+      <li>
+        <a href="/terms" class="navigate">Terms of Use</a>
+      </li>
+    </ul>
+  </div>
 <% } %>

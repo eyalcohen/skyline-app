@@ -24,21 +24,19 @@ if (argv._.length || argv.help) {
 
 // Module Dependencies
 var util = require('util');
+var sutil = require('skyline-util');
 var Step = require('step');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var boots = require('../boots');
-var db = require('../lib/db');
-var com = require('../lib/common');
 
 var user = argv.user ? argv.user : 'anon';
 var beg = new Date(argv.beg);
-beg = com.isValidDate(beg) ? beg : new Date('5/23/1984');
+beg = sutil.isValidDate(beg) ? beg : new Date('5/23/1984');
 var end = new Date(argv.end);
-end = com.isValidDate(end) ? end : new Date();
+end = sutil.isValidDate(end) ? end : new Date();
 
 console.log(user, beg, end);
-
 
 boots.start(function (client) {
 
@@ -49,7 +47,7 @@ boots.start(function (client) {
       query.created = {$gte: beg, $lte: end};
       var opts = {limit: argv.n};
       // Get all datasets.
-      db.Logs.list(query, opts, this);
+      client.db.Logs.list(query, opts, this);
     },
     function (err, docs) {
       if (argv.csv) {

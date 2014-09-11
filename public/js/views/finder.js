@@ -193,9 +193,6 @@ define([
       if (this.working) return false;
       this.working = true;
 
-      // Start load indicator.
-      this.newFileButtonSpin.start();
-
       // Get the file.
       var files = this.files || this.newFile.get(0).files;
 
@@ -204,7 +201,6 @@ define([
 
       var cb = _.bind(function(err, res) {
         if (err) {
-          this.newFileButtonSpin.stop();
           this.newFileError.text(err);
           this.working = false;
           $('.finder-progress-bar').width('0%');

@@ -12,6 +12,8 @@
     ]
   },
   "domain": "www.skyline-data.com",
+  "port": 8080,
+  "securePort": 8443,
   "builds": {
     "bucket": "builds-skyline",
     "cloudfront": "https://dq5scpwh6tc71.cloudfront.net"
@@ -21,6 +23,12 @@
     "url": "git://github.com/Skyline-Data/skyline-app.git"
   },
   "dependencies": {
+    "skyline-collections": "git+https://skyline-ebs:Sk7l1n3ghebs@github.com/Skyline-Data/skyline-collections.git#develop",
+    "skyline-util": "git+https://skyline-ebs:Sk7l1n3ghebs@github.com/Skyline-Data/skyline-util.git#develop",
+    "skyline-samples-v1": "git+https://skyline-ebs:Sk7l1n3ghebs@github.com/Skyline-Data/skyline-samples-v1.git#develop",
+    "skyline-search": "git+https://skyline-ebs:Sk7l1n3ghebs@github.com/Skyline-Data/skyline-search.git#develop",
+    "skyline-events": "git+https://skyline-ebs:Sk7l1n3ghebs@github.com/Skyline-Data/skyline-events.git#develop",
+    "skyline-emailer": "git+https://skyline-ebs:Sk7l1n3ghebs@github.com/Skyline-Data/skyline-emailer.git#develop",
     "jade": "~0.30.0",
     "express": "~3.2.5",
     "underscore": "~1.4.4",
@@ -29,18 +37,14 @@
     "optimist": "~0.5.0",
     "passport": "~0.1.17",
     "mongodb": "^1.4.4",
-    "emailjs": "~0.3.4",
     "connect-redis": "~1.4.5",
     "redis": "^0.10.3",
     "socket.io": "~0.9.16",
     "connect": "~2.7.10",
     "cookie": "~0.1.0",
     "csv": "~0.3.2",
-    "cron": "~1.0.1",
-    "time": "~0.9.2",
     "passport.socketio": "~1.2.1",
     "connect-slashes": "0.0.10",
-    "emailjstmp": "~0.3.4",
     "request": "~2.27.0",
     "curlrequest": "^0.3.10",
     "passport-facebook": "~1.0.1",
@@ -55,7 +59,9 @@
     "passport-google-oauth": "^0.1.5",
     "moment": "^2.6.0",
     "porter-stemmer": "^0.9.1",
-    "underscore.deep": "^0.3.0"
+    "underscore.deep": "^0.3.0",
+    "mongish": "^1.0.3",
+    "zmq": "^2.8.0"
   },
   "devDependencies": {
     "grunt": "0.4.4",

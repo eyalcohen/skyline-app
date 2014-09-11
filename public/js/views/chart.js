@@ -457,7 +457,9 @@ define([
         this.cursor.fadeOut('fast');
         this.$('.cursor-value').fadeOut('fast');
       }
-      this.graph.plot.unhighlight();
+      if (this.graph && this.graph.plot) {
+        this.graph.plot.unhighlight();
+      }
       this.map.featureOut();
     },
 

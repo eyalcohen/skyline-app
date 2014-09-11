@@ -5,15 +5,16 @@
  */
 
 // Module Dependencies
-var mongodb = require('mongodb');
 var redis = require('redis');
 var util = require('util');
 var Step = require('step');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
-var Connection = require('./lib/db').Connection;
-var resources = require('./lib/resources');
-var Samples = require('./lib/samples').Samples
+var db = require('mongish');
+var Samples = require('skyline-samples-v1').Samples;
+var Search = require('skyline-search').Search;
+var collections = require('skyline-collections').collections;
+
 var config = require('./config.json');
 _.each(config, function (v, k) {
   config[k] = process.env[k] || v;
@@ -30,40 +31,47 @@ exports.start = function (opts, cb) {
     cb = opts;
     opts = {};
   }
-  var props = {};
+  var props = {db: db};
 
   Step(
     function () {
-      if (!opts.redis) return this();
-      this(null, redis.createClient(config.REDIS_PORT, config.REDIS_HOST_CACHE));
-    },
-    function (err, rc) {
-      error(err);
-      if (rc) {
-        props.redisClient = rc;
+
+      // Open DB connection.
+      new db.Connection(config.MONGO_URI, {ensureIndexes: opts.index},
+          this.parallel());
+
+      // Init samples.
+      props.samples = new Samples({
+        mongoURI: config.MONGO_URI,
+        cartodb: {
+          user: config.CARTODB_USER,
+          table: config.CARTODB_TABLE,
+          key: config.CARTODB_KEY
+        },
+        indexDb: opts.index
+      }, this.parallel());
+
+      // Init search cache.
+      if (config.REDIS_PORT && config.REDIS_HOST_CACHE) {
+        props.cache = new Search({
+          redisHost: config.REDIS_HOST_CACHE,
+          redisPort: config.REDIS_PORT
+        }, this.parallel());
       }
+    },
+    function (err, connection) {
 
-      Step(
-        function () {
-          new Connection(config.MONGO_URI, {ensureIndexes: opts.index}, this);
-        },
-        function (err, connection) {
-          error(err);
-
-          // Init samples.
-          new Samples({connection: connection}, _.bind(function (err, samples) {
-            error(err);
-            props.samples = samples;
-
-            // Init resources.
-            resources.init({connection: connection}, this);
-          }, this));
-        },
-        function (err) {
-          error(err);
-          cb(props);
-        }
-      );
+      // Init collections.
+      if (_.size(collections) === 0) {
+        return this();
+      }
+      _.each(collections, _.bind(function (c, name) {
+        connection.add(name, c, this.parallel());
+      }, this));
+    },
+    function (err) {
+      error(err);
+      cb(props);
     }
   );
 }
