@@ -225,6 +225,14 @@ define([
         if (!this.options.silent) {
           mps.publish('channel/added', [datasetId, channel,
               this.lineStyleOptions[channel.channelName], silent]);
+          this.app.rpc.do('channelSubscribe', channel.channelName,
+              function (err, data) {
+            if (err) {
+              console.log(err);
+              return;
+            }
+            console.log('channelSubscribe(', channel, ')...');
+          });
           console.log('addChannel(', channel, ')...');
         }
       }, this));
@@ -245,6 +253,14 @@ define([
       channel.did = datasetId;
       if (!this.options.silent) {
         mps.publish('channel/removed', [datasetId, channel]);
+        this.app.rpc.do('channelUnsubscribe', channel.channelName,
+            function (err, data) {
+          if (err) {
+            console.log(err);
+            return;
+          }
+          console.log('channelUnsubscribe(', channel, ')...');
+        });
         console.log('removeChannel(', channel, ')...');
       }
       this.updateCacheSubscription(client);
