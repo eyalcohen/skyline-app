@@ -3,15 +3,15 @@
 ### Development
 
 1. Download and install [Node.JS](http://nodejs.org/download/) from the latest stable source or package installer (recommended).
-2. Download and install [MongoDB](http://www.mongodb.org/downloads) from the latest stable source. Use ```$ bin/mongod``` to start a local DB server in the background.
-3. Download and install [Redis](http://redis.io/download). Do something like [this](http://reistiago.wordpress.com/2011/07/23/installing-on-redis-mac-os-x/) to start the Redis server via a launch daemon, or just do ```$ redis-server``` whenever developing.
-4. Install application dependencies with ```$ npm install```. This will install everything specified in ```package.json```.
-5. Install ```nodemon``` globally with ```$ npm install nodemon -g```. Use ```nodemon``` in place of ```node``` to restart your local web server whenever changes are made... very handy.
-5. Now you can start your local web server.
-
-```
-$ nodemon main.js
-```
+2. Download and install [MongoDB](http://www.mongodb.org/downloads) from the latest stable source. Use ```bin/mongod``` to start a local DB server in the background.
+3. Download and install [Redis](http://redis.io/download). Do something like [this](http://reistiago.wordpress.com/2011/07/23/installing-on-redis-mac-os-x/) to start the Redis server via a launch daemon, or just do ```redis-server``` whenever developing.
+4. Download and install [ØMQ](http://zeromq.org/docs:source-git).
+5. Install application dependencies with ```npm install```. This will install everything specified in ```package.json```.
+6. Install ```nodemon``` globally with ```npm install nodemon -g```. Use ```nodemon``` in place of ```node``` to restart your local web server whenever changes are made... very handy.
+7. Now you can start your local web server with ```nodemon main.js```.
+8. Clone [skyline-pubsub](https://github.com/Skyline-Data/skyline-pubsub).
+9. Install skyline-pubsub dependencies with ```npm install```.
+10. Start skyline-pubsub with ```node start.js```.
 
 Skyline is now running at [```http://localhost:8080/```](http://localhost:8080/).
 
@@ -22,7 +22,7 @@ Skyline is now running at [```http://localhost:8080/```](http://localhost:8080/)
 
 Skyline runs in production on [AWS Elastic Beanstalk](http://aws.amazon.com/elasticbeanstalk/).
 
-1. Install the [command line interface](http://aws.amazon.com/code/6752709412171743) for EBS.  You may also need to install python's boto (``` pip install boto```)
+1. Install the [command line interface](http://aws.amazon.com/code/6752709412171743) for EBS. You may also need to install python's boto (```pip install boto```)
 2. Install ruby (```apt-get install ruby``` on Linux)
 3. Run ```eb init``` to initialize the Amazon file structure and supply the correct Git commands
 4. Modify the file structure at the top-level of your local repo.
