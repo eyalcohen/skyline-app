@@ -91,6 +91,13 @@ define([
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
       });
+      this.app.rpc.do('channelUnsubscribeAll', function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        console.log('channelUnsubscribeAll()...');
+      });
       this.undelegateEvents();
       this.stopListening();
       this.plot.getPlaceholder().remove();
