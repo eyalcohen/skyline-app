@@ -184,6 +184,16 @@ define([
     delete this.clients[clientId];
   };
 
+  Cache.prototype.endAllClients = function() {
+    _.each(this.clients, function(client, key) {
+      if (client && client.updateId) {
+        clearTimeout(client.updateId);
+        client.updateId = null;
+      }
+    });
+    this.clients = {};
+  }
+
   /*
    * Determines which clients need updates and calls the update function
    * Future optimization: Make sure the client's view is within beg/end

@@ -89,6 +89,7 @@ define([
       this.stopListening();
       this.plot.getPlaceholder().remove();
       this.plot = null;
+      this.model.shutdown();
       this.remove();
     },
 
@@ -833,7 +834,7 @@ define([
     // if mouse is near channel line, mark it as the highlighted channel
     mouseLineStyle: function(e, stats) {
       // lookup closest channel to mouse cursor
-      if (stats)
+      if (_.isEmpty(stats))
         return;
       var closestChannel = _.sortBy(stats, 'pixelsFromInterpPt')[0];
       if (closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {

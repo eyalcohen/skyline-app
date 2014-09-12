@@ -60,6 +60,7 @@ define([
           _.bind(this.updateCacheSubscription, this));
 
       this.clientId = options.static ? 'overview' : 'graph';
+      this.cache.endClient(this.clientId); // kill old client and pending updates
       this.cache.connectClient(this.clientId, {getHigherDuration: !options.static});
 
       this.cache.bind('update-' + this.clientId,
@@ -209,6 +210,11 @@ define([
       _.extend(state.lineStyleOptions, this.lineStyleOptions);
       if (save) this.app.state(state);
       this.view.draw();
+    },
+
+    shutdown: function() {
+      this.cache.endClient(this.clientId);
+      this.cache.unbind('update-' + this.clientId);
     }
 
   });

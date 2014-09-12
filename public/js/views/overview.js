@@ -103,6 +103,7 @@ define([
       });
       this.undelegateEvents();
       this.stopListening();
+      this.model.shutdown();
       this.remove();
     },
 
