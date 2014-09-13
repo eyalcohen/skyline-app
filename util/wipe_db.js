@@ -22,7 +22,6 @@ var Step = require('step');
 var _ = require('underscore');
 _.mixin(require('underscore.string'));
 var boots = require('../boots');
-var db = require('../lib/db');
  
 boots.start(function (client) {
  
@@ -30,16 +29,17 @@ boots.start(function (client) {
     function () {
  
       // db.Users.remove({}, this.parallel());
-      db.Streams.remove({}, this.parallel());
-      db.Producers.remove({}, this.parallel());
-      db.Datasets.remove({}, this.parallel());
-      db.Views.remove({}, this.parallel());
-      db.Comments.remove({}, this.parallel());
-      db.Keys.remove({}, this.parallel());
-      db.Events.remove({}, this.parallel());
-      db.Notifications.remove({}, this.parallel());
-      db.Subscriptions.remove({}, this.parallel());
-      db.Channels.remove({}, this.parallel());
+      client.db.Streams.remove({}, this.parallel());
+      client.db.Producers.remove({}, this.parallel());
+      client.db.Datasets.remove({}, this.parallel());
+      client.db.Views.remove({}, this.parallel());
+      client.db.Comments.remove({}, this.parallel());
+      client.db.Keys.remove({}, this.parallel());
+      client.db.Events.remove({}, this.parallel());
+      client.db.Notifications.remove({}, this.parallel());
+      client.db.Subscriptions.remove({}, this.parallel());
+      client.db.Channels.remove({}, this.parallel());
+      client.db.Logs.remove({}, this.parallel());
  
       // Remove docs from real sample collections.
       _.each(client.samples.realCollections, _.bind(function (col) {

@@ -75,6 +75,9 @@ define([
         delete this.app.requestedNoteId;
         this.open();
         var dur = this.model.get('end') - this.model.get('beg');
+        if (dur == 0) {
+          dur = 1e6;
+        }
         var min = this.model.get('beg') - 2*dur;
         var max = this.model.get('end') + 3*dur;
         _.delay(_.bind(function () {
@@ -83,7 +86,7 @@ define([
         _.each(this.model.get('channels'), function (c) {
           mps.publish('dataset/requestOpenChannel', [c.channelName]);
         });
-      } else if (single) {
+      } else if (single && !this.model.get('_close')) {
         this.open();
       }
 
@@ -116,8 +119,9 @@ define([
       e.preventDefault();
       if ($(e.target).hasClass('info-delete')) return;
       var path = $(e.target).closest('a').attr('href');
-      if (path)
+      if (path) {
         this.app.router.navigate(path, {trigger: true});
+      }
     },
 
     requestChannel: function (e) {
@@ -181,8 +185,9 @@ define([
     },
 
     pass: function (e) {
-      if (this.parentView.parentView.graph.$el.css('pointer-events') === 'none')
+      if (this.parentView.parentView.graph.$el.css('pointer-events') === 'none') {
         return;
+      }
       this.parentView.parentView.graph.$el.trigger(e);
     },
 

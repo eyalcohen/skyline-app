@@ -57,3 +57,6 @@
 .icon-pencil:before { content: '\e837'; } /* '' */
 .icon-sliders:before { content: '\e838'; } /* '' */
 .icon-comment-empty:before { content: '\e839'; } /* '' */
+.icon-play:before { content: '\e83a'; } /* '' */
+.icon-pause:before { content: '\e83b'; } /* '' */
+.icon-record:before { content: '\e83c'; } /* '' */

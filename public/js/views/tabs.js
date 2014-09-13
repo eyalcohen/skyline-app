@@ -9,8 +9,9 @@ define([
   'util',
   'mps',
   'rest',
+  'Spin',
   'text!../../templates/tabs.html'
-], function ($, _, Backbone, util, mps, rest, template) {
+], function ($, _, Backbone, util, mps, rest, Spin, template) {
 
   return Backbone.View.extend({
 
@@ -74,6 +75,21 @@ define([
         this.$('.tab:eq(' + i + ')').addClass('active');
       }
 
+      // Init the load indicators.
+      this.$('.button-spin').each(function (el) {
+        var opts = {
+          color: '#3f3f3f',
+          lines: 13,
+          length: 3,
+          width: 2,
+          radius: 6,
+        };
+        if ($(this).hasClass('button-spin-white')) {
+          opts.color = '#fff';
+        }
+        $(this).data('spin', new Spin($(this), opts));
+      });
+
       this.trigger('rendered');
       return this;
     },
@@ -84,6 +100,8 @@ define([
       'click .unfollow-button': 'unfollow',
       'click .watch-button': 'watch',
       'click .unwatch-button': 'unwatch',
+      'click .start-button': 'start',
+      'click .pause-button': 'pause',
       'click .upload-finish': function (e) {
         e.preventDefault();
         if (!$(e.target).hasClass('disabled')) {
@@ -136,12 +154,13 @@ define([
       this.request.call(this, btn, function (data) {
 
         // Update button content.
-        if (data.following === 'request')
+        if (data.following === 'request') {
           btn.removeClass('follow-button').addClass('disabled')
               .html('<i class="icon-user"></i> Requested');
-        else
+        } else {
           btn.removeClass('follow-button').addClass('unfollow-button')
               .html('<i class="icon-user-delete"></i> Unfollow');
+        }
       });
 
       return false;
@@ -183,6 +202,42 @@ define([
       return false;
     },
 
+    start: function (e) {
+      var btn = $(e.target).closest('a');
+      $('.button-spin', btn).data().spin.start();
+      btn.addClass('loading');
+      this.request.call(this, btn, function (data) {
+
+        // Update button content.
+        btn.removeClass('start-button').addClass('pause-button');
+        $('span', btn).html('<i class="icon-pause"></i> Pause');
+
+        // Stop spinner.
+        $('.button-spin', btn).data().spin.stop();
+        btn.removeClass('loading');
+      });
+
+      return false;
+    },
+
+    pause: function (e) {
+      var btn = $(e.target).closest('a');
+      $('.button-spin', btn).data().spin.start();
+      btn.addClass('loading');
+      this.request.call(this, btn, function (data) {
+
+        // Update button content.
+        btn.removeClass('pause-button').addClass('start-button');
+        $('span', btn).html('<i class="icon-play"></i> Start');
+
+        // Stop spinner.
+        $('.button-spin', btn).data().spin.stop();
+        btn.removeClass('loading');
+      });
+
+      return false;
+    },
+
     request: function (target, cb) {
 
       // Prevent multiple requests.
@@ -199,7 +254,7 @@ define([
         if (err) {
 
           // Show error.
-          mps.publish('flash/new', [{err: err, level: 'error', sticky: true}]);
+          mps.publish('flash/new', [{err: err.toString(), level: 'error', sticky: true}]);
           return false;
         }
 

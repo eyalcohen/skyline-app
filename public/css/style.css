@@ -551,6 +551,14 @@ input[type=submit] {
   transition: all 0.1s ease-in-out;
 }
 
+a.button {
+  position: relative;
+}
+
+a.button .button-spin {
+  margin-top: 5px;
+}
+
 td a.button,
 td div[role=button],
 td input[type=submit] {
@@ -764,12 +772,14 @@ a.button.danger:active {
   background: rgba(208,76,56,1);
 }
 
-a.button.password-button {
+a.button.password-button,
+a.button.stream-button {
   color: #666;
   border: 1px solid #d0d0d0 !important;
 }
 
-a.button.password-button:hover {
+a.button.password-button:hover,
+a.button.stream-button:hover {
   background: #e6e6e6;
 }
 
@@ -1010,17 +1020,21 @@ a.button.splash-button {
 
 /*.........................................................................*/
 
-input.input-error {
+input.input-error,
+textarea.input-error {
   border: 1px solid rgba(227,30,30,0.4) !important;
 }
 
 input.dummy-file-input {
   width: 100%;
-  margin-bottom: 30px;
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
+}
+
+.file-input-wrap {
+  position: relative; 
 }
 
 input.file-input {
@@ -1028,7 +1042,7 @@ input.file-input {
   z-index: 10;
   opacity: 0;
   left: 0;
-  top: 36px;
+  top: 0;
   width: 100%;
   height: 32px;
   padding: 0;
@@ -1075,10 +1089,18 @@ span.empty-list {
   margin: 0 auto;
 }
 
+.button-wrap {
+  position: relative;
+}
+
 .button-spin {
   position: absolute;
   top: 16px;
   left: 50%;
+}
+
+.button-wrap .button-spin {
+  top: 17px;
 }
 
 .error {
@@ -1165,6 +1187,10 @@ i i {
 
 i i + i {
   top: -2.2em;
+}
+
+i.icon-signal {
+  vertical-align: 1px;
 }
 
 li.emphasis {
@@ -1263,6 +1289,12 @@ body.embed .folder {
 
 body.embed .folder {
   height: 100%;
+}
+
+.columned {
+  min-height: 276px;
+  padding: 40px 0 60px;
+  color: #404040;
 }
 
 .center {
@@ -3141,6 +3173,10 @@ a.comments-signin,
   margin-right: -40px;
 }
 
+.event-divider + .event-divider {
+  display: none;
+}
+
 .event {
   position: relative;
   display: none;
@@ -3332,7 +3368,7 @@ p.event-description {
 
 .single .event-timeline-label-first {
   left: 0;
-  top: 40px;
+  top: 39px;
 }
 
 h2.divider + .event-timeline-label-first {
@@ -3605,6 +3641,7 @@ textarea.event-comment-input {
 
 .note .comment-body p {
   padding: 0 0 0 40px;
+  margin-bottom: 0;
 }
 
 .note .note-channels {
@@ -3677,6 +3714,7 @@ textarea.event-comment-input {
 .event-note.single {
   border-left: 1px solid #f2f2f2;
   margin-left: 48px;
+  position: static;
 }
 
 .event-dataset .leftside,
@@ -3684,6 +3722,7 @@ textarea.event-comment-input {
 .event-note .leftside {
   width: 630px;
   padding-left: 40px;
+  position: relative;
 }
 
 .event-dataset .rightside,
@@ -3755,7 +3794,7 @@ ul.event-channels li .event-channel-input {
 }
 
 ul.event-channels li .event-unit-input {
-  width: 7.5%;
+  width: 10.5%;
   margin-right: 20px;
   float: right;
 }
@@ -3796,79 +3835,6 @@ a.event-channel-delete:hover {
 
 a.event-channel-delete:active {
   top: 2px;
-}
-
-/*.........................................................................*/
-
-.library-dataset-header {
-  position: relative;
-  margin: 0 -110px 10px;
-  padding: 0 30px;
-}
-
-.library-dataset + .library-dataset .library-dataset-header {
-  border-top: 1px solid #e6e6e6;
-  padding-top: 30px;
-}
-
-.library-dataset-info {
-  position: absolute;
-  top: 2px;
-  right: 110px;
-  font-size: 12px;
-  color: #666;
-}
-
-.library-dataset + .library-dataset .library-dataset-info {
-  top: 32px;
-}
-
-.library-dataset-title {
-  font-size: 18px;
-  display: block;
-  font-weight: bold;
-}
-
-.library-dataset-title i {
-  color: #808080;
-}
-
-.library-dataset-title i:before {
-  margin: 0 61px 0 0;
-}
-
-.library-dataset {
-  margin-bottom: 40px;
-}
-
-.library-dataset:last-child {
-  margin-bottom: 0;
-}
-
-.library-dataset p.event-description {
-  width: 928px;
-  margin-top: 10px;
-  margin-bottom: 0;
-  margin-left: 79px;
-  font-size: 16px;
-  line-height: 28px;
-}
-
-.library-dataset .event-tags {
-  width: auto;
-  display: block;
-}
-
-.library-dataset ul.event-channels {
-  width: 100%;
-}
-
-.library-dataset ul.event-channels li {
-  margin-bottom: 5px;
-}
-
-.library-dataset ul.event-channels li .event-channel-svg {
-  height: 30px;
 }
 
 /*.........................................................................*/
@@ -4241,6 +4207,31 @@ ul.settings-detail-list li:before {
 
 /*.........................................................................*/
 
+ul.library-datasets {
+  margin-left: 30px;
+  list-style: none;
+}
+
+ul.library-datasets a {
+  font-size: 16px;
+  line-height: 30px;
+}
+
+ul.library-datasets a i {
+  color: #666;
+}
+
+ul.library-datasets span {
+  color: #666;
+  font-size: 11px;
+}
+
+ul.library-datasets span a {
+  font-size: 11px;
+}
+
+/*.........................................................................*/
+
 .config-greeting {
   display: none;
   margin-bottom: 30px;
@@ -4538,8 +4529,8 @@ a.control-button-save.saving {
   z-index: 2;
   height: 30px;
   background: rgba(76,76,76,0.8);
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 400;
   text-transform: uppercase;
   padding: 0 10px;
   line-height: 30px;
@@ -5237,7 +5228,7 @@ ul.target-info-list li:before {
   position: absolute;
   width: 0;
   top: 0;
-  bottom: -1px;
+  bottom: 0;
   cursor: pointer;
 
   border-left: 1px dashed rgba(0,0,0,0.3);
@@ -5661,8 +5652,9 @@ a.linestyle-close {
 
 .finder .dnd i {
   display: block;
+  top: 42%;
   margin: 0 auto;
-  line-height: 142px;
+  line-height: normal;
   font-size: 48px;
   width: 70px;
   color: #2f2f2f;
@@ -5688,7 +5680,17 @@ a.linestyle-close {
   background-color: rgba(39, 205, 214, .2);
   border-radius: 3px;
   position: absolute;
-  top: 36px;
+  top: 0;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+.finder input[type="text"],
+.finder textarea {
+  width: 100%;
+  display: block;
 
   box-sizing: border-box;
   -moz-box-sizing: border-box;

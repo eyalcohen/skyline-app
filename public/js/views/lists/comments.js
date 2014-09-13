@@ -91,7 +91,7 @@ define([
     _remove: function (data) {
       var index = -1;
       var view = _.find(this.views, function (v) {
-        ++index
+        ++index;
         return v.model.id === data.id;
       });
 
@@ -118,6 +118,8 @@ define([
       // Mock comment.
       var data = {
         id: -1,
+        parent_id: this.parentView.model.id,
+        parent_type: this.type,
         author: this.app.profile.user,
         body: payload.body,
         created: new Date().toISOString()

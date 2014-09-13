@@ -241,6 +241,24 @@
       "src": "entypo"
     },
     {
+      "uid": "cb13afd4722a849d48056540bb74c47e",
+      "css": "play",
+      "code": 59450,
+      "src": "entypo"
+    },
+    {
+      "uid": "d8d378d0ce413f231dfa37592e39c227",
+      "css": "pause",
+      "code": 59451,
+      "src": "entypo"
+    },
+    {
+      "uid": "e188c02f740feff7e2d2bce1950b75fa",
+      "css": "record",
+      "code": 59452,
+      "src": "entypo"
+    },
+    {
       "uid": "97bd5542ed3e143d2ee9b60e14487615",
       "css": "list-add",
       "code": 59400,

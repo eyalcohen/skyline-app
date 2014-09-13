@@ -3,7 +3,7 @@
   var icon;
   if (!this.model.get('public')) {
     icon = 'icon-lock';
-  } else if (this.model.get('file')) {
+  } else if (!this.model.get('streaming')) {
     icon = 'icon-database';
   } else {
     icon = 'icon-signal';
@@ -13,6 +13,6 @@
 <a href="/<%= link %>" class="navigate<%= this.model.get('public') === false ? ' locked': '' %>">
   <i class="<%= icon %>"></i><%= this.model.get('title') %>
 </a>
-<% if (this.model.get('lastSeen')) { %>
-  <p> Last seen: <%= util.getRelativeTime(this.model.get('lastSeen')/1000) %> </p>
+<% if (this.model.get('schedule')) { %>
+  <p> Last seen: <%= util.getRelativeTime(new Date(this.model.get('updated')).valueOf()) %> </p>
 <% } %>

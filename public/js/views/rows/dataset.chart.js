@@ -206,9 +206,11 @@ define([
         this.app.state(state);
       }
       mps.publish('notes/refresh');
-      if (this.notesButton.hasClass('off'))
+      if (this.notesButton.hasClass('off')) {
         this.notesButton.removeClass('off');
-      else this.notesButton.addClass('off');
+      } else {
+        this.notesButton.addClass('off');
+      }
     },
 
     delete: function (e) {

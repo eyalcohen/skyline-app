@@ -85,6 +85,13 @@ define([
       var rx = new RegExp([window.location.host, 'embed'].join('/'), 'i');
       this.app.embed = rx.test(window.location.href);
 
+      // Init page spinner.
+      var sopts = this.app.embed ?
+          {color: '#8f8f8f', lines: 17, length: 7, width: 3, radius: 12}: 
+          {color: '#3f3f3f', lines: 13, length: 3, width: 2, radius: 6};
+      this.spin = new Spin($('.page-spin'), sopts);
+      this.start();
+
       // Page routes
       this.route(':username', 'profile', this.profile);
       this.route(':username/:id', 'dataset', this.dataset);
@@ -147,11 +154,7 @@ define([
         parent.document.__update({embed: '//' + str});
       }, this));
 
-      // Init page spinner.
-      var sopts = this.app.embed ?
-          {color: '#8f8f8f', lines: 17, length: 7, width: 3, radius: 12}: 
-          {color: '#3f3f3f', lines: 13, length: 3, width: 2, radius: 6};
-      this.spin = new Spin($('.page-spin'), sopts);
+      this.stop();
     },
 
     routes: {

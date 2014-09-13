@@ -27,6 +27,7 @@ define([
       this.POINTS_TO_SHOW = 250; // maximum number of points to display
       this.PIXELS_FROM_HIGHLIGHT = 30; // maximum number of pixels for line highlight
 
+      // Client-wide subscriptions
       this.subscriptions = [
         mps.subscribe('chart/zoom', _.bind(this.zoom, this)),
         mps.subscribe('chart/pan', _.bind(this.pan, this)),
@@ -39,6 +40,11 @@ define([
           this.model.setUserLineStyle(channel, opts, save);
         }, this)),
       ];
+
+      // Socket subscriptions
+      this.app.rpc.socket.on('channel.data', _.bind(function (data) {
+        console.log('NEW DATA ARRIVED: ', data); // HADOUKEN!!!
+      }, this));
     },
 
     render: function () {
@@ -84,6 +90,13 @@ define([
     destroy: function () {
       _.each(this.subscriptions, function (s) {
         mps.unsubscribe(s);
+      });
+      this.app.rpc.do('channelUnsubscribeAll', function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        console.log('channelUnsubscribeAll()...');
       });
       this.undelegateEvents();
       this.stopListening();
@@ -837,7 +850,7 @@ define([
       if (_.isEmpty(stats))
         return;
       var closestChannel = _.sortBy(stats, 'pixelsFromInterpPt')[0];
-      if (closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {
+      if (closestChannel && closestChannel.pixelsFromInterpPt > this.PIXELS_FROM_HIGHLIGHT) {
         closestChannel = false;
       }
       if (!closestChannel && this.highlightedChannel) {

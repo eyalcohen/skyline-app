@@ -447,7 +447,7 @@ define([
           el = $('<div id="' + id + '" class="cursor-value">')
               .prependTo('.graphs');
         }
-        el.css({top: p.y - el.height() / 2, left: p.x + 10}).text(p.v);
+        el.css({top: p.y - el.height() / 2, left: p.x + 13}).text(p.v);
       }, this));
     },
 
@@ -455,6 +455,9 @@ define([
       if (!this.cursor.hasClass('active')) {
         this.cursor.fadeOut('fast');
         this.$('.cursor-value').fadeOut('fast');
+      }
+      if (this.graph && this.graph.plot) {
+        this.graph.plot.unhighlight();
       }
       this.map.featureOut();
     },

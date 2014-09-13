@@ -7,7 +7,7 @@
   if (target.doc.public === false) {
     icon = 'icon-lock';
   } else if (target.type === 'dataset') {
-    icon = 'icon-database';
+    icon = target.doc.streaming ? 'icon-signal': 'icon-database';
   } else if (target.type === 'view') {
     icon = 'icon-folder-empty';
   }

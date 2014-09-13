@@ -1,0 +1,30 @@
+{
+  "MONGO_URI": "mongodb://localhost:27017/skyline",
+
+  "REDIS_HOST_CACHE": "localhost",
+  "REDIS_HOST_SESSION": "localhost",
+  "REDIS_PORT": 6379,
+
+  "GMAIL_USER": "notifications@skyline-data.com",
+  "GMAIL_PASSWORD": "Sk7L1n3ema1l",
+  "GMAIL_FROM": "Skyline <notifications@skyline-data.com>",
+  "GMAIL_HOST": "smtp.gmail.com",
+  "GMAIL_SSL": true,
+  
+  "GOOGLE_CLIENT_ID": "920361952341-iaoeoemjcub4ajsgf0aj2rk4jv48glp8.apps.googleusercontent.com",
+  "GOOGLE_CLIENT_SECRET": "dzOHPLstyzkDQqvQm89vluzU",
+  
+  "FACEBOOK_NAME": "Skyline (dev)",
+  "FACEBOOK_CLIENT_ID": 248099122008971,
+  "FACEBOOK_CLIENT_SECRET": "8f534bc1ec6504dd640fa7ac663a9529",
+  
+  "TWITTER_CONSUMER_KEY": "ViEOzmAwsh8LEiCrL52HwQ",
+  "TWITTER_CONSUMER_SECRET": "KWpNvp1rUU2ZXjttVmVdtypGluNFEn4xUgka5afDEEI",
+
+  "CARTODB_USER": "skyline",
+  "CARTODB_TABLE": "samples_dev",
+  "CARTODB_KEY": "e2c51af30080afb68c9c7702c2e20f7d5f2cd506",
+
+  "PUB_SOCKET_PORT": "tcp://127.0.0.1:5556",
+  "SUB_SOCKET_PORT": "tcp://127.0.0.1:5555"
+}

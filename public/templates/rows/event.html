@@ -1,6 +1,14 @@
 <%
+  var author;
+  switch(this.model.get('action_type')) {
+    case 'comment':
+      author = this.model.get('target').author;
+      break;
+    default:
+      author = this.model.get('action').author;
+  }
   var gravatar = 'https://www.gravatar.com/avatar/'
-      + this.model.get('action').author.gravatar + '?s=48&d=identicon';
+      + author.gravatar + '?s=48&d=identicon';
 %>
 
 <div class="event-left">

@@ -48,32 +48,35 @@ define([
         closeClick: true
       });
 
-      // Done rendering ... trigger setup.
       this.trigger('rendered');
-
       return this;
     },
 
-    // Bind mouse events.
     events: {
       'click .modal-close': 'close',
+      'click .stream-button': 'createStream',
       'change input[name="data_file"]': 'update'
     },
 
-    // Misc. setup.
     setup: function () {
 
       // Save refs.
       this.newFileInput = this.$('input[name="dummy_data_file"]');
       this.newFile = this.$('input[name="data_file"]');
-      this.newFileError = this.$('.modal-error');
+      this.newFileError = this.$('.file-error');
       this.dropZone = this.$('.dnd');
-      this.newFileButtonSpin = new Spin(this.$('.button-spin'), {
-        color: '#fff',
+
+      this.newStreamUri = this.$('input[name="uri"]');
+      this.newStreamSchedule = this.$('input[name="schedule"]');
+      this.newStreamTransform = this.$('textarea[name="transform"]');
+      this.newStreamError = this.$('.stream-error');
+      this.newStreamButton = this.$('.stream-button');
+      this.newStreamSpin = new Spin(this.$('.button-spin'), {
+        color: '#3f3f3f',
         lines: 13,
         length: 3,
         width: 2,
-        radius: 6
+        radius: 6,
       });
 
       // Close modal.
@@ -83,11 +86,20 @@ define([
         }
       }, this));
 
+      // Handle error display.
+      this.$('input[type="text"], textarea').blur(function (e) {
+        var el = $(e.target);
+        if (el.hasClass('input-error')) {
+          el.removeClass('input-error');
+        }
+      });
+
       // Drag & drop events.
       this.$el.bind('dragover', _.bind(this.dragover, this));
       this.dropZone.bind('dragleave', _.bind(this.dragout, this))
           .bind('drop', _.bind(this.drop, this));
 
+      // Init choices.
       if (this.options.search && this.app.profile && this.app.profile.user) {
         this.choices = new Choices(this.app, {
           reverse: true,
@@ -181,9 +193,6 @@ define([
       if (this.working) return false;
       this.working = true;
 
-      // Start load indicator.
-      this.newFileButtonSpin.start();
-
       // Get the file.
       var files = this.files || this.newFile.get(0).files;
 
@@ -192,7 +201,6 @@ define([
 
       var cb = _.bind(function(err, res) {
         if (err) {
-          this.newFileButtonSpin.stop();
           this.newFileError.text(err);
           this.working = false;
           $('.finder-progress-bar').width('0%');
@@ -219,6 +227,57 @@ define([
 
       return false;
     },
+
+    createStream: function (e) {
+      if (e) e.preventDefault();
+      var payload = {
+        uri: this.newStreamUri.val().trim(),
+        schedule: this.newStreamSchedule.val().trim(),
+        transform: this.newStreamTransform.val().trim()
+      };
+      payload.author_id = this.app.profile.user.id;
+      var check = util.ensure(payload, ['uri', 'schedule', 'transform']);
+
+      // Add alerts.
+      _.each(check.missing, _.bind(function (m, i) {
+        var field = this.$('[name="' + m + '"]');
+        field.val('').addClass('input-error');
+        if (i === 0) {
+          field.focus();
+        }
+      }, this));
+
+      // Show messages.
+      if (!check.valid) {
+        this.newStreamError.text('All fields are required.');
+        return false;
+      }
+
+      payload.schedule = Number(payload.schedule);
+      if (isNaN(payload.schedule)) {
+        this.newStreamError.text('Schedule must be a number.');
+        return false;
+      }
+
+      this.newStreamSpin.start();
+      this.newStreamButton.addClass('loading');
+
+      rest.post(this.app.apis.streams + '/create', payload,
+          _.bind(function (err, data) {
+        if (err) {
+          this.newStreamSpin.stop();
+          this.newStreamButton.removeClass('loading');
+          this.newStreamError.text(err);
+          return;
+        }
+
+        // Go to dataset page.
+        this.app.router.navigate(data.path, {trigger: true});
+        this.close();
+      }, this));
+
+      return false;
+    }
 
   });
 });

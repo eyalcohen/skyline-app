@@ -1,4 +1,12 @@
 {
-  "verbose": true,
-  "ignore": ["samples", "samples/*", "dump.rdb""]
+  "verbose": false,
+  "ignore": [
+    "samples", 
+    "samples/*", 
+    "dump.rdb", 
+    ".git", 
+    "public",
+    ".elasticbeanstalk",
+    ".ebextensions"
+  ]
 }

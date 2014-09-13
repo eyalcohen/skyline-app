@@ -166,6 +166,16 @@
       <tbody>
         <tr>
           <td colspan="2">
+            <!-- < if (!data.googleId) { >
+              <a tabindex="7" class="button connect-button google-button" href="/connect/google">
+                Connect with Google
+                <i class="icon-right-open-big"></i>
+              </a>
+            < } else { >
+              <a class="button connect-button google-button-disabled" href="javascript:;">
+                Connected with Google
+              </a>
+            < } > -->
             <% if (!data.facebookId) { %>
               <a tabindex="7" class="button connect-button facebook-button" href="/connect/facebook">
                 Connect with Facebook
