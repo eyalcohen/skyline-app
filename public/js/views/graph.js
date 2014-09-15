@@ -40,11 +40,6 @@ define([
           this.model.setUserLineStyle(channel, opts, save);
         }, this)),
       ];
-
-      // Socket subscriptions
-      this.app.rpc.socket.on('channel.data', _.bind(function (data) {
-        console.log('NEW DATA ARRIVED: ', data); // HADOUKEN!!!
-      }, this));
     },
 
     render: function () {
@@ -288,7 +283,7 @@ define([
 
         // Find the point.
         var point;
-        var first = series.data[1];
+        var first = series.data[0];
         var last = series.data[series.data.length - 1];
         if (first && time < first[0]) {
           point = first;
@@ -626,13 +621,11 @@ define([
       // TODO: this is ugly, and probably slow.
       this.plot.getData().forEach(function (series) {
         var max = series.yaxis.datamax, min = series.yaxis.datamin;
-        var prevTime = null;
         series.data.forEach(function (p) {
-          if (p && prevTime && p[0] >= xmin && prevTime <= xmax) {
+          if (p && p[0] >= xmin && p[0] <= xmax) {
             max = Math.max(max, p[1]);
             min = Math.min(min, p[2] == null ? p[1] : p[2]);
           }
-          prevTime = p && p[0];
         });
         series.yaxis.datamax = max;
         series.yaxis.datamin = min;

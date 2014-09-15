@@ -171,7 +171,6 @@ define([
     return;
   }
 
-
    /*
     * End the client
     */
@@ -244,8 +243,9 @@ define([
     }, timeout);
   };
 
-  /*
-   * Helper function.  usage: forEachDuration(function(dur) { ... })
+  /**
+   * Helper function.  usage: forEachDuration(function(dur) { ... }).  Make
+   * sure this is bound to the cache
    */
   var forEachDuration = function(fcn) {
     _.each(this.durations, function(f) {
@@ -398,7 +398,7 @@ define([
    */
   Cache.prototype.invalidateCache = function(channel, time) {
     var self = this;
-    forEachDuration(function(dur) {
+    forEachDuration.call(this, function(dur) {
       var bucket = Math.floor(time / dur / self.samplesPerBucket);
       var entry = self.getCacheEntry(channel, dur, bucket);
       if (entry) {

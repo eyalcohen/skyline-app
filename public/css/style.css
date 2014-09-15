@@ -4335,6 +4335,10 @@ a.control-button:active {
   background: #f0f0f0;
 }
 
+a.control-button-follow.following {
+  color: rgb(39, 205, 214);
+}
+
 a.control-button.view-only {
   display: none;
 }

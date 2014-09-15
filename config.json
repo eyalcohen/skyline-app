@@ -26,5 +26,8 @@
   "CARTODB_KEY": "e2c51af30080afb68c9c7702c2e20f7d5f2cd506",
 
   "PUB_SOCKET_PORT": "tcp://127.0.0.1:5556",
-  "SUB_SOCKET_PORT": "tcp://127.0.0.1:5555"
+  "SUB_SOCKET_PORT": "tcp://127.0.0.1:5555",
+
+  "SAMPLES_HOST": "localhost",
+  "SAMPLES_PORT": "8083"
 }

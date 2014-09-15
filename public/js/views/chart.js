@@ -85,6 +85,8 @@ define([
           this.requestedChannels.push(channelName);
         }, this))
       ];
+
+
     },
 
     render: function () {
@@ -106,6 +108,7 @@ define([
     },
 
     events: {
+      'click .control-button-follow': 'follow',
       'click .control-button-daily': 'daily',
       'click .control-button-weekly': 'weekly',
       'click .control-button-monthly': 'monthly',
@@ -125,6 +128,7 @@ define([
 
       // Save refs.
       this.noteDuration = this.$('.note-duration-button');
+      this.followButton = this.$('.control-button-follow');
       this.sidePanel = this.$('.side-panel');
       this.mapPanel = this.$('.map-panel');
       this.mapButton = this.$('.map-button');
@@ -171,9 +175,28 @@ define([
       this.$('.tooltip').tooltipster({delay: 600, multiple: true});
       this.noteButton.tooltipster({delay: 600, position: 'bottom'});
 
+      this.follow = false;
+
       if (state.time) {
         mps.publish('chart/zoom', [{min: state.time.beg, max: state.time.end}]);
       }
+
+      var newDataUpdate = _.debounce(_.bind(function(data) {
+        if (this.follow) {
+          var visTime = this.graph.getVisibleTime();
+          var newEnd = data.end + ((visTime.end - visTime.beg) / 6);
+          var delta = newEnd - visTime.end;
+          var newBeg = visTime.beg + delta;
+          this.graph.setVisibleTime(newBeg, newEnd);
+        }
+        this.graph.model.updateCacheSubscription(true);
+      }, this), 500, true);
+
+      // Socket subscriptions
+      this.app.rpc.socket.on('channel.data', _.bind(function(data) {
+        this.graph.model.cache.invalidateCache(data.cn, data.end);
+        newDataUpdate(data);
+      }, this));
 
       // Do resize on window change.
       this.resize();
@@ -241,6 +264,15 @@ define([
     fit: function () {
       if (this.datasets) {
         this.datasets.fit(this.$el.width() - this.controls.width());
+      }
+    },
+
+    follow: function() {
+      this.follow = !this.follow;
+      if (this.follow) {
+        this.followButton.addClass('following');
+      } else {
+        this.followButton.removeClass('following');
       }
     },
 
