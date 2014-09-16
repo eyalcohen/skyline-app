@@ -61,7 +61,7 @@ boots.start(function (props) {
       if (err || !docs || docs.length === 0) return this(err);
 
       var running = 0;
-      var limit = 10;
+      var limit = 25;
       var next = this;
       var totalLength = docs.length;
 
@@ -70,17 +70,40 @@ boots.start(function (props) {
       function runStep() {
         while(running < limit && docs.length > 0) {
           var doc = docs.shift();
+
           var left =
             Math.floor((totalLength - docs.length) / totalLength * 100) + '%';
           console.log('fetch and insert for:', doc.channelName, left);
           running++;
+
           Step(
-            function() {
+            function getSamples() {
               props.samples.fetchSamples(doc.parent_id, doc.channelName,
-                  {type: 'real', beginTime: -1e50, endTime: 1e50 }, this);
+                  {type: 'real', beginTime: -1e50, endTime: 1e50 }, this.parallel());
+              // pass doc around so we don't use closure
+              var cb = this.parallel();
+              cb(null, doc);
             },
-            function(err, samples) {
+            function updateBegEndTimes(err, samples, doc) {
+              if (err) {
+                return this(err);
+              }
+              if (!samples || samples.length === 0)
+                return this(null, null, null, null);
+
+              db.Channels.update({channelName: doc.channelName}, {
+                $set: {beg: samples[0].time, end: _.last(samples).time}
+              }, this.parallel());
+
+              var cb = this.parallel();
+              cb(null, samples);
+              var cb2 = this.parallel();
+              cb2(null, doc);
+            },
+            function insertOpenTsdb(err, success, samples, doc) {
               if (err) return this(err);
+              if (!samples || samples.length === 0)
+                return this(null, null, null);
               running--;
               var awake = null;
               var samples_ = _.map(samples, function(s) {
@@ -95,17 +118,21 @@ boots.start(function (props) {
                 uri: uri,
                 method: 'post',
                 json: JSON.stringify(sampleSet)
-              }, this);
+              }, this.parallel());
+
+              var cb = this.parallel();
+              cb(null, doc);
             },
-            function (err, resp) {
+            function (err, resp, doc) {
               if (err) {
-                console.log('exiting', err);
+                console.log(doc);
+                console.log('exiting', err, err.stack);
                 process.exit(0);
               }
               if(docs.length > 0)
                 runStep();
-              return;
-
+              else
+                return next(null);
             }
           );
         }
@@ -114,7 +141,7 @@ boots.start(function (props) {
       runStep();
 
     },
-    function (err, docs) {
+    function (err) {
       boots.error(err);
       console.log('Done');
       process.exit(0);
