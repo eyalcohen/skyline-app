@@ -51,7 +51,9 @@ console.log('Deleting samples on datasets');
 
 boots.start(function (props) {
 
-  var db = props.db
+  var db = props.db;
+  var totalLength;
+  var complete = 0;
 
   Step(
     function () {
@@ -61,9 +63,9 @@ boots.start(function (props) {
       if (err || !docs || docs.length === 0) return this(err);
 
       var running = 0;
-      var limit = 25;
+      var limit = 1;
       var next = this;
-      var totalLength = docs.length;
+      totalLength = docs.length;
 
       var uri = 'http://localhost:8083'
 
@@ -92,7 +94,7 @@ boots.start(function (props) {
                 return this(null, null, null, null);
 
               db.Channels.update({channelName: doc.channelName}, {
-                $set: {beg: samples[0].time, end: _.last(samples).time}
+                $set: {beg: samples[0].beg/1000, end: _.last(samples).beg/1000}
               }, this.parallel());
 
               var cb = this.parallel();
@@ -104,7 +106,6 @@ boots.start(function (props) {
               if (err) return this(err);
               if (!samples || samples.length === 0)
                 return this(null, null, null);
-              running--;
               var awake = null;
               var samples_ = _.map(samples, function(s) {
                 return { time: s.beg/1000, value: s.val }
@@ -124,6 +125,8 @@ boots.start(function (props) {
               cb(null, doc);
             },
             function (err, resp, doc) {
+              running--;
+              complete++;
               if (err) {
                 console.log(doc);
                 console.log('exiting', err, err.stack);
@@ -144,7 +147,8 @@ boots.start(function (props) {
     function (err) {
       boots.error(err);
       console.log('Done');
-      process.exit(0);
+      if (complete === totalLength - 1)
+        process.exit(0);
     }
   );
 
