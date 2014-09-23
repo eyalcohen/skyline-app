@@ -1,4 +1,7 @@
 /*
+
+Modified by EC on 9/23/2014 to remove drawing on zoom/pan
+
 Flot plugin for adding panning and zooming capabilities to a plot.
 
 The default behaviour is double click and scrollwheel up/down to zoom
