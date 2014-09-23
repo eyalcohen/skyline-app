@@ -283,8 +283,8 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
                 opts.max = max;
             });
             
-            plot.setupGrid();
-            plot.draw();
+            //plot.setupGrid();
+            //plot.draw();
             
             if (!args.preventEvent)
                 plot.getPlaceholder().trigger("plotzoom", [ plot ]);
@@ -331,8 +331,8 @@ Licensed under the MIT License ~ http://threedubmedia.googlecode.com/files/MIT-L
                 opts.max = max;
             });
             
-            plot.setupGrid();
-            plot.draw();
+            //plot.setupGrid();
+            //plot.draw();
             
             if (!args.preventEvent)
                 plot.getPlaceholder().trigger("plotpan", [ plot ]);
