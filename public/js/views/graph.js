@@ -389,9 +389,13 @@ define([
       var series = [];
       var yaxes = [{min: Infinity, max: -Infinity, cnt: 0},
           {min: Infinity, max: -Infinity, cnt: 0}];
+      var numPoints = this.getVisiblePoints();
       _.each(channels, _.bind(function (channel, i) {
         var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
         var highlighted = this.highlightedChannel === channel.channelName;
+        var showPoints = ((numPoints[i] < this.POINTS_TO_SHOW)
+                         || !lineStyleOpts.showLines)
+                         && lineStyleOpts.showPoints;
 
         // Setup series.
         var seriesBase = {
@@ -402,12 +406,13 @@ define([
         var data = this.getSeriesData(channel);
         series.push(_.extend({
           points: {
-            show: false,
+            show: showPoints,
+            radius: lineStyleOpts.pointRadius
           },
           lines: {
-            show: false,
-            lineWidth: 2,
-            fill: false,
+            show: lineStyleOpts.showLines,
+            lineWidth: lineStyleOpts.lineWidth,
+            fill: lineStyleOpts.showArea
           },
           data: data.data,
           channelName: channel.channelName,
@@ -441,7 +446,6 @@ define([
       this.updateSeriesColors(series);
       this.plot.setData(series);
       this.plot.setupGrid();
-      this.updateGraphLineStyle();
       this.plot.draw();
     },
 
@@ -863,46 +867,6 @@ define([
           s.zorder = 10000 + (highlighted ? 50000 : s.channelIndex);
         }
       }, this));
-    },
-
-    updateGraphLineStyle: function() {
-      var plotData = this.plot.getData();
-      var opts = this.plot.getOptions();
-      var numPoints = this.getVisiblePoints();
-      var needsUpdate = false;
-
-      _.each(plotData, function(series, idx) {
-
-        if (series.channelName.indexOf('__minmax') != -1) {
-          return;
-        }
-        var lineStyleOpts = this.model.lineStyleOptions[series.channelName];
-
-        // copy over some series data
-        var oldPoints = {}, oldLines = {};
-        _.extend(oldPoints, series.points);
-        _.extend(oldLines, series.lines);
-
-        // don't display line series points if we have a lot of data
-        series.points.show = ((numPoints[idx] < this.POINTS_TO_SHOW)
-                          || !lineStyleOpts.showLines)
-                          && lineStyleOpts.showPoints;
-
-        series.lines.show = lineStyleOpts.showLines;
-        series.lines.lineWidth = lineStyleOpts.lineWidth;
-        series.points.radius = lineStyleOpts.pointRadius;
-        series.lines.fill = lineStyleOpts.showArea;
-
-        // compare seriesect properties and decide whether we ned to redraw
-        if (JSON.stringify(series.lines) !== JSON.stringify(oldLines)
-            || JSON.stringify(series.points) !== JSON.stringify(oldPoints)) {
-            needsUpdate = true;
-        }
-      }, this);
-
-      if (needsUpdate) {
-        this.plot.setData(plotData);
-      }
     },
 
     // if mouse is near channel line, mark it as the highlighted channel
