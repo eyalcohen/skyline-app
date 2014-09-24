@@ -605,7 +605,6 @@ define([
           } else {
             this.plot.zoom({center: c, amount: factor});
           }
-          this.draw();
         }
       }
 
