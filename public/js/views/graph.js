@@ -393,20 +393,6 @@ define([
           channelIndex: i,
         };
         var data = this.getSeriesData(channel);
-        series.push(_.extend({
-          points: {
-            show: showPoints,
-            radius: lineStyleOpts.pointRadius
-          },
-          lines: {
-            show: lineStyleOpts.showLines,
-            lineWidth: lineStyleOpts.lineWidth,
-            fill: lineStyleOpts.showArea
-          },
-          data: data.data,
-          channelName: channel.channelName,
-          label: channel.title,
-        }, seriesBase));
 
         // minMax view hacks
         // count number of nulls in the data, don't show if too many
@@ -416,6 +402,28 @@ define([
         }, 0);
 
         var showMinMax = numNulls < data.minMax.length * 0.33;
+
+        // for area fill plots, show max only
+        if (showMinMax && lineStyleOpts.showArea) {
+          _.each(data.minMax, function(obj) {
+            obj.pop();
+          });
+        }
+
+        series.push(_.extend({
+          points: {
+            show: showPoints,
+            radius: lineStyleOpts.pointRadius
+          },
+          lines: {
+            show: lineStyleOpts.showLines,
+            lineWidth: lineStyleOpts.lineWidth,
+            fill: showMinMax ? 0 : lineStyleOpts.showArea
+          },
+          data: data.data,
+          channelName: channel.channelName,
+          label: channel.title,
+        }, seriesBase));
 
         if (data.minMax.length > 0 && showMinMax) {
           series.push(_.extend({

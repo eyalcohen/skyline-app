@@ -257,7 +257,7 @@ define([
    * Get the best duration to use for a given number of us/pixel.
    */
   Cache.prototype.getBestGraphDuration = function(usPerPixel, highres) {
-    var maxPixelsPerSample = highres ? 5 : 40;
+    var maxPixelsPerSample = highres ? 5 : 75;
     if (usPerPixel < 0) usPerPixel = 0;
     return _.last(_.filter(this.durations, function(v) {
       return v <= usPerPixel * maxPixelsPerSample;
