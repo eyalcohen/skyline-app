@@ -181,7 +181,7 @@ define([
       // Options.
       var resample = $('[value="resample"]').is(':checked');
       var resampleTime =
-          Math.round(Number(this.resampleTo.val()) * 1e6);
+          Math.round(Number(this.resampleTo.val()) * 1e3);
       var minmax = false; // FIXME
 
       // Check max count.
@@ -199,23 +199,14 @@ define([
         this.resampleTo.removeClass('input-error');
       }
 
-      // Include time channels.
-      var channels = [
-        {channelName: '$beginDate', humanName: 'Begin Date'},
-        {channelName: '$beginTime', humanName: 'Begin Time'},
-        {channelName: '$beginRelTime', humanName: 'Begin Since Start', units: 's'},
-        {channelName: '$endRelTime', humanName: 'End Since Start', units: 's'},
-      ];
-
       // Filter channels.
-      channels = channels.concat(_.reject(this.channels,
-          function (c) { return c.skip; }));
+      var channels = _.reject(this.channels, function (c) { return c.skip; });
 
       // Start download.
       window.location.href = '/api/datasets'
           + '?beg=' + Math.floor(viewRange.beg)
           + '&end=' + Math.ceil(viewRange.end)
-          + (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e6) : '')
+          + (resample ? '&resample=' + Math.round(Number(resampleTime) * 1e3) : '')
           + (resample && minmax ? '&minmax' : '')
           + channels.map(function (c) {
             return '&chan=' + c.channelName;
