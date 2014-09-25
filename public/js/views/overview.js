@@ -282,19 +282,30 @@ define([
       var max = -Number.MAX_VALUE;
       if (this.model.sampleCollection[channel.channelName])
         samples = this.model.sampleCollection[channel.channelName].sampleSet;
-      var prevEnd = null;
-      _.each(samples, function (s) {
+
+        // establish an average duration of the samples from the first 5 samples.
+        var durationAvg = 0;
+        var movingAvgNum = 3;
+        if (samples && samples.length > 0) {
+          for (var i = 1; i <= movingAvgNum; i++) {
+            durationAvg += samples[i].time - samples[i-1].time;
+          }
+          durationAvg /= movingAvgNum;
+        }
+        if (durationAvg === 0)
+          durationAvg = inf;
+
+      _.each(samples, function (s, i) {
+
+        if (i > 0 && ((s.time - samples[i-1].time) > (durationAvg * 2))) {
+          data.push({t: samples[i-1].time, v: null});
+          data.push({t: s.time, v: null});
+        }
+
         var val = s.avg * conv.factor;
         if (val < min) min = val;
         if (val > max) max = val;
-        /*
-        if (prevEnd != s.beg) {
-          data.push({t: prevEnd, v:null});
-          data.push({t: s.beg, v:null});
-        }
-        */
         data.push({t: s.time, v: val});
-        prevEnd = s.end;
       });
       return {data: data, min: min, max: max};
     },

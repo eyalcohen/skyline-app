@@ -707,6 +707,9 @@ define([
         samples = this.model.sampleCollection[channel.channelName].sampleSet;
         // offset = this.model.sampleCollection[channel.channelName].offset;
       }
+      if (!samples || samples.length === 0)
+        return { data: [], minMax: [] };
+
       // make a 3 pixel wide marker showing that data exists in this region
       if (samples.length === 1) {
         if (samples[0].max && samples[0].min) {
@@ -716,9 +719,35 @@ define([
           minMax.push([samples[0].time + adder, samples[0].max, samples[0].min]);
         }
       } else {
+
+        var durationAvg = 0;
+        var movingAvgNum = 3;
+
+        // establish an average duration of the samples from the first 5 samples.
+        for (var i = 1; i <= movingAvgNum; i++) {
+          durationAvg += samples[i].time - samples[i-1].time;
+        }
+        durationAvg /= movingAvgNum;
+        if (durationAvg === 0)
+          durationAvg = inf;
+
         _.each(samples, function (s, i) {
           var val = s.avg * conv.factor;
+
+          // Here we insert a null sample, which appears as a break in the 
+          // time-series data.  We do this by comparing the duration to the
+          // moving average... its a visual hack to deliniate streams that
+          // are not uploading.
+          if (i > 0 && ((s.time - samples[i-1].time) > (durationAvg * 2))) {
+            data.push([null]);
+            minMax.push([null]);
+          }
+
           data.push([s.time, s.avg]);
+
+          // collect a 5 point moving average.  If the samples duration is
+          // much different than the moving average duration, we insert a null.
+          // In this way, we can put breaks in the data where appropriate.
 
           // Add an extra datapoint for step-wise style
           var lineStyleOpts = this.model.lineStyleOptions[channel.channelName];
