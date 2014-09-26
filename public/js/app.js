@@ -114,7 +114,7 @@ define([
         window._app = app;
         console.log('skyline dev');
       } else {
-        console.log('skyline ' + window.__s);
+        console.log('skyline ' + _.str.strRightBack(window.__s, '/'));
       }
     }
 
