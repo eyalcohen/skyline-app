@@ -112,6 +112,9 @@ define([
       // For local dev.
       if (window.__s === '') {
         window._app = app;
+        console.log('skyline dev');
+      } else {
+        console.log('skyline ' + window.__s);
       }
     }
 
