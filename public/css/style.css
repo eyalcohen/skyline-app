@@ -5604,8 +5604,8 @@ a.linestyle-close {
 }
 
 .minicolors-swatch {
-  top: 4px !important;
-  left: 11px !important;
+  /*top: 4px !important;
+  left: 11px !important;*/
   width: 21px !important;
   height: 21px !important;
   border: solid 1px #d0d0d0 !important;
