@@ -11,6 +11,7 @@ define([
   'text!../../templates/splash.html',
   'views/lists/events',
   'views/lists/datasets.sidebar',
+  'fancybox_plugins'
 ], function ($, _, Backbone, mps, util, template, Events, Datasets) {
   return Backbone.View.extend({
 
@@ -32,7 +33,7 @@ define([
     },
 
     setup: function () {
-      
+
       // Save refs.
       this.top = this.$('.splash-top');
       this.topBottom = this.$('.splash-top-bottom');
@@ -57,13 +58,30 @@ define([
         library: true
       });
 
+      // Handle video.
+      this.$('.splash-play-video').fancybox({
+        openEffect: 'fade',
+        closeEffect: 'fade',
+        closeBtn: false,
+        width: 800,
+        height: 500,
+        padding: 0,
+        margin: [-30,0,0,0],
+        helpers: {
+          media: true
+        },
+        vimeo: {
+          autoplay: 1
+        }
+      });
+
       this.rotate();
 
       return this;
     },
 
     events: {
-      'click .splash-embed-dots': 'rotate'
+      'click .splash-embed-dots': 'rotate',
     },
 
     empty: function () {
@@ -118,11 +136,11 @@ define([
         this.iframe.attr('src', next.data('url'));
         _.delay(_.bind(function () {
           this.iframe.css('opacity', 1);
-          // this.timeout = setTimeout(_.bind(this.rotate, this), 10000);
+          // this.timeout = setTimeout(_.bind(this.rotate, this), 12000);
           this.rotating = false;
         }, this), 1000);
       }, this), 200);
-    }
+    },
 
   });
 });

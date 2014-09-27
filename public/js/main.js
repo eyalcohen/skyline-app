@@ -17,6 +17,7 @@ require.config({
     excanvas: 'lib/excanvas/excanvas.src',
     plugins: 'lib/jquery/plugins',
     flot_plugins: 'lib/jquery/flot.plugins',
+    fancybox_plugins: 'lib/jquery/jquery.fancybox-media',
     d3: 'lib/d3/d3.v3'
   },
 
@@ -43,6 +44,9 @@ require.config({
       deps: ['jQuery']
     },
     flot_plugins: {
+      deps: ['jQuery', 'plugins']
+    },
+    fancybox_plugins: {
       deps: ['jQuery', 'plugins']
     },
     d3: {

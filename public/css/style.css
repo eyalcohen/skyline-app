@@ -1384,6 +1384,11 @@ body.embed .folder {
   margin: 0 0 0 584px;
 }
 
+.leftside iframe {
+  display: block;
+  margin-bottom: 30px;
+}
+
 /*.........................................................................*/
 
 .tabs {
@@ -3169,12 +3174,26 @@ a.comments-signin,
 }
 
 .event-divider {
+  display: none;
   border-top: 1px dashed #ececec;
   margin-right: -40px;
+
+  -webkit-animation-name: fadeIn;
+  -moz-animation-name: fadeIn;
+  -o-animation-name: fadeIn;
+  animation-name: fadeIn;
+  -webkit-animation-duration: 0.5s;
+  -moz-animation-duration: 0.5s;
+  -o-animation-duration: 0.5s;
+  animation-duration: 0.5s;
+  -webkit-animation-fill-mode: both;
+  -moz-animation-fill-mode: both;
+  -o-animation-fill-mode: both;
+  animation-fill-mode: both;
 }
 
 .event-divider + .event-divider {
-  display: none;
+  display: none !important;
 }
 
 .event {
