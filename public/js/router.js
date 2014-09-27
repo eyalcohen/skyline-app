@@ -38,10 +38,11 @@ define([
   'text!../templates/contact.html',
   'text!../templates/privacy.html',
   'text!../templates/terms.html'
-], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup, Forgot,
-    Flashes, Save, Finder, Header, Tabs, Dashboard, Trending, Notifications, Splash, Settings,
-    Upload, Reset, Profile, Library, Chart, Dataset, View, Static, How, howTemp, missionTemp, contactTemp,
-    privacyTemp, termsTemp) {
+], function ($, _, Backbone, mps, rest, util, Spin, Error, Signin, Signup,
+    Forgot, Flashes, Save, Finder, Header, Tabs, Dashboard, Trending,
+    Notifications, Splash, Settings, Upload, Reset, Profile, Library, Chart,
+    Dataset, View, Static, How, howTemp, missionTemp, contactTemp, privacyTemp,
+    termsTemp) {
 
   function inIframe () {
     try {
@@ -63,7 +64,6 @@ define([
       if (inIframe()) {
         this._navigate = this.navigate;
         this.navigate = function (path) {
-          // parent.window.location.pathname = path;
           window.open(path, '_blank');
         }
       }
@@ -168,7 +168,7 @@ define([
       function _render(err, login) {
         if (window.__s !== '') {
           ga('send', 'pageview');
-          if (this.app.profile.user) {
+          if (this.app.profile && this.app.profile.user) {
             ga('set', '&uid', this.app.profile.user.id);
           }
         }
