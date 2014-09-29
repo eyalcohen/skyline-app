@@ -37,7 +37,7 @@ define([
       this.datasets = [];
       this.channels = _.clone(this.graph.model.getChannels());
       _.each(this.channels, _.bind(function (c) {
-        c.did = Number(c.channelName.split('__')[1]);
+        c.did = Number(_.last(c.channelName.split('__')));
         var d = _.find(this.datasets, function (d) { return d.id === c.did; });
         if (!d) {
           d = _.find(datasets, function (d) { return d.id === c.did; });
