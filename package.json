@@ -4,12 +4,7 @@
   "version": "0.0.238",
   "protocol": {
     "name": "https",
-    "allow": [
-      {
-        "url": "/api/datasets",
-        "method": "PUT"
-      }
-    ]
+    "allow": []
   },
   "domain": "www.skyline-data.com",
   "port": 8080,
